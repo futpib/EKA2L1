@@ -22,12 +22,10 @@
 
 #if EKA2L1_PLATFORM(WIN32)
 #include "watcher_win32.h"
-#else
-#if EKA2L1_PLATFORM(UNIX)
+#elif EKA2L1_PLATFORM(UNIX) && !EKA2L1_PLATFORM(EMSCRIPTEN)
 #include "watcher_unix.h"
 #else
 #include "watcher_null.h"
-#endif
 #endif
 
 namespace eka2l1::common {

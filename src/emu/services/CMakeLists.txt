@@ -326,10 +326,17 @@ target_link_libraries(epocservs PUBLIC
         epocloader
         epocmem
         epocutils
-        uv_a
-        uvw
-        uvlooper
         thread-pool)
+
+if (NOT EMSCRIPTEN)
+    target_link_libraries(epocservs PUBLIC uv_a uvw uvlooper)
+else()
+    # Still need include dirs for headers even though networking is stubbed
+    target_include_directories(epocservs PUBLIC
+        ${CMAKE_SOURCE_DIR}/src/external/uvlooper/include
+        ${CMAKE_SOURCE_DIR}/src/external/uvw/src
+        ${CMAKE_SOURCE_DIR}/src/external/libuv/include)
+endif()
 
 target_link_libraries(epocservs PRIVATE
         config

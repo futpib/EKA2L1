@@ -2,7 +2,7 @@ if (WIN32)
     set(CUSTOM_COMMON_SOURCE
             src/watcher_win32.h
             src/watcher_win32.cpp)
-elseif (UNIX AND NOT APPLE)
+elseif (UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
     set(CUSTOM_COMMON_SOURCE
             src/watcher_unix.h
             src/watcher_unix.cpp)
@@ -58,7 +58,6 @@ add_library(common
         include/common/types.h
         include/common/unicode.h
         include/common/url.h
-        include/common/upnp.h
         include/common/region.h
         include/common/virtualmem.h
         include/common/watcher.h
@@ -95,13 +94,18 @@ add_library(common
         src/types.cpp
         src/unicode.cpp
         src/url.cpp
-        src/upnp.cpp
         src/region.cpp
         src/virtualmem.cpp
         src/watcher.cpp
         src/wildcard.cpp
         ${CUSTOM_COMMON_SOURCE}
         )
+
+if (NOT EMSCRIPTEN)
+    target_sources(common PRIVATE
+        include/common/upnp.h
+        src/upnp.cpp)
+endif()
 
 if (ANDROID)
     target_sources(common PRIVATE
@@ -118,7 +122,10 @@ endif()
 
 target_include_directories(common PUBLIC include)
 target_link_libraries(common PUBLIC fmt miniz spdlog)
-target_link_libraries(common PRIVATE pugixml miniupnpc::miniupnpc re2::re2)
+target_link_libraries(common PRIVATE pugixml re2::re2)
+if (NOT EMSCRIPTEN)
+    target_link_libraries(common PRIVATE miniupnpc::miniupnpc)
+endif()
 
 if (UNIX OR APPLE)
     set_property(TARGET common PROPERTY POSITION_INDEPENDENT_CODE ON)

@@ -97,7 +97,7 @@ add_subdirectory(glm)
 # Dynarmic: disable tests
 option(DYNARMIC_TESTS "Enable dynarmic tests" OFF)
 
-if (NOT ARCHITECTURE_ARM32)
+if (NOT ARCHITECTURE_ARM32 AND NOT EMSCRIPTEN)
     add_subdirectory(dynarmic)
 endif()
 
@@ -172,7 +172,13 @@ add_subdirectory(cubeb)
 
 
 # FFMPEG
-add_subdirectory(ffmpeg)
+if (EMSCRIPTEN)
+    # No prebuilt WASM ffmpeg — create header-only stub
+    add_library(ffmpeg INTERFACE)
+    target_include_directories(ffmpeg INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/include")
+else()
+    add_subdirectory(ffmpeg)
+endif()
 if (APPLE)
     target_link_libraries(ffmpeg INTERFACE "-framework CoreVideo" "iconv")
 endif()
@@ -195,6 +201,7 @@ add_subdirectory(libfat)
 
 # mbedtls
 set(ENABLE_TESTING OFF CACHE BOOL "Build mbed TLS tests." FORCE)
+set(ENABLE_PROGRAMS OFF CACHE BOOL "Build mbed TLS programs." FORCE)
 add_subdirectory(mbedtls)
 
 # SQLite3
@@ -227,7 +234,7 @@ set (TSF_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "TSF include path")
 
 # SDL2
 # Can't believe in 2022 the official CMake can't still ship a FindSDL2 with the program...
-if (NOT ANDROID)
+if (NOT ANDROID AND NOT EMSCRIPTEN)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/sdl2-cmake-scripts")
 
     if(APPLE)
@@ -251,8 +258,10 @@ option(BUILD_UVW_LIBS "Build UVW libraries" ON)
 option(FETCH_LIBUV "Fetch the libuv repo using CMake FetchContent facility" ON)
 set (BUILD_TESTING OFF CACHE INTERNAL "Enable testing with ctest." FORCE)
 
-add_subdirectory(uvw)
-add_subdirectory(uvlooper)
+if (NOT EMSCRIPTEN)
+    add_subdirectory(uvw)
+    add_subdirectory(uvlooper)
+endif()
 
 # UPNP
 
@@ -261,7 +270,9 @@ option (UPNPC_BUILD_TESTS "Build test executables" FALSE)
 option (UPNPC_BUILD_SAMPLE "Build sample executables" FALSE)
 option (UPNPC_NO_INSTALL "Disable installation" TRUE)
 
-add_subdirectory(miniupnp/miniupnpc)
+if (NOT EMSCRIPTEN)
+    add_subdirectory(miniupnp/miniupnpc)
+endif()
 
 # libtess2
 

@@ -1,0 +1,14 @@
+{
+  "name": "eka2l1-wasm-test",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types test.ts",
+    "test:e2e": "node --experimental-strip-types test-e2e.ts"
+  },
+  "devDependencies": {
+    "@futpib/fetch-cid": "^1.0.2",
+    "puppeteer": "^24.0.0",
+    "@types/node": "^22.0.0"
+  }
+}

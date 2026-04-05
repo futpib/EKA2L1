@@ -17,11 +17,18 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/platform.h>
+#if !EKA2L1_PLATFORM(EMSCRIPTEN)
 #include <drivers/video/backend/ffmpeg/video_player_ffmpeg.h>
+#endif
 #include <drivers/video/video.h>
 
 namespace eka2l1::drivers {
     video_player_instance new_best_video_player(audio_driver *drv) {
+#if !EKA2L1_PLATFORM(EMSCRIPTEN)
         return std::make_unique<video_player_ffmpeg>(drv);
+#else
+        return nullptr;
+#endif
     }
 }

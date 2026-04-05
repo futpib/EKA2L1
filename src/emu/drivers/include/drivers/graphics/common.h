@@ -244,6 +244,7 @@ namespace eka2l1::drivers {
         wayland,
         fbDev,
         haiku,
+        emscripten,
     };
 
     struct window_system_info {

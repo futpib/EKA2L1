@@ -93,7 +93,7 @@ add_library(cpu
 if (ARCHITECTURE_ARM32)
     target_sources(cpu PRIVATE ${SOURCE_12L1R})
     target_link_libraries(cpu PRIVATE Catch2)
-else()
+elseif(NOT EMSCRIPTEN)
     target_sources(cpu PRIVATE
             include/cpu/arm_dynarmic.h
             src/arm_dynarmic.cpp)

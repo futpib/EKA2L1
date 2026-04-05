@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EKA2L1 - Symbian Emulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #1a1a2e; color: #eee; font-family: monospace; display: flex; flex-direction: column; height: 100vh; }
+        #controls { padding: 8px; background: #16213e; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        #controls label { font-size: 13px; }
+        #controls input[type=file] { font-size: 13px; }
+        #controls button { padding: 4px 12px; cursor: pointer; font-family: monospace; }
+        #canvas-container { flex: 1; display: flex; justify-content: center; align-items: center; background: #000; }
+        canvas { border: 1px solid #333; }
+        #log { height: 150px; overflow-y: auto; padding: 4px 8px; background: #0f0f23; font-size: 12px; border-top: 1px solid #333; white-space: pre-wrap; }
+        #status { padding: 4px 8px; background: #16213e; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label>ROM: <input type="file" id="rom-file"></label>
+        <label>RPKG: <input type="file" id="rpkg-file"></label>
+        <label>SIS: <input type="file" id="sis-file"></label>
+        <label>App: <input type="text" id="app-name" placeholder="App name or UID" size="20"></label>
+        <button id="btn-start" onclick="startEmulator()">Start</button>
+    </div>
+    <div id="canvas-container">
+        <canvas id="canvas" width="360" height="640" oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+    <div id="status">Ready</div>
+    <div id="log"></div>
+
+    <script>
+        var Module = {
+            canvas: document.getElementById('canvas'),
+            print: function(text) {
+                var log = document.getElementById('log');
+                log.textContent += text + '\n';
+                log.scrollTop = log.scrollHeight;
+            },
+            printErr: function(text) {
+                var log = document.getElementById('log');
+                log.textContent += '[ERR] ' + text + '\n';
+                log.scrollTop = log.scrollHeight;
+            },
+            setStatus: function(text) {
+                document.getElementById('status').textContent = text || 'Ready';
+            }
+        };
+
+        function uploadFile(file, path) {
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function() {
+                    var data = new Uint8Array(reader.result);
+                    try {
+                        // Ensure parent directories exist
+                        var parts = path.split('/');
+                        var dir = '';
+                        for (var i = 0; i < parts.length - 1; i++) {
+                            dir += '/' + parts[i];
+                            try { FS.mkdir(dir); } catch(e) {}
+                        }
+                        FS.writeFile(path, data);
+                        resolve(path);
+                    } catch(e) {
+                        reject(e);
+                    }
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function startEmulator() {
+            var btn = document.getElementById('btn-start');
+            btn.disabled = true;
+            Module.setStatus('Initializing...');
+
+            try {
+                var romInput = document.getElementById('rom-file');
+                var rpkgInput = document.getElementById('rpkg-file');
+                var sisInput = document.getElementById('sis-file');
+                var appName = document.getElementById('app-name').value;
+
+                // Initialize
+                Module.ccall('eka2l1_init', 'number', ['string'], ['/data']);
+
+                // Install device if ROM provided
+                if (romInput.files.length > 0) {
+                    Module.setStatus('Uploading ROM...');
+                    var romPath = await uploadFile(romInput.files[0], '/tmp/' + romInput.files[0].name);
+                    var rpkgPath = '';
+                    if (rpkgInput.files.length > 0) {
+                        Module.setStatus('Uploading RPKG...');
+                        rpkgPath = await uploadFile(rpkgInput.files[0], '/tmp/' + rpkgInput.files[0].name);
+                    }
+                    Module.setStatus('Installing device...');
+                    var ret = Module.ccall('eka2l1_install_device', 'number', ['string', 'string'], [romPath, rpkgPath]);
+                    if (ret !== 0) {
+                        throw new Error('Device installation failed: ' + ret);
+                    }
+                }
+
+                // Install SIS if provided
+                if (sisInput.files.length > 0) {
+                    Module.setStatus('Uploading SIS...');
+                    var sisPath = await uploadFile(sisInput.files[0], '/tmp/' + sisInput.files[0].name);
+                    Module.setStatus('Installing SIS...');
+                    var ret = Module.ccall('eka2l1_install_sis', 'number', ['string'], [sisPath]);
+                    if (ret !== 0) {
+                        throw new Error('SIS installation failed');
+                    }
+                }
+
+                // Run
+                if (appName) {
+                    Module.setStatus('Running: ' + appName);
+                    Module.ccall('eka2l1_run', 'number', ['string'], [appName]);
+                }
+            } catch(e) {
+                Module.setStatus('Error: ' + e.message);
+                Module.printErr(e.toString());
+                btn.disabled = false;
+            }
+        }
+    </script>
+    {{{ SCRIPT }}}
+</body>
+</html>

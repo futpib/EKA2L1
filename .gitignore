@@ -16,4 +16,6 @@ CMakeSettings.json
 out
 .metadata
 cmake-build-*
+build-wasm/*
 .idea
+src/tests/wasm/node_modules

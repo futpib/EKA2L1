@@ -20,7 +20,9 @@
 #include <drivers/graphics/context.h>
 #include <common/platform.h>
 
-#if EKA2L1_PLATFORM(WIN32)
+#if EKA2L1_PLATFORM(EMSCRIPTEN)
+#include "backend/context_emscripten.h"
+#elif EKA2L1_PLATFORM(WIN32)
 #include "backend/context_wgl.h"
 #elif EKA2L1_PLATFORM(MACOS)
 #include "backend/context_agl.h"
@@ -36,7 +38,9 @@ namespace eka2l1::drivers::graphics {
         {{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0}, {3, 3}, {3, 2}, {3, 1}, {3, 0} }};
 
     std::unique_ptr<gl_context> make_gl_context(const drivers::window_system_info &system_info, const bool stereo, const bool core) {
-#if EKA2L1_PLATFORM(WIN32)
+#if EKA2L1_PLATFORM(EMSCRIPTEN)
+        return std::make_unique<gl_context_emscripten>(system_info, stereo, core);
+#elif EKA2L1_PLATFORM(WIN32)
         return std::make_unique<gl_context_wgl>(system_info, stereo, core);
 #elif EKA2L1_PLATFORM(MACOS)
         return std::make_unique<gl_context_agl>(system_info, stereo, core);

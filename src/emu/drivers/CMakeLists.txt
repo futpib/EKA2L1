@@ -13,8 +13,6 @@ add_library(drivers
         include/drivers/audio/stream.h
         include/drivers/audio/backend/cubeb/audio_cubeb.h
         include/drivers/audio/backend/cubeb/stream_cubeb.h
-        include/drivers/audio/backend/ffmpeg/dsp_ffmpeg.h
-        include/drivers/audio/backend/ffmpeg/player_ffmpeg.h
         include/drivers/audio/backend/minibae/player_minibae.h
         include/drivers/audio/backend/tinysoundfont/player_tsf.h
         include/drivers/audio/backend/dsp_shared.h
@@ -40,7 +38,6 @@ add_library(drivers
         include/drivers/graphics/backend/ogl/texture_ogl.h
         include/drivers/input/emu_controller.h
         include/drivers/sensor/sensor.h
-        include/drivers/video/backend/ffmpeg/video_player_ffmpeg.h
         include/drivers/video/video.h
         src/driver.cpp
         src/itc.cpp
@@ -50,8 +47,6 @@ add_library(drivers
         src/audio/stream.cpp
         src/audio/backend/cubeb/audio_cubeb.cpp
         src/audio/backend/cubeb/stream_cubeb.cpp
-        src/audio/backend/ffmpeg/dsp_ffmpeg.cpp
-        src/audio/backend/ffmpeg/player_ffmpeg.cpp
         src/audio/backend/minibae/player_minibae.cpp
         src/audio/backend/tinysoundfont/player_tsf.cpp
         src/audio/backend/bae_platimpl.cpp
@@ -80,10 +75,13 @@ add_library(drivers
         src/graphics/backend/ogl/shader_ogl.cpp
         src/sensor/backend/null/sensor_null.cpp
         src/sensor/sensor.cpp
-        src/video/backend/ffmpeg/video_player_ffmpeg.cpp
         src/video/video.cpp
         ${DRIVERS_VULKAN_SRC})
-if (NOT ANDROID)
+if (EMSCRIPTEN)
+    target_sources(drivers PRIVATE
+        src/graphics/backend/context_emscripten.cpp
+        src/graphics/backend/context_emscripten.h)
+elseif(NOT ANDROID)
     target_sources(drivers PRIVATE
         include/drivers/input/backend/emu_controller_sdl2.h
         include/drivers/hwrm/backend/vibration_sdl2.h
@@ -105,6 +103,16 @@ else()
         src/hwrm/backend/vibration_jdk.cpp
         src/sensor/backend/android/sensor_android.cpp
         src/sensor/backend/android/sensor_android.h)
+endif()
+
+if (NOT EMSCRIPTEN)
+    target_sources(drivers PRIVATE
+        include/drivers/audio/backend/ffmpeg/dsp_ffmpeg.h
+        include/drivers/audio/backend/ffmpeg/player_ffmpeg.h
+        include/drivers/video/backend/ffmpeg/video_player_ffmpeg.h
+        src/audio/backend/ffmpeg/dsp_ffmpeg.cpp
+        src/audio/backend/ffmpeg/player_ffmpeg.cpp
+        src/video/backend/ffmpeg/video_player_ffmpeg.cpp)
 endif()
 
 if(WIN32)
@@ -135,6 +143,8 @@ elseif(ANDROID)
         src/graphics/backend/context_egl_android.cpp
         src/graphics/backend/context_egl_android.h
     )
+elseif(EMSCRIPTEN)
+    # WebGL context is handled via context_emscripten.cpp added above
 else()
     find_package(X11 REQUIRED)
     find_package(OpenGL REQUIRED)
@@ -161,8 +171,13 @@ target_include_directories(miniBAE_EMU
 target_compile_options(miniBAE_EMU PRIVATE -Wno-int-conversion -Wno-incompatible-pointer-types)
 target_link_libraries(miniBAE_EMU PRIVATE common)
 
-target_link_libraries(drivers PRIVATE common cubeb ffmpeg glad glm miniBAE_EMU)
-if (NOT ANDROID)
+target_link_libraries(drivers PRIVATE common cubeb glad glm miniBAE_EMU)
+if (NOT EMSCRIPTEN)
+    target_link_libraries(drivers PRIVATE ffmpeg)
+endif()
+if (EMSCRIPTEN)
+    # No SDL2 or platform libs needed — Emscripten provides GL/EGL
+elseif(NOT ANDROID)
     target_link_libraries(drivers PRIVATE SDL2)
 else()
     target_link_libraries(drivers PRIVATE android)
