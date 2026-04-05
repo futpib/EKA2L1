@@ -66,6 +66,7 @@ namespace eka2l1::drivers {
                     LOG_CRITICAL(DRIVER_GRAPHICS, "gladLoadGLES2Loader() failed");
                     return;
                 }
+                LOG_INFO(DRIVER_GRAPHICS, "GLAD GLES2 loaded successfully via emscripten_webgl_get_proc_address");
 #endif
 
                 break;
