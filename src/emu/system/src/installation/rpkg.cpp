@@ -273,7 +273,7 @@ namespace eka2l1::loader {
                 break;
             }
 
-            LOG_INFO(SYSTEM, "Extracting: {}", common::ucs2_to_utf8(entry.path));
+            LOG_TRACE(SYSTEM, "Extracting: {}", common::ucs2_to_utf8(entry.path));
 
             if (!extract_file(devices_rom_path, f, entry, total_size, progress_cb, cancel_cb)) {
                 break;

@@ -157,10 +157,14 @@ int eka2l1_install_device(const char *rom_path, const char *rpkg_path) {
         params.vpl_path = rom_path;
     }
 
-    auto progress_cb = [](const std::uint64_t so_far, const std::uint64_t total) {
+    int last_pct = -1;
+    auto progress_cb = [&last_pct](const std::uint64_t so_far, const std::uint64_t total) {
         if (total > 0) {
             int pct = static_cast<int>(so_far * 100 / total);
-            LOG_INFO(FRONTEND_CMDLINE, "Installing device: {}%", pct);
+            if (pct != last_pct) {
+                LOG_INFO(FRONTEND_CMDLINE, "Installing device: {}%", pct);
+                last_pct = pct;
+            }
         }
     };
 
