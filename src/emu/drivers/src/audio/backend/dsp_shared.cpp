@@ -59,8 +59,12 @@ namespace eka2l1::drivers {
             return data_callback(buffer, nb_frames);
         });
 
-        if (stream_)
-            stream_->set_volume(static_cast<float>(volume_) / 10.0f);
+        if (!stream_) {
+            LOG_ERROR(eka2l1::DRIVER_AUD, "Failed to create audio output stream (freq={}, channels={})", freq, channels);
+            return false;
+        }
+
+        stream_->set_volume(static_cast<float>(volume_) / 10.0f);
 
         if (!was_already_stopped) {
             stream_->start();
@@ -89,6 +93,11 @@ namespace eka2l1::drivers {
             stream_ = aud_->new_output_stream(8000, 1, [this](std::int16_t *buffer, const std::size_t nb_frames) {
                 return data_callback(buffer, nb_frames);
             });
+
+            if (!stream_) {
+                LOG_ERROR(eka2l1::DRIVER_AUD, "Failed to create default audio output stream");
+                return false;
+            }
 
             virtual_stop = true;
         }
