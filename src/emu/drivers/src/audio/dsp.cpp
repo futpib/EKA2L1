@@ -86,21 +86,54 @@ namespace eka2l1::drivers {
     }
 
 
+    struct noop_dsp_output_stream : public dsp_output_stream {
+        bool write(const std::uint8_t *, const std::uint32_t) override { return true; }
+        bool set_properties(const std::uint32_t freq, const std::uint8_t channels) override {
+            freq_ = freq;
+            channels_ = channels;
+            return true;
+        }
+        void get_supported_formats(std::vector<four_cc> &cc_list) override {
+            cc_list.push_back(PCM16_FOUR_CC_CODE);
+        }
+        bool start() override { return true; }
+        bool stop() override { return true; }
+        std::uint64_t position() override { return 0; }
+        std::uint64_t real_time_position() override { return 0; }
+    };
+
+    struct noop_dsp_input_stream : public dsp_input_stream {
+        bool read(std::uint8_t *, const std::uint32_t) override { return true; }
+        bool set_properties(const std::uint32_t freq, const std::uint8_t channels) override {
+            freq_ = freq;
+            channels_ = channels;
+            return true;
+        }
+        void get_supported_formats(std::vector<four_cc> &cc_list) override {
+            cc_list.push_back(PCM16_FOUR_CC_CODE);
+        }
+        bool start() override { return true; }
+        bool stop() override { return true; }
+        std::uint64_t position() override { return 0; }
+        std::uint64_t real_time_position() override { return 0; }
+    };
+
     std::unique_ptr<dsp_stream> new_dsp_out_stream(drivers::audio_driver *aud, const dsp_stream_backend dsp_backend) {
-        switch (dsp_backend) {
 #if !EKA2L1_PLATFORM(EMSCRIPTEN)
+        switch (dsp_backend) {
         case dsp_stream_backend_ffmpeg:
             return std::make_unique<dsp_output_stream_ffmpeg>(aud);
-#endif
 
         default:
             break;
         }
+#endif
 
-        return nullptr;
+        return std::make_unique<noop_dsp_output_stream>();
     }
 
     std::unique_ptr<dsp_stream> new_dsp_in_stream(drivers::audio_driver *aud, const dsp_stream_backend dsp_backend) {
+#if !EKA2L1_PLATFORM(EMSCRIPTEN)
         switch (dsp_backend) {
         case dsp_stream_backend_ffmpeg:
             return std::make_unique<dsp_input_stream_shared>(aud);
@@ -108,7 +141,8 @@ namespace eka2l1::drivers {
         default:
             break;
         }
+#endif
 
-        return nullptr;
+        return std::make_unique<noop_dsp_input_stream>();
     }
 }

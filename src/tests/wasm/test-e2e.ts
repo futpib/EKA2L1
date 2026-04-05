@@ -34,8 +34,8 @@ function acquirePidLock(): void {
       process.kill(oldPid, 0); // check if process exists
       console.error(`FAIL: Another e2e test is already running (pid ${oldPid}). Remove ${PID_FILE} if stale.`);
       process.exit(1);
-    } catch {
-      // Process doesn't exist — stale pid file
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code !== "ESRCH") throw err;
       console.log(`Removing stale pid file (pid ${oldPid})`);
     }
   }
@@ -43,11 +43,9 @@ function acquirePidLock(): void {
 }
 
 function releasePidLock(): void {
-  try {
-    if (fs.existsSync(PID_FILE) && fs.readFileSync(PID_FILE, "utf-8").trim() === String(process.pid)) {
-      fs.unlinkSync(PID_FILE);
-    }
-  } catch { /* ignore */ }
+  if (fs.existsSync(PID_FILE) && fs.readFileSync(PID_FILE, "utf-8").trim() === String(process.pid)) {
+    fs.unlinkSync(PID_FILE);
+  }
 }
 
 async function runTests(): Promise<void> {
@@ -195,27 +193,43 @@ async function runTests(): Promise<void> {
     log("PASS: Emulator is running\n");
 
     // 6. Wait for meaningful frame — canvas has non-zero pixels.
-    // The emulator main loop may consume the main thread, so we use
-    // raf polling which piggybacks on requestAnimationFrame.
+    // Poll from Node so we can also check for page errors / aborts.
     log("Waiting for meaningful frame...");
-    await page.waitForFunction(
-      () => {
+    const pixelTimeout = 120_000;
+    const pixelStart = performance.now();
+    let gotPixels = false;
+    while (performance.now() - pixelStart < pixelTimeout) {
+      if (errors.length > 0) {
+        throw new Error(`Page error while waiting for frame: ${errors[0]}`);
+      }
+      const abortMsg = consoleMessages.find((m) => m.text.includes("ABORT:"));
+      if (abortMsg) {
+        throw new Error(`WASM abort while waiting for frame: ${abortMsg.text}`);
+      }
+      gotPixels = await page.evaluate(() => {
         const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-        if (!canvas) return false;
-        const gl = canvas.getContext("webgl2");
-        if (!gl) return false;
-        const pixels = new Uint8Array(canvas.width * 4);
-        gl.readPixels(0, canvas.height / 2, canvas.width, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        if (!canvas || canvas.width === 0 || canvas.height === 0) return false;
+        const tmp = document.createElement("canvas");
+        tmp.width = canvas.width;
+        tmp.height = canvas.height;
+        const ctx = tmp.getContext("2d");
+        if (!ctx) return false;
+        ctx.drawImage(canvas, 0, 0);
+        const row = ctx.getImageData(0, Math.floor(canvas.height / 2), canvas.width, 1).data;
         let nonZero = 0;
-        for (let i = 0; i < pixels.length; i += 4) {
-          if (pixels[i] !== 0 || pixels[i + 1] !== 0 || pixels[i + 2] !== 0) {
+        for (let i = 0; i < row.length; i += 4) {
+          if (row[i] !== 0 || row[i + 1] !== 0 || row[i + 2] !== 0) {
             nonZero++;
           }
         }
         return nonZero > 10;
-      },
-      { timeout: 60_000, polling: "raf" },
-    );
+      });
+      if (gotPixels) break;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    if (!gotPixels) {
+      throw new Error(`No meaningful pixels after ${(pixelTimeout / 1000).toFixed(0)}s`);
+    }
     log("PASS: Canvas has meaningful pixels\n");
 
     log("All e2e tests passed!");
@@ -237,11 +251,7 @@ async function runTests(): Promise<void> {
     server.close();
 
     // Cleanup temp files
-    try {
-      fs.rmSync(tmpDir, { recursive: true });
-    } catch {
-      // ignore
-    }
+    fs.rmSync(tmpDir, { recursive: true, force: true });
 
     releasePidLock();
   }

@@ -21,9 +21,6 @@
 #include <common/configure.h>
 
 #include <common/algorithm.h>
-#ifdef __EMSCRIPTEN__
-#include <emscripten/console.h>
-#endif
 #include <common/chunkyseri.h>
 #include <common/container.h>
 #include <common/cvt.h>
@@ -688,18 +685,9 @@ namespace eka2l1 {
     }
 
     int system_impl::loop() {
-        static int loop_count = 0;
-        loop_count++;
-        if (loop_count <= 10 || loop_count % 100 == 0) {
-            LOG_INFO(SYSTEM, "loop() enter #{}", loop_count);
-        }
-
-        LOG_TRACE(SYSTEM, "loop: acquiring mutex");
         const std::lock_guard<std::mutex> guard(mut);
-        LOG_TRACE(SYSTEM, "loop: mutex acquired");
 
         if (paused) {
-            LOG_TRACE(SYSTEM, "loop: paused");
             return 1;
         }
 
@@ -707,7 +695,6 @@ namespace eka2l1 {
         bool script_hits_the_feels = false;
 
         kernel::thread *to_run = kern_->crr_thread();
-        LOG_TRACE(SYSTEM, "loop: crr_thread={}", fmt::ptr(to_run));
 
 #ifdef ENABLE_SCRIPTING
         manager::scripts *scripter = get_scripts();
@@ -738,7 +725,6 @@ namespace eka2l1 {
         }
 
         if (to_run != nullptr) {
-            LOG_TRACE(SYSTEM, "loop: cpu->run({})", to_run->get_remaining_screenticks());
             if (!should_step) {
                 cpu->run(to_run->get_remaining_screenticks());
             } else {
@@ -750,22 +736,16 @@ namespace eka2l1 {
 #endif
             }
 
-            LOG_TRACE(SYSTEM, "loop: cpu ran {} instructions", cpu->get_num_instruction_executed());
             to_run->add_ticks(cpu->get_num_instruction_executed());
-        } else {
-            LOG_TRACE(SYSTEM, "loop: no thread to run");
         }
 
-        LOG_TRACE(SYSTEM, "loop: reschedule");
         if (!kern_->should_terminate()) {
             kern_->reschedule();
         } else {
-            LOG_TRACE(SYSTEM, "loop: kernel wants to terminate");
             exit = true;
             return 0;
         }
 
-        LOG_TRACE(SYSTEM, "loop: done");
         return 1;
     }
 

@@ -1735,6 +1735,7 @@ namespace eka2l1::drivers {
     }
 
     void ogl_graphics_driver::display(command &cmd) {
+        LOG_TRACE(DRIVER_GRAPHICS, "display() called — swap_buffers");
         context_->swap_buffers();
 
         disp_hook_();

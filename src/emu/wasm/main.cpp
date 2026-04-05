@@ -30,11 +30,13 @@
 
 #include <drivers/audio/audio.h>
 #include <drivers/graphics/graphics.h>
+#include <drivers/itc.h>
 
 #include <kernel/kernel.h>
 #include <package/manager.h>
 #include <services/applist/applist.h>
 #include <services/init.h>
+#include <services/window/screen.h>
 #include <services/window/window.h>
 #include <utils/apacmd.h>
 #include <system/devices.h>
@@ -62,6 +64,8 @@ namespace {
         window_server *winserv = nullptr;
         bool running = false;
         bool system_started = false;
+        int present_status = 0;
+        std::size_t screen_redraw_cb_id = 0;
         std::unique_ptr<std::thread> emu_thread;
         std::unique_ptr<std::thread> gfx_thread;
     };
@@ -235,6 +239,9 @@ int eka2l1_run(const char *app_name) {
         }
 
         g_state->symsys->set_graphics_driver(g_state->graphics_driver.get());
+        g_state->graphics_driver->set_display_hook([]() {
+            // No-op display hook for WASM — swap_buffers is called by the driver
+        });
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver ready, entering command loop");
         gfx_ready_promise.set_value(true);
 
@@ -315,6 +322,59 @@ int eka2l1_run(const char *app_name) {
     g_state->winserv = reinterpret_cast<window_server *>(
         g_state->symsys->get_kernel_system()->get_by_name<service::server>(
             get_winserv_name_by_epocver(g_state->symsys->get_symbian_version_use())));
+
+    // Register screen redraw callback to present frames (like Qt frontend does)
+    if (g_state->winserv) {
+        epoc::screen *scr = g_state->winserv->get_screens();
+        if (scr) {
+            g_state->screen_redraw_cb_id = scr->add_screen_redraw_callback(
+                nullptr, [](void *, epoc::screen *scr, const bool) {
+                    if (!g_state || !g_state->graphics_driver) return;
+
+                    g_state->graphics_driver->wait_for(&g_state->present_status);
+
+                    drivers::graphics_command_builder builder;
+                    auto &crr_mode = scr->current_mode();
+
+                    eka2l1::vec2 swapchain_size(crr_mode.size);
+                    builder.set_swapchain_size(swapchain_size);
+                    builder.backup_state();
+
+                    builder.set_feature(drivers::graphics_feature::cull, false);
+                    builder.set_feature(drivers::graphics_feature::depth_test, false);
+                    builder.set_feature(drivers::graphics_feature::blend, false);
+                    builder.set_feature(drivers::graphics_feature::stencil_test, false);
+                    builder.set_feature(drivers::graphics_feature::clipping, false);
+
+                    eka2l1::rect viewport;
+                    viewport.size = swapchain_size;
+                    builder.set_viewport(viewport);
+
+                    builder.clear({ 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f }, drivers::draw_buffer_bit_color_buffer);
+
+                    eka2l1::rect dest;
+                    dest.size = swapchain_size;
+
+                    eka2l1::rect src;
+                    src.size = crr_mode.size;
+
+                    builder.draw_bitmap(scr->screen_texture, 0, dest, src, eka2l1::vec2(0, 0), 0.0f, 0);
+
+                    builder.load_backup_state();
+
+                    g_state->present_status = -100;
+                    builder.present(&g_state->present_status);
+
+                    auto cmd_list = builder.retrieve_command_list();
+                    g_state->graphics_driver->submit_command_list(cmd_list);
+                });
+            LOG_INFO(FRONTEND_CMDLINE, "Screen redraw callback registered");
+        } else {
+            LOG_WARN(FRONTEND_CMDLINE, "No screen available for redraw callback");
+        }
+    } else {
+        LOG_WARN(FRONTEND_CMDLINE, "Window server not found");
+    }
 
     g_state->running = true;
 
