@@ -19,7 +19,7 @@ else()
     set(EXCLUSIVE_QT_COMPONENTS OpenGL)
 endif()
 
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools Svg Network ${EXCLUSIVE_QT_COMPONENTS} REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets LinguistTools Svg Network GuiPrivate ${EXCLUSIVE_QT_COMPONENTS} REQUIRED)
 
 # Make list of TS files, and add them to resources. Credits from Yuzu CMakeLists
 set(TS_FOLDER translations)
@@ -28,9 +28,9 @@ file(GLOB_RECURSE TS_FILES ${TS_FOLDER}/*.ts)
 list(REMOVE_ITEM TS_FILES ${TS_FOLDER}/eka2l1.ts)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_create_translation(QM_FILES ${CMAKE_CURRENT_SOURCE_DIR} ${TS_FILES})
+    qt_add_translation(QM_FILES ${TS_FILES})
 else()
-    qt5_create_translation(QM_FILES ${CMAKE_CURRENT_SOURCE_DIR} ${TS_FILES})
+    qt5_add_translation(QM_FILES ${TS_FILES})
 endif()
 
 set(LANGUAGE_QRC_FILE ${CMAKE_CURRENT_BINARY_DIR}/languages.qrc)
@@ -185,6 +185,7 @@ target_link_libraries(eka2l1_qt PRIVATE
     Qt${QT_VERSION_MAJOR}::Svg
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::GuiPrivate
     ${EXCLUSIVE_QT_LIBRARIES}
     common
     config
