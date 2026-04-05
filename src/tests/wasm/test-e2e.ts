@@ -201,8 +201,6 @@ async function runTests(): Promise<void> {
   page.on("console", (msg) => {
     const text = msg.text();
     consoleMessages.push({ type: msg.type(), text });
-    // Skip verbose extraction logs to keep output readable
-    if (text.includes("Extracting:") || text.includes("Installing device: ")) return;
     console.log(`  [${msg.type()}] ${text}`);
   });
 

@@ -66,6 +66,8 @@ namespace eka2l1::loader {
     }
 
     static bool extract_file(const std::string &devices_rom_path, FILE *parent, rpkg_entry &ent, const std::size_t total, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb) {
+        auto t0 = std::chrono::steady_clock::now();
+
         std::string file_full_relative = common::ucs2_to_utf8(ent.path.substr(3));
         std::transform(file_full_relative.begin(), file_full_relative.end(), file_full_relative.begin(),
             ::tolower);
@@ -73,9 +75,13 @@ namespace eka2l1::loader {
         std::string real_path = add_path(add_path(devices_rom_path, "/temp/"), file_full_relative);
 
         std::string dir = eka2l1::file_directory(real_path);
+
+        auto t1 = std::chrono::steady_clock::now();
         common::create_directories(dir);
+        auto t2 = std::chrono::steady_clock::now();
 
         common::wo_std_file_stream wf(real_path, true);
+        auto t3 = std::chrono::steady_clock::now();
 
         if (!wf.valid()) {
             LOG_INFO(SYSTEM, "Skipping with real path: {}, dir: {}", real_path, dir);
@@ -88,15 +94,24 @@ namespace eka2l1::loader {
         std::array<char, 0x10000> temp;
         bool failed = false;
 
+        std::int64_t progress_us = 0;
+        std::int64_t cancel_us = 0;
+        std::int64_t fread_us = 0;
+        std::int64_t fwrite_us = 0;
+        int chunks = 0;
+
         while (left) {
+            auto tc0 = std::chrono::steady_clock::now();
             if (progress_cb) {
                 progress_cb(ftell(parent), total);
             }
+            auto tc1 = std::chrono::steady_clock::now();
 
             if (cancel_cb && cancel_cb()) {
                 failed = true;
                 break;
             }
+            auto tc2 = std::chrono::steady_clock::now();
 
             int64_t take = left < take_def ? left : take_def;
 
@@ -104,13 +119,32 @@ namespace eka2l1::loader {
                 failed = true;
                 break;
             }
+            auto tc3 = std::chrono::steady_clock::now();
 
             if (wf.write(temp.data(), take) != take) {
                 failed = true;
                 break;
             }
+            auto tc4 = std::chrono::steady_clock::now();
+
+            progress_us += std::chrono::duration_cast<std::chrono::microseconds>(tc1 - tc0).count();
+            cancel_us += std::chrono::duration_cast<std::chrono::microseconds>(tc2 - tc1).count();
+            fread_us += std::chrono::duration_cast<std::chrono::microseconds>(tc3 - tc2).count();
+            fwrite_us += std::chrono::duration_cast<std::chrono::microseconds>(tc4 - tc3).count();
+            chunks++;
 
             left -= take;
+        }
+
+        auto t4 = std::chrono::steady_clock::now();
+        auto mkdir_ms = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+        auto open_ms = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
+        auto write_ms = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
+        auto total_ms = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t0).count();
+
+        if (total_ms > 10000) { // log if > 10ms
+            LOG_INFO(SYSTEM, "extract_file: total={}us mkdir={}us open={}us loop={}us(progress={}us cancel={}us fread={}us fwrite={}us chunks={}) size={} path={}",
+                total_ms, mkdir_ms, open_ms, write_ms, progress_us, cancel_us, fread_us, fwrite_us, chunks, ent.data_size, common::ucs2_to_utf8(ent.path));
         }
 
         return !failed;
@@ -249,6 +283,9 @@ namespace eka2l1::loader {
             return device_installation_rpkg_corrupt;
         }
 
+        auto last_log_time = std::chrono::steady_clock::now();
+        int file_count = 0;
+
         while (!feof(f)) {
             total_read_size = 0;
 
@@ -273,14 +310,18 @@ namespace eka2l1::loader {
                 break;
             }
 
-            LOG_TRACE(SYSTEM, "Extracting: {}", common::ucs2_to_utf8(entry.path));
-
-            if (!extract_file(devices_rom_path, f, entry, total_size, progress_cb, cancel_cb)) {
-                break;
+            file_count++;
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_log_time).count() >= 1000) {
+                LOG_INFO(SYSTEM, "Extracting ({} files so far): {}", file_count, common::ucs2_to_utf8(entry.path));
+                if (progress_cb) {
+                    progress_cb(ftell(f), total_size);
+                }
+                last_log_time = now;
             }
 
-            if (progress_cb) {
-                progress_cb(ftell(f), total_size);
+            if (!extract_file(devices_rom_path, f, entry, total_size, nullptr, cancel_cb)) {
+                break;
             }
         }
 

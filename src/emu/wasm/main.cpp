@@ -19,6 +19,7 @@
 
 #include <common/cvt.h>
 #include <common/log.h>
+#include <spdlog/spdlog.h>
 #include <common/path.h>
 #include <common/types.h>
 #include <common/version.h>
@@ -113,6 +114,7 @@ EMSCRIPTEN_KEEPALIVE
 int eka2l1_init(const char *data_path) {
     log::setup_log(nullptr);
     log::toggle_console();
+    spdlog::set_pattern("[%H:%M:%S.%e] %L %^%v%$");
     LOG_INFO(FRONTEND_CMDLINE, "EKA2L1 WASM v0.0.1 ({}-{})", GIT_BRANCH, GIT_COMMIT_HASH);
 
     g_state = new wasm_state();

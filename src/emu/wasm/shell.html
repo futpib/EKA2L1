@@ -34,20 +34,37 @@
     <script>
         var Module = window.Module || {};
         Module.canvas = document.getElementById('canvas');
+
+        // Batched logging: buffer print output, flush every 200ms
+        var _logBuffer = [];
+        var _logTimer = null;
         var _origPrint = Module.print;
-        Module.print = function(text) {
-            console.log(text);
+        function _flushLog() {
+            if (_logBuffer.length === 0) return;
+            var batch = _logBuffer.join('\n');
+            _logBuffer.length = 0;
+            console.log(batch);
             var log = document.getElementById('log');
-            log.textContent += text + '\n';
-            log.scrollTop = log.scrollHeight;
-            if (_origPrint) _origPrint(text);
+            if (log) {
+                log.textContent += batch + '\n';
+                log.scrollTop = log.scrollHeight;
+            }
+            if (_origPrint) _origPrint(batch);
+        }
+        Module.print = function(text) {
+            _logBuffer.push(text);
+            if (!_logTimer) {
+                _logTimer = setTimeout(function() { _logTimer = null; _flushLog(); }, 200);
+            }
         };
         var _origPrintErr = Module.printErr;
         Module.printErr = function(text) {
             console.warn(text);
             var log = document.getElementById('log');
-            log.textContent += '[ERR] ' + text + '\n';
-            log.scrollTop = log.scrollHeight;
+            if (log) {
+                log.textContent += '[ERR] ' + text + '\n';
+                log.scrollTop = log.scrollHeight;
+            }
             if (_origPrintErr) _origPrintErr(text);
         };
         var _origOnAbort = Module.onAbort;
