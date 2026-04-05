@@ -380,6 +380,10 @@ namespace eka2l1::desktop {
             keybind_profile_option_handler);
         parser.add("--mmcid, --cid, -cid", "Set the MMC-ID for the mounted card", set_mmcid_option_handler);
         parser.add("--runng, --appng, -rng, -ang", "Run a single N-Gage game inside the E drive", run_ngage_game_option_handler);
+        parser.add("--installdevice", "Install a device.\n"
+                                       "\t\t\t  Usage: --installdevice <vpl_path>\n"
+                                       "\t\t\t         --installdevice <rom_path> <rpkg_path>",
+            device_install_option_handler);
 
 #if ENABLE_PYTHON_SCRIPTING
         parser.add("--gendocs", "Generate Python documentation", python_docgen_option_handler);

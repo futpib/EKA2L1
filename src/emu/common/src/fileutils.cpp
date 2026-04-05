@@ -770,6 +770,15 @@ namespace eka2l1::common {
         return true;
     }
 
+    std::string get_initial_directory() {
+        static std::string initial_dir = []() {
+            std::string dir;
+            get_current_directory(dir);
+            return dir;
+        }();
+        return initial_dir;
+    }
+
     bool is_system_case_insensitive() {
 #if EKA2L1_PLATFORM(WIN32)
         return true;

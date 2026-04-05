@@ -114,6 +114,7 @@ namespace eka2l1::common {
 
     bool set_current_directory(const std::string &path);
     bool get_current_directory(std::string &path);
+    std::string get_initial_directory();
 
     /**
      * @brief Open a C API file, handling through platform-specific API.

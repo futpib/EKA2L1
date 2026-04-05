@@ -95,6 +95,7 @@ int main(int argc, char *argv[]) {
         eka2l1::common::copy_folder(app_path_str + "/compat", data_path_str + "/compat", 0, nullptr);
     }
 
+    eka2l1::common::get_initial_directory();
     eka2l1::common::set_current_directory(data_path_str);
 #endif
 

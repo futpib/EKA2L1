@@ -19,12 +19,14 @@
 
 #include <common/arghandler.h>
 #include <common/cvt.h>
+#include <common/fileutils.h>
 #include <common/path.h>
 #include <common/pystr.h>
 #include <qt/cmdhandler.h>
 #include <qt/mainwindow.h>
 #include <qt/state.h>
 #include <system/devices.h>
+#include <system/installation/install_device.h>
 
 #include <package/manager.h>
 
@@ -68,6 +70,68 @@ bool app_install_option_handler(eka2l1::common::arg_parser *parser, void *userda
     }
 
     return true;
+}
+
+bool device_install_option_handler(eka2l1::common::arg_parser *parser, void *userdata, std::string *err) {
+    const char *first_path = parser->next_token();
+
+    if (!first_path) {
+        *err = "Usage: --installdevice <vpl_path>              Install from firmware\n"
+               "       --installdevice <rom_path> <rpkg_path>  Install from ROM + RPKG dump";
+        return false;
+    }
+
+    const char *second_path = parser->peek_token();
+    bool has_second = second_path && std::string(second_path).substr(0, 2) != "--";
+    if (has_second) {
+        parser->next_token();
+    }
+
+    desktop::emulator *emu = reinterpret_cast<desktop::emulator *>(userdata);
+
+    device_install_params params;
+    params.storage = emu->conf.storage;
+
+    const std::string initial_dir = common::get_initial_directory();
+
+    if (has_second) {
+        params.method = device_install_method_dump_rpkg;
+        params.rom_path = absolute_path(std::string(first_path), initial_dir);
+        params.rpkg_path = absolute_path(std::string(second_path), initial_dir);
+    } else {
+        params.method = device_install_method_firmware;
+        params.vpl_path = absolute_path(std::string(first_path), initial_dir);
+    }
+
+    auto progress_cb = [](const std::size_t taken, const std::size_t total) {
+        std::cout << "\r  Progress: " << (taken * 100 / total) << "%" << std::flush;
+    };
+
+    auto cancel_cb = []() { return false; };
+
+    auto variant_cb = [](const std::vector<std::string> &list) -> int {
+        std::cout << "Available firmware variants:" << std::endl;
+        for (std::size_t i = 0; i < list.size(); i++) {
+            std::cout << "  " << i << ": " << list[i] << std::endl;
+        }
+        std::cout << "Selecting variant 0" << std::endl;
+        return 0;
+    };
+
+    device_installation_error error = install_device(emu->symsys->get_device_manager(), params, variant_cb, progress_cb, cancel_cb);
+    std::cout << std::endl;
+
+    if (error != device_installation_none) {
+        *err = "Device installation failed (error code " + std::to_string(error) + ")";
+        return false;
+    }
+
+    device *latest = emu->symsys->get_device_manager()->lastest();
+    if (latest) {
+        std::cout << "Device installed: " << latest->model << " (" << latest->firmware_code << ")" << std::endl;
+    }
+
+    return false;
 }
 
 bool package_remove_option_handler(eka2l1::common::arg_parser *parser, void *userdata, std::string *err) {

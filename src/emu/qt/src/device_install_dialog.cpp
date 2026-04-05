@@ -24,7 +24,7 @@
 #include <common/log.h>
 #include <common/path.h>
 
-#include <system/installation/firmware.h>
+#include <system/installation/install_device.h>
 #include <system/installation/rpkg.h>
 
 #include <config/config.h>
@@ -135,14 +135,20 @@ void device_install_dialog::on_install_triggered() {
     ui->confirmation_install_btn->setDisabled(true);
 
     QFuture<eka2l1::device_installation_error> install_future = QtConcurrent::run([this]() {
-        const std::string root_c_path = eka2l1::add_path(conf_.storage, "drives/c/");
-        const std::string root_e_path = eka2l1::add_path(conf_.storage, "drives/e/");
-        const std::string root_z_path = eka2l1::add_path(conf_.storage, "drives/z/");
-        const std::string rom_resident_path = eka2l1::add_path(conf_.storage, "roms/");
+        eka2l1::device_install_params params;
+        params.storage = conf_.storage;
 
-        eka2l1::common::create_directories(rom_resident_path);
-        eka2l1::device_installation_error error = eka2l1::device_installation_none;
-        bool need_copy_rom = false;
+        if (ui->vpl_browse_widget->isVisible()) {
+            params.method = eka2l1::device_install_method_firmware;
+            params.vpl_path = ui->vpl_path_line_edit->text().toStdString();
+        } else if (ui->rpkg_browse_widget->isVisible()) {
+            params.method = eka2l1::device_install_method_dump_rpkg;
+            params.rom_path = ui->rom_path_line_edit->text().toStdString();
+            params.rpkg_path = ui->rpkg_path_line_edit->text().toStdString();
+        } else {
+            params.method = eka2l1::device_install_method_dump_rom_only;
+            params.rom_path = ui->rom_path_line_edit->text().toStdString();
+        }
 
         auto progress_update_cb_func = [this](const std::size_t taken, const std::size_t total) {
             emit progress_bar_update(taken, total);
@@ -156,34 +162,7 @@ void device_install_dialog::on_install_triggered() {
             return emit firmware_variant_selects(list);
         };
 
-        std::string firmware_code;
-
-        if (ui->rom_browse_widget->isVisible()) {
-            if (ui->rpkg_browse_widget->isVisible()) {
-                error = eka2l1::loader::install_rpkg(device_mngr_, ui->rpkg_path_line_edit->text().toStdString(), root_z_path, firmware_code, progress_update_cb_func, cancel_cb_func);
-                need_copy_rom = true;
-            } else {
-                error = eka2l1::loader::install_rom(device_mngr_, ui->rom_path_line_edit->text().toStdString(), rom_resident_path, root_z_path, progress_update_cb_func, cancel_cb_func);
-            }
-        }
-
-        if (ui->vpl_browse_widget->isVisible()) {
-            error = eka2l1::install_firmware(device_mngr_, ui->vpl_path_line_edit->text().toStdString(), root_c_path, root_e_path, root_z_path, rom_resident_path, select_variant_cb_func, progress_update_cb_func, cancel_cb_func);
-        }
-
-        if (error != eka2l1::device_installation_none) {
-            return error;
-        }
-
-        device_mngr_->save_devices();
-
-        if (need_copy_rom) {
-            const std::string rom_directory = eka2l1::add_path(conf_.storage, eka2l1::add_path("roms", firmware_code + "\\"));
-            eka2l1::common::create_directories(rom_directory);
-            eka2l1::common::copy_file(ui->rom_path_line_edit->text().toStdString(), eka2l1::add_path(rom_directory, "SYM.ROM"), true);
-        }
-
-        return error;
+        return eka2l1::install_device(device_mngr_, params, select_variant_cb_func, progress_update_cb_func, cancel_cb_func);
     });
 
     while (!install_future.isFinished()) {
