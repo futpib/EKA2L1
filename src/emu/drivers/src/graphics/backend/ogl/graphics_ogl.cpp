@@ -1222,7 +1222,7 @@ namespace eka2l1::drivers {
         }
 
         if (clear_bits & draw_buffer_bit_depth_buffer) {
-#ifdef EKA2L1_PLATFORM_ANDROID
+#if defined(EKA2L1_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
             glClearDepthf(color_to_clear[4]);
 #else
             glClearDepth(color_to_clear[4]);

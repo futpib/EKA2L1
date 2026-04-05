@@ -19,10 +19,11 @@
 
 #include <common/cvt.h>
 #include <common/log.h>
-#include <spdlog/spdlog.h>
 #include <common/path.h>
+#include <common/pystr.h>
 #include <common/types.h>
 #include <common/version.h>
+#include <spdlog/spdlog.h>
 
 #include <config/app_settings.h>
 #include <config/config.h>
@@ -32,16 +33,21 @@
 
 #include <kernel/kernel.h>
 #include <package/manager.h>
+#include <services/applist/applist.h>
 #include <services/init.h>
 #include <services/window/window.h>
+#include <utils/apacmd.h>
 #include <system/devices.h>
 #include <system/epoc.h>
 #include <system/installation/install_device.h>
 
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
+#include <emscripten/console.h>
 
+#include <future>
 #include <memory>
+#include <thread>
 
 using namespace eka2l1;
 
@@ -56,6 +62,8 @@ namespace {
         window_server *winserv = nullptr;
         bool running = false;
         bool system_started = false;
+        std::unique_ptr<std::thread> emu_thread;
+        std::unique_ptr<std::thread> gfx_thread;
     };
 
     wasm_state *g_state = nullptr;
@@ -99,13 +107,6 @@ namespace {
         return true;
     }
 
-    void main_loop() {
-        if (!g_state || !g_state->running) {
-            return;
-        }
-
-        g_state->symsys->loop();
-    }
 }
 
 extern "C" {
@@ -198,8 +199,9 @@ int eka2l1_install_sis(const char *sis_path) {
         return -1;
     }
 
-    if (!pkgmngr->install_package(common::utf8_to_ucs2(sis_path), drive_e, nullptr, nullptr)) {
-        LOG_ERROR(FRONTEND_CMDLINE, "SIS installation failed: {}", sis_path);
+    auto result = pkgmngr->install_package(common::utf8_to_ucs2(sis_path), drive_e, nullptr, nullptr);
+    if (result != package::installation_result_success) {
+        LOG_ERROR(FRONTEND_CMDLINE, "SIS installation failed (result={}): {}", static_cast<int>(result), sis_path);
         return -1;
     }
 
@@ -213,19 +215,37 @@ int eka2l1_run(const char *app_name) {
         return -1;
     }
 
-    // Create graphics driver (WebGL context)
-    drivers::window_system_info wsi;
-    wsi.type = drivers::window_system_type::emscripten;
+    // Create graphics driver on its own thread (WebGL context must be used from the thread that owns it)
+    std::promise<bool> gfx_ready_promise;
+    auto gfx_ready_future = gfx_ready_promise.get_future();
 
-    g_state->graphics_driver = drivers::create_graphics_driver(
-        drivers::graphic_api::opengl, wsi);
+    g_state->gfx_thread = std::make_unique<std::thread>([&gfx_ready_promise]() {
+        LOG_INFO(FRONTEND_CMDLINE, "Graphics driver thread started, creating context...");
 
-    if (!g_state->graphics_driver) {
-        LOG_ERROR(FRONTEND_CMDLINE, "Failed to create graphics driver");
+        drivers::window_system_info wsi;
+        wsi.type = drivers::window_system_type::emscripten;
+
+        g_state->graphics_driver = drivers::create_graphics_driver(
+            drivers::graphic_api::opengl, wsi);
+
+        if (!g_state->graphics_driver) {
+            LOG_ERROR(FRONTEND_CMDLINE, "Failed to create graphics driver");
+            gfx_ready_promise.set_value(false);
+            return;
+        }
+
+        g_state->symsys->set_graphics_driver(g_state->graphics_driver.get());
+        LOG_INFO(FRONTEND_CMDLINE, "Graphics driver ready, entering command loop");
+        gfx_ready_promise.set_value(true);
+
+        g_state->graphics_driver->run();
+        LOG_INFO(FRONTEND_CMDLINE, "Graphics driver thread exited");
+    });
+
+    if (!gfx_ready_future.get()) {
+        LOG_ERROR(FRONTEND_CMDLINE, "Graphics driver initialization failed");
         return -1;
     }
-
-    g_state->symsys->set_graphics_driver(g_state->graphics_driver.get());
 
     // Create audio driver
     g_state->audio_driver = drivers::make_audio_driver(
@@ -235,9 +255,67 @@ int eka2l1_run(const char *app_name) {
         g_state->symsys->set_audio_driver(g_state->audio_driver.get());
     }
 
-    // Launch the app
+    // Launch the app via applist server (same as Qt frontend)
     LOG_INFO(FRONTEND_CMDLINE, "Launching: {}", app_name);
-    g_state->symsys->load(common::utf8_to_ucs2(app_name), u"");
+    std::string app_name_str(app_name);
+
+    applist_server *svr = reinterpret_cast<applist_server *>(
+        g_state->symsys->get_kernel_system()->get_by_name<service::server>("!AppListServer"));
+
+    if (!svr) {
+        LOG_ERROR(FRONTEND_CMDLINE, "Can't get app list server");
+        return -2;
+    }
+
+    // Try UID first (0x...)
+    if (app_name_str.length() > 2 && app_name_str.substr(0, 2) == "0x") {
+        const std::uint32_t uid = common::pystr(app_name_str).as_int<std::uint32_t>();
+        apa_app_registry *registry = svr->get_registration(uid);
+        if (!registry) {
+            LOG_ERROR(FRONTEND_CMDLINE, "No app found with UID: {}", app_name_str);
+            return -2;
+        }
+        epoc::apa::command_line cmdline;
+        cmdline.launch_cmd_ = epoc::apa::command_create;
+        if (!svr->launch_app(*registry, cmdline, nullptr)) {
+            LOG_ERROR(FRONTEND_CMDLINE, "Failed to launch app with UID: {}", app_name_str);
+            return -2;
+        }
+        LOG_INFO(FRONTEND_CMDLINE, "App launched by UID: {}", app_name_str);
+    } else {
+        // Search by name
+        std::vector<apa_app_registry> &regs = svr->get_registerations();
+        LOG_INFO(FRONTEND_CMDLINE, "Searching {} app registrations for '{}'", regs.size(), app_name_str);
+
+        apa_app_registry *found = nullptr;
+        for (auto &reg : regs) {
+            std::string caption = common::ucs2_to_utf8(reg.mandatory_info.long_caption.to_std_string(nullptr));
+            if (caption == app_name_str) {
+                found = &reg;
+                break;
+            }
+        }
+
+        if (!found) {
+            LOG_ERROR(FRONTEND_CMDLINE, "No app found with name: '{}'", app_name_str);
+            LOG_INFO(FRONTEND_CMDLINE, "Available apps:");
+            for (auto &reg : regs) {
+                std::string caption = common::ucs2_to_utf8(reg.mandatory_info.long_caption.to_std_string(nullptr));
+                if (!caption.empty()) {
+                    LOG_INFO(FRONTEND_CMDLINE, "  - '{}' (UID: 0x{:08x})", caption, reg.mandatory_info.uid);
+                }
+            }
+            return -2;
+        }
+
+        epoc::apa::command_line cmdline;
+        cmdline.launch_cmd_ = epoc::apa::command_create;
+        if (!svr->launch_app(*found, cmdline, nullptr)) {
+            LOG_ERROR(FRONTEND_CMDLINE, "Failed to launch app: {}", app_name_str);
+            return -2;
+        }
+        LOG_INFO(FRONTEND_CMDLINE, "App launched: {}", app_name_str);
+    }
 
     g_state->winserv = reinterpret_cast<window_server *>(
         g_state->symsys->get_kernel_system()->get_by_name<service::server>(
@@ -245,8 +323,25 @@ int eka2l1_run(const char *app_name) {
 
     g_state->running = true;
 
-    // Use emscripten main loop — yields back to browser each frame
-    emscripten_set_main_loop(main_loop, 0, 0);
+    // Run the emulator loop on a background thread so the main thread stays free
+    g_state->emu_thread = std::make_unique<std::thread>([]() {
+        LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
+        emscripten_console_logf("Emulator thread started (direct)");
+        int iterations = 0;
+        while (g_state && g_state->running) {
+            int ret = g_state->symsys->loop();
+            iterations++;
+            if (iterations <= 5 || iterations % 100 == 0) {
+                emscripten_console_logf("Emulator loop iteration %d, ret=%d", iterations, ret);
+            }
+            if (ret == 0) {
+                g_state->running = false;
+                break;
+            }
+        }
+        emscripten_console_logf("Emulator loop exited after %d iterations", iterations);
+        LOG_INFO(FRONTEND_CMDLINE, "Emulator loop exited");
+    });
 
     return 0;
 }
@@ -255,6 +350,15 @@ EMSCRIPTEN_KEEPALIVE
 void eka2l1_shutdown() {
     if (g_state) {
         g_state->running = false;
+        if (g_state->graphics_driver) {
+            g_state->graphics_driver->abort();
+        }
+        if (g_state->gfx_thread && g_state->gfx_thread->joinable()) {
+            g_state->gfx_thread->join();
+        }
+        if (g_state->emu_thread && g_state->emu_thread->joinable()) {
+            g_state->emu_thread->join();
+        }
         g_state->symsys.reset();
         g_state->graphics_driver.reset();
         g_state->audio_driver.reset();

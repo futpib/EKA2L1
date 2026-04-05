@@ -57,6 +57,8 @@
                 _logTimer = setTimeout(function() { _logTimer = null; _flushLog(); }, 200);
             }
         };
+        // Expose flush for tests/cleanup
+        window._flushLog = _flushLog;
         var _origPrintErr = Module.printErr;
         Module.printErr = function(text) {
             console.warn(text);
@@ -73,6 +75,7 @@
             if (_origOnAbort) _origOnAbort(what);
         };
         Module.setStatus = Module.setStatus || function(text) {
+            console.log('[status] ' + (text || 'Ready'));
             document.getElementById('status').textContent = text || 'Ready';
         };
 
@@ -112,7 +115,7 @@
                 var appName = document.getElementById('app-name').value;
 
                 // Initialize
-                Module.ccall('eka2l1_init', 'number', ['string'], ['/data']);
+                await Module.ccall('eka2l1_init', 'number', ['string'], ['/data'], {async: true});
 
                 // Install device if ROM provided
                 if (romInput.files.length > 0) {
@@ -124,7 +127,7 @@
                         rpkgPath = await uploadFile(rpkgInput.files[0], '/tmp/' + rpkgInput.files[0].name);
                     }
                     Module.setStatus('Installing device...');
-                    var ret = Module.ccall('eka2l1_install_device', 'number', ['string', 'string'], [romPath, rpkgPath]);
+                    var ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string'], [romPath, rpkgPath], {async: true});
                     if (ret !== 0) {
                         throw new Error('Device installation failed: ' + ret);
                     }
@@ -135,16 +138,19 @@
                     Module.setStatus('Uploading SIS...');
                     var sisPath = await uploadFile(sisInput.files[0], '/tmp/' + sisInput.files[0].name);
                     Module.setStatus('Installing SIS...');
-                    var ret = Module.ccall('eka2l1_install_sis', 'number', ['string'], [sisPath]);
+                    var ret = await Module.ccall('eka2l1_install_sis', 'number', ['string'], [sisPath], {async: true});
                     if (ret !== 0) {
-                        throw new Error('SIS installation failed');
+                        Module.printErr('SIS install returned ' + ret + ' (may already be in ROM)');
                     }
                 }
 
                 // Run
                 if (appName) {
+                    var runRet = await Module.ccall('eka2l1_run', 'number', ['string'], [appName], {async: true});
+                    if (runRet !== 0) {
+                        throw new Error('eka2l1_run failed: ' + runRet);
+                    }
                     Module.setStatus('Running: ' + appName);
-                    Module.ccall('eka2l1_run', 'number', ['string'], [appName]);
                 }
             } catch(e) {
                 Module.setStatus('Error: ' + e.message);

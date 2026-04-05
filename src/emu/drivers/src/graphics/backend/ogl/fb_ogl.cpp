@@ -97,7 +97,7 @@ namespace eka2l1::drivers {
 
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClearStencil(0);
-#ifdef EKA2L1_PLATFORM_ANDROID
+#if defined(EKA2L1_PLATFORM_ANDROID) || defined(__EMSCRIPTEN__)
         glClearDepthf(0);
 #else
         glClearDepth(0);

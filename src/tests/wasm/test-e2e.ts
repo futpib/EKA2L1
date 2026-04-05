@@ -1,5 +1,6 @@
 import http from "node:http";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer, { type Page } from "puppeteer";
@@ -17,6 +18,7 @@ const MIME_TYPES: Record<string, string> = {
   ".js": "application/javascript",
   ".wasm": "application/wasm",
   ".map": "application/json",
+  ".ico": "image/x-icon",
 };
 
 function getMime(filePath: string): string {
@@ -32,7 +34,6 @@ function startServer(): Promise<{ server: http.Server; port: number }> {
       let urlPath = (req.url ?? "/").split("?")[0];
       if (urlPath === "/") urlPath = "/eka2l1.html";
 
-      // Serve favicon from project source
       if (urlPath === "/favicon.ico") {
         const icoPath = path.resolve(__dirname, "../../emu/qt/duck_tank.ico");
         if (fs.existsSync(icoPath)) {
@@ -47,10 +48,8 @@ function startServer(): Promise<{ server: http.Server; port: number }> {
 
       let filePath = path.join(buildDir, urlPath);
 
-      // Source maps and worker files may be in parent dirs
       if (!fs.existsSync(filePath)) {
-        const basename = path.basename(urlPath);
-        const altPath = path.join(buildDir, basename);
+        const altPath = path.join(buildDir, path.basename(urlPath));
         if (fs.existsSync(altPath)) {
           filePath = altPath;
         } else {
@@ -77,72 +76,15 @@ function startServer(): Promise<{ server: http.Server; port: number }> {
   });
 }
 
-async function fetchCidToBuffer(cid: string, label: string): Promise<Buffer> {
+async function fetchCidToFile(cid: string, label: string, destPath: string): Promise<void> {
   console.log(`Fetching ${label} (${cid})...`);
   const chunks: Uint8Array[] = [];
   for await (const chunk of await fetchCid(cid)) {
     chunks.push(chunk);
   }
   const buf = Buffer.concat(chunks);
-  console.log(`  ${label}: ${(buf.length / 1e6).toFixed(1)} MB`);
-  return buf;
-}
-
-async function uploadBufferToEmscriptenFS(
-  page: Page,
-  data: Buffer,
-  emsPath: string,
-): Promise<void> {
-  // Upload in 8MB chunks to avoid string length limits
-  const CHUNK_SIZE = 8 * 1024 * 1024;
-
-  await page.evaluate((dest: string) => {
-    const parts = dest.split("/");
-    let dir = "";
-    for (let i = 0; i < parts.length - 1; i++) {
-      if (!parts[i]) continue;
-      dir += "/" + parts[i];
-      try {
-        // @ts-expect-error FS is Emscripten global
-        FS.mkdir(dir);
-      } catch {
-        // already exists
-      }
-    }
-    // Create empty file
-    // @ts-expect-error FS is Emscripten global
-    FS.writeFile(dest, new Uint8Array(0));
-  }, emsPath);
-
-  for (let offset = 0; offset < data.length; offset += CHUNK_SIZE) {
-    const chunk = data.subarray(offset, Math.min(offset + CHUNK_SIZE, data.length));
-    const base64 = chunk.toString("base64");
-
-    await page.evaluate(
-      (b64: string, dest: string, off: number) => {
-        const binary = atob(b64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-          bytes[i] = binary.charCodeAt(i);
-        }
-
-        if (off === 0) {
-          // @ts-expect-error FS is Emscripten global
-          FS.writeFile(dest, bytes);
-        } else {
-          // @ts-expect-error FS is Emscripten global
-          const stream = FS.open(dest, "a");
-          // @ts-expect-error FS is Emscripten global
-          FS.write(stream, bytes, 0, bytes.length);
-          // @ts-expect-error FS is Emscripten global
-          FS.close(stream);
-        }
-      },
-      base64,
-      emsPath,
-      offset,
-    );
-  }
+  fs.writeFileSync(destPath, buf);
+  console.log(`  ${label}: ${(buf.length / 1e6).toFixed(1)} MB -> ${destPath}`);
 }
 
 interface ConsoleEntry {
@@ -156,11 +98,16 @@ async function runTests(): Promise<void> {
     process.exit(1);
   }
 
-  // Fetch test data from IPFS
-  const [romData, rpkgData, sisData] = await Promise.all([
-    fetchCidToBuffer(ROM_CID, "ROM"),
-    fetchCidToBuffer(RPKG_CID, "RPKG"),
-    fetchCidToBuffer(SIS_CID, "SIS"),
+  // Fetch test data to temp files (Puppeteer uploadFile needs real paths)
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "eka2l1-e2e-"));
+  const romFile = path.join(tmpDir, "SYM.ROM");
+  const rpkgFile = path.join(tmpDir, "SYM.RPKG");
+  const sisFile = path.join(tmpDir, "Snakes.sis");
+
+  await Promise.all([
+    fetchCidToFile(ROM_CID, "ROM", romFile),
+    fetchCidToFile(RPKG_CID, "RPKG", rpkgFile),
+    fetchCidToFile(SIS_CID, "SIS", sisFile),
   ]);
 
   const { server, port } = await startServer();
@@ -169,7 +116,7 @@ async function runTests(): Promise<void> {
 
   const browser = await puppeteer.launch({
     headless: true,
-    protocolTimeout: 1200_000, // 20 minutes for slow WASM operations
+    protocolTimeout: 1200_000,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -179,24 +126,26 @@ async function runTests(): Promise<void> {
   });
 
   const page: Page = await browser.newPage();
-  page.setDefaultTimeout(300_000); // 5 minutes for long operations
+  page.setDefaultTimeout(300_000);
 
-  const consoleMessages: ConsoleEntry[] = [];
-  const errors: string[] = [];
-
-  // Hook Module.printErr/onAbort BEFORE the page loads Emscripten JS
+  // Hook Module before page loads
   await page.evaluateOnNewDocument(() => {
     (window as any).__emscriptenOutput = [];
     (window as any).Module = (window as any).Module || {};
+    const origPrintErr = (window as any).Module.printErr;
     (window as any).Module.printErr = function (text: string) {
       (window as any).__emscriptenOutput.push(text);
       console.error(text);
+      if (origPrintErr) origPrintErr(text);
     };
     (window as any).Module.onAbort = function (what: any) {
       (window as any).__emscriptenOutput.push("ABORT: " + String(what));
       console.error("ABORT: " + what);
     };
   });
+
+  const consoleMessages: ConsoleEntry[] = [];
+  const errors: string[] = [];
 
   page.on("console", (msg) => {
     const text = msg.text();
@@ -222,6 +171,7 @@ async function runTests(): Promise<void> {
   }
 
   try {
+    // 1. Load page, wait for WASM
     log("Loading WASM module...");
     await page.goto(url, { waitUntil: "networkidle0", timeout: 60_000 });
     await page.waitForFunction(
@@ -230,92 +180,94 @@ async function runTests(): Promise<void> {
     );
     log("PASS: WASM module loaded\n");
 
-    log("Initializing emulator...");
-    const initResult = await page.evaluate(() => {
-      // @ts-expect-error Module is Emscripten global
-      return Module.ccall("eka2l1_init", "number", ["string"], ["/data"]);
-    });
-    if (initResult !== 0) throw new Error(`eka2l1_init returned ${initResult}`);
-    log("PASS: eka2l1_init succeeded\n");
+    // 2. Upload files via file inputs (like a user would)
+    log("Selecting ROM file...");
+    const romInput = await page.waitForSelector("#rom-file");
+    await romInput!.uploadFile(romFile);
+    log("PASS: ROM selected\n");
 
-    // Quick WebGL2 sanity check before long install
-    log("Checking WebGL2 support...");
-    const webgl2ok = await page.evaluate(() => {
-      const c = document.createElement("canvas");
-      const gl = c.getContext("webgl2");
-      return gl !== null;
-    });
-    if (!webgl2ok) throw new Error("WebGL2 not available in this browser");
-    log("PASS: WebGL2 available\n");
+    log("Selecting RPKG file...");
+    const rpkgInput = await page.waitForSelector("#rpkg-file");
+    await rpkgInput!.uploadFile(rpkgFile);
+    log("PASS: RPKG selected\n");
 
-    log("Uploading ROM to Emscripten FS...");
-    await uploadBufferToEmscriptenFS(page, romData, "/tmp/SYM.ROM");
-    log("PASS: ROM uploaded\n");
+    log("Selecting SIS file...");
+    const sisInput = await page.waitForSelector("#sis-file");
+    await sisInput!.uploadFile(sisFile);
+    log("PASS: SIS selected\n");
 
-    log("Uploading RPKG to Emscripten FS...");
-    await uploadBufferToEmscriptenFS(page, rpkgData, "/tmp/SYM.RPKG");
-    log("PASS: RPKG uploaded\n");
+    // 3. Type app name
+    log("Typing app name...");
+    await page.type("#app-name", "Snakes");
+    log("PASS: App name entered\n");
 
-    log("Installing device...");
-    const deviceResult = await page.evaluate(() => {
-      // @ts-expect-error Module is Emscripten global
-      return Module.ccall(
-        "eka2l1_install_device",
-        "number",
-        ["string", "string"],
-        ["/tmp/SYM.ROM", "/tmp/SYM.RPKG"],
-      );
-    });
-    if (deviceResult !== 0)
-      throw new Error(`eka2l1_install_device returned ${deviceResult}`);
-    log("PASS: Device installed\n");
+    // 4. Click Start
+    log("Clicking Start...");
+    await page.click("#btn-start");
+    log("Start clicked — waiting for emulator...\n");
 
-    log("Uploading SIS to Emscripten FS...");
-    await uploadBufferToEmscriptenFS(page, sisData, "/tmp/Snakes.sis");
-    log("PASS: SIS uploaded\n");
+    // 5. Wait for the emulator to start running.
+    // startEmulator() blocks the main thread during ccalls, then sets status
+    // to "Running: ..." and starts emscripten_set_main_loop. The main loop
+    // (symsys->loop()) then consumes the main thread. We poll for status
+    // change OR console output indicating the emulator started.
+    log("Waiting for emulator to start...");
+    await page.waitForFunction(
+      () => {
+        const status = document.getElementById("status")?.textContent ?? "";
+        if (status.includes("Error")) return true;
+        if (status.includes("Running")) return true;
+        // Also check if button is disabled (startEmulator running/done)
+        const btn = document.getElementById("btn-start") as HTMLButtonElement;
+        return btn?.disabled === true && !status.includes("Initializing") && !status.includes("Uploading") && !status.includes("Installing");
+      },
+      { timeout: 300_000, polling: "raf" },
+    );
 
-    log("Installing SIS...");
-    const sisResult = await page.evaluate(() => {
-      try {
-        // @ts-expect-error Module is Emscripten global
-        return Module.ccall(
-          "eka2l1_install_sis",
-          "number",
-          ["string"],
-          ["/tmp/Snakes.sis"],
-        );
-      } catch (e: any) {
-        const msg = e?.message ?? e?.toString() ?? String(e);
-        const stack = e?.stack ?? "";
-        return "EXCEPTION: " + msg + "\nSTACK: " + stack;
-      }
-    });
-    if (typeof sisResult === "string") throw new Error(sisResult);
-    if (sisResult !== 0) {
-      log("WARN: eka2l1_install_sis returned -1 (game may already be in ROM)\n");
-    } else {
-      log("PASS: SIS installed\n");
+    const status = await page.$eval("#status", (el) => el.textContent ?? "");
+    log(`Status: "${status}"`);
+
+    if (status.includes("Error")) {
+      throw new Error(`Emulator error: ${status}`);
     }
 
-    log("Launching Snakes...");
-    const runResult = await page.evaluate(() => {
-      // @ts-expect-error Module is Emscripten global
-      return Module.ccall("eka2l1_run", "number", ["string"], ["Snakes"]);
-    });
-    if (runResult !== 0)
-      throw new Error(`eka2l1_run returned ${runResult}`);
-    log("PASS: eka2l1_run succeeded\n");
+    log("PASS: Emulator is running\n");
 
-    // The emulator main loop runs via emscripten_set_main_loop and yields
-    // to the browser event loop each frame. We can't easily check canvas
-    // pixels because the GL context is on the main thread.
-    // eka2l1_run succeeding means the emulator started — that's the test.
+    // 6. Wait for meaningful frame — canvas has non-zero pixels.
+    // The emulator main loop may consume the main thread, so we use
+    // raf polling which piggybacks on requestAnimationFrame.
+    log("Waiting for meaningful frame...");
+    await page.waitForFunction(
+      () => {
+        const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+        if (!canvas) return false;
+        const gl = canvas.getContext("webgl2");
+        if (!gl) return false;
+        const pixels = new Uint8Array(canvas.width * 4);
+        gl.readPixels(0, canvas.height / 2, canvas.width, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        let nonZero = 0;
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (pixels[i] !== 0 || pixels[i + 1] !== 0 || pixels[i + 2] !== 0) {
+            nonZero++;
+          }
+        }
+        return nonZero > 10;
+      },
+      { timeout: 60_000, polling: "raf" },
+    );
+    log("PASS: Canvas has meaningful pixels\n");
 
     log("All e2e tests passed!");
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`\nFAIL: ${msg}`);
     exitCode = 1;
+
+    // Flush pending logs before reporting
+    try {
+      await page.evaluate(() => (window as any)._flushLog?.());
+      await new Promise((r) => setTimeout(r, 500));
+    } catch { /* page may be unresponsive */ }
 
     console.log("\nBrowser console (last 30):");
     for (const m of consoleMessages.slice(-30)) {
@@ -326,7 +278,6 @@ async function runTests(): Promise<void> {
       for (const e of errors) console.log(`  ${e}`);
     }
 
-    // Dump any collected Emscripten stderr output
     try {
       const emsOutput: string[] = await page.evaluate(
         () => (window as any).__emscriptenOutput ?? [],
@@ -339,8 +290,21 @@ async function runTests(): Promise<void> {
       // page may be closed
     }
   } finally {
+    // Flush any remaining logs
+    try {
+      await page.evaluate(() => (window as any)._flushLog?.());
+      await new Promise((r) => setTimeout(r, 500));
+    } catch { /* ignore */ }
+
     await browser.close();
     server.close();
+
+    // Cleanup temp files
+    try {
+      fs.rmSync(tmpDir, { recursive: true });
+    } catch {
+      // ignore
+    }
   }
 
   process.exit(exitCode);
