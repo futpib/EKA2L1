@@ -114,7 +114,10 @@ namespace eka2l1::common {
     }
 #else
     void set_thread_name(const char *thread_name) {
-#if EKA2L1_PLATFORM(DARWIN)
+#if EKA2L1_PLATFORM(EMSCRIPTEN)
+        // pthread_setname_np not available in Emscripten
+        (void)thread_name;
+#elif EKA2L1_PLATFORM(DARWIN)
         pthread_setname_np(thread_name);
 #else
         pthread_setname_np(pthread_self(), thread_name);

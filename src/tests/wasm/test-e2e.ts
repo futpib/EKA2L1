@@ -16,6 +16,7 @@ const MIME_TYPES: Record<string, string> = {
   ".html": "text/html",
   ".js": "application/javascript",
   ".wasm": "application/wasm",
+  ".map": "application/json",
 };
 
 function getMime(filePath: string): string {
@@ -31,12 +32,33 @@ function startServer(): Promise<{ server: http.Server; port: number }> {
       let urlPath = (req.url ?? "/").split("?")[0];
       if (urlPath === "/") urlPath = "/eka2l1.html";
 
-      const filePath = path.join(buildDir, urlPath);
-
-      if (!fs.existsSync(filePath)) {
-        res.writeHead(404);
-        res.end("Not found");
+      // Serve favicon from project source
+      if (urlPath === "/favicon.ico") {
+        const icoPath = path.resolve(__dirname, "../../emu/qt/duck_tank.ico");
+        if (fs.existsSync(icoPath)) {
+          res.writeHead(200, { "Content-Type": "image/x-icon" });
+          fs.createReadStream(icoPath).pipe(res);
+        } else {
+          res.writeHead(204);
+          res.end();
+        }
         return;
+      }
+
+      let filePath = path.join(buildDir, urlPath);
+
+      // Source maps and worker files may be in parent dirs
+      if (!fs.existsSync(filePath)) {
+        const basename = path.basename(urlPath);
+        const altPath = path.join(buildDir, basename);
+        if (fs.existsSync(altPath)) {
+          filePath = altPath;
+        } else {
+          console.log(`  [server] 404: ${urlPath}`);
+          res.writeHead(404);
+          res.end("Not found");
+          return;
+        }
       }
 
       res.writeHead(200, {
@@ -155,24 +177,34 @@ async function runTests(): Promise<void> {
   const consoleMessages: ConsoleEntry[] = [];
   const errors: string[] = [];
 
+  // Hook Module.printErr/onAbort BEFORE the page loads Emscripten JS
+  await page.evaluateOnNewDocument(() => {
+    (window as any).__emscriptenOutput = [];
+    (window as any).Module = (window as any).Module || {};
+    (window as any).Module.printErr = function (text: string) {
+      (window as any).__emscriptenOutput.push(text);
+      console.error(text);
+    };
+    (window as any).Module.onAbort = function (what: any) {
+      (window as any).__emscriptenOutput.push("ABORT: " + String(what));
+      console.error("ABORT: " + what);
+    };
+  });
+
   page.on("console", (msg) => {
     const text = msg.text();
     consoleMessages.push({ type: msg.type(), text });
-    if (
-      text.includes("EKA2L1") ||
-      text.includes("Installing") ||
-      text.includes("installed") ||
-      text.includes("Launching") ||
-      text.includes("error") ||
-      text.includes("Error") ||
-      text.includes("FAIL")
-    ) {
-      console.log(`  [emu] ${text}`);
-    }
+    console.log(`  [${msg.type()}] ${text}`);
   });
 
   page.on("pageerror", (err) => {
-    errors.push(err.message);
+    errors.push(err.message + "\n" + err.stack);
+    console.log(`  [pageerror] ${err.message}`);
+    if (err.stack) console.log(`  ${err.stack}`);
+  });
+
+  page.on("error", (err) => {
+    console.log(`  [page crash] ${err.message}`);
   });
 
   let exitCode = 0;
@@ -181,6 +213,7 @@ async function runTests(): Promise<void> {
     // 1. Load page and wait for WASM
     console.log("Loading WASM module...");
     await page.goto(url, { waitUntil: "networkidle0", timeout: 60_000 });
+
     await page.waitForFunction(
       "typeof Module._eka2l1_init === 'function'",
       { timeout: 120_000 },
@@ -229,14 +262,21 @@ async function runTests(): Promise<void> {
     // 7. Install SIS
     console.log("Installing SIS...");
     const sisResult = await page.evaluate(() => {
-      // @ts-expect-error Module is Emscripten global
-      return Module.ccall(
-        "eka2l1_install_sis",
-        "number",
-        ["string"],
-        ["/tmp/Snakes.sis"],
-      );
+      try {
+        // @ts-expect-error Module is Emscripten global
+        return Module.ccall(
+          "eka2l1_install_sis",
+          "number",
+          ["string"],
+          ["/tmp/Snakes.sis"],
+        );
+      } catch (e: any) {
+        const msg = e?.message ?? e?.toString() ?? String(e);
+        const stack = e?.stack ?? "";
+        return "EXCEPTION: " + msg + "\nSTACK: " + stack;
+      }
     });
+    if (typeof sisResult === "string") throw new Error(sisResult);
     if (sisResult !== 0)
       throw new Error(`eka2l1_install_sis returned ${sisResult}`);
     console.log("PASS: SIS installed\n");
@@ -293,6 +333,19 @@ async function runTests(): Promise<void> {
     if (errors.length > 0) {
       console.log("\nPage errors:");
       for (const e of errors) console.log(`  ${e}`);
+    }
+
+    // Dump any collected Emscripten stderr output
+    try {
+      const emsOutput: string[] = await page.evaluate(
+        () => (window as any).__emscriptenOutput ?? [],
+      );
+      if (emsOutput.length > 0) {
+        console.log("\nEmscripten stderr:");
+        for (const line of emsOutput) console.log(`  ${line}`);
+      }
+    } catch {
+      // page may be closed
     }
   } finally {
     await browser.close();

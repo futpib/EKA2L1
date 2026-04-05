@@ -32,21 +32,31 @@
     <div id="log"></div>
 
     <script>
-        var Module = {
-            canvas: document.getElementById('canvas'),
-            print: function(text) {
-                var log = document.getElementById('log');
-                log.textContent += text + '\n';
-                log.scrollTop = log.scrollHeight;
-            },
-            printErr: function(text) {
-                var log = document.getElementById('log');
-                log.textContent += '[ERR] ' + text + '\n';
-                log.scrollTop = log.scrollHeight;
-            },
-            setStatus: function(text) {
-                document.getElementById('status').textContent = text || 'Ready';
-            }
+        var Module = window.Module || {};
+        Module.canvas = document.getElementById('canvas');
+        var _origPrint = Module.print;
+        Module.print = function(text) {
+            console.log(text);
+            var log = document.getElementById('log');
+            log.textContent += text + '\n';
+            log.scrollTop = log.scrollHeight;
+            if (_origPrint) _origPrint(text);
+        };
+        var _origPrintErr = Module.printErr;
+        Module.printErr = function(text) {
+            console.warn(text);
+            var log = document.getElementById('log');
+            log.textContent += '[ERR] ' + text + '\n';
+            log.scrollTop = log.scrollHeight;
+            if (_origPrintErr) _origPrintErr(text);
+        };
+        var _origOnAbort = Module.onAbort;
+        Module.onAbort = function(what) {
+            console.error('ABORT:', what);
+            if (_origOnAbort) _origOnAbort(what);
+        };
+        Module.setStatus = Module.setStatus || function(text) {
+            document.getElementById('status').textContent = text || 'Ready';
         };
 
         function uploadFile(file, path) {

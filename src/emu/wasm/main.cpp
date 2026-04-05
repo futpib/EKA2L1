@@ -54,9 +54,49 @@ namespace {
         config::state conf;
         window_server *winserv = nullptr;
         bool running = false;
+        bool system_started = false;
     };
 
     wasm_state *g_state = nullptr;
+
+    bool ensure_system_started() {
+        if (!g_state || !g_state->symsys) return false;
+        if (g_state->system_started) return true;
+
+        device_manager *dvcmngr = g_state->symsys->get_device_manager();
+        if (dvcmngr->total() == 0) {
+            LOG_ERROR(FRONTEND_CMDLINE, "No device installed");
+            return false;
+        }
+
+        g_state->symsys->startup();
+
+        if (!g_state->symsys->set_device(g_state->conf.device)) {
+            g_state->conf.device = 0;
+            g_state->symsys->set_device(0);
+        }
+
+        g_state->symsys->mount(drive_c, drive_media::physical,
+            add_path(g_state->conf.storage, "/drives/c/"), io_attrib_internal);
+        g_state->symsys->mount(drive_d, drive_media::physical,
+            add_path(g_state->conf.storage, "/drives/d/"), io_attrib_internal);
+        g_state->symsys->mount(drive_e, drive_media::physical,
+            add_path(g_state->conf.storage, "/drives/e/"), io_attrib_removeable);
+        g_state->symsys->mount(drive_z, drive_media::rom,
+            add_path(g_state->conf.storage, "/drives/z/"),
+            io_attrib_internal | io_attrib_write_protected);
+
+        g_state->symsys->initialize_user_parties();
+
+        manager::packages *pkgmngr = g_state->symsys->get_packages();
+        if (pkgmngr) {
+            pkgmngr->load_registries();
+            pkgmngr->migrate_legacy_registries();
+        }
+
+        g_state->system_started = true;
+        return true;
+    }
 
     void main_loop() {
         if (!g_state || !g_state->running) {
@@ -142,7 +182,7 @@ int eka2l1_install_device(const char *rom_path, const char *rpkg_path) {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_install_sis(const char *sis_path) {
-    if (!g_state || !g_state->symsys) {
+    if (!ensure_system_started()) {
         return -1;
     }
 
@@ -162,33 +202,9 @@ int eka2l1_install_sis(const char *sis_path) {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_run(const char *app_name) {
-    if (!g_state || !g_state->symsys) {
+    if (!ensure_system_started()) {
         return -1;
     }
-
-    device_manager *dvcmngr = g_state->symsys->get_device_manager();
-
-    if (dvcmngr->total() == 0) {
-        LOG_ERROR(FRONTEND_CMDLINE, "No device installed");
-        return -1;
-    }
-
-    g_state->symsys->startup();
-
-    if (!g_state->symsys->set_device(g_state->conf.device)) {
-        g_state->conf.device = 0;
-        g_state->symsys->set_device(0);
-    }
-
-    g_state->symsys->mount(drive_c, drive_media::physical,
-        add_path(g_state->conf.storage, "/drives/c/"), io_attrib_internal);
-    g_state->symsys->mount(drive_d, drive_media::physical,
-        add_path(g_state->conf.storage, "/drives/d/"), io_attrib_internal);
-    g_state->symsys->mount(drive_e, drive_media::physical,
-        add_path(g_state->conf.storage, "/drives/e/"), io_attrib_removeable);
-    g_state->symsys->mount(drive_z, drive_media::rom,
-        add_path(g_state->conf.storage, "/drives/z/"),
-        io_attrib_internal | io_attrib_write_protected);
 
     // Create graphics driver (WebGL context)
     drivers::window_system_info wsi;
@@ -211,12 +227,6 @@ int eka2l1_run(const char *app_name) {
     if (g_state->audio_driver) {
         g_state->symsys->set_audio_driver(g_state->audio_driver.get());
     }
-
-    g_state->symsys->initialize_user_parties();
-
-    manager::packages *pkgmngr = g_state->symsys->get_packages();
-    pkgmngr->load_registries();
-    pkgmngr->migrate_legacy_registries();
 
     // Launch the app
     LOG_INFO(FRONTEND_CMDLINE, "Launching: {}", app_name);
