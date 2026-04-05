@@ -30,8 +30,10 @@
 #include <drivers/graphics/backend/ogl/fb_ogl.h>
 #include <glad/glad.h>
 
-#if EKA2L1_PLATFORM(ANDROID) || EKA2L1_PLATFORM(EMSCRIPTEN)
+#if EKA2L1_PLATFORM(ANDROID)
 #include <EGL/egl.h>
+#elif EKA2L1_PLATFORM(EMSCRIPTEN)
+#include <emscripten/html5_webgl.h>
 #endif
 
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
@@ -54,8 +56,13 @@ namespace eka2l1::drivers {
             }
 
             case graphics::gl_context::mode::opengl_es: {
-#if EKA2L1_PLATFORM(ANDROID) || EKA2L1_PLATFORM(EMSCRIPTEN)
+#if EKA2L1_PLATFORM(ANDROID)
                 if (!gladLoadGLES2Loader((GLADloadproc) eglGetProcAddress)) {
+                    LOG_CRITICAL(DRIVER_GRAPHICS, "gladLoadGLES2Loader() failed");
+                    return;
+                }
+#elif EKA2L1_PLATFORM(EMSCRIPTEN)
+                if (!gladLoadGLES2Loader((GLADloadproc) emscripten_webgl_get_proc_address)) {
                     LOG_CRITICAL(DRIVER_GRAPHICS, "gladLoadGLES2Loader() failed");
                     return;
                 }
