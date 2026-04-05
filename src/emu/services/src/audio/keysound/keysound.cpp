@@ -48,7 +48,7 @@ namespace eka2l1 {
                 });
         }
 
-        state_.target_freq_ = aud_driver->native_sample_rate();
+        state_.target_freq_ = aud_driver ? aud_driver->native_sample_rate() : 44100;
     }
 
     keysound_session::parser_state::parser_state()

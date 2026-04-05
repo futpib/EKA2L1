@@ -247,13 +247,8 @@ int eka2l1_run(const char *app_name) {
         return -1;
     }
 
-    // Create audio driver
-    g_state->audio_driver = drivers::make_audio_driver(
-        drivers::audio_driver_backend::cubeb, g_state->conf.audio_master_volume);
-
-    if (g_state->audio_driver) {
-        g_state->symsys->set_audio_driver(g_state->audio_driver.get());
-    }
+    // Audio driver not available in WASM (Cubeb requires native audio APIs)
+    LOG_INFO(FRONTEND_CMDLINE, "Skipping audio driver (not available in WASM)");
 
     // Launch the app via applist server (same as Qt frontend)
     LOG_INFO(FRONTEND_CMDLINE, "Launching: {}", app_name);

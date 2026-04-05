@@ -74,8 +74,7 @@ namespace eka2l1::drivers::graphics {
     }
 
     void gl_context_emscripten::swap_buffers() {
-        // WebGL double-buffering is handled by the browser compositor.
-        // emscripten_webgl_commit_frame() is only needed for OffscreenCanvas in workers.
+        emscripten_webgl_commit_frame();
     }
 
     void gl_context_emscripten::update(const std::uint32_t new_width, const std::uint32_t new_height) {

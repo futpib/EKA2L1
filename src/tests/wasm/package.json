@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node --experimental-strip-types test.ts",
-    "test:e2e": "node --experimental-strip-types test-e2e.ts"
+    "test:e2e": "node --experimental-strip-types test-e2e.ts",
+    "serve": "node --experimental-strip-types serve.ts"
   },
   "devDependencies": {
     "@futpib/fetch-cid": "^1.0.2",

@@ -229,10 +229,19 @@ namespace eka2l1 {
         drivers::audio_driver *drv = server<mmf_dev_server>()->get_system()->get_audio_driver();
 
         // TODO: Add callback to report underflow (data completed playing, but no new data supplied)
+        if (!drv) {
+            LOG_WARN(SERVICE_MMFAUD, "No audio driver available, skipping stream init");
+            return;
+        }
+
         switch (desired_state_) {
         case epoc::mmf_state_playing:
         case epoc::mmf_state_tone_playing:
             stream_ = drivers::new_dsp_out_stream(drv, drivers::dsp_stream_backend::dsp_stream_backend_ffmpeg);
+            if (!stream_) {
+                LOG_WARN(SERVICE_MMFAUD, "Failed to create DSP output stream");
+                return;
+            }
             stream_->set_properties(8000, 2);
 
             reinterpret_cast<drivers::dsp_output_stream *>(stream_.get())->volume(volume_ * 10);

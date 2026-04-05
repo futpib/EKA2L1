@@ -1,80 +1,13 @@
-import http from "node:http";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import puppeteer, { type Page } from "puppeteer";
 import { fetchCid } from "@futpib/fetch-cid";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const buildDir = path.resolve(__dirname, "../../../build-wasm/src/emu/wasm");
+import { buildDir, startServer } from "./server.ts";
 
 const ROM_CID = "bafybeicj2jkrjfirzdz5jezz6hjbx2ylyv343kaecnhytl3g6yjy3mwmqm";
 const RPKG_CID = "bafybeihjy4vjxb5cy7zxca4kedg5ncxf5xrbj5basirfefemqwru73aipu";
 const SIS_CID = "bafybeicuomcc2zhzi3vwfb5xihnlkikz3biaa43g4d22z2wptcmhvmp3di";
-
-const MIME_TYPES: Record<string, string> = {
-  ".html": "text/html",
-  ".js": "application/javascript",
-  ".wasm": "application/wasm",
-  ".map": "application/json",
-  ".ico": "image/x-icon",
-};
-
-function getMime(filePath: string): string {
-  for (const [ext, mime] of Object.entries(MIME_TYPES)) {
-    if (filePath.endsWith(ext)) return mime;
-  }
-  return "application/octet-stream";
-}
-
-function startServer(): Promise<{ server: http.Server; port: number }> {
-  return new Promise((resolve) => {
-    const server = http.createServer((req, res) => {
-      let urlPath = (req.url ?? "/").split("?")[0];
-      if (urlPath === "/") urlPath = "/eka2l1.html";
-
-      if (urlPath === "/favicon.ico") {
-        const icoPath = path.resolve(__dirname, "../../emu/qt/duck_tank.ico");
-        if (fs.existsSync(icoPath)) {
-          res.writeHead(200, { "Content-Type": "image/x-icon" });
-          fs.createReadStream(icoPath).pipe(res);
-        } else {
-          res.writeHead(204);
-          res.end();
-        }
-        return;
-      }
-
-      let filePath = path.join(buildDir, urlPath);
-
-      if (!fs.existsSync(filePath)) {
-        const altPath = path.join(buildDir, path.basename(urlPath));
-        if (fs.existsSync(altPath)) {
-          filePath = altPath;
-        } else {
-          console.log(`  [server] 404: ${urlPath}`);
-          res.writeHead(404);
-          res.end("Not found");
-          return;
-        }
-      }
-
-      res.writeHead(200, {
-        "Content-Type": getMime(filePath),
-        "Cross-Origin-Opener-Policy": "same-origin",
-        "Cross-Origin-Embedder-Policy": "require-corp",
-      });
-      fs.createReadStream(filePath).pipe(res);
-    });
-
-    server.listen(0, "127.0.0.1", () => {
-      const addr = server.address();
-      const port = typeof addr === "object" && addr ? addr.port : 0;
-      resolve({ server, port });
-    });
-  });
-}
 
 async function fetchCidToFile(cid: string, label: string, destPath: string): Promise<void> {
   console.log(`Fetching ${label} (${cid})...`);
@@ -92,9 +25,37 @@ interface ConsoleEntry {
   text: string;
 }
 
+const PID_FILE = path.join(buildDir, "e2e-test.pid");
+
+function acquirePidLock(): void {
+  if (fs.existsSync(PID_FILE)) {
+    const oldPid = parseInt(fs.readFileSync(PID_FILE, "utf-8").trim(), 10);
+    try {
+      process.kill(oldPid, 0); // check if process exists
+      console.error(`FAIL: Another e2e test is already running (pid ${oldPid}). Remove ${PID_FILE} if stale.`);
+      process.exit(1);
+    } catch {
+      // Process doesn't exist — stale pid file
+      console.log(`Removing stale pid file (pid ${oldPid})`);
+    }
+  }
+  fs.writeFileSync(PID_FILE, String(process.pid));
+}
+
+function releasePidLock(): void {
+  try {
+    if (fs.existsSync(PID_FILE) && fs.readFileSync(PID_FILE, "utf-8").trim() === String(process.pid)) {
+      fs.unlinkSync(PID_FILE);
+    }
+  } catch { /* ignore */ }
+}
+
 async function runTests(): Promise<void> {
+  acquirePidLock();
+
   if (!fs.existsSync(path.join(buildDir, "eka2l1.html"))) {
     console.error("FAIL: build-wasm output not found. Run the WASM build first.");
+    releasePidLock();
     process.exit(1);
   }
 
@@ -263,12 +224,6 @@ async function runTests(): Promise<void> {
     console.error(`\nFAIL: ${msg}`);
     exitCode = 1;
 
-    // Flush pending logs before reporting
-    try {
-      await page.evaluate(() => (window as any)._flushLog?.());
-      await new Promise((r) => setTimeout(r, 500));
-    } catch { /* page may be unresponsive */ }
-
     console.log("\nBrowser console (last 30):");
     for (const m of consoleMessages.slice(-30)) {
       console.log(`  [${m.type}] ${m.text}`);
@@ -277,25 +232,7 @@ async function runTests(): Promise<void> {
       console.log("\nPage errors:");
       for (const e of errors) console.log(`  ${e}`);
     }
-
-    try {
-      const emsOutput: string[] = await page.evaluate(
-        () => (window as any).__emscriptenOutput ?? [],
-      );
-      if (emsOutput.length > 0) {
-        console.log("\nEmscripten stderr:");
-        for (const line of emsOutput) console.log(`  ${line}`);
-      }
-    } catch {
-      // page may be closed
-    }
   } finally {
-    // Flush any remaining logs
-    try {
-      await page.evaluate(() => (window as any)._flushLog?.());
-      await new Promise((r) => setTimeout(r, 500));
-    } catch { /* ignore */ }
-
     await browser.close();
     server.close();
 
@@ -305,6 +242,8 @@ async function runTests(): Promise<void> {
     } catch {
       // ignore
     }
+
+    releasePidLock();
   }
 
   process.exit(exitCode);

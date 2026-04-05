@@ -52,10 +52,18 @@ namespace eka2l1::drivers {
             return GL_RGB;
 
         case texture_format::bgr:
+#ifdef __EMSCRIPTEN__
+            return GL_RGB;  // GL_BGR not available in WebGL2; use swizzle instead
+#else
             return GL_BGR;
+#endif
 
         case texture_format::bgra:
+#ifdef __EMSCRIPTEN__
+            return GL_RGBA;  // GL_BGRA not available in WebGL2; use swizzle instead
+#else
             return GL_BGRA;
+#endif
 
         case texture_format::rgba:
             return GL_RGBA;
