@@ -112,6 +112,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_init(const char *data_path) {
     log::setup_log(nullptr);
+    log::toggle_console();
     LOG_INFO(FRONTEND_CMDLINE, "EKA2L1 WASM v0.0.1 ({}-{})", GIT_BRANCH, GIT_COMMIT_HASH);
 
     g_state = new wasm_state();

@@ -29,6 +29,9 @@
 
 namespace eka2l1::epoc::bt {
     void add_bluetooth_stack_protocols(socket_server *sock, epoc::bt::midman *mm, const bool oldarch) {
+#if EKA2L1_PLATFORM(EMSCRIPTEN)
+        LOG_WARN(SERVICE_BLUETOOTH, "Bluetooth stack protocols not available on Emscripten");
+#else
         internet::inet_bridged_protocol *protocol = reinterpret_cast<internet::inet_bridged_protocol*>(sock->find_protocol(internet::INET6_ADDRESS_FAMILY, internet::INET_TCP_PROTOCOL_ID));
         protocol->initialize_looper();  // NOTE: Real non-internet bluetooth stack will not need this.
 
@@ -52,5 +55,6 @@ namespace eka2l1::epoc::bt {
         if (!sock->add_protocol(sdp_pr)) {
             LOG_ERROR(SERVICE_BLUETOOTH, "Failed to add SDP protocol");
         }
+#endif
     }
 }
