@@ -24,6 +24,7 @@
 #include <common/arghandler.h>
 #include <common/configure.h>
 #include <common/cvt.h>
+#include <common/frame_dumper.h>
 #include <common/log.h>
 #include <common/random.h>
 #include <common/thread.h>
@@ -36,6 +37,7 @@
 #include <qt/thread.h>
 #include <qt/utils.h>
 
+#include <GL/gl.h>
 #include <drivers/graphics/emu_window.h>
 #include <drivers/graphics/graphics.h>
 #include <drivers/input/common.h>
@@ -154,6 +156,8 @@ static void on_ui_window_key_press(void *userdata, const int key) {
 }
 
 namespace eka2l1::desktop {
+    void kill_emulator(emulator &state);
+
     static constexpr const char *graphics_driver_thread_name = "Graphics thread";
     static constexpr const char *os_thread_name = "Symbian OS thread";
 
@@ -184,9 +188,49 @@ namespace eka2l1::desktop {
 
         drivers::emu_window *window = state.window;
 
+        // Create frame dumper if requested
+        std::shared_ptr<common::frame_dumper> dumper;
+        if (!state.dump_frames_dir_.empty()) {
+            dumper = std::make_shared<common::frame_dumper>(state.dump_frames_dir_, 16);
+            LOG_INFO(FRONTEND_CMDLINE, "Frame dump enabled: dir={}", state.dump_frames_dir_);
+        }
+
         switch (state.graphics_driver->get_current_api()) {
         case drivers::graphic_api::opengl: {
-            state.graphics_driver->set_display_hook([window]() {
+            state.graphics_driver->set_display_hook([window, dumper, &state]() {
+                if (dumper && !dumper->done()) {
+                    if (dumper->needs_pixel_data()) {
+                        // Read just the phone screen area, not the full window
+                        int x = 0, y = 0, w = 0, h = 0;
+                        if (state.winserv) {
+                            auto *scr = state.winserv->get_screens();
+                            if (scr) {
+                                x = scr->absolute_pos.x;
+                                y = scr->absolute_pos.y;
+                                auto &mode = scr->current_mode();
+                                w = static_cast<int>(mode.size.x * scr->display_scale_factor);
+                                h = static_cast<int>(mode.size.y * scr->display_scale_factor);
+                            }
+                        }
+                        if (w <= 0 || h <= 0) {
+                            // Fallback to full viewport
+                            GLint vp[4] = {};
+                            glGetIntegerv(GL_VIEWPORT, vp);
+                            x = 0; y = 0; w = vp[2]; h = vp[3];
+                        }
+                        if (w > 0 && h > 0) {
+                            std::vector<GLubyte> pixels(w * h * 4);
+                            glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+                            dumper->on_frame(pixels.data(), w, h);
+                        }
+                    } else {
+                        dumper->skip_frame();
+                    }
+                    if (dumper->done()) {
+                        LOG_INFO(FRONTEND_CMDLINE, "Frame dump complete, exiting");
+                        _exit(0);
+                    }
+                }
                 window->swap_buffer();
                 window->poll_events();
             });
@@ -384,6 +428,8 @@ namespace eka2l1::desktop {
                                        "\t\t\t  Usage: --installdevice <vpl_path>\n"
                                        "\t\t\t         --installdevice <rom_path> <rpkg_path>",
             device_install_option_handler);
+        parser.add("--dump-frames", "Capture fibonacci-numbered frames as PNG to the given directory, then exit.",
+            dump_frames_option_handler);
 
 #if ENABLE_PYTHON_SCRIPTING
         parser.add("--gendocs", "Generate Python documentation", python_docgen_option_handler);

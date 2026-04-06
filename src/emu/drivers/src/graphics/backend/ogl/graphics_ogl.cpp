@@ -1736,9 +1736,13 @@ namespace eka2l1::drivers {
     }
 
     void ogl_graphics_driver::display(command &cmd) {
-        context_->swap_buffers();
-
+        static int display_count = 0;
+        display_count++;
+        if (display_count <= 10 || display_count % 100 == 0) {
+            LOG_INFO(DRIVER_GRAPHICS, "display() call #{}", display_count);
+        }
         disp_hook_();
+        context_->swap_buffers();
         finish(cmd.status_, 0);
     }
 

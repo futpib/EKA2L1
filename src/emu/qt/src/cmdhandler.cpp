@@ -536,3 +536,17 @@ bool python_docgen_option_handler(eka2l1::common::arg_parser *parser, void *user
     return false;
 }
 #endif
+
+bool dump_frames_option_handler(eka2l1::common::arg_parser *parser, void *userdata, std::string *err) {
+    eka2l1::desktop::emulator *emu = reinterpret_cast<eka2l1::desktop::emulator *>(userdata);
+    const char *dir = parser->next_token();
+
+    if (!dir) {
+        *err = "No output directory specified for --dump-frames";
+        return false;
+    }
+
+    emu->dump_frames_dir_ = dir;
+    *err = "";
+    return true;
+}

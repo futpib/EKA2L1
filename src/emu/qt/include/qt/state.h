@@ -94,6 +94,7 @@ namespace eka2l1::desktop {
         int present_status;
 
         std::string launched_app_name_;
+        std::string dump_frames_dir_;
 
         explicit emulator();
 

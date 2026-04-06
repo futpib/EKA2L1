@@ -61,6 +61,7 @@ add_library(common
         include/common/region.h
         include/common/virtualmem.h
         include/common/watcher.h
+        include/common/frame_dumper.h
         include/common/wildcard.h
         src/atomic.cpp
         src/arghandler.cpp
@@ -97,6 +98,7 @@ add_library(common
         src/region.cpp
         src/virtualmem.cpp
         src/watcher.cpp
+        src/frame_dumper.cpp
         src/wildcard.cpp
         ${CUSTOM_COMMON_SOURCE}
         )
@@ -121,6 +123,7 @@ if (ANDROID)
 endif()
 
 target_include_directories(common PUBLIC include)
+target_include_directories(common PRIVATE ${CMAKE_SOURCE_DIR}/src/external/stb)
 target_link_libraries(common PUBLIC fmt miniz spdlog)
 target_link_libraries(common PRIVATE pugixml re2::re2)
 if (NOT EMSCRIPTEN)

@@ -18,6 +18,7 @@
  */
 
 #include <common/cvt.h>
+#include <common/frame_dumper.h>
 #include <common/log.h>
 #include <common/path.h>
 #include <common/pystr.h>
@@ -77,6 +78,9 @@ namespace {
         int pixel_w = 0;
         int pixel_h = 0;
         int pixel_distinct_colors = 0;
+
+        // Frame dumper for test captures
+        std::unique_ptr<common::frame_dumper> dumper;
     };
 
     wasm_state *g_state = nullptr;
@@ -250,19 +254,28 @@ int eka2l1_run(const char *app_name) {
 
         g_state->symsys->set_graphics_driver(g_state->graphics_driver.get());
         g_state->graphics_driver->set_display_hook([]() {
-            // Read back pixels to count distinct colors (for e2e test verification)
+            if (!g_state) return;
             GLint vp[4] = {};
             glGetIntegerv(GL_VIEWPORT, vp);
-            if (vp[2] > 0 && vp[3] > 0 && g_state) {
-                int total = vp[2] * vp[3] * 4;
-                std::vector<GLubyte> pixels(total);
-                glReadPixels(0, 0, vp[2], vp[3], GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-                std::set<uint32_t> colors;
-                for (int i = 0; i < total; i += 40) {
-                    colors.insert((pixels[i] << 16) | (pixels[i+1] << 8) | pixels[i+2]);
-                }
+            if (vp[2] <= 0 || vp[3] <= 0) return;
+
+            int total = vp[2] * vp[3] * 4;
+            std::vector<GLubyte> pixels(total);
+            glReadPixels(0, 0, vp[2], vp[3], GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+
+            // Count distinct colors (for e2e test verification)
+            std::set<uint32_t> colors;
+            for (int i = 0; i < total; i += 40) {
+                colors.insert((pixels[i] << 16) | (pixels[i+1] << 8) | pixels[i+2]);
+            }
+            {
                 const std::lock_guard<std::mutex> guard(g_state->pixel_mutex);
                 g_state->pixel_distinct_colors = static_cast<int>(colors.size());
+            }
+
+            // Feed frame dumper if active
+            if (g_state->dumper && !g_state->dumper->done()) {
+                g_state->dumper->on_frame(pixels.data(), vp[2], vp[3]);
             }
         });
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver ready, entering command loop");
@@ -443,8 +456,11 @@ int eka2l1_run(const char *app_name) {
                 break;
             }
 
-            // Periodically force a screen redraw — the animation scheduler may
-            // stop scheduling after the initial burst, leaving the screen stale.
+            // Periodically force a screen redraw to ensure the display stays
+            // updated. The animation scheduler and posting surface handle most
+            // redraws, but a forced redraw ensures FLAG_SERVER_REDRAW_PENDING
+            // is set so that the screen composites the full window tree
+            // (not just DSA/posting content) on each frame.
             auto now = std::chrono::steady_clock::now();
             if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_forced_redraw).count() >= 100) {
                 last_forced_redraw = now;
@@ -491,6 +507,26 @@ int eka2l1_get_distinct_colors() {
     if (!g_state) return 0;
     const std::lock_guard<std::mutex> guard(g_state->pixel_mutex);
     return g_state->pixel_distinct_colors;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void eka2l1_start_frame_dump(const char *output_dir, int total_frames) {
+    if (!g_state) return;
+    g_state->dumper = std::make_unique<common::frame_dumper>(
+        output_dir ? output_dir : "/tmp/frames", total_frames > 0 ? total_frames : 16);
+    LOG_INFO(FRONTEND_CMDLINE, "Frame dump started: dir={}, frames={}", output_dir, total_frames);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_frame_dump_done() {
+    if (!g_state || !g_state->dumper) return 1;
+    return g_state->dumper->done() ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_frame_dump_captured() {
+    if (!g_state || !g_state->dumper) return 0;
+    return g_state->dumper->captured();
 }
 
 EMSCRIPTEN_KEEPALIVE
