@@ -262,11 +262,24 @@ async function runTests(): Promise<void> {
         return Module._eka2l1_get_distinct_colors ? Module._eka2l1_get_distinct_colors() : 0;
       });
       const elapsed = performance.now() - contentStart;
+      const totalElapsed = Math.round((performance.now() - t0) / 1000);
       if (elapsed < 2000 || Math.floor(elapsed / 10000) !== Math.floor((elapsed - 1000) / 10000)) {
         log(`  content check: distinctColors=${distinctColors}`);
+        // Save periodic screenshot every 10 seconds
+        const el = await page.$("#canvas");
+        if (el) {
+          const buf = await el.screenshot({ type: "png" });
+          fs.writeFileSync(path.resolve(buildDir, `../../../e2e-screenshot-${totalElapsed}s.png`), buf);
+        }
       }
       if (distinctColors > 3) {
         gotContent = true;
+        // Save screenshot immediately when content detected
+        const el = await page.$("#canvas");
+        if (el) {
+          const buf = await el.screenshot({ type: "png" });
+          fs.writeFileSync(path.resolve(buildDir, `../../../e2e-screenshot-content.png`), buf);
+        }
         break;
       }
       // Send periodic key presses to interact with the app (e.g. dismiss menus)
@@ -289,12 +302,18 @@ async function runTests(): Promise<void> {
       await new Promise((r) => setTimeout(r, 1000));
     }
 
-    // Save final screenshot regardless
-    const canvasEl = await page.$("#canvas");
-    if (canvasEl) {
-      const screenshotBuf = await canvasEl.screenshot({ type: "png" });
-      fs.writeFileSync(path.resolve(buildDir, "../../../e2e-screenshot.png"), screenshotBuf);
-    }
+    // Save screenshot with timestamp
+    const saveScreenshot = async (label: string) => {
+      const el = await page.$("#canvas");
+      if (el) {
+        const buf = await el.screenshot({ type: "png" });
+        const name = `e2e-screenshot-${label}.png`;
+        fs.writeFileSync(path.resolve(buildDir, "../../../" + name), buf);
+        log(`  screenshot: ${name} (${buf.length} bytes)`);
+      }
+    };
+
+    await saveScreenshot(`${Math.round((performance.now() - t0) / 1000)}s`);
 
     if (!gotContent) {
       throw new Error(`No app content after ${(contentTimeout / 1000).toFixed(0)}s`);

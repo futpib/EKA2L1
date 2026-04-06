@@ -401,13 +401,8 @@ int eka2l1_run(const char *app_name) {
                     viewport.size = swapchain_size;
                     builder.set_viewport(viewport);
 
+                    builder.set_feature(drivers::graphics_feature::blend, false);
                     builder.clear({ 0.816f, 0.816f, 0.816f, 1.0f, 0.0f, 0.0f }, drivers::draw_buffer_bit_color_buffer);
-
-                    // Enable blending so transparent screen texture pixels preserve the background
-                    builder.set_feature(drivers::graphics_feature::blend, true);
-                    builder.blend_formula(drivers::blend_equation::add, drivers::blend_equation::add,
-                        drivers::blend_factor::frag_out_alpha, drivers::blend_factor::one_minus_frag_out_alpha,
-                        drivers::blend_factor::one, drivers::blend_factor::one_minus_frag_out_alpha);
 
                     eka2l1::rect dest;
                     dest.size = swapchain_size;

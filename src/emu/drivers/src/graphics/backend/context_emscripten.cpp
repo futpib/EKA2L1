@@ -77,10 +77,10 @@ namespace eka2l1::drivers::graphics {
     void gl_context_emscripten::swap_buffers() {
         emscripten_webgl_commit_frame();
         glFlush();
-        // Force the offscreen framebuffer to be blitted to the visible canvas
-        // This is needed because PROXY_TO_PTHREAD's automatic blit doesn't work
-        // reliably in headless Chrome with SwiftShader.
-        EM_ASM({
+        // Force blit on the main browser thread where the canvas and GL context live.
+        // emscripten_webgl_commit_frame already does this via proxy, but the canvas
+        // compositing may need an explicit flush on the main thread.
+        MAIN_THREAD_EM_ASM({
             if (typeof GL !== 'undefined' && GL.currentContext && GL.currentContext.defaultFbo) {
                 GL.blitOffscreenFramebuffer(GL.currentContext);
             }
