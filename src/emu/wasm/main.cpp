@@ -438,9 +438,6 @@ int eka2l1_run(const char *app_name) {
         while (g_state && g_state->running) {
             int ret = g_state->symsys->loop();
             iterations++;
-            if (iterations <= 5 || iterations % 100 == 0) {
-                LOG_INFO(FRONTEND_CMDLINE, "Emulator loop iteration {}, ret={}", iterations, ret);
-            }
             if (ret == 0) {
                 g_state->running = false;
                 break;
@@ -474,11 +471,7 @@ int eka2l1_run(const char *app_name) {
 
 EMSCRIPTEN_KEEPALIVE
 void eka2l1_press_key(int key_code) {
-    if (!g_state || !g_state->winserv) {
-        LOG_WARN(FRONTEND_CMDLINE, "press_key({}): no state or winserv", key_code);
-        return;
-    }
-    LOG_INFO(FRONTEND_CMDLINE, "press_key({})", key_code);
+    if (!g_state || !g_state->winserv) return;
 
     drivers::input_event press_evt;
     press_evt.type_ = drivers::input_event_type::key;

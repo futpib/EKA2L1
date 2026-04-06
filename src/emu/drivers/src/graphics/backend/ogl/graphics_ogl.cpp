@@ -21,9 +21,7 @@
 #include <common/log.h>
 #include <common/platform.h>
 #include <common/rgb.h>
-#include <atomic>
 #include <fstream>
-#include <set>
 #include <sstream>
 
 #include <drivers/graphics/backend/ogl/common_ogl.h>
@@ -433,17 +431,11 @@ namespace eka2l1::drivers {
         }
 
         if ((new_surface_size_.x > 0) && (new_surface_size_.y > 0)) {
-            LOG_TRACE(DRIVER_GRAPHICS, "bind_swapchain_framebuf: resizing to {}x{}", new_surface_size_.x, new_surface_size_.y);
             context_->update(static_cast<std::uint32_t>(new_surface_size_.x), static_cast<std::uint32_t>(new_surface_size_.y));
             new_surface_size_ = { -1, -1 };
         }
 
-        GLint current_fbo = 0;
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &current_fbo);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        GLint bound_fbo = 0;
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &bound_fbo);
-        LOG_TRACE(DRIVER_GRAPHICS, "bind_swapchain_framebuf: was fbo={}, now fbo={}", current_fbo, bound_fbo);
     }
 
     void ogl_graphics_driver::update_surface(void *new_surface_set) {
@@ -523,7 +515,6 @@ namespace eka2l1::drivers {
             draw_texture = bmp->tex.get();
         }
 
-        LOG_TRACE(DRIVER_GRAPHICS, "draw_bitmap: handle={} bmp={} tex={} flags={}", to_draw, (void*)bmp, (void*)draw_texture, flags);
 
         drivers::handle mask_to_use = static_cast<drivers::handle>(cmd.data_[1]);
 
@@ -1245,14 +1236,7 @@ namespace eka2l1::drivers {
             gl_flags |= GL_STENCIL_BUFFER_BIT;
         }
 
-        GLint clear_fbo = 0;
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &clear_fbo);
         glClear(gl_flags);
-        GLubyte px[4] = {};
-        glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, px);
-        LOG_TRACE(DRIVER_GRAPHICS, "clear: fbo={} clearColor=[{},{},{},{}] flags=0x{:x} postPixel=[{},{},{},{}]",
-            clear_fbo, color_to_clear[0], color_to_clear[1], color_to_clear[2], color_to_clear[3],
-            gl_flags, px[0], px[1], px[2], px[3]);
     }
 
     void ogl_graphics_driver::set_point_size(command &cmd) {
