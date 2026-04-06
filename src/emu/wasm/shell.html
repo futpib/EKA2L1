@@ -32,7 +32,7 @@
     <div id="log"></div>
 
     <script>
-        var Module = window.Module || {};
+        var Module = window.Module || {async: true};
         Module.canvas = document.getElementById('canvas');
 
         // Batched logging: buffer print output, flush every 200ms
@@ -61,6 +61,7 @@
         window._flushLog = _flushLog;
         var _origPrintErr = Module.printErr;
         Module.printErr = function(text) {
+            if (text && text.indexOf('__syscall_mprotect') !== -1) return;
             console.warn(text);
             var log = document.getElementById('log');
             if (log) {
@@ -90,7 +91,7 @@
                         var dir = '';
                         for (var i = 0; i < parts.length - 1; i++) {
                             dir += '/' + parts[i];
-                            try { FS.mkdir(dir); } catch(e) {}
+                            try { FS.mkdir(dir); } catch(e) {async: true}
                         }
                         FS.writeFile(path, data);
                         resolve(path);

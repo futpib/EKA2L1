@@ -403,6 +403,7 @@ namespace eka2l1::epoc {
     }
 
     void screen::fire_screen_redraw_callbacks(const bool is_dsa) {
+        LOG_TRACE(SERVICE_WINDOW, "fire_screen_redraw_callbacks: is_dsa={}", is_dsa);
         for (auto &callback : screen_redraw_callbacks) {
             if (callback.second)
                 callback.second(callback.first, this, is_dsa);

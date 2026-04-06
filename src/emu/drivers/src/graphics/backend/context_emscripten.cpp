@@ -20,6 +20,7 @@
 #include "context_emscripten.h"
 #include <common/log.h>
 
+#include <GLES3/gl3.h>
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
 
@@ -37,7 +38,7 @@ namespace eka2l1::drivers::graphics {
         attrs.depth = true;
         attrs.stencil = true;
         attrs.antialias = false;
-        attrs.preserveDrawingBuffer = false;
+        attrs.preserveDrawingBuffer = true;
         attrs.powerPreference = EM_WEBGL_POWER_PREFERENCE_HIGH_PERFORMANCE;
 
         webgl_context_ = emscripten_webgl_create_context(canvas_selector_, &attrs);
@@ -75,6 +76,15 @@ namespace eka2l1::drivers::graphics {
 
     void gl_context_emscripten::swap_buffers() {
         emscripten_webgl_commit_frame();
+        glFlush();
+        // Force the offscreen framebuffer to be blitted to the visible canvas
+        // This is needed because PROXY_TO_PTHREAD's automatic blit doesn't work
+        // reliably in headless Chrome with SwiftShader.
+        EM_ASM({
+            if (typeof GL !== 'undefined' && GL.currentContext && GL.currentContext.defaultFbo) {
+                GL.blitOffscreenFramebuffer(GL.currentContext);
+            }
+        });
     }
 
     void gl_context_emscripten::update(const std::uint32_t new_width, const std::uint32_t new_height) {

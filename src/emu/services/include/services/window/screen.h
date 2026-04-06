@@ -255,6 +255,10 @@ namespace eka2l1::epoc {
         void set_client_draw_pending() {
             flags_ |= FLAG_CLIENT_REDRAW_PENDING;
         }
+
+        void set_server_redraw_pending() {
+            flags_ |= FLAG_SERVER_REDRAW_PENDING;
+        }
         
         void set_is_screenplay_architecture(bool is_screenplay) {
             if (!is_screenplay) {

@@ -81,6 +81,8 @@ async function runTests(): Promise<void> {
       "--disable-setuid-sandbox",
       "--use-gl=angle",
       "--use-angle=swiftshader",
+      "--enable-features=SharedArrayBuffer",
+      "--enable-unsafe-swiftshader",
     ],
   });
 
@@ -206,24 +208,36 @@ async function runTests(): Promise<void> {
       if (abortMsg) {
         throw new Error(`WASM abort while waiting for frame: ${abortMsg.text}`);
       }
-      gotPixels = await page.evaluate(() => {
+      const pixelInfo = await page.evaluate(() => {
         const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-        if (!canvas || canvas.width === 0 || canvas.height === 0) return false;
+        if (!canvas || canvas.width === 0 || canvas.height === 0) return { ok: false, debug: "no canvas", dataUrl: "" };
+        const dataUrl = canvas.toDataURL("image/png");
         const tmp = document.createElement("canvas");
         tmp.width = canvas.width;
         tmp.height = canvas.height;
         const ctx = tmp.getContext("2d");
-        if (!ctx) return false;
-        ctx.drawImage(canvas, 0, 0);
-        const row = ctx.getImageData(0, Math.floor(canvas.height / 2), canvas.width, 1).data;
-        let nonZero = 0;
-        for (let i = 0; i < row.length; i += 4) {
-          if (row[i] !== 0 || row[i + 1] !== 0 || row[i + 2] !== 0) {
-            nonZero++;
+        let nonBlack = 0;
+        if (ctx) {
+          ctx.drawImage(canvas, 0, 0);
+          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          for (let i = 0; i < data.length; i += 4) {
+            if (data[i] !== 0 || data[i + 1] !== 0 || data[i + 2] !== 0) nonBlack++;
           }
         }
-        return nonZero > 10;
+        return { ok: nonBlack > 10, debug: `w=${canvas.width} h=${canvas.height} nonBlack=${nonBlack} dataUrlLen=${dataUrl.length}`, dataUrl };
       });
+      // Save screenshot each check
+      if (pixelInfo.dataUrl) {
+        const pngData = Buffer.from(pixelInfo.dataUrl.replace(/^data:image\/png;base64,/, ""), "base64");
+        fs.writeFileSync(path.resolve(buildDir, "../../../e2e-screenshot.png"), pngData);
+      }
+      if (!gotPixels) {
+        const elapsed = performance.now() - pixelStart;
+        if (elapsed < 2000 || Math.floor(elapsed / 10000) !== Math.floor((elapsed - 500) / 10000)) {
+          log(`  pixel check: ${pixelInfo.debug}`);
+        }
+      }
+      gotPixels = pixelInfo.ok;
       if (gotPixels) break;
       await new Promise((r) => setTimeout(r, 500));
     }
@@ -231,6 +245,61 @@ async function runTests(): Promise<void> {
       throw new Error(`No meaningful pixels after ${(pixelTimeout / 1000).toFixed(0)}s`);
     }
     log("PASS: Canvas has meaningful pixels\n");
+
+    // 7. Wait for actual app content — read pixels directly from GL framebuffer
+    // via eka2l1_read_screen_pixels (bypasses OFFSCREEN_FRAMEBUFFER canvas compositing issues)
+    log("Waiting for app content (GL readback)...");
+    const contentTimeout = 120_000;
+    const contentStart = performance.now();
+    let gotContent = false;
+    while (performance.now() - contentStart < contentTimeout) {
+      if (errors.length > 0) {
+        throw new Error(`Page error while waiting for content: ${errors[0]}`);
+      }
+      // Read distinct color count from the gfx thread's last frame readback
+      const distinctColors = await page.evaluate(() => {
+        // @ts-expect-error Module is a global from Emscripten
+        return Module._eka2l1_get_distinct_colors ? Module._eka2l1_get_distinct_colors() : 0;
+      });
+      const elapsed = performance.now() - contentStart;
+      if (elapsed < 2000 || Math.floor(elapsed / 10000) !== Math.floor((elapsed - 1000) / 10000)) {
+        log(`  content check: distinctColors=${distinctColors}`);
+      }
+      if (distinctColors > 3) {
+        gotContent = true;
+        break;
+      }
+      // Send periodic key presses to interact with the app (e.g. dismiss menus)
+      const elapsedContent = performance.now() - contentStart;
+      const keySequence = [
+        290, // F1 = left softkey
+        257, // Enter = select/OK
+        325, // Numpad 5 = center/select
+        265, // Up arrow
+        264, // Down arrow
+        257, // Enter
+      ];
+      if (Math.floor(elapsedContent / 3000) !== Math.floor((elapsedContent - 1000) / 3000)) {
+        const keyIndex = Math.floor(elapsedContent / 3000) % keySequence.length;
+        await page.evaluate((key: number) => {
+          // @ts-expect-error Module is a global from Emscripten
+          if (Module._eka2l1_press_key) Module._eka2l1_press_key(key);
+        }, keySequence[keyIndex]);
+      }
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+
+    // Save final screenshot regardless
+    const canvasEl = await page.$("#canvas");
+    if (canvasEl) {
+      const screenshotBuf = await canvasEl.screenshot({ type: "png" });
+      fs.writeFileSync(path.resolve(buildDir, "../../../e2e-screenshot.png"), screenshotBuf);
+    }
+
+    if (!gotContent) {
+      throw new Error(`No app content after ${(contentTimeout / 1000).toFixed(0)}s`);
+    }
+    log("PASS: Canvas has diverse app content\n");
 
     log("All e2e tests passed!");
   } catch (err) {

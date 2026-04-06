@@ -359,6 +359,7 @@ namespace eka2l1::epoc {
     }
 
     void canvas_base::set_visible(const bool vis) {
+        LOG_TRACE(SERVICE_WINDOW, "set_visible: id=0x{:X} vis={} wasVisible={} active={}", id, vis, (bool)(flags & flags_visible), (bool)(flags & flags_active));
         bool should_trigger_redraw = false;
         bool current_visible_status = (flags & flags_visible) != 0;
 
@@ -579,6 +580,7 @@ namespace eka2l1::epoc {
     }
 
     void canvas_base::activate(service::ipc_context &context, ws_cmd &cmd) {
+        LOG_TRACE(SERVICE_WINDOW, "activate: id=0x{:X} visible={}", id, (bool)(flags & flags_visible));
         flags |= flags_active;
         on_activate();
 
@@ -1108,6 +1110,7 @@ namespace eka2l1::epoc {
     }
 
     void redraw_msg_canvas::add_draw_command(gdi_store_command &command) {
+        LOG_TRACE(SERVICE_WINDOW, "add_draw_command: id=0x{:X} opcode={} inRedraw={}", id, command.opcode_, (bool)(flags & flags_in_redraw));
         const std::lock_guard<std::mutex> guard(scr->screen_mutex);
 
         if ((flags & flags_in_redraw) == 0) {
@@ -1156,13 +1159,13 @@ namespace eka2l1::epoc {
 
     bool redraw_msg_canvas::draw(drivers::graphics_command_builder &builder) {
         if (!can_be_physically_seen()) {
-            // No need to redraw this window yet. It doesn't even have any content ready.
+            LOG_TRACE(SERVICE_WINDOW, "redraw_msg_canvas::draw: not physically seen, id=0x{:X}", id);
             return false;
         }
 
         // Check if extent is just invalid
         if (size().x == 0 || size().y == 0) {
-            // No one can see this. Leave it for now.
+            LOG_TRACE(SERVICE_WINDOW, "redraw_msg_canvas::draw: zero size, id=0x{:X}", id);
             return false;
         }
 
@@ -1196,11 +1199,18 @@ namespace eka2l1::epoc {
         eka2l1::drivers::filter_option filter = (client->get_ws().get_kernel_system()->get_config()->nearest_neighbor_filtering ?
             eka2l1::drivers::filter_option::nearest : eka2l1::drivers::filter_option::linear);
 
+        LOG_TRACE(SERVICE_WINDOW, "redraw_msg_canvas::draw: id=0x{:X} size={}x{} scrFlags=0x{:X} segments={}",
+            id, size().x, size().y, scr->flags_, redraw_segments_.get_segments().size());
+
         if (scr->flags_ & screen::FLAG_SERVER_REDRAW_PENDING) {
             auto &segments = redraw_segments_.get_segments();
 
             if (!segments.empty()) {
                 for (std::size_t i = 0; i < segments.size(); i++) {
+                    LOG_TRACE(SERVICE_WINDOW, "  segment[{}]: type={} cmds={}", i, segments[i]->type_, segments[i]->commands_.size());
+                    for (std::size_t j = 0; j < segments[i]->commands_.size(); j++) {
+                        LOG_TRACE(SERVICE_WINDOW, "    cmd[{}]: opcode={}", j, segments[i]->commands_[j].opcode_);
+                    }
                     if (segments[i]->type_ != gdi_store_command_segment_pending_redraw) {
                         draw_background_color();
                         break;
@@ -1223,6 +1233,8 @@ namespace eka2l1::epoc {
 
         if (scr->flags_ & screen::FLAG_CLIENT_REDRAW_PENDING) {
             drivers::command_list cmd_list = driver_builder_.retrieve_command_list();
+            LOG_TRACE(SERVICE_WINDOW, "redraw_msg_canvas::draw CLIENT_REDRAW: id=0x{:X} cmdListEmpty={} pendingSeg={}",
+                id, cmd_list.empty(), (bool)pending_segment_);
             if (pending_segment_) {
                 builder.clip_bitmap_region(visible_region, scr->display_scale_factor);
 

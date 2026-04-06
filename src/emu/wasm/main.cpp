@@ -46,8 +46,10 @@
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
 #include <emscripten/console.h>
+#include <GLES3/gl3.h>
 
 #include <future>
+#include <set>
 #include <memory>
 #include <thread>
 
@@ -68,6 +70,13 @@ namespace {
         std::size_t screen_redraw_cb_id = 0;
         std::unique_ptr<std::thread> emu_thread;
         std::unique_ptr<std::thread> gfx_thread;
+
+        // Pixel readback buffer written by the gfx thread during display()
+        std::mutex pixel_mutex;
+        std::vector<uint8_t> pixel_buf;
+        int pixel_w = 0;
+        int pixel_h = 0;
+        int pixel_distinct_colors = 0;
     };
 
     wasm_state *g_state = nullptr;
@@ -219,7 +228,8 @@ int eka2l1_run(const char *app_name) {
         return -1;
     }
 
-    // Create graphics driver on its own thread (WebGL context must be used from the thread that owns it)
+    // Create graphics driver on its own thread. With PROXY_TO_PTHREAD, GL calls
+    // from worker threads are properly proxied to the main browser thread.
     std::promise<bool> gfx_ready_promise;
     auto gfx_ready_future = gfx_ready_promise.get_future();
 
@@ -240,7 +250,20 @@ int eka2l1_run(const char *app_name) {
 
         g_state->symsys->set_graphics_driver(g_state->graphics_driver.get());
         g_state->graphics_driver->set_display_hook([]() {
-            // No-op display hook for WASM — swap_buffers is called by the driver
+            // Read back pixels to count distinct colors (for e2e test verification)
+            GLint vp[4] = {};
+            glGetIntegerv(GL_VIEWPORT, vp);
+            if (vp[2] > 0 && vp[3] > 0 && g_state) {
+                int total = vp[2] * vp[3] * 4;
+                std::vector<GLubyte> pixels(total);
+                glReadPixels(0, 0, vp[2], vp[3], GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+                std::set<uint32_t> colors;
+                for (int i = 0; i < total; i += 40) {
+                    colors.insert((pixels[i] << 16) | (pixels[i+1] << 8) | pixels[i+2]);
+                }
+                const std::lock_guard<std::mutex> guard(g_state->pixel_mutex);
+                g_state->pixel_distinct_colors = static_cast<int>(colors.size());
+            }
         });
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver ready, entering command loop");
         gfx_ready_promise.set_value(true);
@@ -323,6 +346,30 @@ int eka2l1_run(const char *app_name) {
         g_state->symsys->get_kernel_system()->get_by_name<service::server>(
             get_winserv_name_by_epocver(g_state->symsys->get_symbian_version_use())));
 
+    // Set up default key bindings (driver key codes -> Symbian scan codes)
+    if (g_state->winserv) {
+        auto &kmap = g_state->winserv->input_mapping.key_input_map;
+        kmap[257] = epoc::std_key_enter;           // Enter -> EStdKeyEnter
+        kmap[256] = epoc::std_key_escape;          // Esc -> EStdKeyEscape
+        kmap[265] = epoc::std_key_up_arrow;        // Up -> EStdKeyUpArrow
+        kmap[264] = epoc::std_key_down_arrow;      // Down -> EStdKeyDownArrow
+        kmap[263] = epoc::std_key_left_arrow;      // Left -> EStdKeyLeftArrow
+        kmap[262] = epoc::std_key_right_arrow;     // Right -> EStdKeyRightArrow
+        kmap[290] = epoc::std_key_application_0;   // F1 -> Left softkey
+        kmap[291] = epoc::std_key_application_1;   // F2 -> Right softkey
+        kmap[325] = epoc::std_key_device_3;        // Numpad5 -> OK/Select
+        kmap[320] = epoc::std_key_nkp_0;           // Numpad0
+        kmap[321] = epoc::std_key_nkp_1;           // Numpad1
+        kmap[322] = epoc::std_key_nkp_2;           // Numpad2
+        kmap[323] = epoc::std_key_nkp_3;           // Numpad3
+        kmap[324] = epoc::std_key_nkp_4;           // Numpad4
+        kmap[326] = epoc::std_key_nkp_6;           // Numpad6
+        kmap[327] = epoc::std_key_nkp_7;           // Numpad7
+        kmap[328] = epoc::std_key_nkp_8;           // Numpad8
+        kmap[329] = epoc::std_key_nkp_9;           // Numpad9
+        LOG_INFO(FRONTEND_CMDLINE, "Default key bindings configured ({} mappings)", kmap.size());
+    }
+
     // Register screen redraw callback to present frames (like Qt frontend does)
     if (g_state->winserv) {
         epoc::screen *scr = g_state->winserv->get_screens();
@@ -336,13 +383,17 @@ int eka2l1_run(const char *app_name) {
                     drivers::graphics_command_builder builder;
                     auto &crr_mode = scr->current_mode();
 
-                    eka2l1::vec2 swapchain_size(crr_mode.size);
+                    eka2l1::vec2 screen_size(crr_mode.size);
+
+                    // Use screen size as swapchain size and resize canvas to match
+                    eka2l1::vec2 swapchain_size = screen_size;
+                    g_state->graphics_driver->update_surface_size(swapchain_size);
+
                     builder.set_swapchain_size(swapchain_size);
                     builder.backup_state();
 
                     builder.set_feature(drivers::graphics_feature::cull, false);
                     builder.set_feature(drivers::graphics_feature::depth_test, false);
-                    builder.set_feature(drivers::graphics_feature::blend, false);
                     builder.set_feature(drivers::graphics_feature::stencil_test, false);
                     builder.set_feature(drivers::graphics_feature::clipping, false);
 
@@ -350,13 +401,19 @@ int eka2l1_run(const char *app_name) {
                     viewport.size = swapchain_size;
                     builder.set_viewport(viewport);
 
-                    builder.clear({ 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f }, drivers::draw_buffer_bit_color_buffer);
+                    builder.clear({ 0.816f, 0.816f, 0.816f, 1.0f, 0.0f, 0.0f }, drivers::draw_buffer_bit_color_buffer);
+
+                    // Enable blending so transparent screen texture pixels preserve the background
+                    builder.set_feature(drivers::graphics_feature::blend, true);
+                    builder.blend_formula(drivers::blend_equation::add, drivers::blend_equation::add,
+                        drivers::blend_factor::frag_out_alpha, drivers::blend_factor::one_minus_frag_out_alpha,
+                        drivers::blend_factor::one, drivers::blend_factor::one_minus_frag_out_alpha);
 
                     eka2l1::rect dest;
                     dest.size = swapchain_size;
 
                     eka2l1::rect src;
-                    src.size = crr_mode.size;
+                    src.size = screen_size;
 
                     builder.draw_bitmap(scr->screen_texture, 0, dest, src, eka2l1::vec2(0, 0), 0.0f, 0);
 
@@ -381,24 +438,71 @@ int eka2l1_run(const char *app_name) {
     // Run the emulator loop on a background thread so the main thread stays free
     g_state->emu_thread = std::make_unique<std::thread>([]() {
         LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
-        emscripten_console_logf("Emulator thread started (direct)");
         int iterations = 0;
+        auto last_forced_redraw = std::chrono::steady_clock::now();
         while (g_state && g_state->running) {
             int ret = g_state->symsys->loop();
             iterations++;
             if (iterations <= 5 || iterations % 100 == 0) {
-                emscripten_console_logf("Emulator loop iteration %d, ret=%d", iterations, ret);
+                LOG_INFO(FRONTEND_CMDLINE, "Emulator loop iteration {}, ret={}", iterations, ret);
             }
             if (ret == 0) {
                 g_state->running = false;
                 break;
             }
+
+            // Periodically force a screen redraw — the animation scheduler may
+            // stop scheduling after the initial burst, leaving the screen stale.
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_forced_redraw).count() >= 100) {
+                last_forced_redraw = now;
+                if (g_state->winserv) {
+                    epoc::screen *scr = g_state->winserv->get_screens();
+                    if (scr && g_state->graphics_driver) {
+                        g_state->symsys->get_kernel_system()->lock();
+                        {
+                            const std::lock_guard<std::mutex> guard(scr->screen_mutex);
+                            scr->need_update_visible_regions(true);
+                            scr->set_server_redraw_pending();
+                            scr->redraw(g_state->graphics_driver.get());
+                        }
+                        g_state->symsys->get_kernel_system()->unlock();
+                    }
+                }
+            }
         }
-        emscripten_console_logf("Emulator loop exited after %d iterations", iterations);
-        LOG_INFO(FRONTEND_CMDLINE, "Emulator loop exited");
+        LOG_INFO(FRONTEND_CMDLINE, "Emulator loop exited after {} iterations", iterations);
     });
 
     return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void eka2l1_press_key(int key_code) {
+    if (!g_state || !g_state->winserv) {
+        LOG_WARN(FRONTEND_CMDLINE, "press_key({}): no state or winserv", key_code);
+        return;
+    }
+    LOG_INFO(FRONTEND_CMDLINE, "press_key({})", key_code);
+
+    drivers::input_event press_evt;
+    press_evt.type_ = drivers::input_event_type::key;
+    press_evt.key_.state_ = drivers::key_state::pressed;
+    press_evt.key_.code_ = key_code;
+    g_state->winserv->queue_input_from_driver(press_evt);
+
+    drivers::input_event release_evt;
+    release_evt.type_ = drivers::input_event_type::key;
+    release_evt.key_.state_ = drivers::key_state::released;
+    release_evt.key_.code_ = key_code;
+    g_state->winserv->queue_input_from_driver(release_evt);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_get_distinct_colors() {
+    if (!g_state) return 0;
+    const std::lock_guard<std::mutex> guard(g_state->pixel_mutex);
+    return g_state->pixel_distinct_colors;
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -425,5 +529,6 @@ void eka2l1_shutdown() {
 } // extern "C"
 
 int main() {
+    emscripten_exit_with_live_runtime();
     return 0;
 }
