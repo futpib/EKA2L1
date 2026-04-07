@@ -24,7 +24,7 @@ async function fetchCidToFile(cid: string, label: string, destPath: string): Pro
   console.log(`  ${label}: ${(buf.length / 1e6).toFixed(1)} MB -> ${destPath}`);
 }
 
-const outDir = path.resolve(buildDir, "../../../build-wasm/frames-wasm");
+const outDir = path.resolve(buildDir, "../../../frames-wasm");
 const PID_FILE = path.join(outDir, "wasm-frames.pid");
 
 function acquirePidLock(): void {
@@ -96,67 +96,79 @@ async function run(): Promise<void> {
   const page: Page = await browser.newPage();
   page.setDefaultTimeout(300_000);
 
+  const t0 = performance.now();
+  function log(msg: string): void {
+    const sec = ((performance.now() - t0) / 1000).toFixed(1);
+    console.log(`[${sec}s] ${msg}`);
+  }
+
   page.on("console", (msg) => {
-    const text = msg.text();
-    if (text.includes("Frame dumper:")) {
-      console.log(`  [frame] ${text}`);
-    }
+    log(`  [${msg.type()}] ${msg.text()}`);
+  });
+
+  page.on("pageerror", (err) => {
+    log(`  [pageerror] ${err.message}`);
   });
 
   try {
-    console.log("Loading page (auto-start mode)...");
-    await page.goto(url, { waitUntil: "networkidle0", timeout: 60_000 });
+    log("Loading page (auto-start mode)...");
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    log("Page DOM loaded");
 
-    // Wait for Module to be ready
-    await page.waitForFunction(
-      "typeof Module !== 'undefined' && Module.calledRun === true",
-      { timeout: 120_000 },
-    );
-    console.log("WASM module loaded");
+    // Poll for readiness with continuous status reporting
+    const emFsDir = "/tmp/frames";
+    let dumpStarted = false;
+    let dumpDone = false;
+    const totalTimeout = 600_000;
 
-    // Wait for emulator to be running (auto-start handles init/install/run)
-    console.log("Waiting for emulator to start...");
-    await page.waitForFunction(
-      () => {
+    while (performance.now() - t0 < totalTimeout) {
+      const state = await page.evaluate(() => {
         const status = document.getElementById("status")?.textContent ?? "";
-        return status.includes("Running") || status.includes("Error");
-      },
-      { timeout: 300_000, polling: 1000 },
-    );
+        const moduleExists = typeof Module !== "undefined";
+        // @ts-expect-error Module is a global from Emscripten
+        const calledRun = moduleExists && Module.calledRun === true;
+        // @ts-expect-error Module is a global from Emscripten
+        const hasDumpFn = calledRun && typeof Module._eka2l1_start_frame_dump === "function";
+        // Only call native functions after runtime is initialized
+        let dumpDone = 0, dumpCaptured = 0;
+        if (calledRun) {
+          // @ts-expect-error Module is a global from Emscripten
+          dumpDone = Module._eka2l1_frame_dump_done ? Module._eka2l1_frame_dump_done() : 0;
+          // @ts-expect-error Module is a global from Emscripten
+          dumpCaptured = Module._eka2l1_frame_dump_captured ? Module._eka2l1_frame_dump_captured() : 0;
+        }
+        return { status, moduleExists, calledRun, hasDumpFn, dumpDone, dumpCaptured };
+      });
 
-    const status = await page.$eval("#status", (el) => el.textContent ?? "");
-    console.log(`Status: "${status}"`);
-    if (status.includes("Error")) {
-      throw new Error(`Emulator error: ${status}`);
+      log(`status="${state.status}" module=${state.moduleExists} calledRun=${state.calledRun} hasDumpFn=${state.hasDumpFn} captured=${state.dumpCaptured}/8 done=${state.dumpDone}`);
+
+      // Start frame dump once emulator is running and we haven't started yet
+      if (!dumpStarted && state.calledRun && state.hasDumpFn && state.status.includes("Running")) {
+        log("Starting frame dump...");
+        await page.evaluate((dir: string) => {
+          try { FS.mkdir(dir); } catch(e) {}
+          // @ts-expect-error Module is a global from Emscripten
+          Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], [dir, 8]);
+        }, emFsDir);
+        dumpStarted = true;
+        log("Frame dump started");
+        continue; // re-evaluate state with dumper active
+      }
+
+      if (dumpStarted && state.dumpDone) {
+        dumpDone = true;
+        break;
+      }
+
+      if (state.status.includes("Error")) {
+        throw new Error(`Emulator error: ${state.status}`);
+      }
+
+      await new Promise((r) => setTimeout(r, 2000));
     }
 
-    // Start frame dump in emscripten FS
-    const emFsDir = "/tmp/frames";
-    await page.evaluate((dir: string) => {
-      try { FS.mkdir(dir); } catch(e) {}
-      // @ts-expect-error Module is a global from Emscripten
-      Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], [dir, 16]);
-    }, emFsDir);
-    console.log("Frame dump started");
-
-    // Poll until done
-    const timeout = 600_000;
-    const start = performance.now();
-    while (performance.now() - start < timeout) {
-      const done = await page.evaluate(() => {
-        // @ts-expect-error Module is a global from Emscripten
-        return Module._eka2l1_frame_dump_done ? Module._eka2l1_frame_dump_done() : 0;
-      });
-      const captured = await page.evaluate(() => {
-        // @ts-expect-error Module is a global from Emscripten
-        return Module._eka2l1_frame_dump_captured ? Module._eka2l1_frame_dump_captured() : 0;
-      });
-
-      const elapsed = ((performance.now() - start) / 1000).toFixed(1);
-      console.log(`[${elapsed}s] captured: ${captured}/16, done: ${done}`);
-
-      if (done) break;
-      await new Promise((r) => setTimeout(r, 2000));
+    if (!dumpDone) {
+      throw new Error("Frame dump timed out");
     }
 
     // Read PNG files from emscripten FS and save locally
@@ -178,10 +190,10 @@ async function run(): Promise<void> {
     for (const file of files) {
       const outPath = path.join(outDir, file.name);
       fs.writeFileSync(outPath, Buffer.from(file.data));
-      console.log(`  Saved: ${outPath} (${file.data.length} bytes)`);
+      log(`  Saved: ${outPath} (${file.data.length} bytes)`);
     }
 
-    console.log(`\nCaptured ${files.length} frames to ${outDir}`);
+    log(`Captured ${files.length} frames to ${outDir}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`\nFAIL: ${msg}`);

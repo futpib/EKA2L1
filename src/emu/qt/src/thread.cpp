@@ -191,7 +191,7 @@ namespace eka2l1::desktop {
         // Create frame dumper if requested
         std::shared_ptr<common::frame_dumper> dumper;
         if (!state.dump_frames_dir_.empty()) {
-            dumper = std::make_shared<common::frame_dumper>(state.dump_frames_dir_, 16);
+            dumper = std::make_shared<common::frame_dumper>(state.dump_frames_dir_, 8);
             LOG_INFO(FRONTEND_CMDLINE, "Frame dump enabled: dir={}", state.dump_frames_dir_);
         }
 
