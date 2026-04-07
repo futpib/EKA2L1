@@ -70,13 +70,15 @@ namespace eka2l1::common {
                 output_dir_.c_str(), frame_index_);
 
             // stbi_write_png expects top-to-bottom rows, but GL gives bottom-to-top.
-            // Flip vertically.
+            // Flip vertically and force alpha=255 (WebGL2 FBO may lack alpha).
             std::vector<std::uint8_t> flipped(width * height * 4);
             for (int y = 0; y < height; y++) {
-                std::memcpy(
-                    flipped.data() + y * width * 4,
-                    rgba_data + (height - 1 - y) * width * 4,
-                    width * 4);
+                const std::uint8_t *src_row = rgba_data + (height - 1 - y) * width * 4;
+                std::uint8_t *dst_row = flipped.data() + y * width * 4;
+                std::memcpy(dst_row, src_row, width * 4);
+                for (int x = 0; x < width; x++) {
+                    dst_row[x * 4 + 3] = 255;
+                }
             }
 
             int ok = stbi_write_png(filename, width, height, 4, flipped.data(), width * 4);

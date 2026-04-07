@@ -96,10 +96,14 @@ async function run(): Promise<void> {
   const page: Page = await browser.newPage();
   page.setDefaultTimeout(300_000);
 
+  const logFile = path.join(outDir, "wasm-frames.log");
+  const logStream = fs.createWriteStream(logFile);
   const t0 = performance.now();
   function log(msg: string): void {
     const sec = ((performance.now() - t0) / 1000).toFixed(1);
-    console.log(`[${sec}s] ${msg}`);
+    const line = `[${sec}s] ${msg}`;
+    console.log(line);
+    logStream.write(line + "\n");
   }
 
   page.on("console", (msg) => {
@@ -199,6 +203,7 @@ async function run(): Promise<void> {
     console.error(`\nFAIL: ${msg}`);
     process.exit(1);
   } finally {
+    logStream.end();
     await browser.close();
     server.close();
     releasePidLock();

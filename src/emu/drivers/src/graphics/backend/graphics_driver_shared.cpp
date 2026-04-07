@@ -226,14 +226,45 @@ namespace eka2l1::drivers {
 
         translate_bpp_to_format(bmp->bpp, internal_format, data_format, data_type, is_stricted());
 
+#ifdef __EMSCRIPTEN__
+        // WebGL2 does not support GL_TEXTURE_SWIZZLE_*, so we must swap channels
+        // in the pixel data before upload instead.
+        std::vector<std::uint8_t> swapped_data;
+        const void *upload_data = data;
+
+        if (data && (data_format == texture_format::bgra || data_format == texture_format::bgr)) {
+            const int bpp_bytes = (data_format == texture_format::bgra) ? 4 : 3;
+            const std::size_t pixel_count = dim.x * dim.y;
+            swapped_data.resize(pixel_count * bpp_bytes);
+            const std::uint8_t *src = reinterpret_cast<const std::uint8_t *>(data);
+            for (std::size_t i = 0; i < pixel_count; i++) {
+                const std::size_t off = i * bpp_bytes;
+                swapped_data[off + 0] = src[off + 2]; // R <- B
+                swapped_data[off + 1] = src[off + 1]; // G <- G
+                swapped_data[off + 2] = src[off + 0]; // B <- R
+                if (bpp_bytes == 4) {
+                    swapped_data[off + 3] = src[off + 3]; // A <- A
+                }
+            }
+            upload_data = swapped_data.data();
+        }
+
+        bmp->tex->update_data(this, 0, eka2l1::vec3(offset.x, offset.y, 0), eka2l1::vec3(dim.x, dim.y, 0), pixels_per_line,
+            data_format, data_type, upload_data, 0, 4);
+#else
         bmp->tex->update_data(this, 0, eka2l1::vec3(offset.x, offset.y, 0), eka2l1::vec3(dim.x, dim.y, 0), pixels_per_line,
             data_format, data_type, data, 0, 4);
+#endif
 
         if (bmp->bpp == 12) {
             bmp->tex->set_channel_swizzle({ channel_swizzle::green, channel_swizzle::blue,
                 channel_swizzle::alpha, channel_swizzle::one });
         }
 
+#ifdef __EMSCRIPTEN__
+        // WebGL2 does not support GL_TEXTURE_SWIZZLE_* — channel swapping is
+        // handled above by reordering pixel data before upload. Skip swizzle calls.
+#else
         if (is_stricted()) {
             switch (bmp->bpp) {
             case 8:
@@ -270,6 +301,7 @@ namespace eka2l1::drivers {
                 break;
             }
         }
+#endif
     }
 
     void shared_graphics_driver::update_bitmap(command &cmd) {

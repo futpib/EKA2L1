@@ -398,15 +398,24 @@ int eka2l1_run(const char *app_name) {
 
                     eka2l1::vec2 screen_size(crr_mode.size);
 
-                    // Use screen size as swapchain size and resize canvas to match
+                    // Match Qt: use screen size as swapchain size
                     eka2l1::vec2 swapchain_size = screen_size;
-                    g_state->graphics_driver->update_surface_size(swapchain_size);
+
+                    // Only resize canvas when size actually changes — resizing
+                    // clears the WebGL framebuffer on every call.
+                    static eka2l1::vec2 last_surface_size = { 0, 0 };
+                    if (swapchain_size != last_surface_size) {
+                        g_state->graphics_driver->update_surface_size(swapchain_size);
+                        last_surface_size = swapchain_size;
+                    }
 
                     builder.set_swapchain_size(swapchain_size);
                     builder.backup_state();
 
+                    // Match Qt: same feature setup order
                     builder.set_feature(drivers::graphics_feature::cull, false);
                     builder.set_feature(drivers::graphics_feature::depth_test, false);
+                    builder.set_feature(drivers::graphics_feature::blend, false);
                     builder.set_feature(drivers::graphics_feature::stencil_test, false);
                     builder.set_feature(drivers::graphics_feature::clipping, false);
 
@@ -414,14 +423,18 @@ int eka2l1_run(const char *app_name) {
                     viewport.size = swapchain_size;
                     builder.set_viewport(viewport);
 
-                    builder.set_feature(drivers::graphics_feature::blend, false);
                     builder.clear({ 0.816f, 0.816f, 0.816f, 1.0f, 0.0f, 0.0f }, drivers::draw_buffer_bit_color_buffer);
+
+                    // Match Qt: set texture filter before drawing
+                    builder.set_texture_filter(scr->screen_texture, true, drivers::filter_option::linear);
+                    builder.set_texture_filter(scr->screen_texture, false, drivers::filter_option::linear);
 
                     eka2l1::rect dest;
                     dest.size = swapchain_size;
 
                     eka2l1::rect src;
                     src.size = screen_size;
+                    src.size *= scr->display_scale_factor;
 
                     builder.draw_bitmap(scr->screen_texture, 0, dest, src, eka2l1::vec2(0, 0), 0.0f, 0);
 

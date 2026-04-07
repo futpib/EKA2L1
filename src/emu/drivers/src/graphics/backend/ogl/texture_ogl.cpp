@@ -254,6 +254,11 @@ namespace eka2l1::drivers {
     }
 
     void ogl_texture::set_channel_swizzle(channel_swizzles swizz) {
+#ifdef __EMSCRIPTEN__
+        // WebGL2 does not support GL_TEXTURE_SWIZZLE_*. Channel swapping must
+        // be done in pixel data before upload or in the shader instead.
+        (void)swizz;
+#else
         GLint swizz_gl[4];
 
         for (int i = 0; i < 4; i++) {
@@ -268,6 +273,7 @@ namespace eka2l1::drivers {
         glTexParameteri(bind_point, GL_TEXTURE_SWIZZLE_B, swizz_gl[2]);
         glTexParameteri(bind_point, GL_TEXTURE_SWIZZLE_A, swizz_gl[3]);
         unbind(nullptr);
+#endif
     }
 
     static GLenum get_binding_enum_dim(const int dim) {

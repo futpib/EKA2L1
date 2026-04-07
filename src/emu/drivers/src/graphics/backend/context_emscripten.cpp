@@ -34,7 +34,7 @@ namespace eka2l1::drivers::graphics {
         emscripten_webgl_init_context_attributes(&attrs);
         attrs.majorVersion = 2;
         attrs.minorVersion = 0;
-        attrs.alpha = false;
+        attrs.alpha = true;
         attrs.depth = true;
         attrs.stencil = true;
         attrs.antialias = false;
