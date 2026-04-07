@@ -36,9 +36,7 @@ function comparePngs(
   let maxDiffR = 0, maxDiffG = 0, maxDiffB = 0;
   let maxDiffX = 0, maxDiffY = 0;
 
-  // Create diff image: green = match, red = difference (amplified)
-  const diff = new PNG({ width: qt.width, height: qt.height });
-
+  // Build per-pixel diff data
   for (let y = 0; y < qt.height; y++) {
     for (let x = 0; x < qt.width; x++) {
       const idx = (y * qt.width + x) * 4;
@@ -57,18 +55,48 @@ function comparePngs(
           maxDiffX = x;
           maxDiffY = y;
         }
-        // Red channel shows amplified difference
-        diff.data[idx] = Math.min(255, pixelDiff * 4);
-        diff.data[idx + 1] = 0;
-        diff.data[idx + 2] = 0;
-        diff.data[idx + 3] = 255;
-      } else {
-        // Dim green for matching pixels
-        diff.data[idx] = 0;
-        diff.data[idx + 1] = Math.max(qt.data[idx], qt.data[idx + 1], qt.data[idx + 2]) / 4;
-        diff.data[idx + 2] = 0;
-        diff.data[idx + 3] = 255;
       }
+    }
+  }
+
+  // Create side-by-side composite: diff | actual (wasm) | expected (qt)
+  const compositeWidth = qt.width * 3;
+  const composite = new PNG({ width: compositeWidth, height: qt.height });
+
+  for (let y = 0; y < qt.height; y++) {
+    for (let x = 0; x < qt.width; x++) {
+      const srcIdx = (y * qt.width + x) * 4;
+      const dr = Math.abs(qt.data[srcIdx] - wasm.data[srcIdx]);
+      const dg = Math.abs(qt.data[srcIdx + 1] - wasm.data[srcIdx + 1]);
+      const db = Math.abs(qt.data[srcIdx + 2] - wasm.data[srcIdx + 2]);
+      const pixelDiff = Math.max(dr, dg, db);
+
+      // Left panel: diff (red = different, dim green = matching)
+      const diffIdx = (y * compositeWidth + x) * 4;
+      if (pixelDiff > CHANNEL_TOLERANCE) {
+        composite.data[diffIdx] = Math.min(255, pixelDiff * 4);
+        composite.data[diffIdx + 1] = 0;
+        composite.data[diffIdx + 2] = 0;
+      } else {
+        composite.data[diffIdx] = 0;
+        composite.data[diffIdx + 1] = Math.max(qt.data[srcIdx], qt.data[srcIdx + 1], qt.data[srcIdx + 2]) / 4;
+        composite.data[diffIdx + 2] = 0;
+      }
+      composite.data[diffIdx + 3] = 255;
+
+      // Middle panel: actual (wasm)
+      const wasmIdx = (y * compositeWidth + qt.width + x) * 4;
+      composite.data[wasmIdx] = wasm.data[srcIdx];
+      composite.data[wasmIdx + 1] = wasm.data[srcIdx + 1];
+      composite.data[wasmIdx + 2] = wasm.data[srcIdx + 2];
+      composite.data[wasmIdx + 3] = 255;
+
+      // Right panel: expected (qt)
+      const qtIdx = (y * compositeWidth + qt.width * 2 + x) * 4;
+      composite.data[qtIdx] = qt.data[srcIdx];
+      composite.data[qtIdx + 1] = qt.data[srcIdx + 1];
+      composite.data[qtIdx + 2] = qt.data[srcIdx + 2];
+      composite.data[qtIdx + 3] = 255;
     }
   }
 
@@ -83,11 +111,11 @@ function comparePngs(
     details += ` qt=(${qt.data[qtIdx]},${qt.data[qtIdx+1]},${qt.data[qtIdx+2]}) wasm=(${wasm.data[wasmIdx]},${wasm.data[wasmIdx+1]},${wasm.data[wasmIdx+2]})`;
   }
 
-  // Save diff image if there are differences
+  // Save composite diff image if there are differences
   let diffPath: string | undefined;
   if (diffPixels > 0) {
     diffPath = wasmPath.replace(/\.png$/, "-diff.png");
-    fs.writeFileSync(diffPath, PNG.sync.write(diff));
+    fs.writeFileSync(diffPath, PNG.sync.write(composite));
   }
 
   return { match, details, diffPath };
