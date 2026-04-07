@@ -115,15 +115,43 @@ async function run(): Promise<void> {
   });
 
   try {
-    log("Loading page (auto-start mode)...");
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    log("Page DOM loaded");
+    // Retry page load if WASM workers fail to initialize
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      log(`Loading page (attempt ${attempt}/${maxRetries})...`);
+      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
+      log("Page DOM loaded");
+
+      // Wait for calledRun with a short timeout
+      const bootDeadline = performance.now() + 60_000;
+      let booted = false;
+      while (performance.now() < bootDeadline) {
+        const calledRun = await page.evaluate(() => {
+          return typeof Module !== "undefined" && (Module as any).calledRun === true;
+        });
+        if (calledRun) { booted = true; break; }
+        const status = await page.evaluate(() => document.getElementById("status")?.textContent ?? "");
+        log(`  waiting for boot: "${status}"`);
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+      if (booted) {
+        log("WASM runtime booted");
+        break;
+      }
+      if (attempt < maxRetries) {
+        log(`Boot timed out, retrying...`);
+        continue;
+      }
+      throw new Error(`WASM runtime failed to boot after ${maxRetries} attempts (workers may have failed to load)`);
+    }
 
     // Poll for readiness with continuous status reporting
     const emFsDir = "/tmp/frames";
     let dumpStarted = false;
     let dumpDone = false;
-    const totalTimeout = 600_000;
+    const totalTimeout = 300_000;
+    const runTimeout = 120_000;   // "Running" status must appear within 120s
+    let runWaitStart = performance.now();
 
     while (performance.now() - t0 < totalTimeout) {
       const state = await page.evaluate(() => {
@@ -145,6 +173,11 @@ async function run(): Promise<void> {
       });
 
       log(`status="${state.status}" module=${state.moduleExists} calledRun=${state.calledRun} hasDumpFn=${state.hasDumpFn} captured=${state.dumpCaptured}/8 done=${state.dumpDone}`);
+
+      // Fail fast if emulator never reaches "Running"
+      if (!dumpStarted && (performance.now() - runWaitStart > runTimeout)) {
+        throw new Error(`Emulator did not reach Running state within ${runTimeout / 1000}s`);
+      }
 
       // Start frame dump once emulator is running and we haven't started yet
       if (!dumpStarted && state.calledRun && state.hasDumpFn && state.status.includes("Running")) {
