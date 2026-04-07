@@ -9,7 +9,8 @@
   },
   "devDependencies": {
     "@futpib/fetch-cid": "^1.0.2",
-    "puppeteer": "^24.0.0",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "pngjs": "^7.0.0",
+    "puppeteer": "^24.0.0"
   }
 }

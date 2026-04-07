@@ -304,6 +304,21 @@ namespace eka2l1::drivers {
 #endif
     }
 
+    bool shared_graphics_driver::read_bitmap_pixels(drivers::handle h, int width, int height,
+        std::uint8_t *rgba_out) {
+        bitmap *bmp = get_bitmap(h);
+        if (!bmp || !bmp->fb || !bmp->tex) return false;
+
+        GLint prev_fbo = 0;
+        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prev_fbo);
+
+        bmp->fb->bind(this, framebuffer_bind_read);
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgba_out);
+        bmp->fb->unbind(this);
+
+        return true;
+    }
+
     void shared_graphics_driver::update_bitmap(command &cmd) {
         drivers::handle handle = cmd.data_[0];
         std::uint8_t *data = reinterpret_cast<std::uint8_t*>(cmd.data_[1]);

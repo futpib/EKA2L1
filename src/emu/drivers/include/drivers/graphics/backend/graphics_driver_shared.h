@@ -118,5 +118,13 @@ namespace eka2l1::drivers {
         virtual void dispatch(command &cmd);
 
         virtual void bind_swapchain_framebuf() = 0;
+
+        /**
+         * Read pixels directly from a bitmap's FBO. Must be called from the
+         * graphics thread (e.g. inside a display hook). Does NOT go through the
+         * command queue.
+         */
+        bool read_bitmap_pixels(drivers::handle h, int width, int height,
+            std::uint8_t *rgba_out);
     };
 }

@@ -5,6 +5,7 @@
 #include <stb_image_write.h>
 
 #include <cstdio>
+#include <cstring>
 #include <set>
 
 namespace eka2l1::common {

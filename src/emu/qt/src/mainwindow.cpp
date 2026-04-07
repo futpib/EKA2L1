@@ -190,7 +190,11 @@ static void draw_emulator_screen(void *userdata, eka2l1::epoc::screen *scr, cons
     x = (swapchain_size.x - width) / 2;
     y = (swapchain_size.y - height) / 2;
 
-    scr->set_native_scale_factor(state_ptr->graphics_driver.get(), mult_x, mult_y);
+    if (state_ptr->dump_frames_dir_.empty()) {
+        scr->set_native_scale_factor(state_ptr->graphics_driver.get(), mult_x, mult_y);
+    } else {
+        scr->set_native_scale_factor(state_ptr->graphics_driver.get(), 1.0f, 1.0f);
+    }
     scr->absolute_pos.x = static_cast<int>(x);
     scr->absolute_pos.y = static_cast<int>(y);
 

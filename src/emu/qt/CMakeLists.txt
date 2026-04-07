@@ -161,6 +161,9 @@ endif()
 
 target_include_directories(eka2l1_qt PUBLIC include)
 
+# graphics_driver_shared.h needs glm (for read_bitmap_pixels in frame dump)
+target_include_directories(eka2l1_qt PRIVATE ${PROJECT_SOURCE_DIR}/src/external/glm)
+
 if (${QT_VERSION_MAJOR} EQUAL 6)
     target_include_directories(eka2l1_qt PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
     if (WIN32)

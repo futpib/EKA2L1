@@ -1,5 +1,9 @@
 add_executable(eka2l1_wasm main.cpp)
 
+# graphics_driver_shared.h needs glm (used for reading screen_texture FBO)
+target_include_directories(eka2l1_wasm PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/external/glm)
+
 target_link_libraries(eka2l1_wasm PRIVATE
     common
     config

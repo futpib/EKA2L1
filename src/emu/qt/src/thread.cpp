@@ -37,9 +37,9 @@
 #include <qt/thread.h>
 #include <qt/utils.h>
 
-#include <GL/gl.h>
 #include <drivers/graphics/emu_window.h>
 #include <drivers/graphics/graphics.h>
+#include <drivers/graphics/backend/graphics_driver_shared.h>
 #include <drivers/input/common.h>
 #include <drivers/input/emu_controller.h>
 
@@ -200,28 +200,35 @@ namespace eka2l1::desktop {
             state.graphics_driver->set_display_hook([window, dumper, &state]() {
                 if (dumper && !dumper->done()) {
                     if (dumper->needs_pixel_data()) {
-                        // Read just the phone screen area, not the full window
-                        int x = 0, y = 0, w = 0, h = 0;
+                        // Read from screen_texture FBO at native resolution
+                        // (same method as WASM for identical output)
+                        int w = 0, h = 0;
+                        drivers::handle screen_tex = 0;
                         if (state.winserv) {
                             auto *scr = state.winserv->get_screens();
-                            if (scr) {
-                                x = scr->absolute_pos.x;
-                                y = scr->absolute_pos.y;
+                            if (scr && scr->screen_texture) {
                                 auto &mode = scr->current_mode();
-                                w = static_cast<int>(mode.size.x * scr->display_scale_factor);
-                                h = static_cast<int>(mode.size.y * scr->display_scale_factor);
+                                w = mode.size.x;
+                                h = mode.size.y;
+                                screen_tex = scr->screen_texture;
                             }
                         }
-                        if (w <= 0 || h <= 0) {
-                            // Fallback to full viewport
-                            GLint vp[4] = {};
-                            glGetIntegerv(GL_VIEWPORT, vp);
-                            x = 0; y = 0; w = vp[2]; h = vp[3];
-                        }
-                        if (w > 0 && h > 0) {
-                            std::vector<GLubyte> pixels(w * h * 4);
-                            glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-                            dumper->on_frame(pixels.data(), w, h);
+                        if (w > 0 && h > 0 && screen_tex) {
+                            std::vector<std::uint8_t> pixels(w * h * 4);
+                            auto *shared_drv = static_cast<drivers::shared_graphics_driver*>(
+                                state.graphics_driver.get());
+                            if (shared_drv->read_bitmap_pixels(screen_tex, w, h, pixels.data())) {
+                                // Pre-flip: screen_texture FBO content is top-down
+                                // but on_frame expects bottom-up GL data and flips it.
+                                int stride = w * 4;
+                                std::vector<std::uint8_t> row(stride);
+                                for (int y = 0; y < h / 2; y++) {
+                                    std::memcpy(row.data(), &pixels[y * stride], stride);
+                                    std::memcpy(&pixels[y * stride], &pixels[(h - 1 - y) * stride], stride);
+                                    std::memcpy(&pixels[(h - 1 - y) * stride], row.data(), stride);
+                                }
+                                dumper->on_frame(pixels.data(), w, h);
+                            }
                         }
                     } else {
                         dumper->skip_frame();

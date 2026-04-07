@@ -31,6 +31,7 @@
 
 #include <drivers/audio/audio.h>
 #include <drivers/graphics/graphics.h>
+#include <drivers/graphics/backend/graphics_driver_shared.h>
 #include <drivers/itc.h>
 
 #include <kernel/kernel.h>
@@ -254,14 +255,24 @@ int eka2l1_run(const char *app_name) {
 
         g_state->symsys->set_graphics_driver(g_state->graphics_driver.get());
         g_state->graphics_driver->set_display_hook([]() {
-            if (!g_state) return;
-            GLint vp[4] = {};
-            glGetIntegerv(GL_VIEWPORT, vp);
-            if (vp[2] <= 0 || vp[3] <= 0) return;
+            if (!g_state || !g_state->winserv) return;
 
-            int total = vp[2] * vp[3] * 4;
+            auto *scr = g_state->winserv->get_screens();
+            if (!scr || !scr->screen_texture) return;
+
+            auto &mode = scr->current_mode();
+            int w = mode.size.x, h = mode.size.y;
+            if (w <= 0 || h <= 0) return;
+
+            // Read from screen_texture's FBO directly. Reading from FBO 0 on
+            // WebGL2 with pthreads/OffscreenCanvas is unreliable.
+            int total = w * h * 4;
             std::vector<GLubyte> pixels(total);
-            glReadPixels(0, 0, vp[2], vp[3], GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+            auto *shared_drv = static_cast<drivers::shared_graphics_driver*>(
+                g_state->graphics_driver.get());
+            if (!shared_drv->read_bitmap_pixels(scr->screen_texture, w, h, pixels.data())) {
+                return;
+            }
 
             // Count distinct colors (for e2e test verification)
             std::set<uint32_t> colors;
@@ -275,7 +286,17 @@ int eka2l1_run(const char *app_name) {
 
             // Feed frame dumper if active
             if (g_state->dumper && !g_state->dumper->done()) {
-                g_state->dumper->on_frame(pixels.data(), vp[2], vp[3]);
+                // screen_texture FBO content is top-down (no Y-flip in projection),
+                // but the frame dumper expects bottom-up GL data and flips it.
+                // Pre-flip here so the double-flip produces correct output.
+                int stride = w * 4;
+                std::vector<GLubyte> row(stride);
+                for (int y = 0; y < h / 2; y++) {
+                    std::memcpy(row.data(), &pixels[y * stride], stride);
+                    std::memcpy(&pixels[y * stride], &pixels[(h - 1 - y) * stride], stride);
+                    std::memcpy(&pixels[(h - 1 - y) * stride], row.data(), stride);
+                }
+                g_state->dumper->on_frame(pixels.data(), w, h);
             }
         });
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver ready, entering command loop");
