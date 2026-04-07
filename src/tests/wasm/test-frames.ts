@@ -179,7 +179,7 @@ async function run(): Promise<void> {
         return { status, moduleExists, calledRun, hasDumpFn, dumpDone, dumpCaptured };
       });
 
-      log(`status="${state.status}" module=${state.moduleExists} calledRun=${state.calledRun} hasDumpFn=${state.hasDumpFn} captured=${state.dumpCaptured}/8 done=${state.dumpDone}`);
+      log(`status="${state.status}" module=${state.moduleExists} calledRun=${state.calledRun} hasDumpFn=${state.hasDumpFn} captured=${state.dumpCaptured}/16 done=${state.dumpDone}`);
 
       // Fail fast if emulator never reaches "Running"
       if (!dumpStarted && (performance.now() - runWaitStart > runTimeout)) {
@@ -192,7 +192,7 @@ async function run(): Promise<void> {
         await page.evaluate((dir: string) => {
           try { FS.mkdir(dir); } catch(e) {}
           // @ts-expect-error Module is a global from Emscripten
-          Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], [dir, 8]);
+          Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], [dir, 16]);
         }, emFsDir);
         dumpStarted = true;
         log("Frame dump started");
