@@ -93,6 +93,13 @@ function comparePngs(
   return { match, details, diffPath };
 }
 
+// Clean old diff images
+for (const f of fs.readdirSync(wasmDir)) {
+  if (f.match(/-diff\.png$/)) {
+    fs.unlinkSync(path.join(wasmDir, f));
+  }
+}
+
 // Find matching frame files
 const qtFiles = fs.readdirSync(qtDir).filter((f) => f.match(/^frame-\d+\.png$/)).sort();
 const wasmFiles = fs.readdirSync(wasmDir).filter((f) => f.match(/^frame-\d+\.png$/)).sort();

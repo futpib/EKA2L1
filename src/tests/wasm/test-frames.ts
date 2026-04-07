@@ -57,6 +57,13 @@ async function run(): Promise<void> {
   fs.mkdirSync(outDir, { recursive: true });
   acquirePidLock();
 
+  // Clean old frames and diffs
+  for (const f of fs.readdirSync(outDir)) {
+    if (f.match(/^frame-.*\.png$/)) {
+      fs.unlinkSync(path.join(outDir, f));
+    }
+  }
+
   const cacheDir = path.join(os.tmpdir(), "eka2l1-serve");
   fs.mkdirSync(cacheDir, { recursive: true });
 
