@@ -481,36 +481,12 @@ int eka2l1_run(const char *app_name) {
     g_state->emu_thread = std::make_unique<std::thread>([]() {
         LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
         int iterations = 0;
-        auto last_forced_redraw = std::chrono::steady_clock::now();
         while (g_state && g_state->running) {
             int ret = g_state->symsys->loop();
             iterations++;
             if (ret == 0) {
                 g_state->running = false;
                 break;
-            }
-
-            // Periodically force a screen redraw to ensure the display stays
-            // updated. The animation scheduler and posting surface handle most
-            // redraws, but a forced redraw ensures FLAG_SERVER_REDRAW_PENDING
-            // is set so that the screen composites the full window tree
-            // (not just DSA/posting content) on each frame.
-            auto now = std::chrono::steady_clock::now();
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_forced_redraw).count() >= 100) {
-                last_forced_redraw = now;
-                if (g_state->winserv) {
-                    epoc::screen *scr = g_state->winserv->get_screens();
-                    if (scr && g_state->graphics_driver) {
-                        g_state->symsys->get_kernel_system()->lock();
-                        {
-                            const std::lock_guard<std::mutex> guard(scr->screen_mutex);
-                            scr->need_update_visible_regions(true);
-                            scr->set_server_redraw_pending();
-                            scr->redraw(g_state->graphics_driver.get());
-                        }
-                        g_state->symsys->get_kernel_system()->unlock();
-                    }
-                }
             }
         }
         LOG_INFO(FRONTEND_CMDLINE, "Emulator loop exited after {} iterations", iterations);
