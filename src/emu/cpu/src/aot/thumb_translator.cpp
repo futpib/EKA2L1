@@ -544,15 +544,91 @@ namespace eka2l1::arm::aot {
                     w.bail(target, insn_idx + 1);
                 }
             } else if ((insn & 0xFE00) == 0xB400) {
-                // PUSH
-                w.bail(insn_addr, insn_idx);
-                insn_idx++;
-                continue;
+                // PUSH {reglist} — bit 8 = LR
+                std::uint16_t reglist = insn & 0xFF;
+                bool push_lr = (insn & 0x100) != 0;
+                // Count registers to push
+                int count = 0;
+                for (int r = 0; r < 8; r++) {
+                    if (reglist & (1 << r)) count++;
+                }
+                if (push_lr) count++;
+                // SP -= count * 4
+                w.load_reg(13);
+                w.i32_const(count * 4);
+                w.op(op_i32_sub);
+                w.set_local(TMP1);
+                w.store_reg(13, TMP1);
+                // Store registers at ascending addresses from new SP
+                int offset = 0;
+                for (int r = 0; r < 8; r++) {
+                    if (reglist & (1 << r)) {
+                        w.load_reg(r);
+                        w.set_local(TMP2);
+                        // tlb_write32(state_ptr, SP + offset, value)
+                        w.state_ptr();
+                        w.get_local(TMP1);
+                        if (offset > 0) { w.i32_const(offset); w.op(op_i32_add); }
+                        w.get_local(TMP2);
+                        w.call(1); // tlb_write32
+                        offset += 4;
+                    }
+                }
+                if (push_lr) {
+                    w.load_reg(14); // LR
+                    w.set_local(TMP2);
+                    w.state_ptr();
+                    w.get_local(TMP1);
+                    if (offset > 0) { w.i32_const(offset); w.op(op_i32_add); }
+                    w.get_local(TMP2);
+                    w.call(1);
+                }
             } else if ((insn & 0xFE00) == 0xBC00) {
-                // POP
-                w.bail(insn_addr, insn_idx);
-                insn_idx++;
-                continue;
+                // POP {reglist} — bit 8 = PC
+                std::uint16_t reglist = insn & 0xFF;
+                bool pop_pc = (insn & 0x100) != 0;
+                // Load registers from SP at ascending addresses
+                w.load_reg(13);
+                w.set_local(TMP1); // current SP
+                int offset = 0;
+                for (int r = 0; r < 8; r++) {
+                    if (reglist & (1 << r)) {
+                        // tlb_read32(state_ptr, SP + offset)
+                        w.state_ptr();
+                        w.get_local(TMP1);
+                        if (offset > 0) { w.i32_const(offset); w.op(op_i32_add); }
+                        w.call(0); // tlb_read32
+                        w.set_local(TMP2);
+                        w.store_reg(r, TMP2);
+                        offset += 4;
+                    }
+                }
+                if (pop_pc) {
+                    // Load PC value
+                    w.state_ptr();
+                    w.get_local(TMP1);
+                    if (offset > 0) { w.i32_const(offset); w.op(op_i32_add); }
+                    w.call(0);
+                    w.set_local(TMP2);
+                    w.store_reg(15, TMP2); // set PC
+                    offset += 4;
+                }
+                // Count registers popped
+                int count = 0;
+                for (int r = 0; r < 8; r++) {
+                    if (reglist & (1 << r)) count++;
+                }
+                if (pop_pc) count++;
+                // SP += count * 4
+                w.get_local(TMP1);
+                w.i32_const(count * 4);
+                w.op(op_i32_add);
+                w.set_local(TMP2);
+                w.store_reg(13, TMP2);
+                if (pop_pc) {
+                    // Return to interpreter to handle PC change
+                    w.bail(insn_addr, insn_idx + 1);
+                }
             } else if ((insn & 0xFF80) == 0xB080) {
                 // SUB SP, #imm7*4
                 int imm7 = insn & 0x7F;

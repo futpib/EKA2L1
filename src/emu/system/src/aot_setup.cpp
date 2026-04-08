@@ -44,17 +44,30 @@ namespace eka2l1::arm::aot {
     };
 
     // Hardcoded AOT targets. The hot function in gdi.dll's CTypefaceStore
-    // font cache lookup at code_offset 0x4CDC (from code_address 0x80460738).
-    // 0x80464C14 - 0x80460738 = 0x44DC. Function runs from 0x44DC to 0x4556.
+    // font cache lookup. Code offsets relative to gdi.dll code_address.
+    // The code_address varies by ROM (e.g., 0x80460738 or 0x80452768).
+    // We use offsets from code base so they work regardless of load address.
+    //
+    // The hot inner loop (0x80464C38-0x80464C80 in one ROM) is ~40% of CPU.
+    // It contains: CMP, BGT, MOVS, LDR, LSLS, ADDS, BNE, STR, B — all supported.
+    //
+    // We translate the full function (PUSH through final B) so the AOT
+    // handles setup + loop + teardown. The translator bails on BLX (the
+    // one subroutine call), letting the interpreter handle it, then the
+    // loop runs in AOT on subsequent dispatch hits.
     static std::vector<aot_dll_entry> get_default_aot_entries() {
         return {
             {
                 "gdi.dll",
                 {
-                    // CTypefaceStore font cache lookup
-                    // Start: 0x80464C14 - 0x80460738 = 0x44DC
-                    // End:   0x80464C90 - 0x80460738 = 0x4558
-                    { 0x44DC, 0x4558 - 0x44DC }
+                    // Full function: from PUSH to final B (return)
+                    // 0x80464C14 - 0x80460738 = 0x44DC, size = 0x80464C90 - 0x80464C14 = 0x7C
+                    { 0x44DC, 0x7C },
+                    // Also register at the inner loop entry (after the BLX call returns)
+                    // so the dispatch hook catches it when re-entering the loop.
+                    // 0x80464C34 - 0x80460738 = 0x44FC, to 0x80464C90 = 0x4558
+                    // Size = 0x4558 - 0x44FC = 0x5C
+                    { 0x44FC, 0x5C }
                 }
             }
         };
