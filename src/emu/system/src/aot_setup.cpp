@@ -36,9 +36,12 @@ namespace eka2l1::arm::aot {
     // AOT target: DLL identified by UID3, with list of ordinals to translate.
     // Empty ordinals = translate all exports.
     // -1 = unlimited, 0..N = limit. For bisecting crashes.
-    // Export at 0x804650B6 (ordinal 27) crashes at runtime.
-    // Skip it and any other problematic exports.
-    static constexpr std::uint32_t SKIP_ADDRS[] = { 0x804650B6 };
+    // Exports that crash at runtime — skip them.
+    // Exports with known translation bugs — skip them.
+    // 0x804650B6 = ordinal 27, 0x80463F6E = ordinal 57
+    static constexpr std::uint32_t SKIP_ADDRS[] = { 0x804650B6, 0x80463F6E };
+    // 42 exports work with skip list. More bad exports exist beyond #43.
+    static constexpr int MAX_EXPORTS = 42;
 
     struct aot_target {
         std::uint32_t uid3;
@@ -205,6 +208,7 @@ namespace eka2l1::arm::aot {
                 }
 
                 all_funcs.push_back(std::move(tr.func));
+                if (MAX_EXPORTS >= 0 && static_cast<int>(all_funcs.size()) >= MAX_EXPORTS) break;
             }
 
             LOG_INFO(KERNEL, "AOT: translated {}/{} exports for {}",
