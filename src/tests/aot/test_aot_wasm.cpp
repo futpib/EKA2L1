@@ -477,6 +477,17 @@ int main() {
         // MOVS R0,#10; SUBS R0,#1; SUBS R0,#1 → R0=8
         {"MOVS+SUBS+SUBS", {0x0A, 0x20, 0x01, 0x38, 0x01, 0x38}, 0x1000,
             zero_regs, 10},
+
+        // Forward branch tests bail to interpreter — can't compare full state.
+        // The forward branch handling is tested implicitly by the e2e frame tests.
+
+        // --- PUSH/POP roundtrip ---
+        {"PUSH+POP roundtrip",
+            {0xF0, 0xB5,  // PUSH {R4-R7,LR}
+             0x04, 0x00,  // MOVS R4, R0 (LSLS #0)
+             0xF0, 0xBD}, // POP {R4-R7,PC}
+            0x1000,
+            [&]{ auto r = zero_regs; r[0] = 42; r[4] = 1; r[5] = 2; r[6] = 3; r[7] = 4; r[14] = 0x2000; return r; }(), 10},
     };
 
     printf("Running %zu AOT WASM correctness tests...\n\n", tests.size());

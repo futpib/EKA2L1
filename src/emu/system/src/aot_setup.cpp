@@ -36,6 +36,7 @@ namespace eka2l1::arm::aot {
     // AOT target: DLL identified by UID3, with list of ordinals to translate.
     // Empty ordinals = translate all exports.
     // -1 = unlimited, 0..N = limit. For bisecting crashes.
+    // 16 exports verified working. Export #17 (ordinal 27, addr 0x804650B6) crashes.
     static constexpr int MAX_EXPORTS = 16;
 
     struct aot_target {

@@ -227,27 +227,15 @@ namespace eka2l1::arm::aot {
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
 
-            // If this address is a branch target, emit a pc_idx check
-            // to skip to here when branching
-            if (targets.count(insn_addr)) {
-                // block: if pc_idx > insn_idx, skip this instruction
-                w.op(op_block); w.op(type_void);
-                w.get_local(PC_IDX);
-                w.i32_const(insn_idx);
-                w.op(op_i32_le_u); // pc_idx <= insn_idx means execute
-                w.op(op_br_if); leb(result.body, 0); // br to end of this block (skip check)
-                // pc_idx > insn_idx, skip to next
-                // Actually, simpler: check if pc_idx == insn_idx for branch targets
-                // and use fall-through for sequential execution
-                w.op(op_end);
-            }
+            // No per-instruction skip check needed — forward branches bail to interpreter.
 
             // Check for 32-bit Thumb (BL/BLX) — bail to interpreter
             if ((insn & 0xF800) == 0xF000 && i + 3 < code_size) {
                 std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
                 if ((insn2 & 0xD000) == 0xD000 || (insn2 & 0xD000) == 0xC000) {
-                    // BL/BLX: normal function call — bail to interpreter
-                    // which will handle the call and may re-enter AOT after
+                    // BL/BLX: normal function call — bail to interpreter.
+                    // Don't set LR here — the interpreter will handle that
+                    // when it executes the BL instruction at insn_addr.
                     w.bail(insn_addr, insn_idx);
                     i += 2;
                     insn_idx++;
@@ -552,29 +540,56 @@ namespace eka2l1::arm::aot {
                     w.bail(target, insn_idx + 1);
                     w.op(op_end);
                 } else {
-                    // Branch within block — set pc_idx and loop
+                    // Branch within block
                     std::uint32_t target_idx = it->second;
-                    // Evaluate condition
-                    switch (cond) {
-                    case 0: w.load_i32(S::ZFLAG); break;
-                    case 1: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); break;
-                    case 10: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); break;
-                    case 11: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); break;
-                    case 12:
-                        w.load_i32(S::ZFLAG); w.op(op_i32_eqz);
-                        w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq);
-                        w.op(op_i32_and); break;
-                    case 13:
-                        w.load_i32(S::ZFLAG);
-                        w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne);
-                        w.op(op_i32_or); break;
-                    default: w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue;
+
+                    if (target_idx > insn_idx) {
+                        // Forward branch — bail to interpreter (can't skip in WASM structured flow)
+                        switch (cond) {
+                        case 0: w.load_i32(S::ZFLAG); break;
+                        case 1: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); break;
+                        case 2: w.load_i32(S::CFLAG); break;
+                        case 3: w.load_i32(S::CFLAG); w.op(op_i32_eqz); break;
+                        case 4: w.load_i32(S::NFLAG); break;
+                        case 5: w.load_i32(S::NFLAG); w.op(op_i32_eqz); break;
+                        case 6: w.load_i32(S::VFLAG); break;
+                        case 7: w.load_i32(S::VFLAG); w.op(op_i32_eqz); break;
+                        case 8: w.load_i32(S::CFLAG); w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.op(op_i32_and); break;
+                        case 9: w.load_i32(S::CFLAG); w.op(op_i32_eqz); w.load_i32(S::ZFLAG); w.op(op_i32_or); break;
+                        case 10: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); break;
+                        case 11: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); break;
+                        case 12: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); w.op(op_i32_and); break;
+                        case 13: w.load_i32(S::ZFLAG); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); w.op(op_i32_or); break;
+                        default: w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue;
+                        }
+                        w.op(op_if); w.op(type_void);
+                        w.bail(target, insn_idx + 1);
+                        w.op(op_end);
+                    } else {
+                        // Backward branch — set pc_idx and loop
+                        switch (cond) {
+                        case 0: w.load_i32(S::ZFLAG); break;
+                        case 1: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); break;
+                        case 2: w.load_i32(S::CFLAG); break;
+                        case 3: w.load_i32(S::CFLAG); w.op(op_i32_eqz); break;
+                        case 4: w.load_i32(S::NFLAG); break;
+                        case 5: w.load_i32(S::NFLAG); w.op(op_i32_eqz); break;
+                        case 6: w.load_i32(S::VFLAG); break;
+                        case 7: w.load_i32(S::VFLAG); w.op(op_i32_eqz); break;
+                        case 8: w.load_i32(S::CFLAG); w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.op(op_i32_and); break;
+                        case 9: w.load_i32(S::CFLAG); w.op(op_i32_eqz); w.load_i32(S::ZFLAG); w.op(op_i32_or); break;
+                        case 10: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); break;
+                        case 11: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); break;
+                        case 12: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); w.op(op_i32_and); break;
+                        case 13: w.load_i32(S::ZFLAG); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); w.op(op_i32_or); break;
+                        default: w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue;
+                        }
+                        w.op(op_if); w.op(type_void);
+                        w.i32_const(target_idx);
+                        w.set_local(PC_IDX);
+                        w.op(op_br); leb(result.body, 1); // br $loop
+                        w.op(op_end);
                     }
-                    w.op(op_if); w.op(type_void);
-                    w.i32_const(target_idx);
-                    w.set_local(PC_IDX);
-                    w.op(op_br); leb(result.body, 2); // br $loop (past if + block)
-                    w.op(op_end);
                 }
             } else if ((insn & 0xF800) == 0xE000) {
                 // Unconditional branch B
@@ -582,8 +597,8 @@ namespace eka2l1::arm::aot {
                 std::uint32_t target = insn_addr + 4 + offset * 2;
 
                 auto it = addr_to_idx.find(target);
-                if (it != addr_to_idx.end()) {
-                    // Within block — set pc_idx and loop
+                if (it != addr_to_idx.end() && it->second <= insn_idx) {
+                    // Backward branch within block — set pc_idx and loop
                     w.i32_const(it->second);
                     w.set_local(PC_IDX);
                     w.op(op_br); leb(result.body, 1); // br $loop
