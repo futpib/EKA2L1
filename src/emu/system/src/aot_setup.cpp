@@ -35,31 +35,16 @@
 namespace eka2l1::arm::aot {
     // AOT target: DLL identified by UID3, with list of ordinals to translate.
     // Empty ordinals = translate all exports.
-    struct code_range {
-        std::uint32_t offset; // from code_address
-        std::uint32_t size;
-    };
-
     struct aot_target {
         std::uint32_t uid3;
         std::string display_name;
         std::vector<std::uint32_t> ordinals; // 1-based; empty = all
-        std::vector<code_range> extra_ranges; // internal functions to translate
     };
 
     static std::vector<aot_target> get_targets() {
         return {
-            {
-                0x10003B1A, "FntStore.dll", {},
-                {
-                    // Hot font cache lookup (CTypefaceStore::FindFont inner loop)
-                    // PC histogram shows 0x80464C38 as hottest, function starts at 0x80464C14
-                    // code_address = 0x80460738, so offset = 0x44DC, size = 0x7C
-                    { 0x44DC, 0x7C },
-                    // The loop entry point hit by BGT back-edge: offset 0x4500
-                    { 0x4500, 0x4558 - 0x4500 },
-                }
-            },
+            // FntStore.dll — translate all supported exports
+            { 0x10003B1A, "FntStore.dll", {} },
         };
     }
 
@@ -213,33 +198,8 @@ namespace eka2l1::arm::aot {
                 all_funcs.push_back(std::move(tr.func));
             }
 
-            std::size_t export_count = all_funcs.size();
             LOG_INFO(KERNEL, "AOT: translated {}/{} exports for {}",
-                export_count, ordinals_to_translate.size(), target->display_name);
-
-            // Translate extra internal function ranges
-            for (const auto &range : target->extra_ranges) {
-                if (range.offset + range.size > static_cast<std::uint32_t>(hdr.code_size)) continue;
-                std::uint8_t *range_host = code_host + range.offset;
-                std::uint32_t range_addr = hdr.code_address + range.offset;
-
-                if (translated_addrs.count(range_addr)) continue;
-                translated_addrs.insert(range_addr);
-
-                auto tr = translate_thumb_block(range_host, range.size, range_addr);
-                if (tr.func.body.empty() || !tr.complete) {
-                    LOG_WARN(KERNEL, "AOT:   extra range at 0x{:08X}: {} ({})",
-                        range_addr, tr.func.body.empty() ? "empty" : "incomplete",
-                        tr.complete ? "complete" : "has unsupported");
-                    continue;
-                }
-                all_funcs.push_back(std::move(tr.func));
-                LOG_INFO(KERNEL, "AOT:   extra range at 0x{:08X}: translated", range_addr);
-            }
-
-            LOG_INFO(KERNEL, "AOT: {} total functions for {} ({} exports + {} extra)",
-                all_funcs.size(), target->display_name,
-                export_count, all_funcs.size() - export_count);
+                all_funcs.size(), ordinals_to_translate.size(), target->display_name);
         }
 
         if (all_funcs.empty()) {

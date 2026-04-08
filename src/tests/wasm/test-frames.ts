@@ -117,8 +117,12 @@ async function run(): Promise<void> {
     log(`  [${msg.type()}] ${msg.text()}`);
   });
 
+  let aborted = false;
   page.on("pageerror", (err) => {
     log(`  [pageerror] ${err.message}`);
+    if (err.message.includes("abort") || err.message.includes("Aborted")) {
+      aborted = true;
+    }
   });
 
   try {
@@ -156,6 +160,8 @@ async function run(): Promise<void> {
     const emFsDir = "/tmp/frames";
     let dumpStarted = false;
     let dumpDone = false;
+    let lastCaptured = 0;
+    let lastProgressTime = performance.now();
     const totalTimeout = 300_000;
     const runTimeout = 120_000;   // "Running" status must appear within 120s
     let runWaitStart = performance.now();
@@ -195,6 +201,8 @@ async function run(): Promise<void> {
           Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], [dir, 16]);
         }, emFsDir);
         dumpStarted = true;
+        lastCaptured = 0;
+        lastProgressTime = performance.now();
         log("Frame dump started");
         continue; // re-evaluate state with dumper active
       }
@@ -202,6 +210,21 @@ async function run(): Promise<void> {
       if (dumpStarted && state.dumpDone) {
         dumpDone = true;
         break;
+      }
+
+      // Detect WASM abort
+      if (aborted) {
+        throw new Error("WASM program aborted");
+      }
+
+      // Detect stall: if no new frames captured for 60s after dump started, fail
+      if (dumpStarted) {
+        if (state.dumpCaptured > lastCaptured) {
+          lastCaptured = state.dumpCaptured;
+          lastProgressTime = performance.now();
+        } else if (performance.now() - lastProgressTime > 60_000) {
+          throw new Error(`Frame capture stalled: ${lastCaptured}/16 frames after 60s with no progress`);
+        }
       }
 
       if (state.status.includes("Error")) {
