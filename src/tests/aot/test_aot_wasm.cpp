@@ -478,7 +478,8 @@ int main() {
         {"MOVS+SUBS+SUBS", {0x0A, 0x20, 0x01, 0x38, 0x01, 0x38}, 0x1000,
             zero_regs, 10},
 
-        // Forward branch tests bail to interpreter — can't compare full state.
+        // Forward branch and BL bail tests can't compare full state — the AOT function
+        // returns partway through, while the interpreter runs the whole function.
         // The forward branch handling is tested implicitly by the e2e frame tests.
 
         // --- PUSH/POP roundtrip ---
