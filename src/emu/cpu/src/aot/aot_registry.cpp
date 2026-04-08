@@ -254,8 +254,9 @@ namespace eka2l1::arm::aot {
 
             if (code_bytes.size() < 4) continue;
 
-            auto func = translate_thumb_block(code_bytes.data(), code_bytes.size(), block_start);
-            if (func.body.empty()) continue;
+            auto tr = translate_thumb_block(code_bytes.data(), code_bytes.size(), block_start);
+            if (tr.func.body.empty()) continue;
+            auto &func = tr.func;
 
             translated_starts.insert(block_start);
             fprintf(stderr, "AOT: translated hot block at 0x%08X (%zu bytes, %llu samples)\n",

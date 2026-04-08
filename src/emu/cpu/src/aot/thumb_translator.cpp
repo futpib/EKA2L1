@@ -51,6 +51,7 @@ namespace eka2l1::arm::aot {
     // Code emitter helper
     struct emit {
         std::vector<std::uint8_t> &b;
+        bool unsupported = false; // set by bail_unsupported()
 
         void op(std::uint8_t o) { b.push_back(o); }
         void state_ptr() { op(op_local_get); leb(b, 0); }
@@ -111,12 +112,23 @@ namespace eka2l1::arm::aot {
 
         void ret() { op(op_return); }
 
-        // Bail: set PC, return instruction count
+        // Bail: set PC, return instruction count (normal control flow exit)
         void bail(std::uint32_t pc, std::uint32_t instr_count) {
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
             i32_const(static_cast<std::int32_t>(instr_count));
             ret();
         }
+
+        // Bail due to unsupported instruction — marks the translation as incomplete
+        void bail_unsupported(std::uint32_t pc, std::uint32_t instr_count) {
+            unsupported = true;
+            if (!logged_unsupported) {
+                logged_unsupported = true;
+                fprintf(stderr, "AOT: unsupported instruction at 0x%08X\n", pc);
+            }
+            bail(pc, instr_count);
+        }
+        bool logged_unsupported = false;
     };
 
     // First pass: scan for branch targets within the block
@@ -151,12 +163,14 @@ namespace eka2l1::arm::aot {
         return targets;
     }
 
-    wasm_func_def translate_thumb_block(
+    translate_result translate_thumb_block(
         const std::uint8_t *code,
         std::size_t code_size,
         std::uint32_t start_address)
     {
-        wasm_func_def result;
+        translate_result tr;
+        tr.complete = false;
+        wasm_func_def &result = tr.func;
         result.export_name = "f_" + std::to_string(start_address);
 
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
@@ -164,7 +178,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
         const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
 
-        emit w{result.body};
+        emit w{result.body, false};
 
         // Build instruction address → index map
         std::map<std::uint32_t, std::uint32_t> addr_to_idx;
@@ -232,6 +246,8 @@ namespace eka2l1::arm::aot {
             if ((insn & 0xF800) == 0xF000 && i + 3 < code_size) {
                 std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
                 if ((insn2 & 0xD000) == 0xD000 || (insn2 & 0xD000) == 0xC000) {
+                    // BL/BLX: normal function call — bail to interpreter
+                    // which will handle the call and may re-enter AOT after
                     w.bail(insn_addr, insn_idx);
                     i += 2;
                     insn_idx++;
@@ -470,7 +486,7 @@ namespace eka2l1::arm::aot {
                 std::uint8_t cond = (insn >> 8) & 0xF;
                 if (cond >= 0xE) {
                     // SVC or undefined — bail
-                    w.bail(insn_addr, insn_idx);
+                    w.bail_unsupported(insn_addr, insn_idx);
                     insn_idx++;
                     continue;
                 }
@@ -486,6 +502,20 @@ namespace eka2l1::arm::aot {
                     switch (cond) {
                     case 0: w.load_i32(S::ZFLAG); break; // BEQ: Z==1
                     case 1: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); break; // BNE: Z==0
+                    case 2: w.load_i32(S::CFLAG); break; // BCS/BHS: C==1
+                    case 3: w.load_i32(S::CFLAG); w.op(op_i32_eqz); break; // BCC/BLO: C==0
+                    case 4: w.load_i32(S::NFLAG); break; // BMI: N==1
+                    case 5: w.load_i32(S::NFLAG); w.op(op_i32_eqz); break; // BPL: N==0
+                    case 6: w.load_i32(S::VFLAG); break; // BVS: V==1
+                    case 7: w.load_i32(S::VFLAG); w.op(op_i32_eqz); break; // BVC: V==0
+                    case 8: // BHI: C==1 && Z==0
+                        w.load_i32(S::CFLAG);
+                        w.load_i32(S::ZFLAG); w.op(op_i32_eqz);
+                        w.op(op_i32_and); break;
+                    case 9: // BLS: C==0 || Z==1
+                        w.load_i32(S::CFLAG); w.op(op_i32_eqz);
+                        w.load_i32(S::ZFLAG);
+                        w.op(op_i32_or); break;
                     case 10: // BGE: N==V
                         w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); break;
                     case 11: // BLT: N!=V
@@ -498,7 +528,7 @@ namespace eka2l1::arm::aot {
                         w.load_i32(S::ZFLAG);
                         w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne);
                         w.op(op_i32_or); break;
-                    default: w.bail(insn_addr, insn_idx); insn_idx++; continue;
+                    default: w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue;
                     }
                     w.op(op_if); w.op(type_void);
                     w.bail(target, insn_idx + 1);
@@ -520,7 +550,7 @@ namespace eka2l1::arm::aot {
                         w.load_i32(S::ZFLAG);
                         w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne);
                         w.op(op_i32_or); break;
-                    default: w.bail(insn_addr, insn_idx); insn_idx++; continue;
+                    default: w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue;
                     }
                     w.op(op_if); w.op(type_void);
                     w.i32_const(target_idx);
@@ -665,7 +695,8 @@ namespace eka2l1::arm::aot {
 
             if (!handled) {
                 // Unsupported — bail to interpreter
-                w.bail(insn_addr, insn_idx);
+                fprintf(stderr, "AOT: unsupported insn 0x%04X at 0x%08X\n", insn, insn_addr);
+                w.bail_unsupported(insn_addr, insn_idx);
                 break;
             }
 
@@ -680,6 +711,7 @@ namespace eka2l1::arm::aot {
         w.i32_const(num_insns);
         w.ret();
 
-        return result;
+        tr.complete = !w.unsupported;
+        return tr;
     }
 }

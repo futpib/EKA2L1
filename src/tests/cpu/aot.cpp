@@ -703,14 +703,15 @@ TEST_CASE("thumb_translator_simple", "[aot]") {
         0x40, 0x1C,  // ADDS R0, R0, #1
     };
 
-    auto func = translate_thumb_block(code, sizeof(code), 0x1000);
+    auto tr = translate_thumb_block(code, sizeof(code), 0x1000);
 
     // Should produce a non-empty body
-    REQUIRE(!func.body.empty());
-    CHECK(func.export_name == "f_4096"); // 0x1000 decimal
+    REQUIRE(!tr.func.body.empty());
+    CHECK(tr.func.export_name == "f_4096"); // 0x1000 decimal
+    CHECK(tr.complete); // all instructions supported
 
     // Build it into a WASM module to verify it's structurally valid
-    auto module = build_wasm_module({ func });
+    auto module = build_wasm_module({ tr.func });
     REQUIRE(module.size() >= 8);
     CHECK(module[0] == 0x00);
     CHECK(module[1] == 0x61);
@@ -727,10 +728,10 @@ TEST_CASE("thumb_translator_cmp_movs", "[aot]") {
         0x05, 0x28,  // CMP R0, #5
     };
 
-    auto func = translate_thumb_block(code, sizeof(code), 0x2000);
-    REQUIRE(!func.body.empty());
+    auto tr = translate_thumb_block(code, sizeof(code), 0x2000);
+    REQUIRE(!tr.func.body.empty());
 
-    auto module = build_wasm_module({ func });
+    auto module = build_wasm_module({ tr.func });
     REQUIRE(module.size() >= 8);
     // Verify WASM magic
     CHECK(module[0] == 0x00);
@@ -745,12 +746,12 @@ TEST_CASE("thumb_translator_bails_on_memory_ops", "[aot]") {
         0x08, 0x68,  // LDR R0, [R1, #0]
     };
 
-    auto func = translate_thumb_block(code, sizeof(code), 0x3000);
-    REQUIRE(!func.body.empty());
+    auto tr = translate_thumb_block(code, sizeof(code), 0x3000);
+    REQUIRE(!tr.func.body.empty());
+    // LDR is supported now (via tlb_read32 import), so this should be complete
+    CHECK(tr.complete);
 
-    // The body should contain a return instruction (bail)
-    // and set PC to the LDR address
-    auto module = build_wasm_module({ func });
+    auto module = build_wasm_module({ tr.func });
     REQUIRE(module.size() >= 8);
 }
 
@@ -778,8 +779,8 @@ TEST_CASE("thumb_translator_with_branches", "[aot]") {
         0x00, 0x22,  // MOVS R2, #0
     };
 
-    auto func = translate_thumb_block(code, sizeof(code), 0x1000);
-    REQUIRE(!func.body.empty());
+    auto tr = translate_thumb_block(code, sizeof(code), 0x1000);
+    REQUIRE(!tr.func.body.empty());
 
     // Build with imports for memory ops
     std::vector<wasm_import_func> imports = {
@@ -787,7 +788,7 @@ TEST_CASE("thumb_translator_with_branches", "[aot]") {
         {"env", "tlb_write32", 3, false},
         {"env", "tlb_read8", 2, true},
     };
-    auto module = build_wasm_module({ func }, imports);
+    auto module = build_wasm_module({ tr.func }, imports);
     REQUIRE(module.size() >= 8);
     CHECK(module[0] == 0x00);
     CHECK(module[1] == 0x61);
@@ -804,15 +805,16 @@ TEST_CASE("thumb_translator_with_ldr_str", "[aot]") {
         0x10, 0x60,  // STR R0, [R2, #0]
     };
 
-    auto func = translate_thumb_block(code, sizeof(code), 0x2000);
-    REQUIRE(!func.body.empty());
+    auto tr = translate_thumb_block(code, sizeof(code), 0x2000);
+    REQUIRE(!tr.func.body.empty());
+    CHECK(tr.complete);
 
     std::vector<wasm_import_func> imports = {
         {"env", "tlb_read32", 2, true},
         {"env", "tlb_write32", 3, false},
         {"env", "tlb_read8", 2, true},
     };
-    auto module = build_wasm_module({ func }, imports);
+    auto module = build_wasm_module({ tr.func }, imports);
     REQUIRE(module.size() >= 8);
     CHECK(module[0] == 0x00);
 }
@@ -824,15 +826,15 @@ TEST_CASE("thumb_translator_multiple_funcs_one_module", "[aot]") {
     std::uint8_t code1[] = { 0x05, 0x20 };  // MOVS R0, #5
     std::uint8_t code2[] = { 0x0A, 0x21 };  // MOVS R1, #10
 
-    auto f1 = translate_thumb_block(code1, sizeof(code1), 0x4000);
-    auto f2 = translate_thumb_block(code2, sizeof(code2), 0x4100);
+    auto t1 = translate_thumb_block(code1, sizeof(code1), 0x4000);
+    auto t2 = translate_thumb_block(code2, sizeof(code2), 0x4100);
 
-    REQUIRE(!f1.body.empty());
-    REQUIRE(!f2.body.empty());
-    CHECK(f1.export_name != f2.export_name);
+    REQUIRE(!t1.func.body.empty());
+    REQUIRE(!t2.func.body.empty());
+    CHECK(t1.func.export_name != t2.func.export_name);
 
     // Both in one module
-    auto module = build_wasm_module({ f1, f2 });
+    auto module = build_wasm_module({ t1.func, t2.func });
     REQUIRE(module.size() >= 8);
     CHECK(module[0] == 0x00);
     CHECK(module[1] == 0x61);

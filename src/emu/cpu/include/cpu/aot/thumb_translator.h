@@ -41,6 +41,11 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t SP = REG + 13 * 4;
     };
 
+    struct translate_result {
+        wasm_func_def func;
+        bool complete;  // true if entire block was translated without bailing
+    };
+
     // Translate a block of Thumb code into a WASM function body.
     // The function takes one i32 parameter (state_ptr) and returns i32 (instruction count).
     //
@@ -50,7 +55,8 @@ namespace eka2l1::arm::aot {
     //
     // Returns a wasm_func_def ready to be included in a WASM module.
     // Returns empty body on failure.
-    wasm_func_def translate_thumb_block(
+    // If complete is false, the function bails to the interpreter partway through.
+    translate_result translate_thumb_block(
         const std::uint8_t *code,
         std::size_t code_size,
         std::uint32_t start_address);
