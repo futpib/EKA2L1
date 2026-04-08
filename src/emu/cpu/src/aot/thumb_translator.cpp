@@ -689,6 +689,262 @@ namespace eka2l1::arm::aot {
                 w.call(2); // tlb_read8
                 w.set_local(TMP1);
                 w.store_reg(rt, TMP1);
+            } else if (insn == 0x4770) {
+                // BX LR — function return
+                w.bail(insn_addr + 2, insn_idx + 1);
+            } else if ((insn & 0xFFC0) == 0x4700) {
+                // BX Rm
+                // Set PC = Rm, bail to interpreter
+                int rm = (insn >> 3) & 0xF;
+                w.load_reg(rm);
+                w.set_local(TMP1);
+                w.store_reg(15, TMP1);
+                w.bail(insn_addr, insn_idx + 1);
+            } else if ((insn & 0xF800) == 0x0000) {
+                // LSLS Rd, Rm, #0 — this is MOVS Rd, Rm when imm5==0
+                int rd = insn & 7;
+                int rm = (insn >> 3) & 7;
+                w.load_reg(rm);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+                // Update N, Z flags
+                w.get_local(TMP1); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP2);
+                w.store_i32(S::NFLAG, TMP2);
+                w.get_local(TMP1); w.op(op_i32_eqz); w.set_local(TMP2);
+                w.store_i32(S::ZFLAG, TMP2);
+            } else if ((insn & 0xF800) == 0x8800) {
+                // LDRH Rt, [Rn, #imm5*2]
+                int rt = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int imm5 = (insn >> 6) & 0x1F;
+                w.load_reg(rn);
+                if (imm5 > 0) { w.i32_const(imm5 * 2); w.op(op_i32_add); }
+                w.set_local(ADDR_TMP);
+                // TODO: use tlb_read16 import when available
+                w.state_ptr();
+                w.get_local(ADDR_TMP);
+                w.call(0); // tlb_read32 (reads 32 bits, we mask to 16)
+                w.i32_const(0xFFFF);
+                w.op(op_i32_and);
+                w.set_local(TMP1);
+                w.store_reg(rt, TMP1);
+            } else if ((insn & 0xF800) == 0x8000) {
+                // STRH Rt, [Rn, #imm5*2]
+                int rt = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int imm5 = (insn >> 6) & 0x1F;
+                w.load_reg(rn);
+                if (imm5 > 0) { w.i32_const(imm5 * 2); w.op(op_i32_add); }
+                w.set_local(ADDR_TMP);
+                w.load_reg(rt);
+                w.set_local(TMP1);
+                w.state_ptr();
+                w.get_local(ADDR_TMP);
+                w.get_local(TMP1);
+                w.call(1); // tlb_write32 (writes full word — TODO: use write16)
+            } else if ((insn & 0xF800) == 0x7800) {
+                // LDRB Rt, [Rn, #imm5]
+                int rt = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int imm5 = (insn >> 6) & 0x1F;
+                w.load_reg(rn);
+                if (imm5 > 0) { w.i32_const(imm5); w.op(op_i32_add); }
+                w.set_local(ADDR_TMP);
+                w.state_ptr();
+                w.get_local(ADDR_TMP);
+                w.call(2); // tlb_read8
+                w.set_local(TMP1);
+                w.store_reg(rt, TMP1);
+            } else if ((insn & 0xF800) == 0x7000) {
+                // STRB Rt, [Rn, #imm5]
+                int rt = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int imm5 = (insn >> 6) & 0x1F;
+                w.load_reg(rn);
+                if (imm5 > 0) { w.i32_const(imm5); w.op(op_i32_add); }
+                w.set_local(ADDR_TMP);
+                w.load_reg(rt);
+                w.set_local(TMP1);
+                w.state_ptr();
+                w.get_local(ADDR_TMP);
+                w.get_local(TMP1);
+                w.call(1); // tlb_write32 (TODO: write8)
+            } else if ((insn & 0xFE00) == 0x5600) {
+                // LDRSB Rt, [Rn, Rm]
+                int rt = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int rm = (insn >> 6) & 7;
+                w.load_reg(rn);
+                w.load_reg(rm);
+                w.op(op_i32_add);
+                w.set_local(ADDR_TMP);
+                w.state_ptr();
+                w.get_local(ADDR_TMP);
+                w.call(2); // tlb_read8
+                // Sign-extend from 8 bits
+                w.i32_const(24);
+                w.op(op_i32_shl);
+                w.i32_const(24);
+                w.op(op_i32_shr_s);
+                w.set_local(TMP1);
+                w.store_reg(rt, TMP1);
+            } else if ((insn & 0xF800) == 0x4800) {
+                // LDR Rt, [PC, #imm8*4] — literal pool load
+                int rt = (insn >> 8) & 7;
+                int imm8 = insn & 0xFF;
+                // PC is aligned to 4 bytes, then add offset
+                // Effective address = (PC & ~3) + 4 + imm8*4
+                // But we don't track exact PC in WASM. Use the known instruction address.
+                std::uint32_t effective_addr = ((insn_addr + 4) & ~3u) + imm8 * 4;
+                // Read from this fixed ROM address
+                w.state_ptr();
+                w.i32_const(static_cast<std::int32_t>(effective_addr));
+                w.call(0); // tlb_read32
+                w.set_local(TMP1);
+                w.store_reg(rt, TMP1);
+            } else if ((insn & 0xF800) == 0xA800) {
+                // ADD Rd, SP, #imm8*4
+                int rd = (insn >> 8) & 7;
+                int imm8 = insn & 0xFF;
+                w.load_reg(13); // SP
+                w.i32_const(imm8 * 4);
+                w.op(op_i32_add);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xFFC0) == 0x4240) {
+                // NEGS Rd, Rm (RSB Rd, Rm, #0)
+                int rd = insn & 7;
+                int rm = (insn >> 3) & 7;
+                w.i32_const(0);
+                w.load_reg(rm);
+                w.op(op_i32_sub);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xFFC0) == 0x4340) {
+                // MULS Rd, Rm
+                int rd = insn & 7;
+                int rm = (insn >> 3) & 7;
+                w.load_reg(rd);
+                w.load_reg(rm);
+                w.op(op_i32_mul);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xFFC0) == 0x4300) {
+                // ORRS Rd, Rm
+                int rd = insn & 7;
+                int rm = (insn >> 3) & 7;
+                w.load_reg(rd);
+                w.load_reg(rm);
+                w.op(op_i32_or);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xFFC0) == 0x4380) {
+                // BICS Rd, Rm
+                int rd = insn & 7;
+                int rm = (insn >> 3) & 7;
+                w.load_reg(rd);
+                w.load_reg(rm);
+                w.i32_const(-1);
+                w.op(op_i32_xor); // ~Rm
+                w.op(op_i32_and); // Rd & ~Rm
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xFFC0) == 0x4040) {
+                // EORS Rd, Rm
+                int rd = insn & 7;
+                int rm = (insn >> 3) & 7;
+                w.load_reg(rd);
+                w.load_reg(rm);
+                w.op(op_i32_xor);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xFFC0) == 0x40C0) {
+                // LSRS Rd, Rs (register shift)
+                int rd = insn & 7;
+                int rs = (insn >> 3) & 7;
+                w.load_reg(rd);
+                w.load_reg(rs);
+                w.op(op_i32_shr_u);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xFFC0) == 0x4080) {
+                // LSLS Rd, Rs (register shift)
+                int rd = insn & 7;
+                int rs = (insn >> 3) & 7;
+                w.load_reg(rd);
+                w.load_reg(rs);
+                w.op(op_i32_shl);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xFFC0) == 0x4100) {
+                // ASRS Rd, Rs (register shift)
+                int rd = insn & 7;
+                int rs = (insn >> 3) & 7;
+                w.load_reg(rd);
+                w.load_reg(rs);
+                w.op(op_i32_shr_s);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xF800) == 0x1000) {
+                // ASRS Rd, Rm, #imm5
+                int rd = insn & 7;
+                int rm = (insn >> 3) & 7;
+                int imm5 = (insn >> 6) & 0x1F;
+                if (imm5 == 0) imm5 = 32;
+                w.load_reg(rm);
+                w.i32_const(imm5);
+                w.op(op_i32_shr_s);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xFE00) == 0x1800) {
+                // ADDS Rd, Rn, Rm
+                int rd = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int rm = (insn >> 6) & 7;
+                w.load_reg(rn);
+                w.load_reg(rm);
+                w.op(op_i32_add);
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xFF00) == 0xBF00) {
+                // NOP / IT hints — ignore
+            } else if ((insn & 0xFFC0) == 0x42C0) {
+                // CMN Rn, Rm
+                int rn = insn & 7;
+                int rm = (insn >> 3) & 7;
+                w.load_reg(rn); w.set_local(TMP1);
+                w.load_reg(rm); w.set_local(TMP2);
+                w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_add); w.set_local(TMP3);
+                w.get_local(TMP3); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4);
+                w.store_i32(S::NFLAG, TMP4);
+                w.get_local(TMP3); w.op(op_i32_eqz); w.set_local(TMP4);
+                w.store_i32(S::ZFLAG, TMP4);
+            } else if ((insn & 0xFFC0) == 0x4580) {
+                // CMP Rn, Rm (high registers)
+                int rn = (insn & 7) | ((insn >> 4) & 8);
+                int rm = (insn >> 3) & 0xF;
+                w.load_reg(rn); w.set_local(TMP1);
+                w.load_reg(rm); w.set_local(TMP2);
+                w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_sub); w.set_local(TMP3);
+                w.get_local(TMP3); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4);
+                w.store_i32(S::NFLAG, TMP4);
+                w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_eq); w.set_local(TMP4);
+                w.store_i32(S::ZFLAG, TMP4);
+                w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_ge_u); w.set_local(TMP4);
+                w.store_i32(S::CFLAG, TMP4);
+                w.store_i32_const(S::VFLAG, 0);
+            } else if ((insn & 0xFFC0) == 0x4200) {
+                // TST Rn, Rm
+                int rn = insn & 7;
+                int rm = (insn >> 3) & 7;
+                w.load_reg(rn);
+                w.load_reg(rm);
+                w.op(op_i32_and);
+                w.set_local(TMP1);
+                w.get_local(TMP1); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP2);
+                w.store_i32(S::NFLAG, TMP2);
+                w.get_local(TMP1); w.op(op_i32_eqz); w.set_local(TMP2);
+                w.store_i32(S::ZFLAG, TMP2);
             } else {
                 handled = false;
             }
