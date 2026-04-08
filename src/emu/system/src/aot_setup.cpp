@@ -36,8 +36,9 @@ namespace eka2l1::arm::aot {
     // AOT target: DLL identified by UID3, with list of ordinals to translate.
     // Empty ordinals = translate all exports.
     // -1 = unlimited, 0..N = limit. For bisecting crashes.
-    // 16 exports verified working. Export #17 (ordinal 27, addr 0x804650B6) crashes.
-    static constexpr int MAX_EXPORTS = 16;
+    // Export at 0x804650B6 (ordinal 27) crashes at runtime.
+    // Skip it and any other problematic exports.
+    static constexpr std::uint32_t SKIP_ADDRS[] = { 0x804650B6 };
 
     struct aot_target {
         std::uint32_t uid3;
@@ -173,6 +174,10 @@ namespace eka2l1::arm::aot {
                 if (func_addr < hdr.code_address || func_addr >= hdr.code_address + hdr.code_size) continue;
                 if (!is_thumb) continue; // translator only handles Thumb for now
                 if (translated_addrs.count(func_addr)) continue; // skip duplicate exports
+                // Skip known-bad exports
+                bool skip = false;
+                for (auto sa : SKIP_ADDRS) { if (func_addr == sa) { skip = true; break; } }
+                if (skip) continue;
                 translated_addrs.insert(func_addr);
 
                 std::uint32_t func_offset = func_addr - hdr.code_address;
@@ -200,7 +205,6 @@ namespace eka2l1::arm::aot {
                 }
 
                 all_funcs.push_back(std::move(tr.func));
-                if (MAX_EXPORTS >= 0 && static_cast<int>(all_funcs.size()) >= MAX_EXPORTS) break;
             }
 
             LOG_INFO(KERNEL, "AOT: translated {}/{} exports for {}",
