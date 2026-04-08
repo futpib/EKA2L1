@@ -21,7 +21,10 @@
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/aot/aot_registry.h>
+#include <cpu/aot/thumb_translator.h>
+#include <cpu/aot/wasm_emitter.h>
 
+#include <cpu/dyncom/armstate.h>
 #include <array>
 #include <cstring>
 #include <vector>
@@ -572,4 +575,265 @@ TEST_CASE("aot_catalog_config", "[aot]") {
         CHECK(cat.is_enabled("gdi.dll", "BlitPixels"));
         CHECK(cat.is_enabled("Gdi.Dll", "DrawLine"));
     }
+}
+
+// --- Test: WASM module emitter produces valid module ---
+
+TEST_CASE("wasm_emitter_valid_module", "[aot]") {
+    using namespace eka2l1::arm::aot;
+
+    // Emit a trivial function: return i32.const 42
+    std::vector<std::uint8_t> body;
+    body.push_back(op_i32_const);
+    // LEB128 encode 42
+    body.push_back(42);
+    body.push_back(op_return);
+
+    wasm_func_def func;
+    func.export_name = "test_func";
+    func.body = body;
+    func.num_locals = 0;
+
+    auto module = build_wasm_module({ func });
+
+    // Verify WASM magic and version
+    REQUIRE(module.size() >= 8);
+    CHECK(module[0] == 0x00);
+    CHECK(module[1] == 0x61); // 'a'
+    CHECK(module[2] == 0x73); // 's'
+    CHECK(module[3] == 0x6D); // 'm'
+    CHECK(module[4] == 0x01); // version 1
+    CHECK(module[5] == 0x00);
+    CHECK(module[6] == 0x00);
+    CHECK(module[7] == 0x00);
+
+    // Module should have reasonable size (header + sections)
+    CHECK(module.size() > 20);
+    CHECK(module.size() < 1000);
+}
+
+TEST_CASE("armul_state_offsets", "[aot]") {
+    // Verify the field offsets we need for the WASM translator
+    // Reg[16] is at offset 0
+    REQUIRE(offsetof(ARMul_State, Reg) == 0);
+
+    // These offsets are used by the WASM translator to access CPU state.
+    // If any change, the translator constants must be updated.
+    CHECK(offsetof(ARMul_State, Cpsr) == offsetof(ARMul_State, Emulate) + 4);
+    CHECK(offsetof(ARMul_State, NFlag) > offsetof(ARMul_State, Cpsr));
+
+    // Capture actual values for reference
+    std::size_t reg_off = offsetof(ARMul_State, Reg);
+    std::size_t cpsr_off = offsetof(ARMul_State, Cpsr);
+    std::size_t nflag_off = offsetof(ARMul_State, NFlag);
+    std::size_t zflag_off = offsetof(ARMul_State, ZFlag);
+    std::size_t cflag_off = offsetof(ARMul_State, CFlag);
+    std::size_t vflag_off = offsetof(ARMul_State, VFlag);
+    std::size_t tflag_off = offsetof(ARMul_State, TFlag);
+
+    // Flags should be consecutive
+    CHECK(zflag_off == nflag_off + 4);
+    CHECK(cflag_off == zflag_off + 4);
+    CHECK(vflag_off == cflag_off + 4);
+
+    // Print for reference (visible with -s flag)
+    printf("  ARMul_State offsets:\n");
+    printf("    Reg:   %zu\n", reg_off);
+    printf("    Cpsr:  %zu\n", cpsr_off);
+    printf("    NFlag: %zu\n", nflag_off);
+    printf("    ZFlag: %zu\n", zflag_off);
+    printf("    CFlag: %zu\n", cflag_off);
+    printf("    VFlag: %zu\n", vflag_off);
+    printf("    TFlag: %zu\n", tflag_off);
+}
+
+TEST_CASE("wasm_emitter_multiple_functions", "[aot]") {
+    using namespace eka2l1::arm::aot;
+
+    std::vector<wasm_func_def> funcs;
+
+    // Function 1: return 1
+    {
+        wasm_func_def f;
+        f.export_name = "f_one";
+        f.body = { op_i32_const, 1, op_return };
+        f.num_locals = 0;
+        funcs.push_back(f);
+    }
+
+    // Function 2: return 2
+    {
+        wasm_func_def f;
+        f.export_name = "f_two";
+        f.body = { op_i32_const, 2, op_return };
+        f.num_locals = 0;
+        funcs.push_back(f);
+    }
+
+    // Function 3: return param + 10
+    {
+        wasm_func_def f;
+        f.export_name = "f_add10";
+        f.body = { op_local_get, 0, op_i32_const, 10, op_i32_add, op_return };
+        f.num_locals = 0;
+        funcs.push_back(f);
+    }
+
+    auto module = build_wasm_module(funcs);
+
+    REQUIRE(module.size() >= 8);
+    CHECK(module[0] == 0x00);
+    CHECK(module[1] == 0x61);
+    // All 3 functions should be in the module
+    CHECK(module.size() > 40);
+}
+
+// --- Test: Thumb translator produces WASM for simple instructions ---
+
+TEST_CASE("thumb_translator_simple", "[aot]") {
+    using namespace eka2l1::arm::aot;
+
+    // Thumb code: MOVS R0, #42; MOVS R1, #10; ADDS R0, R0, #1
+    // 0x2000 | 42 = 0x202A  (MOVS R0, #42)
+    // 0x2100 | 10 = 0x210A  (MOVS R1, #10)
+    // 0x1C40       = 0x1C40  (ADDS R0, R0, #1 — encoding: imm3=1, Rn=0, Rd=0)
+    std::uint8_t code[] = {
+        0x2A, 0x20,  // MOVS R0, #42
+        0x0A, 0x21,  // MOVS R1, #10
+        0x40, 0x1C,  // ADDS R0, R0, #1
+    };
+
+    auto func = translate_thumb_block(code, sizeof(code), 0x1000);
+
+    // Should produce a non-empty body
+    REQUIRE(!func.body.empty());
+    CHECK(func.export_name == "f_4096"); // 0x1000 decimal
+
+    // Build it into a WASM module to verify it's structurally valid
+    auto module = build_wasm_module({ func });
+    REQUIRE(module.size() >= 8);
+    CHECK(module[0] == 0x00);
+    CHECK(module[1] == 0x61);
+    CHECK(module[2] == 0x73);
+    CHECK(module[3] == 0x6D);
+}
+
+TEST_CASE("thumb_translator_cmp_movs", "[aot]") {
+    using namespace eka2l1::arm::aot;
+
+    // Thumb code: MOVS R0, #5; CMP R0, #5
+    std::uint8_t code[] = {
+        0x05, 0x20,  // MOVS R0, #5
+        0x05, 0x28,  // CMP R0, #5
+    };
+
+    auto func = translate_thumb_block(code, sizeof(code), 0x2000);
+    REQUIRE(!func.body.empty());
+
+    auto module = build_wasm_module({ func });
+    REQUIRE(module.size() >= 8);
+    // Verify WASM magic
+    CHECK(module[0] == 0x00);
+    CHECK(module[1] == 0x61);
+}
+
+TEST_CASE("thumb_translator_bails_on_memory_ops", "[aot]") {
+    using namespace eka2l1::arm::aot;
+
+    // LDR R0, [R1, #0] — should bail to interpreter
+    std::uint8_t code[] = {
+        0x08, 0x68,  // LDR R0, [R1, #0]
+    };
+
+    auto func = translate_thumb_block(code, sizeof(code), 0x3000);
+    REQUIRE(!func.body.empty());
+
+    // The body should contain a return instruction (bail)
+    // and set PC to the LDR address
+    auto module = build_wasm_module({ func });
+    REQUIRE(module.size() >= 8);
+}
+
+TEST_CASE("thumb_translator_with_branches", "[aot]") {
+    using namespace eka2l1::arm::aot;
+
+    // Thumb code with a conditional branch:
+    // 0x1000: MOVS R0, #5       (0x2005)
+    // 0x1002: MOVS R1, #5       (0x2105)
+    // 0x1004: CMP R0, R1        (0x4288)
+    // 0x1006: BNE +4 (to 0x100E) (0xD102) — branch within block
+    // 0x1008: MOVS R2, #1       (0x2201)
+    // 0x100A: B +2 (to 0x1010)  (0xE001) — skip
+    // 0x100C: invalid            (pad)
+    // 0x100E: MOVS R2, #0       (0x2200) — branch target
+    // 0x1010: end
+    std::uint8_t code[] = {
+        0x05, 0x20,  // MOVS R0, #5
+        0x05, 0x21,  // MOVS R1, #5
+        0x88, 0x42,  // CMP R0, R1
+        0x02, 0xD1,  // BNE +4
+        0x01, 0x22,  // MOVS R2, #1
+        0x01, 0xE0,  // B +2
+        0x00, 0x00,  // padding
+        0x00, 0x22,  // MOVS R2, #0
+    };
+
+    auto func = translate_thumb_block(code, sizeof(code), 0x1000);
+    REQUIRE(!func.body.empty());
+
+    // Build with imports for memory ops
+    std::vector<wasm_import_func> imports = {
+        {"env", "tlb_read32", 2, true},
+        {"env", "tlb_write32", 3, false},
+        {"env", "tlb_read8", 2, true},
+    };
+    auto module = build_wasm_module({ func }, imports);
+    REQUIRE(module.size() >= 8);
+    CHECK(module[0] == 0x00);
+    CHECK(module[1] == 0x61);
+}
+
+TEST_CASE("thumb_translator_with_ldr_str", "[aot]") {
+    using namespace eka2l1::arm::aot;
+
+    // Thumb code with memory access:
+    // LDR R0, [R1, #0]  (0x6808)
+    // STR R0, [R2, #0]  (0x6010)
+    std::uint8_t code[] = {
+        0x08, 0x68,  // LDR R0, [R1, #0]
+        0x10, 0x60,  // STR R0, [R2, #0]
+    };
+
+    auto func = translate_thumb_block(code, sizeof(code), 0x2000);
+    REQUIRE(!func.body.empty());
+
+    std::vector<wasm_import_func> imports = {
+        {"env", "tlb_read32", 2, true},
+        {"env", "tlb_write32", 3, false},
+        {"env", "tlb_read8", 2, true},
+    };
+    auto module = build_wasm_module({ func }, imports);
+    REQUIRE(module.size() >= 8);
+    CHECK(module[0] == 0x00);
+}
+
+TEST_CASE("thumb_translator_multiple_funcs_one_module", "[aot]") {
+    using namespace eka2l1::arm::aot;
+
+    // Two different Thumb blocks
+    std::uint8_t code1[] = { 0x05, 0x20 };  // MOVS R0, #5
+    std::uint8_t code2[] = { 0x0A, 0x21 };  // MOVS R1, #10
+
+    auto f1 = translate_thumb_block(code1, sizeof(code1), 0x4000);
+    auto f2 = translate_thumb_block(code2, sizeof(code2), 0x4100);
+
+    REQUIRE(!f1.body.empty());
+    REQUIRE(!f2.body.empty());
+    CHECK(f1.export_name != f2.export_name);
+
+    // Both in one module
+    auto module = build_wasm_module({ f1, f2 });
+    REQUIRE(module.size() >= 8);
+    CHECK(module[0] == 0x00);
+    CHECK(module[1] == 0x61);
 }

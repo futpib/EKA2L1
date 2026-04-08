@@ -79,7 +79,13 @@ set(SOURCE_DYNCOM
 
 set(SOURCE_AOT
         include/cpu/aot/aot_registry.h
-        src/aot/aot_registry.cpp)
+        include/cpu/aot/aot_runtime.h
+        include/cpu/aot/thumb_translator.h
+        include/cpu/aot/wasm_emitter.h
+        src/aot/aot_registry.cpp
+        src/aot/aot_runtime.cpp
+        src/aot/thumb_translator.cpp
+        src/aot/wasm_emitter.cpp)
 
 add_library(cpu
         include/cpu/arm_analyser.h
