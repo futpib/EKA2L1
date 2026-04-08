@@ -77,6 +77,10 @@ set(SOURCE_DYNCOM
         src/dyncom/armstate.cpp
         src/dyncom/armsupp.cpp)
 
+set(SOURCE_AOT
+        include/cpu/aot/aot_registry.h
+        src/aot/aot_registry.cpp)
+
 add_library(cpu
         include/cpu/arm_analyser.h
         include/cpu/arm_analyser_capstone.h
@@ -88,7 +92,8 @@ add_library(cpu
         src/arm_factory.cpp
         src/arm_utils.cpp
         ${SOURCE_12L1R_PUBLIC}
-        ${SOURCE_DYNCOM})
+        ${SOURCE_DYNCOM}
+        ${SOURCE_AOT})
 
 if (ARCHITECTURE_ARM32)
     target_sources(cpu PRIVATE ${SOURCE_12L1R})

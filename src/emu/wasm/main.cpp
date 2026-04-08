@@ -42,6 +42,7 @@
 #include <services/window/screen.h>
 #include <services/window/window.h>
 #include <utils/apacmd.h>
+#include <system/aot_setup.h>
 #include <system/devices.h>
 #include <system/epoc.h>
 #include <system/installation/install_device.h>
@@ -115,6 +116,8 @@ namespace {
             io_attrib_internal | io_attrib_write_protected);
 
         g_state->symsys->initialize_user_parties();
+
+        eka2l1::arm::aot::initialize(g_state->symsys.get());
 
         manager::packages *pkgmngr = g_state->symsys->get_packages();
         if (pkgmngr) {

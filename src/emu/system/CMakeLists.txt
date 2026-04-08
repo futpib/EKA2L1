@@ -2,6 +2,7 @@ add_library(epoc
         include/system/installation/firmware.h
         include/system/installation/install_device.h
         include/system/installation/rpkg.h
+        include/system/aot_setup.h
         include/system/devices.h
         include/system/epoc.h
         include/system/hal.h
@@ -9,6 +10,7 @@ add_library(epoc
         src/installation/firmware.cpp
         src/installation/install_device.cpp
         src/installation/rpkg.cpp
+        src/aot_setup.cpp
         src/devices.cpp
         src/epoc.cpp
         src/hal.cpp

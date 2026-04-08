@@ -21,6 +21,7 @@
 #include <cstdio>
 
 #include <cpu/arm_interface.h>
+#include <cpu/aot/aot_registry.h>
 
 #define RM BITS(sht_oper, 0, 3)
 #define RS BITS(sht_oper, 8, 11)
@@ -1631,6 +1632,18 @@ DISPATCH : {
         cpu->Reg[15] &= 0xfffffffe;
     else
         cpu->Reg[15] &= 0xfffffffc;
+
+    // Check if an AOT-compiled function exists for this PC
+    {
+        auto aot_func = eka2l1::arm::aot::global_registry().lookup(cpu->Reg[15]);
+        if (aot_func) {
+            std::uint32_t instrs = aot_func(cpu);
+            num_instrs += instrs;
+            if (num_instrs >= cpu->NumInstrsToExecute)
+                goto END;
+            goto DISPATCH;
+        }
+    }
 
     // Find the cached instruction cream, otherwise translate it...
     auto itr = cpu->instruction_cache.find(cpu->Reg[15]);

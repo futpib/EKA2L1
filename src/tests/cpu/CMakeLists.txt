@@ -1,0 +1,3 @@
+set(CPU_TEST_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/aot.cpp
+    PARENT_SCOPE)

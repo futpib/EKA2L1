@@ -7,6 +7,8 @@ QT_BIN="$ROOT_DIR/build/bin/eka2l1_qt"
 OUT_DIR="$ROOT_DIR/build-wasm/frames-qt"
 PID_FILE="$OUT_DIR/qt-frames.pid"
 CACHE_DIR="/tmp/eka2l1-serve"
+# On Linux, the Qt binary changes CWD to XDG data dir
+DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/EKA2L1"
 
 ROM_CID="bafybeicj2jkrjfirzdz5jezz6hjbx2ylyv343kaecnhytl3g6yjy3mwmqm"
 RPKG_CID="bafybeihjy4vjxb5cy7zxca4kedg5ncxf5xrbj5basirfefemqwru73aipu"
@@ -63,8 +65,18 @@ echo $$ > "$PID_FILE"
 # Clean old frames
 rm -f "$OUT_DIR"/frame-*.png
 
-# Start Xvfb
+# Start Xvfb on a free display
 DISPLAY_NUM=42
+# Kill any stale Xvfb on this display
+if [ -f "/tmp/.X${DISPLAY_NUM}-lock" ]; then
+    STALE_PID=$(cat "/tmp/.X${DISPLAY_NUM}-lock" 2>/dev/null | tr -d ' ')
+    if [ -n "$STALE_PID" ] && kill -0 "$STALE_PID" 2>/dev/null; then
+        echo "Killing stale Xvfb (pid $STALE_PID) on display :$DISPLAY_NUM"
+        kill "$STALE_PID" 2>/dev/null || true
+        sleep 1
+    fi
+    rm -f "/tmp/.X${DISPLAY_NUM}-lock"
+fi
 Xvfb ":$DISPLAY_NUM" -screen 0 800x600x24 &
 XVFB_PID=$!
 sleep 1
@@ -77,9 +89,10 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Install device if not already set up
-if [ ! -f "$ROOT_DIR/data/devices.yml" ]; then
+# Install device if needed
+if [ ! -f "$DATA_DIR/data/devices.yml" ]; then
     echo "Installing device..."
+    rm -rf "$DATA_DIR/data"
     "$QT_BIN" --installdevice "$CACHE_DIR/SYM.ROM" "$CACHE_DIR/SYM.RPKG"
 fi
 

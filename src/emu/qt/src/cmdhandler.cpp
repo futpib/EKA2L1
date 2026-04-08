@@ -62,10 +62,10 @@ bool app_install_option_handler(eka2l1::common::arg_parser *parser, void *userda
     // Since it's inconvenient for user to specify the drive (they are all the same on computer),
     // and it's better to install in C since there is many apps required
     // to be in it and hardcoded the drive, just hardcode drive E here.
-    bool result = emu->symsys->install_package(common::utf8_to_ucs2(path), drive_e);
+    int result = emu->symsys->install_package(common::utf8_to_ucs2(path), drive_e);
 
-    if (!result) {
-        *err = "Installation of SIS failed";
+    if (result != 0) {
+        *err = "Installation of SIS failed (error code " + std::to_string(result) + ")";
         return false;
     }
 
@@ -88,6 +88,11 @@ bool device_install_option_handler(eka2l1::common::arg_parser *parser, void *use
     }
 
     desktop::emulator *emu = reinterpret_cast<desktop::emulator *>(userdata);
+
+    // Signal os_thread to quit immediately — device installation doesn't
+    // need a running system, and stage_two() will crash if it races us
+    // and tries to load a ROM that's being installed.
+    emu->should_emu_quit = true;
 
     device_install_params params;
     params.storage = emu->conf.storage;

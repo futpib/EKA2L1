@@ -21,6 +21,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstring>
 #include <common/arghandler.h>
 #include <common/configure.h>
 #include <common/cvt.h>
@@ -400,12 +401,25 @@ namespace eka2l1::desktop {
         state.kill_event.set();
     }
 
+    static bool has_arg(const int argc, const char **argv, const char *name) {
+        for (int i = 1; i < argc; i++) {
+            if (std::strcmp(argv[i], name) == 0) return true;
+        }
+        return false;
+    }
+
     int emulator_entry(QApplication &application, emulator &state, const int argc, const char **argv) {
         state.stage_one();
 
-        // Instantiate UI and High-level interface threads
-        std::thread os_thread_obj(os_thread, std::ref(state));
-        state.init_event.wait();
+        // If --installdevice is specified, don't start os_thread — device
+        // installation doesn't need a running system, and stage_two() will
+        // crash if it tries to load a ROM that's being installed.
+        const bool install_only = has_arg(argc, argv, "--installdevice");
+        std::thread os_thread_obj;
+        if (!install_only) {
+            os_thread_obj = std::thread(os_thread, std::ref(state));
+            state.init_event.wait();
+        }
 
         eka2l1::common::arg_parser parser(argc, argv);
 
@@ -457,7 +471,9 @@ namespace eka2l1::desktop {
                 state.kill_event.set();
 
                 std::cout << err << std::endl;
-                os_thread_obj.join();
+                if (os_thread_obj.joinable()) {
+                    os_thread_obj.join();
+                }
 
                 return -1;
             }
