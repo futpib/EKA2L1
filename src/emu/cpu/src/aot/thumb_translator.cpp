@@ -300,13 +300,18 @@ namespace eka2l1::arm::aot {
                 int rd = insn & 7;
                 int rn = (insn >> 3) & 7;
                 w.load_reg(rn);
+                w.set_local(TMP3); // save Rn for C flag
                 if (insn & 0x0400) {
                     int imm3 = (insn >> 6) & 7;
                     w.i32_const(imm3);
+                    w.set_local(TMP4);
                 } else {
                     int rm = (insn >> 6) & 7;
                     w.load_reg(rm);
+                    w.set_local(TMP4);
                 }
+                w.get_local(TMP3);
+                w.get_local(TMP4);
                 w.op(op_i32_sub);
                 w.set_local(TMP1);
                 w.store_reg(rd, TMP1);
@@ -314,11 +319,16 @@ namespace eka2l1::arm::aot {
                 w.store_i32(S::NFLAG, TMP2);
                 w.get_local(TMP1); w.op(op_i32_eqz); w.set_local(TMP2);
                 w.store_i32(S::ZFLAG, TMP2);
+                // C = (Rn >= operand) unsigned (no borrow)
+                w.get_local(TMP3); w.get_local(TMP4); w.op(op_i32_ge_u); w.set_local(TMP2);
+                w.store_i32(S::CFLAG, TMP2);
             } else if ((insn & 0xF800) == 0x3800) {
                 // SUBS Rd, #imm8
                 int rd = (insn >> 8) & 7;
                 int imm8 = insn & 0xFF;
                 w.load_reg(rd);
+                w.set_local(TMP3); // save original for C flag
+                w.get_local(TMP3);
                 w.i32_const(imm8);
                 w.op(op_i32_sub);
                 w.set_local(TMP1);
@@ -327,6 +337,9 @@ namespace eka2l1::arm::aot {
                 w.store_i32(S::NFLAG, TMP2);
                 w.get_local(TMP1); w.op(op_i32_eqz); w.set_local(TMP2);
                 w.store_i32(S::ZFLAG, TMP2);
+                // C = (Rd_orig >= imm8) unsigned
+                w.get_local(TMP3); w.i32_const(imm8); w.op(op_i32_ge_u); w.set_local(TMP2);
+                w.store_i32(S::CFLAG, TMP2);
             } else if ((insn & 0xFFC0) == 0x4280) {
                 // CMP Rn, Rm
                 int rn = insn & 7;
@@ -481,6 +494,11 @@ namespace eka2l1::arm::aot {
                 w.op(op_i32_xor);
                 w.set_local(TMP1);
                 w.store_reg(rd, TMP1);
+                // Update N, Z flags
+                w.get_local(TMP1); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP2);
+                w.store_i32(S::NFLAG, TMP2);
+                w.get_local(TMP1); w.op(op_i32_eqz); w.set_local(TMP2);
+                w.store_i32(S::ZFLAG, TMP2);
             } else if ((insn & 0xF000) == 0xD000) {
                 // Conditional branch: B<cond> offset
                 std::uint8_t cond = (insn >> 8) & 0xF;
@@ -705,10 +723,15 @@ namespace eka2l1::arm::aot {
                 w.store_reg(15, TMP1);
                 w.bail(insn_addr, insn_idx + 1);
             } else if ((insn & 0xF800) == 0x0000) {
-                // LSLS Rd, Rm, #0 — this is MOVS Rd, Rm when imm5==0
+                // LSLS Rd, Rm, #imm5 (MOVS Rd, Rm when imm5==0)
                 int rd = insn & 7;
                 int rm = (insn >> 3) & 7;
+                int imm5 = (insn >> 6) & 0x1F;
                 w.load_reg(rm);
+                if (imm5 > 0) {
+                    w.i32_const(imm5);
+                    w.op(op_i32_shl);
+                }
                 w.set_local(TMP1);
                 w.store_reg(rd, TMP1);
                 // Update N, Z flags
