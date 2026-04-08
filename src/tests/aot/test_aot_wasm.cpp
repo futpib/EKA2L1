@@ -195,12 +195,19 @@ static int js_run_aot_wasm(const uint8_t*, int, uint8_t*, int) {
 
 // ---- Test cases ----
 
+struct mem_init {
+    std::uint32_t addr;
+    std::uint32_t value;
+};
+
 struct test_case {
     const char *name;
     std::vector<std::uint8_t> code;      // Thumb bytecode
     std::uint32_t code_addr;             // address to place the code
     std::array<std::uint32_t, 16> init_regs;
     int max_instrs;                      // max instructions to run in interpreter
+    std::vector<mem_init> init_mem;      // initial memory values
+    std::vector<std::uint32_t> check_mem_addrs; // addresses to compare after
 };
 
 static bool run_test(const test_case &tc) {
@@ -213,6 +220,7 @@ static bool run_test(const test_case &tc) {
     full_code.push_back(0xFE); full_code.push_back(0xE7); // B . (halt loop)
 
     interp_mem.write_code(tc.code_addr, full_code);
+    for (auto &m : tc.init_mem) interp_mem.write32(m.addr, m.value);
     auto interp_cpu = make_cpu(interp_mem, mon);
 
     for (int i = 0; i < 16; i++) interp_cpu->set_reg(i, tc.init_regs[i]);
@@ -221,6 +229,10 @@ static bool run_test(const test_case &tc) {
 
     interp_cpu->run(tc.max_instrs);
     cpu_state interp_state = capture_state(*interp_cpu);
+
+    // Capture memory state from interpreter
+    std::vector<std::uint32_t> interp_mem_vals;
+    for (auto addr : tc.check_mem_addrs) interp_mem_vals.push_back(interp_mem.read32(addr));
 
     // --- Step 2: Translate to WASM ---
     auto tr = translate_thumb_block(tc.code.data(), tc.code.size(), tc.code_addr);
@@ -259,6 +271,7 @@ static bool run_test(const test_case &tc) {
 #ifdef __EMSCRIPTEN__
     test_mem wasm_mem;
     wasm_mem.write_code(tc.code_addr, full_code);
+    for (auto &m : tc.init_mem) wasm_mem.write32(m.addr, m.value);
     g_test_mem = &wasm_mem;
 
     int result = js_run_aot_wasm(wasm_bytes.data(), static_cast<int>(wasm_bytes.size()),
@@ -305,6 +318,17 @@ static bool run_test(const test_case &tc) {
     if (wasm_c != interp_state.cflag) { printf("  FAIL %s: C=%u (wasm) vs %u (interp)\n", tc.name, wasm_c, interp_state.cflag); passed = false; }
     if (wasm_v != interp_state.vflag) { printf("  FAIL %s: V=%u (wasm) vs %u (interp)\n", tc.name, wasm_v, interp_state.vflag); passed = false; }
 
+    // Compare memory
+    for (std::size_t i = 0; i < tc.check_mem_addrs.size(); i++) {
+        std::uint32_t wasm_val = wasm_mem.read32(tc.check_mem_addrs[i]);
+        std::uint32_t interp_val = interp_mem_vals[i];
+        if (wasm_val != interp_val) {
+            printf("  FAIL %s: mem[0x%X] = 0x%08X (wasm) vs 0x%08X (interp)\n",
+                tc.name, tc.check_mem_addrs[i], wasm_val, interp_val);
+            passed = false;
+        }
+    }
+
     if (passed) {
         printf("  PASS %s\n", tc.name);
     }
@@ -317,6 +341,10 @@ int main() {
     std::array<std::uint32_t, 16> zero_regs = {};
     zero_regs[13] = 0x10000; // SP
 
+    // ADD NEW TEST CASES HERE
+    // Each test runs Thumb bytecode through both the Dyncom interpreter
+    // and the WASM AOT translator, comparing all registers and flags.
+    // To add a test: {name, {thumb_bytes...}, code_addr, init_regs, max_instrs, init_mem, check_mem_addrs}
     std::vector<test_case> tests = {
         {"MOVS R0, #42", {0x2A, 0x20}, 0x1000, zero_regs, 10},
         {"MOVS R0, #0 (zero flag)", {0x00, 0x20}, 0x1000, zero_regs, 10},
@@ -338,6 +366,117 @@ int main() {
         {"ADDS R0, #100", {0x64, 0x30}, 0x1000, [&]{ auto r = zero_regs; r[0] = 5; return r; }(), 10},
         {"SUBS R0, #1 to zero", {0x01, 0x38}, 0x1000, [&]{ auto r = zero_regs; r[0] = 1; return r; }(), 10},
         {"MOV R8, R0 (high reg)", {0x80, 0x46}, 0x1000, [&]{ auto r = zero_regs; r[0] = 123; return r; }(), 10},
+
+        // --- LDR/STR ---
+        {"LDR R0, [R1, #0]", {0x08, 0x68}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 0x2000; return r; }(), 10,
+            {{0x2000, 0xDEADBEEF}}, {}},
+        {"LDR R0, [R1, #4]", {0x48, 0x68}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 0x2000; return r; }(), 10,
+            {{0x2004, 0x12345678}}, {}},
+        {"STR R0, [R1, #0]", {0x08, 0x60}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 0xCAFEBABE; r[1] = 0x2000; return r; }(), 10,
+            {}, {0x2000}},
+        {"LDR R0, [R1, R2]", {0x88, 0x58}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 0x2000; r[2] = 8; return r; }(), 10,
+            {{0x2008, 0xAAAABBBB}}, {}},
+        {"LDR R0, [SP, #8]", {0x02, 0x98}, 0x1000,
+            [&]{ auto r = zero_regs; r[13] = 0x3000; return r; }(), 10,
+            {{0x3008, 0x11223344}}, {}},
+        {"STR R0, [SP, #0]", {0x00, 0x90}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 0x55667788; r[13] = 0x3000; return r; }(), 10,
+            {}, {0x3000}},
+
+        // --- LDRB/STRB ---
+        {"LDRB R0, [R1, #0]", {0x08, 0x78}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 0x2000; return r; }(), 10,
+            {{0x2000, 0x000000AB}}, {}},
+        {"STRB R0, [R1, #0]", {0x08, 0x70}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 0x42; r[1] = 0x2000; return r; }(), 10,
+            {}, {0x2000}},
+        {"LDRB R0, [R1, R2]", {0x88, 0x5C}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 0x2000; r[2] = 3; return r; }(), 10,
+            {{0x2000, 0xDD000000}}, {}},  // byte at +3 = 0xDD
+
+        // --- LDRH/STRH ---
+        {"LDRH R0, [R1, #0]", {0x08, 0x88}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 0x2000; return r; }(), 10,
+            {{0x2000, 0x0000BEEF}}, {}},
+
+        // --- SUBS Rd, Rn, Rm ---
+        {"SUBS R0, R1, R2", {0x88, 0x1A}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 10; r[2] = 3; return r; }(), 10},
+
+        // --- ADDS Rd, Rn, Rm ---
+        {"ADDS R0, R1, R2", {0x88, 0x18}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 10; r[2] = 3; return r; }(), 10},
+
+        // --- ASRS ---
+        {"ASRS R0, R1, #4", {0x08, 0x11}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 0x80; return r; }(), 10},
+        {"ASRS R0, R1 (reg)", {0x08, 0x41}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 0xFF000000; r[1] = 8; return r; }(), 10},
+
+        // --- MULS ---
+        {"MULS R0, R1", {0x48, 0x43}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 7; r[1] = 6; return r; }(), 10},
+
+        // --- BICS ---
+        {"BICS R0, R1", {0x88, 0x43}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 0xFF; r[1] = 0x0F; return r; }(), 10},
+
+        // --- NEGS ---
+        {"NEGS R0, R1", {0x48, 0x42}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 5; return r; }(), 10},
+
+        // --- TST ---
+        {"TST R0, R1 (nonzero)", {0x08, 0x42}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 0xFF; r[1] = 0x01; return r; }(), 10},
+        {"TST R0, R1 (zero)", {0x08, 0x42}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 0xF0; r[1] = 0x0F; return r; }(), 10},
+
+        // --- ADD Rd, SP, #imm ---
+        {"ADD R0, SP, #16", {0x04, 0xA8}, 0x1000,
+            [&]{ auto r = zero_regs; r[13] = 0x3000; return r; }(), 10},
+
+        // --- SUB SP / ADD SP ---
+        {"SUB SP, #8", {0x82, 0xB0}, 0x1000, zero_regs, 10},
+        {"ADD SP, #8", {0x02, 0xB0}, 0x1000, zero_regs, 10},
+
+        // --- LDR Rt, [PC, #imm] (literal pool) ---
+        // Code at 0x1000: LDR R0, [PC, #0] → loads from (0x1000+4) & ~3 = 0x1004
+        // We need data at 0x1004
+        {"LDR R0, [PC, #0]", {0x00, 0x48}, 0x1000,
+            zero_regs, 10,
+            {{0x1004, 0xBAADF00D}}, {}},
+
+        // --- LDRSB ---
+        {"LDRSB R0, [R1, R2]", {0x88, 0x56}, 0x1000,
+            [&]{ auto r = zero_regs; r[1] = 0x2000; r[2] = 0; return r; }(), 10,
+            {{0x2000, 0x00000080}}, {}},  // byte 0x80 → sign-extended to 0xFFFFFF80
+
+        // --- CMN ---
+        {"CMN R0, R1", {0xC8, 0x42}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 3; r[1] = 5; return r; }(), 10},
+
+        // --- CMP high regs ---
+        {"CMP R8, R0", {0x80, 0x45}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 5; r[8] = 10; return r; }(), 10},
+
+        // --- LSLS/LSRS reg ---
+        {"LSLS R0, R1 (reg)", {0x88, 0x40}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 1; r[1] = 4; return r; }(), 10},
+        {"LSRS R0, R1 (reg)", {0xC8, 0x40}, 0x1000,
+            [&]{ auto r = zero_regs; r[0] = 0x100; r[1] = 4; return r; }(), 10},
+
+        // --- Multi-instruction sequences ---
+        // MOVS R0,#5; MOVS R1,#3; ADDS R0,R0,R1 → R0=8
+        {"MOVS+ADDS sequence", {0x05, 0x20, 0x03, 0x21, 0x40, 0x18}, 0x1000,
+            zero_regs, 10},
+
+        // MOVS R0,#10; SUBS R0,#1; SUBS R0,#1 → R0=8
+        {"MOVS+SUBS+SUBS", {0x0A, 0x20, 0x01, 0x38, 0x01, 0x38}, 0x1000,
+            zero_regs, 10},
     };
 
     printf("Running %zu AOT WASM correctness tests...\n\n", tests.size());

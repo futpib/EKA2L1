@@ -847,6 +847,10 @@ namespace eka2l1::arm::aot {
                 w.op(op_i32_sub);
                 w.set_local(TMP1);
                 w.store_reg(rd, TMP1);
+                w.get_local(TMP1); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP2);
+                w.store_i32(S::NFLAG, TMP2);
+                w.get_local(TMP1); w.op(op_i32_eqz); w.set_local(TMP2);
+                w.store_i32(S::ZFLAG, TMP2);
             } else if ((insn & 0xFFC0) == 0x4340) {
                 // MULS Rd, Rm
                 int rd = insn & 7;
@@ -912,6 +916,10 @@ namespace eka2l1::arm::aot {
                 w.op(op_i32_shr_s);
                 w.set_local(TMP1);
                 w.store_reg(rd, TMP1);
+                w.get_local(TMP1); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP2);
+                w.store_i32(S::NFLAG, TMP2);
+                w.get_local(TMP1); w.op(op_i32_eqz); w.set_local(TMP2);
+                w.store_i32(S::ZFLAG, TMP2);
             } else if ((insn & 0xF800) == 0x1000) {
                 // ASRS Rd, Rm, #imm5
                 int rd = insn & 7;
