@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -98,4 +99,9 @@ namespace eka2l1::arm::aot {
 
     // Default config string for hardcoded AOT entries.
     const char *default_config_string();
+
+    // Profile-guided AOT: given a PC histogram, find the hottest PCs,
+    // read their code from memory, translate to WASM, and register.
+    void try_translate_hot_pcs(ARMul_State *cpu,
+        const std::map<std::uint32_t, std::uint64_t> &histogram);
 }

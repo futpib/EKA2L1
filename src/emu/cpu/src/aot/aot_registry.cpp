@@ -18,7 +18,14 @@
  */
 
 #include <cpu/aot/aot_registry.h>
+#include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/thumb_translator.h>
+#include <cpu/aot/wasm_emitter.h>
+#include <cpu/dyncom/armstate.h>
+#include <cpu/arm_interface.h>
 #include <algorithm>
+#include <cstdio>
+#include <set>
 
 namespace eka2l1::arm::aot {
     // --- registry ---
@@ -173,7 +180,105 @@ namespace eka2l1::arm::aot {
     }
 
     void register_builtin_functions() {
-        // Placeholder — AOT function implementations will be added here
-        // as they are developed. Each call adds a catalog_entry to global_catalog().
+    }
+
+    // --- profile-guided translation ---
+
+    void try_translate_hot_pcs(ARMul_State *cpu,
+        const std::map<std::uint32_t, std::uint64_t> &histogram)
+    {
+        if (histogram.empty()) return;
+
+        registry &reg = global_registry();
+
+        // Sort PCs by hotness
+        std::vector<std::pair<std::uint32_t, std::uint64_t>> sorted(histogram.begin(), histogram.end());
+        std::sort(sorted.begin(), sorted.end(),
+            [](const auto &a, const auto &b) { return a.second > b.second; });
+
+        // Find the hottest basic block that we haven't already translated.
+        // Group consecutive hot PCs into a block.
+        std::vector<wasm_func_def> funcs;
+        std::set<std::uint32_t> translated_starts;
+
+        for (const auto &[pc, count] : sorted) {
+            // Skip if already translated or if it's in the dispatcher trampoline area
+            if (reg.has_function(pc)) continue;
+            if (pc < 0x80000000) continue; // skip non-ROM addresses
+            if (count < 100) break; // stop at low-count PCs
+
+            // Find the start of this basic block by scanning backwards for PUSH or a branch target
+            // For simplicity, just use the hot PC as the start of a small block
+            std::uint32_t block_start = pc & ~1; // align
+            if (translated_starts.count(block_start)) continue;
+
+            // Read code from host memory. The PC is a virtual address in the emulated
+            // ARM address space. We need to resolve it to a host pointer.
+            std::uint32_t code_word = 0;
+            if (!cpu->parent()->read_code(block_start, &code_word)) {
+                continue; // can't read code at this address
+            }
+
+            // Read a block of code around this PC.
+            // Scan forward to find the block end (branch, return, or max size).
+            const std::uint32_t MAX_BLOCK = 128;
+            std::vector<std::uint8_t> code_bytes;
+            for (std::uint32_t off = 0; off < MAX_BLOCK; off += 2) {
+                std::uint32_t addr = block_start + off;
+                std::uint32_t word = 0;
+                if (!cpu->parent()->read_code(addr & ~3, &word)) break;
+                // Extract the halfword
+                std::uint16_t hw;
+                if (addr & 2) {
+                    hw = static_cast<std::uint16_t>(word >> 16);
+                } else {
+                    hw = static_cast<std::uint16_t>(word & 0xFFFF);
+                }
+                code_bytes.push_back(hw & 0xFF);
+                code_bytes.push_back((hw >> 8) & 0xFF);
+
+                // Check for block-ending instructions
+                // POP {.., PC} or BX LR
+                if ((hw & 0xFF00) == 0xBD00) break; // POP with PC
+                if (hw == 0x4770) break; // BX LR
+                // Unconditional B to outside the block — if it goes backwards far, stop
+                if ((hw & 0xF800) == 0xE000) {
+                    std::int16_t boff = static_cast<std::int16_t>((hw & 0x7FF) << 5) >> 5;
+                    std::uint32_t target = addr + 4 + boff * 2;
+                    if (target < block_start || target >= block_start + MAX_BLOCK) {
+                        code_bytes.push_back(0); code_bytes.push_back(0); // pad
+                        break;
+                    }
+                }
+            }
+
+            if (code_bytes.size() < 4) continue;
+
+            auto func = translate_thumb_block(code_bytes.data(), code_bytes.size(), block_start);
+            if (func.body.empty()) continue;
+
+            translated_starts.insert(block_start);
+            fprintf(stderr, "AOT: translated hot block at 0x%08X (%zu bytes, %llu samples)\n",
+                block_start, code_bytes.size(), (unsigned long long)count);
+            funcs.push_back(std::move(func));
+
+            if (funcs.size() >= 5) break; // limit per batch
+        }
+
+        if (funcs.empty()) return;
+
+        // Build and instantiate WASM module
+        std::vector<wasm_import_func> imports = {
+            {"env", "tlb_read32", 2, true},
+            {"env", "tlb_write32", 3, false},
+            {"env", "tlb_read8", 2, true},
+        };
+
+        auto wasm_bytes = build_wasm_module(funcs, imports);
+        fprintf(stderr, "AOT: built WASM module (%zu bytes, %zu functions)\n",
+            wasm_bytes.size(), funcs.size());
+
+        int count = instantiate_aot_module(wasm_bytes, "profile-guided");
+        fprintf(stderr, "AOT: instantiated %d functions\n", count);
     }
 }

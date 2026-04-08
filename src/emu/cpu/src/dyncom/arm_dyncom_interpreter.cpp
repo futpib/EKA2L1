@@ -909,6 +909,11 @@ static int clz(unsigned int x) {
 static std::map<std::uint32_t, std::uint64_t> pc_histogram;
 static std::mutex pc_histogram_mutex;
 static std::uint64_t pc_sample_counter = 0;
+static bool pc_histogram_enabled = false;
+
+void dyncom_enable_pc_histogram() {
+    pc_histogram_enabled = true;
+}
 
 void dyncom_dump_pc_histogram() {
     std::lock_guard<std::mutex> lock(pc_histogram_mutex);
@@ -1616,8 +1621,8 @@ unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
 
     LOAD_NZCVT;
 DISPATCH : {
-    // PC profiling: sample every 1024th dispatch
-    if ((++pc_sample_counter & 0x3FF) == 0) {
+    // PC profiling: sample every 1024th dispatch (only when enabled via CLI)
+    if (pc_histogram_enabled && (++pc_sample_counter & 0x3FF) == 0) {
         std::lock_guard<std::mutex> lock(pc_histogram_mutex);
         pc_histogram[cpu->Reg[15]]++;
     }
