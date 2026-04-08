@@ -295,8 +295,8 @@ namespace eka2l1::arm::aot {
                 w.store_i32(S::NFLAG, TMP2);
                 w.get_local(TMP1); w.op(op_i32_eqz); w.set_local(TMP2);
                 w.store_i32(S::ZFLAG, TMP2);
-            } else if ((insn & 0xFE00) == 0x1A00) {
-                // SUBS Rd, Rn, #imm3 or SUBS Rd, Rn, Rm
+            } else if ((insn & 0xFA00) == 0x1A00) {
+                // SUBS Rd, Rn, #imm3 (0x1E00) or SUBS Rd, Rn, Rm (0x1A00)
                 int rd = insn & 7;
                 int rn = (insn >> 3) & 7;
                 w.load_reg(rn);
@@ -435,7 +435,7 @@ namespace eka2l1::arm::aot {
                 // Actually 0x6A00 is LDR with imm5 bits [10:6]
                 // Already handled above in 0x6800 range
                 handled = false;
-            } else if ((insn & 0xFFC0) == 0x4600) {
+            } else if ((insn & 0xFF00) == 0x4600) {
                 // MOV Rd, Rm (high register)
                 int rd = (insn & 7) | ((insn >> 4) & 8);
                 int rm = (insn >> 3) & 0xF;
@@ -692,10 +692,14 @@ namespace eka2l1::arm::aot {
             } else if (insn == 0x4770) {
                 // BX LR — function return
                 w.bail(insn_addr + 2, insn_idx + 1);
-            } else if ((insn & 0xFFC0) == 0x4700) {
-                // BX Rm
-                // Set PC = Rm, bail to interpreter
+            } else if ((insn & 0xFF00) == 0x4700) {
+                // BX Rm / BLX Rm
+                // Both bail to interpreter — BLX also sets LR
                 int rm = (insn >> 3) & 0xF;
+                if (insn & 0x80) {
+                    // BLX Rm — set LR = next instruction | 1 (Thumb)
+                    w.store_i32_const(S::LR, static_cast<std::int32_t>((insn_addr + 2) | 1));
+                }
                 w.load_reg(rm);
                 w.set_local(TMP1);
                 w.store_reg(15, TMP1);

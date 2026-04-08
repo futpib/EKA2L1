@@ -78,3 +78,7 @@ if (EKA2L1_BUILD_TESTS AND NOT EMSCRIPTEN)
     enable_testing()
     add_subdirectory(src/tests)
 endif()
+
+if (EMSCRIPTEN)
+    add_subdirectory(src/tests/aot)
+endif()
