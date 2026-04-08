@@ -95,6 +95,7 @@ namespace eka2l1::desktop {
 
         std::string launched_app_name_;
         std::string dump_frames_dir_;
+        bool use_dyncom_ = false;
 
         explicit emulator();
 

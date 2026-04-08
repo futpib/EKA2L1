@@ -40,6 +40,7 @@ bool keybind_profile_option_handler(eka2l1::common::arg_parser *parser, void *us
 bool set_mmcid_option_handler(eka2l1::common::arg_parser *parser, void *userdata, std::string *err);
 bool run_ngage_game_option_handler(eka2l1::common::arg_parser *parser, void *userdata, std::string *err);
 bool device_install_option_handler(eka2l1::common::arg_parser *parser, void *userdata, std::string *err);
+bool dyncom_option_handler(eka2l1::common::arg_parser *parser, void *userdata, std::string *err);
 bool dump_frames_option_handler(eka2l1::common::arg_parser *parser, void *userdata, std::string *err);
 
 #if ENABLE_SCRIPTING

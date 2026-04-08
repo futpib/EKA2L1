@@ -7,3 +7,4 @@
 struct ARMul_State;
 
 unsigned InterpreterMainLoop(ARMul_State *state, std::uint32_t &num_instrs);
+void dyncom_dump_pc_histogram();

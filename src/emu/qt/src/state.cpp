@@ -89,6 +89,11 @@ namespace eka2l1::desktop {
 
         symsys = std::make_unique<eka2l1::system>(comp);
 
+        if (use_dyncom_) {
+            symsys->set_cpu_executor_type(arm_emulator_type::dyncom);
+            LOG_INFO(FRONTEND_CMDLINE, "Using Dyncom interpreter (--dyncom)");
+        }
+
         device_manager *dvcmngr = symsys->get_device_manager();
 
         if (dvcmngr->total() > 0) {

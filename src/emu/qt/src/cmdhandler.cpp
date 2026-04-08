@@ -537,6 +537,13 @@ bool python_docgen_option_handler(eka2l1::common::arg_parser *parser, void *user
 }
 #endif
 
+bool dyncom_option_handler(eka2l1::common::arg_parser *parser, void *userdata, std::string *err) {
+    eka2l1::desktop::emulator *emu = reinterpret_cast<eka2l1::desktop::emulator *>(userdata);
+    emu->use_dyncom_ = true;
+    *err = "";
+    return true;
+}
+
 bool dump_frames_option_handler(eka2l1::common::arg_parser *parser, void *userdata, std::string *err) {
     eka2l1::desktop::emulator *emu = reinterpret_cast<eka2l1::desktop::emulator *>(userdata);
     const char *dir = parser->next_token();

@@ -25,6 +25,7 @@
 #include <common/configure.h>
 #include <common/cvt.h>
 #include <common/frame_dumper.h>
+#include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <common/log.h>
 #include <common/random.h>
 #include <common/thread.h>
@@ -235,6 +236,7 @@ namespace eka2l1::desktop {
                     }
                     if (dumper->done()) {
                         LOG_INFO(FRONTEND_CMDLINE, "Frame dump complete, exiting");
+                        dyncom_dump_pc_histogram();
                         _exit(0);
                     }
                 }
@@ -435,6 +437,8 @@ namespace eka2l1::desktop {
                                        "\t\t\t  Usage: --installdevice <vpl_path>\n"
                                        "\t\t\t         --installdevice <rom_path> <rpkg_path>",
             device_install_option_handler);
+        parser.add("--dyncom", "Use the Dyncom interpreter instead of Dynarmic JIT for CPU emulation.",
+            dyncom_option_handler);
         parser.add("--dump-frames", "Capture fibonacci-numbered frames as PNG to the given directory, then exit.",
             dump_frames_option_handler);
 

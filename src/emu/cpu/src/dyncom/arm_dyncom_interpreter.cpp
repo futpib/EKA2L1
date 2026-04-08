@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <map>
+#include <mutex>
 #include <common/log.h>
 #include <common/types.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
@@ -903,6 +905,30 @@ static int clz(unsigned int x) {
     return n;
 }
 
+static std::map<std::uint32_t, std::uint64_t> pc_histogram;
+static std::mutex pc_histogram_mutex;
+static std::uint64_t pc_sample_counter = 0;
+
+void dyncom_dump_pc_histogram() {
+    std::lock_guard<std::mutex> lock(pc_histogram_mutex);
+    if (pc_histogram.empty()) return;
+
+    // Sort by count descending
+    std::vector<std::pair<std::uint32_t, std::uint64_t>> sorted(pc_histogram.begin(), pc_histogram.end());
+    std::sort(sorted.begin(), sorted.end(), [](const auto &a, const auto &b) { return a.second > b.second; });
+
+    std::uint64_t total = 0;
+    for (auto &p : sorted) total += p.second;
+
+    fprintf(stderr, "=== PC Histogram (top 50, total %llu samples) ===\n", (unsigned long long)total);
+    int shown = 0;
+    for (auto &p : sorted) {
+        if (shown++ >= 50) break;
+        fprintf(stderr, "  0x%08X: %llu (%.2f%%)\n", p.first, (unsigned long long)p.second, 100.0 * p.second / total);
+    }
+    fflush(stderr);
+}
+
 unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
 #undef RM
 #undef RS
@@ -1589,6 +1615,12 @@ unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
 
     LOAD_NZCVT;
 DISPATCH : {
+    // PC profiling: sample every 1024th dispatch
+    if ((++pc_sample_counter & 0x3FF) == 0) {
+        std::lock_guard<std::mutex> lock(pc_histogram_mutex);
+        pc_histogram[cpu->Reg[15]]++;
+    }
+
     if (!cpu->NirqSig) {
         if (!(cpu->Cpsr & 0x80)) {
             goto END;

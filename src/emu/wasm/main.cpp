@@ -19,6 +19,7 @@
 
 #include <common/cvt.h>
 #include <common/frame_dumper.h>
+#include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <common/log.h>
 #include <common/path.h>
 #include <common/pystr.h>
@@ -530,7 +531,15 @@ void eka2l1_start_frame_dump(const char *output_dir, int total_frames) {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_frame_dump_done() {
     if (!g_state || !g_state->dumper) return 1;
-    return g_state->dumper->done() ? 1 : 0;
+    bool done = g_state->dumper->done();
+    if (done) {
+        static bool histogram_dumped = false;
+        if (!histogram_dumped) {
+            histogram_dumped = true;
+            dyncom_dump_pc_histogram();
+        }
+    }
+    return done ? 1 : 0;
 }
 
 EMSCRIPTEN_KEEPALIVE
