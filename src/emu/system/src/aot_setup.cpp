@@ -35,6 +35,9 @@
 namespace eka2l1::arm::aot {
     // AOT target: DLL identified by UID3, with list of ordinals to translate.
     // Empty ordinals = translate all exports.
+    // -1 = unlimited, 0..N = limit. For bisecting crashes.
+    static constexpr int MAX_EXPORTS = 16;
+
     struct aot_target {
         std::uint32_t uid3;
         std::string display_name;
@@ -196,6 +199,7 @@ namespace eka2l1::arm::aot {
                 }
 
                 all_funcs.push_back(std::move(tr.func));
+                if (MAX_EXPORTS >= 0 && static_cast<int>(all_funcs.size()) >= MAX_EXPORTS) break;
             }
 
             LOG_INFO(KERNEL, "AOT: translated {}/{} exports for {}",
