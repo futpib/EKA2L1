@@ -591,6 +591,157 @@ namespace eka2l1::arm::aot {
                         continue;
                     }
                 }
+                // Wide LDM/STM (T2). Encoding (ARMv7-M):
+                //   STMIA.W: 1110_1000_10W0_Rn | 0 M 0 register_list[12:0]
+                //   LDMIA.W: 1110_1000_10W1_Rn | P M 0 register_list[12:0]
+                //   STMDB.W: 1110_1001_00W0_Rn | 0 M 0 register_list[12:0]
+                //   LDMDB.W: 1110_1001_00W1_Rn | P M 0 register_list[12:0]
+                //
+                // insn1[15:8] = 0xE8 (IA) or 0xE9 (DB)
+                // insn1[7:4]  = 10W1 (LDM) or 10W0 (STM)   [for E8x0]
+                //             = 00W1 (LDM) or 00W0 (STM)   [for E9x0]
+                // insn1[3:0]  = Rn
+                // insn2[15]   = P (PC in list — LDM only, STM has 0)
+                // insn2[14]   = M (LR in list — LDM/STM)
+                // insn2[13]   = 0
+                // insn2[12:0] = R0-R12 bitmap
+                //
+                // A wide PUSH is `STMDB.W SP!, reglist` (E92D + M<<14 + regs).
+                // A wide POP is `LDMIA.W SP!, reglist` (E8BD + P<<15 + M<<14 + regs).
+                //
+                // We handle the writeback-enabled (W=1) variant here, which
+                // covers PUSH/POP and the vast majority of prologue/epilogue
+                // code. Non-writeback LDM/STM is rarer and falls through.
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_ldm_stm_w = false;
+                    bool is_load = false;
+                    bool is_db = false;   // decrement-before (vs increment-after)
+                    // Mask 0xFFF0 isolates bits [15:4] (op byte + W + L),
+                    // leaving Rn (bits 3:0) free. Both W and L are at
+                    // bits [5:4] of the first halfword.
+                    //   STMIA.W: 11101000 10W0 Rn → E8A0 (W=1, L=0)
+                    //   LDMIA.W: 11101000 10W1 Rn → E8B0 (W=1, L=1)
+                    //   STMDB.W: 11101001 00W0 Rn → E920 (W=1, L=0)
+                    //   LDMDB.W: 11101001 00W1 Rn → E930 (W=1, L=1)
+                    // We only handle W=1 (writeback) — the pattern used
+                    // by wide PUSH/POP and other function-preamble code.
+                    if ((insn & 0xFFF0) == 0xE8A0) {
+                        is_ldm_stm_w = true;
+                        is_load = false;
+                        is_db = false;
+                    } else if ((insn & 0xFFF0) == 0xE8B0) {
+                        is_ldm_stm_w = true;
+                        is_load = true;
+                        is_db = false;
+                    } else if ((insn & 0xFFF0) == 0xE920) {
+                        is_ldm_stm_w = true;
+                        is_load = false;
+                        is_db = true;
+                    } else if ((insn & 0xFFF0) == 0xE930) {
+                        is_ldm_stm_w = true;
+                        is_load = true;
+                        is_db = true;
+                    }
+                    if (is_ldm_stm_w) {
+                        std::uint32_t rn = insn & 0xF;
+                        // insn2 bit 15 = P (PC), bit 14 = M (LR), bit 13 = 0
+                        // bits 12:0 = R0-R12 bitmap
+                        bool has_pc = (insn2 & 0x8000) != 0;
+                        bool has_lr = (insn2 & 0x4000) != 0;
+                        std::uint32_t reglist = insn2 & 0x1FFF;
+                        // STM can't have PC set (would be UNPREDICTABLE).
+                        bool ok = true;
+                        if (!is_load && has_pc) ok = false;
+                        // PC-as-base is UNPREDICTABLE.
+                        if (rn == 15) ok = false;
+                        if (ok) {
+                            // Count total registers being transferred.
+                            int count = 0;
+                            for (int r = 0; r < 13; r++) {
+                                if (reglist & (1 << r)) count++;
+                            }
+                            if (has_lr) count++;
+                            if (has_pc) count++;
+                            // Compute base address:
+                            //   IA: start = Rn,         end = Rn + count*4
+                            //   DB: start = Rn - count*4, end = Rn
+                            // After writeback:
+                            //   IA: Rn' = Rn + count*4
+                            //   DB: Rn' = Rn - count*4
+                            w.load_reg(static_cast<int>(rn));
+                            if (is_db) {
+                                w.i32_const(count * 4);
+                                w.op(op_i32_sub);
+                            }
+                            w.set_local(TMP1); // base address for transfers
+                            // For each register in the list, transfer at
+                            // ascending addresses starting from TMP1.
+                            int off = 0;
+                            auto transfer = [&](int reg) {
+                                if (is_load) {
+                                    w.state_ptr();
+                                    w.get_local(TMP1);
+                                    if (off > 0) { w.i32_const(off); w.op(op_i32_add); }
+                                    w.call(0); // tlb_read32
+                                    w.set_local(TMP2);
+                                    w.store_reg(reg, TMP2);
+                                } else {
+                                    w.load_reg(reg);
+                                    w.set_local(TMP2);
+                                    w.state_ptr();
+                                    w.get_local(TMP1);
+                                    if (off > 0) { w.i32_const(off); w.op(op_i32_add); }
+                                    w.get_local(TMP2);
+                                    w.call(1); // tlb_write32
+                                }
+                                off += 4;
+                            };
+                            for (int r = 0; r < 13; r++) {
+                                if (reglist & (1 << r)) transfer(r);
+                            }
+                            if (has_lr) transfer(14);
+                            if (has_pc) transfer(15);
+                            // Writeback: Rn' = Rn + (count*4) for IA,
+                            //            Rn' = Rn - (count*4) for DB (already
+                            //            reflected in TMP1; Rn' = TMP1 initial).
+                            // Note: IA writeback is Rn + count*4; DB writeback
+                            // is Rn - count*4, and we already subtracted count*4
+                            // into TMP1 at the start, so TMP1 IS Rn' for DB.
+                            if (is_db) {
+                                w.get_local(TMP1);
+                                w.set_local(TMP2);
+                                w.store_reg(static_cast<int>(rn), TMP2);
+                            } else {
+                                w.load_reg(static_cast<int>(rn));
+                                w.i32_const(count * 4);
+                                w.op(op_i32_add);
+                                w.set_local(TMP2);
+                                w.store_reg(static_cast<int>(rn), TMP2);
+                            }
+                            if (has_pc) {
+                                // PC was loaded into state. Bail without
+                                // overwriting so the interpreter dispatches
+                                // at the return address. This is the wide
+                                // POP {..., PC} function-return path.
+                                w.bail_preserve_pc(insn_idx + 1);
+                                // Function return — stop decoding past this
+                                // insn if no more forward targets remain.
+                                if (closed_count >= N_fwd) {
+                                    decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                                    i += 2; // skip second halfword of wide
+                                    insn_idx++;
+                                    break;
+                                }
+                            }
+                            i += 2; // skip second halfword
+                            decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                            insn_idx++;
+                            continue;
+                        }
+                    }
+                }
+
                 // Not a BL — mark as unsupported so this function is rejected.
                 // Bailing at insn_addr with insn_idx=0 would cause an infinite
                 // loop (interpreter re-dispatches to the same PC, AOT bails again).
@@ -612,17 +763,40 @@ namespace eka2l1::arm::aot {
                 }
                 if (insn_idx == 0) {
                     w.bail_unsupported(insn_addr, insn_idx);
-                } else {
-                    // Later in the block — safe to bail because the interpreter
-                    // running the wide insn will advance PC. insn_idx>0 so the
-                    // caller sees forward progress.
-                    w.bail(insn_addr, insn_idx);
+                    if (i + 3 < code_size) {
+                        i += 2;
+                    }
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                    insn_idx++;
+                    continue;
                 }
+                // Mid-function unsupported wide insn. Two cases:
+                //
+                // (a) All forward-branch targets have already been
+                //     reached (closed_count >= N_fwd). The decoder has
+                //     no legitimate reason to keep walking past this
+                //     point — if the "wide insn" is literal-pool data
+                //     (the common case: ROM pointers matching the wide
+                //     encoding pattern), any further decoding just
+                //     emits more bails for more pool words. Stop.
+                //
+                // (b) More forward targets remain. Earlier code may
+                //     have branched past this point to code we haven't
+                //     decoded yet. We can't stop, so bail on this one
+                //     insn and continue decoding past it.
+                w.bail(insn_addr, insn_idx);
                 if (i + 3 < code_size) {
                     i += 2; // skip second halfword of the 32-bit instruction
                 }
                 decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
                 insn_idx++;
+                if (closed_count >= N_fwd) {
+                    // Case (a): no forward targets ahead, stop decoding.
+                    // Everything past here is almost certainly literal
+                    // pool or next-function code that neither the CFG
+                    // walker nor the decoder can usefully handle.
+                    break;
+                }
                 continue;
             }
 
