@@ -113,19 +113,30 @@ async function run(): Promise<void> {
     logStream.write(line + "\n");
   }
 
-  // Forward AOT_MAX_EXPORTS env var to Emscripten's ENV object
-  const aotMaxExports = process.env.AOT_MAX_EXPORTS;
-  if (aotMaxExports !== undefined) {
-    log(`Setting AOT_MAX_EXPORTS=${aotMaxExports}`);
-    await page.evaluateOnNewDocument((val: string) => {
+  // Forward env vars to Emscripten's ENV object
+  const envVars: Record<string, string | undefined> = {
+    AOT_MAX_EXPORTS: process.env.AOT_MAX_EXPORTS,
+    EKA2L1_RTOS_LEVEL: process.env.EKA2L1_RTOS_LEVEL,
+  };
+  const envToSet: Record<string, string> = {};
+  for (const [k, v] of Object.entries(envVars)) {
+    if (v !== undefined) {
+      envToSet[k] = v;
+      log(`Setting ${k}=${v}`);
+    }
+  }
+  if (Object.keys(envToSet).length > 0) {
+    await page.evaluateOnNewDocument((vars: Record<string, string>) => {
       (globalThis as any).Module = (globalThis as any).Module || {};
       const mod = (globalThis as any).Module;
       const origPreRun = mod.preRun || [];
       mod.preRun = [...(Array.isArray(origPreRun) ? origPreRun : [origPreRun]), () => {
         (globalThis as any).ENV = (globalThis as any).ENV || {};
-        (globalThis as any).ENV["AOT_MAX_EXPORTS"] = val;
+        for (const [k, v] of Object.entries(vars)) {
+          (globalThis as any).ENV[k] = v;
+        }
       }];
-    }, aotMaxExports);
+    }, envToSet);
   }
 
   let aborted = false;

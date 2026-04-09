@@ -1660,7 +1660,7 @@ DISPATCH : {
             aot_dispatch_count++;
             aot_instr_count += instrs;
             if (aot_dispatch_count == 1 || (aot_dispatch_count & 0xFFFFF) == 0) {
-                fprintf(stderr, "AOT: %llu dispatches, %llu instrs\n",
+                fprintf(stderr, "AOT: %llu dispatches, %llu AOT instrs\n",
                     (unsigned long long)aot_dispatch_count,
                     (unsigned long long)aot_instr_count);
             }

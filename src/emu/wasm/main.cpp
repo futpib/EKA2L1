@@ -146,6 +146,13 @@ int eka2l1_init(const char *data_path) {
     if (data_path && data_path[0]) {
         g_state->conf.storage = data_path;
     }
+    // Set rtos level from env var (low/mid/high). Default mid matches Qt behavior.
+    // Use "high" to disable real-time pacing — useful for benchmarking AOT perf.
+    const char *rtos_env = std::getenv("EKA2L1_RTOS_LEVEL");
+    if (rtos_env) {
+        g_state->conf.rtos_level = rtos_env;
+        LOG_INFO(FRONTEND_CMDLINE, "Override rtos_level = {} (from env)", rtos_env);
+    }
 
     if (log::filterings) {
         log::filterings->parse_filter_string(g_state->conf.log_filter);
