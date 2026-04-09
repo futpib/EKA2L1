@@ -22,6 +22,8 @@
 
 #include <cstdio>
 #include <cstring>
+#include <memory>
+#include <utility>
 #include <vector>
 #include <array>
 
@@ -240,19 +242,83 @@ static bool run_test(const test_case &tc) {
     std::vector<std::uint32_t> interp_mem_vals;
     for (auto addr : tc.check_mem_addrs) interp_mem_vals.push_back(interp_mem.read32(addr));
 
-    // --- Step 2: Translate to WASM ---
-    auto tr = translate_thumb_block(tc.code.data(), tc.code.size(), tc.code_addr);
-    if (tr.func.body.empty()) {
-        printf("  SKIP %s: translator produced empty body\n", tc.name);
-        return true;
-    }
-
+    // --- Step 2: Translate to WASM (two-pass, with siblings) ---
+    // Mini version of aot_setup's two-pass flow: first pass discovers
+    // which entry points translate (top-level + resume points + branch
+    // targets), second pass re-translates with a populated sibling map
+    // so backward branches and sibling BLs become direct WASM calls
+    // instead of bailing to the interpreter.
     std::vector<wasm_import_func> imports = {
         {"env", "tlb_read32", 2, true},
         {"env", "tlb_write32", 3, false},
         {"env", "tlb_read8", 2, true},
     };
-    auto wasm_bytes = build_wasm_module({tr.func}, imports);
+    const std::uint32_t num_imports = static_cast<std::uint32_t>(imports.size());
+
+    sibling_map siblings;
+    // Preserve insertion order so the entry function is first (matches
+    // assignment of wasm indices).
+    std::vector<std::uint32_t> accepted_addrs;
+
+    auto slice_from = [&](std::uint32_t addr) -> std::pair<const std::uint8_t *, std::size_t> {
+        // The test provides the full block starting at tc.code_addr.
+        // For an entry at `addr` inside that block, hand the translator
+        // a suffix view.
+        if (addr < tc.code_addr || addr >= tc.code_addr + tc.code.size()) {
+            return {nullptr, 0};
+        }
+        std::size_t off = addr - tc.code_addr;
+        return {tc.code.data() + off, tc.code.size() - off};
+    };
+
+    auto try_translate_at = [&](std::uint32_t addr) -> translate_result {
+        translate_result empty;
+        if (siblings.count(addr)) return empty;
+        auto [p, sz] = slice_from(addr);
+        if (!p || sz < 2) return empty;
+        auto r = translate_thumb_block(p, sz, addr, nullptr);
+        if (r.func.body.empty() || !r.complete) return empty;
+        std::uint32_t idx = num_imports + static_cast<std::uint32_t>(accepted_addrs.size());
+        siblings[addr] = idx;
+        accepted_addrs.push_back(addr);
+        return r;
+    };
+
+    // First pass: discover. Seed with the test entry point.
+    {
+        auto r0 = try_translate_at(tc.code_addr);
+        if (r0.func.body.empty()) {
+            printf("  SKIP %s: translator produced empty body\n", tc.name);
+            return true;
+        }
+        // Walk accepted_addrs by index so new entries added inside the
+        // loop are also visited.
+        std::size_t i = 0;
+        while (i < accepted_addrs.size()) {
+            std::uint32_t addr = accepted_addrs[i++];
+            auto [p, sz] = slice_from(addr);
+            if (!p) continue;
+            auto r = translate_thumb_block(p, sz, addr, nullptr);
+            if (r.func.body.empty() || !r.complete) continue;
+            for (std::uint32_t rp : r.resume_points) try_translate_at(rp & ~1u);
+            for (std::uint32_t bt : r.branch_targets) try_translate_at(bt & ~1u);
+        }
+    }
+
+    // Second pass: re-translate each accepted function with siblings.
+    std::vector<wasm_func_def> all_funcs;
+    all_funcs.reserve(accepted_addrs.size());
+    for (std::uint32_t addr : accepted_addrs) {
+        auto [p, sz] = slice_from(addr);
+        auto r = translate_thumb_block(p, sz, addr, &siblings);
+        if (r.func.body.empty() || !r.complete) {
+            printf("  FAIL %s: 2nd pass failed for 0x%08X\n", tc.name, addr);
+            return false;
+        }
+        all_funcs.push_back(std::move(r.func));
+    }
+
+    auto wasm_bytes = build_wasm_module(all_funcs, imports);
 
     // --- Step 3: Run WASM on a state buffer ---
     // Allocate a state buffer in WASM linear memory
@@ -918,39 +984,30 @@ int main() {
             0},    // no register skip — we want to see any divergence
 
         // --- Backward branch to a non-entry instruction ---
-        // Backward branches currently re-enter the WASM loop at its top
-        // (instruction 0) regardless of the requested target index,
-        // because the dispatch "set PC_IDX; br $loop" never actually
-        // dispatches on PC_IDX. If the function is entered at insn 0 and
-        // the loop head is also insn 0, the bug is invisible. When the
-        // loop head is at insn > 0, execution re-runs the pre-head code
-        // on every iteration.
+        // Regression test for bug #2: backward branches used to re-enter
+        // the WASM loop at its top (instruction 0) regardless of the
+        // requested target, because the dispatch was `set PC_IDX;
+        // br $loop` and nothing actually read PC_IDX. If the function
+        // was entered at insn 0 and the loop head was also insn 0 the
+        // bug was invisible; with a loop head at insn > 0, execution
+        // re-ran the pre-head code on every iteration (R0 decremented
+        // an extra 2 times, so final R0=7 instead of 9).
+        //
+        // Fix: the test harness now runs the same two-pass flow as
+        // aot_setup — branch targets are translated as separate entry
+        // functions and backward branches emit a direct WASM call to
+        // the sibling f_<target>. No interpreter roundtrip, loop stays
+        // entirely inside WASM.
         //
         // Layout (insn indices in parens, loop head at insn 1):
         //   @ 0x1000 (insn 0)  SUBS R0, #1               — 0x3801
-        //                        decrements R0 each iter in the buggy path
         //   @ 0x1002 (insn 1)  ADDS R1, #1               — 0x3101, loop head
         //   @ 0x1004 (insn 2)  CMP  R1, #3               — 0x2903
         //   @ 0x1006 (insn 3)  BNE  target (insn 1)      — 0xD1FC
-        //                        src 0x1006 PC+4 0x100A, target 0x1002,
-        //                        delta -8 → imm8 -4 → 0xD1FC
         //   @ 0x1008 (insn 4)  BX LR                     — 0x4770
         //
-        // Init: R0 = 10, R1 = 0.
-        //
-        // Correct behaviour (what the interpreter does):
-        //   SUBS R0 (10→9), then loop { ADDS R1; CMP; BNE } until R1=3.
-        //   Final R0=9, R1=3.
-        //
-        // Current broken AOT:
-        //   Each BNE taken jumps to WASM loop top (insn 0), re-running
-        //   SUBS R0. After 3 iterations: R0=7, R1=3.
-        //   R0 differs from the interpreter's R0=9 — test FAILS, which is
-        //   exactly what we want to document this bug.
-        //
-        // When the translator is fixed to dispatch backward branches to
-        // the correct target index, this test should start PASSING.
-        {"Backward branch to non-entry (KNOWN BUG)",
+        // Init R0=10, R1=0. After: R0=9, R1=3.
+        {"Backward branch to non-entry",
             {0x01, 0x38,   // SUBS R0, #1
              0x01, 0x31,   // ADDS R1, #1 (loop head, idx 1)
              0x03, 0x29,   // CMP R1, #3
@@ -959,8 +1016,7 @@ int main() {
             0x1000,
             [&]{ auto r = zero_regs; r[0] = 10; r[1] = 0; r[14] = 0x100B; return r; }(), 100,
             {}, {},
-            0,
-            /*expected_fail=*/ true},
+            0},
 
         // --- Forward target reused as backward target ---
         // Target X is both a forward target (of an earlier source) and a

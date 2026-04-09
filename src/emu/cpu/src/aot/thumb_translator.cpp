@@ -698,11 +698,15 @@ namespace eka2l1::arm::aot {
                 //   (a) Forward target (target > insn_addr AND in fwd_idx) →
                 //       `cond; br_if depth` where depth is
                 //       fwd_idx[target] - closed_count.
-                //   (b) Backward target in the block → `cond; if { br $loop }`
-                //       (PC_IDX is not actually dispatched, so this only
-                //       works when the backward target is instruction 0;
-                //       branch-target-entry functions typically satisfy it).
-                //   (c) Out of block → `if (cond) bail(target)`.
+                //   (b) Backward target that's a known sibling AOT entry →
+                //       `if (cond) { tail-call sibling; return }`. The
+                //       sibling is a separate f_<target> function registered
+                //       via branch_targets discovery in aot_setup.
+                //   (c) Backward target without a sibling → `if (cond) bail(target)`.
+                //       The interpreter re-dispatches to the target PC; if
+                //       it's also an AOT entry, we re-enter AOT at the
+                //       correct PC with no WASM loop-top re-run.
+                //   (d) Forward target outside the block → bail(target).
                 // Important: a target can be BOTH a forward target (of some
                 // earlier branch) and a backward target (of this one) when a
                 // loop head is entered via a forward skip. Require target
@@ -710,36 +714,38 @@ namespace eka2l1::arm::aot {
                 // depth computation underflows once the forward block has
                 // been closed.
                 auto fwd_it = fwd_idx.find(target);
-                auto it = addr_to_idx.find(target);
                 bool is_fwd = (fwd_it != fwd_idx.end()) && (target > insn_addr);
                 if (is_fwd) {
                     if (!emit_cond()) { w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue; }
                     std::uint32_t depth = fwd_it->second - closed_count;
                     w.op(op_br_if); leb(result.body, depth);
-                } else if (it != addr_to_idx.end() && it->second <= insn_idx) {
-                    // Backward branch within block. Use br_if so the depth
-                    // numbering isn't shifted by an `if` wrapper.
-                    // Because br_if doesn't let us run code before jumping,
-                    // set PC_IDX unconditionally first (it's ignored if the
-                    // branch isn't taken, since nothing reads it on that
-                    // path). $loop depth = N_fwd - closed_count.
-                    if (!emit_cond()) { w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue; }
-                    std::uint32_t target_idx = it->second;
-                    // Hoist PC_IDX=target_idx before the condition? No —
-                    // cond already pushed a value on the stack. Instead,
-                    // wrap in `if`: we accept the depth shift since this
-                    // branch rarely matters (backward dispatch is broken).
-                    w.op(op_if); w.op(type_void);
-                    w.i32_const(target_idx);
-                    w.set_local(PC_IDX);
-                    // Depth +1 because we're inside the `if`.
-                    w.op(op_br); leb(result.body, N_fwd - closed_count + 1);
-                    w.op(op_end);
                 } else {
-                    // Out of block — conditional bail.
+                    // Backward (or out-of-block) target. Prefer a direct
+                    // sibling call so the loop stays entirely inside WASM;
+                    // otherwise bail to the target PC.
                     if (!emit_cond()) { w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue; }
                     w.op(op_if); w.op(type_void);
-                    w.bail(target, insn_idx + 1);
+                    std::uint32_t sibling_idx = 0;
+                    bool has_sibling = false;
+                    if (siblings) {
+                        auto sit = siblings->find(target);
+                        if (sit != siblings->end()) {
+                            sibling_idx = sit->second;
+                            has_sibling = true;
+                        }
+                    }
+                    if (has_sibling) {
+                        // Call sibling f_<target>: returns instruction count
+                        w.state_ptr();
+                        w.op(op_call);
+                        leb(result.body, sibling_idx);
+                        // Add our prior count + this branch insn (1)
+                        w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
+                        w.op(op_i32_add);
+                        w.ret();
+                    } else {
+                        w.bail(target, insn_idx + 1);
+                    }
                     w.op(op_end);
                 }
             } else if ((insn & 0xF800) == 0xE000) {
@@ -748,7 +754,6 @@ namespace eka2l1::arm::aot {
                 std::uint32_t target = insn_addr + 4 + offset * 2;
 
                 auto fwd_it = fwd_idx.find(target);
-                auto it = addr_to_idx.find(target);
                 // See comment in the B<cond> handler about fwd/backward
                 // overlap: require target > insn_addr before using the
                 // forward-block path.
@@ -757,14 +762,29 @@ namespace eka2l1::arm::aot {
                     // Forward branch within block — skip via nested block exit.
                     std::uint32_t depth = fwd_it->second - closed_count;
                     w.op(op_br); leb(result.body, depth);
-                } else if (it != addr_to_idx.end() && it->second <= insn_idx) {
-                    // Backward branch within block — jump to loop top.
-                    w.i32_const(it->second);
-                    w.set_local(PC_IDX);
-                    w.op(op_br); leb(result.body, N_fwd - closed_count);
                 } else {
-                    // Outside block — bail
-                    w.bail(target, insn_idx + 1);
+                    // Backward (or out-of-block) target. Prefer a direct
+                    // sibling call; otherwise bail to target PC so the
+                    // interpreter re-dispatches at the correct address.
+                    std::uint32_t sibling_idx = 0;
+                    bool has_sibling = false;
+                    if (siblings) {
+                        auto sit = siblings->find(target);
+                        if (sit != siblings->end()) {
+                            sibling_idx = sit->second;
+                            has_sibling = true;
+                        }
+                    }
+                    if (has_sibling) {
+                        w.state_ptr();
+                        w.op(op_call);
+                        leb(result.body, sibling_idx);
+                        w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
+                        w.op(op_i32_add);
+                        w.ret();
+                    } else {
+                        w.bail(target, insn_idx + 1);
+                    }
                 }
                 // Unconditional B terminates linear control flow. If
                 // forward targets remain, keep decoding (they may be hit
