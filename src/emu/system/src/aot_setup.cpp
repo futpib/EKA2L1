@@ -193,7 +193,12 @@ namespace eka2l1::arm::aot {
                 std::uint32_t func_addr = export_addr & ~1u;
 
                 if (func_addr < hdr.code_address || func_addr >= hdr.code_address + hdr.code_size) { oob_count++; continue; }
-                if (!is_thumb) { arm_count++; continue; } // translator only handles Thumb for now
+                if (!is_thumb) {
+                    arm_count++;
+                    fprintf(stderr, "AOT: ARM export skipped: ordinal %u at 0x%08X\n",
+                        ordinal, func_addr);
+                    continue;
+                }
                 if (translated_addrs.count(func_addr)) { dup_count++; continue; } // skip duplicate exports
                 translated_addrs.insert(func_addr);
 
@@ -224,6 +229,12 @@ namespace eka2l1::arm::aot {
             static constexpr std::uint32_t RESUME_ORDINAL = 0xFFFFFFFFu;
             std::vector<accepted_func> accepted;
 
+            // Code window spanning the entire DLL code section. Passed to
+            // the translator so it can peek at BLX imm veneers sitting
+            // outside the current function's slice.
+            code_window dll_window{code_host, hdr.code_address,
+                static_cast<std::uint32_t>(hdr.code_size)};
+
             auto try_translate_at = [&](std::uint32_t addr, std::uint32_t ordinal) -> bool {
                 // Must be within code range, aligned, and not already translated
                 if (addr < hdr.code_address || addr >= hdr.code_address + hdr.code_size) return false;
@@ -234,7 +245,7 @@ namespace eka2l1::arm::aot {
                 std::uint32_t max_size = hdr.code_size - offset;
                 if (max_size > 4096) max_size = 4096;
                 std::uint32_t func_size = std::min(max_size, 1024u);
-                auto tr = translate_thumb_block(host, func_size, addr, nullptr);
+                auto tr = translate_thumb_block(host, func_size, addr, nullptr, &dll_window);
                 if (tr.func.body.empty() || !tr.complete) return false;
                 std::uint32_t func_idx = num_imports + static_cast<std::uint32_t>(accepted.size());
                 siblings[addr] = func_idx;
@@ -264,8 +275,13 @@ namespace eka2l1::arm::aot {
                         for (std::uint32_t off = 0; off + 3 < f.func_size; off += 2) {
                             std::uint16_t w1 = f.func_host[off] | (f.func_host[off+1] << 8);
                             std::uint16_t w2 = f.func_host[off+2] | (f.func_host[off+3] << 8);
-                            if (((w1 & 0xF800) == 0xF000) && ((w2 & 0xD000) == 0xD000)) {
-                                // Decode BL target
+                            // BL/BLX imm (T1/T2): 11110 S imm10 | 11 J1 x J2 imm11
+                            // x = 1 -> BL (Thumb), x = 0 -> BLX (ARM, veneer)
+                            bool is_wide_call = ((w1 & 0xF800) == 0xF000)
+                                && ((w2 & 0xC000) == 0xC000);
+                            if (is_wide_call) {
+                                bool is_bl_here = (w2 & 0x1000) != 0;
+                                bool is_blx_here = !is_bl_here && ((w2 & 1) == 0);
                                 std::uint32_t s = (w1 >> 10) & 1;
                                 std::uint32_t imm10 = w1 & 0x3FF;
                                 std::uint32_t j1 = (w2 >> 13) & 1;
@@ -276,8 +292,26 @@ namespace eka2l1::arm::aot {
                                 std::int32_t imm32 = static_cast<std::int32_t>(
                                     (s << 24) | (i1 << 23) | (i2 << 22) | (imm10 << 12) | (imm11 << 1));
                                 if (s) imm32 |= 0xFF000000;
-                                std::uint32_t target = f.func_addr + off + 4 + imm32;
-                                try_translate_at(target & ~1u, 0);
+                                std::uint32_t src = f.func_addr + off;
+                                std::uint32_t target;
+                                if (is_blx_here) {
+                                    std::uint32_t aligned = (src + 4) & ~3u;
+                                    target = aligned + imm32;
+                                    // Resolve ARM veneer: LDR PC, [PC, #-4]; <thumb_addr>
+                                    if (target >= hdr.code_address &&
+                                        target + 8 <= hdr.code_address + hdr.code_size) {
+                                        std::uint32_t veneer[2];
+                                        std::memcpy(veneer,
+                                            code_host + (target - hdr.code_address), 8);
+                                        if (veneer[0] == 0xE51FF004 && (veneer[1] & 1)) {
+                                            target = veneer[1] & ~1u;
+                                            try_translate_at(target, 0);
+                                        }
+                                    }
+                                } else if (is_bl_here) {
+                                    target = src + 4 + imm32;
+                                    try_translate_at(target & ~1u, 0);
+                                }
                                 off += 2; // skip second halfword
                             }
                         }
@@ -326,7 +360,7 @@ namespace eka2l1::arm::aot {
             // Second pass: re-translate with the sibling map, emitting direct
             // calls for BL targets that are other AOT functions.
             for (const auto &a : accepted) {
-                auto tr = translate_thumb_block(a.func_host, a.func_size, a.func_addr, &siblings);
+                auto tr = translate_thumb_block(a.func_host, a.func_size, a.func_addr, &siblings, &dll_window);
                 if (tr.func.body.empty() || !tr.complete) {
                     fprintf(stderr, "AOT: 2nd pass failed for 0x%08X\n", a.func_addr);
                     continue;

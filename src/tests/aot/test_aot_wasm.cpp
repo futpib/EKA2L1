@@ -521,6 +521,133 @@ static bool test_resume_points_bl_imm() {
     return true;
 }
 
+// Verify that BLX imm (T2) pointing at a standard RVCT Thumb→ARM veneer
+// (`LDR PC, [PC, #-4]; <thumb_addr>`) is folded into a direct BL to the
+// real Thumb target. Without this inlining, BLX imm bails to the
+// interpreter, which then bounces through the ARM veneer and lands in
+// Thumb — two unnecessary roundtrips per call.
+//
+// Layout (absolute addresses):
+//   0x1000  caller (Thumb, passed to the translator)
+//   0x1000    MOVS R0, #1          ; 0x2001
+//   0x1002    BLX   veneer         ; F000 EFFE — aligned_src=0x1004
+//                                    imm32=0xFFC, target=0x2000
+//   0x1006    MOVS R1, #2          ; 0x2102  <- resume point
+//   0x1008    BX    LR             ; 0x4770
+//   0x2000  veneer (ARM + literal, in the code_window but not in the slice)
+//   0x2000    LDR PC, [PC, #-4]    ; 0xE51FF004
+//   0x2004    <real thumb addr>    ; 0x3001 (bit 0 = Thumb)
+//
+// With veneer inlining the translator should:
+//   - record a resume point at 0x1006 (BL-style bail semantics)
+//   - mark the translation complete (no `bail_unsupported`)
+//
+// If the sibling map contains 0x3000, it should emit a direct WASM
+// `call` to that sibling and return (no resume point emitted, since
+// sibling calls don't bail through the interpreter).
+static bool test_blx_veneer_inlining() {
+    // Build a code_window containing both the caller slice and the
+    // veneer 4KB later. Absolute base = 0x1000, size = 0x1008 (large
+    // enough to cover the veneer at 0x2004 when addressed as
+    // window_base + 0x1004).
+    const std::uint32_t window_base = 0x1000;
+    const std::uint32_t window_size = 0x1008;
+    std::vector<std::uint8_t> window(window_size, 0);
+
+    // Caller at offset 0 (absolute 0x1000)
+    const std::uint8_t caller[] = {
+        0x01, 0x20,       // MOVS R0, #1
+        0x00, 0xF0,       // BLX imm lo (insn1 = 0xF000)
+        0xFE, 0xEF,       // BLX imm hi (insn2 = 0xEFFE, bit 12 = 0)
+        0x02, 0x21,       // MOVS R1, #2
+        0x70, 0x47,       // BX LR
+    };
+    std::memcpy(window.data(), caller, sizeof(caller));
+
+    // Veneer at offset 0x1000 (absolute 0x2000)
+    //   LDR PC, [PC, #-4]  (ARM) = 0xE51FF004 (little-endian 04 F0 1F E5)
+    const std::uint32_t VENEER = 0xE51FF004;
+    std::memcpy(window.data() + 0x1000, &VENEER, 4);
+    // Literal at 0x2004: real Thumb target 0x3001
+    const std::uint32_t REAL_THUMB = 0x00003001;
+    std::memcpy(window.data() + 0x1004, &REAL_THUMB, 4);
+
+    code_window cw{window.data(), window_base, window_size};
+
+    // --- Case 1: no siblings — expect resume point at next_pc (0x1006)
+    //     and complete translation.
+    {
+        auto tr = translate_thumb_block(caller, sizeof(caller),
+            window_base, nullptr, &cw);
+        if (tr.func.body.empty()) {
+            printf("  FAIL blx_veneer_inlining: empty body (no siblings case)\n");
+            return false;
+        }
+        if (!tr.complete) {
+            printf("  FAIL blx_veneer_inlining: translation incomplete (no siblings case)\n");
+            return false;
+        }
+        bool found_rp = false;
+        for (auto rp : tr.resume_points) {
+            if (rp == window_base + 6) { found_rp = true; break; }
+        }
+        if (!found_rp) {
+            printf("  FAIL blx_veneer_inlining: expected resume point at 0x%08X, got {",
+                window_base + 6);
+            for (auto rp : tr.resume_points) printf(" 0x%08X", rp);
+            printf(" }\n");
+            return false;
+        }
+    }
+
+    // --- Case 2: sibling map contains the real Thumb target — the
+    //     translator should fold BLX→veneer→BL(real) and then emit a
+    //     direct WASM `call` to the sibling. No resume point at next_pc
+    //     because sibling calls don't bail.
+    {
+        sibling_map siblings;
+        const std::uint32_t SIBLING_IDX = 3; // after 3 imports
+        siblings[REAL_THUMB & ~1u] = SIBLING_IDX;
+        auto tr = translate_thumb_block(caller, sizeof(caller),
+            window_base, &siblings, &cw);
+        if (tr.func.body.empty()) {
+            printf("  FAIL blx_veneer_inlining: empty body (sibling case)\n");
+            return false;
+        }
+        if (!tr.complete) {
+            printf("  FAIL blx_veneer_inlining: translation incomplete (sibling case)\n");
+            return false;
+        }
+        // Direct sibling tail call means we returned at the BLX site;
+        // no resume point should be recorded for this call.
+        for (auto rp : tr.resume_points) {
+            if (rp == window_base + 6) {
+                printf("  FAIL blx_veneer_inlining: unexpected resume point "
+                       "at 0x%08X (sibling case — should be a direct call)\n",
+                    window_base + 6);
+                return false;
+            }
+        }
+    }
+
+    // --- Case 3: no code_window passed — translator can't resolve the
+    //     veneer, must either bail as BLX (still complete) or reject.
+    //     We accept either outcome, but assert no crash.
+    {
+        auto tr = translate_thumb_block(caller, sizeof(caller),
+            window_base, nullptr, nullptr);
+        if (tr.func.body.empty()) {
+            printf("  FAIL blx_veneer_inlining: empty body (no window case)\n");
+            return false;
+        }
+        // Without veneer resolution we fall through to the BLX bail
+        // path, which is still a valid (if slower) translation.
+    }
+
+    printf("  PASS blx_veneer_inlining\n");
+    return true;
+}
+
 int main() {
     std::array<std::uint32_t, 16> zero_regs = {};
     zero_regs[13] = 0x10000; // SP
@@ -1071,6 +1198,7 @@ int main() {
     printf("\nRunning translator-level tests...\n\n");
     if (test_resume_points_blx_rm()) passed++; else failed++;
     if (test_resume_points_bl_imm()) passed++; else failed++;
+    if (test_blx_veneer_inlining()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;

@@ -171,7 +171,8 @@ namespace eka2l1::arm::aot {
         const std::uint8_t *code,
         std::size_t code_size,
         std::uint32_t start_address,
-        const sibling_map *siblings)
+        const sibling_map *siblings,
+        const code_window *dll_code)
     {
         translate_result tr;
         tr.complete = false;
@@ -308,14 +309,21 @@ namespace eka2l1::arm::aot {
             bool is_wide = ((insn & 0xF800) == 0xE800) || ((insn & 0xF000) == 0xF000);
             if (is_wide) {
                 // Decode BL (T1): 11110 S imm10 | 11 J1 1 J2 imm11
-                // If it's a BL, set LR to next PC and jump to target — the
-                // interpreter dispatches there, which may be another AOT function.
-                // This allows AOT functions to "call" each other through the
-                // interpreter's AOT dispatch loop.
+                // Decode BLX imm (T2): same as BL but bit 12 of insn2 = 0.
+                // BLX targets ARM mode; RVCT often emits BLX to small ARM
+                // veneers of the form `LDR PC, [PC, #-4]; <thumb_target>`
+                // (i.e. the ARM instruction 0xE51FF004 followed by a 4-byte
+                // literal with the Thumb bit set). We can detect that
+                // pattern via dll_code and fold the BLX into a direct call
+                // to the real Thumb target, avoiding the ARM bail entirely.
                 if (i + 3 < code_size) {
                     std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
-                    bool is_bl = ((insn & 0xF800) == 0xF000) && ((insn2 & 0xD000) == 0xD000);
-                    if (is_bl) {
+                    bool is_bl_or_blx = ((insn & 0xF800) == 0xF000)
+                        && ((insn2 & 0xC000) == 0xC000); // bits 15:14 = 11
+                    bool is_bl = is_bl_or_blx && ((insn2 & 0x1000) != 0);
+                    bool is_blx = is_bl_or_blx && ((insn2 & 0x1000) == 0)
+                        && ((insn2 & 1) == 0); // BLX imm requires bit 0 = 0
+                    if (is_bl || is_blx) {
                         std::uint32_t s = (insn >> 10) & 1;
                         std::uint32_t imm10 = insn & 0x3FF;
                         std::uint32_t j1 = (insn2 >> 13) & 1;
@@ -327,15 +335,35 @@ namespace eka2l1::arm::aot {
                             (s << 24) | (i1 << 23) | (i2 << 22) | (imm10 << 12) | (imm11 << 1));
                         if (s) imm32 |= 0xFF000000; // sign-extend bit 24
                         std::uint32_t target = insn_addr + 4 + imm32;
+                        if (is_blx) {
+                            // For BLX the target is 4-aligned (ARM mode).
+                            // Align the source PC to 4 before computing the
+                            // target, per ARM ARM.
+                            std::uint32_t aligned_src = (insn_addr + 4) & ~3u;
+                            target = aligned_src + imm32;
+
+                            // Try to inline the ARM veneer:
+                            //   E51FF004         LDR PC, [PC, #-4]
+                            //   <thumb_addr>     literal loaded into PC
+                            if (dll_code) {
+                                std::uint32_t veneer[2] = {};
+                                if (dll_code->read(target, veneer, 8)) {
+                                    if (veneer[0] == 0xE51FF004) {
+                                        std::uint32_t real = veneer[1];
+                                        if (real & 1) {
+                                            // Thumb target — fold into BL
+                                            target = real & ~1u;
+                                            is_blx = false;
+                                            is_bl = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         std::uint32_t next_pc = insn_addr + 4;
 
-                        // If the target is a known sibling AOT function, emit a
-                        // direct call. This avoids a WASM↔interpreter roundtrip.
-                        // After the call, we propagate the bail (return with
-                        // insn_count + sibling's count) rather than continuing,
-                        // because the sibling may have set PC to something other
-                        // than our return address.
-                        if (siblings) {
+                        // Sibling lookup is Thumb-only; skip for unresolved BLX.
+                        if (is_bl && siblings) {
                             auto it = siblings->find(target);
                             if (it != siblings->end()) {
                                 // Set LR = next_pc | 1 before the call
@@ -354,8 +382,13 @@ namespace eka2l1::arm::aot {
                             }
                         }
 
-                        // Set LR = next_pc | 1 (Thumb)
+                        // Set LR = next_pc | 1 (Thumb return)
                         w.store_i32_const(S::LR, static_cast<std::int32_t>(next_pc | 1));
+                        if (is_blx) {
+                            // BLX enters ARM mode at target (word-aligned).
+                            // Clear T flag so the interpreter decodes ARM.
+                            w.store_i32_const(S::TFLAG, 0);
+                        }
                         // Set PC to target and bail — interpreter re-dispatches
                         w.store_i32_const(S::PC, static_cast<std::int32_t>(target));
                         w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
@@ -378,6 +411,19 @@ namespace eka2l1::arm::aot {
                 // For non-BL wide instructions we don't have a safe way to advance
                 // PC from within WASM (the interpreter's wide-insn decoder is
                 // instruction-specific), so we reject the translation.
+                // Log the wide opcode so we can prioritize which wide insns to
+                // implement next. Dedupe by opcode to keep the log small.
+                {
+                    std::uint16_t insn2_hw = (i + 3 < code_size)
+                        ? static_cast<std::uint16_t>(code[i+2] | (code[i+3] << 8))
+                        : 0;
+                    static std::set<std::uint32_t> seen_wide;
+                    std::uint32_t key = (static_cast<std::uint32_t>(insn) << 16) | insn2_hw;
+                    if (seen_wide.insert(key).second) {
+                        fprintf(stderr, "AOT: wide insn bail %04X %04X at 0x%08X (insn_idx=%u)\n",
+                            insn, insn2_hw, insn_addr, insn_idx);
+                    }
+                }
                 if (insn_idx == 0) {
                     w.bail_unsupported(insn_addr, insn_idx);
                 } else {
