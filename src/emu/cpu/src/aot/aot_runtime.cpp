@@ -74,14 +74,15 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len), {
         wasmBytes = new Uint8Array(wasmBytes);
         var wasmModule = new WebAssembly.Module(wasmBytes);
 
-        // Import tlb functions directly (no JS trampoline) to avoid double
-        // WASM↔JS transitions on every memory access.
+        // Import tlb functions DIRECTLY from wasmExports (raw WASM functions,
+        // bypassing Module._* which is wrapped by createExportWrapper).
+        // This allows the WASM optimizer to turn these into inline calls.
         var importObj = {
             env: {
                 memory: wasmMemory, // Emscripten's shared memory
-                tlb_read32: Module._aot_tlb_read32,
-                tlb_write32: Module._aot_tlb_write32,
-                tlb_read8: Module._aot_tlb_read8,
+                tlb_read32: wasmExports.aot_tlb_read32,
+                tlb_write32: wasmExports.aot_tlb_write32,
+                tlb_read8: wasmExports.aot_tlb_read8,
             }
         };
 
