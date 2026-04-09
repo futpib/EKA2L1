@@ -575,10 +575,9 @@ namespace eka2l1::arm::aot {
                             // Clear T flag so the interpreter decodes ARM.
                             w.store_i32_const(S::TFLAG, 0);
                         }
-                        // Set PC to target and bail — interpreter re-dispatches
-                        w.store_i32_const(S::PC, static_cast<std::int32_t>(target));
-                        w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
-                        w.ret();
+                        // Set PC to target and bail — interpreter re-dispatches.
+                        // Use w.bail() so bail_count is tracked correctly.
+                        w.bail(target, insn_idx + 1);
                         // Resume point at next_pc: when control returns from
                         // the external callee via BX LR, we want to dispatch
                         // back into AOT instead of the interpreter. Only
