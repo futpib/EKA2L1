@@ -1673,10 +1673,18 @@ DISPATCH : {
 
             aot_dispatch_count++;
             aot_instr_count += instrs;
-            if (aot_dispatch_count == 1 || (aot_dispatch_count & 0xFFFFF) == 0) {
-                fprintf(stderr, "AOT: %llu dispatches, %llu AOT instrs\n",
-                    (unsigned long long)aot_dispatch_count,
-                    (unsigned long long)aot_instr_count);
+            // Log on powers of 10 so the ratio (instrs/dispatch) progression
+            // is visible at multiple scales. Higher ratio = longer runs in
+            // AOT = fewer WASM↔interpreter roundtrips, which is the goal.
+            {
+                static std::uint64_t next_log = 1;
+                if (aot_dispatch_count == next_log) {
+                    fprintf(stderr, "AOT: %llu dispatches, %llu AOT instrs (%.1f instrs/dispatch)\n",
+                        (unsigned long long)aot_dispatch_count,
+                        (unsigned long long)aot_instr_count,
+                        aot_dispatch_count ? (double)aot_instr_count / aot_dispatch_count : 0.0);
+                    next_log *= 10;
+                }
             }
             num_instrs += instrs;
             if (num_instrs >= cpu->NumInstrsToExecute)
