@@ -64,6 +64,14 @@ namespace eka2l1::arm::aot {
         // AOT coverage and by tests to verify the decoder didn't walk into
         // trailing literal pools.
         std::uint32_t end_address = 0;
+        // Number of early-exit bails emitted into the function body. Each
+        // bail is a point where AOT execution yields back to the
+        // interpreter (unsupported wide insn, unresolved BL/BLX target,
+        // out-of-block branch, etc). Tests use this as a proxy for "how
+        // much of this function actually runs in WASM" — a well-covered
+        // function has 0-2 bails (typically just the return path),
+        // a poorly-covered one bails on every other instruction.
+        std::uint32_t bail_count = 0;
     };
 
     // Map of ARM addresses to WASM function indices for BL target inlining.

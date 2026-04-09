@@ -235,6 +235,11 @@ namespace eka2l1::arm::aot {
             code_window dll_window{code_host, hdr.code_address,
                 static_cast<std::uint32_t>(hdr.code_size)};
 
+            // Aggregate bail count across all accepted functions.
+            // Logged alongside the accepted-function total as a coverage
+            // proxy — each bail is a point where AOT yields back to the
+            // interpreter, so lower is better for hot execution paths.
+            std::uint64_t total_bails = 0;
             auto try_translate_at = [&](std::uint32_t addr, std::uint32_t ordinal) -> bool {
                 // Must be within code range, aligned, and not already translated
                 if (addr < hdr.code_address || addr >= hdr.code_address + hdr.code_size) return false;
@@ -247,6 +252,7 @@ namespace eka2l1::arm::aot {
                 std::uint32_t func_size = std::min(max_size, 1024u);
                 auto tr = translate_thumb_block(host, func_size, addr, nullptr, &dll_window);
                 if (tr.func.body.empty() || !tr.complete) return false;
+                total_bails += tr.bail_count;
                 std::uint32_t func_idx = num_imports + static_cast<std::uint32_t>(accepted.size());
                 siblings[addr] = func_idx;
                 accepted.push_back({ordinal, addr, host, func_size,
@@ -353,8 +359,8 @@ namespace eka2l1::arm::aot {
                     }
                     start_idx = end_idx;
                 }
-                fprintf(stderr, "AOT: after extra-entry discovery: %zu total functions\n",
-                    accepted.size());
+                fprintf(stderr, "AOT: after extra-entry discovery: %zu total functions, %llu total bails\n",
+                    accepted.size(), (unsigned long long)total_bails);
             }
 
             // Second pass: re-translate with the sibling map, emitting direct

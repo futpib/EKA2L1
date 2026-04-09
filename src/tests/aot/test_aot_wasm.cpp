@@ -784,6 +784,90 @@ static bool test_branch_targets_include_bl_next_pc() {
     return true;
 }
 
+// Verify that a function with a forward branch followed by a literal
+// pool doesn't misdecode the pool. This is the realistic FntStore.dll
+// pattern: compiler emits CMP/BEQ to skip the happy path, then drops a
+// literal pool, then the function body continues past the pool.
+//
+// Before the main-loop skip-unreachable change, the decoder walked
+// linearly from offset 0 through the whole slice. After a terminator
+// (BX LR) it would continue because forward targets remained unclosed,
+// and would try to decode literal-pool words like `0xE51FF004` (ARM
+// veneer pattern) as wide Thumb, bailing with `complete=true` but
+// emitting useless WASM.
+//
+// Layout:
+//   0x1000  CMP  R0, #0          ; 0x2800
+//   0x1002  BEQ  +14 -> 0x1014   ; 0xD007 (imm8=7, target=PC+4+14)
+//   0x1004  MOVS R0, #1          ; 0x2001
+//   0x1006  BX   LR              ; 0x4770  <-- happy-path return
+//   0x1008  literal: ARM veneer  ; 0xE51FF004 (4 bytes)
+//   0x100C  literal: real addr   ; 0x12345678 (4 bytes)
+//   0x1010  MOVS R0, #2          ; 0x2002 (padding; never reached)
+//   0x1012  BX   LR              ; 0x4770 (padding)
+//   0x1014  MOVS R0, #3          ; 0x2003  <- BEQ target (reachable)
+//   0x1016  BX   LR              ; 0x4770
+//
+// The CFG walker should mark 0x1000, 0x1002, 0x1004, 0x1006, 0x1014,
+// 0x1016 as reachable. The literal pool at 0x1008-0x100F and the
+// padding at 0x1010-0x1013 must NOT be decoded (they'd produce a wide
+// insn bail for `F004 E51F` at 0x1008).
+//
+// Assertion: `tr.complete == true` AND end_address reaches 0x1018
+// (past the BEQ-target's BX LR) without the decoder walking into the
+// literal pool.
+static bool test_literal_pool_between_early_return_and_target() {
+    std::vector<std::uint8_t> code = {
+        0x00, 0x28,       // 0x1000: CMP R0, #0
+        0x07, 0xD0,       // 0x1002: BEQ +14 -> target 0x1014
+        0x01, 0x20,       // 0x1004: MOVS R0, #1
+        0x70, 0x47,       // 0x1006: BX LR
+        0x04, 0xF0,       // 0x1008: literal (veneer lo)
+        0x1F, 0xE5,       // 0x100A: literal (veneer hi — 0xE51F)
+        0x78, 0x56,       // 0x100C: literal
+        0x34, 0x12,       // 0x100E: literal
+        0x02, 0x20,       // 0x1010: padding MOVS (never reached by CFG)
+        0x70, 0x47,       // 0x1012: padding BX LR
+        0x03, 0x20,       // 0x1014: MOVS R0, #3 (BEQ target)
+        0x70, 0x47,       // 0x1016: BX LR
+    };
+    std::uint32_t code_addr = 0x1000;
+    auto tr = translate_thumb_block(code.data(), code.size(), code_addr);
+    if (tr.func.body.empty()) {
+        printf("  FAIL literal_pool_between_early_return_and_target: "
+               "empty body\n");
+        return false;
+    }
+    if (!tr.complete) {
+        printf("  FAIL literal_pool_between_early_return_and_target: "
+               "translation marked incomplete\n");
+        return false;
+    }
+    // The decoder must stop just past the BEQ target's BX LR at 0x1016,
+    // i.e. end_address = 0x1018.
+    const std::uint32_t expected_end = 0x1018;
+    if (tr.end_address != expected_end) {
+        printf("  FAIL literal_pool_between_early_return_and_target: "
+               "expected end_address 0x%08X, got 0x%08X\n",
+               expected_end, tr.end_address);
+        return false;
+    }
+    // Bail count should reflect only the legitimate terminators:
+    //   1. BX LR at 0x1006 (happy-path return)
+    //   2. BX LR at 0x1016 (BEQ-target return)
+    // Any higher means the decoder emitted extra bails for literal-pool
+    // words it misdecoded as wide instructions between 0x1008-0x100F.
+    const std::uint32_t max_bails = 2;
+    if (tr.bail_count > max_bails) {
+        printf("  FAIL literal_pool_between_early_return_and_target: "
+               "expected <= %u bails, got %u (decoder bailed on "
+               "literal-pool data)\n", max_bails, tr.bail_count);
+        return false;
+    }
+    printf("  PASS literal_pool_between_early_return_and_target\n");
+    return true;
+}
+
 // Verify that `tr.branch_targets` is liberal enough to catch potential
 // entry points even inside wide-insn middle halfwords. The broad-scan
 // approach exists specifically because a conservative CFG walk misses
@@ -1390,6 +1474,7 @@ int main() {
     if (test_function_end_stops_at_bx_lr()) passed++; else failed++;
     if (test_branch_targets_include_bl_next_pc()) passed++; else failed++;
     if (test_branch_targets_include_beq_target()) passed++; else failed++;
+    if (test_literal_pool_between_early_return_and_target()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;

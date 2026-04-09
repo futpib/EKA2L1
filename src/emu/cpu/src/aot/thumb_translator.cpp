@@ -52,6 +52,14 @@ namespace eka2l1::arm::aot {
     struct emit {
         std::vector<std::uint8_t> &b;
         bool unsupported = false; // set by bail_unsupported()
+        // Number of early-exit bails emitted into the function body.
+        // Incremented every time the decoder gives up mid-function and
+        // hands control back to the interpreter. Lower is better — high
+        // bail counts mean the generated WASM yields often and the
+        // interpreter does most of the work. Used by tests to assert the
+        // decoder doesn't emit bails for literal-pool data it misdecodes
+        // as instructions.
+        std::uint32_t bail_count = 0;
 
         void op(std::uint8_t o) { b.push_back(o); }
         void state_ptr() { op(op_local_get); leb(b, 0); }
@@ -117,6 +125,7 @@ namespace eka2l1::arm::aot {
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
             i32_const(static_cast<std::int32_t>(instr_count));
             ret();
+            bail_count++;
         }
 
         // Bail without touching PC — use when the instruction already
@@ -126,6 +135,7 @@ namespace eka2l1::arm::aot {
         void bail_preserve_pc(std::uint32_t instr_count) {
             i32_const(static_cast<std::int32_t>(instr_count));
             ret();
+            bail_count++;
         }
 
         // Bail due to unsupported instruction — marks the translation as incomplete
@@ -453,6 +463,20 @@ namespace eka2l1::arm::aot {
         // loop (typically at a terminator like POP {PC}).
         std::uint32_t decoded_end_offset = 0;
         for (std::size_t i = 0; i + 1 < code_size; i += 2) {
+            // Skip unreachable offsets. `reachable` is the CFG closure
+            // from offset 0, so anything not in it is either the middle
+            // halfword of a wide insn or literal-pool data past the
+            // function's real end. Forward branch targets are always
+            // reachable (they come from reachable sources), so this
+            // never skips a valid landing pad. This eliminates the
+            // mid-function wide-insn bails that would otherwise yield
+            // execution back to the interpreter when the decoder hits
+            // a literal-pool word (e.g. `F004 E51F` ARM veneer pattern,
+            // `FFFF FFFF` sentinel, or function pointers matching wide
+            // insn patterns) between a forward branch and its target.
+            if (!reachable.count(i)) {
+                continue;
+            }
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
 
@@ -1617,6 +1641,7 @@ namespace eka2l1::arm::aot {
 
         tr.complete = !w.unsupported;
         tr.end_address = start_address + decoded_end_offset;
+        tr.bail_count = w.bail_count;
         return tr;
     }
 }
