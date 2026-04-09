@@ -209,6 +209,11 @@ struct test_case {
     std::vector<mem_init> init_mem;      // initial memory values
     std::vector<std::uint32_t> check_mem_addrs; // addresses to compare after
     std::uint32_t skip_reg_mask = 0;    // bitmask of register indices to skip
+    // true if this test is currently expected to FAIL (documents a known
+    // bug). A pass counts as an unexpected pass (also a failure from the
+    // suite's POV) so fixing the bug surfaces as a test suite failure
+    // until the expected_fail flag is flipped.
+    bool expected_fail = false;
 };
 
 static bool run_test(const test_case &tc) {
@@ -329,6 +334,42 @@ static bool run_test(const test_case &tc) {
                 tc.name, tc.check_mem_addrs[i], wasm_val, interp_val);
             passed = false;
         }
+    }
+
+    // If the test didn't ask for specific memory addresses, scan the
+    // entire 1MB sandbox for divergence so we catch any stray writes.
+    if (tc.check_mem_addrs.empty()) {
+        int diverged = 0;
+        for (std::uint32_t addr = 0; addr + 4 <= test_mem::SIZE; addr += 4) {
+            // Skip the code region (both sides wrote the same code there).
+            if (addr >= tc.code_addr && addr < tc.code_addr + tc.code.size() + 2) continue;
+            std::uint32_t wv = wasm_mem.read32(addr);
+            std::uint32_t iv = interp_mem.read32(addr);
+            if (wv != iv) {
+                if (diverged < 4) {
+                    printf("  FAIL %s: mem[0x%X] = 0x%08X (wasm) vs 0x%08X (interp)\n",
+                        tc.name, addr, wv, iv);
+                }
+                diverged++;
+                passed = false;
+            }
+        }
+        if (diverged > 4) {
+            printf("  FAIL %s: ... and %d more diverging words\n", tc.name, diverged - 4);
+        }
+    }
+
+    // Handle expected_fail flag: a failing expected-fail test is a PASS
+    // (the bug is still there). A passing expected-fail test is a FAIL
+    // (someone fixed the bug and should flip the flag).
+    if (tc.expected_fail) {
+        if (passed) {
+            printf("  FAIL %s: marked expected_fail but passes — flip the flag\n",
+                tc.name);
+            return false;
+        }
+        printf("  XFAIL %s (known failure, see test comment)\n", tc.name);
+        return true;
     }
 
     if (passed) {
@@ -687,6 +728,278 @@ int main() {
             {0x05, 0xC9}, 0x1000,  // 0xC905
             [&]{ auto r = zero_regs; r[1] = 0x2000; return r; }(), 10,
             {{0x2000, 0x33333333}, {0x2004, 0x44444444}}, {}},
+
+        // --- Forward B<cond> not taken: fall-through runs ---
+        // MOVS R0, #1    (0x2001) @ 0x1000
+        // CMP  R0, #2    (0x2802) @ 0x1002 — Z=0, N=1 (1-2 = -1)
+        // BEQ  skip      (0xD001) @ 0x1004 — offset 1 halfword: target = 0x1004+4+2 = 0x100A
+        // MOVS R0, #7    (0x2007) @ 0x1006 — executes because BEQ not taken
+        // BX   LR        (0x4770) @ 0x1008 — LR points to halt at 0x100C
+        // skip: MOVS R0, #9 (0x2009) @ 0x100A — branch target (not reached)
+        // After: R0 = 7 (interpreter runs MOVS #7 then BX LR into halt)
+        // LR must have Thumb bit set; halt loop is at code_addr + code.size() = 0x100C.
+        {"BEQ forward not taken",
+            {0x01, 0x20,   // MOVS R0, #1
+             0x02, 0x28,   // CMP R0, #2
+             0x01, 0xD0,   // BEQ +2 (target 0x100A)
+             0x07, 0x20,   // MOVS R0, #7
+             0x70, 0x47,   // BX LR
+             0x09, 0x20},  // MOVS R0, #9
+            0x1000,
+            [&]{ auto r = zero_regs; r[14] = 0x100D; return r; }(), 20},
+
+        // --- Forward B<cond> taken: skip over fall-through ---
+        // MOVS R0, #1    (0x2001) @ 0x1000
+        // CMP  R0, #1    (0x2801) @ 0x1002 — Z=1
+        // BEQ  skip      (0xD001) @ 0x1004 — target 0x100A
+        // MOVS R0, #7    (0x2007) @ 0x1006 — skipped
+        // BX   LR        (0x4770) @ 0x1008 — skipped
+        // skip: MOVS R0, #9 (0x2009) @ 0x100A
+        //       BX LR       (0x4770) @ 0x100C — LR -> halt at 0x100E
+        // After: R0 = 9
+        {"BEQ forward taken",
+            {0x01, 0x20,   // MOVS R0, #1
+             0x01, 0x28,   // CMP R0, #1
+             0x01, 0xD0,   // BEQ +2 (target 0x100A)
+             0x07, 0x20,   // MOVS R0, #7
+             0x70, 0x47,   // BX LR
+             0x09, 0x20,   // MOVS R0, #9
+             0x70, 0x47},  // BX LR
+            0x1000,
+            [&]{ auto r = zero_regs; r[14] = 0x100F; return r; }(), 20},
+
+        // --- Unconditional B forward ---
+        // MOVS R0, #1 (0x2001) @ 0x1000
+        // B    skip   (0xE001) @ 0x1002 — offset 1 halfword: target = 0x1002+4+2 = 0x1008
+        // MOVS R0, #7 (0x2007) @ 0x1004 — skipped
+        // BX   LR     (0x4770) @ 0x1006 — skipped
+        // skip: MOVS R0, #9 (0x2009) @ 0x1008
+        //       BX LR       (0x4770) @ 0x100A — LR -> halt at 0x100C
+        // After: R0 = 9
+        {"B forward",
+            {0x01, 0x20,   // MOVS R0, #1
+             0x01, 0xE0,   // B +2 (target 0x1008)
+             0x07, 0x20,   // MOVS R0, #7
+             0x70, 0x47,   // BX LR
+             0x09, 0x20,   // MOVS R0, #9
+             0x70, 0x47},  // BX LR
+            0x1000,
+            [&]{ auto r = zero_regs; r[14] = 0x100D; return r; }(), 20},
+
+        // --- Backward loop ---
+        // Loop target is the FIRST instruction so the current translator's
+        // backward-branch handling (which jumps to the top of the WASM loop,
+        // ignoring PC_IDX) works correctly. The loop head IS instruction 0.
+        // loop: ADDS R0, #1 (0x3001) @ 0x1000
+        //       CMP  R0, #5 (0x2805) @ 0x1002
+        //       BNE  loop   (0xD1FC) @ 0x1004 — target = 0x1004+4-8 = 0x1000
+        //       BX   LR     (0x4770) @ 0x1006 — LR -> halt at 0x1008
+        // Init: R0 = 0. After: R0 = 5.
+        {"Backward loop BNE",
+            {0x01, 0x30,   // ADDS R0, #1
+             0x05, 0x28,   // CMP R0, #5
+             0xFC, 0xD1,   // BNE -4 (target 0x1000)
+             0x70, 0x47},  // BX LR
+            0x1000,
+            [&]{ auto r = zero_regs; r[14] = 0x1009; return r; }(), 100},
+
+        // --- Crash repro: AOT dispatch history entry [14] (KNOWN BUG) ---
+        // entry=0x8046506E, instrs=43. The dispatch BEFORE the last one
+        // in the frame-test crash history. Same rebasing convention as
+        // the other crash-repros: code at 0x30000, SP rebased to fit in
+        // the 1MB test memory.
+        //
+        // In the real frame test, this block's first instruction is a
+        // BL to a sibling AOT function — the translator inlines it as a
+        // direct WASM call and execution continues. In this harness we
+        // translate with siblings=nullptr, so the BL bails immediately
+        // and the WASM function runs ~0 instructions. The interpreter
+        // still runs the full sequence via its own BL handling, and the
+        // final Z flag diverges. This isn't a true minimal reproducer
+        // of the crash — it's a harness limitation — but it does
+        // document that AOT + interpreter produce different flag state
+        // for this block when run in isolation, which is a real data
+        // point for the "we return the wrong state after a short bail"
+        // family of bugs.
+        {"crash-repro 0x8046506E (harness limitation)",
+            {0x01,0xf0, 0x29,0xfc, 0x44,0x1b, 0x20,0x1d,
+             0x01,0xf0, 0xdd,0xfb, 0x00,0x1f, 0x01,0xf0,
+             0x00,0xea, 0xf8,0xbd, 0x00,0x28, 0x10,0xb5,
+             0x03,0xd0, 0xff,0xf7, 0xc8,0xff, 0x01,0xf0,
+             0xb8,0xeb, 0x10,0xbd, 0x70,0xb5, 0x05,0x00,
+             0x0e,0x00, 0x01,0xf0, 0xc4,0xfd, 0x04,0x00,
+             0x30,0x00, 0x01,0xf0, 0xc0,0xfd, 0x84,0x42,
+             0x01,0xd1, 0x04,0x20, 0x70,0xbd, 0x68,0x6d,
+             0x73,0x6d, 0x08,0x22, 0x01,0x00, 0x11,0x40,
+             0x1a,0x40, 0x91,0x42, 0x01,0xd1, 0x03,0x20,
+             0x70,0xbd, 0x04,0x21, 0x08,0x40, 0x19,0x40,
+             0x88,0x42, 0x01,0xd1, 0x02,0x20, 0x70,0xbd},
+            0x30000,
+            [&]{
+                auto r = zero_regs;
+                r[0]  = 0x00000000;
+                r[1]  = 0x000000C7;
+                r[2]  = 0x00020094; // rebased from 0x0050F794
+                r[3]  = 0x000200D8; // rebased from 0x0050F7D8
+                r[4]  = 0x40201018;
+                r[5]  = 0x000000C7;
+                r[6]  = 0x40060001;
+                r[7]  = 0x00020054; // rebased from 0x0050F854
+                r[13] = 0x00020080; // SP rebased from 0x0050F780
+                r[14] = 0x8046506F;
+                return r;
+            }(),
+            64, {}, {}, 0,
+            /*expected_fail=*/ true},
+
+        // --- Crash repros from the frame test AOT dispatch history ---
+        // Captured after an access violation in the frame test. Each
+        // entry in the AOT dispatch ring buffer becomes a test case.
+        // Bytes are sliced from FntStore.dll at the entry address, and
+        // the pre-dispatch register snapshot is copied verbatim. The
+        // test compares the final register state after running the
+        // block through both the interpreter and the WASM AOT. Any
+        // divergence is the minimal reproducer for the crash.
+        //
+        // The harness caps code at a 1MB sandbox, so code_addr is
+        // relocated to a sandbox-local address (0x10000..0x40000). SP
+        // is also rebased so loads/stores land inside the sandbox. The
+        // relocation is safe because the translator uses start_address
+        // only for relative branch resolution and bail-PC values, and
+        // the test skips PC comparison.
+        //
+
+        // --- Crash repro #1: access violation from frame test ---
+        // Captured from the WASM frame test after the nested-block
+        // forward-branch emitter was enabled. The interpreter crashed
+        // with PC=0 at kernel.cpp:363; the last AOT dispatch before the
+        // crash was this block. Bytes are sliced from FntStore.dll at
+        // ROM_BASE+0x464BBE. Registers before are copied verbatim from
+        // the "AOT dispatch history" dump in the crash log.
+        //
+        // The original PC is 0x80464BBE but the test harness caps code
+        // at a 1MB sandbox; we relocate the code to 0x10000 and also
+        // relocate the SP so loads/stores land inside the sandbox. LR
+        // keeps its ROM value — it is only read, and any BX LR would
+        // bail the AOT function and let the interpreter take over in
+        // the test harness's halt-loop tail.
+        {"crash-repro 0x80464BBE",
+            {0xc9,0x19, 0x41,0x60, 0x28,0xe0, 0x09,0x98,
+             0x00,0x28, 0x0f,0xd1, 0x01,0x22, 0x08,0xa9,
+             0x09,0xa8, 0x6b,0x46, 0x07,0xc3, 0x20,0x00,
+             0x0d,0x9b, 0x61,0x68, 0x0c,0x9a, 0xff,0xf7,
+             0x58,0xfe, 0x09,0x98, 0x00,0x28, 0x01,0xd1,
+             0x00,0x20, 0x8d,0xe7, 0x31,0x00, 0x03,0xa8,
+             0x01,0xf0, 0xb9,0xff, 0x31,0x6a, 0x73,0x6a,
+             0x03,0xaa, 0x00,0x91, 0x01,0x92, 0x60,0x68,
+             0x0d,0x9a, 0x21,0x00, 0xff,0xf7, 0x84,0xfd,
+             0x06,0x00, 0x05,0xd0, 0x02,0x00, 0x09,0x98,
+             0x61,0x68, 0x08,0x9b, 0xff,0xf7, 0x3e,0xfd,
+             0x07,0x99, 0x00,0x29, 0x0f,0xd0, 0x60,0x68},
+            0x10000,
+            [&]{
+                auto r = zero_regs;
+                // From the AOT dispatch history "before" snapshot.
+                // SP is rebased into the test-harness sandbox.
+                r[0]  = 0x00000000;
+                r[1]  = 0x40060001;
+                r[2]  = 0x00000200;
+                r[3]  = 0x000000C7;
+                r[4]  = 0x00000000;
+                r[5]  = 0x00000001;
+                r[6]  = 0x00000000;
+                r[7]  = 0x00000000;
+                r[13] = 0x00020000; // SP, rebased into the 1MB test memory
+                r[14] = 0x80464CE3; // LR
+                return r;
+            }(),
+            64,    // max_instrs: the original dispatch ran 5 ARM instrs
+            {}, {},
+            0},    // no register skip — we want to see any divergence
+
+        // --- Backward branch to a non-entry instruction ---
+        // Backward branches currently re-enter the WASM loop at its top
+        // (instruction 0) regardless of the requested target index,
+        // because the dispatch "set PC_IDX; br $loop" never actually
+        // dispatches on PC_IDX. If the function is entered at insn 0 and
+        // the loop head is also insn 0, the bug is invisible. When the
+        // loop head is at insn > 0, execution re-runs the pre-head code
+        // on every iteration.
+        //
+        // Layout (insn indices in parens, loop head at insn 1):
+        //   @ 0x1000 (insn 0)  SUBS R0, #1               — 0x3801
+        //                        decrements R0 each iter in the buggy path
+        //   @ 0x1002 (insn 1)  ADDS R1, #1               — 0x3101, loop head
+        //   @ 0x1004 (insn 2)  CMP  R1, #3               — 0x2903
+        //   @ 0x1006 (insn 3)  BNE  target (insn 1)      — 0xD1FC
+        //                        src 0x1006 PC+4 0x100A, target 0x1002,
+        //                        delta -8 → imm8 -4 → 0xD1FC
+        //   @ 0x1008 (insn 4)  BX LR                     — 0x4770
+        //
+        // Init: R0 = 10, R1 = 0.
+        //
+        // Correct behaviour (what the interpreter does):
+        //   SUBS R0 (10→9), then loop { ADDS R1; CMP; BNE } until R1=3.
+        //   Final R0=9, R1=3.
+        //
+        // Current broken AOT:
+        //   Each BNE taken jumps to WASM loop top (insn 0), re-running
+        //   SUBS R0. After 3 iterations: R0=7, R1=3.
+        //   R0 differs from the interpreter's R0=9 — test FAILS, which is
+        //   exactly what we want to document this bug.
+        //
+        // When the translator is fixed to dispatch backward branches to
+        // the correct target index, this test should start PASSING.
+        {"Backward branch to non-entry (KNOWN BUG)",
+            {0x01, 0x38,   // SUBS R0, #1
+             0x01, 0x31,   // ADDS R1, #1 (loop head, idx 1)
+             0x03, 0x29,   // CMP R1, #3
+             0xFC, 0xD1,   // BNE -4 (target 0x1002)
+             0x70, 0x47},  // BX LR
+            0x1000,
+            [&]{ auto r = zero_regs; r[0] = 10; r[1] = 0; r[14] = 0x100B; return r; }(), 100,
+            {}, {},
+            0,
+            /*expected_fail=*/ true},
+
+        // --- Forward target reused as backward target ---
+        // Target X is both a forward target (of an earlier source) and a
+        // backward target (of a later source). Without the fix, the later
+        // branch computes `depth = fwd_idx[X] - closed_count` which
+        // underflows (fwd_idx[X] already closed) and the WASM module fails
+        // to validate with an invalid branch depth.
+        //
+        // Layout (all at 0x1000 + offset):
+        //   @ 0x1000 (insn 0)  B  middle   ; forward to 0x1006 (insn 3)
+        //   @ 0x1002 (insn 1)  MOVS R1, R1 ; filler (skipped)
+        //   @ 0x1004 (insn 2)  MOVS R1, R1 ; filler (skipped)
+        //   @ 0x1006 (insn 3)  ADDS R0, #1 ; middle, forward target
+        //   @ 0x1008 (insn 4)  CMP  R0, #3
+        //   @ 0x100A (insn 5)  BNE  middle ; backward to 0x1006 (insn 3)
+        //   @ 0x100C (insn 6)  BX LR       ; exit
+        //
+        // B  imm: source 0x1000, PC+4 = 0x1004, target 0x1006, delta 2
+        //   imm11 = 1 → 0xE001
+        // BNE imm: source 0x100A, PC+4 = 0x100E, target 0x1006, delta -8
+        //   imm8 = -4 = 0xFC → 0xD1FC
+        // MOVS R1, R1 is ADDS R1, R1, #0 (T1 encoding): 0x1C09
+        //
+        // Because the backward branch currently re-dispatches to WASM loop
+        // top (insn 0), and insn 0 is an idempotent forward-skip to the
+        // loop head, re-executing it has the same effect as jumping
+        // directly to insn 3, so the loop converges.
+        //
+        // Init R0=0. After: R0 = 3.
+        {"Forward target reused as backward",
+            {0x01, 0xE0,   // B +2 (target 0x1006)
+             0x09, 0x1C,   // MOVS R1, R1 (skipped)
+             0x09, 0x1C,   // MOVS R1, R1 (skipped)
+             0x01, 0x30,   // ADDS R0, #1 (middle, forward target)
+             0x03, 0x28,   // CMP R0, #3
+             0xFC, 0xD1,   // BNE -4 (target 0x1006)
+             0x70, 0x47},  // BX LR
+            0x1000,
+            [&]{ auto r = zero_regs; r[14] = 0x100F; return r; }(), 100},
     };
 
     printf("Running %zu AOT WASM correctness tests...\n\n", tests.size());

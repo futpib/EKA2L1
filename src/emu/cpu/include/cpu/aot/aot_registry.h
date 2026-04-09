@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <string>
@@ -104,4 +105,22 @@ namespace eka2l1::arm::aot {
     // read their code from memory, translate to WASM, and register.
     void try_translate_hot_pcs(ARMul_State *cpu,
         const std::map<std::uint32_t, std::uint64_t> &histogram);
+
+    // --- Dispatch history for crash post-mortem ---
+    // The dyncom dispatch loop appends a record to `history` on every AOT
+    // call. On a crash (access violation, undefined instruction, etc.) the
+    // kernel exception handler calls dump_history() to print the ring
+    // buffer — the entry PC plus pre/post register state — so failures
+    // post-AOT can be reproduced as unit tests.
+    struct dispatch_record {
+        std::uint32_t entry_pc;
+        std::uint32_t exit_pc;
+        std::uint32_t instrs;
+        std::uint32_t regs_before[16];
+        std::uint32_t regs_after[16];
+    };
+    static constexpr std::size_t AOT_HISTORY = 16;
+    extern dispatch_record history[AOT_HISTORY];
+    extern std::size_t history_head;
+    void dump_history();
 }

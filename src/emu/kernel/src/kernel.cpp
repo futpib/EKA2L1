@@ -23,6 +23,7 @@
 #include <queue>
 #include <thread>
 
+#include <cpu/aot/aot_registry.h>
 #include <cpu/arm_analyser.h>
 #include <cpu/arm_interface.h>
 #include <cpu/arm_utils.h>
@@ -361,6 +362,7 @@ namespace eka2l1 {
             }
 
             LOG_ERROR(KERNEL, "Access violation {} address 0x{:X} in thread {}", (exception_type == arm::exception_type_access_violation_read) ? "reading" : "writing", exception_data, crr_thread()->name());
+            eka2l1::arm::aot::dump_history();
             break;
 
         case arm::exception_type_undefined_inst:

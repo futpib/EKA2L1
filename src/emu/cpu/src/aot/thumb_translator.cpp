@@ -203,26 +203,89 @@ namespace eka2l1::arm::aot {
 
         // Find branch targets
         auto targets = find_branch_targets(code, code_size, start_address);
+        tr.branch_targets.assign(targets.begin(), targets.end());
 
-        // Use a simple dispatch loop with br_table for branches within the block.
+        // Second pre-scan: collect forward branch targets. Forward means the
+        // target address is strictly greater than the branch source address.
+        // We use these to open nested WASM blocks so forward branches can
+        // stay inside the AOT function instead of bailing to the interpreter.
+        std::set<std::uint32_t> forward_targets_set;
+        for (std::size_t i = 0; i + 1 < code_size; i += 2) {
+            std::uint16_t insn = code[i] | (code[i+1] << 8);
+            std::uint32_t src = start_address + static_cast<std::uint32_t>(i);
+            std::uint32_t target = 0;
+            bool is_branch = false;
+            if ((insn & 0xF000) == 0xD000) {
+                std::uint8_t cond = (insn >> 8) & 0xF;
+                if (cond < 0xE) { // not SVC
+                    std::int8_t off = static_cast<std::int8_t>(insn & 0xFF);
+                    target = src + 4 + off * 2;
+                    is_branch = true;
+                }
+            } else if ((insn & 0xF800) == 0xE000) {
+                std::int16_t off = static_cast<std::int16_t>((insn & 0x7FF) << 5) >> 5;
+                target = src + 4 + off * 2;
+                is_branch = true;
+            }
+            if (is_branch && target > src &&
+                target >= start_address && target < start_address + code_size) {
+                forward_targets_set.insert(target);
+            }
+        }
+        // Sorted ascending: earliest target first.
+        std::vector<std::uint32_t> fwd_sorted(
+            forward_targets_set.begin(), forward_targets_set.end());
+
+        // Build a map: target_addr -> index in fwd_sorted.
+        std::unordered_map<std::uint32_t, std::uint32_t> fwd_idx;
+        for (std::uint32_t k = 0; k < fwd_sorted.size(); k++) {
+            fwd_idx[fwd_sorted[k]] = k;
+        }
+
         // Structure:
-        //   (block $exit
-        //     (loop $loop
-        //       ;; emit all instructions linearly
-        //       ;; branches set pc_idx and br $loop
-        //       ;; end of block falls through to $exit
-        //     )
-        //   )
-        //   return instr_count
+        //   (block $exit                   ;; outermost
+        //     (loop $loop                  ;; for backward branches
+        //       (block                     ;; blk_N   (last forward target)
+        //         ...
+        //           (block                 ;; blk_0 (earliest forward target)
+        //             ;; insns from start to fwd_0
+        //           end)                   ;; closes blk_0 -> lands at fwd_0
+        //           ;; insns from fwd_0 to fwd_1
+        //         end)                     ;; closes blk_1 -> lands at fwd_1
+        //         ...
+        //       end)                       ;; closes blk_N -> lands at fwd_N
+        //       ;; insns from fwd_N to end
+        //       br $exit                   ;; fall-through exit
+        //     end)                         ;; end loop
+        //   end)                           ;; end block $exit
+        //
+        // Depths from inside blk_0:
+        //   br 0 -> exit blk_0 -> lands at fwd_0
+        //   br 1 -> exit blk_0 + blk_1 -> lands at fwd_1
+        //   ...
+        //   br N -> lands at fwd_N
+        //   br N+1 -> $loop (loop top)
+        //   br N+2 -> $exit (function exit)
+        // After closing blk_0, depths shift: innermost is now blk_1,
+        // so the same target fwd_1 is now at depth 0 (K - closed_count).
 
         // Initialize pc_idx = 0
         w.i32_const(0);
         w.set_local(PC_IDX);
 
-        // block $exit (label 0 for br = exit)
+        // block $exit (outermost)
         w.op(op_block); w.op(type_void);
-        // loop $loop (label 0 for br = loop back, label 1 for br = exit)
+        // loop $loop
         w.op(op_loop); w.op(type_void);
+        // Open one block per forward target. Outermost first (blk_N), so
+        // the innermost at the start of the code is blk_0 (earliest target).
+        for (std::size_t k = 0; k < fwd_sorted.size(); k++) {
+            w.op(op_block); w.op(type_void);
+        }
+        // Number of forward-target blocks currently open. Decrements as
+        // translation reaches each forward target's address.
+        std::uint32_t closed_count = 0;
+        const std::uint32_t N_fwd = static_cast<std::uint32_t>(fwd_sorted.size());
 
         // Emit each instruction with branch target checks
         std::uint32_t insn_idx = 0;
@@ -230,7 +293,14 @@ namespace eka2l1::arm::aot {
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
 
-            // No per-instruction skip check needed — forward branches bail to interpreter.
+            // Close any forward-target blocks whose end is at this address.
+            // Emitting `end` here means: the instruction we're about to emit
+            // is a forward branch target, and `br (depth_for_this_target)`
+            // from earlier in the block will land here.
+            while (closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
+                w.op(op_end);
+                closed_count++;
+            }
 
             // Check for 32-bit Thumb (wide instruction)
             // First halfword: bits[15:11] == 11101/11110/11111 → 0xE800-0xFFFF.
@@ -588,112 +658,120 @@ namespace eka2l1::arm::aot {
                 std::int8_t offset = static_cast<std::int8_t>(insn & 0xFF);
                 std::uint32_t target = insn_addr + 4 + offset * 2;
 
-                // Check if target is within our block
-                auto it = addr_to_idx.find(target);
-                if (it == addr_to_idx.end()) {
-                    // Branch outside block — bail
-                    // Emit: if (cond) { set PC = target; return }
-                    // Evaluate condition from flags
+                // Emit the boolean expression for `cond`. Leaves a bool on
+                // the stack. Unsupported cond bails and returns false.
+                auto emit_cond = [&]() -> bool {
                     switch (cond) {
-                    case 0: w.load_i32(S::ZFLAG); break; // BEQ: Z==1
-                    case 1: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); break; // BNE: Z==0
-                    case 2: w.load_i32(S::CFLAG); break; // BCS/BHS: C==1
-                    case 3: w.load_i32(S::CFLAG); w.op(op_i32_eqz); break; // BCC/BLO: C==0
-                    case 4: w.load_i32(S::NFLAG); break; // BMI: N==1
-                    case 5: w.load_i32(S::NFLAG); w.op(op_i32_eqz); break; // BPL: N==0
-                    case 6: w.load_i32(S::VFLAG); break; // BVS: V==1
-                    case 7: w.load_i32(S::VFLAG); w.op(op_i32_eqz); break; // BVC: V==0
+                    case 0: w.load_i32(S::ZFLAG); return true; // BEQ: Z==1
+                    case 1: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); return true; // BNE: Z==0
+                    case 2: w.load_i32(S::CFLAG); return true; // BCS/BHS: C==1
+                    case 3: w.load_i32(S::CFLAG); w.op(op_i32_eqz); return true; // BCC/BLO: C==0
+                    case 4: w.load_i32(S::NFLAG); return true; // BMI: N==1
+                    case 5: w.load_i32(S::NFLAG); w.op(op_i32_eqz); return true; // BPL: N==0
+                    case 6: w.load_i32(S::VFLAG); return true; // BVS: V==1
+                    case 7: w.load_i32(S::VFLAG); w.op(op_i32_eqz); return true; // BVC: V==0
                     case 8: // BHI: C==1 && Z==0
                         w.load_i32(S::CFLAG);
                         w.load_i32(S::ZFLAG); w.op(op_i32_eqz);
-                        w.op(op_i32_and); break;
+                        w.op(op_i32_and); return true;
                     case 9: // BLS: C==0 || Z==1
                         w.load_i32(S::CFLAG); w.op(op_i32_eqz);
                         w.load_i32(S::ZFLAG);
-                        w.op(op_i32_or); break;
+                        w.op(op_i32_or); return true;
                     case 10: // BGE: N==V
-                        w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); break;
+                        w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); return true;
                     case 11: // BLT: N!=V
-                        w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); break;
+                        w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); return true;
                     case 12: // BGT: Z==0 && N==V
                         w.load_i32(S::ZFLAG); w.op(op_i32_eqz);
                         w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq);
-                        w.op(op_i32_and); break;
+                        w.op(op_i32_and); return true;
                     case 13: // BLE: Z==1 || N!=V
                         w.load_i32(S::ZFLAG);
                         w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne);
-                        w.op(op_i32_or); break;
-                    default: w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue;
+                        w.op(op_i32_or); return true;
                     }
+                    return false;
+                };
+
+                // Resolve the target:
+                //   (a) Forward target (target > insn_addr AND in fwd_idx) →
+                //       `cond; br_if depth` where depth is
+                //       fwd_idx[target] - closed_count.
+                //   (b) Backward target in the block → `cond; if { br $loop }`
+                //       (PC_IDX is not actually dispatched, so this only
+                //       works when the backward target is instruction 0;
+                //       branch-target-entry functions typically satisfy it).
+                //   (c) Out of block → `if (cond) bail(target)`.
+                // Important: a target can be BOTH a forward target (of some
+                // earlier branch) and a backward target (of this one) when a
+                // loop head is entered via a forward skip. Require target
+                // > insn_addr before using the forward path; otherwise the
+                // depth computation underflows once the forward block has
+                // been closed.
+                auto fwd_it = fwd_idx.find(target);
+                auto it = addr_to_idx.find(target);
+                bool is_fwd = (fwd_it != fwd_idx.end()) && (target > insn_addr);
+                if (is_fwd) {
+                    if (!emit_cond()) { w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue; }
+                    std::uint32_t depth = fwd_it->second - closed_count;
+                    w.op(op_br_if); leb(result.body, depth);
+                } else if (it != addr_to_idx.end() && it->second <= insn_idx) {
+                    // Backward branch within block. Use br_if so the depth
+                    // numbering isn't shifted by an `if` wrapper.
+                    // Because br_if doesn't let us run code before jumping,
+                    // set PC_IDX unconditionally first (it's ignored if the
+                    // branch isn't taken, since nothing reads it on that
+                    // path). $loop depth = N_fwd - closed_count.
+                    if (!emit_cond()) { w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue; }
+                    std::uint32_t target_idx = it->second;
+                    // Hoist PC_IDX=target_idx before the condition? No —
+                    // cond already pushed a value on the stack. Instead,
+                    // wrap in `if`: we accept the depth shift since this
+                    // branch rarely matters (backward dispatch is broken).
+                    w.op(op_if); w.op(type_void);
+                    w.i32_const(target_idx);
+                    w.set_local(PC_IDX);
+                    // Depth +1 because we're inside the `if`.
+                    w.op(op_br); leb(result.body, N_fwd - closed_count + 1);
+                    w.op(op_end);
+                } else {
+                    // Out of block — conditional bail.
+                    if (!emit_cond()) { w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue; }
                     w.op(op_if); w.op(type_void);
                     w.bail(target, insn_idx + 1);
                     w.op(op_end);
-                } else {
-                    // Branch within block
-                    std::uint32_t target_idx = it->second;
-
-                    if (target_idx > insn_idx) {
-                        // Forward branch — bail to interpreter (can't skip in WASM structured flow)
-                        switch (cond) {
-                        case 0: w.load_i32(S::ZFLAG); break;
-                        case 1: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); break;
-                        case 2: w.load_i32(S::CFLAG); break;
-                        case 3: w.load_i32(S::CFLAG); w.op(op_i32_eqz); break;
-                        case 4: w.load_i32(S::NFLAG); break;
-                        case 5: w.load_i32(S::NFLAG); w.op(op_i32_eqz); break;
-                        case 6: w.load_i32(S::VFLAG); break;
-                        case 7: w.load_i32(S::VFLAG); w.op(op_i32_eqz); break;
-                        case 8: w.load_i32(S::CFLAG); w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.op(op_i32_and); break;
-                        case 9: w.load_i32(S::CFLAG); w.op(op_i32_eqz); w.load_i32(S::ZFLAG); w.op(op_i32_or); break;
-                        case 10: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); break;
-                        case 11: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); break;
-                        case 12: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); w.op(op_i32_and); break;
-                        case 13: w.load_i32(S::ZFLAG); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); w.op(op_i32_or); break;
-                        default: w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue;
-                        }
-                        w.op(op_if); w.op(type_void);
-                        w.bail(target, insn_idx + 1);
-                        w.op(op_end);
-                    } else {
-                        // Backward branch — set pc_idx and loop
-                        switch (cond) {
-                        case 0: w.load_i32(S::ZFLAG); break;
-                        case 1: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); break;
-                        case 2: w.load_i32(S::CFLAG); break;
-                        case 3: w.load_i32(S::CFLAG); w.op(op_i32_eqz); break;
-                        case 4: w.load_i32(S::NFLAG); break;
-                        case 5: w.load_i32(S::NFLAG); w.op(op_i32_eqz); break;
-                        case 6: w.load_i32(S::VFLAG); break;
-                        case 7: w.load_i32(S::VFLAG); w.op(op_i32_eqz); break;
-                        case 8: w.load_i32(S::CFLAG); w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.op(op_i32_and); break;
-                        case 9: w.load_i32(S::CFLAG); w.op(op_i32_eqz); w.load_i32(S::ZFLAG); w.op(op_i32_or); break;
-                        case 10: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); break;
-                        case 11: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); break;
-                        case 12: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); w.op(op_i32_and); break;
-                        case 13: w.load_i32(S::ZFLAG); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); w.op(op_i32_or); break;
-                        default: w.bail_unsupported(insn_addr, insn_idx); insn_idx++; continue;
-                        }
-                        w.op(op_if); w.op(type_void);
-                        w.i32_const(target_idx);
-                        w.set_local(PC_IDX);
-                        w.op(op_br); leb(result.body, 1); // br $loop
-                        w.op(op_end);
-                    }
                 }
             } else if ((insn & 0xF800) == 0xE000) {
                 // Unconditional branch B
                 std::int16_t offset = static_cast<std::int16_t>((insn & 0x7FF) << 5) >> 5;
                 std::uint32_t target = insn_addr + 4 + offset * 2;
 
+                auto fwd_it = fwd_idx.find(target);
                 auto it = addr_to_idx.find(target);
-                if (it != addr_to_idx.end() && it->second <= insn_idx) {
-                    // Backward branch within block — set pc_idx and loop
+                // See comment in the B<cond> handler about fwd/backward
+                // overlap: require target > insn_addr before using the
+                // forward-block path.
+                bool is_fwd = (fwd_it != fwd_idx.end()) && (target > insn_addr);
+                if (is_fwd) {
+                    // Forward branch within block — skip via nested block exit.
+                    std::uint32_t depth = fwd_it->second - closed_count;
+                    w.op(op_br); leb(result.body, depth);
+                } else if (it != addr_to_idx.end() && it->second <= insn_idx) {
+                    // Backward branch within block — jump to loop top.
                     w.i32_const(it->second);
                     w.set_local(PC_IDX);
-                    w.op(op_br); leb(result.body, 1); // br $loop
+                    w.op(op_br); leb(result.body, N_fwd - closed_count);
                 } else {
                     // Outside block — bail
                     w.bail(target, insn_idx + 1);
+                }
+                // Unconditional B terminates linear control flow. If
+                // forward targets remain, keep decoding (they may be hit
+                // by forward branches from earlier). Otherwise stop.
+                if (closed_count >= N_fwd) {
+                    insn_idx++;
+                    break;
                 }
             } else if ((insn & 0xFE00) == 0xB400) {
                 // PUSH {reglist} — bit 8 = LR
@@ -782,6 +860,12 @@ namespace eka2l1::arm::aot {
                     // overwriting it so the interpreter dispatches at the
                     // return address.
                     w.bail_preserve_pc(insn_idx + 1);
+                    // Function return — stop decoding past the POP if there
+                    // are no more forward targets ahead.
+                    if (closed_count >= N_fwd) {
+                        insn_idx++;
+                        break;
+                    }
                 }
             } else if ((insn & 0xFF80) == 0xB080) {
                 // SUB SP, #imm7*4
@@ -822,10 +906,20 @@ namespace eka2l1::arm::aot {
                 w.set_local(TMP1);
                 w.store_reg(15, TMP1);
                 w.bail_preserve_pc(insn_idx + 1);
+                // Function return — linear control flow ends. If there are
+                // no more forward targets past this point, safe to stop
+                // decoding. Otherwise keep decoding: forward branches from
+                // earlier may still target instructions past this BX LR,
+                // and those targets need real emitted bodies.
+                if (closed_count >= N_fwd) {
+                    insn_idx++;
+                    break;
+                }
             } else if ((insn & 0xFF00) == 0x4700) {
                 // BX Rm / BLX Rm
                 int rm = (insn >> 3) & 0xF;
-                if (insn & 0x80) {
+                bool is_blx = (insn & 0x80) != 0;
+                if (is_blx) {
                     // BLX Rm — set LR = next instruction | 1 (Thumb)
                     w.store_i32_const(S::LR, static_cast<std::int32_t>((insn_addr + 2) | 1));
                     // Register a resume point at the instruction after the
@@ -840,6 +934,13 @@ namespace eka2l1::arm::aot {
                 w.set_local(TMP1);
                 w.store_reg(15, TMP1);
                 w.bail_preserve_pc(insn_idx + 1);
+                // Both BX and BLX are unconditional; linear control flow
+                // ends here. BLX re-entry is handled via its resume point.
+                // Stop decoding if no more forward targets lie ahead.
+                if (closed_count >= N_fwd) {
+                    insn_idx++;
+                    break;
+                }
             } else if ((insn & 0xF800) == 0x0000) {
                 // LSLS Rd, Rm, #imm5 (MOVS Rd, Rm when imm5==0)
                 int rd = insn & 7;
@@ -1258,7 +1359,21 @@ namespace eka2l1::arm::aot {
             insn_idx++;
         }
 
-        // End of loop and block
+        // Close any remaining forward-target blocks. These are blocks whose
+        // target address is past the end of the code we emitted (e.g., the
+        // instruction loop broke out via an unconditional terminator before
+        // reaching the last target's address). If a `br depth` from earlier
+        // in the function targets one of these blocks, control lands right
+        // after the block's `end` — we insert a bail there with PC set to
+        // the target address, so the interpreter picks up execution.
+        while (closed_count < N_fwd) {
+            w.op(op_end); // close innermost still-open forward block
+            // If a br landed here, bail at the forward target address.
+            w.bail(fwd_sorted[closed_count], insn_idx);
+            closed_count++;
+        }
+
+        // End of loop and outer block
         w.op(op_end); // end loop
         w.op(op_end); // end block
 

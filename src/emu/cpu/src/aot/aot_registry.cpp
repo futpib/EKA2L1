@@ -128,6 +128,28 @@ namespace eka2l1::arm::aot {
         return instance;
     }
 
+    // --- dispatch history ---
+    dispatch_record history[AOT_HISTORY] = {};
+    std::size_t history_head = 0;
+
+    void dump_history() {
+        fprintf(stderr, "AOT dispatch history (oldest first; ring buffer of %zu):\n",
+            AOT_HISTORY);
+        for (std::size_t k = 0; k < AOT_HISTORY; k++) {
+            std::size_t idx = (history_head + k) % AOT_HISTORY;
+            const auto &r = history[idx];
+            if (!r.entry_pc) continue;
+            fprintf(stderr,
+                "  [%zu] entry=0x%08X exit=0x%08X instrs=%u\n",
+                k, r.entry_pc, r.exit_pc, r.instrs);
+            fprintf(stderr, "      before:");
+            for (int i = 0; i < 16; i++) fprintf(stderr, " r%d=0x%08X", i, r.regs_before[i]);
+            fprintf(stderr, "\n      after: ");
+            for (int i = 0; i < 16; i++) fprintf(stderr, " r%d=0x%08X", i, r.regs_after[i]);
+            fprintf(stderr, "\n");
+        }
+    }
+
     // --- config parsing ---
 
     std::vector<dll_config> parse_config_string(const std::string &config_str) {

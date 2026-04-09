@@ -1656,7 +1656,21 @@ DISPATCH : {
         if (aot_func) {
             static std::uint64_t aot_dispatch_count = 0;
             static std::uint64_t aot_instr_count = 0;
+
+            // Snapshot pre/post register state for this dispatch into the
+            // ring buffer so we can print it on crash (see aot_history).
+            auto &rec = eka2l1::arm::aot::history[eka2l1::arm::aot::history_head];
+            rec.entry_pc = cpu->Reg[15];
+            for (int i = 0; i < 16; i++) rec.regs_before[i] = cpu->Reg[i];
+
             std::uint32_t instrs = aot_func(cpu);
+
+            rec.exit_pc = cpu->Reg[15];
+            rec.instrs = instrs;
+            for (int i = 0; i < 16; i++) rec.regs_after[i] = cpu->Reg[i];
+            eka2l1::arm::aot::history_head =
+                (eka2l1::arm::aot::history_head + 1) % eka2l1::arm::aot::AOT_HISTORY;
+
             aot_dispatch_count++;
             aot_instr_count += instrs;
             if (aot_dispatch_count == 1 || (aot_dispatch_count & 0xFFFFF) == 0) {

@@ -219,6 +219,7 @@ namespace eka2l1::arm::aot {
                 std::uint8_t *func_host;
                 std::uint32_t func_size;
                 std::vector<std::uint32_t> resume_points;
+                std::vector<std::uint32_t> branch_targets;
             };
             static constexpr std::uint32_t RESUME_ORDINAL = 0xFFFFFFFFu;
             std::vector<accepted_func> accepted;
@@ -237,7 +238,8 @@ namespace eka2l1::arm::aot {
                 if (tr.func.body.empty() || !tr.complete) return false;
                 std::uint32_t func_idx = num_imports + static_cast<std::uint32_t>(accepted.size());
                 siblings[addr] = func_idx;
-                accepted.push_back({ordinal, addr, host, func_size, std::move(tr.resume_points)});
+                accepted.push_back({ordinal, addr, host, func_size,
+                    std::move(tr.resume_points), std::move(tr.branch_targets)});
                 return true;
             };
 
@@ -286,13 +288,16 @@ namespace eka2l1::arm::aot {
                     accepted.size());
             }
 
-            // Resume-point discovery: for every accepted function, register
-            // each of its resume points (instructions immediately after a
-            // BLX Rm or non-sibling BL imm) as an additional AOT entry. When
-            // the callee returns via BX LR, the interpreter dispatches at LR
-            // which now hits AOT instead of falling through. Iterate because
-            // newly-translated resume-point functions may themselves contain
-            // further BL/BLX resume points.
+            // Extra-entry discovery: for every accepted function, register
+            // additional AOT entry points at:
+            //  - resume_points: addresses immediately after a BLX Rm or
+            //    non-sibling BL imm, so control can re-enter AOT when the
+            //    callee returns via BX LR.
+            //  - branch_targets: local B/B<cond> targets within the block,
+            //    so when the AOT function bails on a forward branch the
+            //    interpreter can dispatch back into AOT at the target.
+            // Iterate because newly-translated entries may themselves have
+            // more extras to discover.
             // Disable via EKA2L1_AOT_RESUME_POINTS=0 to bisect crashes.
             const char *rp_env = std::getenv("EKA2L1_AOT_RESUME_POINTS");
             bool resume_points_enabled = !(rp_env && rp_env[0] == '0');
@@ -304,13 +309,17 @@ namespace eka2l1::arm::aot {
                     for (size_t i = start_idx; i < end_idx; i++) {
                         // Copy since the vector may grow during iteration
                         std::vector<std::uint32_t> rps = accepted[i].resume_points;
+                        std::vector<std::uint32_t> bts = accepted[i].branch_targets;
                         for (std::uint32_t rp : rps) {
                             try_translate_at(rp & ~1u, RESUME_ORDINAL);
+                        }
+                        for (std::uint32_t bt : bts) {
+                            try_translate_at(bt & ~1u, RESUME_ORDINAL);
                         }
                     }
                     start_idx = end_idx;
                 }
-                fprintf(stderr, "AOT: after resume-point discovery: %zu total functions\n",
+                fprintf(stderr, "AOT: after extra-entry discovery: %zu total functions\n",
                     accepted.size());
             }
 

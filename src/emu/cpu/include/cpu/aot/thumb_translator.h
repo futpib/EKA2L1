@@ -51,6 +51,11 @@ namespace eka2l1::arm::aot {
         // points so that when the interpreter returns from the external call
         // it can dispatch back into AOT at the resume address.
         std::vector<std::uint32_t> resume_points;
+        // Local B/B<cond> targets discovered within this block. Registering
+        // them as separate AOT entries means that when the interpreter takes
+        // over after a forward-branch bail, it can dispatch back into AOT
+        // at the branch target.
+        std::vector<std::uint32_t> branch_targets;
     };
 
     // Map of ARM addresses to WASM function indices for BL target inlining.
