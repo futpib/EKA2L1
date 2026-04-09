@@ -29,6 +29,7 @@
 #include <loader/rom.h>
 #include <common/log.h>
 
+#include <cstdlib>
 #include <cstring>
 #include <set>
 
@@ -38,10 +39,18 @@ namespace eka2l1::arm::aot {
     // -1 = unlimited, 0..N = limit. For bisecting crashes.
     // Exports that crash at runtime — skip them.
     // Exports with known translation bugs — skip them.
-    // 0x804650B6 = ordinal 27, 0x80463F6E = ordinal 57
-    static constexpr std::uint32_t SKIP_ADDRS[] = { 0x804650B6, 0x80463F6E };
-    // 42 exports work with skip list. More bad exports exist beyond #43.
-    static constexpr int MAX_EXPORTS = 42;
+    static constexpr std::uint32_t SKIP_ADDRS[] = {
+        0x804650B6, // ordinal 27
+        0x80463F6E, // ordinal 57
+        0x8046109A, // ordinal 82
+        0x804610A0, // ordinal 83
+    };
+    // Default max exports. Override with AOT_MAX_EXPORTS env var (-1 = unlimited).
+    static int get_max_exports() {
+        const char *env = std::getenv("AOT_MAX_EXPORTS");
+        if (env) return std::atoi(env);
+        return -1; // default: unlimited
+    }
 
     struct aot_target {
         std::uint32_t uid3;
@@ -87,6 +96,9 @@ namespace eka2l1::arm::aot {
             LOG_WARN(KERNEL, "AOT: memory system not available");
             return;
         }
+
+        const int max_exports = get_max_exports();
+        fprintf(stderr, "AOT: max_exports=%d\n", max_exports);
 
         auto targets = get_targets();
         if (targets.empty()) {
@@ -207,8 +219,10 @@ namespace eka2l1::arm::aot {
                     continue;
                 }
 
+                fprintf(stderr, "AOT: [%zu] ordinal %u at 0x%08X: OK (%zu bytes)\n",
+                    all_funcs.size() + 1, ordinal, func_addr, tr.func.body.size());
                 all_funcs.push_back(std::move(tr.func));
-                if (MAX_EXPORTS >= 0 && static_cast<int>(all_funcs.size()) >= MAX_EXPORTS) break;
+                if (max_exports >= 0 && static_cast<int>(all_funcs.size()) >= max_exports) break;
             }
 
             LOG_INFO(KERNEL, "AOT: translated {}/{} exports for {}",

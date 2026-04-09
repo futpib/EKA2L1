@@ -113,14 +113,34 @@ async function run(): Promise<void> {
     logStream.write(line + "\n");
   }
 
-  page.on("console", (msg) => {
-    log(`  [${msg.type()}] ${msg.text()}`);
-  });
+  // Forward AOT_MAX_EXPORTS env var to Emscripten's ENV object
+  const aotMaxExports = process.env.AOT_MAX_EXPORTS;
+  if (aotMaxExports !== undefined) {
+    log(`Setting AOT_MAX_EXPORTS=${aotMaxExports}`);
+    await page.evaluateOnNewDocument((val: string) => {
+      (globalThis as any).Module = (globalThis as any).Module || {};
+      const mod = (globalThis as any).Module;
+      const origPreRun = mod.preRun || [];
+      mod.preRun = [...(Array.isArray(origPreRun) ? origPreRun : [origPreRun]), () => {
+        (globalThis as any).ENV = (globalThis as any).ENV || {};
+        (globalThis as any).ENV["AOT_MAX_EXPORTS"] = val;
+      }];
+    }, aotMaxExports);
+  }
 
   let aborted = false;
+
+  page.on("console", (msg) => {
+    const text = msg.text();
+    log(`  [${msg.type()}] ${text}`);
+    if (text.includes("Aborted(") || text.includes("RuntimeError:")) {
+      aborted = true;
+    }
+  });
+
   page.on("pageerror", (err) => {
     log(`  [pageerror] ${err.message}`);
-    if (err.message.includes("abort") || err.message.includes("Aborted")) {
+    if (err.message.includes("abort") || err.message.includes("Aborted") || err.message.includes("RuntimeError")) {
       aborted = true;
     }
   });
@@ -187,6 +207,11 @@ async function run(): Promise<void> {
 
       log(`status="${state.status}" module=${state.moduleExists} calledRun=${state.calledRun} hasDumpFn=${state.hasDumpFn} captured=${state.dumpCaptured}/16 done=${state.dumpDone}`);
 
+      // Detect WASM abort — check early, before starting dump or any other action
+      if (aborted) {
+        throw new Error("WASM program aborted");
+      }
+
       // Fail fast if emulator never reaches "Running"
       if (!dumpStarted && (performance.now() - runWaitStart > runTimeout)) {
         throw new Error(`Emulator did not reach Running state within ${runTimeout / 1000}s`);
@@ -210,11 +235,6 @@ async function run(): Promise<void> {
       if (dumpStarted && state.dumpDone) {
         dumpDone = true;
         break;
-      }
-
-      // Detect WASM abort
-      if (aborted) {
-        throw new Error("WASM program aborted");
       }
 
       // Detect stall: if no new frames captured for 60s after dump started, fail
