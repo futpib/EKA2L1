@@ -252,8 +252,7 @@ namespace eka2l1::arm::aot {
                 while (start_idx < accepted.size() && rounds++ < 10) {
                     size_t end_idx = accepted.size();
                     for (size_t i = start_idx; i < end_idx; i++) {
-                        const auto &f = accepted[i];
-                        // Scan the code for BL instructions and try to translate targets
+                        accepted_func f = accepted[i]; // copy (vector may grow)
                         for (std::uint32_t off = 0; off + 3 < f.func_size; off += 2) {
                             std::uint16_t w1 = f.func_host[off] | (f.func_host[off+1] << 8);
                             std::uint16_t w2 = f.func_host[off+2] | (f.func_host[off+3] << 8);
@@ -271,8 +270,7 @@ namespace eka2l1::arm::aot {
                                 if (s) imm32 |= 0xFF000000;
                                 std::uint32_t target = f.func_addr + off + 4 + imm32;
                                 try_translate_at(target & ~1u, 0);
-                                // Skip second halfword
-                                off += 2;
+                                off += 2; // skip second halfword
                             }
                         }
                     }

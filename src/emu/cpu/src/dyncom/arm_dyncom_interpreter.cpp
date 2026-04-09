@@ -8,6 +8,8 @@
 #include <cinttypes>
 #include <map>
 #include <mutex>
+#include <unordered_map>
+#include <vector>
 #include <common/log.h>
 #include <common/types.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
@@ -1657,8 +1659,8 @@ DISPATCH : {
             std::uint32_t instrs = aot_func(cpu);
             aot_dispatch_count++;
             aot_instr_count += instrs;
-            if (aot_dispatch_count == 1 || (aot_dispatch_count & 0x3FFF) == 0) {
-                fprintf(stderr, "AOT: %llu dispatches, %llu instrs executed via AOT\n",
+            if (aot_dispatch_count == 1 || (aot_dispatch_count & 0xFFFFF) == 0) {
+                fprintf(stderr, "AOT: %llu dispatches, %llu instrs\n",
                     (unsigned long long)aot_dispatch_count,
                     (unsigned long long)aot_instr_count);
             }

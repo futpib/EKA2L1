@@ -537,6 +537,16 @@ int main() {
             {}, {},
             0},
 
+        // --- ADD high reg T2 (0x4405 pattern: low Rdn, low Rm, no flags) ---
+        // ADD R5, R0 — Rdn=5 (low), Rm=0 — 0x4400 | (0<<3) | 5 = 0x4405
+        {"ADD R5, R0 (T2)",
+            {0x05, 0x44}, 0x1000,
+            [&]{ auto r = zero_regs; r[5] = 100; r[0] = 50; return r; }(), 10},
+        // ADD R8, R0 — Rdn=8 (high, D=1), Rm=0 → 0x4400 | (1<<7) | (0<<3) | 0 = 0x4480
+        {"ADD R8, R0 (high Rdn)",
+            {0x80, 0x44}, 0x1000,
+            [&]{ auto r = zero_regs; r[8] = 1000; r[0] = 500; return r; }(), 10},
+
         // --- CMP high reg T2 variant (0x4573 pattern: low Rn, high Rm) ---
         // CMP R3, LR — mask 0xFF00 == 0x4500, N=0, Rm=R14, Rn=R3
         {"CMP R3, LR (T2 low Rn)",

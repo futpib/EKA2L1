@@ -493,6 +493,15 @@ namespace eka2l1::arm::aot {
                 // Actually 0x6A00 is LDR with imm5 bits [10:6]
                 // Already handled above in 0x6800 range
                 handled = false;
+            } else if ((insn & 0xFF00) == 0x4400) {
+                // ADD Rdn, Rm (T2, high register) — no flags update
+                int rdn = (insn & 7) | ((insn >> 4) & 8);
+                int rm = (insn >> 3) & 0xF;
+                w.load_reg(rdn);
+                w.load_reg(rm);
+                w.op(op_i32_add);
+                w.set_local(TMP1);
+                w.store_reg(rdn, TMP1);
             } else if ((insn & 0xFF00) == 0x4600) {
                 // MOV Rd, Rm (high register)
                 int rd = (insn & 7) | ((insn >> 4) & 8);
