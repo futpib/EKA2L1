@@ -291,8 +291,20 @@ namespace eka2l1::arm::aot {
                         continue;
                     }
                 }
-                // Not a BL — bail normally, interpreter runs the instruction
-                w.bail(insn_addr, insn_idx);
+                // Not a BL — mark as unsupported so this function is rejected.
+                // Bailing at insn_addr with insn_idx=0 would cause an infinite
+                // loop (interpreter re-dispatches to the same PC, AOT bails again).
+                // For non-BL wide instructions we don't have a safe way to advance
+                // PC from within WASM (the interpreter's wide-insn decoder is
+                // instruction-specific), so we reject the translation.
+                if (insn_idx == 0) {
+                    w.bail_unsupported(insn_addr, insn_idx);
+                } else {
+                    // Later in the block — safe to bail because the interpreter
+                    // running the wide insn will advance PC. insn_idx>0 so the
+                    // caller sees forward progress.
+                    w.bail(insn_addr, insn_idx);
+                }
                 if (i + 3 < code_size) {
                     i += 2; // skip second halfword of the 32-bit instruction
                 }

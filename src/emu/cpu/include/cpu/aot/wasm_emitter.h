@@ -34,6 +34,7 @@ namespace eka2l1::arm::aot {
         op_end = 0x0B,
         op_br = 0x0C,
         op_br_if = 0x0D,
+        op_br_table = 0x0E,
         op_return = 0x0F,
         op_call = 0x10,
 
