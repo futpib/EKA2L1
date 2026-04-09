@@ -119,16 +119,20 @@ namespace eka2l1::arm::aot {
             ret();
         }
 
+        // Bail without touching PC — use when the instruction already
+        // computed and stored PC (e.g. POP {PC}, BX LR, BLX Rm).
+        // Leaves the state's PC alone so the interpreter dispatches at the
+        // computed target instead of re-running the current instruction.
+        void bail_preserve_pc(std::uint32_t instr_count) {
+            i32_const(static_cast<std::int32_t>(instr_count));
+            ret();
+        }
+
         // Bail due to unsupported instruction — marks the translation as incomplete
         void bail_unsupported(std::uint32_t pc, std::uint32_t instr_count) {
             unsupported = true;
-            if (!logged_unsupported) {
-                logged_unsupported = true;
-                fprintf(stderr, "AOT: unsupported instruction at 0x%08X\n", pc);
-            }
             bail(pc, instr_count);
         }
-        bool logged_unsupported = false;
     };
 
     // First pass: scan for branch targets within the block
@@ -286,6 +290,13 @@ namespace eka2l1::arm::aot {
                         w.store_i32_const(S::PC, static_cast<std::int32_t>(target));
                         w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
                         w.ret();
+                        // Resume point at next_pc: when control returns from
+                        // the external callee via BX LR, we want to dispatch
+                        // back into AOT instead of the interpreter. Only
+                        // record for external BL imm (target outside any
+                        // known sibling) — internal tail calls to siblings
+                        // handled separately.
+                        tr.resume_points.push_back(next_pc);
                         i += 2; // skip second halfword
                         insn_idx++;
                         continue;
@@ -767,8 +778,10 @@ namespace eka2l1::arm::aot {
                 w.set_local(TMP2);
                 w.store_reg(13, TMP2);
                 if (pop_pc) {
-                    // Return to interpreter to handle PC change
-                    w.bail(insn_addr, insn_idx + 1);
+                    // PC has been set by the pop above; bail without
+                    // overwriting it so the interpreter dispatches at the
+                    // return address.
+                    w.bail_preserve_pc(insn_idx + 1);
                 }
             } else if ((insn & 0xFF80) == 0xB080) {
                 // SUB SP, #imm7*4
@@ -801,20 +814,32 @@ namespace eka2l1::arm::aot {
                 w.set_local(TMP1);
                 w.store_reg(rt, TMP1);
             } else if (insn == 0x4770) {
-                // BX LR — function return
-                w.bail(insn_addr + 2, insn_idx + 1);
+                // BX LR — function return. Load LR into PC (clearing the
+                // Thumb bit since the interpreter masks it anyway) and bail.
+                w.load_reg(14);
+                w.i32_const(~1);
+                w.op(op_i32_and);
+                w.set_local(TMP1);
+                w.store_reg(15, TMP1);
+                w.bail_preserve_pc(insn_idx + 1);
             } else if ((insn & 0xFF00) == 0x4700) {
                 // BX Rm / BLX Rm
-                // Both bail to interpreter — BLX also sets LR
                 int rm = (insn >> 3) & 0xF;
                 if (insn & 0x80) {
                     // BLX Rm — set LR = next instruction | 1 (Thumb)
                     w.store_i32_const(S::LR, static_cast<std::int32_t>((insn_addr + 2) | 1));
+                    // Register a resume point at the instruction after the
+                    // BLX: when the callee returns via BX LR, we want to
+                    // re-enter AOT instead of falling into the interpreter.
+                    tr.resume_points.push_back(insn_addr + 2);
                 }
+                // Set PC = Rm (mask Thumb bit) and bail without overwriting PC.
                 w.load_reg(rm);
+                w.i32_const(~1);
+                w.op(op_i32_and);
                 w.set_local(TMP1);
                 w.store_reg(15, TMP1);
-                w.bail(insn_addr, insn_idx + 1);
+                w.bail_preserve_pc(insn_idx + 1);
             } else if ((insn & 0xF800) == 0x0000) {
                 // LSLS Rd, Rm, #imm5 (MOVS Rd, Rm when imm5==0)
                 int rd = insn & 7;

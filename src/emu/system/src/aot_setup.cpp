@@ -36,9 +36,9 @@
 namespace eka2l1::arm::aot {
     // AOT target: DLL identified by UID3, with list of ordinals to translate.
     // Empty ordinals = translate all exports.
-    // Override with AOT_MAX_EXPORTS env var (-1 = unlimited, 0..N = limit).
+    // Override with EKA2L1_AOT_MAX_EXPORTS env var (-1 = unlimited, 0..N = limit).
     static int get_max_exports() {
-        const char *env = std::getenv("AOT_MAX_EXPORTS");
+        const char *env = std::getenv("EKA2L1_AOT_MAX_EXPORTS");
         if (env) return std::atoi(env);
         return -1; // default: unlimited
     }
@@ -53,6 +53,10 @@ namespace eka2l1::arm::aot {
         return {
             // FntStore.dll — translate all supported exports
             { 0x10003B1A, "FntStore.dll", {} },
+            // TODO: euser.dll (UID3=0x100039E5, 2229 exports) — takes ~7 minutes
+            // to discover helpers due to the number of BL targets. Need to fix
+            // helper discovery to be sub-linear before enabling.
+            // TODO: efsrv.dll (UID3=0x100039E4, 351 exports)
         };
     }
 
@@ -210,11 +214,13 @@ namespace eka2l1::arm::aot {
             const std::uint32_t num_imports = 3;
             sibling_map siblings;
             struct accepted_func {
-                std::uint32_t ordinal; // 0 for internal helpers
+                std::uint32_t ordinal; // 0 for internal helpers, 0xFFFFFFFF for resume points
                 std::uint32_t func_addr;
                 std::uint8_t *func_host;
                 std::uint32_t func_size;
+                std::vector<std::uint32_t> resume_points;
             };
+            static constexpr std::uint32_t RESUME_ORDINAL = 0xFFFFFFFFu;
             std::vector<accepted_func> accepted;
 
             auto try_translate_at = [&](std::uint32_t addr, std::uint32_t ordinal) -> bool {
@@ -231,7 +237,7 @@ namespace eka2l1::arm::aot {
                 if (tr.func.body.empty() || !tr.complete) return false;
                 std::uint32_t func_idx = num_imports + static_cast<std::uint32_t>(accepted.size());
                 siblings[addr] = func_idx;
-                accepted.push_back({ordinal, addr, host, func_size});
+                accepted.push_back({ordinal, addr, host, func_size, std::move(tr.resume_points)});
                 return true;
             };
 
@@ -280,6 +286,34 @@ namespace eka2l1::arm::aot {
                     accepted.size());
             }
 
+            // Resume-point discovery: for every accepted function, register
+            // each of its resume points (instructions immediately after a
+            // BLX Rm or non-sibling BL imm) as an additional AOT entry. When
+            // the callee returns via BX LR, the interpreter dispatches at LR
+            // which now hits AOT instead of falling through. Iterate because
+            // newly-translated resume-point functions may themselves contain
+            // further BL/BLX resume points.
+            // Disable via EKA2L1_AOT_RESUME_POINTS=0 to bisect crashes.
+            const char *rp_env = std::getenv("EKA2L1_AOT_RESUME_POINTS");
+            bool resume_points_enabled = !(rp_env && rp_env[0] == '0');
+            if (max_exports < 0 && resume_points_enabled) {
+                size_t start_idx = 0;
+                int rounds = 0;
+                while (start_idx < accepted.size() && rounds++ < 20) {
+                    size_t end_idx = accepted.size();
+                    for (size_t i = start_idx; i < end_idx; i++) {
+                        // Copy since the vector may grow during iteration
+                        std::vector<std::uint32_t> rps = accepted[i].resume_points;
+                        for (std::uint32_t rp : rps) {
+                            try_translate_at(rp & ~1u, RESUME_ORDINAL);
+                        }
+                    }
+                    start_idx = end_idx;
+                }
+                fprintf(stderr, "AOT: after resume-point discovery: %zu total functions\n",
+                    accepted.size());
+            }
+
             // Second pass: re-translate with the sibling map, emitting direct
             // calls for BL targets that are other AOT functions.
             for (const auto &a : accepted) {
@@ -288,7 +322,7 @@ namespace eka2l1::arm::aot {
                     fprintf(stderr, "AOT: 2nd pass failed for 0x%08X\n", a.func_addr);
                     continue;
                 }
-                if (a.ordinal != 0) {
+                if (a.ordinal != 0 && a.ordinal != RESUME_ORDINAL) {
                     fprintf(stderr, "AOT: [%zu] ordinal %u at 0x%08X: OK (%zu bytes)\n",
                         all_funcs.size() + 1, a.ordinal, a.func_addr, tr.func.body.size());
                 }

@@ -339,6 +339,81 @@ static bool run_test(const test_case &tc) {
 
 // ---- Main ----
 
+// Verify that translate_thumb_block records a resume point at the address
+// just after a BLX Rm. Aot_setup relies on this to register additional AOT
+// entries so control can re-enter AOT after an external call returns.
+static bool test_resume_points_blx_rm() {
+    // MOVS R0, #1   (0x2001)
+    // BLX  R3       (0x4798) — 0x47 | (0x80 | (3<<3)) = 0x47 0x98
+    // MOVS R1, #2   (0x2102) — resume point at code_addr + 4
+    // BX   LR       (0x4770)
+    std::vector<std::uint8_t> code = {
+        0x01, 0x20,       // MOVS R0, #1
+        0x98, 0x47,       // BLX R3
+        0x02, 0x21,       // MOVS R1, #2
+        0x70, 0x47,       // BX LR
+    };
+    std::uint32_t code_addr = 0x1000;
+    auto tr = translate_thumb_block(code.data(), code.size(), code_addr);
+    if (tr.func.body.empty()) {
+        printf("  FAIL resume_points_blx_rm: translator produced empty body\n");
+        return false;
+    }
+    bool found = false;
+    for (auto rp : tr.resume_points) {
+        if (rp == code_addr + 4) { found = true; break; }
+    }
+    if (!found) {
+        printf("  FAIL resume_points_blx_rm: expected resume point at 0x%08X, got {",
+            code_addr + 4);
+        for (auto rp : tr.resume_points) printf(" 0x%08X", rp);
+        printf(" }\n");
+        return false;
+    }
+    printf("  PASS resume_points_blx_rm\n");
+    return true;
+}
+
+// Verify that a non-sibling BL imm records a resume point at the address
+// just after the 32-bit BL instruction.
+static bool test_resume_points_bl_imm() {
+    // PUSH {LR}     (0xB500) @ 0x1000
+    // BL   +12      (0xF000 0xF806) @ 0x1002 — target 0x1012
+    //               BL encoding: 11110 S imm10 | 11 J1 1 J2 imm11
+    //               imm32 = 12 → imm11=6, imm10=0, S=0, J1=1, J2=1
+    //               insn1 = 0xF000, insn2 = 0xF806
+    //               next_pc = 0x1002 + 4 = 0x1006 → resume point
+    // MOVS R0, #5   (0x2005) @ 0x1006
+    // POP  {PC}     (0xBD00) @ 0x1008
+    std::vector<std::uint8_t> code = {
+        0x00, 0xB5,       // PUSH {LR}
+        0x00, 0xF0,       // BL lo
+        0x06, 0xF8,       // BL hi
+        0x05, 0x20,       // MOVS R0, #5
+        0x00, 0xBD,       // POP {PC}
+    };
+    std::uint32_t code_addr = 0x1000;
+    // No sibling map — BL imm target is external to this block.
+    auto tr = translate_thumb_block(code.data(), code.size(), code_addr, nullptr);
+    if (tr.func.body.empty()) {
+        printf("  FAIL resume_points_bl_imm: translator produced empty body\n");
+        return false;
+    }
+    bool found = false;
+    for (auto rp : tr.resume_points) {
+        if (rp == code_addr + 6) { found = true; break; }
+    }
+    if (!found) {
+        printf("  FAIL resume_points_bl_imm: expected resume point at 0x%08X, got {",
+            code_addr + 6);
+        for (auto rp : tr.resume_points) printf(" 0x%08X", rp);
+        printf(" }\n");
+        return false;
+    }
+    printf("  PASS resume_points_bl_imm\n");
+    return true;
+}
+
 int main() {
     std::array<std::uint32_t, 16> zero_regs = {};
     zero_regs[13] = 0x10000; // SP
@@ -622,6 +697,11 @@ int main() {
         if (ok) passed++;
         else failed++;
     }
+
+    // Translator-level tests that don't need a dyncom comparison.
+    printf("\nRunning translator-level tests...\n\n");
+    if (test_resume_points_blx_rm()) passed++; else failed++;
+    if (test_resume_points_bl_imm()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;

@@ -115,7 +115,8 @@ async function run(): Promise<void> {
 
   // Forward env vars to Emscripten's ENV object
   const envVars: Record<string, string | undefined> = {
-    AOT_MAX_EXPORTS: process.env.AOT_MAX_EXPORTS,
+    EKA2L1_AOT_MAX_EXPORTS: process.env.EKA2L1_AOT_MAX_EXPORTS,
+    EKA2L1_AOT_RESUME_POINTS: process.env.EKA2L1_AOT_RESUME_POINTS,
     EKA2L1_RTOS_LEVEL: process.env.EKA2L1_RTOS_LEVEL,
   };
   const envToSet: Record<string, string> = {};

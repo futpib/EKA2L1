@@ -45,6 +45,12 @@ namespace eka2l1::arm::aot {
     struct translate_result {
         wasm_func_def func;
         bool complete;  // true if entire block was translated without bailing
+        // Addresses where execution may resume after a bail-out call
+        // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling
+        // BL imm). The caller can register these as additional AOT entry
+        // points so that when the interpreter returns from the external call
+        // it can dispatch back into AOT at the resume address.
+        std::vector<std::uint32_t> resume_points;
     };
 
     // Map of ARM addresses to WASM function indices for BL target inlining.
