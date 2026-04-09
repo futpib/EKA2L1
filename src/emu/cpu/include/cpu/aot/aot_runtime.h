@@ -26,13 +26,16 @@
 struct ARMul_State;
 
 namespace eka2l1::arm::aot {
-    // Instantiate a WASM module from bytecode and register its exported
-    // functions in the AOT registry. Each export named "f_<addr>" is
-    // registered at the given address.
-    //
-    // Returns the number of functions registered, or 0 on failure.
-    // Only functional on Emscripten; returns 0 on other platforms.
-    int instantiate_aot_module(
-        const std::vector<std::uint8_t> &wasm_bytes,
+    // Stage WASM module bytes for deferred instantiation.
+    // The actual WebAssembly.Instance + addFunction calls happen on the
+    // first AOT lookup, which runs on the emulator worker thread where
+    // the function table is accessible.
+    void stage_aot_module(
+        std::vector<std::uint8_t> wasm_bytes,
         const std::string &dll_name);
+
+    // Called from the AOT dispatch path (on the worker thread) to
+    // instantiate any staged modules. Returns true if modules were
+    // instantiated.
+    bool instantiate_staged_modules();
 }

@@ -279,7 +279,6 @@ namespace eka2l1::arm::aot {
         fprintf(stderr, "AOT: built WASM module (%zu bytes, %zu functions)\n",
             wasm_bytes.size(), funcs.size());
 
-        int count = instantiate_aot_module(wasm_bytes, "profile-guided");
-        fprintf(stderr, "AOT: instantiated %d functions\n", count);
+        stage_aot_module(std::move(wasm_bytes), "profile-guided");
     }
 }

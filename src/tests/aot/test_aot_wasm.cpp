@@ -489,6 +489,16 @@ int main() {
              0xF0, 0xBD}, // POP {R4-R7,PC}
             0x1000,
             [&]{ auto r = zero_regs; r[0] = 42; r[4] = 1; r[5] = 2; r[6] = 3; r[7] = 4; r[14] = 0x2000; return r; }(), 10},
+
+        // --- PUSH then BL bail (ordinal 27 pattern) ---
+        // PUSH {R4,LR} then BL — AOT runs PUSH, bails at BL.
+        // Verify PUSH alone writes R4 and LR to stack correctly.
+        {"PUSH {R4,LR} then BL bail",
+            {0x10, 0xB5,  // PUSH {R4, LR}
+             0x01, 0xF0, 0x7F, 0xFE}, // BL (32-bit, bails to interpreter)
+            0x1000,
+            [&]{ auto r = zero_regs; r[0] = 0x2000; r[4] = 0xAAAAAAAA; r[14] = 0xBBBBBBBB; return r; }(), 1,
+            {}, {0x0FFF8, 0x0FFFC}}, // check SP-8 and SP-4 (SP starts at 0x10000)
     };
 
     printf("Running %zu AOT WASM correctness tests...\n\n", tests.size());

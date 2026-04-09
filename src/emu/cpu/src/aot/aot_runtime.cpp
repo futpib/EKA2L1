@@ -117,8 +117,23 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len), {
     }
 });
 
-int instantiate_aot_module(
-    const std::vector<std::uint8_t> &wasm_bytes,
+// Staged modules waiting for worker-thread instantiation
+struct staged_module {
+    std::vector<std::uint8_t> wasm_bytes;
+    std::string dll_name;
+};
+static std::vector<staged_module> g_staged_modules;
+
+void stage_aot_module(
+    std::vector<std::uint8_t> wasm_bytes,
+    const std::string &dll_name)
+{
+    fprintf(stderr, "AOT: staging %zu-byte WASM module for %s\n",
+        wasm_bytes.size(), dll_name.c_str());
+    g_staged_modules.push_back({std::move(wasm_bytes), dll_name});
+}
+
+static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
     const std::string &dll_name)
 {
     if (wasm_bytes.empty()) return 0;
@@ -169,14 +184,29 @@ int instantiate_aot_module(
     return count;
 }
 
+bool instantiate_staged_modules() {
+    if (g_staged_modules.empty()) return false;
+
+    fprintf(stderr, "AOT: instantiating %zu staged module(s) on worker thread\n",
+        g_staged_modules.size());
+
+    for (auto &mod : g_staged_modules) {
+        do_instantiate(mod.wasm_bytes, mod.dll_name);
+    }
+    g_staged_modules.clear();
+    return true;
+}
+
 #else // !__EMSCRIPTEN__
 
-int instantiate_aot_module(
-    const std::vector<std::uint8_t> &,
+void stage_aot_module(
+    std::vector<std::uint8_t>,
     const std::string &)
 {
-    // AOT WASM instantiation only works on Emscripten
-    return 0;
+}
+
+bool instantiate_staged_modules() {
+    return false;
 }
 
 #endif // __EMSCRIPTEN__

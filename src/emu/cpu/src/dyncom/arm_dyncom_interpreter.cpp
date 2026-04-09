@@ -22,6 +22,7 @@
 
 #include <cpu/arm_interface.h>
 #include <cpu/aot/aot_registry.h>
+#include <cpu/aot/aot_runtime.h>
 
 #define RM BITS(sht_oper, 0, 3)
 #define RS BITS(sht_oper, 8, 11)
@@ -1637,6 +1638,15 @@ DISPATCH : {
         cpu->Reg[15] &= 0xfffffffe;
     else
         cpu->Reg[15] &= 0xfffffffc;
+
+    // Deferred AOT instantiation: must happen on the worker thread
+    {
+        static bool aot_instantiated = false;
+        if (!aot_instantiated) {
+            aot_instantiated = true;
+            eka2l1::arm::aot::instantiate_staged_modules();
+        }
+    }
 
     // Check if an AOT-compiled function exists for this PC
     {

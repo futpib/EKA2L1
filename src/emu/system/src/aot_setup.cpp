@@ -36,16 +36,7 @@
 namespace eka2l1::arm::aot {
     // AOT target: DLL identified by UID3, with list of ordinals to translate.
     // Empty ordinals = translate all exports.
-    // -1 = unlimited, 0..N = limit. For bisecting crashes.
-    // Exports that crash at runtime — skip them.
-    // Exports with known translation bugs — skip them.
-    static constexpr std::uint32_t SKIP_ADDRS[] = {
-        0x804650B6, // ordinal 27
-        0x80463F6E, // ordinal 57
-        0x8046109A, // ordinal 82
-        0x804610A0, // ordinal 83
-    };
-    // Default max exports. Override with AOT_MAX_EXPORTS env var (-1 = unlimited).
+    // Override with AOT_MAX_EXPORTS env var (-1 = unlimited, 0..N = limit).
     static int get_max_exports() {
         const char *env = std::getenv("AOT_MAX_EXPORTS");
         if (env) return std::atoi(env);
@@ -189,10 +180,6 @@ namespace eka2l1::arm::aot {
                 if (func_addr < hdr.code_address || func_addr >= hdr.code_address + hdr.code_size) continue;
                 if (!is_thumb) continue; // translator only handles Thumb for now
                 if (translated_addrs.count(func_addr)) continue; // skip duplicate exports
-                // Skip known-bad exports
-                bool skip = false;
-                for (auto sa : SKIP_ADDRS) { if (func_addr == sa) { skip = true; break; } }
-                if (skip) continue;
                 translated_addrs.insert(func_addr);
 
                 std::uint32_t func_offset = func_addr - hdr.code_address;
@@ -245,7 +232,8 @@ namespace eka2l1::arm::aot {
         LOG_INFO(KERNEL, "AOT: built WASM module ({} bytes, {} functions)",
             wasm_bytes.size(), all_funcs.size());
 
-        int count = instantiate_aot_module(wasm_bytes, "rom-aot");
-        LOG_INFO(KERNEL, "AOT: {} functions registered", count);
+        // Stage for deferred instantiation on the worker thread.
+        // addFunction must be called on the thread that will use the table.
+        stage_aot_module(std::move(wasm_bytes), "rom-aot");
     }
 }

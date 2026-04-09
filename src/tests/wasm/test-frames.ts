@@ -284,7 +284,7 @@ async function run(): Promise<void> {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`\nFAIL: ${msg}`);
-    process.exit(1);
+    process.exitCode = 1;
   } finally {
     logStream.end();
     await browser.close();
