@@ -58,6 +58,12 @@ namespace eka2l1::arm::aot {
         // over after a forward-branch bail, it can dispatch back into AOT
         // at the branch target.
         std::vector<std::uint32_t> branch_targets;
+        // One past the address of the last instruction the decoder actually
+        // emitted code for. For a function that ends at POP {PC} at 0x1002
+        // and stops decoding there, this is 0x1004. Used by callers to size
+        // AOT coverage and by tests to verify the decoder didn't walk into
+        // trailing literal pools.
+        std::uint32_t end_address = 0;
     };
 
     // Map of ARM addresses to WASM function indices for BL target inlining.

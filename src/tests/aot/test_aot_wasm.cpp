@@ -648,6 +648,193 @@ static bool test_blx_veneer_inlining() {
     return true;
 }
 
+// Verify that the translator stops decoding at a function terminator
+// (POP {PC}) and does NOT treat trailing literal-pool bytes as code,
+// even when those bytes happen to match a conditional-branch encoding.
+//
+// Without function-end detection the first-pass branch scanner walks
+// the entire code slice and discovers phantom forward targets inside
+// the literal pool. The main loop then keeps decoding past the POP,
+// misreading literal data as instructions and bailing to the
+// interpreter with `complete = false`.
+//
+// Layout (all at code_addr = 0x1000, slice 12 bytes):
+//   0x1000  MOVS R0, #1          ; 0x2001
+//   0x1002  POP  {PC}            ; 0xBD00  <-- function ends here
+//   0x1004  literal word 0       ; halfwords 0x0000, 0xD000
+//                                 ; 0xD000 alone would be B EQ +0
+//                                 ; (phantom forward target at 0x100C)
+//   0x1008  literal word 1       ; halfwords 0xFFFF, 0xFFFF
+//                                 ; looks like a wide Thumb insn
+static bool test_function_end_stops_at_pop_pc() {
+    std::vector<std::uint8_t> code = {
+        0x01, 0x20,       // 0x1000: MOVS R0, #1
+        0x00, 0xBD,       // 0x1002: POP {PC}
+        0x00, 0x00,       // 0x1004: literal low half
+        0x00, 0xD0,       // 0x1006: literal high half (looks like B EQ +0)
+        0xFF, 0xFF,       // 0x1008: literal
+        0xFF, 0xFF,       // 0x100A: literal (looks like wide insn tail)
+    };
+    std::uint32_t code_addr = 0x1000;
+    auto tr = translate_thumb_block(code.data(), code.size(), code_addr);
+    if (tr.func.body.empty()) {
+        printf("  FAIL function_end_stops_at_pop_pc: empty body\n");
+        return false;
+    }
+    // The decoder must stop right after POP {PC} at 0x1002 (inclusive),
+    // i.e., end_address = 0x1004. Anything beyond means it walked into
+    // the literal pool.
+    const std::uint32_t expected_end = 0x1004;
+    if (tr.end_address != expected_end) {
+        printf("  FAIL function_end_stops_at_pop_pc: expected end_address "
+               "0x%08X, got 0x%08X (decoder walked past POP {PC} into "
+               "literal pool)\n", expected_end, tr.end_address);
+        return false;
+    }
+    if (!tr.complete) {
+        printf("  FAIL function_end_stops_at_pop_pc: translation marked "
+               "incomplete\n");
+        return false;
+    }
+    printf("  PASS function_end_stops_at_pop_pc\n");
+    return true;
+}
+
+// Same idea, but the terminator is BX LR instead of POP {PC}.
+static bool test_function_end_stops_at_bx_lr() {
+    std::vector<std::uint8_t> code = {
+        0x01, 0x20,       // 0x1000: MOVS R0, #1
+        0x70, 0x47,       // 0x1002: BX LR
+        0x00, 0x00,       // 0x1004: literal
+        0x00, 0xD0,       // 0x1006: literal (looks like B EQ +0)
+        0xFF, 0xFF,       // 0x1008: literal
+        0xFF, 0xFF,       // 0x100A: literal
+    };
+    std::uint32_t code_addr = 0x1000;
+    auto tr = translate_thumb_block(code.data(), code.size(), code_addr);
+    if (tr.func.body.empty()) {
+        printf("  FAIL function_end_stops_at_bx_lr: empty body\n");
+        return false;
+    }
+    const std::uint32_t expected_end = 0x1004;
+    if (tr.end_address != expected_end) {
+        printf("  FAIL function_end_stops_at_bx_lr: expected end_address "
+               "0x%08X, got 0x%08X (decoder walked past BX LR into "
+               "literal pool)\n", expected_end, tr.end_address);
+        return false;
+    }
+    if (!tr.complete) {
+        printf("  FAIL function_end_stops_at_bx_lr: translation marked "
+               "incomplete\n");
+        return false;
+    }
+    printf("  PASS function_end_stops_at_bx_lr\n");
+    return true;
+}
+
+// Verify that `tr.branch_targets` captures the return address after every
+// BL/BLX imm in the slice. Extra-entry discovery in aot_setup uses
+// branch_targets to probe candidate re-entry points — if we stop reporting
+// BL/BLX return addresses, we silently lose function coverage on real DLLs
+// (the exact regression that landed 2256 instead of 2643 accepted functions
+// on FntStore.dll before this was fixed).
+//
+// Layout:
+//   0x1000  MOVS R0, #1    ; 0x2001
+//   0x1002  BL  +4         ; F000 F802 -> target 0x100A, next_pc 0x1006
+//   0x1006  MOVS R1, #2    ; 0x2102
+//   0x1008  BX  LR         ; 0x4770
+//   0x100A  MOVS R0, #3    ; 0x2003 (BL target, would normally bail)
+//   0x100C  BX  LR         ; 0x4770
+//
+// Expected branch_targets (with BL next_pc added):
+//   0x1006 — next_pc after the BL (for re-entry after callee returns)
+//
+// If branch_targets is missing 0x1006, extra-entry discovery won't probe
+// it, and real DLLs lose coverage as BL return addresses aren't treated
+// as AOT re-entry points.
+static bool test_branch_targets_include_bl_next_pc() {
+    std::vector<std::uint8_t> code = {
+        0x01, 0x20,       // 0x1000: MOVS R0, #1
+        0x00, 0xF0,       // 0x1002: BL lo
+        0x02, 0xF8,       // 0x1004: BL hi  (target=0x100A)
+        0x02, 0x21,       // 0x1006: MOVS R1, #2  <- next_pc after BL
+        0x70, 0x47,       // 0x1008: BX LR
+        0x03, 0x20,       // 0x100A: MOVS R0, #3
+        0x70, 0x47,       // 0x100C: BX LR
+    };
+    std::uint32_t code_addr = 0x1000;
+    auto tr = translate_thumb_block(code.data(), code.size(), code_addr);
+    if (tr.func.body.empty()) {
+        printf("  FAIL branch_targets_include_bl_next_pc: empty body\n");
+        return false;
+    }
+    bool has_next_pc = false;
+    for (auto bt : tr.branch_targets) {
+        if (bt == 0x1006) { has_next_pc = true; break; }
+    }
+    if (!has_next_pc) {
+        printf("  FAIL branch_targets_include_bl_next_pc: expected 0x1006 "
+               "(BL return addr) in branch_targets, got {");
+        for (auto bt : tr.branch_targets) printf(" 0x%08X", bt);
+        printf(" }\n");
+        return false;
+    }
+    printf("  PASS branch_targets_include_bl_next_pc\n");
+    return true;
+}
+
+// Verify that `tr.branch_targets` is liberal enough to catch potential
+// entry points even inside wide-insn middle halfwords. The broad-scan
+// approach exists specifically because a conservative CFG walk misses
+// entries that the caller's extra-entry discovery would otherwise accept.
+//
+// This test encodes:
+//   0x1000  BL imm (wide, 4 bytes; insn1=F000 insn2=F801 -> target 0x1006)
+//   0x1004  (halfword F801 — interpreted in isolation as part of a wide
+//            pattern, but at broad-scan offset 0x1004 it's inspected as
+//            a standalone 16-bit word; the broad scanner should skip it)
+//   0x1006  MOVS R0, #4 ; 0x2004
+//   0x1008  BEQ +0      ; 0xD000 -> target 0x100C
+//   0x100A  BX  LR      ; 0x4770
+//   0x100C  BX  LR      ; 0x4770 (BEQ target)
+//
+// Expected: branch_targets should contain 0x100C (the BEQ target).
+// A too-conservative scanner that only looks at CFG-reachable instruction
+// starts would still find 0x100C because the BEQ is reachable, but a
+// broken scanner that walks into literal pools would add noise targets.
+// This test mostly exists to sanity-check that BEQ targets are still
+// recorded after all the scanner rework.
+static bool test_branch_targets_include_beq_target() {
+    std::vector<std::uint8_t> code = {
+        0x00, 0xF0,       // 0x1000: BL lo
+        0x01, 0xF8,       // 0x1002: BL hi (target=0x1006, next_pc=0x1004)
+        0x04, 0x20,       // 0x1004: MOVS R0, #4 (also BL's next_pc)
+        0x00, 0xD0,       // 0x1006: BEQ +0 -> target 0x100A
+        0x70, 0x47,       // 0x1008: BX LR
+        0x70, 0x47,       // 0x100A: BX LR
+    };
+    std::uint32_t code_addr = 0x1000;
+    auto tr = translate_thumb_block(code.data(), code.size(), code_addr);
+    if (tr.func.body.empty()) {
+        printf("  FAIL branch_targets_include_beq_target: empty body\n");
+        return false;
+    }
+    bool has_beq_target = false;
+    for (auto bt : tr.branch_targets) {
+        if (bt == 0x100A) { has_beq_target = true; break; }
+    }
+    if (!has_beq_target) {
+        printf("  FAIL branch_targets_include_beq_target: expected 0x100A "
+               "(BEQ target) in branch_targets, got {");
+        for (auto bt : tr.branch_targets) printf(" 0x%08X", bt);
+        printf(" }\n");
+        return false;
+    }
+    printf("  PASS branch_targets_include_beq_target\n");
+    return true;
+}
+
 int main() {
     std::array<std::uint32_t, 16> zero_regs = {};
     zero_regs[13] = 0x10000; // SP
@@ -1199,6 +1386,10 @@ int main() {
     if (test_resume_points_blx_rm()) passed++; else failed++;
     if (test_resume_points_bl_imm()) passed++; else failed++;
     if (test_blx_veneer_inlining()) passed++; else failed++;
+    if (test_function_end_stops_at_pop_pc()) passed++; else failed++;
+    if (test_function_end_stops_at_bx_lr()) passed++; else failed++;
+    if (test_branch_targets_include_bl_next_pc()) passed++; else failed++;
+    if (test_branch_targets_include_beq_target()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;

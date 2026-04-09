@@ -135,8 +135,139 @@ namespace eka2l1::arm::aot {
         }
     };
 
-    // First pass: scan for branch targets within the block
-    static std::set<std::uint32_t> find_branch_targets(
+    // Walk the code slice linearly from offset 0, following branches and
+    // stopping at unconditional terminators (POP {PC}, BX LR, BX Rm, B imm
+    // that falls outside the slice, or the end of the slice).
+    //
+    // Returns the set of byte offsets where an instruction actually begins
+    // along a reachable control-flow path. Anything outside this set is
+    // either a middle halfword of a 32-bit Thumb insn or trailing literal
+    // pool data that the translator's internal forward-target scanner must
+    // ignore (to avoid opening nested blocks for phantom targets).
+    //
+    // This is a conservative CFG walk: we follow every B/B<cond>/CBZ/CBNZ
+    // target that stays inside the slice, recurse on it, and stop each
+    // path at the first unconditional terminator. The result is the
+    // transitive closure of all reachable instruction-start offsets.
+    static std::set<std::size_t> find_reachable_offsets(
+        const std::uint8_t *code, std::size_t code_size)
+    {
+        std::set<std::size_t> reachable;
+        if (code_size < 2) return reachable;
+        std::vector<std::size_t> worklist;
+        worklist.push_back(0);
+        while (!worklist.empty()) {
+            std::size_t i = worklist.back();
+            worklist.pop_back();
+            while (i + 1 < code_size) {
+                if (reachable.count(i)) break; // already walked from here
+                reachable.insert(i);
+                std::uint16_t insn = code[i] | (code[i+1] << 8);
+                // 32-bit Thumb: 0xE800-0xFFFF first halfword.
+                // Note: 0xE000-0xE7FF is the unconditional 16-bit B, not wide.
+                bool is_wide = ((insn & 0xF800) == 0xE800)
+                            || ((insn & 0xF000) == 0xF000);
+                if (is_wide) {
+                    // Treat all wide insns as fall-through (the main loop
+                    // either translates them or bails; in either case
+                    // control proceeds to the next insn). BL/BLX imm are
+                    // wide and unconditional calls — they also return via
+                    // LR, so fall-through is correct.
+                    i += 4;
+                    continue;
+                }
+                // 16-bit conditional branch: B<cond> imm8 (0xDxxx).
+                // cond==0xE is undefined, cond==0xF is SVC.
+                if ((insn & 0xF000) == 0xD000) {
+                    std::uint8_t cond = (insn >> 8) & 0xF;
+                    if (cond < 0xE) {
+                        std::int8_t off = static_cast<std::int8_t>(insn & 0xFF);
+                        std::int32_t target_off =
+                            static_cast<std::int32_t>(i) + 4 + off * 2;
+                        if (target_off >= 0
+                            && static_cast<std::size_t>(target_off) + 1 < code_size) {
+                            worklist.push_back(static_cast<std::size_t>(target_off));
+                        }
+                        // Conditional — also fall through.
+                        i += 2;
+                        continue;
+                    }
+                    // cond==0xF is SVC — treat as fall-through (it's a
+                    // system call, the interpreter handles it).
+                    i += 2;
+                    continue;
+                }
+                // 16-bit unconditional B: 0xE000-0xE7FF.
+                if ((insn & 0xF800) == 0xE000) {
+                    std::int16_t off =
+                        static_cast<std::int16_t>((insn & 0x7FF) << 5) >> 5;
+                    std::int32_t target_off =
+                        static_cast<std::int32_t>(i) + 4 + off * 2;
+                    if (target_off >= 0
+                        && static_cast<std::size_t>(target_off) + 1 < code_size) {
+                        i = static_cast<std::size_t>(target_off);
+                        continue;
+                    }
+                    // Out-of-slice target: path ends here (interpreter takes over).
+                    break;
+                }
+                // CBZ/CBNZ (T1): 1011 x0 i1 1 imm5 Rn. Encoded as
+                // 0xB100-0xB13F and 0xB900-0xB93F (plus i1 variants).
+                if ((insn & 0xF500) == 0xB100) {
+                    // Forward-only compare-and-branch. imm = i:imm5:0
+                    // (i bit is bit 9, imm5 is bits 7:3). Target = PC+4+imm.
+                    std::uint32_t imm5 = (insn >> 3) & 0x1F;
+                    std::uint32_t i_bit = (insn >> 9) & 1;
+                    std::uint32_t imm = (i_bit << 6) | (imm5 << 1);
+                    std::int32_t target_off =
+                        static_cast<std::int32_t>(i) + 4 + static_cast<std::int32_t>(imm);
+                    if (target_off >= 0
+                        && static_cast<std::size_t>(target_off) + 1 < code_size) {
+                        worklist.push_back(static_cast<std::size_t>(target_off));
+                    }
+                    i += 2;
+                    continue;
+                }
+                // POP with PC bit set: 0xBD00-0xBDFF (register return).
+                if ((insn & 0xFF00) == 0xBD00) {
+                    break;
+                }
+                // BX Rm: 0x4700-0x477F (bit 7 = 0). Unconditional register
+                // branch (function return if Rm==LR).
+                if ((insn & 0xFF80) == 0x4700) {
+                    break;
+                }
+                // BLX Rm: 0x4780-0x47FF (bit 7 = 1). Register call — returns
+                // via LR, so fall through.
+                if ((insn & 0xFF80) == 0x4780) {
+                    i += 2;
+                    continue;
+                }
+                // Default: 16-bit fall-through.
+                i += 2;
+            }
+        }
+        return reachable;
+    }
+
+    // Broad scan: treat every halfword-aligned offset as a potential
+    // branch or call instruction. Used to populate
+    // `translate_result::branch_targets`, which the caller (aot_setup.cpp
+    // extra-entry discovery) probes as candidate function entries.
+    //
+    // This is intentionally liberal: some "branches" it finds may be
+    // halfwords inside a 32-bit Thumb insn or literal-pool data. The caller
+    // probes each candidate with `try_translate_at`, which rejects invalid
+    // addresses, so false positives are harmless. False negatives would
+    // lose real entry points, so we err toward inclusion here.
+    //
+    // Recorded candidates:
+    //   - 16-bit B<cond> imm8 targets (Dxxx)
+    //   - 16-bit unconditional B imm11 targets (Exxx)
+    //   - Return addresses right after BL/BLX imm (T1/T2 wide): when the
+    //     callee returns via BX LR, control lands at `next_pc`, which may
+    //     be a useful re-entry point into AOT.
+    static std::set<std::uint32_t> find_branch_targets_broad(
         const std::uint8_t *code, std::size_t code_size, std::uint32_t start)
     {
         std::set<std::uint32_t> targets;
@@ -161,6 +292,21 @@ namespace eka2l1::arm::aot {
                 std::uint32_t target = pc + 4 + offset * 2;
                 if (target >= start && target < start + code_size) {
                     targets.insert(target);
+                }
+            }
+            // BL/BLX imm (wide): record the return address (next_pc = pc+4)
+            // as a candidate entry. The callee returns via BX LR which
+            // lands here; if this is a reachable AOT entry the interpreter
+            // can dispatch back into WASM directly.
+            if (i + 3 < code_size) {
+                std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                bool is_bl_or_blx = ((insn & 0xF800) == 0xF000)
+                                 && ((insn2 & 0xC000) == 0xC000);
+                if (is_bl_or_blx) {
+                    std::uint32_t next_pc = pc + 4;
+                    if (next_pc >= start && next_pc < start + code_size) {
+                        targets.insert(next_pc);
+                    }
                 }
             }
         }
@@ -202,16 +348,28 @@ namespace eka2l1::arm::aot {
             num_insns++;
         }
 
-        // Find branch targets
-        auto targets = find_branch_targets(code, code_size, start_address);
-        tr.branch_targets.assign(targets.begin(), targets.end());
+        // Compute reachable offsets via a simple CFG walk. This lets the
+        // internal forward-target scanner ignore trailing literal pools and
+        // other non-code data that happens to match a branch encoding.
+        auto reachable = find_reachable_offsets(code, code_size);
+
+        // Populate tr.branch_targets with the broad scan so the caller
+        // (extra-entry discovery) sees every potential entry, including
+        // ones that happen to sit at halfword offsets the reachability
+        // walker couldn't prove were instructions. False positives are
+        // cheap: try_translate_at rejects invalid addresses.
+        {
+            auto broad = find_branch_targets_broad(code, code_size, start_address);
+            tr.branch_targets.assign(broad.begin(), broad.end());
+        }
 
         // Second pre-scan: collect forward branch targets. Forward means the
         // target address is strictly greater than the branch source address.
         // We use these to open nested WASM blocks so forward branches can
         // stay inside the AOT function instead of bailing to the interpreter.
         std::set<std::uint32_t> forward_targets_set;
-        for (std::size_t i = 0; i + 1 < code_size; i += 2) {
+        for (std::size_t i : reachable) {
+            if (i + 1 >= code_size) continue;
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t src = start_address + static_cast<std::uint32_t>(i);
             std::uint32_t target = 0;
@@ -290,6 +448,10 @@ namespace eka2l1::arm::aot {
 
         // Emit each instruction with branch target checks
         std::uint32_t insn_idx = 0;
+        // One past the last byte consumed by a successfully-decoded insn.
+        // Tracks how far the decoder walked before breaking out of the
+        // loop (typically at a terminator like POP {PC}).
+        std::uint32_t decoded_end_offset = 0;
         for (std::size_t i = 0; i + 1 < code_size; i += 2) {
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
@@ -435,6 +597,7 @@ namespace eka2l1::arm::aot {
                 if (i + 3 < code_size) {
                     i += 2; // skip second halfword of the 32-bit instruction
                 }
+                decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
                 insn_idx++;
                 continue;
             }
@@ -836,6 +999,7 @@ namespace eka2l1::arm::aot {
                 // forward targets remain, keep decoding (they may be hit
                 // by forward branches from earlier). Otherwise stop.
                 if (closed_count >= N_fwd) {
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
                     insn_idx++;
                     break;
                 }
@@ -929,6 +1093,7 @@ namespace eka2l1::arm::aot {
                     // Function return — stop decoding past the POP if there
                     // are no more forward targets ahead.
                     if (closed_count >= N_fwd) {
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
                         insn_idx++;
                         break;
                     }
@@ -978,6 +1143,7 @@ namespace eka2l1::arm::aot {
                 // earlier may still target instructions past this BX LR,
                 // and those targets need real emitted bodies.
                 if (closed_count >= N_fwd) {
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
                     insn_idx++;
                     break;
                 }
@@ -1004,6 +1170,7 @@ namespace eka2l1::arm::aot {
                 // ends here. BLX re-entry is handled via its resume point.
                 // Stop decoding if no more forward targets lie ahead.
                 if (closed_count >= N_fwd) {
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
                     insn_idx++;
                     break;
                 }
@@ -1422,6 +1589,7 @@ namespace eka2l1::arm::aot {
                 break;
             }
 
+            decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
             insn_idx++;
         }
 
@@ -1448,6 +1616,7 @@ namespace eka2l1::arm::aot {
         w.ret();
 
         tr.complete = !w.unsupported;
+        tr.end_address = start_address + decoded_end_offset;
         return tr;
     }
 }
