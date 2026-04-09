@@ -160,9 +160,9 @@ EM_JS(int, js_run_aot_wasm, (const uint8_t* wasm_bytes, int wasm_len, uint8_t* s
         var instance = new WebAssembly.Instance(mod, {
             env: {
                 memory: wasmMemory,
-                tlb_read32: function(sp, addr) { return Module._test_tlb_read32(sp, addr); },
-                tlb_write32: function(sp, addr, val) { Module._test_tlb_write32(sp, addr, val); },
-                tlb_read8: function(sp, addr) { return Module._test_tlb_read8(sp, addr); },
+                tlb_read32: Module._test_tlb_read32,
+                tlb_write32: Module._test_tlb_write32,
+                tlb_read8: Module._test_tlb_read8,
             }
         });
 
@@ -208,6 +208,7 @@ struct test_case {
     int max_instrs;                      // max instructions to run in interpreter
     std::vector<mem_init> init_mem;      // initial memory values
     std::vector<std::uint32_t> check_mem_addrs; // addresses to compare after
+    std::uint32_t skip_reg_mask = 0;    // bitmask of register indices to skip
 };
 
 static bool run_test(const test_case &tc) {
@@ -298,6 +299,7 @@ static bool run_test(const test_case &tc) {
 
     // Compare registers (skip PC — it diverges due to halt loop vs bail)
     for (int i = 0; i < 15; i++) {
+        if (tc.skip_reg_mask & (1u << i)) continue;
         std::uint32_t wasm_val = regs[i];
         std::uint32_t interp_val = interp_state.regs[i];
         if (wasm_val != interp_val) {
@@ -491,14 +493,115 @@ int main() {
             [&]{ auto r = zero_regs; r[0] = 42; r[4] = 1; r[5] = 2; r[6] = 3; r[7] = 4; r[14] = 0x2000; return r; }(), 10},
 
         // --- PUSH then BL bail (ordinal 27 pattern) ---
-        // PUSH {R4,LR} then BL — AOT runs PUSH, bails at BL.
-        // Verify PUSH alone writes R4 and LR to stack correctly.
+        // PUSH {R4,LR} then BL — AOT runs PUSH, decodes BL target, sets LR/PC and bails.
+        // This test only verifies PUSH pushed R4 and LR to stack. LR comparison is
+        // tricky because AOT sets LR=insn_addr+4|1 while interpreter's BL jumps to
+        // a random target address. We verify memory writes from PUSH only.
         {"PUSH {R4,LR} then BL bail",
             {0x10, 0xB5,  // PUSH {R4, LR}
              0x01, 0xF0, 0x7F, 0xFE}, // BL (32-bit, bails to interpreter)
             0x1000,
             [&]{ auto r = zero_regs; r[0] = 0x2000; r[4] = 0xAAAAAAAA; r[14] = 0xBBBBBBBB; return r; }(), 1,
-            {}, {0x0FFF8, 0x0FFFC}}, // check SP-8 and SP-4 (SP starts at 0x10000)
+            {}, {0x0FFF8, 0x0FFFC}, // check SP-8 and SP-4 (SP starts at 0x10000)
+            (1u << 14)}, // skip LR — AOT sets it for BL target, interpreter hasn't yet
+
+        // --- BL decoding: MOV R0,#1; BL forward ---
+        // Verify the BL target decoding matches what the interpreter would compute.
+        // We compare LR after both run the full BL instruction.
+        // BL at 0x1002 with offset 0: target = 0x1006, LR = 0x1007 (Thumb bit set)
+        // Encoding: S=0, imm10=0, J1=1, J2=1, imm11=0 → 0xF000 0xF800
+        // Run 2 instructions: MOVS then BL.
+        // Interpreter after BL: PC=target, LR=return_address|1
+        // AOT after MOVS+BL: PC=target, LR=(insn_addr+4)|1
+        // These should match.
+        {"MOVS + BL offset 0",
+            {0x01, 0x20,  // MOVS R0, #1
+             0x00, 0xF0, 0x00, 0xF8}, // BL +0 (target = next insn)
+            0x1000,
+            [&]{ auto r = zero_regs; r[14] = 0xBBBBBBBB; return r; }(), 3, // 3 = MOVS + BL_1 + BL_2
+            {}, {},
+            0},
+
+        // BL with small positive offset: target = 0x1006 + imm
+        // Encoding for BL at 0x1002 targeting 0x1010:
+        // imm32 = target - (pc+4) = 0x1010 - 0x1006 = 0xA (10)
+        // Needs to encode 10/2 = 5 halfwords into imm11 (lower) or imm10 (upper):
+        // imm11 = 5 (bit[11:1] = 5), imm10 = 0, S = 0, J1 = J2 = 1
+        // First halfword: 0xF000 | 0 = 0xF000
+        // Second halfword: 0xF800 | (J1<<13)|(J2<<11)|imm11 = 0xF800 | 5 = 0xF805
+        {"MOVS + BL +10",
+            {0x01, 0x20,  // MOVS R0, #1
+             0x00, 0xF0, 0x05, 0xF8}, // BL target=0x1010
+            0x1000,
+            [&]{ auto r = zero_regs; r[14] = 0xBBBBBBBB; return r; }(), 3,
+            {}, {},
+            0},
+
+        // --- CMP high reg T2 variant (0x4573 pattern: low Rn, high Rm) ---
+        // CMP R3, LR — mask 0xFF00 == 0x4500, N=0, Rm=R14, Rn=R3
+        {"CMP R3, LR (T2 low Rn)",
+            {0x73, 0x45}, 0x1000,  // 0x4573
+            [&]{ auto r = zero_regs; r[3] = 100; r[14] = 50; return r; }(), 10},
+
+        // --- LDRSH Rt, [Rn, Rm] (0x5E00 pattern) ---
+        // 0x5E00 | (Rm<<6) | (Rn<<3) | Rt
+        // LDRSH R0, [R1, R2] — Rt=0, Rn=1, Rm=2 → 0x0010 | (2<<6) | (1<<3) | 0 = 0x5E88
+        {"LDRSH R0, [R1, R2]",
+            {0x88, 0x5E}, 0x1000,  // 0x5E88
+            [&]{ auto r = zero_regs; r[1] = 0x2000; r[2] = 0; return r; }(), 10,
+            {{0x2000, 0x0000FFFF}}, {}}, // halfword 0xFFFF → sign-extended to 0xFFFFFFFF
+
+        // --- STRH Rt, [Rn, Rm] (0x5200 pattern) ---
+        // STRH R0, [R1, R2] — 0x5200 | (2<<6) | (1<<3) | 0 = 0x5288
+        {"STRH R0, [R1, R2]",
+            {0x88, 0x52}, 0x1000,  // 0x5288
+            [&]{ auto r = zero_regs; r[0] = 0xABCD; r[1] = 0x2000; r[2] = 0; return r; }(), 10,
+            {}, {0x2000}},
+
+        // --- LDRH Rt, [Rn, Rm] (0x5A00 pattern) ---
+        // LDRH R0, [R1, R2] — 0x5A00 | (2<<6) | (1<<3) | 0 = 0x5A88
+        {"LDRH R0, [R1, R2]",
+            {0x88, 0x5A}, 0x1000,  // 0x5A88
+            [&]{ auto r = zero_regs; r[1] = 0x2000; r[2] = 0; return r; }(), 10,
+            {{0x2000, 0x0000ABCD}}, {}},
+
+        // --- STR Rt, [Rn, Rm] (0x5000 pattern) ---
+        // STR R0, [R1, R2] — 0x5000 | (2<<6) | (1<<3) | 0 = 0x5088
+        {"STR R0, [R1, R2]",
+            {0x88, 0x50}, 0x1000,  // 0x5088
+            [&]{ auto r = zero_regs; r[0] = 0xDEADBEEF; r[1] = 0x2000; r[2] = 0; return r; }(), 10,
+            {}, {0x2000}},
+
+        // --- STRB Rt, [Rn, Rm] (0x5400 pattern) ---
+        // STRB R0, [R1, R2] — 0x5400 | (2<<6) | (1<<3) | 0 = 0x5488
+        {"STRB R0, [R1, R2]",
+            {0x88, 0x54}, 0x1000,  // 0x5488
+            [&]{ auto r = zero_regs; r[0] = 0xAB; r[1] = 0x2000; r[2] = 0; return r; }(), 10,
+            {}, {0x2000}},
+
+        // --- ADR Rd, label (0xA000-0xA700 pattern = ADD Rd, PC, #imm8*4) ---
+        // ADR R0, #0 at 0x1000 → R0 = (PC+4)&~3 + 0 = 0x1004
+        {"ADR R0, #0",
+            {0x00, 0xA0}, 0x1000,  // 0xA000
+            zero_regs, 10},
+        // ADR R2, #20 → R2 = (PC+4)&~3 + 20 = 0x1018
+        {"ADR R2, #20",
+            {0x05, 0xA2}, 0x1000,  // 0xA205, imm8=5, 5*4=20
+            zero_regs, 10},
+
+        // --- STMIA Rn!, {reglist} (0xC000 pattern) ---
+        // STMIA R1!, {R0, R2} — 0xC000 | (1<<8) | 0x05 = 0xC105
+        {"STMIA R1!, {R0,R2}",
+            {0x05, 0xC1}, 0x1000,  // 0xC105
+            [&]{ auto r = zero_regs; r[0] = 0x11111111; r[1] = 0x2000; r[2] = 0x22222222; return r; }(), 10,
+            {}, {0x2000, 0x2004}},
+
+        // --- LDMIA Rn!, {reglist} (0xC800 pattern) ---
+        // LDMIA R1!, {R0, R2} — 0xC800 | (1<<8) | 0x05 = 0xC905
+        {"LDMIA R1!, {R0,R2}",
+            {0x05, 0xC9}, 0x1000,  // 0xC905
+            [&]{ auto r = zero_regs; r[1] = 0x2000; return r; }(), 10,
+            {{0x2000, 0x33333333}, {0x2004, 0x44444444}}, {}},
     };
 
     printf("Running %zu AOT WASM correctness tests...\n\n", tests.size());

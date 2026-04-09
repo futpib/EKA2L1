@@ -166,20 +166,21 @@ namespace eka2l1::arm::aot {
                 ordinals_to_translate = target->ordinals;
             }
 
+            int arm_count = 0, dup_count = 0, zero_count = 0, oob_count = 0;
             std::set<std::uint32_t> translated_addrs;
             for (std::uint32_t ordinal : ordinals_to_translate) {
                 if (ordinal < 1 || ordinal > static_cast<std::uint32_t>(hdr.export_dir_count)) continue;
 
                 std::uint32_t export_addr;
                 std::memcpy(&export_addr, export_table_host + (ordinal - 1) * 4, 4);
-                if (export_addr == 0) continue;
+                if (export_addr == 0) { zero_count++; continue; }
 
                 bool is_thumb = (export_addr & 1) != 0;
                 std::uint32_t func_addr = export_addr & ~1u;
 
-                if (func_addr < hdr.code_address || func_addr >= hdr.code_address + hdr.code_size) continue;
-                if (!is_thumb) continue; // translator only handles Thumb for now
-                if (translated_addrs.count(func_addr)) continue; // skip duplicate exports
+                if (func_addr < hdr.code_address || func_addr >= hdr.code_address + hdr.code_size) { oob_count++; continue; }
+                if (!is_thumb) { arm_count++; continue; } // translator only handles Thumb for now
+                if (translated_addrs.count(func_addr)) { dup_count++; continue; } // skip duplicate exports
                 translated_addrs.insert(func_addr);
 
                 std::uint32_t func_offset = func_addr - hdr.code_address;
@@ -212,8 +213,12 @@ namespace eka2l1::arm::aot {
                 if (max_exports >= 0 && static_cast<int>(all_funcs.size()) >= max_exports) break;
             }
 
-            LOG_INFO(KERNEL, "AOT: translated {}/{} exports for {}",
-                all_funcs.size(), ordinals_to_translate.size(), target->display_name);
+            LOG_INFO(KERNEL, "AOT: translated {}/{} exports for {} (arm={}, dup={}, zero={}, oob={})",
+                all_funcs.size(), ordinals_to_translate.size(), target->display_name,
+                arm_count, dup_count, zero_count, oob_count);
+            fprintf(stderr, "AOT: translated %zu/%zu exports for %s (arm=%d dup=%d zero=%d oob=%d)\n",
+                all_funcs.size(), ordinals_to_translate.size(), target->display_name.c_str(),
+                arm_count, dup_count, zero_count, oob_count);
         }
 
         if (all_funcs.empty()) {

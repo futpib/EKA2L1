@@ -1652,7 +1652,16 @@ DISPATCH : {
     {
         auto aot_func = eka2l1::arm::aot::global_registry().lookup(cpu->Reg[15]);
         if (aot_func) {
+            static std::uint64_t aot_dispatch_count = 0;
+            static std::uint64_t aot_instr_count = 0;
             std::uint32_t instrs = aot_func(cpu);
+            aot_dispatch_count++;
+            aot_instr_count += instrs;
+            if (aot_dispatch_count == 1 || (aot_dispatch_count & 0x3FFF) == 0) {
+                fprintf(stderr, "AOT: %llu dispatches, %llu instrs executed via AOT\n",
+                    (unsigned long long)aot_dispatch_count,
+                    (unsigned long long)aot_instr_count);
+            }
             num_instrs += instrs;
             if (num_instrs >= cpu->NumInstrsToExecute)
                 goto END;

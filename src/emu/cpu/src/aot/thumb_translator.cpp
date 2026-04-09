@@ -188,12 +188,10 @@ namespace eka2l1::arm::aot {
             std::uint32_t addr = start_address + static_cast<std::uint32_t>(i);
             addr_to_idx[addr] = num_insns;
 
-            // Check for 32-bit Thumb (BL/BLX)
-            if ((insn & 0xF800) == 0xF000 && i + 3 < code_size) {
-                std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
-                if ((insn2 & 0xD000) == 0xD000 || (insn2 & 0xD000) == 0xC000) {
-                    i += 2; // skip second halfword
-                }
+            // Check for 32-bit Thumb (any wide instruction: 0xE800-0xFFFF)
+            bool is_wide = ((insn & 0xF800) == 0xE800) || ((insn & 0xF000) == 0xF000);
+            if (is_wide) {
+                if (i + 3 < code_size) i += 2; // skip second halfword
             }
             num_insns++;
         }
@@ -229,18 +227,50 @@ namespace eka2l1::arm::aot {
 
             // No per-instruction skip check needed — forward branches bail to interpreter.
 
-            // Check for 32-bit Thumb (BL/BLX) — bail to interpreter
-            if ((insn & 0xF800) == 0xF000 && i + 3 < code_size) {
-                std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
-                if ((insn2 & 0xD000) == 0xD000 || (insn2 & 0xD000) == 0xC000) {
-                    // BL/BLX: normal function call — bail to interpreter.
-                    // Don't set LR here — the interpreter will handle that
-                    // when it executes the BL instruction at insn_addr.
-                    w.bail(insn_addr, insn_idx);
-                    i += 2;
-                    insn_idx++;
-                    continue;
+            // Check for 32-bit Thumb (wide instruction)
+            // First halfword: bits[15:11] == 11101/11110/11111 → 0xE800-0xFFFF.
+            // 0xE000-0xE7FF is unconditional B (16-bit), don't match that.
+            bool is_wide = ((insn & 0xF800) == 0xE800) || ((insn & 0xF000) == 0xF000);
+            if (is_wide) {
+                // Decode BL (T1): 11110 S imm10 | 11 J1 1 J2 imm11
+                // If it's a BL, set LR to next PC and jump to target — the
+                // interpreter dispatches there, which may be another AOT function.
+                // This allows AOT functions to "call" each other through the
+                // interpreter's AOT dispatch loop.
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_bl = ((insn & 0xF800) == 0xF000) && ((insn2 & 0xD000) == 0xD000);
+                    if (is_bl) {
+                        std::uint32_t s = (insn >> 10) & 1;
+                        std::uint32_t imm10 = insn & 0x3FF;
+                        std::uint32_t j1 = (insn2 >> 13) & 1;
+                        std::uint32_t j2 = (insn2 >> 11) & 1;
+                        std::uint32_t imm11 = insn2 & 0x7FF;
+                        std::uint32_t i1 = !(j1 ^ s);
+                        std::uint32_t i2 = !(j2 ^ s);
+                        std::int32_t imm32 = static_cast<std::int32_t>(
+                            (s << 24) | (i1 << 23) | (i2 << 22) | (imm10 << 12) | (imm11 << 1));
+                        if (s) imm32 |= 0xFF000000; // sign-extend bit 24
+                        std::uint32_t target = insn_addr + 4 + imm32;
+                        std::uint32_t next_pc = insn_addr + 4;
+                        // Set LR = next_pc | 1 (Thumb)
+                        w.store_i32_const(S::LR, static_cast<std::int32_t>(next_pc | 1));
+                        // Set PC to target and bail — interpreter re-dispatches
+                        w.store_i32_const(S::PC, static_cast<std::int32_t>(target));
+                        w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
+                        w.ret();
+                        i += 2; // skip second halfword
+                        insn_idx++;
+                        continue;
+                    }
                 }
+                // Not a BL — bail normally, interpreter runs the instruction
+                w.bail(insn_addr, insn_idx);
+                if (i + 3 < code_size) {
+                    i += 2; // skip second halfword of the 32-bit instruction
+                }
+                insn_idx++;
+                continue;
             }
 
             // Decode 16-bit Thumb
@@ -830,6 +860,152 @@ namespace eka2l1::arm::aot {
                 w.op(op_i32_shr_s);
                 w.set_local(TMP1);
                 w.store_reg(rt, TMP1);
+            } else if ((insn & 0xFE00) == 0x5E00) {
+                // LDRSH Rt, [Rn, Rm]
+                int rt = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int rm = (insn >> 6) & 7;
+                w.load_reg(rn);
+                w.load_reg(rm);
+                w.op(op_i32_add);
+                w.set_local(ADDR_TMP);
+                // tlb_read32 then mask to 16 bits and sign-extend
+                w.state_ptr();
+                w.get_local(ADDR_TMP);
+                w.call(0); // tlb_read32
+                w.i32_const(0xFFFF);
+                w.op(op_i32_and);
+                w.i32_const(16);
+                w.op(op_i32_shl);
+                w.i32_const(16);
+                w.op(op_i32_shr_s);
+                w.set_local(TMP1);
+                w.store_reg(rt, TMP1);
+            } else if ((insn & 0xFE00) == 0x5A00) {
+                // LDRH Rt, [Rn, Rm]
+                int rt = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int rm = (insn >> 6) & 7;
+                w.load_reg(rn);
+                w.load_reg(rm);
+                w.op(op_i32_add);
+                w.set_local(ADDR_TMP);
+                w.state_ptr();
+                w.get_local(ADDR_TMP);
+                w.call(0); // tlb_read32
+                w.i32_const(0xFFFF);
+                w.op(op_i32_and);
+                w.set_local(TMP1);
+                w.store_reg(rt, TMP1);
+            } else if ((insn & 0xFE00) == 0x5000) {
+                // STR Rt, [Rn, Rm]
+                int rt = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int rm = (insn >> 6) & 7;
+                w.load_reg(rn);
+                w.load_reg(rm);
+                w.op(op_i32_add);
+                w.set_local(ADDR_TMP);
+                w.load_reg(rt);
+                w.set_local(TMP1);
+                w.state_ptr();
+                w.get_local(ADDR_TMP);
+                w.get_local(TMP1);
+                w.call(1); // tlb_write32
+            } else if ((insn & 0xFE00) == 0x5200) {
+                // STRH Rt, [Rn, Rm]
+                int rt = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int rm = (insn >> 6) & 7;
+                w.load_reg(rn);
+                w.load_reg(rm);
+                w.op(op_i32_add);
+                w.set_local(ADDR_TMP);
+                w.load_reg(rt);
+                w.i32_const(0xFFFF);
+                w.op(op_i32_and);
+                w.set_local(TMP1);
+                w.state_ptr();
+                w.get_local(ADDR_TMP);
+                w.get_local(TMP1);
+                w.call(1); // tlb_write32 (TODO: write16 — may overwrite adjacent halfword)
+            } else if ((insn & 0xFE00) == 0x5400) {
+                // STRB Rt, [Rn, Rm]
+                int rt = insn & 7;
+                int rn = (insn >> 3) & 7;
+                int rm = (insn >> 6) & 7;
+                w.load_reg(rn);
+                w.load_reg(rm);
+                w.op(op_i32_add);
+                w.set_local(ADDR_TMP);
+                w.load_reg(rt);
+                w.i32_const(0xFF);
+                w.op(op_i32_and);
+                w.set_local(TMP1);
+                w.state_ptr();
+                w.get_local(ADDR_TMP);
+                w.get_local(TMP1);
+                w.call(1); // tlb_write32 (TODO: write8)
+            } else if ((insn & 0xF800) == 0xA000) {
+                // ADR Rd, label (ADD Rd, PC, #imm8*4)
+                int rd = (insn >> 8) & 7;
+                int imm8 = insn & 0xFF;
+                // effective address = (PC+4) & ~3 + imm8*4
+                std::uint32_t addr = ((insn_addr + 4) & ~3u) + imm8 * 4;
+                w.i32_const(static_cast<std::int32_t>(addr));
+                w.set_local(TMP1);
+                w.store_reg(rd, TMP1);
+            } else if ((insn & 0xF800) == 0xC000) {
+                // STMIA Rn!, {reglist}
+                int rn = (insn >> 8) & 7;
+                std::uint16_t reglist = insn & 0xFF;
+                w.load_reg(rn);
+                w.set_local(ADDR_TMP);
+                int count = 0;
+                for (int r = 0; r < 8; r++) {
+                    if (reglist & (1 << r)) {
+                        w.load_reg(r);
+                        w.set_local(TMP1);
+                        w.state_ptr();
+                        w.get_local(ADDR_TMP);
+                        if (count > 0) { w.i32_const(count * 4); w.op(op_i32_add); }
+                        w.get_local(TMP1);
+                        w.call(1); // tlb_write32
+                        count++;
+                    }
+                }
+                // Writeback: Rn += count*4
+                w.get_local(ADDR_TMP);
+                w.i32_const(count * 4);
+                w.op(op_i32_add);
+                w.set_local(TMP1);
+                w.store_reg(rn, TMP1);
+            } else if ((insn & 0xF800) == 0xC800) {
+                // LDMIA Rn!, {reglist}
+                int rn = (insn >> 8) & 7;
+                std::uint16_t reglist = insn & 0xFF;
+                w.load_reg(rn);
+                w.set_local(ADDR_TMP);
+                int count = 0;
+                for (int r = 0; r < 8; r++) {
+                    if (reglist & (1 << r)) {
+                        w.state_ptr();
+                        w.get_local(ADDR_TMP);
+                        if (count > 0) { w.i32_const(count * 4); w.op(op_i32_add); }
+                        w.call(0); // tlb_read32
+                        w.set_local(TMP1);
+                        w.store_reg(r, TMP1);
+                        count++;
+                    }
+                }
+                // Writeback only if Rn not in reglist
+                if (!(reglist & (1 << rn))) {
+                    w.get_local(ADDR_TMP);
+                    w.i32_const(count * 4);
+                    w.op(op_i32_add);
+                    w.set_local(TMP1);
+                    w.store_reg(rn, TMP1);
+                }
             } else if ((insn & 0xF800) == 0x4800) {
                 // LDR Rt, [PC, #imm8*4] — literal pool load
                 int rt = (insn >> 8) & 7;
@@ -969,8 +1145,8 @@ namespace eka2l1::arm::aot {
                 w.store_i32(S::NFLAG, TMP4);
                 w.get_local(TMP3); w.op(op_i32_eqz); w.set_local(TMP4);
                 w.store_i32(S::ZFLAG, TMP4);
-            } else if ((insn & 0xFFC0) == 0x4580) {
-                // CMP Rn, Rm (high registers)
+            } else if ((insn & 0xFF00) == 0x4500) {
+                // CMP Rn, Rm (T2, one or both regs high)
                 int rn = (insn & 7) | ((insn >> 4) & 8);
                 int rm = (insn >> 3) & 0xF;
                 w.load_reg(rn); w.set_local(TMP1);
