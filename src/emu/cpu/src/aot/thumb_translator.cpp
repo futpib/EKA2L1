@@ -166,7 +166,8 @@ namespace eka2l1::arm::aot {
     translate_result translate_thumb_block(
         const std::uint8_t *code,
         std::size_t code_size,
-        std::uint32_t start_address)
+        std::uint32_t start_address,
+        const sibling_map *siblings)
     {
         translate_result tr;
         tr.complete = false;
@@ -253,6 +254,32 @@ namespace eka2l1::arm::aot {
                         if (s) imm32 |= 0xFF000000; // sign-extend bit 24
                         std::uint32_t target = insn_addr + 4 + imm32;
                         std::uint32_t next_pc = insn_addr + 4;
+
+                        // If the target is a known sibling AOT function, emit a
+                        // direct call. This avoids a WASM↔interpreter roundtrip.
+                        // After the call, we propagate the bail (return with
+                        // insn_count + sibling's count) rather than continuing,
+                        // because the sibling may have set PC to something other
+                        // than our return address.
+                        if (siblings) {
+                            auto it = siblings->find(target);
+                            if (it != siblings->end()) {
+                                // Set LR = next_pc | 1 before the call
+                                w.store_i32_const(S::LR, static_cast<std::int32_t>(next_pc | 1));
+                                // Call sibling: returns instruction count
+                                w.state_ptr();
+                                w.op(op_call);
+                                leb(result.body, it->second);
+                                // Add our BL's 1 instruction + our prior count
+                                w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
+                                w.op(op_i32_add);
+                                w.ret();
+                                i += 2;
+                                insn_idx++;
+                                continue;
+                            }
+                        }
+
                         // Set LR = next_pc | 1 (Thumb)
                         w.store_i32_const(S::LR, static_cast<std::int32_t>(next_pc | 1));
                         // Set PC to target and bail — interpreter re-dispatches

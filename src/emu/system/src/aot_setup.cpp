@@ -168,6 +168,16 @@ namespace eka2l1::arm::aot {
 
             int arm_count = 0, dup_count = 0, zero_count = 0, oob_count = 0;
             std::set<std::uint32_t> translated_addrs;
+
+            // Collect candidate functions: (ordinal, func_addr, func_host, func_size).
+            struct candidate {
+                std::uint32_t ordinal;
+                std::uint32_t func_addr;
+                std::uint8_t *func_host;
+                std::uint32_t func_size;
+            };
+            std::vector<candidate> candidates;
+
             for (std::uint32_t ordinal : ordinals_to_translate) {
                 if (ordinal < 1 || ordinal > static_cast<std::uint32_t>(hdr.export_dir_count)) continue;
 
@@ -189,28 +199,102 @@ namespace eka2l1::arm::aot {
                 // Determine function size: scan to next export or end of code
                 std::uint32_t max_size = hdr.code_size - func_offset;
                 if (max_size > 4096) max_size = 4096; // cap
+                std::uint32_t func_size = std::min(max_size, 1024u);
 
-                // Find a tighter bound by looking for PUSH as next function start
-                // or cap at 256 bytes for safety
-                std::uint32_t func_size = std::min(max_size, 256u);
+                candidates.push_back({ordinal, func_addr, func_host, func_size});
+            }
 
-                auto tr = translate_thumb_block(func_host, func_size, func_addr);
-                static int skip_log = 0;
-                if (tr.func.body.empty()) {
-                    if (skip_log++ < 5)
-                        fprintf(stderr, "AOT: ordinal %u at 0x%08X: empty body\n", ordinal, func_addr);
+            // First pass: discover which exported candidates translate successfully,
+            // building a sibling map (address → wasm func index).
+            // WASM function indices start at num_imports (3) and go up.
+            const std::uint32_t num_imports = 3;
+            sibling_map siblings;
+            struct accepted_func {
+                std::uint32_t ordinal; // 0 for internal helpers
+                std::uint32_t func_addr;
+                std::uint8_t *func_host;
+                std::uint32_t func_size;
+            };
+            std::vector<accepted_func> accepted;
+
+            auto try_translate_at = [&](std::uint32_t addr, std::uint32_t ordinal) -> bool {
+                // Must be within code range, aligned, and not already translated
+                if (addr < hdr.code_address || addr >= hdr.code_address + hdr.code_size) return false;
+                if (addr & 1) return false; // should already be masked
+                if (siblings.count(addr)) return false;
+                std::uint32_t offset = addr - hdr.code_address;
+                std::uint8_t *host = code_host + offset;
+                std::uint32_t max_size = hdr.code_size - offset;
+                if (max_size > 4096) max_size = 4096;
+                std::uint32_t func_size = std::min(max_size, 1024u);
+                auto tr = translate_thumb_block(host, func_size, addr, nullptr);
+                if (tr.func.body.empty() || !tr.complete) return false;
+                std::uint32_t func_idx = num_imports + static_cast<std::uint32_t>(accepted.size());
+                siblings[addr] = func_idx;
+                accepted.push_back({ordinal, addr, host, func_size});
+                return true;
+            };
+
+            for (const auto &c : candidates) {
+                try_translate_at(c.func_addr, c.ordinal);
+                if (max_exports >= 0 && static_cast<int>(accepted.size()) >= max_exports) break;
+            }
+            fprintf(stderr, "AOT: first pass: %zu export candidates, %zu accepted\n",
+                candidates.size(), accepted.size());
+
+            // Recursively discover internal helper functions by scanning BL
+            // targets in already-accepted functions. Each BL target that's
+            // within the DLL code range and translates successfully is added
+            // as an internal helper.
+            if (max_exports < 0) {
+                size_t start_idx = 0;
+                int rounds = 0;
+                while (start_idx < accepted.size() && rounds++ < 10) {
+                    size_t end_idx = accepted.size();
+                    for (size_t i = start_idx; i < end_idx; i++) {
+                        const auto &f = accepted[i];
+                        // Scan the code for BL instructions and try to translate targets
+                        for (std::uint32_t off = 0; off + 3 < f.func_size; off += 2) {
+                            std::uint16_t w1 = f.func_host[off] | (f.func_host[off+1] << 8);
+                            std::uint16_t w2 = f.func_host[off+2] | (f.func_host[off+3] << 8);
+                            if (((w1 & 0xF800) == 0xF000) && ((w2 & 0xD000) == 0xD000)) {
+                                // Decode BL target
+                                std::uint32_t s = (w1 >> 10) & 1;
+                                std::uint32_t imm10 = w1 & 0x3FF;
+                                std::uint32_t j1 = (w2 >> 13) & 1;
+                                std::uint32_t j2 = (w2 >> 11) & 1;
+                                std::uint32_t imm11 = w2 & 0x7FF;
+                                std::uint32_t i1 = !(j1 ^ s);
+                                std::uint32_t i2 = !(j2 ^ s);
+                                std::int32_t imm32 = static_cast<std::int32_t>(
+                                    (s << 24) | (i1 << 23) | (i2 << 22) | (imm10 << 12) | (imm11 << 1));
+                                if (s) imm32 |= 0xFF000000;
+                                std::uint32_t target = f.func_addr + off + 4 + imm32;
+                                try_translate_at(target & ~1u, 0);
+                                // Skip second halfword
+                                off += 2;
+                            }
+                        }
+                    }
+                    start_idx = end_idx;
+                }
+                fprintf(stderr, "AOT: after helper discovery: %zu total functions\n",
+                    accepted.size());
+            }
+
+            // Second pass: re-translate with the sibling map, emitting direct
+            // calls for BL targets that are other AOT functions.
+            for (const auto &a : accepted) {
+                auto tr = translate_thumb_block(a.func_host, a.func_size, a.func_addr, &siblings);
+                if (tr.func.body.empty() || !tr.complete) {
+                    fprintf(stderr, "AOT: 2nd pass failed for 0x%08X\n", a.func_addr);
                     continue;
                 }
-                if (!tr.complete) {
-                    if (skip_log++ < 5)
-                        fprintf(stderr, "AOT: ordinal %u at 0x%08X: incomplete\n", ordinal, func_addr);
-                    continue;
+                if (a.ordinal != 0) {
+                    fprintf(stderr, "AOT: [%zu] ordinal %u at 0x%08X: OK (%zu bytes)\n",
+                        all_funcs.size() + 1, a.ordinal, a.func_addr, tr.func.body.size());
                 }
-
-                fprintf(stderr, "AOT: [%zu] ordinal %u at 0x%08X: OK (%zu bytes)\n",
-                    all_funcs.size() + 1, ordinal, func_addr, tr.func.body.size());
                 all_funcs.push_back(std::move(tr.func));
-                if (max_exports >= 0 && static_cast<int>(all_funcs.size()) >= max_exports) break;
             }
 
             LOG_INFO(KERNEL, "AOT: translated {}/{} exports for {} (arm={}, dup={}, zero={}, oob={})",
