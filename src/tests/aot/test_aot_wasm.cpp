@@ -1596,6 +1596,90 @@ static bool test_vfp_vcvt_vcmp_vmrs() {
     return true;
 }
 
+// Test that VFP double-precision instructions produce a valid WASM module
+// that can be instantiated. This catches the f64.store alignment bug
+// (alignment=3 is rejected by WASM validators when memory is shared).
+static bool test_vfp_f64_instantiation() {
+    // VCVT.F64.F32 D0, S0: promotes single to double, uses f64.store
+    //   ARM: EEB70AC0. insn=EEB7, insn2=0AC0.
+    //   FOP_EXT, FEXT_FCVT with coproc=0xB (double dest).
+    // BX LR
+    std::vector<std::uint8_t> code = {
+        0xB7, 0xEE, 0xC0, 0x0A,  // VCVT.F64.F32 D0, S0
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL vfp_f64_instantiation: translator rejected\n");
+        return false;
+    }
+    // Build a WASM module and try to instantiate it (via js_run_aot_wasm)
+    // to catch alignment errors at the WASM validator level.
+    std::vector<wasm_import_func> imports = {
+        {"env", "tlb_read32", 2, true},
+        {"env", "tlb_write32", 3, false},
+        {"env", "tlb_read8", 2, true},
+        {"env", "tlb_write8", 3, false},
+    };
+    auto wasm = build_wasm_module({tr.func}, imports);
+    if (wasm.empty()) {
+        printf("  FAIL vfp_f64_instantiation: empty module\n");
+        return false;
+    }
+#ifdef __EMSCRIPTEN__
+    // Actually instantiate to catch validator errors like bad alignment
+    std::vector<std::uint8_t> state(1024, 0);
+    int result = js_run_aot_wasm(wasm.data(), static_cast<int>(wasm.size()),
+        state.data(), static_cast<int>(state.size()));
+    if (result < 0) {
+        printf("  FAIL vfp_f64_instantiation: WASM instantiation failed\n");
+        return false;
+    }
+#endif
+    printf("  PASS vfp_f64_instantiation\n");
+    return true;
+}
+
+// Test that resume_points are generated for BL instructions beyond 1024
+// bytes from the function start. Before the slice cap increase (1024→4096),
+// BLs past byte 1024 were never scanned, so their return addresses had
+// no AOT entry and the interpreter ran FntStore code at those addresses.
+static bool test_resume_points_beyond_1024() {
+    // Build a function with a BL at offset ~1030 from start.
+    // Fill with MOVS R0, #0 (0x2000) up to ~1028 bytes, then BL.
+    std::vector<std::uint8_t> code;
+    std::uint32_t addr = 0x1000;
+    // 514 MOVS instructions = 1028 bytes
+    for (int i = 0; i < 514; i++) {
+        code.push_back(0x00); code.push_back(0x20); // MOVS R0, #0
+    }
+    // BL +0 at offset 1028 (addr 0x1000 + 1028 = 0x1404)
+    // BL target = PC+4+0 = 0x1408. Encoding: F000 F800
+    //   S=0, imm10=0, J1=1, J2=1, imm11=0 → insn2 = (1<<15)|(1<<14)|(1<<13)|(1<<12)|(1<<11) = 0xF800
+    code.push_back(0x00); code.push_back(0xF0); // BL hi
+    code.push_back(0x00); code.push_back(0xF8); // BL lo (target = 0x1408)
+    // BX LR at offset 1032
+    code.push_back(0x70); code.push_back(0x47);
+
+    auto tr = translate_thumb_block(code.data(), code.size(), addr);
+    if (tr.func.body.empty()) {
+        printf("  FAIL resume_points_beyond_1024: translator rejected\n");
+        return false;
+    }
+    // The BL at 0x1404 should produce resume_point = 0x1408
+    bool found = false;
+    for (auto rp : tr.resume_points) {
+        if (rp == 0x1408) { found = true; break; }
+    }
+    if (!found) {
+        printf("  FAIL resume_points_beyond_1024: 0x1408 not in resume_points (got %zu points)\n",
+            tr.resume_points.size());
+        return false;
+    }
+    printf("  PASS resume_points_beyond_1024\n");
+    return true;
+}
+
 // Compile-time verification of state_offsets against ARMul_State layout.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
@@ -2189,6 +2273,8 @@ int main() {
     if (test_wide_strb_imm12()) passed++; else failed++;
     if (test_vfp_vldr_vadd_vstr()) passed++; else failed++;
     if (test_vfp_vcvt_vcmp_vmrs()) passed++; else failed++;
+    if (test_vfp_f64_instantiation()) passed++; else failed++;
+    if (test_resume_points_beyond_1024()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;

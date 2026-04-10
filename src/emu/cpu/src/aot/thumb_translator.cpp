@@ -2474,7 +2474,7 @@ namespace eka2l1::arm::aot {
                                         w.state_ptr();
                                         w.get_local(DTMP1);
                                         w.op(op_f64_store);
-                                        leb(result.body, 3); // align=8
+                                        leb(result.body, 2); // align=4 (state may not be 8-aligned)
                                         leb(result.body, S::dreg_lo(dd));
                                         vfp_handled = true;
                                     } else if (fext == FEXT_FCMP || fext == FEXT_FCMPE) {

@@ -208,7 +208,7 @@ namespace eka2l1::arm::aot {
                 // Determine function size: scan to next export or end of code
                 std::uint32_t max_size = hdr.code_size - func_offset;
                 if (max_size > 4096) max_size = 4096; // cap
-                std::uint32_t func_size = std::min(max_size, 1024u);
+                std::uint32_t func_size = std::min(max_size, 4096u);
 
                 candidates.push_back({ordinal, func_addr, func_host, func_size});
             }
@@ -248,7 +248,7 @@ namespace eka2l1::arm::aot {
                 std::uint8_t *host = code_host + offset;
                 std::uint32_t max_size = hdr.code_size - offset;
                 if (max_size > 4096) max_size = 4096;
-                std::uint32_t func_size = std::min(max_size, 1024u);
+                std::uint32_t func_size = std::min(max_size, 4096u);
                 auto tr = translate_thumb_block(host, func_size, addr, nullptr, &dll_window);
                 if (tr.func.body.empty() || !tr.complete) return false;
                 std::uint32_t func_idx = num_imports + static_cast<std::uint32_t>(accepted.size());

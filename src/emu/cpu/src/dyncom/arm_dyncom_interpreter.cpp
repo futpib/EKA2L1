@@ -8,6 +8,7 @@
 #include <cinttypes>
 #include <map>
 #include <mutex>
+#include <set>
 #include <unordered_map>
 #include <vector>
 #include <common/log.h>
@@ -938,6 +939,8 @@ void dyncom_dump_pc_histogram() {
     fflush(stderr);
 }
 
+static std::uint64_t g_interp_instrs = 0;
+
 unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
 #undef RM
 #undef RS
@@ -972,12 +975,14 @@ unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
     if (num_instrs >= cpu->NumInstrsToExecute) \
         goto END;                              \
     num_instrs++;                              \
+    g_interp_instrs++;                         \
     goto *InstLabel[inst_base->idx]
 #else
 #define GOTO_NEXT_INST                         \
     if (num_instrs >= cpu->NumInstrsToExecute) \
         goto END;                              \
     num_instrs++;                              \
+    g_interp_instrs++;                         \
     switch (inst_base->idx) {                  \
     case 0:                                    \
         goto VMLA_INST;                        \
@@ -1673,16 +1678,16 @@ DISPATCH : {
 
             aot_dispatch_count++;
             aot_instr_count += instrs;
-            // Log on powers of 10 so the ratio (instrs/dispatch) progression
-            // is visible at multiple scales. Higher ratio = longer runs in
-            // AOT = fewer WASM↔interpreter roundtrips, which is the goal.
             {
                 static std::uint64_t next_log = 1;
                 if (aot_dispatch_count == next_log) {
-                    fprintf(stderr, "AOT: %llu dispatches, %llu AOT instrs (%.1f instrs/dispatch)\n",
+                    double aot_pct = (aot_instr_count + g_interp_instrs) > 0
+                        ? 100.0 * aot_instr_count / (aot_instr_count + g_interp_instrs) : 0;
+                    fprintf(stderr, "AOT: %llu dispatches, %llu AOT + %llu interp instrs (%.1f%% AOT)\n",
                         (unsigned long long)aot_dispatch_count,
                         (unsigned long long)aot_instr_count,
-                        aot_dispatch_count ? (double)aot_instr_count / aot_dispatch_count : 0.0);
+                        (unsigned long long)g_interp_instrs,
+                        aot_pct);
                     next_log *= 10;
                 }
             }
