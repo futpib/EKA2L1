@@ -23,6 +23,35 @@
 #include <map>
 #include <set>
 
+// VFP instruction field extraction (from ARM encoding).
+// These operate on the 32-bit ARM-format instruction word.
+#define vfp_get_sd(inst) (((inst) & 0x0000f000) >> 11 | ((inst) & (1 << 22)) >> 22)
+#define vfp_get_dd(inst) (((inst) & 0x0000f000) >> 12 | ((inst) & (1 << 22)) >> 18)
+#define vfp_get_sm(inst) (((inst) & 0x0000000f) << 1  | ((inst) & (1 << 5)) >> 5)
+#define vfp_get_dm(inst) (((inst) & 0x0000000f)        | ((inst) & (1 << 5)) >> 1)
+#define vfp_get_sn(inst) (((inst) & 0x000f0000) >> 15 | ((inst) & (1 << 7)) >> 7)
+#define vfp_get_dn(inst) (((inst) & 0x000f0000) >> 16 | ((inst) & (1 << 7)) >> 3)
+
+// VFP operation masks
+enum : std::uint32_t {
+    FOP_MASK  = 0x00b00040,
+    FOP_FMAC  = 0x00000000, FOP_FNMAC = 0x00000040,
+    FOP_FMSC  = 0x00100000, FOP_FNMSC = 0x00100040,
+    FOP_FMUL  = 0x00200000, FOP_FNMUL = 0x00200040,
+    FOP_FADD  = 0x00300000, FOP_FSUB  = 0x00300040,
+    FOP_FDIV  = 0x00800000,
+    FOP_EXT   = 0x00b00040,
+    FEXT_MASK  = 0x000f0080,
+    FEXT_FCPY  = 0x00000000, FEXT_FABS  = 0x00000080,
+    FEXT_FNEG  = 0x00010000, FEXT_FSQRT = 0x00010080,
+    FEXT_FCMP  = 0x00040000, FEXT_FCMPE = 0x00040080,
+    FEXT_FCMPZ = 0x00050000, FEXT_FCMPEZ= 0x00050080,
+    FEXT_FCVT  = 0x00070080,
+    FEXT_FUITO = 0x00080000, FEXT_FSITO = 0x00080080,
+    FEXT_FTOUI = 0x000c0000, FEXT_FTOUIZ= 0x000c0080,
+    FEXT_FTOSI = 0x000d0000, FEXT_FTOSIZ= 0x000d0080,
+};
+
 namespace eka2l1::arm::aot {
     using S = state_offsets;
 
@@ -178,11 +207,62 @@ namespace eka2l1::arm::aot {
                 bool is_wide = ((insn & 0xF800) == 0xE800)
                             || ((insn & 0xF000) == 0xF000);
                 if (is_wide) {
-                    // Treat all wide insns as fall-through (the main loop
-                    // either translates them or bails; in either case
-                    // control proceeds to the next insn). BL/BLX imm are
-                    // wide and unconditional calls — they also return via
-                    // LR, so fall-through is correct.
+                    if (i + 3 < code_size) {
+                        std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                        // Wide B.W (unconditional): terminates this path.
+                        //   insn & 0xF800 == 0xF000 && insn2 & 0xD000 == 0x9000
+                        bool is_b_w = ((insn & 0xF800) == 0xF000)
+                            && ((insn2 & 0xD000) == 0x9000);
+                        if (is_b_w) {
+                            // Compute target offset within the slice.
+                            std::uint32_t s = (insn >> 10) & 1;
+                            std::uint32_t imm10 = insn & 0x3FF;
+                            std::uint32_t j1 = (insn2 >> 13) & 1;
+                            std::uint32_t j2 = (insn2 >> 11) & 1;
+                            std::uint32_t imm11 = insn2 & 0x7FF;
+                            std::uint32_t i1 = !(j1 ^ s);
+                            std::uint32_t i2 = !(j2 ^ s);
+                            std::int32_t imm32 = static_cast<std::int32_t>(
+                                (s << 24) | (i1 << 23) | (i2 << 22) | (imm10 << 12) | (imm11 << 1));
+                            if (s) imm32 |= static_cast<std::int32_t>(0xFE000000u);
+                            std::int32_t target_off =
+                                static_cast<std::int32_t>(i) + 4 + imm32;
+                            if (target_off >= 0
+                                && static_cast<std::size_t>(target_off) + 1 < code_size) {
+                                i = static_cast<std::size_t>(target_off);
+                                continue;
+                            }
+                            break; // out-of-slice target, path ends
+                        }
+                        // Wide B<cond>.W: follow both paths.
+                        //   insn & 0xF800 == 0xF000 && insn2 & 0xD000 == 0x8000
+                        bool is_bcond_w = ((insn & 0xF800) == 0xF000)
+                            && ((insn2 & 0xD000) == 0x8000);
+                        if (is_bcond_w) {
+                            std::uint32_t cond4 = (insn >> 6) & 0xF;
+                            if (cond4 < 0xE) {
+                                std::uint32_t s = (insn >> 10) & 1;
+                                std::uint32_t imm6 = insn & 0x3F;
+                                std::uint32_t j1 = (insn2 >> 13) & 1;
+                                std::uint32_t j2 = (insn2 >> 11) & 1;
+                                std::uint32_t imm11 = insn2 & 0x7FF;
+                                std::int32_t imm32 = static_cast<std::int32_t>(
+                                    (s << 20) | (j2 << 19) | (j1 << 18) | (imm6 << 12) | (imm11 << 1));
+                                if (s) imm32 |= static_cast<std::int32_t>(0xFFE00000u);
+                                std::int32_t target_off =
+                                    static_cast<std::int32_t>(i) + 4 + imm32;
+                                if (target_off >= 0
+                                    && static_cast<std::size_t>(target_off) + 1 < code_size) {
+                                    worklist.push_back(static_cast<std::size_t>(target_off));
+                                }
+                            }
+                            // Fall through (conditional).
+                            i += 4;
+                            continue;
+                        }
+                    }
+                    // All other wide insns (BL, BLX, data-processing, load/store,
+                    // VFP, etc.) fall through to the next instruction.
                     i += 4;
                     continue;
                 }
@@ -336,9 +416,14 @@ namespace eka2l1::arm::aot {
         result.export_name = "f_" + std::to_string(start_address);
 
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
+        //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
         result.num_locals = 6;
+        result.num_f32_locals = 2;
+        result.num_f64_locals = 1;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
         const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
+        const std::uint32_t FTMP1 = 7, FTMP2 = 8;
+        const std::uint32_t DTMP1 = 9;
 
         emit w{result.body, false};
 
@@ -2143,6 +2228,639 @@ namespace eka2l1::arm::aot {
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
                         insn_idx++;
                         continue;
+                    }
+                }
+
+                // VFP data-processing and load/store (coprocessor 10/11).
+                // In Thumb-2, VFP instructions occupy the EExx/EDxx/ECxx space.
+                // The ARM-equivalent instruction is (insn << 16) | insn2.
+                //
+                // We handle:
+                //  - VLDR/VSTR (single and double)
+                //  - VADD/VSUB/VMUL/VDIV/VNEG/VABS/VSQRT/VCPY (VMOV reg)
+                //  - VCVT (int↔float, single↔double)
+                //  - VCMP/VCMPE + VMRS (move FPSCR → APSR)
+                //  - VMOV (ARM reg ↔ VFP single reg)
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    // Combine into ARM-format 32-bit instruction
+                    std::uint32_t arm = (static_cast<std::uint32_t>(insn) << 16) | insn2;
+                    // Coprocessor instructions: bits [27:24] = 110x or 1110
+                    std::uint32_t bits_27_24 = (arm >> 24) & 0xF;
+                    bool is_vfp = (bits_27_24 == 0xE || bits_27_24 == 0xD || bits_27_24 == 0xC);
+                    // Check coprocessor number: bits [11:8] must be 0xA (single) or 0xB (double)
+                    std::uint32_t coproc = (arm >> 8) & 0xF;
+                    bool is_cp10_11 = (coproc == 0xA || coproc == 0xB);
+                    if (is_vfp && is_cp10_11) {
+                        bool is_single = (coproc == 0xA);
+                        bool vfp_handled = false;
+
+                        // VLDR/VSTR: bits [27:24] = 1101, bit 20 = L
+                        // VLDR: 1101 U D01 Rn | Vd 101x imm8
+                        // VSTR: 1101 U D00 Rn | Vd 101x imm8
+                        if (bits_27_24 == 0xD) {
+                            bool is_load = (arm >> 20) & 1;
+                            bool U = (arm >> 23) & 1;
+                            std::uint32_t rn = (arm >> 16) & 0xF;
+                            std::uint32_t imm8 = arm & 0xFF;
+                            std::int32_t offset = U ? static_cast<std::int32_t>(imm8 * 4)
+                                                    : -static_cast<std::int32_t>(imm8 * 4);
+                            // Compute address
+                            if (rn == 15) {
+                                std::uint32_t base = (insn_addr + 4) & ~3u;
+                                w.i32_const(static_cast<std::int32_t>(base + offset));
+                            } else {
+                                w.load_reg(static_cast<int>(rn));
+                                if (offset != 0) {
+                                    w.i32_const(offset);
+                                    w.op(op_i32_add);
+                                }
+                            }
+                            w.set_local(TMP1); // address
+                            if (is_single) {
+                                int sd = ((arm >> 11) & 0x1E) | ((arm >> 22) & 1);
+                                if (is_load) {
+                                    // VLDR.32: S[sd] = mem32[addr]
+                                    w.state_ptr();
+                                    w.get_local(TMP1);
+                                    w.call(0); // tlb_read32
+                                    w.set_local(TMP2);
+                                    w.store_i32(S::sreg(sd), TMP2);
+                                } else {
+                                    // VSTR.32: mem32[addr] = S[sd]
+                                    w.load_i32(S::sreg(sd));
+                                    w.set_local(TMP2);
+                                    w.state_ptr();
+                                    w.get_local(TMP1);
+                                    w.get_local(TMP2);
+                                    w.call(1); // tlb_write32
+                                }
+                            } else {
+                                int dd = ((arm >> 12) & 0xF) | ((arm >> 18) & 0x10);
+                                if (is_load) {
+                                    // VLDR.64: D[dd] = mem64[addr]
+                                    // Low word
+                                    w.state_ptr();
+                                    w.get_local(TMP1);
+                                    w.call(0);
+                                    w.set_local(TMP2);
+                                    w.store_i32(S::dreg_lo(dd), TMP2);
+                                    // High word
+                                    w.state_ptr();
+                                    w.get_local(TMP1);
+                                    w.i32_const(4);
+                                    w.op(op_i32_add);
+                                    w.call(0);
+                                    w.set_local(TMP2);
+                                    w.store_i32(S::dreg_hi(dd), TMP2);
+                                } else {
+                                    // VSTR.64: mem64[addr] = D[dd]
+                                    w.load_i32(S::dreg_lo(dd));
+                                    w.set_local(TMP2);
+                                    w.state_ptr();
+                                    w.get_local(TMP1);
+                                    w.get_local(TMP2);
+                                    w.call(1);
+                                    w.load_i32(S::dreg_hi(dd));
+                                    w.set_local(TMP2);
+                                    w.state_ptr();
+                                    w.get_local(TMP1);
+                                    w.i32_const(4);
+                                    w.op(op_i32_add);
+                                    w.get_local(TMP2);
+                                    w.call(1);
+                                }
+                            }
+                            vfp_handled = true;
+                        }
+
+                        // VFP data processing: bits [27:24] = 1110
+                        if (bits_27_24 == 0xE && !vfp_handled) {
+                            std::uint32_t fop = arm & FOP_MASK;
+                            if (is_single) {
+                                int sd = vfp_get_sd(arm);
+                                int sn = vfp_get_sn(arm);
+                                int sm = vfp_get_sm(arm);
+                                // Helper: load single as f32
+                                // state_ptr + offset → i32.load → f32.reinterpret_i32
+                                auto load_s = [&](int sr) {
+                                    w.load_i32(S::sreg(sr));
+                                    w.op(op_f32_reinterpret_i32);
+                                };
+                                auto store_s = [&](int sr) {
+                                    // TOS is f32 → reinterpret to i32 → store
+                                    w.op(op_i32_reinterpret_f32);
+                                    w.set_local(TMP2);
+                                    w.store_i32(S::sreg(sr), TMP2);
+                                };
+                                if (fop == FOP_FADD) {
+                                    load_s(sn); load_s(sm);
+                                    w.op(op_f32_add);
+                                    store_s(sd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FSUB) {
+                                    load_s(sn); load_s(sm);
+                                    w.op(op_f32_sub);
+                                    store_s(sd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FMUL) {
+                                    load_s(sn); load_s(sm);
+                                    w.op(op_f32_mul);
+                                    store_s(sd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FDIV) {
+                                    load_s(sn); load_s(sm);
+                                    w.op(op_f32_div);
+                                    store_s(sd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FMAC) {
+                                    // VMLA: Sd = Sd + Sn * Sm
+                                    load_s(sd);
+                                    load_s(sn); load_s(sm);
+                                    w.op(op_f32_mul);
+                                    w.op(op_f32_add);
+                                    store_s(sd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FNMAC) {
+                                    // VMLS: Sd = Sd - Sn * Sm
+                                    load_s(sd);
+                                    load_s(sn); load_s(sm);
+                                    w.op(op_f32_mul);
+                                    w.op(op_f32_sub);
+                                    store_s(sd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FMSC) {
+                                    // VNMLA: Sd = -(Sd + Sn * Sm)
+                                    load_s(sd);
+                                    load_s(sn); load_s(sm);
+                                    w.op(op_f32_mul);
+                                    w.op(op_f32_add);
+                                    w.op(op_f32_neg);
+                                    store_s(sd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FNMSC) {
+                                    // VNMLS: Sd = Sn * Sm - Sd
+                                    load_s(sn); load_s(sm);
+                                    w.op(op_f32_mul);
+                                    load_s(sd);
+                                    w.op(op_f32_sub);
+                                    store_s(sd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FNMUL) {
+                                    // VNMUL: Sd = -(Sn * Sm)
+                                    load_s(sn); load_s(sm);
+                                    w.op(op_f32_mul);
+                                    w.op(op_f32_neg);
+                                    store_s(sd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_EXT) {
+                                    std::uint32_t fext = arm & FEXT_MASK;
+                                    if (fext == FEXT_FCPY) {
+                                        // VMOV Sd, Sm
+                                        load_s(sm); store_s(sd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FABS) {
+                                        load_s(sm);
+                                        w.op(op_f32_abs);
+                                        store_s(sd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FNEG) {
+                                        load_s(sm);
+                                        w.op(op_f32_neg);
+                                        store_s(sd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FSQRT) {
+                                        load_s(sm);
+                                        w.op(op_f32_sqrt);
+                                        store_s(sd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FUITO) {
+                                        // VCVT.F32.U32: Sd = (float)(uint)Sm
+                                        w.load_i32(S::sreg(sm));
+                                        w.op(op_f32_convert_i32_u);
+                                        store_s(sd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FSITO) {
+                                        // VCVT.F32.S32: Sd = (float)(int)Sm
+                                        w.load_i32(S::sreg(sm));
+                                        w.op(op_f32_convert_i32_s);
+                                        store_s(sd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FTOUIZ) {
+                                        // VCVT.U32.F32: Sd = (uint)Sm (round toward zero)
+                                        load_s(sm);
+                                        w.op(op_i32_trunc_f32_u);
+                                        w.set_local(TMP2);
+                                        w.store_i32(S::sreg(sd), TMP2);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FTOSIZ) {
+                                        // VCVT.S32.F32: Sd = (int)Sm (round toward zero)
+                                        load_s(sm);
+                                        w.op(op_i32_trunc_f32_s);
+                                        w.set_local(TMP2);
+                                        w.store_i32(S::sreg(sd), TMP2);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FCVT) {
+                                        // VCVT.F64.F32: Dd = (double)Sm
+                                        // Note: sd here is actually dd for the dest
+                                        int dd = vfp_get_dd(arm);
+                                        load_s(sm);
+                                        w.op(op_f64_promote_f32);
+                                        w.set_local(DTMP1);
+                                        // Store f64 as two i32 words via reinterpret
+                                        // WASM doesn't have i32 pair from f64 directly.
+                                        // Use f64.store to state, then load back as i32.
+                                        // Actually: store f64 directly at dreg offset.
+                                        w.state_ptr();
+                                        w.get_local(DTMP1);
+                                        w.op(op_f64_store);
+                                        leb(result.body, 3); // align=8
+                                        leb(result.body, S::dreg_lo(dd));
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FCMP || fext == FEXT_FCMPE) {
+                                        // VCMP Sd, Sm: set FPSCR flags
+                                        load_s(sd); w.set_local(FTMP1);
+                                        load_s(sm); w.set_local(FTMP2);
+                                        // FPSCR: N=less, Z=equal, C=ge_or_unord, V=unordered
+                                        // For now, set N/Z/C/V in FPSCR[31:28]
+                                        // We'll compute flags and store to FPSCR
+                                        w.load_i32(S::FPSCR);
+                                        w.i32_const(static_cast<std::int32_t>(0x0FFFFFFFu));
+                                        w.op(op_i32_and); // clear top 4 bits
+                                        w.set_local(TMP1); // base FPSCR
+                                        // Z: equal
+                                        w.get_local(FTMP1); w.get_local(FTMP2);
+                                        w.op(op_f32_eq);
+                                        w.op(op_if); w.op(type_void);
+                                            w.get_local(TMP1);
+                                            w.i32_const(0x60000000); // Z=1, C=1
+                                            w.op(op_i32_or);
+                                            w.set_local(TMP1);
+                                        w.op(op_else);
+                                            // Not equal: check less-than
+                                            w.get_local(FTMP1); w.get_local(FTMP2);
+                                            w.op(op_f32_lt);
+                                            w.op(op_if); w.op(type_void);
+                                                w.get_local(TMP1);
+                                                w.i32_const(static_cast<std::int32_t>(0x80000000u)); // N=1
+                                                w.op(op_i32_or);
+                                                w.set_local(TMP1);
+                                            w.op(op_else);
+                                                // Greater or unordered
+                                                w.get_local(FTMP1); w.get_local(FTMP2);
+                                                w.op(op_f32_gt);
+                                                w.op(op_if); w.op(type_void);
+                                                    w.get_local(TMP1);
+                                                    w.i32_const(0x20000000); // C=1
+                                                    w.op(op_i32_or);
+                                                    w.set_local(TMP1);
+                                                w.op(op_else);
+                                                    // Unordered (NaN)
+                                                    w.get_local(TMP1);
+                                                    w.i32_const(0x30000000); // C=1, V=1
+                                                    w.op(op_i32_or);
+                                                    w.set_local(TMP1);
+                                                w.op(op_end);
+                                            w.op(op_end);
+                                        w.op(op_end);
+                                        w.store_i32(S::FPSCR, TMP1);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FCMPZ || fext == FEXT_FCMPEZ) {
+                                        // VCMP Sd, #0.0
+                                        load_s(sd); w.set_local(FTMP1);
+                                        w.op(op_f32_const);
+                                        // IEEE 754 +0.0 = 0x00000000
+                                        result.body.push_back(0); result.body.push_back(0);
+                                        result.body.push_back(0); result.body.push_back(0);
+                                        w.set_local(FTMP2);
+                                        w.load_i32(S::FPSCR);
+                                        w.i32_const(static_cast<std::int32_t>(0x0FFFFFFFu));
+                                        w.op(op_i32_and);
+                                        w.set_local(TMP1);
+                                        w.get_local(FTMP1); w.get_local(FTMP2);
+                                        w.op(op_f32_eq);
+                                        w.op(op_if); w.op(type_void);
+                                            w.get_local(TMP1);
+                                            w.i32_const(0x60000000);
+                                            w.op(op_i32_or);
+                                            w.set_local(TMP1);
+                                        w.op(op_else);
+                                            w.get_local(FTMP1); w.get_local(FTMP2);
+                                            w.op(op_f32_lt);
+                                            w.op(op_if); w.op(type_void);
+                                                w.get_local(TMP1);
+                                                w.i32_const(static_cast<std::int32_t>(0x80000000u));
+                                                w.op(op_i32_or);
+                                                w.set_local(TMP1);
+                                            w.op(op_else);
+                                                w.get_local(FTMP1); w.get_local(FTMP2);
+                                                w.op(op_f32_gt);
+                                                w.op(op_if); w.op(type_void);
+                                                    w.get_local(TMP1);
+                                                    w.i32_const(0x20000000);
+                                                    w.op(op_i32_or);
+                                                    w.set_local(TMP1);
+                                                w.op(op_else);
+                                                    w.get_local(TMP1);
+                                                    w.i32_const(0x30000000);
+                                                    w.op(op_i32_or);
+                                                    w.set_local(TMP1);
+                                                w.op(op_end);
+                                            w.op(op_end);
+                                        w.op(op_end);
+                                        w.store_i32(S::FPSCR, TMP1);
+                                        vfp_handled = true;
+                                    }
+                                }
+                            } else {
+                                // Double-precision VFP data processing
+                                int dd = vfp_get_dd(arm);
+                                int dn = vfp_get_dn(arm);
+                                int dm = vfp_get_dm(arm);
+                                // Load double: read two i32s from state, f64.load
+                                auto load_d = [&](int dr) {
+                                    w.state_ptr();
+                                    w.op(op_f64_load);
+                                    leb(result.body, 3); // align
+                                    leb(result.body, S::dreg_lo(dr));
+                                };
+                                auto store_d = [&](int dr) {
+                                    w.set_local(DTMP1);
+                                    w.state_ptr();
+                                    w.get_local(DTMP1);
+                                    w.op(op_f64_store);
+                                    leb(result.body, 3);
+                                    leb(result.body, S::dreg_lo(dr));
+                                };
+                                if (fop == FOP_FADD) {
+                                    load_d(dn); load_d(dm);
+                                    w.op(op_f64_add);
+                                    store_d(dd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FSUB) {
+                                    load_d(dn); load_d(dm);
+                                    w.op(op_f64_sub);
+                                    store_d(dd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FMUL) {
+                                    load_d(dn); load_d(dm);
+                                    w.op(op_f64_mul);
+                                    store_d(dd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FDIV) {
+                                    load_d(dn); load_d(dm);
+                                    w.op(op_f64_div);
+                                    store_d(dd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FMAC) {
+                                    load_d(dd);
+                                    load_d(dn); load_d(dm);
+                                    w.op(op_f64_mul);
+                                    w.op(op_f64_add);
+                                    store_d(dd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FNMAC) {
+                                    load_d(dd);
+                                    load_d(dn); load_d(dm);
+                                    w.op(op_f64_mul);
+                                    w.op(op_f64_sub);
+                                    store_d(dd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_FNMUL) {
+                                    load_d(dn); load_d(dm);
+                                    w.op(op_f64_mul);
+                                    w.op(op_f64_neg);
+                                    store_d(dd);
+                                    vfp_handled = true;
+                                } else if (fop == FOP_EXT) {
+                                    std::uint32_t fext = arm & FEXT_MASK;
+                                    if (fext == FEXT_FCPY) {
+                                        load_d(dm); store_d(dd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FABS) {
+                                        load_d(dm);
+                                        w.op(op_f64_abs);
+                                        store_d(dd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FNEG) {
+                                        load_d(dm);
+                                        w.op(op_f64_neg);
+                                        store_d(dd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FSQRT) {
+                                        load_d(dm);
+                                        w.op(op_f64_sqrt);
+                                        store_d(dd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FCVT) {
+                                        // VCVT.F32.F64: Sd = (float)Dm
+                                        int sd_cvt = vfp_get_sd(arm);
+                                        load_d(dm);
+                                        w.op(op_f32_demote_f64);
+                                        w.op(op_i32_reinterpret_f32);
+                                        w.set_local(TMP2);
+                                        w.store_i32(S::sreg(sd_cvt), TMP2);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FUITO) {
+                                        // VCVT.F64.U32: Dd = (double)(uint)Sm
+                                        int sm_cvt = vfp_get_sm(arm);
+                                        w.load_i32(S::sreg(sm_cvt));
+                                        w.op(op_f64_convert_i32_u);
+                                        store_d(dd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FSITO) {
+                                        // VCVT.F64.S32: Dd = (double)(int)Sm
+                                        int sm_cvt = vfp_get_sm(arm);
+                                        w.load_i32(S::sreg(sm_cvt));
+                                        w.op(op_f64_convert_i32_s);
+                                        store_d(dd);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FTOUIZ) {
+                                        // VCVT.U32.F64: Sd = (uint)Dm
+                                        int sd_cvt = vfp_get_sd(arm);
+                                        load_d(dm);
+                                        w.op(op_i32_trunc_f64_u);
+                                        w.set_local(TMP2);
+                                        w.store_i32(S::sreg(sd_cvt), TMP2);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FTOSIZ) {
+                                        // VCVT.S32.F64: Sd = (int)Dm
+                                        int sd_cvt = vfp_get_sd(arm);
+                                        load_d(dm);
+                                        w.op(op_i32_trunc_f64_s);
+                                        w.set_local(TMP2);
+                                        w.store_i32(S::sreg(sd_cvt), TMP2);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FCMP || fext == FEXT_FCMPE) {
+                                        load_d(dd); w.set_local(DTMP1);
+                                        // Load Dm into a second f64 local... we only have one.
+                                        // Use stack: dd already in DTMP1, load dm fresh for each compare.
+                                        w.load_i32(S::FPSCR);
+                                        w.i32_const(static_cast<std::int32_t>(0x0FFFFFFFu));
+                                        w.op(op_i32_and);
+                                        w.set_local(TMP1);
+                                        w.get_local(DTMP1); load_d(dm);
+                                        w.op(op_f64_eq);
+                                        w.op(op_if); w.op(type_void);
+                                            w.get_local(TMP1);
+                                            w.i32_const(0x60000000);
+                                            w.op(op_i32_or);
+                                            w.set_local(TMP1);
+                                        w.op(op_else);
+                                            w.get_local(DTMP1); load_d(dm);
+                                            w.op(op_f64_lt);
+                                            w.op(op_if); w.op(type_void);
+                                                w.get_local(TMP1);
+                                                w.i32_const(static_cast<std::int32_t>(0x80000000u));
+                                                w.op(op_i32_or);
+                                                w.set_local(TMP1);
+                                            w.op(op_else);
+                                                w.get_local(DTMP1); load_d(dm);
+                                                w.op(op_f64_gt);
+                                                w.op(op_if); w.op(type_void);
+                                                    w.get_local(TMP1);
+                                                    w.i32_const(0x20000000);
+                                                    w.op(op_i32_or);
+                                                    w.set_local(TMP1);
+                                                w.op(op_else);
+                                                    w.get_local(TMP1);
+                                                    w.i32_const(0x30000000);
+                                                    w.op(op_i32_or);
+                                                    w.set_local(TMP1);
+                                                w.op(op_end);
+                                            w.op(op_end);
+                                        w.op(op_end);
+                                        w.store_i32(S::FPSCR, TMP1);
+                                        vfp_handled = true;
+                                    } else if (fext == FEXT_FCMPZ || fext == FEXT_FCMPEZ) {
+                                        load_d(dd); w.set_local(DTMP1);
+                                        w.load_i32(S::FPSCR);
+                                        w.i32_const(static_cast<std::int32_t>(0x0FFFFFFFu));
+                                        w.op(op_i32_and);
+                                        w.set_local(TMP1);
+                                        // Compare with 0.0
+                                        w.op(op_f64_const);
+                                        for (int z = 0; z < 8; z++) result.body.push_back(0);
+                                        w.set_local(DTMP1); // reuse for 0.0 — wait, dd is in DTMP1
+                                        // Need to reload dd. Let me restructure.
+                                        // Actually let's just do stack-based compares.
+                                        // Reload.
+                                        load_d(dd);
+                                        w.op(op_f64_const);
+                                        for (int z = 0; z < 8; z++) result.body.push_back(0);
+                                        w.op(op_f64_eq);
+                                        w.op(op_if); w.op(type_void);
+                                            w.get_local(TMP1);
+                                            w.i32_const(0x60000000);
+                                            w.op(op_i32_or);
+                                            w.set_local(TMP1);
+                                        w.op(op_else);
+                                            load_d(dd);
+                                            w.op(op_f64_const);
+                                            for (int z = 0; z < 8; z++) result.body.push_back(0);
+                                            w.op(op_f64_lt);
+                                            w.op(op_if); w.op(type_void);
+                                                w.get_local(TMP1);
+                                                w.i32_const(static_cast<std::int32_t>(0x80000000u));
+                                                w.op(op_i32_or);
+                                                w.set_local(TMP1);
+                                            w.op(op_else);
+                                                load_d(dd);
+                                                w.op(op_f64_const);
+                                                for (int z = 0; z < 8; z++) result.body.push_back(0);
+                                                w.op(op_f64_gt);
+                                                w.op(op_if); w.op(type_void);
+                                                    w.get_local(TMP1);
+                                                    w.i32_const(0x20000000);
+                                                    w.op(op_i32_or);
+                                                    w.set_local(TMP1);
+                                                w.op(op_else);
+                                                    w.get_local(TMP1);
+                                                    w.i32_const(0x30000000);
+                                                    w.op(op_i32_or);
+                                                    w.set_local(TMP1);
+                                                w.op(op_end);
+                                            w.op(op_end);
+                                        w.op(op_end);
+                                        w.store_i32(S::FPSCR, TMP1);
+                                        vfp_handled = true;
+                                    }
+                                }
+                            }
+                            // VMOV between ARM reg and VFP single: EE x0 Rt | 0A10 (to VFP) / EE x1 Rt | 0A10 (from VFP)
+                            // VMOV Sn, Rt: 1110_1110_000o_Vn_Rt_1010_N001_0000
+                            //   bit 20: 0 = to VFP (Sn = Rt), 1 = from VFP (Rt = Sn)
+                            if (!vfp_handled && (arm & 0x0F100F10) == 0x0E000A10) {
+                                bool to_arm = (arm >> 20) & 1; // L bit
+                                int rt = (arm >> 12) & 0xF;
+                                int sn = vfp_get_sn(arm);
+                                if (to_arm) {
+                                    // VMOV Rt, Sn: Rt = ExtReg[sn]
+                                    w.load_i32(S::sreg(sn));
+                                    w.set_local(TMP2);
+                                    w.store_reg(rt, TMP2);
+                                } else {
+                                    // VMOV Sn, Rt: ExtReg[sn] = Rt
+                                    w.load_reg(rt);
+                                    w.set_local(TMP2);
+                                    w.store_i32(S::sreg(sn), TMP2);
+                                }
+                                vfp_handled = true;
+                            }
+                            // VMRS: move FPSCR → ARM APSR (or Rt)
+                            // EEF1 0A10: VMRS APSR_nzcv, FPSCR (Rt=15)
+                            // EEF1 xA10: VMRS Rt, FPSCR (Rt!=15)
+                            if (!vfp_handled && (arm & 0x0FFF0FFF) == 0x0EF10A10) {
+                                int rt_vmrs = (arm >> 12) & 0xF;
+                                if (rt_vmrs == 15) {
+                                    // Copy FPSCR[31:28] → NZCV flags
+                                    w.load_i32(S::FPSCR);
+                                    w.set_local(TMP1);
+                                    // N = bit 31
+                                    w.get_local(TMP1);
+                                    w.i32_const(31);
+                                    w.op(op_i32_shr_u);
+                                    w.set_local(TMP2);
+                                    w.store_i32(S::NFLAG, TMP2);
+                                    // Z = bit 30
+                                    w.get_local(TMP1);
+                                    w.i32_const(30);
+                                    w.op(op_i32_shr_u);
+                                    w.i32_const(1);
+                                    w.op(op_i32_and);
+                                    w.set_local(TMP2);
+                                    w.store_i32(S::ZFLAG, TMP2);
+                                    // C = bit 29
+                                    w.get_local(TMP1);
+                                    w.i32_const(29);
+                                    w.op(op_i32_shr_u);
+                                    w.i32_const(1);
+                                    w.op(op_i32_and);
+                                    w.set_local(TMP2);
+                                    w.store_i32(S::CFLAG, TMP2);
+                                    // V = bit 28
+                                    w.get_local(TMP1);
+                                    w.i32_const(28);
+                                    w.op(op_i32_shr_u);
+                                    w.i32_const(1);
+                                    w.op(op_i32_and);
+                                    w.set_local(TMP2);
+                                    w.store_i32(S::VFLAG, TMP2);
+                                } else {
+                                    w.load_i32(S::FPSCR);
+                                    w.set_local(TMP2);
+                                    w.store_reg(rt_vmrs, TMP2);
+                                }
+                                vfp_handled = true;
+                            }
+                        }
+
+                        if (vfp_handled) {
+                            i += 2;
+                            decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                            insn_idx++;
+                            continue;
+                        }
                     }
                 }
 

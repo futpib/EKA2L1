@@ -1522,6 +1522,94 @@ static bool test_wide_strb_imm12() {
     return true;
 }
 
+// Test VFP: VLDR.32, VADD.F32, VSTR.32 sequence.
+// This verifies the translator can handle basic single-precision VFP
+// without bailing on the VFP instructions themselves.
+static bool test_vfp_vldr_vadd_vstr() {
+    // VLDR S0, [R0, #0]:  ED90 0A00  (U=1, D=0, Rn=0, Vd=0, imm8=0)
+    //   ARM: ED900A00. insn=ED90, insn2=0A00.
+    // VLDR S1, [R0, #4]:  ED90 0A01  → wait, S1 encoding:
+    //   sd = (Vd:D) where Vd=insn2[15:12], D=insn[22]
+    //   For S1: sd=1 → Vd=0, D=1. insn bit 22 set: ED90 → EDD0 (bit 22 = 0x40 in insn)
+    //   insn = EDD0 | Rn=0 = EDD0, insn2 = 0A01
+    // VADD.F32 S0, S0, S1: EE30 0A20
+    //   ARM: EE300A20. fop=FOP_FADD. sd=0, sn=0, sm=1.
+    //   sd: insn2[15:12]=0, insn[22]=0 → sd=0.
+    //   sn: insn[19:16]=0, insn[7]=0 → sn=0.
+    //   sm: insn2[3:0]=0, insn2[5]=1 → sm=1. Wait, insn2=0A20: bits[3:0]=0, bit5=1.
+    //   sm = (0<<1) | (1>>5 of bit5) = 0|1 = 1. Yes.
+    // VSTR S0, [R0, #8]:  ED80 0A02  (U=1, D=0, Rn=0, Vd=0, imm8=2)
+    // BX LR: 4770
+    std::vector<std::uint8_t> code = {
+        0x90, 0xED, 0x00, 0x0A,  // VLDR S0, [R0, #0]
+        0xD0, 0xED, 0x01, 0x0A,  // VLDR S1, [R0, #4]
+        0x30, 0xEE, 0x20, 0x0A,  // VADD.F32 S0, S0, S1
+        0x80, 0xED, 0x02, 0x0A,  // VSTR S0, [R0, #8]
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL vfp_vldr_vadd_vstr: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL vfp_vldr_vadd_vstr: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS vfp_vldr_vadd_vstr\n");
+    return true;
+}
+
+// Test VFP: VCVT + VCMP + VMRS sequence (int→float→compare→flags).
+static bool test_vfp_vcvt_vcmp_vmrs() {
+    // VMOV S0, R0:     EE00 0A10 (to VFP, sn=0, Rt=0)
+    //   ARM: EE000A10. insn=EE00, insn2=0A10.
+    // VCVT.F32.S32 S0, S0: EEB8 0AC0
+    //   ARM: EEB80AC0. FOP_EXT, FEXT_FSITO. sd=0, sm=0.
+    //   insn[22]=0 → D=0 for sd. insn2[5]=0 → M=0 for sm.
+    //   Actually let me check: EEB8 → bits[27:20] = 0xEB, bit 6 = 1 (from 0xAC0 bit 6).
+    //   fop = arm & FOP_MASK = EEB80AC0 & 00b00040 = 00b00040 = FOP_EXT.
+    //   fext = arm & FEXT_MASK = EEB80AC0 & 000f0080 = 00080080 = FEXT_FSITO.
+    // VCMPZ.F32 S0:     EEB5 0A40
+    //   ARM: EEB50A40. FOP_EXT, FEXT_FCMPZ (0x00050000).
+    //   fext = EEB50A40 & 000f0080 = 00050000 = FEXT_FCMPZ.
+    // VMRS APSR, FPSCR: EEF1 FA10
+    //   ARM: EEF1FA10. Rt=15 (F in bits[15:12]).
+    // BX LR: 4770
+    std::vector<std::uint8_t> code = {
+        0x00, 0xEE, 0x10, 0x0A,  // VMOV S0, R0
+        0xB8, 0xEE, 0xC0, 0x0A,  // VCVT.F32.S32 S0, S0
+        0xB5, 0xEE, 0x40, 0x0A,  // VCMP.F32 S0, #0.0
+        0xF1, 0xEE, 0x10, 0xFA,  // VMRS APSR_nzcv, FPSCR
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL vfp_vcvt_vcmp_vmrs: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL vfp_vcvt_vcmp_vmrs: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS vfp_vcvt_vcmp_vmrs\n");
+    return true;
+}
+
+// Compile-time verification of state_offsets against ARMul_State layout.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
+static_assert(offsetof(ARMul_State, Reg) == state_offsets::REG, "REG offset mismatch");
+static_assert(offsetof(ARMul_State, Cpsr) == state_offsets::CPSR, "CPSR offset mismatch");
+static_assert(offsetof(ARMul_State, NFlag) == state_offsets::NFLAG, "NFLAG offset mismatch");
+static_assert(offsetof(ARMul_State, ZFlag) == state_offsets::ZFLAG, "ZFLAG offset mismatch");
+static_assert(offsetof(ARMul_State, CFlag) == state_offsets::CFLAG, "CFLAG offset mismatch");
+static_assert(offsetof(ARMul_State, VFlag) == state_offsets::VFLAG, "VFLAG offset mismatch");
+static_assert(offsetof(ARMul_State, TFlag) == state_offsets::TFLAG, "TFLAG offset mismatch");
+static_assert(offsetof(ARMul_State, VFP) == state_offsets::VFP_SYS, "VFP_SYS offset mismatch");
+static_assert(offsetof(ARMul_State, ExtReg) == state_offsets::EXTREG, "EXTREG offset mismatch");
+#pragma GCC diagnostic pop
+
 int main() {
     std::array<std::uint32_t, 16> zero_regs = {};
     zero_regs[13] = 0x10000; // SP
@@ -2099,6 +2187,8 @@ int main() {
     if (test_wide_addw_subw()) passed++; else failed++;
     if (test_wide_mov_mvn_imm()) passed++; else failed++;
     if (test_wide_strb_imm12()) passed++; else failed++;
+    if (test_vfp_vldr_vadd_vstr()) passed++; else failed++;
+    if (test_vfp_vcvt_vcmp_vmrs()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;

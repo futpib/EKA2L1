@@ -38,6 +38,19 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t VFLAG = 816;
         static constexpr std::uint32_t TFLAG = 828;
 
+        // VFP system registers (FPSID, FPSCR, FPEXC, ...)
+        static constexpr std::uint32_t VFP_SYS = 496;
+        static constexpr std::uint32_t FPSCR = VFP_SYS + 4; // VFP[1]
+
+        // VFP extended registers: S0-S31 (single) / D0-D15 (double)
+        // Each ExtReg entry is 4 bytes (uint32_t).
+        // S-register n is at ExtReg[n], D-register n is at ExtReg[2n..2n+1].
+        static constexpr std::uint32_t EXTREG = 524;
+        static constexpr std::uint32_t sreg(int n) { return EXTREG + n * 4; }
+        // Double register n occupies ExtReg[2n] (low) and ExtReg[2n+1] (high).
+        static constexpr std::uint32_t dreg_lo(int n) { return EXTREG + n * 8; }
+        static constexpr std::uint32_t dreg_hi(int n) { return EXTREG + n * 8 + 4; }
+
         static constexpr std::uint32_t reg(int n) { return REG + n * 4; }
         static constexpr std::uint32_t PC = REG + 15 * 4;
         static constexpr std::uint32_t LR = REG + 14 * 4;

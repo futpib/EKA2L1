@@ -153,13 +153,25 @@ namespace eka2l1::arm::aot {
             for (auto &func : funcs) {
                 std::vector<std::uint8_t> body;
 
-                // Locals
-                if (func.num_locals > 0) {
-                    leb128(body, 1); // 1 local group
-                    leb128(body, func.num_locals);
-                    body.push_back(type_i32);
-                } else {
-                    leb128(body, 0);
+                // Locals — up to 3 groups: i32, f32, f64
+                {
+                    std::uint32_t num_groups = 0;
+                    if (func.num_locals > 0) num_groups++;
+                    if (func.num_f32_locals > 0) num_groups++;
+                    if (func.num_f64_locals > 0) num_groups++;
+                    leb128(body, num_groups);
+                    if (func.num_locals > 0) {
+                        leb128(body, func.num_locals);
+                        body.push_back(type_i32);
+                    }
+                    if (func.num_f32_locals > 0) {
+                        leb128(body, func.num_f32_locals);
+                        body.push_back(type_f32);
+                    }
+                    if (func.num_f64_locals > 0) {
+                        leb128(body, func.num_f64_locals);
+                        body.push_back(type_f64);
+                    }
                 }
 
                 // Body bytecode

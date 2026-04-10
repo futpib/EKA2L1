@@ -74,10 +74,53 @@ namespace eka2l1::arm::aot {
         op_i32_shl = 0x74,
         op_i32_shr_s = 0x75,
         op_i32_shr_u = 0x76,
+
+        // Float opcodes for VFP support
+        op_f32_const = 0x43,
+        op_f64_const = 0x44,
+        op_f32_abs = 0x8B,
+        op_f32_neg = 0x8C,
+        op_f32_sqrt = 0x91,
+        op_f32_add = 0x92,
+        op_f32_sub = 0x93,
+        op_f32_mul = 0x94,
+        op_f32_div = 0x95,
+        op_f64_abs = 0x99,
+        op_f64_neg = 0x9A,
+        op_f64_sqrt = 0x9F,
+        op_f64_add = 0xA0,
+        op_f64_sub = 0xA1,
+        op_f64_mul = 0xA2,
+        op_f64_div = 0xA3,
+        op_i32_trunc_f32_s = 0xA8,
+        op_i32_trunc_f32_u = 0xA9,
+        op_i32_trunc_f64_s = 0xAA,
+        op_i32_trunc_f64_u = 0xAB,
+        op_f32_convert_i32_s = 0xB2,
+        op_f32_convert_i32_u = 0xB3,
+        op_f64_convert_i32_s = 0xB7,
+        op_f64_convert_i32_u = 0xB8,
+        op_f64_promote_f32 = 0xBB,
+        op_f32_demote_f64 = 0xB6,
+        op_i32_reinterpret_f32 = 0xBC,
+        op_f32_reinterpret_i32 = 0xBE,
+        op_f32_load = 0x2A,
+        op_f64_load = 0x2C,
+        op_f32_store = 0x38,
+        op_f64_store = 0x39,
+        op_f32_eq = 0x5B,
+        op_f32_lt = 0x5D,
+        op_f32_gt = 0x5E,
+        op_f64_eq = 0x61,
+        op_f64_lt = 0x63,
+        op_f64_gt = 0x64,
     };
 
     enum wasm_valtype : std::uint8_t {
         type_i32 = 0x7F,
+        type_i64 = 0x7E,
+        type_f32 = 0x7D,
+        type_f64 = 0x7C,
         type_void = 0x40,
     };
 
@@ -86,6 +129,8 @@ namespace eka2l1::arm::aot {
         std::string export_name;              // e.g. "f_80464C14"
         std::vector<std::uint8_t> body;       // WASM bytecode (without end opcode)
         std::uint32_t num_locals;             // i32 locals (beyond the state_ptr param)
+        std::uint32_t num_f32_locals = 0;     // f32 locals (after i32 locals)
+        std::uint32_t num_f64_locals = 0;     // f64 locals (after f32 locals)
     };
 
     // Describes an imported function.
