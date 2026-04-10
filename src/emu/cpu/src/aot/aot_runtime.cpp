@@ -83,6 +83,7 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len), {
                 tlb_read32: wasmExports.aot_tlb_read32,
                 tlb_write32: wasmExports.aot_tlb_write32,
                 tlb_read8: wasmExports.aot_tlb_read8,
+                tlb_write8: wasmExports.aot_tlb_write8,
             }
         };
 

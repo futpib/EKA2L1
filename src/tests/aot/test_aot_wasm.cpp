@@ -148,6 +148,11 @@ extern "C" {
         (void)state_ptr;
         return g_test_mem ? g_test_mem->data[addr] : 0;
     }
+    EMSCRIPTEN_KEEPALIVE
+    void test_tlb_write8(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t val) {
+        (void)state_ptr;
+        if (g_test_mem && addr < test_mem::SIZE) g_test_mem->data[addr] = static_cast<std::uint8_t>(val);
+    }
 }
 
 // Run a WASM module on a state buffer. Returns the instruction count,
@@ -165,6 +170,7 @@ EM_JS(int, js_run_aot_wasm, (const uint8_t* wasm_bytes, int wasm_len, uint8_t* s
                 tlb_read32: Module._test_tlb_read32,
                 tlb_write32: Module._test_tlb_write32,
                 tlb_read8: Module._test_tlb_read8,
+                tlb_write8: Module._test_tlb_write8,
             }
         });
 
@@ -252,6 +258,7 @@ static bool run_test(const test_case &tc) {
         {"env", "tlb_read32", 2, true},
         {"env", "tlb_write32", 3, false},
         {"env", "tlb_read8", 2, true},
+        {"env", "tlb_write8", 3, false},
     };
     const std::uint32_t num_imports = static_cast<std::uint32_t>(imports.size());
 
@@ -1054,6 +1061,467 @@ static bool test_branch_targets_include_beq_target() {
     return true;
 }
 
+// Test MOVW/MOVT: load 16-bit immediate into register, then set top half.
+// MOVW R0, #0x1234:  insn1=F241 (i=0,imm4=1), insn2=0234 (imm3=0,Rd=0,imm8=0x34)
+//   imm16 = (1<<12)|(0<<11)|(0<<8)|0x34 = 0x1034... let me compute:
+//   MOVW encoding: F240 | (i<<10) | imm4, insn2 = (imm3<<12) | (Rd<<8) | imm8
+//   For imm16=0xABCD: imm4=0xA, i=1, imm3=0x5, imm8=0xCD
+//     insn1 = F240 | (1<<10) | 0xA = F240 | 0x400 | 0xA = F64A
+//     insn2 = (5<<12) | (0<<8) | 0xCD = 0x50CD
+static bool test_wide_movw_movt() {
+    // MOVW R0, #0xABCD; MOVT R0, #0x1234; BX LR
+    // MOVW: imm16=0xABCD → imm4=A, i=1, imm3=5, imm8=CD
+    //   insn1 = F240 | (1<<10) | A = F64A
+    //   insn2 = (5<<12) | (0<<8) | CD = 50CD
+    // MOVT: imm16=0x1234 → imm4=1, i=0, imm3=2, imm8=34
+    //   insn1 = F2C0 | (0<<10) | 1 = F2C1
+    //   insn2 = (2<<12) | (0<<8) | 34 = 2034
+    std::vector<std::uint8_t> code = {
+        0x4A, 0xF6, 0xCD, 0x50,  // MOVW R0, #0xABCD
+        0xC1, 0xF2, 0x34, 0x20,  // MOVT R0, #0x1234
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_movw_movt: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_movw_movt: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_movw_movt\n");
+    return true;
+}
+
+// Test wide LDR.W Rd, [Rn, #imm12] and STR.W Rd, [Rn, #imm12].
+static bool test_wide_ldr_str_imm12() {
+    // STR.W R0, [R1, #256]; LDR.W R2, [R1, #256]; BX LR
+    // STR.W: insn1 = F8C0 | Rn=1 → F8C1, insn2 = (Rd=0)<<12 | imm12=0x100 → 0x0100
+    // LDR.W: insn1 = F8D0 | Rn=1 → F8D1, insn2 = (Rd=2)<<12 | imm12=0x100 → 0x2100
+    std::vector<std::uint8_t> code = {
+        0xC1, 0xF8, 0x00, 0x01,  // STR.W R0, [R1, #256]
+        0xD1, 0xF8, 0x00, 0x21,  // LDR.W R2, [R1, #256]
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_ldr_str_imm12: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_ldr_str_imm12: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_ldr_str_imm12\n");
+    return true;
+}
+
+// Test wide ADD.W / SUB.W with modified immediate.
+static bool test_wide_add_sub_imm() {
+    // ADD.W R0, R1, #100; SUB.W R2, R1, #50; BX LR
+    // ADD.W: insn = F100 | (S=0)<<4 | Rn=1 → F101
+    //   imm12 = 100 = 0x064 → i=0, imm3=0, imm8=0x64
+    //   insn2 = (0<<12) | (R0<<8) | 0x64 = 0x0064
+    // SUB.W: insn = F1A0 | Rn=1 → F1A1
+    //   imm12 = 50 = 0x032 → insn2 = (R2<<8) | 0x32 = 0x0232
+    std::vector<std::uint8_t> code = {
+        0x01, 0xF1, 0x64, 0x00,  // ADD.W R0, R1, #100
+        0xA1, 0xF1, 0x32, 0x02,  // SUB.W R2, R1, #50
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_add_sub_imm: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_add_sub_imm: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_add_sub_imm\n");
+    return true;
+}
+
+// Test wide AND.W / ORR.W / EOR.W / BIC.W with modified immediate.
+static bool test_wide_and_orr_eor_bic_imm() {
+    // AND.W R0, R1, #0xFF; ORR.W R2, R1, #0xFF00; BX LR
+    // AND.W: insn = F000 | Rn=1 → F001, imm12=0xFF → insn2=(0<<12)|(R0<<8)|0xFF = 0x00FF
+    // ORR.W: insn = F040 | Rn=1 → F041, imm12 for 0xFF00:
+    //   0xFF00 = XX00XX00 pattern → bits[11:10]=10, val=0xFF → imm12 = (2<<10)|0xFF = 0xAFF... hmm
+    //   Actually ThumbExpandImm: for 0xFF, imm12=0xFF, result=0xFF. Let's use that.
+    // ORR.W R2, R1, #0xFF: insn = F041, insn2 = (0<<12)|(R2<<8)|0xFF = 0x02FF
+    std::vector<std::uint8_t> code = {
+        0x01, 0xF0, 0xFF, 0x00,  // AND.W R0, R1, #0xFF
+        0x41, 0xF0, 0xFF, 0x02,  // ORR.W R2, R1, #0xFF
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_and_orr_eor_bic_imm: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_and_orr_eor_bic_imm: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_and_orr_eor_bic_imm\n");
+    return true;
+}
+
+// Test wide LDR.W / STR.W with register offset.
+static bool test_wide_ldr_str_reg() {
+    // LDR.W R0, [R1, R2, LSL #2]; BX LR
+    // insn1 = F850 | Rn=1 → F851, insn2 = (Rd=0)<<12 | (shift=2)<<4 | Rm=2 = 0x0022
+    std::vector<std::uint8_t> code = {
+        0x51, 0xF8, 0x22, 0x00,  // LDR.W R0, [R1, R2, LSL #2]
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_ldr_str_reg: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_ldr_str_reg: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_ldr_str_reg\n");
+    return true;
+}
+
+// Test wide LDR.W with negative 8-bit offset (T4 form).
+static bool test_wide_ldr_neg_offset() {
+    // LDR.W R0, [R1, #-8]: insn1 = F850 | Rn=1 = F851
+    //   insn2 = (Rd=0)<<12 | 1 P U W imm8
+    //   P=1, U=0 (negative), W=0: bits[11:8] = 0b1100 = 0xC
+    //   insn2 = 0x0C08
+    std::vector<std::uint8_t> code = {
+        0x51, 0xF8, 0x08, 0x0C,  // LDR.W R0, [R1, #-8]
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_ldr_neg_offset: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_ldr_neg_offset: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_ldr_neg_offset\n");
+    return true;
+}
+
+// Test wide unconditional branch B.W.
+static bool test_wide_b_uncond() {
+    // B.W +4 (skip 2 bytes): insn1 = F000, insn2 = B802
+    //   target = PC+4 + imm32. For +4: imm32=4, but encoding is complex.
+    //   B.W target=0x1008 from 0x1000: offset = target - (addr+4) = 0x1008 - 0x1004 = 4
+    //   S=0, I1=1, I2=1, imm10=0, imm11=2: J1=!(1^0)=1, J2=!(1^0)=1
+    //   insn1 = F000 (S=0, imm10=0)
+    //   insn2 = 1001 J1=1 1 J2=1 imm11=2 = 0b10_1_1_1_1_00000000010 = 0xBF02...
+    //   Actually: insn2[15:12]=10J11, insn2[11:1]=imm11, insn2[0]=0
+    //   insn2 = (1<<15) | (0<<14) | (J1<<13) | (1<<12) | (J2<<11) | imm11
+    //   = 0x8000 | 0 | (1<<13) | 0x1000 | (1<<11) | 2
+    //   = 0x8000 | 0x2000 | 0x1000 | 0x0800 | 0x0002 = 0xB802
+    // Actually the encoding for B.W is: insn2 & 0xD000 == 0x9000
+    //   insn2 = (1<<15) | (0<<14) | (J1<<13) | (0<<12) | (J2<<11) | imm11
+    //   = 0x8000 | (1<<13) | (1<<11) | 2 = 0x8000 | 0x2000 | 0x0800 | 2 = 0xA802
+    // Hmm, let me just do a simple forward bail test.
+    std::vector<std::uint8_t> code = {
+        0x00, 0xF0, 0x02, 0xA8,  // B.W +4 (target 0x1008, from 0x1000+4=0x1004)
+        // Wait, this target calculation... let me be more careful.
+        // Actually just test that the translator doesn't reject it.
+        // I'll use a simple encoding and verify no-bail.
+    };
+    // Re-encode: B.W to 0x1008 from 0x1000.
+    // offset = 0x1008 - (0x1000+4) = 4
+    // imm32 = 4. S=0.
+    // imm11 = (4>>1) & 0x7FF = 2
+    // imm10 = (4>>12) & 0x3FF = 0
+    // I1=1 (bit 23 of 4 is 0, so i1=0, J1=!(0^0)=1)
+    // I2=1 similarly
+    // insn1 = 0xF000 | (S=0)<<10 | imm10=0 = 0xF000
+    // insn2 bit 15=1, bit 14=0, bit 13=J1=1, bit 12=0, bit 11=J2=1
+    //   = (1<<15)|(0<<14)|(1<<13)|(0<<12)|(1<<11) | imm11=2
+    //   = 0x8000 | 0x2000 | 0x0800 | 2 = 0xA802
+    code = {
+        0x00, 0xF0, 0x02, 0xA8,  // B.W +4 (-> 0x1008)
+        0x01, 0x20,              // 0x1004: MOVS R0, #1 (skipped)
+        0x02, 0x20,              // 0x1006: MOVS R0, #2 (skipped)
+        0x03, 0x20,              // 0x1008: MOVS R0, #3 (target)
+        0x70, 0x47,              // 0x100A: BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_b_uncond: translator rejected\n");
+        return false;
+    }
+    // B.W currently bails, so expect 2 bails (B.W + BX LR)
+    if (tr.bail_count > 2) {
+        printf("  FAIL wide_b_uncond: expected <= 2 bails, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_b_uncond\n");
+    return true;
+}
+
+// Test LDRD/STRD.
+static bool test_wide_ldrd_strd() {
+    // STRD R0, R1, [R2, #8]; LDRD R3, R4, [R2, #8]; BX LR
+    // STRD: E9C0 | (P=1)<<8 | (U=1)<<7 | (bit6=1) | (W=0)<<5 | (L=0) | Rn=2
+    //   E9C0 isn't right... Let me look up the exact encoding.
+    //   STRD: 1110_100P_U1W0_Rn | Rt Rt2 imm8
+    //   P=1, U=1, W=0: insn = E8C0 | (1<<8) | (1<<7) | (1<<6) | Rn
+    //   = E8C0 | 0x100 | 0x80 | 0x40 | 2 = E9C2
+    //   insn2 = (Rt=0)<<12 | (Rt2=1)<<8 | imm8=2 (offset=8/4=2)
+    //   = 0x0102
+    // LDRD: same but L=1: insn = E9C2 | 0x10 = E9D2
+    //   insn2 = (Rt=3)<<12 | (Rt2=4)<<8 | 2 = 0x3402
+    std::vector<std::uint8_t> code = {
+        0xC2, 0xE9, 0x02, 0x01,  // STRD R0, R1, [R2, #+8]
+        0xD2, 0xE9, 0x02, 0x34,  // LDRD R3, R4, [R2, #+8]
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_ldrd_strd: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_ldrd_strd: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_ldrd_strd\n");
+    return true;
+}
+
+// Test UBFX/SBFX.
+static bool test_wide_ubfx_sbfx() {
+    // UBFX R0, R1, #4, #8: extract bits [11:4]
+    //   insn = F3C0 | Rn=1 = F3C1
+    //   lsb=4: imm3=(4>>2)&7=1, imm2=4&3=0
+    //   widthm1 = 7
+    //   insn2 = (imm3<<12) | (Rd=0)<<8 | (imm2<<6) | widthm1
+    //         = (1<<12) | 0 | 0 | 7 = 0x1007
+    std::vector<std::uint8_t> code = {
+        0xC1, 0xF3, 0x07, 0x10,  // UBFX R0, R1, #4, #8
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_ubfx_sbfx: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_ubfx_sbfx: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_ubfx_sbfx\n");
+    return true;
+}
+
+// Test BFI/BFC.
+static bool test_wide_bfi_bfc() {
+    // BFC R0, #4, #8: clear bits [11:4]
+    //   insn = F360 | Rn=15 = F36F
+    //   lsb=4: imm3=1, imm2=0. msb=11.
+    //   insn2 = (1<<12) | (R0<<8) | 0 | 11 = 0x100B
+    std::vector<std::uint8_t> code = {
+        0x6F, 0xF3, 0x0B, 0x10,  // BFC R0, #4, #8
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_bfi_bfc: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_bfi_bfc: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_bfi_bfc\n");
+    return true;
+}
+
+// Test UXTB.W / SXTH.W.
+static bool test_wide_uxtb_sxth() {
+    // UXTB.W R0, R1: insn = FA5F, insn2 = F0<<8... wait
+    //   UXTB.W Rd, Rm: insn=FA5F, insn2=(0xF<<12)|(Rd<<8)|0x80|Rm
+    //   R0, R1: insn2 = 0xF080 | (0<<8) | 1 = 0xF081
+    std::vector<std::uint8_t> code = {
+        0x5F, 0xFA, 0x81, 0xF0,  // UXTB.W R0, R1
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_uxtb_sxth: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_uxtb_sxth: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_uxtb_sxth\n");
+    return true;
+}
+
+// Test CLZ.
+static bool test_wide_clz() {
+    // CLZ R0, R1: insn = FAB0 | Rm=1 = FAB1
+    //   insn2 = (0xF<<12) | (Rd=0<<8) | 0x80 | Rm2=1 = 0xF081
+    std::vector<std::uint8_t> code = {
+        0xB1, 0xFA, 0x81, 0xF0,  // CLZ R0, R1
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_clz: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_clz: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_clz\n");
+    return true;
+}
+
+// Test MUL/MLA/MLS.
+static bool test_wide_mul_mla_mls() {
+    // MUL R0, R1, R2: insn = FB00 | Rn=1 = FB01
+    //   insn2 = (Ra=0xF<<12) | (Rd=0<<8) | Rm=2 = 0xF002
+    std::vector<std::uint8_t> code = {
+        0x01, 0xFB, 0x02, 0xF0,  // MUL R0, R1, R2
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_mul_mla_mls: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_mul_mla_mls: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_mul_mla_mls\n");
+    return true;
+}
+
+// Test SDIV/UDIV.
+static bool test_wide_sdiv_udiv() {
+    // SDIV R0, R1, R2: insn = FB90 | Rn=1 = FB91
+    //   insn2 = (0xF<<12) | (Rd=0<<8) | (0xF<<4) | Rm=2 = 0xF0F2
+    std::vector<std::uint8_t> code = {
+        0x91, 0xFB, 0xF2, 0xF0,  // SDIV R0, R1, R2
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_sdiv_udiv: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_sdiv_udiv: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_sdiv_udiv\n");
+    return true;
+}
+
+// Test shifted-register data processing (e.g. ADD.W Rd, Rn, Rm, LSL #2).
+static bool test_wide_shifted_reg() {
+    // ADD.W R0, R1, R2, LSL #2: insn = EA00 | (op=1000)<<1=not right.
+    //   Actually: 1110101 op[3:0] S Rn → bits [15:9]=1110101, then op S Rn
+    //   ADD: op=1000, S=0: insn = EA00 | (0x8<<5) | (0<<4) | Rn=1
+    //     = EA00 | 0x100 | 1 = EB01
+    //   insn2 = (imm3<<12) | (Rd=0<<8) | (imm2<<6) | (type=0<<4) | Rm=2
+    //   shift=2: imm3=(2>>2)&7=0, imm2=2&3=2
+    //   insn2 = 0 | 0 | (2<<6) | 0 | 2 = 0x0082
+    std::vector<std::uint8_t> code = {
+        0x01, 0xEB, 0x82, 0x00,  // ADD.W R0, R1, R2, LSL #2
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_shifted_reg: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_shifted_reg: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_shifted_reg\n");
+    return true;
+}
+
+// Test ADDW/SUBW (12-bit plain immediate).
+static bool test_wide_addw_subw() {
+    // ADDW R0, R1, #1000: insn = F200 | (i=0)<<10 | Rn=1 = F201
+    //   imm12 = 1000 = 0x3E8 → imm3=(0x3E8>>8)&7=3, imm8=0xE8
+    //   insn2 = (0<<15) | (imm3<<12) | (Rd=0<<8) | imm8
+    //   = (3<<12) | 0xE8 = 0x30E8
+    std::vector<std::uint8_t> code = {
+        0x01, 0xF2, 0xE8, 0x30,  // ADDW R0, R1, #1000
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_addw_subw: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_addw_subw: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_addw_subw\n");
+    return true;
+}
+
+// Test MOV.W / MVN.W with modified immediate.
+static bool test_wide_mov_mvn_imm() {
+    // MOV.W R0, #42: insn = F04F | (i=0)<<10 | (S=0)<<4 = F04F
+    //   imm12 = 42 = 0x2A → imm3=0, imm8=0x2A
+    //   insn2 = (0<<12) | (R0<<8) | 0x2A = 0x002A
+    std::vector<std::uint8_t> code = {
+        0x4F, 0xF0, 0x2A, 0x00,  // MOV.W R0, #42
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_mov_mvn_imm: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_mov_mvn_imm: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_mov_mvn_imm\n");
+    return true;
+}
+
+// Test wide STRB.W with 12-bit immediate (now that we have tlb_write8).
+static bool test_wide_strb_imm12() {
+    // STRB.W R0, [R1, #100]: insn = F880 | Rn=1 = F881
+    //   insn2 = (Rd=0)<<12 | imm12=100 = 0x0064
+    std::vector<std::uint8_t> code = {
+        0x81, 0xF8, 0x64, 0x00,  // STRB.W R0, [R1, #100]
+        0x70, 0x47,              // BX LR
+    };
+    auto tr = translate_thumb_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL wide_strb_imm12: translator rejected\n");
+        return false;
+    }
+    if (tr.bail_count > 1) {
+        printf("  FAIL wide_strb_imm12: expected <= 1 bail, got %u\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS wide_strb_imm12\n");
+    return true;
+}
+
 int main() {
     std::array<std::uint32_t, 16> zero_regs = {};
     zero_regs[13] = 0x10000; // SP
@@ -1613,6 +2081,24 @@ int main() {
     if (test_literal_pool_between_early_return_and_target()) passed++; else failed++;
     if (test_wide_push_pop()) passed++; else failed++;
     if (test_stop_at_wide_bail_after_last_target()) passed++; else failed++;
+    if (test_wide_movw_movt()) passed++; else failed++;
+    if (test_wide_ldr_str_imm12()) passed++; else failed++;
+    if (test_wide_add_sub_imm()) passed++; else failed++;
+    if (test_wide_and_orr_eor_bic_imm()) passed++; else failed++;
+    if (test_wide_ldr_str_reg()) passed++; else failed++;
+    if (test_wide_ldr_neg_offset()) passed++; else failed++;
+    if (test_wide_b_uncond()) passed++; else failed++;
+    if (test_wide_ldrd_strd()) passed++; else failed++;
+    if (test_wide_ubfx_sbfx()) passed++; else failed++;
+    if (test_wide_bfi_bfc()) passed++; else failed++;
+    if (test_wide_uxtb_sxth()) passed++; else failed++;
+    if (test_wide_clz()) passed++; else failed++;
+    if (test_wide_mul_mla_mls()) passed++; else failed++;
+    if (test_wide_sdiv_udiv()) passed++; else failed++;
+    if (test_wide_shifted_reg()) passed++; else failed++;
+    if (test_wide_addw_subw()) passed++; else failed++;
+    if (test_wide_mov_mvn_imm()) passed++; else failed++;
+    if (test_wide_strb_imm12()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;

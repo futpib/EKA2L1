@@ -215,8 +215,8 @@ namespace eka2l1::arm::aot {
 
             // First pass: discover which exported candidates translate successfully,
             // building a sibling map (address → wasm func index).
-            // WASM function indices start at num_imports (3) and go up.
-            const std::uint32_t num_imports = 3;
+            // WASM function indices start at num_imports (4) and go up.
+            const std::uint32_t num_imports = 4;
             sibling_map siblings;
             struct accepted_func {
                 std::uint32_t ordinal; // 0 for internal helpers, 0xFFFFFFFF for resume points
@@ -396,6 +396,7 @@ namespace eka2l1::arm::aot {
             {"env", "tlb_read32", 2, true},
             {"env", "tlb_write32", 3, false},
             {"env", "tlb_read8", 2, true},
+            {"env", "tlb_write8", 3, false},
         };
 
         auto wasm_bytes = build_wasm_module(all_funcs, imports);

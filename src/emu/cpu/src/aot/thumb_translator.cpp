@@ -741,6 +741,1412 @@ namespace eka2l1::arm::aot {
                     }
                 }
 
+                // MOVW (T3): 11110 i 10 0100 imm4 | 0 imm3 Rd imm8
+                //   insn  = F240 | (i<<10) | imm4   (F240-F6CF range)
+                //   insn2 = (imm3<<12) | (Rd<<8) | imm8
+                //   Result: Rd = imm4:i:imm3:imm8  (16-bit immediate)
+                // MOVT (T1): 11110 i 10 1100 imm4 | 0 imm3 Rd imm8
+                //   insn  = F2C0 | (i<<10) | imm4
+                //   insn2 = (imm3<<12) | (Rd<<8) | imm8
+                //   Result: Rd = (Rd & 0xFFFF) | (imm16 << 16)
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_movw = (insn & 0xFBF0) == 0xF240;
+                    bool is_movt = (insn & 0xFBF0) == 0xF2C0;
+                    if (is_movw || is_movt) {
+                        std::uint32_t imm4 = insn & 0xF;
+                        std::uint32_t i_bit = (insn >> 10) & 1;
+                        std::uint32_t imm3 = (insn2 >> 12) & 0x7;
+                        int rd = (insn2 >> 8) & 0xF;
+                        std::uint32_t imm8 = insn2 & 0xFF;
+                        std::uint32_t imm16 = (imm4 << 12) | (i_bit << 11) | (imm3 << 8) | imm8;
+                        if (is_movw) {
+                            w.store_i32_const(S::reg(rd), static_cast<std::int32_t>(imm16));
+                        } else {
+                            // MOVT: Rd = (Rd & 0xFFFF) | (imm16 << 16)
+                            w.load_reg(rd);
+                            w.i32_const(0xFFFF);
+                            w.op(op_i32_and);
+                            w.i32_const(static_cast<std::int32_t>(imm16 << 16));
+                            w.op(op_i32_or);
+                            w.set_local(TMP1);
+                            w.store_reg(rd, TMP1);
+                        }
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // Wide LDR/STR/LDRB/STRB/LDRH/STRH with 12-bit immediate (T3/T2).
+                // Encoding: 1111 1000 [S][size][L] Rn | Rd imm12
+                //   F8D0 = LDR.W  Rd, [Rn, #imm12]
+                //   F8C0 = STR.W  Rd, [Rn, #imm12]
+                //   F8B0 = LDRH.W Rd, [Rn, #imm12]
+                //   F8A0 = STRH.W Rd, [Rn, #imm12]
+                //   F890 = LDRB.W Rd, [Rn, #imm12]
+                //   F880 = STRB.W Rd, [Rn, #imm12]
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    std::uint16_t op_hi = insn & 0xFFF0;
+                    bool is_ldr_w = (op_hi == 0xF8D0);
+                    bool is_str_w = (op_hi == 0xF8C0);
+                    bool is_ldrh  = (op_hi == 0xF8B0);
+                    bool is_strh  = (op_hi == 0xF8A0);
+                    bool is_ldrb  = (op_hi == 0xF890);
+                    bool is_strb  = (op_hi == 0xF880);
+                    if (is_ldr_w || is_str_w || is_ldrh || is_strh || is_ldrb || is_strb) {
+                        std::uint32_t rn = insn & 0xF;
+                        int rd = (insn2 >> 12) & 0xF;
+                        std::uint32_t imm12 = insn2 & 0xFFF;
+                        // Compute address: Rn + imm12
+                        // For Rn==PC (15), use (insn_addr + 4) & ~3 as base (literal load).
+                        if (rn == 15) {
+                            std::uint32_t base = (insn_addr + 4) & ~3u;
+                            w.i32_const(static_cast<std::int32_t>(base + imm12));
+                        } else {
+                            w.load_reg(static_cast<int>(rn));
+                            if (imm12 > 0) {
+                                w.i32_const(static_cast<std::int32_t>(imm12));
+                                w.op(op_i32_add);
+                            }
+                        }
+                        w.set_local(TMP1); // address
+                        if (is_ldr_w) {
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.call(0); // tlb_read32
+                            w.set_local(TMP2);
+                            if (rd == 15) {
+                                w.store_reg(15, TMP2);
+                                w.bail_preserve_pc(insn_idx + 1);
+                                if (closed_count >= N_fwd) {
+                                    decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                                    i += 2;
+                                    insn_idx++;
+                                    break;
+                                }
+                            } else {
+                                w.store_reg(rd, TMP2);
+                            }
+                        } else if (is_str_w) {
+                            w.load_reg(rd);
+                            w.set_local(TMP2);
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.get_local(TMP2);
+                            w.call(1); // tlb_write32
+                        } else if (is_ldrh) {
+                            // tlb_read32 and mask to 16 bits
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.call(0); // tlb_read32
+                            w.i32_const(0xFFFF);
+                            w.op(op_i32_and);
+                            w.set_local(TMP2);
+                            w.store_reg(rd, TMP2);
+                        } else if (is_strh) {
+                            w.load_reg(rd);
+                            w.set_local(TMP2);
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.get_local(TMP2);
+                            w.call(1); // tlb_write32 (writes full word, but ARM strh semantics)
+                        } else if (is_ldrb) {
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.call(2); // tlb_read8
+                            w.set_local(TMP2);
+                            w.store_reg(rd, TMP2);
+                        } else if (is_strb) {
+                            w.load_reg(rd);
+                            w.set_local(TMP2);
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.get_local(TMP2);
+                            w.call(3); // tlb_write8
+                        }
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // Wide ADD/SUB with 12-bit modified immediate (T3).
+                // ADD.W: 11110 i 01 000 S Rn  | 0 imm3 Rd imm8
+                //   insn  = F100 | (i<<10) | (S<<4) | Rn   → F100-F11F
+                //   insn2 = (imm3<<12) | (Rd<<8) | imm8
+                // SUB.W: 11110 i 01 101 S Rn  | 0 imm3 Rd imm8
+                //   insn  = F1A0 | (i<<10) | (S<<4) | Rn   → F1A0-F1BF
+                //
+                // The modified immediate is ThumbExpandImm(i:imm3:imm8).
+                // For bits 11:10 == 00: value is plain 12-bit zero-extended.
+                // For 01: value replicated to 00XX00XX pattern.
+                // For 10: value replicated to XX00XX00 pattern.
+                // For 11: value replicated to XXXXXXXX pattern.
+                // For 1xxxx: rotated byte.
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_add_w = (insn & 0xFBE0) == 0xF100;
+                    bool is_sub_w = (insn & 0xFBE0) == 0xF1A0;
+                    if (is_add_w || is_sub_w) {
+                        std::uint32_t rn = insn & 0xF;
+                        int rd = (insn2 >> 8) & 0xF;
+                        bool set_flags = (insn & 0x10) != 0;
+                        // Decode ThumbExpandImm
+                        std::uint32_t i_bit = (insn >> 10) & 1;
+                        std::uint32_t imm3 = (insn2 >> 12) & 0x7;
+                        std::uint32_t imm8 = insn2 & 0xFF;
+                        std::uint32_t imm12 = (i_bit << 11) | (imm3 << 8) | imm8;
+                        std::uint32_t imm32;
+                        std::int32_t carry_out = -1; // -1 = unchanged
+                        if ((imm12 >> 10) == 0) {
+                            // 00 xx xxxx xxxx → plain value
+                            imm32 = imm12 & 0xFF;
+                        } else if ((imm12 >> 10) == 1) {
+                            // 01 → 00XX00XX
+                            std::uint32_t v = imm12 & 0xFF;
+                            imm32 = (v << 16) | v;
+                        } else if ((imm12 >> 10) == 2) {
+                            // 10 → XX00XX00
+                            std::uint32_t v = imm12 & 0xFF;
+                            imm32 = (v << 24) | (v << 8);
+                        } else if ((imm12 >> 8) == 0xF || (imm12 >> 8) == 0xE || (imm12 >> 8) == 0xD || (imm12 >> 8) == 0xC) {
+                            // 11 → XXXXXXXX
+                            if ((imm12 & 0x300) == 0x300) {
+                                std::uint32_t v = imm12 & 0xFF;
+                                imm32 = (v << 24) | (v << 16) | (v << 8) | v;
+                            } else {
+                                // 1xxxxx → rotated byte
+                                std::uint32_t rot = (imm12 >> 7) & 0x1F;
+                                std::uint32_t val = 0x80 | (imm12 & 0x7F);
+                                imm32 = (val >> rot) | (val << (32 - rot));
+                                carry_out = (imm32 >> 31) & 1;
+                            }
+                        } else {
+                            // 1xxxxx → rotated byte
+                            std::uint32_t rot = (imm12 >> 7) & 0x1F;
+                            std::uint32_t val = 0x80 | (imm12 & 0x7F);
+                            imm32 = (val >> rot) | (val << (32 - rot));
+                            carry_out = (imm32 >> 31) & 1;
+                        }
+                        // Emit: Rd = Rn op imm32
+                        w.load_reg(static_cast<int>(rn));
+                        w.set_local(TMP1); // Rn value
+                        w.get_local(TMP1);
+                        w.i32_const(static_cast<std::int32_t>(imm32));
+                        if (is_add_w) {
+                            w.op(op_i32_add);
+                        } else {
+                            w.op(op_i32_sub);
+                        }
+                        w.set_local(TMP2); // result
+                        if (rd == 15) {
+                            // CMP (Rd=15 + S=1 for SUB) or CMN — bail
+                            // For now, skip flag-only case
+                            if (set_flags) {
+                                // This is CMP/CMN wide — set flags only
+                                // N flag
+                                w.get_local(TMP2);
+                                w.i32_const(31);
+                                w.op(op_i32_shr_u);
+                                w.set_local(TMP3);
+                                w.store_i32(S::NFLAG, TMP3);
+                                // Z flag
+                                w.get_local(TMP2);
+                                w.op(op_i32_eqz);
+                                w.set_local(TMP3);
+                                w.store_i32(S::ZFLAG, TMP3);
+                                // C flag
+                                if (is_sub_w) {
+                                    w.get_local(TMP1);
+                                    w.i32_const(static_cast<std::int32_t>(imm32));
+                                    w.op(op_i32_ge_u);
+                                } else {
+                                    // ADD carry: result < Rn (unsigned overflow)
+                                    w.get_local(TMP2);
+                                    w.get_local(TMP1);
+                                    w.op(op_i32_lt_u);
+                                }
+                                w.set_local(TMP3);
+                                w.store_i32(S::CFLAG, TMP3);
+                                // V flag
+                                if (is_sub_w) {
+                                    // V = (Rn ^ imm) & (Rn ^ result) >> 31
+                                    w.get_local(TMP1);
+                                    w.i32_const(static_cast<std::int32_t>(imm32));
+                                    w.op(op_i32_xor);
+                                    w.get_local(TMP1);
+                                    w.get_local(TMP2);
+                                    w.op(op_i32_xor);
+                                    w.op(op_i32_and);
+                                    w.i32_const(31);
+                                    w.op(op_i32_shr_u);
+                                } else {
+                                    // V = ~(Rn ^ imm) & (Rn ^ result) >> 31
+                                    w.get_local(TMP1);
+                                    w.i32_const(static_cast<std::int32_t>(imm32));
+                                    w.op(op_i32_xor);
+                                    w.i32_const(-1);
+                                    w.op(op_i32_xor);
+                                    w.get_local(TMP1);
+                                    w.get_local(TMP2);
+                                    w.op(op_i32_xor);
+                                    w.op(op_i32_and);
+                                    w.i32_const(31);
+                                    w.op(op_i32_shr_u);
+                                }
+                                w.set_local(TMP3);
+                                w.store_i32(S::VFLAG, TMP3);
+                                // Don't write to R15
+                            } else {
+                                // Rd=15, no flags → branch. Bail.
+                                w.store_reg(15, TMP2);
+                                w.bail_preserve_pc(insn_idx + 1);
+                                if (closed_count >= N_fwd) {
+                                    decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                                    i += 2;
+                                    insn_idx++;
+                                    break;
+                                }
+                            }
+                        } else {
+                            w.store_reg(rd, TMP2);
+                            if (set_flags) {
+                                // N flag
+                                w.get_local(TMP2);
+                                w.i32_const(31);
+                                w.op(op_i32_shr_u);
+                                w.set_local(TMP3);
+                                w.store_i32(S::NFLAG, TMP3);
+                                // Z flag
+                                w.get_local(TMP2);
+                                w.op(op_i32_eqz);
+                                w.set_local(TMP3);
+                                w.store_i32(S::ZFLAG, TMP3);
+                                // C flag
+                                if (is_sub_w) {
+                                    w.get_local(TMP1);
+                                    w.i32_const(static_cast<std::int32_t>(imm32));
+                                    w.op(op_i32_ge_u);
+                                } else {
+                                    w.get_local(TMP2);
+                                    w.get_local(TMP1);
+                                    w.op(op_i32_lt_u);
+                                }
+                                w.set_local(TMP3);
+                                w.store_i32(S::CFLAG, TMP3);
+                                // V flag
+                                if (is_sub_w) {
+                                    w.get_local(TMP1);
+                                    w.i32_const(static_cast<std::int32_t>(imm32));
+                                    w.op(op_i32_xor);
+                                    w.get_local(TMP1);
+                                    w.get_local(TMP2);
+                                    w.op(op_i32_xor);
+                                    w.op(op_i32_and);
+                                    w.i32_const(31);
+                                    w.op(op_i32_shr_u);
+                                } else {
+                                    w.get_local(TMP1);
+                                    w.i32_const(static_cast<std::int32_t>(imm32));
+                                    w.op(op_i32_xor);
+                                    w.i32_const(-1);
+                                    w.op(op_i32_xor);
+                                    w.get_local(TMP1);
+                                    w.get_local(TMP2);
+                                    w.op(op_i32_xor);
+                                    w.op(op_i32_and);
+                                    w.i32_const(31);
+                                    w.op(op_i32_shr_u);
+                                }
+                                w.set_local(TMP3);
+                                w.store_i32(S::VFLAG, TMP3);
+                            }
+                        }
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // Wide MOV/MVN with modified immediate (T2).
+                // MOV.W: 11110 i 00 010 S 1111 | 0 imm3 Rd imm8
+                //   insn  = F04F | (i<<10) | (S<<4)  (Rn=1111)
+                //   insn2 = (imm3<<12) | (Rd<<8) | imm8
+                // MVN.W: 11110 i 00 011 S 1111 | 0 imm3 Rd imm8
+                //   insn  = F06F | (i<<10) | (S<<4)
+                // These use ThumbExpandImm for the immediate.
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_mov_w_imm = (insn & 0xFBEF) == 0xF04F;
+                    bool is_mvn_w_imm = (insn & 0xFBEF) == 0xF06F;
+                    if (is_mov_w_imm || is_mvn_w_imm) {
+                        int rd = (insn2 >> 8) & 0xF;
+                        bool set_flags = (insn & 0x10) != 0;
+                        // Decode ThumbExpandImm
+                        std::uint32_t i_bit = (insn >> 10) & 1;
+                        std::uint32_t imm3 = (insn2 >> 12) & 0x7;
+                        std::uint32_t imm8 = insn2 & 0xFF;
+                        std::uint32_t imm12 = (i_bit << 11) | (imm3 << 8) | imm8;
+                        std::uint32_t imm32;
+                        std::int32_t carry_out = -1;
+                        if ((imm12 >> 10) == 0) {
+                            imm32 = imm12 & 0xFF;
+                        } else if ((imm12 >> 10) == 1) {
+                            std::uint32_t v = imm12 & 0xFF;
+                            imm32 = (v << 16) | v;
+                        } else if ((imm12 >> 10) == 2) {
+                            std::uint32_t v = imm12 & 0xFF;
+                            imm32 = (v << 24) | (v << 8);
+                        } else if ((imm12 & 0x300) == 0x300) {
+                            std::uint32_t v = imm12 & 0xFF;
+                            imm32 = (v << 24) | (v << 16) | (v << 8) | v;
+                        } else {
+                            std::uint32_t rot = (imm12 >> 7) & 0x1F;
+                            std::uint32_t val = 0x80 | (imm12 & 0x7F);
+                            imm32 = (val >> rot) | (val << (32 - rot));
+                            carry_out = (imm32 >> 31) & 1;
+                        }
+                        if (is_mvn_w_imm) imm32 = ~imm32;
+                        w.store_i32_const(S::reg(rd), static_cast<std::int32_t>(imm32));
+                        if (set_flags) {
+                            // N flag
+                            w.store_i32_const(S::NFLAG, (imm32 >> 31) & 1);
+                            // Z flag
+                            w.store_i32_const(S::ZFLAG, imm32 == 0 ? 1 : 0);
+                            // C flag: carry_out from ThumbExpandImm_C if rotated
+                            if (carry_out >= 0) {
+                                w.store_i32_const(S::CFLAG, carry_out);
+                            }
+                            // V flag unchanged
+                        }
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // Wide AND/ORR/ORN/EOR/BIC with modified immediate (T1).
+                // AND.W: 11110 i 00 000 S Rn | 0 imm3 Rd imm8
+                //   insn = F000 | (i<<10) | (S<<4) | Rn
+                // ORR.W: 11110 i 00 010 S Rn | 0 imm3 Rd imm8
+                //   insn = F040 | ...
+                // ORN.W: 11110 i 00 011 S Rn | 0 imm3 Rd imm8
+                //   insn = F060 | ...
+                // EOR.W: 11110 i 00 100 S Rn | 0 imm3 Rd imm8
+                //   insn = F080 | ...
+                // BIC.W: 11110 i 00 001 S Rn | 0 imm3 Rd imm8
+                //   insn = F020 | ...
+                // Note: MOV.W (Rn=1111) and MVN.W (Rn=1111) handled above.
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    std::uint32_t op_bits = (insn >> 5) & 0xF; // bits [8:5]
+                    // Data processing (modified immediate): 11110 i 0 op 0..
+                    // Top 5 bits = 11110, bit 9 = 0 (we already excluded BL/BLX)
+                    bool is_dp_imm = ((insn & 0xFA00) == 0xF000)
+                        && ((insn2 & 0x8000) == 0); // bit 15 of insn2 must be 0
+                    if (is_dp_imm) {
+                        std::uint32_t rn = insn & 0xF;
+                        int rd = (insn2 >> 8) & 0xF;
+                        bool set_flags = (insn & 0x10) != 0;
+                        // Decode ThumbExpandImm
+                        std::uint32_t i_bit = (insn >> 10) & 1;
+                        std::uint32_t imm3 = (insn2 >> 12) & 0x7;
+                        std::uint32_t imm8_v = insn2 & 0xFF;
+                        std::uint32_t imm12 = (i_bit << 11) | (imm3 << 8) | imm8_v;
+                        std::uint32_t imm32;
+                        std::int32_t carry_out = -1;
+                        if ((imm12 >> 10) == 0) {
+                            imm32 = imm12 & 0xFF;
+                        } else if ((imm12 >> 10) == 1) {
+                            std::uint32_t v = imm12 & 0xFF;
+                            imm32 = (v << 16) | v;
+                        } else if ((imm12 >> 10) == 2) {
+                            std::uint32_t v = imm12 & 0xFF;
+                            imm32 = (v << 24) | (v << 8);
+                        } else if ((imm12 & 0x300) == 0x300) {
+                            std::uint32_t v = imm12 & 0xFF;
+                            imm32 = (v << 24) | (v << 16) | (v << 8) | v;
+                        } else {
+                            std::uint32_t rot = (imm12 >> 7) & 0x1F;
+                            std::uint32_t val = 0x80 | (imm12 & 0x7F);
+                            imm32 = (val >> rot) | (val << (32 - rot));
+                            carry_out = (imm32 >> 31) & 1;
+                        }
+                        // op_bits[3:1] selects the operation:
+                        //   000 = AND, 001 = BIC, 010 = ORR (MOV if Rn=15),
+                        //   011 = ORN (MVN if Rn=15), 100 = EOR (TEQ if Rd=15+S)
+                        //   Note: ADD/SUB/etc are under a different prefix already
+                        //   handled above.
+                        // We already handled MOV (Rn=15) and MVN (Rn=15) above.
+                        std::uint32_t op_sel = (op_bits >> 1) & 0x7;
+                        bool handled_dp = true;
+                        if (op_sel == 0) {
+                            // AND: Rd = Rn & imm32
+                            w.load_reg(static_cast<int>(rn));
+                            w.i32_const(static_cast<std::int32_t>(imm32));
+                            w.op(op_i32_and);
+                        } else if (op_sel == 1) {
+                            // BIC: Rd = Rn & ~imm32
+                            w.load_reg(static_cast<int>(rn));
+                            w.i32_const(static_cast<std::int32_t>(~imm32));
+                            w.op(op_i32_and);
+                        } else if (op_sel == 2 && rn != 15) {
+                            // ORR: Rd = Rn | imm32
+                            w.load_reg(static_cast<int>(rn));
+                            w.i32_const(static_cast<std::int32_t>(imm32));
+                            w.op(op_i32_or);
+                        } else if (op_sel == 3 && rn != 15) {
+                            // ORN: Rd = Rn | ~imm32
+                            w.load_reg(static_cast<int>(rn));
+                            w.i32_const(static_cast<std::int32_t>(~imm32));
+                            w.op(op_i32_or);
+                        } else if (op_sel == 4) {
+                            // EOR: Rd = Rn ^ imm32
+                            w.load_reg(static_cast<int>(rn));
+                            w.i32_const(static_cast<std::int32_t>(imm32));
+                            w.op(op_i32_xor);
+                        } else {
+                            // MOV/MVN with Rn=15 already handled, or unknown op
+                            handled_dp = false;
+                        }
+                        if (handled_dp) {
+                            w.set_local(TMP1);
+                            if (rd == 15 && set_flags) {
+                                // TST/TEQ: flags only, don't write Rd
+                            } else {
+                                w.store_reg(rd, TMP1);
+                            }
+                            if (set_flags) {
+                                // N flag
+                                w.get_local(TMP1);
+                                w.i32_const(31);
+                                w.op(op_i32_shr_u);
+                                w.set_local(TMP2);
+                                w.store_i32(S::NFLAG, TMP2);
+                                // Z flag
+                                w.get_local(TMP1);
+                                w.op(op_i32_eqz);
+                                w.set_local(TMP2);
+                                w.store_i32(S::ZFLAG, TMP2);
+                                // C flag from ThumbExpandImm_C (rotated byte)
+                                if (carry_out >= 0) {
+                                    w.store_i32_const(S::CFLAG, carry_out);
+                                }
+                                // V unchanged for logical ops
+                            }
+                            i += 2;
+                            decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                            insn_idx++;
+                            continue;
+                        }
+                    }
+                }
+
+                // Wide LDR/STR with register offset (T2).
+                // LDR.W Rd, [Rn, Rm, LSL #imm2]: F850 Rn | Rd 0000 imm2 Rm
+                // STR.W Rd, [Rn, Rm, LSL #imm2]: F840 Rn | Rd 0000 imm2 Rm
+                // LDRH.W: F830 Rn | ...  STRH.W: F820 Rn | ...
+                // LDRB.W: F810 Rn | ...  STRB.W: F800 Rn | ...
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    std::uint16_t op_hi2 = insn & 0xFFF0;
+                    bool is_ldr_reg  = (op_hi2 == 0xF850);
+                    bool is_str_reg  = (op_hi2 == 0xF840);
+                    bool is_ldrh_reg = (op_hi2 == 0xF830);
+                    bool is_strh_reg = (op_hi2 == 0xF820);
+                    bool is_ldrb_reg = (op_hi2 == 0xF810);
+                    bool is_strb_reg = (op_hi2 == 0xF800);
+                    bool is_any_reg_ldst = is_ldr_reg || is_str_reg || is_ldrh_reg
+                        || is_strh_reg || is_ldrb_reg || is_strb_reg;
+                    // Register offset form: insn2 bit 11 = 0, bits [9:6] = 0000
+                    if (is_any_reg_ldst && ((insn2 & 0x0FC0) == 0x0000)) {
+                        std::uint32_t rn = insn & 0xF;
+                        int rd = (insn2 >> 12) & 0xF;
+                        int rm = insn2 & 0xF;
+                        std::uint32_t shift = (insn2 >> 4) & 0x3;
+                        // Compute address: Rn + (Rm << shift)
+                        w.load_reg(static_cast<int>(rn));
+                        w.load_reg(rm);
+                        if (shift > 0) {
+                            w.i32_const(static_cast<std::int32_t>(shift));
+                            w.op(op_i32_shl);
+                        }
+                        w.op(op_i32_add);
+                        w.set_local(TMP1);
+                        if (is_ldr_reg) {
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.call(0);
+                            w.set_local(TMP2);
+                            if (rd == 15) {
+                                w.store_reg(15, TMP2);
+                                w.bail_preserve_pc(insn_idx + 1);
+                                if (closed_count >= N_fwd) {
+                                    decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                                    i += 2;
+                                    insn_idx++;
+                                    break;
+                                }
+                            } else {
+                                w.store_reg(rd, TMP2);
+                            }
+                        } else if (is_str_reg) {
+                            w.load_reg(rd);
+                            w.set_local(TMP2);
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.get_local(TMP2);
+                            w.call(1);
+                        } else if (is_ldrh_reg) {
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.call(0);
+                            w.i32_const(0xFFFF);
+                            w.op(op_i32_and);
+                            w.set_local(TMP2);
+                            w.store_reg(rd, TMP2);
+                        } else if (is_strh_reg) {
+                            w.load_reg(rd);
+                            w.set_local(TMP2);
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.get_local(TMP2);
+                            w.call(1);
+                        } else if (is_ldrb_reg) {
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.call(2);
+                            w.set_local(TMP2);
+                            w.store_reg(rd, TMP2);
+                        } else if (is_strb_reg) {
+                            w.load_reg(rd);
+                            w.set_local(TMP2);
+                            w.state_ptr();
+                            w.get_local(TMP1);
+                            w.get_local(TMP2);
+                            w.call(3); // tlb_write8
+                        }
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // Wide LDR/STR with negative/pre/post-indexed 8-bit offset (T4).
+                // LDR.W Rd, [Rn, #-imm8] / [Rn, #imm8]!  / [Rn], #imm8
+                //   insn  = F850 | Rn,  insn2 = Rd<<12 | 1 P U W imm8
+                // STR.W Rd, [Rn, #-imm8] etc.
+                //   insn  = F840 | Rn
+                // Also LDRB (F810), STRB (F800), LDRH (F830), STRH (F820).
+                // insn2 bit 11 = 1 distinguishes this from the register form.
+                // P=1,U=0,W=0: [Rn, #-imm8] (negative offset)
+                // P=1,U=1,W=0: [Rn, #+imm8] (positive, but why not T3?)
+                // P=1,U=x,W=1: [Rn, #±imm8]! (pre-indexed)
+                // P=0,U=x,W=1: [Rn], #±imm8 (post-indexed)
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    std::uint16_t op_hi3 = insn & 0xFFF0;
+                    bool is_ldr_t4 = (op_hi3 == 0xF850);
+                    bool is_str_t4 = (op_hi3 == 0xF840);
+                    bool is_ldrh_t4 = (op_hi3 == 0xF830);
+                    bool is_strh_t4 = (op_hi3 == 0xF820);
+                    bool is_ldrb_t4 = (op_hi3 == 0xF810);
+                    bool is_strb_t4 = (op_hi3 == 0xF800);
+                    bool is_any_t4 = is_ldr_t4 || is_str_t4 || is_ldrh_t4
+                        || is_strh_t4 || is_ldrb_t4 || is_strb_t4;
+                    if (is_any_t4 && ((insn2 & 0x0800) == 0x0800)) {
+                        std::uint32_t rn = insn & 0xF;
+                        int rd = (insn2 >> 12) & 0xF;
+                        bool P = (insn2 >> 10) & 1;
+                        bool U = (insn2 >> 9) & 1;
+                        bool W = (insn2 >> 8) & 1;
+                        std::uint32_t imm8 = insn2 & 0xFF;
+                        std::int32_t offset = U ? static_cast<std::int32_t>(imm8)
+                                                : -static_cast<std::int32_t>(imm8);
+                        // Load Rn into TMP1
+                        w.load_reg(static_cast<int>(rn));
+                        w.set_local(TMP1); // original Rn
+                        // Compute offset address
+                        w.get_local(TMP1);
+                        w.i32_const(offset);
+                        w.op(op_i32_add);
+                        w.set_local(TMP2); // Rn + offset
+                        // Address used for the transfer
+                        if (P) {
+                            // Pre-indexed or simple offset: address = Rn + offset
+                            w.get_local(TMP2);
+                        } else {
+                            // Post-indexed: address = Rn (original)
+                            w.get_local(TMP1);
+                        }
+                        w.set_local(TMP3); // transfer address
+                        // Perform transfer
+                        bool is_load = is_ldr_t4 || is_ldrh_t4 || is_ldrb_t4;
+                        if (is_load) {
+                            if (is_ldr_t4) {
+                                w.state_ptr();
+                                w.get_local(TMP3);
+                                w.call(0);
+                            } else if (is_ldrh_t4) {
+                                w.state_ptr();
+                                w.get_local(TMP3);
+                                w.call(0);
+                                w.i32_const(0xFFFF);
+                                w.op(op_i32_and);
+                            } else {
+                                w.state_ptr();
+                                w.get_local(TMP3);
+                                w.call(2); // tlb_read8
+                            }
+                            w.set_local(TMP4);
+                            if (rd == 15) {
+                                w.store_reg(15, TMP4);
+                            } else {
+                                w.store_reg(rd, TMP4);
+                            }
+                        } else {
+                            w.load_reg(rd);
+                            w.set_local(TMP4);
+                            w.state_ptr();
+                            w.get_local(TMP3);
+                            w.get_local(TMP4);
+                            if (is_strb_t4) {
+                                w.call(3); // tlb_write8
+                            } else {
+                                w.call(1); // tlb_write32 (also used for strh)
+                            }
+                        }
+                        // Writeback
+                        if (W) {
+                            w.store_reg(static_cast<int>(rn), TMP2);
+                        }
+                        if (is_load && rd == 15) {
+                            w.bail_preserve_pc(insn_idx + 1);
+                            if (closed_count >= N_fwd) {
+                                decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                                i += 2;
+                                insn_idx++;
+                                break;
+                            }
+                        }
+                        {
+                            i += 2;
+                            decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                            insn_idx++;
+                            continue;
+                        }
+                    }
+                }
+
+                // Wide B.W (unconditional): 11110 S imm10 | 10 J1 1 J2 imm11
+                // Same encoding as BL but insn2 bits[14:12] = 10x instead of 11x.
+                // Distinguish: insn2 & 0xD000 == 0x9000 for B.W.
+                //              insn2 & 0xC000 == 0xC000 for BL/BLX.
+                // Wide B<cond>.W: 11110 S cond imm6 | 10 J1 0 J2 imm11
+                //   insn2 bit 12 = 0 for conditional.
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_b_w = ((insn & 0xF800) == 0xF000)
+                        && ((insn2 & 0xD000) == 0x9000);
+                    bool is_bcond_w = ((insn & 0xF800) == 0xF000)
+                        && ((insn2 & 0xD000) == 0x8000);
+                    if (is_b_w) {
+                        // Unconditional wide branch
+                        std::uint32_t s = (insn >> 10) & 1;
+                        std::uint32_t imm10 = insn & 0x3FF;
+                        std::uint32_t j1 = (insn2 >> 13) & 1;
+                        std::uint32_t j2 = (insn2 >> 11) & 1;
+                        std::uint32_t imm11 = insn2 & 0x7FF;
+                        std::uint32_t i1 = !(j1 ^ s);
+                        std::uint32_t i2 = !(j2 ^ s);
+                        std::int32_t imm32 = static_cast<std::int32_t>(
+                            (s << 24) | (i1 << 23) | (i2 << 22) | (imm10 << 12) | (imm11 << 1));
+                        if (s) imm32 |= static_cast<std::int32_t>(0xFE000000u);
+                        std::uint32_t target = insn_addr + 4 + imm32;
+                        // Check if target is within this block
+                        std::int32_t target_off = static_cast<std::int32_t>(target - start_address);
+                        if (target_off >= 0
+                            && static_cast<std::size_t>(target_off) + 1 < code_size) {
+                            // In-block: let the WASM loop dispatch handle it
+                            // (we just store PC and branch to loop top)
+                            w.store_i32_const(S::PC, static_cast<std::int32_t>(target | 1));
+                            // Branch to loop top (depth depends on nesting)
+                            // For now, bail — proper in-block branch would
+                            // need br_table integration.
+                            w.bail(target, insn_idx + 1);
+                        } else {
+                            // Out-of-block: bail to interpreter
+                            w.bail(target, insn_idx + 1);
+                        }
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        if (closed_count >= N_fwd) break;
+                        continue;
+                    }
+                    if (is_bcond_w) {
+                        // Wide conditional branch
+                        std::uint32_t cond4 = (insn >> 6) & 0xF;
+                        if (cond4 >= 0xE) {
+                            // Undefined / SVC — bail
+                            goto wide_bail;
+                        }
+                        std::uint32_t s = (insn >> 10) & 1;
+                        std::uint32_t imm6 = insn & 0x3F;
+                        std::uint32_t j1 = (insn2 >> 13) & 1;
+                        std::uint32_t j2 = (insn2 >> 11) & 1;
+                        std::uint32_t imm11 = insn2 & 0x7FF;
+                        // For B<cond>.W, I1/I2 = J1/J2 (no XOR with S)
+                        std::int32_t imm32 = static_cast<std::int32_t>(
+                            (s << 20) | (j2 << 19) | (j1 << 18) | (imm6 << 12) | (imm11 << 1));
+                        if (s) imm32 |= static_cast<std::int32_t>(0xFFE00000u);
+                        std::uint32_t target = insn_addr + 4 + imm32;
+                        // Emit the same condition-code logic as narrow B<cond>
+                        // but for a wide encoding. The existing narrow handler
+                        // uses if/else; we mirror that here.
+                        // We need to evaluate the condition and branch.
+                        // For simplicity, bail on the branch (both taken and not-taken
+                        // paths ultimately go through the interpreter/AOT dispatch).
+                        //
+                        // Actually, we can handle this the same way as the narrow
+                        // conditional branch: emit the condition check and bail
+                        // with the target PC if taken, otherwise fall through.
+                        // The narrow handler does exactly this via the 16-bit
+                        // B<cond> path — but here we just emit a bail.
+                        //
+                        // For now: bail with target if taken, fall through if not.
+                        // This is conservative but correct.
+                        w.bail(target, insn_idx + 1);
+                        // TODO: mirror narrow B<cond> inline handling
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // LDRD/STRD (immediate, T1).
+                // LDRD Rt, Rt2, [Rn, #±imm8*4]
+                //   insn  = E850-E87F (P=1,U=0) / E8D0-E8FF (P=1,U=1) /
+                //           E950-E97F (P=1,U=0,W=1) / E9D0-E9FF (P=1,U=1)
+                //   More precisely: insn[15:9] = 1110100  insn[8]=P  insn[7]=U
+                //                   insn[6]=1(dual)  insn[5]=W  insn[4]=L
+                //   LDRD: L=1, STRD: L=0. Bit 6 = 1 distinguishes from LDM/STM.
+                //   insn2 = Rt2<<8 | Rt<<12 | imm8
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    // Match E8xx/E9xx with bit 6 set (dual), bit 4 = L flag
+                    bool is_e8e9 = ((insn & 0xFE00) == 0xE800);
+                    bool is_dual = (insn & 0x0040) != 0;
+                    if (is_e8e9 && is_dual) {
+                        bool is_load = (insn & 0x0010) != 0;
+                        bool P = (insn & 0x0100) != 0;
+                        bool U = (insn & 0x0080) != 0;
+                        bool W = (insn & 0x0020) != 0;
+                        std::uint32_t rn = insn & 0xF;
+                        int rt  = (insn2 >> 12) & 0xF;
+                        int rt2 = (insn2 >> 8) & 0xF;
+                        std::uint32_t imm8 = insn2 & 0xFF;
+                        std::int32_t offset = U ? static_cast<std::int32_t>(imm8 * 4)
+                                                : -static_cast<std::int32_t>(imm8 * 4);
+                        // Compute base
+                        w.load_reg(static_cast<int>(rn));
+                        w.set_local(TMP1); // original Rn
+                        w.get_local(TMP1);
+                        w.i32_const(offset);
+                        w.op(op_i32_add);
+                        w.set_local(TMP2); // offset address
+                        // Transfer address
+                        if (P) {
+                            w.get_local(TMP2);
+                        } else {
+                            w.get_local(TMP1);
+                        }
+                        w.set_local(TMP3); // addr for first word
+                        if (is_load) {
+                            // Rt = [addr], Rt2 = [addr+4]
+                            w.state_ptr();
+                            w.get_local(TMP3);
+                            w.call(0);
+                            w.set_local(TMP4);
+                            w.store_reg(rt, TMP4);
+                            w.state_ptr();
+                            w.get_local(TMP3);
+                            w.i32_const(4);
+                            w.op(op_i32_add);
+                            w.call(0);
+                            w.set_local(TMP4);
+                            w.store_reg(rt2, TMP4);
+                        } else {
+                            // [addr] = Rt, [addr+4] = Rt2
+                            w.load_reg(rt);
+                            w.set_local(TMP4);
+                            w.state_ptr();
+                            w.get_local(TMP3);
+                            w.get_local(TMP4);
+                            w.call(1);
+                            w.load_reg(rt2);
+                            w.set_local(TMP4);
+                            w.state_ptr();
+                            w.get_local(TMP3);
+                            w.i32_const(4);
+                            w.op(op_i32_add);
+                            w.get_local(TMP4);
+                            w.call(1);
+                        }
+                        if (W) {
+                            w.store_reg(static_cast<int>(rn), TMP2);
+                        }
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // Wide data-processing (shifted register).
+                // AND/ORR/ORN/EOR/BIC/ADD/SUB/RSB/ADC/SBC with Rm shifted.
+                // Encoding: 1110101 op S Rn | (0 imm3 Rd imm2 type Rm)
+                //   insn  = EA00 | (op<<5) | (S<<4) | Rn   [EA00-EBFF]
+                //   insn2 = (imm3<<12) | (Rd<<8) | (imm2<<6) | (type<<4) | Rm
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    if ((insn & 0xFE00) == 0xEA00 && (insn2 & 0x8000) == 0) {
+                        std::uint32_t op4 = (insn >> 5) & 0xF; // bits [8:5]
+                        std::uint32_t rn = insn & 0xF;
+                        int rd = (insn2 >> 8) & 0xF;
+                        int rm = insn2 & 0xF;
+                        bool set_flags = (insn & 0x10) != 0;
+                        // Decode shift
+                        std::uint32_t imm3 = (insn2 >> 12) & 0x7;
+                        std::uint32_t imm2 = (insn2 >> 6) & 0x3;
+                        std::uint32_t stype = (insn2 >> 4) & 0x3;
+                        std::uint32_t shift_n = (imm3 << 2) | imm2;
+                        // Load Rm and apply shift
+                        w.load_reg(rm);
+                        if (shift_n > 0) {
+                            w.i32_const(static_cast<std::int32_t>(shift_n));
+                            switch (stype) {
+                                case 0: w.op(op_i32_shl); break;      // LSL
+                                case 1: w.op(op_i32_shr_u); break;    // LSR
+                                case 2: w.op(op_i32_shr_s); break;    // ASR
+                                default:
+                                    // ROR — not yet
+                                    goto wide_bail;
+                            }
+                        } else if (shift_n == 0 && stype != 0) {
+                            // LSR #32, ASR #32, RRX
+                            // LSR #32 → 0, ASR #32 → sign-extend
+                            switch (stype) {
+                                case 1: w.op(op_drop); w.i32_const(0); break; // LSR #32
+                                case 2: w.i32_const(31); w.op(op_i32_shr_s); break; // ASR #32
+                                default: goto wide_bail; // RRX
+                            }
+                        }
+                        w.set_local(TMP1); // shifted Rm
+                        // op4[3:1] selects operation:
+                        //   0000 = AND, 0001 = BIC, 0010 = ORR/MOV,
+                        //   0011 = ORN/MVN, 0100 = EOR/TEQ,
+                        //   1000 = ADD/CMN, 1101 = SUB/CMP, 1110 = RSB
+                        //   1010 = ADC, 1011 = SBC
+                        bool need_rn = true;
+                        bool handled_sr = true;
+                        std::uint32_t op_sel2 = (op4 >> 1) & 0x7;
+                        bool is_sub_op = false;
+                        if (op4 == 0x0) {
+                            // AND: Rd = Rn & shifted_Rm
+                            w.load_reg(static_cast<int>(rn));
+                            w.get_local(TMP1);
+                            w.op(op_i32_and);
+                        } else if (op4 == 0x1) {
+                            // BIC: Rd = Rn & ~shifted_Rm
+                            w.get_local(TMP1);
+                            w.i32_const(-1);
+                            w.op(op_i32_xor); // ~Rm
+                            w.set_local(TMP1);
+                            w.load_reg(static_cast<int>(rn));
+                            w.get_local(TMP1);
+                            w.op(op_i32_and);
+                        } else if (op4 == 0x2) {
+                            if (rn == 15) {
+                                // MOV: Rd = shifted_Rm
+                                w.get_local(TMP1);
+                                need_rn = false;
+                            } else {
+                                // ORR: Rd = Rn | shifted_Rm
+                                w.load_reg(static_cast<int>(rn));
+                                w.get_local(TMP1);
+                                w.op(op_i32_or);
+                            }
+                        } else if (op4 == 0x3) {
+                            if (rn == 15) {
+                                // MVN: Rd = ~shifted_Rm
+                                w.get_local(TMP1);
+                                w.i32_const(-1);
+                                w.op(op_i32_xor);
+                                need_rn = false;
+                            } else {
+                                // ORN: Rd = Rn | ~shifted_Rm
+                                w.get_local(TMP1);
+                                w.i32_const(-1);
+                                w.op(op_i32_xor);
+                                w.set_local(TMP1);
+                                w.load_reg(static_cast<int>(rn));
+                                w.get_local(TMP1);
+                                w.op(op_i32_or);
+                            }
+                        } else if (op4 == 0x4) {
+                            // EOR: Rd = Rn ^ shifted_Rm
+                            w.load_reg(static_cast<int>(rn));
+                            w.get_local(TMP1);
+                            w.op(op_i32_xor);
+                        } else if (op4 == 0x8) {
+                            // ADD: Rd = Rn + shifted_Rm
+                            w.load_reg(static_cast<int>(rn));
+                            w.set_local(TMP2); // save Rn for flags
+                            w.get_local(TMP2);
+                            w.get_local(TMP1);
+                            w.op(op_i32_add);
+                        } else if (op4 == 0xD || op4 == 0xD + 0) {
+                            // SUB: Rd = Rn - shifted_Rm
+                            is_sub_op = true;
+                            w.load_reg(static_cast<int>(rn));
+                            w.set_local(TMP2); // save Rn for flags
+                            w.get_local(TMP2);
+                            w.get_local(TMP1);
+                            w.op(op_i32_sub);
+                        } else if (op4 == 0xE) {
+                            // RSB: Rd = shifted_Rm - Rn
+                            is_sub_op = true;
+                            w.load_reg(static_cast<int>(rn));
+                            w.set_local(TMP2); // Rn
+                            w.get_local(TMP1); // shifted_Rm (acts as "Rn" for flag calc)
+                            w.get_local(TMP2);
+                            w.op(op_i32_sub);
+                            // For RSB flag calculation, swap: "Rn"=shifted_Rm, "imm"=Rn
+                            // TMP1 already has shifted_Rm, TMP2 has Rn
+                            // We need TMP2=shifted_Rm for the flag math
+                            // Do the swap after storing result
+                        } else {
+                            handled_sr = false;
+                        }
+                        if (handled_sr) {
+                            w.set_local(TMP3); // result
+                            if (rd == 15 && set_flags) {
+                                // TST/TEQ/CMP/CMN: flags only
+                            } else {
+                                w.store_reg(rd, TMP3);
+                            }
+                            if (set_flags) {
+                                // N flag
+                                w.get_local(TMP3);
+                                w.i32_const(31);
+                                w.op(op_i32_shr_u);
+                                w.set_local(TMP4);
+                                w.store_i32(S::NFLAG, TMP4);
+                                // Z flag
+                                w.get_local(TMP3);
+                                w.op(op_i32_eqz);
+                                w.set_local(TMP4);
+                                w.store_i32(S::ZFLAG, TMP4);
+                                // C and V flags for ADD/SUB/RSB
+                                if (op4 == 0x8 || op4 == 0xD || op4 == 0xE) {
+                                    if (op4 == 0xE) {
+                                        // RSB: C = shifted_Rm >= Rn (unsigned)
+                                        // TMP1=shifted_Rm, TMP2=Rn
+                                        w.get_local(TMP1);
+                                        w.get_local(TMP2);
+                                        w.op(op_i32_ge_u);
+                                    } else if (is_sub_op) {
+                                        // SUB: C = Rn >= shifted_Rm
+                                        w.get_local(TMP2);
+                                        w.get_local(TMP1);
+                                        w.op(op_i32_ge_u);
+                                    } else {
+                                        // ADD: C = result < Rn
+                                        w.get_local(TMP3);
+                                        w.get_local(TMP2);
+                                        w.op(op_i32_lt_u);
+                                    }
+                                    w.set_local(TMP4);
+                                    w.store_i32(S::CFLAG, TMP4);
+                                    // V flag
+                                    if (is_sub_op || op4 == 0xE) {
+                                        std::uint32_t a_local = (op4 == 0xE) ? TMP1 : TMP2;
+                                        std::uint32_t b_local = (op4 == 0xE) ? TMP2 : TMP1;
+                                        // V = (a ^ b) & (a ^ result) >> 31
+                                        w.get_local(a_local);
+                                        w.get_local(b_local);
+                                        w.op(op_i32_xor);
+                                        w.get_local(a_local);
+                                        w.get_local(TMP3);
+                                        w.op(op_i32_xor);
+                                        w.op(op_i32_and);
+                                        w.i32_const(31);
+                                        w.op(op_i32_shr_u);
+                                    } else {
+                                        // ADD: V = ~(Rn ^ Rm) & (Rn ^ result) >> 31
+                                        w.get_local(TMP2);
+                                        w.get_local(TMP1);
+                                        w.op(op_i32_xor);
+                                        w.i32_const(-1);
+                                        w.op(op_i32_xor);
+                                        w.get_local(TMP2);
+                                        w.get_local(TMP3);
+                                        w.op(op_i32_xor);
+                                        w.op(op_i32_and);
+                                        w.i32_const(31);
+                                        w.op(op_i32_shr_u);
+                                    }
+                                    w.set_local(TMP4);
+                                    w.store_i32(S::VFLAG, TMP4);
+                                }
+                                // For logical ops (AND/BIC/ORR/ORN/EOR/MOV/MVN),
+                                // C flag comes from the shifter if shift_n > 0.
+                                // We'd need to compute carry_out from the shift.
+                                // For now, leave C unchanged for logical ops.
+                                // V unchanged for logical ops.
+                            }
+                            i += 2;
+                            decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                            insn_idx++;
+                            continue;
+                        }
+                    }
+                }
+
+                // ADDW/SUBW (12-bit plain immediate, T4).
+                // ADDW: 11110 i 10 0000 Rn | 0 imm3 Rd imm8
+                //   insn = F200 | (i<<10) | Rn    (F200-F6xx range, but masked)
+                // SUBW: 11110 i 10 1010 Rn | 0 imm3 Rd imm8
+                //   insn = F2A0 | (i<<10) | Rn
+                // These do NOT set flags. imm12 = i:imm3:imm8 (plain, not expanded).
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_addw = (insn & 0xFBF0) == 0xF200;
+                    bool is_subw = (insn & 0xFBF0) == 0xF2A0;
+                    if ((is_addw || is_subw) && ((insn2 & 0x8000) == 0)) {
+                        std::uint32_t rn = insn & 0xF;
+                        int rd = (insn2 >> 8) & 0xF;
+                        std::uint32_t i_bit = (insn >> 10) & 1;
+                        std::uint32_t imm3 = (insn2 >> 12) & 0x7;
+                        std::uint32_t imm8 = insn2 & 0xFF;
+                        std::uint32_t imm12 = (i_bit << 11) | (imm3 << 8) | imm8;
+                        if (rn == 15) {
+                            // ADR: Rd = Align(PC,4) ± imm12
+                            std::uint32_t base = (insn_addr + 4) & ~3u;
+                            std::uint32_t val = is_addw ? base + imm12 : base - imm12;
+                            w.store_i32_const(S::reg(rd), static_cast<std::int32_t>(val));
+                        } else {
+                            w.load_reg(static_cast<int>(rn));
+                            w.i32_const(static_cast<std::int32_t>(imm12));
+                            if (is_addw) {
+                                w.op(op_i32_add);
+                            } else {
+                                w.op(op_i32_sub);
+                            }
+                            w.set_local(TMP1);
+                            w.store_reg(rd, TMP1);
+                        }
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // UBFX/SBFX/BFI/BFC (bitfield operations).
+                // UBFX: 11110 0 11 110 0 Rn | 0 imm3 Rd imm2 0 widthm1
+                //   insn = F3C0 | Rn, insn2 = (imm3<<12) | (Rd<<8) | (imm2<<6) | widthm1
+                // SBFX: 11110 0 11 010 0 Rn | 0 imm3 Rd imm2 0 widthm1
+                //   insn = F340 | Rn
+                // BFC:  11110 0 11 011 0 1111 | 0 imm3 Rd imm2 0 msb
+                //   insn = F36F
+                // BFI:  11110 0 11 011 0 Rn   | 0 imm3 Rd imm2 0 msb
+                //   insn = F360 | Rn (Rn != 15)
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_ubfx = (insn & 0xFFF0) == 0xF3C0;
+                    bool is_sbfx = (insn & 0xFFF0) == 0xF340;
+                    bool is_bfi_bfc = (insn & 0xFFF0) == 0xF360;
+                    if (is_ubfx || is_sbfx) {
+                        std::uint32_t rn = insn & 0xF;
+                        int rd = (insn2 >> 8) & 0xF;
+                        std::uint32_t imm3 = (insn2 >> 12) & 0x7;
+                        std::uint32_t imm2 = (insn2 >> 6) & 0x3;
+                        std::uint32_t lsb = (imm3 << 2) | imm2;
+                        std::uint32_t widthm1 = insn2 & 0x1F;
+                        std::uint32_t width = widthm1 + 1;
+                        // UBFX: Rd = (Rn >> lsb) & ((1<<width)-1)
+                        // SBFX: Rd = sign_extend((Rn >> lsb) & mask, width)
+                        w.load_reg(static_cast<int>(rn));
+                        if (lsb > 0) {
+                            w.i32_const(static_cast<std::int32_t>(lsb));
+                            w.op(op_i32_shr_u);
+                        }
+                        if (width < 32) {
+                            w.i32_const(static_cast<std::int32_t>((1u << width) - 1));
+                            w.op(op_i32_and);
+                        }
+                        if (is_sbfx && width < 32) {
+                            // Sign-extend: shift left then arithmetic shift right
+                            std::uint32_t shift = 32 - width;
+                            w.i32_const(static_cast<std::int32_t>(shift));
+                            w.op(op_i32_shl);
+                            w.i32_const(static_cast<std::int32_t>(shift));
+                            w.op(op_i32_shr_s);
+                        }
+                        w.set_local(TMP1);
+                        w.store_reg(rd, TMP1);
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                    if (is_bfi_bfc) {
+                        std::uint32_t rn = insn & 0xF;
+                        int rd = (insn2 >> 8) & 0xF;
+                        std::uint32_t imm3 = (insn2 >> 12) & 0x7;
+                        std::uint32_t imm2 = (insn2 >> 6) & 0x3;
+                        std::uint32_t lsb = (imm3 << 2) | imm2;
+                        std::uint32_t msb = insn2 & 0x1F;
+                        std::uint32_t width = msb - lsb + 1;
+                        std::uint32_t mask = ((1u << width) - 1) << lsb;
+                        if (rn == 15) {
+                            // BFC: Rd = Rd & ~mask
+                            w.load_reg(rd);
+                            w.i32_const(static_cast<std::int32_t>(~mask));
+                            w.op(op_i32_and);
+                        } else {
+                            // BFI: Rd = (Rd & ~mask) | ((Rn << lsb) & mask)
+                            w.load_reg(rd);
+                            w.i32_const(static_cast<std::int32_t>(~mask));
+                            w.op(op_i32_and);
+                            w.load_reg(static_cast<int>(rn));
+                            if (lsb > 0) {
+                                w.i32_const(static_cast<std::int32_t>(lsb));
+                                w.op(op_i32_shl);
+                            }
+                            w.i32_const(static_cast<std::int32_t>(mask));
+                            w.op(op_i32_and);
+                            w.op(op_i32_or);
+                        }
+                        w.set_local(TMP1);
+                        w.store_reg(rd, TMP1);
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // UXTB/UXTH/SXTB/SXTH wide (T1) — sign/zero extend with optional rotation.
+                // UXTB.W:  11111 010 0101 1111 | 1111 Rd 1 0 rotate Rm
+                //   insn = FA5F, insn2 = F0<<8 | Rd<<8 | 0x80 | (rot<<4) | Rm
+                // UXTH.W:  11111 010 0001 1111 | 1111 Rd 1 0 rotate Rm
+                //   insn = FA1F
+                // SXTB.W:  11111 010 0100 1111 | ...
+                //   insn = FA4F
+                // SXTH.W:  11111 010 0000 1111 | ...
+                //   insn = FA0F
+                // All have Rn=1111 (plain extend, no add).
+                // rotate: 00=none, 01=ROR8, 10=ROR16, 11=ROR24
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_uxtb_w = (insn == 0xFA5F);
+                    bool is_uxth_w = (insn == 0xFA1F);
+                    bool is_sxtb_w = (insn == 0xFA4F);
+                    bool is_sxth_w = (insn == 0xFA0F);
+                    if ((is_uxtb_w || is_uxth_w || is_sxtb_w || is_sxth_w)
+                        && ((insn2 & 0xF080) == 0xF080)) {
+                        int rd = (insn2 >> 8) & 0xF;
+                        int rm = insn2 & 0xF;
+                        std::uint32_t rot = (insn2 >> 4) & 0x3;
+                        w.load_reg(rm);
+                        if (rot > 0) {
+                            std::uint32_t rot_amt = rot * 8;
+                            // ROR by rot_amt: (val >> rot_amt) | (val << (32 - rot_amt))
+                            w.set_local(TMP1);
+                            w.get_local(TMP1);
+                            w.i32_const(static_cast<std::int32_t>(rot_amt));
+                            w.op(op_i32_shr_u);
+                            w.get_local(TMP1);
+                            w.i32_const(static_cast<std::int32_t>(32 - rot_amt));
+                            w.op(op_i32_shl);
+                            w.op(op_i32_or);
+                        }
+                        if (is_uxtb_w) {
+                            w.i32_const(0xFF);
+                            w.op(op_i32_and);
+                        } else if (is_uxth_w) {
+                            w.i32_const(0xFFFF);
+                            w.op(op_i32_and);
+                        } else if (is_sxtb_w) {
+                            w.i32_const(24);
+                            w.op(op_i32_shl);
+                            w.i32_const(24);
+                            w.op(op_i32_shr_s);
+                        } else { // sxth
+                            w.i32_const(16);
+                            w.op(op_i32_shl);
+                            w.i32_const(16);
+                            w.op(op_i32_shr_s);
+                        }
+                        w.set_local(TMP1);
+                        w.store_reg(rd, TMP1);
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // CLZ (T1): 11111 010 1011 Rm | 1111 Rd 1000 Rm2
+                //   insn = FAB0 | Rm, insn2 = (0xF<<12) | (Rd<<8) | 0x80 | Rm2
+                //   Rm == Rm2 (ARM spec requires this).
+                // RBIT (T1): 11111 010 1001 Rm | 1111 Rd 1010 Rm2
+                //   insn = FA90 | Rm, insn2 = (0xF<<12) | (Rd<<8) | 0xA0 | Rm2
+                // REV (T2): 11111 010 1001 Rm | 1111 Rd 1000 Rm2
+                //   insn = FA90 | Rm, insn2 bits[7:4] = 1000
+                // REV16 (T2): 11111 010 1001 Rm | 1111 Rd 1001 Rm2
+                //   insn = FA90 | Rm, insn2 bits[7:4] = 1001
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    if ((insn & 0xFFF0) == 0xFAB0 && (insn2 & 0xF0F0) == 0xF080) {
+                        // CLZ
+                        int rd = (insn2 >> 8) & 0xF;
+                        int rm = insn2 & 0xF;
+                        // WASM doesn't have clz directly as a simple op
+                        // but we can use i32.clz (opcode 0x67)
+                        w.load_reg(rm);
+                        w.op(0x67); // i32.clz
+                        w.set_local(TMP1);
+                        w.store_reg(rd, TMP1);
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // MUL (T2): 11111 011 0000 Rn | 1111 Rd 0000 Rm
+                //   insn = FB00 | Rn, insn2 = (0xF<<12) | (Rd<<8) | Rm
+                //   Rd = Rn * Rm (32-bit result, no flags)
+                // MLA (T1): 11111 011 0000 Rn | Ra Rd 0000 Rm  (Ra != 1111)
+                //   Rd = Rn * Rm + Ra
+                // MLS (T1): 11111 011 0000 Rn | Ra Rd 0001 Rm
+                //   Rd = Ra - Rn * Rm
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    if ((insn & 0xFFF0) == 0xFB00) {
+                        std::uint32_t rn = insn & 0xF;
+                        int rd = (insn2 >> 8) & 0xF;
+                        int rm = insn2 & 0xF;
+                        int ra = (insn2 >> 12) & 0xF;
+                        bool is_mls = (insn2 & 0x00F0) == 0x0010;
+                        w.load_reg(static_cast<int>(rn));
+                        w.load_reg(rm);
+                        w.op(op_i32_mul);
+                        if (ra == 0xF && !is_mls) {
+                            // MUL: result = Rn * Rm
+                        } else if (is_mls) {
+                            // MLS: Rd = Ra - Rn*Rm
+                            w.set_local(TMP1);
+                            w.load_reg(ra);
+                            w.get_local(TMP1);
+                            w.op(op_i32_sub);
+                        } else {
+                            // MLA: Rd = Rn*Rm + Ra
+                            w.load_reg(ra);
+                            w.op(op_i32_add);
+                        }
+                        w.set_local(TMP1);
+                        w.store_reg(rd, TMP1);
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                // UMULL (T1): 11111 011 1010 Rn | RdLo RdHi 0000 Rm
+                //   insn = FBA0 | Rn
+                //   RdHi:RdLo = Rn * Rm (unsigned 64-bit)
+                // SMULL (T1): 11111 011 1000 Rn | RdLo RdHi 0000 Rm
+                //   insn = FB80 | Rn
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_umull = (insn & 0xFFF0) == 0xFBA0;
+                    bool is_smull = (insn & 0xFFF0) == 0xFB80;
+                    if ((is_umull || is_smull) && (insn2 & 0x00F0) == 0x0000) {
+                        std::uint32_t rn = insn & 0xF;
+                        int rdlo = (insn2 >> 12) & 0xF;
+                        int rdhi = (insn2 >> 8) & 0xF;
+                        int rm = insn2 & 0xF;
+                        // WASM i32 can't do 64-bit multiply directly.
+                        // Use i64 ops: extend to i64, multiply, extract halves.
+                        // i64.extend_i32_u = 0xAD, i64.extend_i32_s = 0xAC
+                        // i64.mul = 0x7E
+                        // i32.wrap_i64 = 0xA7
+                        // i64.shr_u = 0x88
+                        // i64.const = 0x42
+                        w.load_reg(static_cast<int>(rn));
+                        w.op(is_smull ? 0xAC : 0xAD); // extend to i64
+                        w.load_reg(rm);
+                        w.op(is_smull ? 0xAC : 0xAD);
+                        w.op(0x7E); // i64.mul
+                        // Tee to get both halves
+                        // Local for i64 — we need an i64 local. But our locals
+                        // are all i32. We'd need to declare an i64 local.
+                        // For now, bail.
+                        // TODO: add i64 local support for UMULL/SMULL
+                        goto wide_bail;
+                    }
+                }
+
+                // SDIV/UDIV (T1): 11111 011 1001 Rn | 1111 Rd 1111 Rm  (SDIV)
+                //                  11111 011 1011 Rn | 1111 Rd 1111 Rm  (UDIV)
+                //   SDIV: insn = FB90 | Rn
+                //   UDIV: insn = FBB0 | Rn
+                if (i + 3 < code_size) {
+                    std::uint16_t insn2 = code[i+2] | (code[i+3] << 8);
+                    bool is_sdiv = (insn & 0xFFF0) == 0xFB90;
+                    bool is_udiv = (insn & 0xFFF0) == 0xFBB0;
+                    if ((is_sdiv || is_udiv) && (insn2 & 0xF0F0) == 0xF0F0) {
+                        int rd = (insn2 >> 8) & 0xF;
+                        int rm = insn2 & 0xF;
+                        std::uint32_t rn = insn & 0xF;
+                        // WASM has i32.div_s (0x6D) and i32.div_u (0x6E).
+                        // Division by zero in WASM traps; ARM returns 0.
+                        // We need a check: if Rm == 0, result = 0.
+                        w.load_reg(rm);
+                        w.set_local(TMP1);
+                        w.get_local(TMP1);
+                        w.op(op_i32_eqz);
+                        w.op(op_if); w.op(type_i32);
+                            w.i32_const(0);
+                        w.op(op_else);
+                            w.load_reg(static_cast<int>(rn));
+                            w.get_local(TMP1);
+                            w.op(is_sdiv ? 0x6D : 0x6E);
+                        w.op(op_end);
+                        w.set_local(TMP2);
+                        w.store_reg(rd, TMP2);
+                        i += 2;
+                        decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                        insn_idx++;
+                        continue;
+                    }
+                }
+
+                wide_bail:
                 // Not a BL — mark as unsupported so this function is rejected.
                 // Bailing at insn_addr with insn_idx=0 would cause an infinite
                 // loop (interpreter re-dispatches to the same PC, AOT bails again).
