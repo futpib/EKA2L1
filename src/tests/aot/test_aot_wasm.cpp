@@ -17,6 +17,7 @@
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/dyncom/armstate.h>
+#include <cpu/aot/arm_translator.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 
@@ -1741,6 +1742,259 @@ static_assert(offsetof(ARMul_State, VFP) == state_offsets::VFP_SYS, "VFP_SYS off
 static_assert(offsetof(ARMul_State, ExtReg) == state_offsets::EXTREG, "EXTREG offset mismatch");
 #pragma GCC diagnostic pop
 
+// ---- ARM translator-level tests ----
+
+static bool test_arm_mov_imm() {
+    // MOV R0, #42 (E3A0002A) — unconditional
+    std::uint32_t inst = 0xE3A0002A;
+    std::vector<std::uint8_t> code(4);
+    std::memcpy(code.data(), &inst, 4);
+    // BX LR (E12FFF1E)
+    std::uint32_t bx_lr = 0xE12FFF1E;
+    code.resize(8);
+    std::memcpy(code.data() + 4, &bx_lr, 4);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty()) {
+        printf("  FAIL arm_mov_imm: empty body\n");
+        return false;
+    }
+    if (!tr.complete) {
+        printf("  FAIL arm_mov_imm: not complete (bail_count=%u)\n", tr.bail_count);
+        return false;
+    }
+    printf("  PASS arm_mov_imm\n");
+    return true;
+}
+
+static bool test_arm_add_sub_imm() {
+    // ADD R0, R1, #10 (E281000A) — Rd=0, Rn=1, imm=10
+    // SUB R2, R0, #5  (E240200 5) — Rd=2, Rn=0, imm=5
+    // BX LR
+    std::uint32_t insns[] = { 0xE281000A, 0xE2402005, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(12);
+    std::memcpy(code.data(), insns, 12);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_add_sub_imm: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_add_sub_imm\n");
+    return true;
+}
+
+static bool test_arm_cmp_beq() {
+    // CMP R0, #5 (E3500005)
+    // BEQ +0 (0A000000) — skip one instruction if equal
+    // MOV R1, #1 (E3A01001)
+    // BX LR (E12FFF1E)
+    std::uint32_t insns[] = { 0xE3500005, 0x0A000000, 0xE3A01001, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(16);
+    std::memcpy(code.data(), insns, 16);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_cmp_beq: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_cmp_beq\n");
+    return true;
+}
+
+static bool test_arm_ldr_str_imm() {
+    // LDR R0, [R1, #4] (E5910004)
+    // STR R0, [R1, #8] (E5810008)
+    // BX LR
+    std::uint32_t insns[] = { 0xE5910004, 0xE5810008, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(12);
+    std::memcpy(code.data(), insns, 12);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_ldr_str_imm: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_ldr_str_imm\n");
+    return true;
+}
+
+static bool test_arm_ldm_stm() {
+    // STMDB SP!, {R4, R5, LR} (E92D4030)
+    // LDMIA SP!, {R4, R5, PC} (E8BD8030)
+    std::uint32_t insns[] = { 0xE92D4030, 0xE8BD8030 };
+    std::vector<std::uint8_t> code(8);
+    std::memcpy(code.data(), insns, 8);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty()) {
+        printf("  FAIL arm_ldm_stm: empty body\n");
+        return false;
+    }
+    // The LDMIA with PC is a return — should bail_preserve_pc
+    printf("  PASS arm_ldm_stm\n");
+    return true;
+}
+
+static bool test_arm_mul() {
+    // MUL R0, R1, R2 (E0000291) — Rd=0, Rm=1, Rs=2
+    // BX LR
+    std::uint32_t insns[] = { 0xE0000291, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(8);
+    std::memcpy(code.data(), insns, 8);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_mul: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_mul\n");
+    return true;
+}
+
+static bool test_arm_bic_orr_eor() {
+    // ORR R0, R1, R2 (E1810002)
+    // BIC R3, R0, #0xFF (E3C030FF)
+    // EOR R4, R3, R1 (E0234001)
+    // BX LR
+    std::uint32_t insns[] = { 0xE1810002, 0xE3C030FF, 0xE0234001, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(16);
+    std::memcpy(code.data(), insns, 16);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_bic_orr_eor: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_bic_orr_eor\n");
+    return true;
+}
+
+static bool test_arm_shifted_reg() {
+    // ADD R0, R1, R2, LSL #3 (E0810182)
+    // MOV R3, R0, LSR #4 (E1A03220)
+    // BX LR
+    std::uint32_t insns[] = { 0xE0810182, 0xE1A03220, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(12);
+    std::memcpy(code.data(), insns, 12);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_shifted_reg: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_shifted_reg\n");
+    return true;
+}
+
+static bool test_arm_conditional_exec() {
+    // CMP R0, #0 (E3500000)
+    // MOVEQ R1, #1 (03A01001) — only if Z set
+    // MOVNE R1, #2 (13A01002) — only if Z clear
+    // BX LR
+    std::uint32_t insns[] = { 0xE3500000, 0x03A01001, 0x13A01002, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(16);
+    std::memcpy(code.data(), insns, 16);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_conditional_exec: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_conditional_exec\n");
+    return true;
+}
+
+static bool test_arm_bl_resume_point() {
+    // BL +8 (EB000000) — target = PC+8+0 = 0x1008
+    // MOV R0, #1 (E3A00001) — resume point at 0x1004
+    // BX LR (E12FFF1E)
+    std::uint32_t insns[] = { 0xEB000000, 0xE3A00001, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(12);
+    std::memcpy(code.data(), insns, 12);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty()) {
+        printf("  FAIL arm_bl_resume_point: empty body\n");
+        return false;
+    }
+    bool found = false;
+    for (auto rp : tr.resume_points) {
+        if (rp == 0x1004) { found = true; break; }
+    }
+    if (!found) {
+        printf("  FAIL arm_bl_resume_point: 0x1004 not in resume_points\n");
+        return false;
+    }
+    printf("  PASS arm_bl_resume_point\n");
+    return true;
+}
+
+static bool test_arm_ldrh_strh() {
+    // LDRH R0, [R1, #4] (E1D100B4) — immediate offset halfword load
+    // STRH R0, [R1, #8] (E1C100B8) — immediate offset halfword store
+    // BX LR
+    std::uint32_t insns[] = { 0xE1D100B4, 0xE1C100B8, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(12);
+    std::memcpy(code.data(), insns, 12);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_ldrh_strh: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_ldrh_strh\n");
+    return true;
+}
+
+static bool test_arm_mvn() {
+    // MVN R0, #0 (E3E00000) — R0 = ~0 = 0xFFFFFFFF
+    // BX LR
+    std::uint32_t insns[] = { 0xE3E00000, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(8);
+    std::memcpy(code.data(), insns, 8);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_mvn: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_mvn\n");
+    return true;
+}
+
+static bool test_arm_rsb() {
+    // RSB R0, R1, #0 (E2610000) — R0 = 0 - R1 (negate)
+    // BX LR
+    std::uint32_t insns[] = { 0xE2610000, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(8);
+    std::memcpy(code.data(), insns, 8);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_rsb: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_rsb\n");
+    return true;
+}
+
+static bool test_arm_clz() {
+    // CLZ R0, R1 (E16F0F11)
+    // BX LR
+    std::uint32_t insns[] = { 0xE16F0F11, 0xE12FFF1E };
+    std::vector<std::uint8_t> code(8);
+    std::memcpy(code.data(), insns, 8);
+
+    auto tr = translate_arm_block(code.data(), code.size(), 0x1000);
+    if (tr.func.body.empty() || !tr.complete) {
+        printf("  FAIL arm_clz: translate failed\n");
+        return false;
+    }
+    printf("  PASS arm_clz\n");
+    return true;
+}
+
 int main() {
     std::array<std::uint32_t, 16> zero_regs = {};
     zero_regs[13] = 0x10000; // SP
@@ -2323,6 +2577,22 @@ int main() {
     if (test_vfp_f64_instantiation()) passed++; else failed++;
     if (test_resume_points_beyond_1024()) passed++; else failed++;
     if (test_sibling_bl_resume_point()) passed++; else failed++;
+
+    printf("\nRunning ARM translator-level tests...\n\n");
+    if (test_arm_mov_imm()) passed++; else failed++;
+    if (test_arm_add_sub_imm()) passed++; else failed++;
+    if (test_arm_cmp_beq()) passed++; else failed++;
+    if (test_arm_ldr_str_imm()) passed++; else failed++;
+    if (test_arm_ldm_stm()) passed++; else failed++;
+    if (test_arm_mul()) passed++; else failed++;
+    if (test_arm_bic_orr_eor()) passed++; else failed++;
+    if (test_arm_shifted_reg()) passed++; else failed++;
+    if (test_arm_conditional_exec()) passed++; else failed++;
+    if (test_arm_bl_resume_point()) passed++; else failed++;
+    if (test_arm_ldrh_strh()) passed++; else failed++;
+    if (test_arm_mvn()) passed++; else failed++;
+    if (test_arm_rsb()) passed++; else failed++;
+    if (test_arm_clz()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;

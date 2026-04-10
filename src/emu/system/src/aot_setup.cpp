@@ -22,6 +22,7 @@
 
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/arm_translator.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 #include <kernel/kernel.h>
@@ -53,10 +54,8 @@ namespace eka2l1::arm::aot {
         return {
             // FntStore.dll — translate all supported exports
             { 0x10003B1A, "FntStore.dll", {} },
-            // euser.dll (UID3=0x100039E5): real exports are ARM mode (not
-            // Thumb). ROM scan also hits false-positive headers with 1700+
-            // "exports" that crash. Needs ARM→WASM translator + robust ROM
-            // header validation.
+            // euser.dll — exports are ARM mode, handled by ARM translator
+            { 0x100039E5, "euser.dll", {} },
         };
     }
 
@@ -197,12 +196,13 @@ namespace eka2l1::arm::aot {
             int arm_count = 0, dup_count = 0, zero_count = 0, oob_count = 0;
             std::set<std::uint32_t> translated_addrs;
 
-            // Collect candidate functions: (ordinal, func_addr, func_host, func_size).
+            // Collect candidate functions: (ordinal, func_addr, func_host, func_size, is_arm).
             struct candidate {
                 std::uint32_t ordinal;
                 std::uint32_t func_addr;
                 std::uint8_t *func_host;
                 std::uint32_t func_size;
+                bool is_arm;
             };
             std::vector<candidate> candidates;
 
@@ -219,11 +219,10 @@ namespace eka2l1::arm::aot {
                 if (func_addr < hdr.code_address || func_addr >= hdr.code_address + hdr.code_size) { oob_count++; continue; }
                 if (!is_thumb) {
                     arm_count++;
-                    fprintf(stderr, "AOT: ARM export skipped: ordinal %u at 0x%08X\n",
-                        ordinal, func_addr);
-                    continue;
+                    // ARM-mode: word-align address
+                    func_addr &= ~3u;
                 }
-                if (translated_addrs.count(func_addr)) { dup_count++; continue; } // skip duplicate exports
+                if (translated_addrs.count(func_addr)) { dup_count++; continue; }
                 translated_addrs.insert(func_addr);
 
                 std::uint32_t func_offset = func_addr - hdr.code_address;
@@ -234,7 +233,7 @@ namespace eka2l1::arm::aot {
                 if (max_size > 4096) max_size = 4096; // cap
                 std::uint32_t func_size = std::min(max_size, 4096u);
 
-                candidates.push_back({ordinal, func_addr, func_host, func_size});
+                candidates.push_back({ordinal, func_addr, func_host, func_size, !is_thumb});
             }
 
             // First pass: discover which exported candidates translate successfully,
@@ -247,6 +246,7 @@ namespace eka2l1::arm::aot {
                 std::uint32_t func_addr;
                 std::uint8_t *func_host;
                 std::uint32_t func_size;
+                bool is_arm;
                 std::vector<std::uint32_t> resume_points;
                 std::vector<std::uint32_t> branch_targets;
             };
@@ -263,27 +263,33 @@ namespace eka2l1::arm::aot {
             // Logged alongside the accepted-function total as a coverage
             // proxy — each bail is a point where AOT yields back to the
             // interpreter, so lower is better for hot execution paths.
-            auto try_translate_at = [&](std::uint32_t addr, std::uint32_t ordinal) -> bool {
+            auto try_translate_at = [&](std::uint32_t addr, std::uint32_t ordinal, bool is_arm = false) -> bool {
                 // Must be within code range, aligned, and not already translated
                 if (addr < hdr.code_address || addr >= hdr.code_address + hdr.code_size) return false;
-                if (addr & 1) return false; // should already be masked
+                if (!is_arm && (addr & 1)) return false; // should already be masked
+                if (is_arm && (addr & 3)) return false; // ARM must be word-aligned
                 if (siblings.count(addr)) return false;
                 std::uint32_t offset = addr - hdr.code_address;
                 std::uint8_t *host = code_host + offset;
                 std::uint32_t max_size = hdr.code_size - offset;
                 if (max_size > 4096) max_size = 4096;
                 std::uint32_t func_size = std::min(max_size, 4096u);
-                auto tr = translate_thumb_block(host, func_size, addr, nullptr, &dll_window);
+                translate_result tr;
+                if (is_arm) {
+                    tr = translate_arm_block(host, func_size, addr, nullptr, &dll_window);
+                } else {
+                    tr = translate_thumb_block(host, func_size, addr, nullptr, &dll_window);
+                }
                 if (tr.func.body.empty() || !tr.complete) return false;
                 std::uint32_t func_idx = num_imports + static_cast<std::uint32_t>(accepted.size());
                 siblings[addr] = func_idx;
-                accepted.push_back({ordinal, addr, host, func_size,
+                accepted.push_back({ordinal, addr, host, func_size, is_arm,
                     std::move(tr.resume_points), std::move(tr.branch_targets)});
                 return true;
             };
 
             for (const auto &c : candidates) {
-                try_translate_at(c.func_addr, c.ordinal);
+                try_translate_at(c.func_addr, c.ordinal, c.is_arm);
                 if (max_exports >= 0 && static_cast<int>(accepted.size()) >= max_exports) break;
             }
             fprintf(stderr, "AOT: first pass: %zu export candidates, %zu accepted\n",
@@ -390,7 +396,12 @@ namespace eka2l1::arm::aot {
             // Second pass: re-translate with the sibling map, emitting direct
             // calls for BL targets that are other AOT functions.
             for (const auto &a : accepted) {
-                auto tr = translate_thumb_block(a.func_host, a.func_size, a.func_addr, &siblings, &dll_window);
+                translate_result tr;
+                if (a.is_arm) {
+                    tr = translate_arm_block(a.func_host, a.func_size, a.func_addr, &siblings, &dll_window);
+                } else {
+                    tr = translate_thumb_block(a.func_host, a.func_size, a.func_addr, &siblings, &dll_window);
+                }
                 if (tr.func.body.empty() || !tr.complete) {
                     fprintf(stderr, "AOT: 2nd pass failed for 0x%08X\n", a.func_addr);
                     continue;

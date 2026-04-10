@@ -74,6 +74,8 @@ namespace eka2l1::arm::aot {
         op_i32_shl = 0x74,
         op_i32_shr_s = 0x75,
         op_i32_shr_u = 0x76,
+        op_i32_rotr = 0x78,
+        op_i32_clz = 0x67,
 
         // Float opcodes for VFP support
         op_f32_const = 0x43,
