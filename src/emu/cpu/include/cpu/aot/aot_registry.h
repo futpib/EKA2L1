@@ -106,6 +106,19 @@ namespace eka2l1::arm::aot {
     void try_translate_hot_pcs(ARMul_State *cpu,
         const std::map<std::uint32_t, std::uint64_t> &histogram);
 
+    // --- Module map for per-DLL instruction tracking ---
+    struct module_range {
+        std::uint32_t base;
+        std::uint32_t end;  // exclusive
+        std::string name;
+        std::uint64_t aot_instrs = 0;
+        std::uint64_t interp_dispatches = 0;
+    };
+
+    void register_module(std::uint32_t base, std::uint32_t size, const std::string &name);
+    module_range *lookup_module(std::uint32_t pc);
+    void dump_module_stats();
+
     // --- Dispatch history for crash post-mortem ---
     // The dyncom dispatch loop appends a record to `history` on every AOT
     // call. On a crash (access violation, undefined instruction, etc.) the

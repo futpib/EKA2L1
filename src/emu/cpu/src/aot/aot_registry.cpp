@@ -304,4 +304,45 @@ namespace eka2l1::arm::aot {
 
         stage_aot_module(std::move(wasm_bytes), "profile-guided");
     }
+
+    // --- Module map ---
+    static std::vector<module_range> g_modules;
+
+    void register_module(std::uint32_t base, std::uint32_t size, const std::string &name) {
+        // Update name if already registered
+        for (auto &m : g_modules) {
+            if (m.base == base) { m.name = name; return; }
+        }
+        g_modules.push_back({base, base + size, name, 0, 0});
+        // Keep sorted by base for binary search
+        std::sort(g_modules.begin(), g_modules.end(),
+            [](const module_range &a, const module_range &b) { return a.base < b.base; });
+        // Suppress per-module log — too many ROM DLLs
+    }
+
+    module_range *lookup_module(std::uint32_t pc) {
+        if (g_modules.empty()) return nullptr;
+        // Binary search: find last module with base <= pc
+        auto it = std::upper_bound(g_modules.begin(), g_modules.end(), pc,
+            [](std::uint32_t addr, const module_range &m) { return addr < m.base; });
+        if (it == g_modules.begin()) return nullptr;
+        --it;
+        if (pc < it->end) return &(*it);
+        return nullptr;
+    }
+
+    void dump_module_stats() {
+        fprintf(stderr, "\n=== Per-module instruction stats ===\n");
+        for (auto &m : g_modules) {
+            if (m.aot_instrs == 0 && m.interp_dispatches == 0) continue;
+            double pct = (m.aot_instrs + m.interp_dispatches) > 0
+                ? 100.0 * m.aot_instrs / (m.aot_instrs + m.interp_dispatches) : 0;
+            fprintf(stderr, "  %-30s AOT: %12llu  interp: %12llu  (%.1f%% AOT)\n",
+                m.name.c_str(),
+                (unsigned long long)m.aot_instrs,
+                (unsigned long long)m.interp_dispatches,
+                pct);
+        }
+        fprintf(stderr, "====================================\n\n");
+    }
 }

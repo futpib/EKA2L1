@@ -138,6 +138,14 @@ namespace eka2l1::arm::aot {
             if (hdr.export_dir_count <= 0 || hdr.export_dir_count > 10000) continue;
             if (hdr.code_address < rom_base || hdr.code_address >= rom_base + rom_size) continue;
 
+            // Register this DLL in the module map for instruction tracking.
+            if (hdr.uid3 != 0) {
+                char uid_name[32];
+                snprintf(uid_name, sizeof(uid_name), "ROM:0x%08X", hdr.uid3);
+                register_module(hdr.code_address,
+                    static_cast<std::uint32_t>(hdr.code_size), uid_name);
+            }
+
             // Check if this matches any target
             const aot_target *target = nullptr;
             for (const auto &t : targets) {
@@ -147,6 +155,10 @@ namespace eka2l1::arm::aot {
                 }
             }
             if (!target) continue;
+
+            // Re-register with proper name
+            register_module(hdr.code_address,
+                static_cast<std::uint32_t>(hdr.code_size), target->display_name);
 
             LOG_INFO(KERNEL, "AOT: found {} (UID3=0x{:08X}) at ROM+0x{:X}, code=0x{:08X}, {} exports",
                 target->display_name, hdr.uid3, offset, hdr.code_address, hdr.export_dir_count);

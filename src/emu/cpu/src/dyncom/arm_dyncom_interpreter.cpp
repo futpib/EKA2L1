@@ -1678,6 +1678,11 @@ DISPATCH : {
 
             aot_dispatch_count++;
             aot_instr_count += instrs;
+            // Per-module AOT tracking
+            {
+                auto *mod = eka2l1::arm::aot::lookup_module(rec.entry_pc);
+                if (mod) mod->aot_instrs += instrs;
+            }
             {
                 static std::uint64_t next_log = 1;
                 if (aot_dispatch_count == next_log) {
@@ -1688,6 +1693,9 @@ DISPATCH : {
                         (unsigned long long)aot_instr_count,
                         (unsigned long long)g_interp_instrs,
                         aot_pct);
+                    if (next_log >= 100000) {
+                        eka2l1::arm::aot::dump_module_stats();
+                    }
                     next_log *= 10;
                 }
             }
@@ -1696,6 +1704,12 @@ DISPATCH : {
                 goto END;
             goto DISPATCH;
         }
+    }
+
+    // Per-module interpreter tracking
+    {
+        auto *mod = eka2l1::arm::aot::lookup_module(cpu->Reg[15]);
+        if (mod) mod->interp_dispatches++;
     }
 
     // Find the cached instruction cream, otherwise translate it...
