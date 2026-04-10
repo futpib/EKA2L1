@@ -549,8 +549,8 @@ namespace eka2l1::arm::aot {
                             leb(result.body, it->second);
                             w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
                             w.op(op_i32_add);
-                            if (cond_opened) w.op(op_end);
                             w.ret();
+                            if (cond_opened) w.op(op_end);
                             tr.resume_points.push_back(next_pc);
                             insn_idx++;
                             decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -558,8 +558,8 @@ namespace eka2l1::arm::aot {
                         }
                     }
                     w.store_i32_const(S::LR, static_cast<std::int32_t>(next_pc));
-                    if (cond_opened) w.op(op_end);
                     w.bail(target, insn_idx + 1);
+                    if (cond_opened) w.op(op_end);
                     tr.resume_points.push_back(next_pc);
                     insn_idx++;
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -583,8 +583,8 @@ namespace eka2l1::arm::aot {
                     if (cond_opened) w.op(op_end);
                 } else {
                     // Out of block
-                    if (cond_opened) w.op(op_end);
                     w.bail(target, insn_idx + 1);
+                    if (cond_opened) w.op(op_end);
                     if (cond >= 0xE) {
                         // Unconditional: stop decoding
                         if (closed_count >= N_fwd) {
@@ -613,8 +613,8 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_and);
                     w.set_local(TMP2);
                     w.store_i32(S::TFLAG, TMP2);
-                    if (cond_opened) w.op(op_end);
                     w.bail_preserve_pc(insn_idx + 1);
+                    if (cond_opened) w.op(op_end);
                     if (cond >= 0xE && closed_count >= N_fwd) {
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                         insn_idx++;
@@ -630,8 +630,8 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_and);
                     w.set_local(TMP2);
                     w.store_i32(S::TFLAG, TMP2);
-                    if (cond_opened) w.op(op_end);
                     w.bail_preserve_pc(insn_idx + 1);
+                    if (cond_opened) w.op(op_end);
                     if (cond >= 0xE && closed_count >= N_fwd) {
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                         insn_idx++;
@@ -656,8 +656,8 @@ namespace eka2l1::arm::aot {
                 w.op(op_i32_and);
                 w.set_local(TMP2);
                 w.store_i32(S::TFLAG, TMP2);
-                if (cond_opened) w.op(op_end);
                 w.bail_preserve_pc(insn_idx + 1);
+                if (cond_opened) w.op(op_end);
                 tr.resume_points.push_back(next_pc);
                 insn_idx++;
                 decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -742,8 +742,8 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_and);
                     w.set_local(TMP2);
                     w.store_i32(S::TFLAG, TMP2);
-                    if (cond_opened) w.op(op_end);
                     w.bail_preserve_pc(insn_idx + 1);
+                    if (cond_opened) w.op(op_end);
                     if (cond >= 0xE && closed_count >= N_fwd) {
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                         insn_idx++;
@@ -811,8 +811,8 @@ namespace eka2l1::arm::aot {
 
                 if (is_long_multiply) {
                     // UMULL/SMULL/UMLAL/SMLAL — bail for now (need i64)
-                    if (cond_opened) w.op(op_end);
                     w.bail_unsupported(insn_addr, insn_idx);
+                    if (cond_opened) w.op(op_end);
                     insn_idx++;
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                     continue;
@@ -855,8 +855,9 @@ namespace eka2l1::arm::aot {
                     if (!preindex) {
                         // Post-indexed: use Rn as address, then compute Rn+offset
                         // For simplicity, bail on post-indexed for now
-                        if (cond_opened) w.op(op_end);
+                        w.op(op_drop); // drop stale address value
                         w.bail_unsupported(insn_addr, insn_idx);
+                        if (cond_opened) w.op(op_end);
                         insn_idx++;
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                         continue;
@@ -918,8 +919,8 @@ namespace eka2l1::arm::aot {
 
                 if (is_mrs_msr) {
                     // Bail on MRS/MSR
-                    if (cond_opened) w.op(op_end);
                     w.bail_unsupported(insn_addr, insn_idx);
+                    if (cond_opened) w.op(op_end);
                     insn_idx++;
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                     continue;
@@ -1147,8 +1148,8 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_and);
                     w.set_local(TMP4);
                     w.store_i32(S::TFLAG, TMP4);
-                    if (cond_opened) w.op(op_end);
                     w.bail_preserve_pc(insn_idx + 1);
+                    if (cond_opened) w.op(op_end);
                     if (cond >= 0xE && closed_count >= N_fwd) {
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                         insn_idx++;
@@ -1254,8 +1255,9 @@ namespace eka2l1::arm::aot {
                 if (!preindex) {
                     // Post-indexed: use Rn as address, then update
                     // Bail for simplicity
-                    if (cond_opened) w.op(op_end);
+                    w.op(op_drop); // drop stale address value
                     w.bail_unsupported(insn_addr, insn_idx);
+                    if (cond_opened) w.op(op_end);
                     insn_idx++;
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                     continue;
@@ -1284,8 +1286,8 @@ namespace eka2l1::arm::aot {
                         if (writeback && rn != 15) {
                             w.store_reg(rn, ADDR_TMP);
                         }
-                        if (cond_opened) w.op(op_end);
                         w.bail_preserve_pc(insn_idx + 1);
+                        if (cond_opened) w.op(op_end);
                         if (cond >= 0xE && closed_count >= N_fwd) {
                             decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                             insn_idx++;
@@ -1323,13 +1325,13 @@ namespace eka2l1::arm::aot {
             // === Coprocessor / undefined ===
             // bits [27:26] = 11: coprocessor, SWI
             // Fall through to unsupported
-            if (cond_opened) w.op(op_end);
 
             static std::set<std::uint32_t> seen_arm;
             if (seen_arm.insert(inst & 0x0FFFFFFF).second) {
                 fprintf(stderr, "AOT: unsupported ARM insn 0x%08X at 0x%08X\n", inst, insn_addr);
             }
             w.bail_unsupported(insn_addr, insn_idx);
+            if (cond_opened) w.op(op_end);
             insn_idx++;
             decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
             // Don't break — continue for subsequent instructions that might

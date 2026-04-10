@@ -2585,7 +2585,7 @@ namespace eka2l1::arm::aot {
                                 auto load_d = [&](int dr) {
                                     w.state_ptr();
                                     w.op(op_f64_load);
-                                    leb(result.body, 3); // align
+                                    leb(result.body, 2); // align=4 (state may not be 8-aligned)
                                     leb(result.body, S::dreg_lo(dr));
                                 };
                                 auto store_d = [&](int dr) {
@@ -2593,7 +2593,7 @@ namespace eka2l1::arm::aot {
                                     w.state_ptr();
                                     w.get_local(DTMP1);
                                     w.op(op_f64_store);
-                                    leb(result.body, 3);
+                                    leb(result.body, 2); // align=4 (state may not be 8-aligned)
                                     leb(result.body, S::dreg_lo(dr));
                                 };
                                 if (fop == FOP_FADD) {

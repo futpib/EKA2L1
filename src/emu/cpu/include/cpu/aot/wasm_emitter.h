@@ -107,7 +107,7 @@ namespace eka2l1::arm::aot {
         op_i32_reinterpret_f32 = 0xBC,
         op_f32_reinterpret_i32 = 0xBE,
         op_f32_load = 0x2A,
-        op_f64_load = 0x2C,
+        op_f64_load = 0x2B,
         op_f32_store = 0x38,
         op_f64_store = 0x39,
         op_f32_eq = 0x5B,
