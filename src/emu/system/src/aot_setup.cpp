@@ -53,10 +53,10 @@ namespace eka2l1::arm::aot {
         return {
             // FntStore.dll — translate all supported exports
             { 0x10003B1A, "FntStore.dll", {} },
-            // TODO: euser.dll (UID3=0x100039E5, 2229 exports) — takes ~7 minutes
-            // to discover helpers due to the number of BL targets. Need to fix
-            // helper discovery to be sub-linear before enabling.
-            // TODO: efsrv.dll (UID3=0x100039E4, 351 exports)
+            // euser.dll (UID3=0x100039E5): real exports are ARM mode (not
+            // Thumb). ROM scan also hits false-positive headers with 1700+
+            // "exports" that crash. Needs ARM→WASM translator + robust ROM
+            // header validation.
         };
     }
 
@@ -155,6 +155,18 @@ namespace eka2l1::arm::aot {
                 }
             }
             if (!target) continue;
+
+            // Validate: export dir should be near the code section (within
+            // code_address ± 2*code_size). False positive ROM header scans
+            // produce wildly inconsistent addresses.
+            {
+                std::int64_t dir_dist = static_cast<std::int64_t>(hdr.export_dir_address)
+                    - static_cast<std::int64_t>(hdr.code_address);
+                if (dir_dist < 0) dir_dist = -dir_dist;
+                if (dir_dist > 2 * hdr.code_size) {
+                    continue; // export dir too far from code — false positive
+                }
+            }
 
             // Re-register with proper name
             register_module(hdr.code_address,
@@ -356,8 +368,8 @@ namespace eka2l1::arm::aot {
                 int rounds = 0;
                 while (start_idx < accepted.size() && rounds++ < 20) {
                     size_t end_idx = accepted.size();
+                    size_t before = accepted.size();
                     for (size_t i = start_idx; i < end_idx; i++) {
-                        // Copy since the vector may grow during iteration
                         std::vector<std::uint32_t> rps = accepted[i].resume_points;
                         std::vector<std::uint32_t> bts = accepted[i].branch_targets;
                         for (std::uint32_t rp : rps) {
@@ -367,6 +379,8 @@ namespace eka2l1::arm::aot {
                             try_translate_at(bt & ~1u, RESUME_ORDINAL);
                         }
                     }
+                    fprintf(stderr, "AOT: discovery round %d: scanned %zu, new %zu (total %zu)\n",
+                        rounds, end_idx - start_idx, accepted.size() - before, accepted.size());
                     start_idx = end_idx;
                 }
                 fprintf(stderr, "AOT: after extra-entry discovery: %zu total functions\n",

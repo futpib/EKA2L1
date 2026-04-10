@@ -3908,8 +3908,10 @@ namespace eka2l1::arm::aot {
             }
 
             if (!handled) {
-                // Unsupported — bail to interpreter
-                fprintf(stderr, "AOT: unsupported insn 0x%04X at 0x%08X\n", insn, insn_addr);
+                static std::set<std::uint16_t> seen_narrow;
+                if (seen_narrow.insert(insn).second) {
+                    fprintf(stderr, "AOT: unsupported narrow insn 0x%04X at 0x%08X\n", insn, insn_addr);
+                }
                 w.bail_unsupported(insn_addr, insn_idx);
                 break;
             }
