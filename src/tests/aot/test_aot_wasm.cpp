@@ -625,15 +625,16 @@ static bool test_blx_veneer_inlining() {
             printf("  FAIL blx_veneer_inlining: translation incomplete (sibling case)\n");
             return false;
         }
-        // Direct sibling tail call means we returned at the BLX site;
-        // no resume point should be recorded for this call.
+        // Sibling calls still need resume_points: after the WASM call
+        // chain unwinds to C++, dispatch needs an AOT entry at next_pc.
+        bool found_rp = false;
         for (auto rp : tr.resume_points) {
-            if (rp == window_base + 6) {
-                printf("  FAIL blx_veneer_inlining: unexpected resume point "
-                       "at 0x%08X (sibling case — should be a direct call)\n",
-                    window_base + 6);
-                return false;
-            }
+            if (rp == window_base + 6) { found_rp = true; break; }
+        }
+        if (!found_rp) {
+            printf("  FAIL blx_veneer_inlining: sibling call should have "
+                   "resume_point at 0x%08X\n", window_base + 6);
+            return false;
         }
     }
 
@@ -1680,6 +1681,52 @@ static bool test_resume_points_beyond_1024() {
     return true;
 }
 
+// Test that sibling BL calls generate resume_points. Before this fix,
+// only non-sibling BLs (that bail to interpreter) added resume_points.
+// Sibling calls return directly to C++ dispatch via ret(), and if next_pc
+// has no AOT entry, the interpreter runs the caller's code after the BL.
+static bool test_sibling_bl_resume_point() {
+    // Two functions: A calls B. B is a sibling.
+    // A: MOVS R0, #1; BL B; MOVS R0, #2; BX LR
+    // B: MOVS R0, #3; BX LR
+    //
+    // A at 0x1000, B at 0x1010.
+    // BL B from 0x1002: target = 0x1010, offset = 0x1010 - (0x1002+4) = 10
+    //   imm11 = 10/2 = 5, S=0, J1=1, J2=1
+    //   insn1 = F000, insn2 = F805
+    std::vector<std::uint8_t> code_a = {
+        0x01, 0x20,              // 0x1000: MOVS R0, #1
+        0x00, 0xF0, 0x05, 0xF8, // 0x1002: BL 0x1010
+        0x02, 0x20,              // 0x1006: MOVS R0, #2
+        0x70, 0x47,              // 0x1008: BX LR
+    };
+    // First pass: no siblings — BL generates resume_point via non-sibling path
+    auto tr1 = translate_thumb_block(code_a.data(), code_a.size(), 0x1000);
+    bool has_rp_first_pass = false;
+    for (auto rp : tr1.resume_points) {
+        if (rp == 0x1006) { has_rp_first_pass = true; break; }
+    }
+    if (!has_rp_first_pass) {
+        printf("  FAIL sibling_bl_resume_point: 0x1006 not in first-pass resume_points\n");
+        return false;
+    }
+
+    // Second pass: with sibling map containing B at 0x1010
+    sibling_map siblings;
+    siblings[0x1010] = 4; // arbitrary function index
+    auto tr2 = translate_thumb_block(code_a.data(), code_a.size(), 0x1000, &siblings);
+    bool has_rp_second_pass = false;
+    for (auto rp : tr2.resume_points) {
+        if (rp == 0x1006) { has_rp_second_pass = true; break; }
+    }
+    if (!has_rp_second_pass) {
+        printf("  FAIL sibling_bl_resume_point: 0x1006 not in second-pass (sibling) resume_points\n");
+        return false;
+    }
+    printf("  PASS sibling_bl_resume_point\n");
+    return true;
+}
+
 // Compile-time verification of state_offsets against ARMul_State layout.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
@@ -2275,6 +2322,7 @@ int main() {
     if (test_vfp_vcvt_vcmp_vmrs()) passed++; else failed++;
     if (test_vfp_f64_instantiation()) passed++; else failed++;
     if (test_resume_points_beyond_1024()) passed++; else failed++;
+    if (test_sibling_bl_resume_point()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;

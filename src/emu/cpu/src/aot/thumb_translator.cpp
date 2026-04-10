@@ -647,6 +647,10 @@ namespace eka2l1::arm::aot {
                                 w.i32_const(static_cast<std::int32_t>(insn_idx + 1));
                                 w.op(op_i32_add);
                                 w.ret();
+                                // The sibling sets PC = LR = next_pc on return.
+                                // C++ dispatch needs an AOT entry at next_pc to
+                                // avoid falling into the interpreter.
+                                tr.resume_points.push_back(next_pc);
                                 i += 2;
                                 insn_idx++;
                                 continue;
