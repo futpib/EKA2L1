@@ -33,6 +33,18 @@ namespace eka2l1::common::guest_profile {
         using key = std::tuple<unsigned, unsigned, unsigned, std::uint32_t,
             std::uint32_t, std::uint32_t, bool, std::string, std::string>;
         std::map<key, std::uint64_t> samples;
+        std::map<std::string, std::uint64_t> aot_events;
+        using event_key = std::tuple<std::string, std::uint32_t, std::uint32_t, std::uint32_t>;
+        std::map<event_key, std::uint64_t> aot_samples;
+        std::uint64_t dropped_aot_samples = 0;
+        void event(const char *reason, std::uint32_t pc_mode, std::uint32_t space = 0, std::uint32_t opcode = 0) {
+            if (++aot_events[reason] % stride) return;
+            event_key key{reason,pc_mode,space,opcode};
+            auto it = aot_samples.find(key);
+            if (it != aot_samples.end()) ++it->second;
+            else if (aot_samples.size() < 131072) aot_samples.emplace(key,1);
+            else ++dropped_aot_samples;
+        }
         bool record(unsigned k, unsigned thumb, unsigned handler) {
             if (k > 1 || thumb > 1 || handler >= handlers) return false;
             ++types[k][thumb][handler];
@@ -65,6 +77,20 @@ namespace eka2l1::common::guest_profile {
                     << ",\"asid\":" << asid << ",\"pc\":" << pc << ",\"opcode\":" << opcode
                     << ",\"mapped\":" << (mapped ? "true" : "false") << ",\"process\":" << quote(process)
                     << ",\"module\":" << quote(module) << ",\"count\":" << count << '}';
+            }
+            out << "],\"aot_events\":{";
+            first = true;
+            for (const auto &[reason,count] : aot_events) {
+                if (!first) out << ','; first = false;
+                out << quote(reason) << ':' << count;
+            }
+            out << "},\"dropped_aot_samples\":" << dropped_aot_samples << ",\"aot_samples\":[";
+            first = true;
+            for (const auto &[key,count] : aot_samples) {
+                if (!first) out << ','; first = false;
+                const auto &[reason,pc,space,opcode] = key;
+                out << "{\"reason\":" << quote(reason) << ",\"pc_mode\":" << pc
+                    << ",\"asid\":" << space << ",\"opcode\":" << opcode << ",\"count\":" << count << '}';
             }
             out << "]}";
             return out.str();

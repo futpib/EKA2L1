@@ -21,6 +21,7 @@
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/code_cache.h>
 #include <common/performance.h>
+#include <common/guest_profile.h>
 #include <cpu/dyncom/armstate.h>
 #include <common/log.h>
 #include <cpu/dyncom/arm_dyncom.h>
@@ -177,12 +178,20 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     if (validation_running) return nullptr;
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
-    if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size))
-        return global_registry().lookup(pc_mode);
+    if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
+        auto function = global_registry().lookup(pc_mode);
+        if ((common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
+        return function;
+    }
     core::code_mapping view;
     if (!cpu->parent()->resolve_code) return nullptr;
     const bool mapped = cpu->parent()->resolve_code(pc, view);
     auto *entry = ram_cache.find(pc_mode, view);
+    if ((common::guest_profile::enabled && common::performance::counting()) && (!mapped || !entry || !entry->function)) {
+        std::uint32_t opcode = 0;
+        if (mapped && view.bytes && view.size >= (cpu->TFlag ? 2u : 4u)) std::memcpy(&opcode,view.bytes,cpu->TFlag ? 2 : 4);
+        common::guest_profile::state.event(!mapped ? "ram_unmapped" : !entry ? "ram_missing" : entry->rejected ? "ram_rejected" : "ram_pending",pc_mode,view.address_space,opcode);
+    }
     if (!mapped || !entry) return nullptr;
     return entry->function;
 }
@@ -196,6 +205,7 @@ compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
         const auto count = function(cpu);
         validation_end(cpu, count);
         if (count > cpu->aot_budget) std::abort(); // generated-code contract
+        if ((common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
         ++result.blocks;
         result.instructions += count;
         if (!count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
@@ -213,20 +223,28 @@ void observe_hot_pc(ARMul_State *cpu) {
     if ((hot_dispatches & 8191) == 0) flush_hot_blocks();
     const auto pc = cpu->Reg[15], key = pc | cpu->TFlag;
     if (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size) {
-        if (!ram_compilation_enabled || ram_cache.versions() >= 16384 || !cpu->parent()->resolve_code) return;
+        if (!ram_compilation_enabled || !cpu->parent()->resolve_code) return;
+        if (ram_cache.versions() >= 16384) {
+            if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("ram_capacity",key);
+            return;
+        }
         core::code_mapping view;
         if (!cpu->parent()->resolve_code(pc, view)) return;
         if (ram_cache.find(key, view)) return; // compiled or awaiting instantiation
         const auto identity = validated_code_cache::key(view.address_space, key);
         if (ram_counts.size() >= 131072 && !ram_counts.count(identity)) return;
         auto &count = ram_counts[identity];
-        if (++count % 8) return;
+        if (++count % 8) {
+            if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("candidate_threshold",key,view.address_space);
+            return;
+        }
         const auto size = std::min(std::size_t(chaining_enabled ? 512 : 256), view.size);
         auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
                             : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled);
         if (tr.func.body.empty() || !tr.entry_supported) {
             // Cache rejection against these exact bytes; retry only after mutation.
-            ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4)));
+            ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4))).rejected = true;
+            if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("compile_rejected",key,view.address_space);
             return;
         }
         // Only emitted instructions depend on these bytes. The rest of the

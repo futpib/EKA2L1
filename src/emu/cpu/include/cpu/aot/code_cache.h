@@ -18,6 +18,7 @@ namespace eka2l1::arm::aot {
             std::vector<std::uint8_t> code;
             aot_func function = nullptr;
             bool live = true;
+            bool rejected = false;
         };
 
         static std::uint64_t key(std::uint32_t space, std::uint32_t pc_mode) {
