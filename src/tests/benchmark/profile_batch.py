@@ -17,6 +17,7 @@ modes.add_argument('--compare-diagnostics', action='store_true', help='Measure o
 modes.add_argument('--compare-build', type=Path, help='Compare an archived frontend build with the current build in AOT mode 4 (old/new/new/old)')
 modes.add_argument('--compare-steps', type=Path, nargs=2, metavar=('BASELINE', 'STEP1'), help='Compare baseline, step 1 and current build serially in forward/reverse order')
 modes.add_argument('--compare-stages', action='store_true', help='Compare interpreter, hot ROM, RAM and chained/register-cached execution')
+p.add_argument('--capture-mode', type=int, choices=(0, 1, 2), default=0, help='Capture mode for comparison trials: 0 full, 1 hashes only, 2 no readback')
 p.add_argument('--measure-gate', type=Path, help='Wait for this new gate file after all fixtures are paused')
 a = p.parse_args()
 if a.measure_gate:
@@ -44,6 +45,8 @@ if a.compare_steps:
         p.error('Each archived step must contain eka2l1.wasm')
     plan = [('baseline-1', 0, 4), ('step1-1', 0, 4), ('combined-1', 0, 4),
             ('combined-2', 0, 4), ('step1-2', 0, 4), ('baseline-2', 0, 4)]
+if a.compare_aot or a.compare_diagnostics or a.compare_build or a.compare_steps or a.compare_stages:
+    plan = [(name, a.capture_mode, aot_mode) for name, _, aot_mode in plan]
 processes = []
 logs = []
 try:

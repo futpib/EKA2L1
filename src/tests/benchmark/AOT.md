@@ -117,3 +117,8 @@ mode/banking combinations.
 See [INTERPRETER_HUNT_RESULTS.md](INTERPRETER_HUNT_RESULTS.md) for the 99.61%
 compiled replay, serial speed comparison, and the measured limit of further
 interpreter-coverage work as a route to realtime.
+
+Normal execution now imports raw WASM memory helpers through native function-table
+access, retaining outer abort handling. Verifier runs select separate checked
+helpers. Recent RAM-block hits skip container lookup while preserving current
+mapping and exact byte checks on every entry. See [DISPATCH_RESULTS.md](DISPATCH_RESULTS.md).
