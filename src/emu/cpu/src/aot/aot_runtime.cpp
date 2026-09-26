@@ -220,7 +220,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);
         auto *tlb = static_cast<dyncom_core *>(cpu->parent())->mem_cache();
-        cpu->aot_tlb = !Verify && tlb->page_bits == 12 ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
+        cpu->aot_tlb = !validating && tlb->page_bits == 12 ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
         cpu->aot_exit = 0;
         const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
         const auto count = function(cpu);

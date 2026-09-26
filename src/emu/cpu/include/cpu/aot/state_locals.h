@@ -9,6 +9,7 @@ namespace eka2l1::arm::aot {
     // first textual use is after a callback or a conditional early return.
     struct state_local_cache {
         bool enabled = false;
+        bool runtime_fields = false;
         std::uint32_t first_local = 0;
         std::map<std::uint32_t, std::uint32_t> locals;
         std::set<std::uint32_t> written;
@@ -19,7 +20,8 @@ namespace eka2l1::arm::aot {
             using S = state_offsets;
             return enabled && ((offset < S::PC && offset % 4 == 0)
                 || offset == S::NFLAG || offset == S::ZFLAG || offset == S::CFLAG
-                || offset == S::VFLAG || offset == S::TFLAG);
+                || offset == S::VFLAG || offset == S::TFLAG
+                || (runtime_fields && offset >= S::AOT_BUDGET && offset <= S::AOT_EXIT));
         }
         std::uint32_t local(std::uint32_t offset) {
             auto it = locals.find(offset);

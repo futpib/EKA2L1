@@ -53,6 +53,8 @@ namespace eka2l1::arm::aot {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
         bool region = false;
+        std::uint32_t current_pc = 0;
+        bool pc_written = false;
         // Reserved i32 locals for region instruction count and memory fast path.
         static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13;
         bool memory_write = false;
@@ -89,10 +91,17 @@ namespace eka2l1::arm::aot {
             op(op_i32_store); leb(b, 2); leb(b, offset);
         }
 
-        void load_reg(int r) { load_i32(S::reg(r)); }
-        void store_reg(int r, std::uint32_t local) { store_i32(S::reg(r), local); }
+        void load_reg(int r) {
+            if (region && r == 15 && !pc_written) i32_const(current_pc);
+            else load_i32(S::reg(r));
+        }
+        void store_reg(int r, std::uint32_t local) {
+            if (r == 15) pc_written = true;
+            store_i32(S::reg(r), local);
+        }
 
         void slow_call(std::uint32_t func_idx) {
+            if (region && !pc_written) store_i32_const(S::PC,current_pc);
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
@@ -510,6 +519,7 @@ namespace eka2l1::arm::aot {
         arm_emit w{result.body};
         w.region = region && bounded;
         w.cache.enabled = bounded && cache_registers;
+        w.cache.runtime_fields = region;
         w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
 
         // Build instruction address → index map
@@ -611,6 +621,8 @@ namespace eka2l1::arm::aot {
             std::memcpy(&inst, code + i, 4);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
 
+            w.current_pc = insn_addr; w.pc_written = false;
+
             // Close forward-target blocks
             while (closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
                 w.op(op_end);
@@ -618,7 +630,7 @@ namespace eka2l1::arm::aot {
             }
 
             if (bounded) {
-                w.store_i32_const(S::PC, insn_addr);
+                if (!region) w.store_i32_const(S::PC, insn_addr);
                 w.load_i32(S::AOT_BUDGET);
                 if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
                 w.op(op_i32_le_u);
