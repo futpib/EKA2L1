@@ -98,3 +98,22 @@ runner checkout, which can differ from the archived binary's source commit.
 Use `profile_batch.py --compare-build /absolute/archived-frontend` for serial
 mode-4 old/new/new/old trials. See [LONG_MULTIPLY_RESULTS.md](LONG_MULTIPLY_RESULTS.md)
 for the verified long-multiply change and its measured incremental speed gain.
+
+The fallback hunt also enables ARM register test/compare instructions that an
+MRS/MSR mask previously rejected, ordinary post-indexed byte/halfword/word
+accesses, post-indexed word loads to PC, and PLD hints. PLD has no architectural
+effect in DynCom and still consumes one instruction. Post-indexed privilege
+variants, overlapping base/destination registers and unsupported PC forms retain
+interpreter fallback. Address writeback follows DynCom's order before the access.
+
+`MSR CPSR_f, Rm` compiles only with active `USER32MODE` and CPSR mode bits either
+16 or the emulator's legacy zero value; both cases avoid register banking. It
+updates NZCVQ, preserving other status bits. Other mode combinations and
+SPSR/control-field writes remain interpreter-owned. The runtime mode is a
+separate ARMul_State field: checking CPSR mode bits alone misses legacy guest
+contexts. Differential tests cover both accepted representations and rejected
+mode/banking combinations.
+
+See [INTERPRETER_HUNT_RESULTS.md](INTERPRETER_HUNT_RESULTS.md) for the 99.61%
+compiled replay, serial speed comparison, and the measured limit of further
+interpreter-coverage work as a route to realtime.

@@ -34,3 +34,22 @@ Interpreter differential-check executions are excluded. The diagnostic affects
 host runtime and is never used as a performance timing control.
 
 Measured Snakes results: [GUEST_PROFILE_RESULTS.md](GUEST_PROFILE_RESULTS.md).
+
+The JSON also includes `aot_events`, `aot_samples` and `dropped_aot_samples`.
+Events count lookup/compilation attempts during the measured phase, not guest
+instructions; chain lookups and subsequent dispatcher lookups may both appear.
+Sampled rows distinguish missing, rejected, pending and unmapped RAM entries,
+ROM misses, compiled zero-progress exits, candidate thresholds and RAM capacity
+limits. Each reason has its own sample cadence; preserve PC/mode and address
+space when interpreting rows. An opcode value of zero on a ROM-miss event is an
+uncollected field, not evidence of a zero opcode. Resolve it through the original
+opcode samples from executed instructions.
+
+`summarize_profile.py` additionally reports `generated_code_inclusive`: CPU
+samples with a generated `wasm://` module frame on the stack, including its
+callees (such as memory imports). The linked emulator has an HTTP `eka2l1.wasm`
+URL. This is a subset of the sample span, not a separate additive timing scope.
+Other samples include shared dispatch/lookup, interpreter fallback, services and
+waits; they must not all be labeled interpreter work. Use a separate run with
+sampling enabled and guest profiling/verification disabled for performance
+attribution.
