@@ -32,6 +32,7 @@ namespace eka2l1::arm::aot {
     extern bool ram_compilation_enabled;
     extern bool chaining_enabled;
     struct compiled_run { std::uint32_t instructions = 0, blocks = 0; };
+    std::uint32_t execute_single(ARMul_State *cpu, aot_func function);
     compiled_run execute_chain(ARMul_State *cpu, aot_func function);
     aot_func lookup_compiled(ARMul_State *cpu);
     void invalidate_ram_code(std::uint32_t address, std::size_t size);

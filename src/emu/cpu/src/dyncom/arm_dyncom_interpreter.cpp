@@ -1707,9 +1707,7 @@ DISPATCH : {
                 auto run = eka2l1::arm::aot::execute_chain(cpu, aot_func);
                 instrs = run.instructions; blocks = run.blocks;
             } else {
-                eka2l1::arm::aot::validation_begin(cpu);
-                instrs = aot_func(cpu);
-                eka2l1::arm::aot::validation_end(cpu, instrs);
+                instrs = eka2l1::arm::aot::execute_single(cpu, aot_func);
             }
 
             if (eka2l1::arm::aot::diagnostics_enabled) {

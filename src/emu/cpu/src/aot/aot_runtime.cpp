@@ -47,14 +47,22 @@ static core::thread_context validation_before;
 static std::unordered_map<std::uint32_t, std::uint8_t> validation_memory;
 static std::unordered_map<std::uint32_t, std::uint8_t> reference_writes;
 
-void validation_begin(ARMul_State *cpu) {
-    if (common::performance::counting() && ram_compilation_enabled
-        && (cpu->Reg[15] < hot_rom_base || cpu->Reg[15] - hot_rom_base >= hot_rom_size))
-        ++common::performance::ram_aot_dispatches;
+static unsigned verification_stride() {
     static const unsigned stride = [] {
         const char *value = std::getenv("EKA2L1_AOT_VERIFY");
         return value ? std::max(1ul, std::strtoul(value, nullptr, 10)) : 0ul;
     }();
+    return stride;
+}
+
+static inline void count_ram_dispatch(ARMul_State *cpu) {
+    if (common::performance::counting() && ram_compilation_enabled
+        && (cpu->Reg[15] < hot_rom_base || cpu->Reg[15] - hot_rom_base >= hot_rom_size))
+        ++common::performance::ram_aot_dispatches;
+}
+
+void validation_begin(ARMul_State *cpu) {
+    const auto stride = verification_stride();
     static std::uint64_t attempts = 0;
     validating = stride && (++attempts % stride == 0);
     if (!validating) return;
@@ -196,14 +204,16 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     return entry->function;
 }
 
-compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+template<bool Verify>
+static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     const auto budget = cpu->aot_budget;
     compiled_run result;
     while (function && result.instructions < budget && result.blocks < 64) {
         cpu->aot_budget = budget - result.instructions;
-        validation_begin(cpu);
+        count_ram_dispatch(cpu);
+        if constexpr (Verify) validation_begin(cpu);
         const auto count = function(cpu);
-        validation_end(cpu, count);
+        if constexpr (Verify) validation_end(cpu, count);
         if (count > cpu->aot_budget) std::abort(); // generated-code contract
         if ((common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
         ++result.blocks;
@@ -215,6 +225,20 @@ compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
         function = lookup_compiled(cpu);
     }
     return result;
+}
+
+compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+    return verification_stride() ? execute_chain_impl<true>(cpu, function)
+                                 : execute_chain_impl<false>(cpu, function);
+}
+
+std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
+    count_ram_dispatch(cpu);
+    if (!verification_stride()) return function(cpu);
+    validation_begin(cpu);
+    const auto count = function(cpu);
+    validation_end(cpu, count);
+    return count;
 }
 
 void observe_hot_pc(ARMul_State *cpu) {
@@ -317,30 +341,35 @@ extern "C" {
     }
 }
 
+// Uninstrumented internal imports. The checked variants above are selected only
+// for verifier runs; ordinary memory accesses contain no validation hook.
+static std::uint32_t raw_read32(ARMul_State *s, std::uint32_t a) { return s->ReadMemory32(a); }
+static std::uint32_t raw_read16(ARMul_State *s, std::uint32_t a) { return s->ReadMemory16(a); }
+static std::uint32_t raw_read8(ARMul_State *s, std::uint32_t a) { return s->ReadMemory8(a); }
+static void raw_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { s->WriteMemory32(a, v); }
+static void raw_write16(ARMul_State *s, std::uint32_t a, std::uint16_t v) { s->WriteMemory16(a, v); }
+static void raw_write8(ARMul_State *s, std::uint32_t a, std::uint8_t v) { s->WriteMemory8(a, v); }
+
 // JS function that instantiates a WASM module and returns exported function
 // addresses as a comma-separated string of "name:table_idx" pairs.
 // Returns empty string on failure.
-EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len), {
+EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const std::uintptr_t *helpers), {
     try {
         var wasmBytes = new Uint8Array(wasmMemory.buffer, bytes, len);
         // Copy the bytes — the buffer may be detached during instantiation
         wasmBytes = new Uint8Array(wasmBytes);
         var wasmModule = new WebAssembly.Module(wasmBytes);
 
-        // Import tlb functions DIRECTLY from wasmExports (raw WASM functions,
-        // bypassing Module._* which is wrapped by createExportWrapper).
-        // This allows the WASM optimizer to turn these into inline calls.
-        var importObj = {
-            env: {
-                memory: wasmMemory, // Emscripten's shared memory
-                tlb_read32: wasmExports.aot_tlb_read32,
-                tlb_write32: wasmExports.aot_tlb_write32,
-                tlb_read8: wasmExports.aot_tlb_read8,
-                tlb_write8: wasmExports.aot_tlb_write8,
-                tlb_read16: wasmExports.aot_tlb_read16,
-                tlb_write16: wasmExports.aot_tlb_write16,
-            }
-        };
+        // wasmExports AND wasmTable.get can be JS abort wrappers. Native table
+        // access obtains the C++ function pointers as genuine WASM functions.
+        // Outer export/thread-entry abort handling remains enabled unchanged.
+        var raw = index => WebAssembly.Table.prototype.get.call(wasmTable, HEAPU32[(helpers >>> 2) + index]);
+        var importObj = {env: {
+            memory: wasmMemory,
+            tlb_read32: raw(0), tlb_write32: raw(1),
+            tlb_read8: raw(2), tlb_write8: raw(3),
+            tlb_read16: raw(4), tlb_write16: raw(5)
+        }};
 
         var instance = new WebAssembly.Instance(wasmModule, importObj);
 
@@ -390,8 +419,17 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 {
     if (wasm_bytes.empty()) return 0;
 
+    const bool verify = verification_stride() != 0;
+    const std::uintptr_t helpers[] = {
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read32 : raw_read32),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write32 : raw_write32),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : raw_read8),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : raw_write8),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : raw_read16),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : raw_write16)
+    };
     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
-        static_cast<int>(wasm_bytes.size()));
+        static_cast<int>(wasm_bytes.size()), helpers);
 
     if (!result_str || result_str[0] == '\0') {
         if (result_str) free(result_str);
