@@ -416,7 +416,9 @@ namespace eka2l1::arm::aot {
                 // MOV PC, ... or data processing with Rd==PC
                 if (((inst >> 26) & 3) == 0) {
                     int rd = (inst >> 12) & 0xF;
-                    if (rd == 15 && cond >= 0xE) {
+                    const unsigned opcode = (inst >> 21) & 15;
+                    if (rd == 15 && cond >= 0xE && (opcode < 8 || opcode > 11)) {
+                        // Tests/MSR do not write Rd; their encoding must not cut off fallthrough.
                         // Could be a return (MOV PC, LR) — terminate
                         break;
                     }
@@ -1028,8 +1030,22 @@ namespace eka2l1::arm::aot {
                 }
 
                 if (is_mrs_msr) {
-                    // Bail on MRS/MSR
-                    w.bail_unsupported(insn_addr, insn_idx);
+                    // User-mode MSR CPSR_f, Rm: NZCVQ only, no banking or mode change.
+                    // Privileged/SPSR/control-field forms stay interpreter-owned.
+                    if ((inst & 0x0FFFFFF0) == 0x0128F000 && (inst & 15) != 15) {
+                        w.load_i32(S::CPSR); w.i32_const(31); w.op(op_i32_and);
+                        w.i32_const(16); w.op(op_i32_ne);
+                        w.op(op_if); w.op(type_void); w.bail(insn_addr,insn_idx); w.op(op_end);
+                        w.load_reg(inst & 15); w.set_local(TMP1);
+                        for (auto flag : {std::pair<unsigned,unsigned>{S::NFLAG,31},
+                                {S::ZFLAG,30},{S::CFLAG,29},{S::VFLAG,28}}) {
+                            w.get_local(TMP1); w.i32_const(flag.second); w.op(op_i32_shr_u);
+                            w.i32_const(1); w.op(op_i32_and); w.set_local(TMP2); w.store_i32(flag.first,TMP2);
+                        }
+                        w.load_i32(S::CPSR); w.i32_const(static_cast<std::int32_t>(~0xF8000020u)); w.op(op_i32_and);
+                        w.get_local(TMP1); w.i32_const(static_cast<std::int32_t>(0xF8000000u)); w.op(op_i32_and);
+                        w.op(op_i32_or); w.set_local(TMP2); w.store_i32(S::CPSR,TMP2);
+                    } else w.bail_unsupported(insn_addr, insn_idx);
                     if (cond_opened) w.op(op_end);
                     insn_idx++;
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -1413,7 +1429,7 @@ namespace eka2l1::arm::aot {
                 if (!preindex) {
                     // W=1 post-indexed forms use unprivileged access semantics.
                     // Keep them and unpredictable register combinations in DynCom.
-                    if (writeback || rn == 15 || rd == 15 || rn == rd) {
+                    if (writeback || rn == 15 || (rd == 15 && (!load || byte)) || rn == rd) {
                         w.op(op_drop);
                         w.bail_unsupported(insn_addr, insn_idx);
                         if (cond_opened) w.op(op_end);

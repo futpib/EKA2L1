@@ -2031,6 +2031,10 @@ static bool test_bounded_execution() {
     };
     std::vector<program> programs = {
         arm({0xe3a00001, 0xe2800002, 0xe2400001}), // straight-line fallthrough
+        arm({0xe49df004}), // post-indexed LDR PC and ARM/Thumb return
+        arm({0xe128f000,0x02822001,0xe2a33000}), // MSR CPSR_f affects conditions/carry
+        arm({0x0128f000,0xe2802001}), // conditional MSR skip
+
         arm({0xf5d1f000,0xf551f040,0xf7d1f002,0xe2800001}), // PLD hints must consume budgets without memory access
         arm({0xe3500000, 0x0a000000, 0xe3a01007, 0xe3a02009}), // taken/not-taken B
         arm({0xe2500001, 0x1afffffd}), // backward B, must return not recurse
@@ -2102,7 +2106,7 @@ static bool test_bounded_execution() {
             programs.push_back(arm({0xE3A02002,inst,0xE2813000}));
         }
     }
-    for (unsigned inst : {0xE4811004u,0xE4911004u,0xE4B10004u,0xE0D110B2u,0xE10F0000u,0xE128F000u}) {
+    for (unsigned inst : {0xE4811004u,0xE4911004u,0xE4B10004u,0xE0D110B2u,0xE10F0000u,0xE121F000u}) {
         auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true);
         if (tr.entry_supported) { printf("  FAIL guarded form %08X accepted\n",inst); return false; }
     }
@@ -2132,6 +2136,7 @@ static bool test_bounded_execution() {
                 cpu->set_reg(r, v); set(state_offsets::reg(r), v);
             }
             cpu->set_cpsr(0x10000010 | (carry<<29) | (p.thumb ? 0x20 : 0));
+            set(state_offsets::CPSR,cpu->get_cpsr());
             set(state_offsets::CFLAG,carry); set(state_offsets::VFLAG,1);
             set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget);
             g_test_mem = &actual;
@@ -2149,6 +2154,9 @@ static bool test_bounded_execution() {
                 }
             }
             const unsigned cpsr = cpu->get_cpsr();
+            if ((get(state_offsets::CPSR) & ~0xF0000020u) != (cpsr & ~0xF0000020u)) {
+                printf("  FAIL bounded CPSR control/Q bits %d\n",index);return false;
+            }
             for (auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},
                     {state_offsets::ZFLAG,30},{state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
                 if (get(pair.first) != ((cpsr >> pair.second)&1)) {
@@ -2226,6 +2234,32 @@ static bool test_arm_long_multiply() {
         if (tr.entry_supported) { printf("  FAIL invalid long multiply %08X accepted\n",code); return false; }
     }
     printf("  PASS arm_long_multiply (%u exact budget/state comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
+static bool test_msr_privilege_guard() {
+#ifdef __EMSCRIPTEN__
+    const std::uint32_t instruction = 0xE128F000;
+    for (bool cached : {false,true}) {
+        auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&instruction),4,
+            0x1000,nullptr,nullptr,true,true,cached);
+        auto module = build_wasm_module({tr.func});
+        for (unsigned mode : {0x11u,0x12u,0x13u,0x17u,0x1bu,0x1fu}) {
+            alignas(8) std::array<std::uint32_t,256> state{};
+            state[0] = 0xffffffffu;
+            state[state_offsets::PC/4] = 0x1000;
+            state[state_offsets::CPSR/4] = mode;
+            state[state_offsets::AOT_BUDGET/4] = 1;
+            const auto before = state;
+            const int count = js_run_aot_wasm(module.data(),module.size(),
+                reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
+            if (count != 0 || state != before) {
+                printf("  FAIL MSR privileged mode %u modified state\n",mode); return false;
+            }
+        }
+    }
+    printf("  PASS msr_privilege_guard\n");
 #endif
     return true;
 }
@@ -2848,6 +2882,7 @@ int main() {
     if (test_bounded_execution()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
+    if (test_msr_privilege_guard()) passed++; else failed++;
     if (test_arm_mov_imm()) passed++; else failed++;
     if (test_arm_add_sub_imm()) passed++; else failed++;
     if (test_arm_cmp_beq()) passed++; else failed++;
