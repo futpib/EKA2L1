@@ -11,19 +11,26 @@ ROOT = Path(__file__).resolve().parents[3]
 p = argparse.ArgumentParser()
 p.add_argument('--assets', type=Path, required=True)
 p.add_argument('--output', type=Path, required=True)
+p.add_argument('--compare-aot', action='store_true', help='Compare interpreter, exports and hot-ROM compilation with timing repeats')
 a = p.parse_args()
 a.output = a.output.resolve()
 a.output.mkdir(parents=True, exist_ok=False)
-plan = [('full-1', 0), ('no-png', 1), ('no-readback', 2), ('full-2', 0)]
+plan = [('full-1', 0, None), ('no-png', 1, None), ('no-readback', 2, None), ('full-2', 0, None)]
+if a.compare_aot:
+    plan = [('interpreter-1', 0, 0), ('exports', 0, 1), ('hot-rom-1', 0, 2), ('hot-rom-2', 0, 2), ('interpreter-2', 0, 0)]
 processes = []
 logs = []
 try:
-    for name, mode in plan:
+    for name, mode, aot_mode in plan:
         gate = a.output / f'{name}.release'
         log = (a.output / f'{name}.log').open('w')
         logs.append(log)
+        environment = {**os.environ, 'PROFILE_GATE': str(gate)}
+        if aot_mode is not None:
+            environment['EKA2L1_BENCHMARK_AOT'] = str(aot_mode)
+            environment.pop('EKA2L1_AOT_VERIFY', None)
         process = subprocess.Popen(['node', 'profile.ts', str(a.assets.resolve()), str(a.output/name), str(mode), '0'],
-            cwd=ROOT/'src/tests/wasm', env={**os.environ, 'PROFILE_GATE':str(gate)}, stdout=log, stderr=subprocess.STDOUT)
+            cwd=ROOT/'src/tests/wasm', env=environment, stdout=log, stderr=subprocess.STDOUT)
         processes.append((name, process, gate))
     deadline = time.monotonic() + 1800
     while not all(Path(str(gate)+'.ready').exists() for _, _, gate in processes):

@@ -12,6 +12,12 @@ EKA2L1_BENCHMARK_AOT=2 node profile.ts /absolute/assets /absolute/new-profile 0 
 EKA2L1_BENCHMARK_AOT=2 EKA2L1_AOT_VERIFY=1 node benchmark.ts /absolute/assets /absolute/new-checked-output 20
 ```
 
+For a serial timing comparison (with concurrent warmup and paired repeats):
+
+```sh
+python3 src/tests/benchmark/profile_batch.py --assets /absolute/assets --output /absolute/new-comparison --compare-aot
+```
+
 The optional verifier executes every nonempty compiled block again in a private
 interpreter state and memory overlay. It compares registers, NZCV/T and memory,
 then aborts at the first divergence. It is a diagnostic mode, not a performance
