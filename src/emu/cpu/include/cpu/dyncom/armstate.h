@@ -230,6 +230,9 @@ public:
     std::uint64_t NumInstrsToExecute;
     std::uint32_t aot_budget = 0; // Remaining guest instructions for a bounded compiled block.
 
+    std::uint32_t aot_tlb = 0; // WASM-only direct-memory view, refreshed by the runner.
+    std::uint32_t aot_code_begin = 0, aot_code_end = 0;
+    std::uint32_t aot_exit = 0; // A helper call/code write ends the region after this instruction.
     unsigned NresetSig; // Reset the processor
     unsigned NfiqSig;
     unsigned NirqSig;

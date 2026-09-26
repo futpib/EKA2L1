@@ -152,12 +152,14 @@ int eka2l1_graphics_diagnostics_configure(int enabled) {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
-    if (g_state || (enabled < 0 || enabled > 4) || verify < 0) return -1;
+    if (g_state || (enabled < 0 || enabled > 5) || verify < 0) return -1;
     eka2l1::arm::aot::diagnostics_enabled = diagnostics != 0;
     if (verify) setenv("EKA2L1_AOT_VERIFY", std::to_string(verify).c_str(), 1);
     else unsetenv("EKA2L1_AOT_VERIFY");
     if (enabled >= 2) setenv("EKA2L1_AOT_HOT", "1", 1);
     else unsetenv("EKA2L1_AOT_HOT");
+    if (enabled >= 5) setenv("EKA2L1_AOT_REGION", "1", 1);
+    else unsetenv("EKA2L1_AOT_REGION");
     if (enabled >= 4) setenv("EKA2L1_AOT_CHAIN", "1", 1);
     else unsetenv("EKA2L1_AOT_CHAIN");
     if (enabled >= 3) setenv("EKA2L1_AOT_RAM", "1", 1);

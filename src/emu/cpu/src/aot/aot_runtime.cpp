@@ -26,6 +26,7 @@
 #include <common/log.h>
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/12l1r/exclusive_monitor.h>
+#include <cpu/12l1r/tlb.h>
 #include <cpu/aot/arm_translator.h>
 #include <algorithm>
 #include <unordered_map>
@@ -149,6 +150,7 @@ void validation_end(ARMul_State *cpu, std::uint32_t count) {
 bool hot_compilation_enabled = false;
 bool ram_compilation_enabled = false;
 bool chaining_enabled = false;
+static bool region_enabled = false;
 static validated_code_cache ram_cache;
 static std::unordered_map<std::uint64_t, unsigned> ram_counts;
 static const std::uint8_t *hot_rom = nullptr;
@@ -176,6 +178,8 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
     ram_compilation_enabled = enabled && ram && ram[0] == '1';
     const char *chain = std::getenv("EKA2L1_AOT_CHAIN");
     chaining_enabled = enabled && chain && chain[0] == '1';
+    const char *region = std::getenv("EKA2L1_AOT_REGION");
+    region_enabled = chaining_enabled && region && region[0] == '1';
 }
 
 void invalidate_ram_code(std::uint32_t address, std::size_t size) {
@@ -187,6 +191,7 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
     if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
+        cpu->aot_code_begin = cpu->aot_code_end = 0; // ROM is immutable.
         auto function = global_registry().lookup(pc_mode);
         if ((common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
         return function;
@@ -201,6 +206,8 @@ aot_func lookup_compiled(ARMul_State *cpu) {
         common::guest_profile::state.event(!mapped ? "ram_unmapped" : !entry ? "ram_missing" : entry->rejected ? "ram_rejected" : "ram_pending",pc_mode,view.address_space,opcode);
     }
     if (!mapped || !entry) return nullptr;
+    cpu->aot_code_begin = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(view.bytes));
+    cpu->aot_code_end = cpu->aot_code_begin + static_cast<std::uint32_t>(entry->code.size());
     return entry->function;
 }
 
@@ -212,6 +219,9 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         cpu->aot_budget = budget - result.instructions;
         count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);
+        auto *tlb = static_cast<dyncom_core *>(cpu->parent())->mem_cache();
+        cpu->aot_tlb = !Verify && tlb->page_bits == 12 ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
+        cpu->aot_exit = 0;
         const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
         const auto count = function(cpu);
         if (common::guest_profile::enabled && common::performance::counting()) {
@@ -221,7 +231,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
                 core::code_mapping view;
                 const auto width = (entry_pc & 1) ? 2u : 4u;
                 std::uint32_t last = 0;
-                if (count && cpu->parent()->resolve_code && cpu->parent()->resolve_code((entry_pc & ~1u)+(count-1)*width,view)
+                if (!region_enabled && count && cpu->parent()->resolve_code && cpu->parent()->resolve_code((entry_pc & ~1u)+(count-1)*width,view)
                     && view.size >= width) std::memcpy(&last,view.bytes,width);
                 profile.edge(entry_pc,cpu->Reg[15] | cpu->TFlag,view.address_space,count,last);
             }
@@ -277,7 +287,7 @@ void observe_hot_pc(ARMul_State *cpu) {
         }
         const auto size = std::min(std::size_t(chaining_enabled ? 512 : 256), view.size);
         auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
-                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled);
+                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled);
         if (tr.func.body.empty() || !tr.entry_supported) {
             // Cache rejection against these exact bytes; retry only after mutation.
             ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4))).rejected = true;
@@ -303,7 +313,7 @@ void observe_hot_pc(ARMul_State *cpu) {
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(chaining_enabled ? 512u : 128u, hot_rom_size - offset);
     auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
-                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled);
+                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled);
     if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
     hot_pending.push_back(std::move(tr.func));

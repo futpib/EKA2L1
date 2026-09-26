@@ -40,6 +40,12 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t TFLAG = 828;
         static constexpr std::uint32_t AOT_BUDGET = 848;
 
+        static constexpr std::uint32_t AOT_TLB = 852;
+        static constexpr std::uint32_t AOT_CODE_BEGIN = 856;
+        static constexpr std::uint32_t AOT_CODE_END = 860;
+        static constexpr std::uint32_t AOT_EXIT = 864;
+        static constexpr std::uint32_t NIRQ = 876;
+
         // VFP system registers (FPSID, FPSCR, FPEXC, ...)
         static constexpr std::uint32_t VFP_SYS = 496;
         static constexpr std::uint32_t FPSCR = VFP_SYS + 4; // VFP[1]

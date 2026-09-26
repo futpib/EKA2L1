@@ -52,6 +52,9 @@ namespace eka2l1::arm::aot {
     struct emit {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
+        bool region = false;
+        // Reserved i32 locals for region instruction count and memory fast path.
+        static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13;
         bool memory_write = false;
         bool entry_supported = true;
         bool unsupported = false;
@@ -89,28 +92,75 @@ namespace eka2l1::arm::aot {
         void load_reg(int r) { load_i32(S::reg(r)); }
         void store_reg(int r, std::uint32_t local) { store_i32(S::reg(r), local); }
 
-        void call(std::uint32_t func_idx) {
-            if (func_idx == 1 || func_idx == 3 || func_idx == 5) memory_write = true;
+        void slow_call(std::uint32_t func_idx) {
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
+            if (region) store_i32_const(S::AOT_EXIT, 1);
+        }
+        void call(std::uint32_t func_idx) {
+            const bool write = func_idx == 1 || func_idx == 3 || func_idx == 5;
+            if (write) memory_write = true;
+            if (!region || func_idx > 5) { slow_call(func_idx); return; }
+            const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
+            if (write) set_local(VALUE);
+            set_local(ADDRESS);
+            set_local(HOST); // consume state_ptr; HOST is overwritten below
+            // Only aligned, within-page, little-endian accesses with the exact
+            // required TLB permission may bypass the existing memory helpers.
+            load_i32(S::AOT_TLB); set_local(ENTRY);
+            get_local(ENTRY); op(op_i32_eqz); op(op_if); op(type_void);
+            i32_const(0); set_local(HOST);
+            op(op_else);
+            get_local(ADDRESS); i32_const(12); op(op_i32_shr_u);
+            i32_const(511); op(op_i32_and); i32_const(4); op(op_i32_shl);
+            get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
+            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,write ? 4 : 0);
+            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
+            get_local(ADDRESS); i32_const(size-1); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            op(op_if); op(type_void);
+            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
+            get_local(HOST); op(op_if); op(type_void);
+            get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
+            op(op_end);
+            op(op_else); i32_const(0); set_local(HOST); op(op_end);
+            op(op_end);
+            get_local(HOST); op(op_if); op(write ? type_void : type_i32);
+            get_local(HOST);
+            if (write) get_local(VALUE);
+            op(write ? (size==4 ? op_i32_store : size==2 ? op_i32_store16 : op_i32_store8)
+                     : (size==4 ? op_i32_load : size==2 ? op_i32_load16_u : op_i32_load8_u));
+            leb(b, size==4 ? 2 : size==2 ? 1 : 0); leb(b,0);
+            if (write) {
+                // Backing-address guard catches writes through guest aliases.
+                get_local(HOST); load_i32(S::AOT_CODE_END); op(op_i32_lt_u);
+                get_local(HOST); i32_const(size); op(op_i32_add); load_i32(S::AOT_CODE_BEGIN); op(op_i32_gt_u);
+                op(op_i32_and); op(op_if); op(type_void);
+                store_i32_const(S::AOT_EXIT,1); op(op_end);
+            }
+            op(op_else);
+            state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
+            slow_call(func_idx);
+            op(op_end);
         }
         void ret() { cache.barrier_at(b.size()); op(op_return); }
 
         void bail(std::uint32_t pc, std::uint32_t instr_count) {
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
-            i32_const(static_cast<std::int32_t>(instr_count));
+            if (region) get_local(COUNT); else i32_const(static_cast<std::int32_t>(instr_count));
             ret();
             bail_count++;
         }
 
         void bail_preserve_pc(std::uint32_t instr_count) {
-            i32_const(static_cast<std::int32_t>(instr_count));
+            if (region) get_local(COUNT); else i32_const(static_cast<std::int32_t>(instr_count));
             ret();
             bail_count++;
         }
 
         void bail_unsupported(std::uint32_t pc, std::uint32_t instr_count) {
+            if (region) { get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT); }
             unsupported = true;
             if (!instr_count) entry_supported = false;
             bail(pc, instr_count);
@@ -435,8 +485,9 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region)
     {
+        region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
         if (bounded) { siblings = nullptr; dll_code = nullptr; }
@@ -447,7 +498,7 @@ namespace eka2l1::arm::aot {
 
         // A fixed i64 prefix keeps its index independent of lazily allocated i32 register locals.
         // Locals: 0=state_ptr(param), 1=wide result, 2..8=i32 scratch.
-        result.num_locals = 7;
+        result.num_locals = region ? 12 : 7;
         result.num_prefix_i64_locals = 1;
         result.num_f32_locals = 0;
         result.num_f64_locals = 0;
@@ -457,6 +508,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP_CARRY = 8;
 
         emit w{result.body};
+        w.region = region && bounded;
         w.cache.enabled = bounded && cache_registers;
         w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
 
@@ -511,7 +563,7 @@ namespace eka2l1::arm::aot {
             }
         }
 
-        if (bounded) forward_targets_set.clear();
+        if (bounded && !region) forward_targets_set.clear();
         std::vector<std::uint32_t> fwd_sorted(
             forward_targets_set.begin(), forward_targets_set.end());
         std::unordered_map<std::uint32_t, std::uint32_t> fwd_idx;
@@ -522,6 +574,8 @@ namespace eka2l1::arm::aot {
         // Initialize pc_idx = 0
         w.i32_const(0);
         w.set_local(PC_IDX);
+
+        if (region) { w.i32_const(0); w.set_local(emit::COUNT); }
 
         // block $exit
         w.op(op_block); w.op(type_void);
@@ -538,7 +592,7 @@ namespace eka2l1::arm::aot {
         std::uint32_t decoded_end_offset = 0;
 
         for (std::size_t i = 0; i + 3 < code_size; i += 4) {
-            if (bounded && stop_after_store && w.memory_write) break;
+            if (bounded && !region && stop_after_store && w.memory_write) break;
             if (!reachable.count(i)) {
                 insn_idx++;
                 continue;
@@ -557,11 +611,13 @@ namespace eka2l1::arm::aot {
             if (bounded) {
                 w.store_i32_const(S::PC, insn_addr);
                 w.load_i32(S::AOT_BUDGET);
-                w.i32_const(insn_idx);
+                if (region) w.get_local(emit::COUNT); else w.i32_const(insn_idx);
                 w.op(op_i32_le_u);
+                if (region) { w.load_i32(S::AOT_EXIT); w.op(op_i32_or); }
                 w.op(op_if); w.op(type_void);
                 w.bail(insn_addr, insn_idx);
                 w.op(op_end);
+                if (region) { w.get_local(emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(emit::COUNT); }
                 // Match DynCom's PLD decode: an optional prefetch hint has no
                 // architectural effect, but still consumes one guest instruction.
                 if ((inst & 0xFD70F000) == 0xF550F000) {
@@ -626,15 +682,21 @@ namespace eka2l1::arm::aot {
                 // B (not link)
                 // Check if target is a forward branch within the block
                 auto fit = fwd_idx.find(target);
-                if (fit != fwd_idx.end()) {
+                if (fit != fwd_idx.end() && target > insn_addr) {
                     // Forward branch: br to the appropriate block depth
-                    std::uint32_t depth = fit->second - closed_count;
+                    std::uint32_t depth = fit->second - closed_count + (cond_opened ? 1 : 0);
                     w.op(op_br);
                     leb(result.body, depth);
                     if (cond_opened) w.op(op_end);
-                } else if (!bounded && target >= start_address && target < start_address + code_size) {
+                } else if ((!bounded && target >= start_address && target < start_address + code_size) || (region && target == start_address)) {
+                    if (region) {
+                        w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                        w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
+                        w.op(op_i32_and);
+                        w.op(op_if); w.op(type_void); w.bail(target,insn_idx+1); w.op(op_end);
+                    }
                     // Backward branch within block: br to loop
-                    std::uint32_t loop_depth = N_fwd - closed_count + 0; // loop is right after blocks
+                    std::uint32_t loop_depth = N_fwd - closed_count + (cond_opened ? 1 : 0); // loop is right after blocks
                     w.op(op_br);
                     leb(result.body, loop_depth);
                     if (cond_opened) w.op(op_end);
@@ -1040,7 +1102,7 @@ namespace eka2l1::arm::aot {
                         w.i32_const(0); w.op(op_i32_ne);
                         w.get_local(TMP1); w.i32_const(16); w.op(op_i32_ne);
                         w.op(op_i32_and); w.op(op_i32_or);
-                        w.op(op_if); w.op(type_void); w.bail(insn_addr,insn_idx); w.op(op_end);
+                        w.op(op_if); w.op(type_void); if (region) { w.get_local(emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(emit::COUNT); } w.bail(insn_addr,insn_idx); w.op(op_end);
                         w.load_reg(inst & 15); w.set_local(TMP1);
                         for (auto flag : {std::pair<unsigned,unsigned>{S::NFLAG,31},
                                 {S::ZFLAG,30},{S::CFLAG,29},{S::VFLAG,28}}) {

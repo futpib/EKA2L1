@@ -16,6 +16,7 @@
 
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/dyncom/arm_dyncom.h>
+#include <cpu/12l1r/tlb.h>
 #include <cpu/dyncom/armstate.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/thumb_translator.h>
@@ -1755,6 +1756,8 @@ static_assert(offsetof(ARMul_State, NFlag) == state_offsets::NFLAG, "NFLAG offse
 static_assert(offsetof(ARMul_State, ZFlag) == state_offsets::ZFLAG, "ZFLAG offset mismatch");
 static_assert(offsetof(ARMul_State, CFlag) == state_offsets::CFLAG, "CFLAG offset mismatch");
 static_assert(offsetof(ARMul_State, VFlag) == state_offsets::VFLAG, "VFLAG offset mismatch");
+static_assert(offsetof(ARMul_State, aot_tlb) == state_offsets::AOT_TLB, "AOT TLB offset mismatch");
+static_assert(offsetof(ARMul_State, aot_exit) == state_offsets::AOT_EXIT, "AOT exit offset mismatch");
 static_assert(offsetof(ARMul_State, aot_budget) == state_offsets::AOT_BUDGET, "AOT budget offset mismatch");
 static_assert(offsetof(ARMul_State, TFlag) == state_offsets::TFLAG, "TFLAG offset mismatch");
 static_assert(offsetof(ARMul_State, VFP) == state_offsets::VFP_SYS, "VFP_SYS offset mismatch");
@@ -2037,6 +2040,8 @@ static bool test_bounded_execution() {
 
         arm({0xf5d1f000,0xf551f040,0xf7d1f002,0xe2800001}), // PLD hints must consume budgets without memory access
         arm({0xe3500000, 0x0a000000, 0xe3a01007, 0xe3a02009}), // taken/not-taken B
+        arm({0xe3a00003,0xea000000,0xe2801001,0xe2500001,0x1afffffc}), // target is both forward and backward
+        arm({0xe4813004,0xe2500001,0x1afffffc}), // store loop from measured workload
         arm({0xe2500001, 0x1afffffd}), // backward B, must return not recurse
         arm({0xe8a18000}), // STM stores pipeline PC
         arm({0xe1c100d0}), // LDRD is not STRH
@@ -2116,9 +2121,10 @@ static bool test_bounded_execution() {
         if (!tr.entry_supported) { printf("  FAIL test/compare %08X misclassified\n",inst); return false; }
     }
     int index = 0;
-    for (bool cache_registers : {false, true}) for (bool stop_after_store : {false, true}) for (const auto &p : programs) {
+    for (unsigned variant = 0; variant < 7; ++variant) for (const auto &p : programs) {
+        const bool region = variant >= 4, cache_registers = region || (variant & 2), stop_after_store = variant & 1;
         auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers)
-                          : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers);
+                          : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers, region);
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
             {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
             {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
@@ -2139,7 +2145,15 @@ static bool test_bounded_execution() {
             set(state_offsets::CPSR,cpu->get_cpsr());
             set(state_offsets::MODE,16);
             set(state_offsets::CFLAG,carry); set(state_offsets::VFLAG,1);
-            set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget);
+            set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget); set(state_offsets::NIRQ,1);
+            r12l1::tlb direct(12);
+            if (region && variant >= 5) {
+                for (unsigned a=0;a<test_mem::SIZE;a+=4096) direct.add(a,actual.data.data()+a,7);
+                set(state_offsets::AOT_TLB,reinterpret_cast<std::uintptr_t>(direct.entries));
+                set(state_offsets::AOT_CODE_BEGIN,reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000));
+                set(state_offsets::AOT_CODE_END,reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000+p.bytes.size()));
+                if (variant == 6) direct.flush(); // mapped view subsequently invalidated
+            }
             g_test_mem = &actual;
             const int count = js_run_aot_wasm(module.data(), module.size(), state, sizeof(state));
             g_test_mem = nullptr;
@@ -2167,7 +2181,7 @@ static bool test_bounded_execution() {
         }
         ++index;
     }
-    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*336);
+    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*588);
 #endif
     return true;
 }

@@ -13,7 +13,7 @@ const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
 if (!Number.isSafeInteger(verifyAot) || verifyAot < 0 || verifyAot > 2147483647)
   throw new Error('EKA2L1_AOT_VERIFY must be a nonnegative integer stride');
 const aot = Number(process.env.EKA2L1_BENCHMARK_AOT || "0");
-if (![0,1,2,3,4].includes(aot)) throw new Error("AOT mode must be 0, 1, 2, 3 or 4");
+if (![0,1,2,3,4,5].includes(aot)) throw new Error("AOT mode must be 0, 1, 2, 3, 4 or 5");
 const assets = path.resolve(assetArg), output = path.resolve(outputArg), frames = Number(frameArg);
 if (!Number.isInteger(frames) || frames < 1 || frames > 100000) throw new Error('Invalid frame count');
 const input = path.resolve(inputArg);
