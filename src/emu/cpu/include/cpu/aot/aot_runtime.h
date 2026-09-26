@@ -26,6 +26,9 @@
 struct ARMul_State;
 
 namespace eka2l1::arm::aot {
+    extern bool validation_running;
+    void validation_begin(ARMul_State *cpu);
+    void validation_end(ARMul_State *cpu, std::uint32_t count);
     // Stage WASM module bytes for deferred instantiation.
     // The actual WebAssembly.Instance + addFunction calls happen on the
     // first AOT lookup, which runs on the emulator worker thread where

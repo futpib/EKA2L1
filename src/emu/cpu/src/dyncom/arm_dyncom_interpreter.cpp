@@ -1659,7 +1659,7 @@ DISPATCH : {
 
     // Check if an AOT-compiled function exists for this PC
     {
-        auto aot_func = eka2l1::arm::aot::global_registry().lookup(cpu->Reg[15] | cpu->TFlag);
+        auto aot_func = eka2l1::arm::aot::validation_running ? nullptr : eka2l1::arm::aot::global_registry().lookup(cpu->Reg[15] | cpu->TFlag);
         if (aot_func) {
             static std::uint64_t aot_dispatch_count = 0;
             static std::uint64_t aot_instr_count = 0;
@@ -1671,7 +1671,9 @@ DISPATCH : {
             for (int i = 0; i < 16; i++) rec.regs_before[i] = cpu->Reg[i];
 
             cpu->aot_budget = static_cast<std::uint32_t>(std::min<std::uint64_t>(cpu->NumInstrsToExecute - num_instrs, UINT32_MAX));
+            eka2l1::arm::aot::validation_begin(cpu);
             std::uint32_t instrs = aot_func(cpu);
+            eka2l1::arm::aot::validation_end(cpu, instrs);
 
             rec.exit_pc = cpu->Reg[15];
             rec.instrs = instrs;

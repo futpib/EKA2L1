@@ -176,6 +176,74 @@ namespace eka2l1::arm::aot {
         }
     };
 
+    // ARMv5/v6 narrow ALU semantics for scheduler-bounded blocks. Keep operands
+    // in locals until all flags are derived, including register-aliasing cases.
+    static bool emit_bounded_alu(emit &w, std::uint16_t insn) {
+        constexpr unsigned result = 1, tmp = 2, lhs = 3, rhs = 4;
+        auto nz = [&] {
+            w.get_local(result); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(tmp); w.store_i32(S::NFLAG,tmp);
+            w.get_local(result); w.op(op_i32_eqz); w.set_local(tmp); w.store_i32(S::ZFLAG,tmp);
+        };
+        auto arithmetic = [&](bool sub) {
+            w.get_local(lhs); w.get_local(rhs); w.op(sub ? op_i32_sub : op_i32_add); w.set_local(result);
+            nz();
+            if (sub) { w.get_local(lhs); w.get_local(rhs); w.op(op_i32_ge_u); }
+            else { w.get_local(result); w.get_local(lhs); w.op(op_i32_lt_u); }
+            w.set_local(tmp); w.store_i32(S::CFLAG,tmp);
+            w.get_local(lhs); w.get_local(rhs); w.op(op_i32_xor);
+            if (!sub) { w.i32_const(-1); w.op(op_i32_xor); }
+            w.get_local(lhs); w.get_local(result); w.op(op_i32_xor); w.op(op_i32_and);
+            w.i32_const(31); w.op(op_i32_shr_u); w.set_local(tmp); w.store_i32(S::VFLAG,tmp);
+        };
+        if ((insn & 0xF800) == 0x1800 || (insn & 0xF800) == 0x3000 || (insn & 0xF800) == 0x3800
+                || (insn & 0xFFC0) == 0x4280 || (insn & 0xF800) == 0x2800
+                || (insn & 0xFFC0) == 0x4240 || (insn & 0xFFC0) == 0x42C0) {
+            bool sub = false, store = true;
+            unsigned rd = insn & 7;
+            if ((insn & 0xF800) == 0x1800) {
+                sub = insn & 0x200;
+                w.load_reg((insn>>3)&7); w.set_local(lhs);
+                if (insn & 0x400) w.i32_const((insn>>6)&7); else w.load_reg((insn>>6)&7);
+            } else if ((insn & 0xF800) == 0x3000 || (insn & 0xF800) == 0x3800 || (insn & 0xF800) == 0x2800) {
+                rd = (insn>>8)&7; sub = (insn & 0xF800) != 0x3000; store = (insn & 0xF800) != 0x2800;
+                w.load_reg(rd); w.set_local(lhs); w.i32_const(insn&255);
+            } else {
+                const bool negate = (insn & 0xFFC0) == 0x4240;
+                sub = (insn & 0xFFC0) != 0x42C0; store = negate;
+                if (negate) w.i32_const(0); else w.load_reg(rd);
+                w.set_local(lhs); w.load_reg((insn>>3)&7);
+            }
+            w.set_local(rhs); arithmetic(sub);
+            if (store) w.store_reg(rd,result);
+            return true;
+        }
+        if ((insn & 0xE000) == 0 && (insn & 0x1800) != 0x1800) {
+            const auto kind = (insn>>11)&3;
+            unsigned shift = (insn>>6)&31;
+            const auto rd = insn&7;
+            w.load_reg((insn>>3)&7); w.set_local(lhs);
+            if (!shift && kind) shift = 32;
+            if (shift) {
+                w.get_local(lhs); w.i32_const(kind ? shift-1 : 32-shift); w.op(op_i32_shr_u);
+                w.i32_const(1); w.op(op_i32_and); w.set_local(tmp); w.store_i32(S::CFLAG,tmp);
+            }
+            if (shift == 32 && kind == 1) w.i32_const(0);
+            else { w.get_local(lhs); w.i32_const(shift == 32 ? 31 : shift);
+                w.op(kind == 0 ? op_i32_shl : kind == 1 ? op_i32_shr_u : op_i32_shr_s); }
+            w.set_local(result); w.store_reg(rd,result); nz(); return true;
+        }
+        const auto op = (insn>>6)&15;
+        if ((insn & 0xFC00) == 0x4000 && (op == 0 || op == 1 || op == 8 || op == 12 || op == 13 || op == 14 || op == 15)) {
+            const auto rd = insn&7, rm = (insn>>3)&7;
+            if (op != 15) w.load_reg(rd);
+            w.load_reg(rm);
+            if (op == 14 || op == 15) { w.i32_const(-1); w.op(op_i32_xor); }
+            if (op != 15) w.op(op == 1 ? op_i32_xor : op == 12 ? op_i32_or : op == 13 ? op_i32_mul : op_i32_and);
+            w.set_local(result); if (op != 8) w.store_reg(rd,result); nz(); return true;
+        }
+        return false;
+    }
+
     // Walk the code slice linearly from offset 0, following branches and
     // stopping at unconditional terminators (POP {PC}, BX LR, BX Rm, B imm
     // that falls outside the slice, or the end of the slice).
@@ -596,6 +664,12 @@ namespace eka2l1::arm::aot {
                     decoded_end_offset = static_cast<std::uint32_t>(i);
                     break;
                 }
+            }
+
+            if (bounded && emit_bounded_alu(w, insn)) {
+                ++insn_idx;
+                decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                continue;
             }
 
             // Check for 32-bit Thumb (wide instruction)
@@ -3577,7 +3651,9 @@ namespace eka2l1::arm::aot {
                 w.state_ptr();
                 w.get_local(ADDR_TMP);
                 w.get_local(TMP1);
-                w.call(1); // tlb_write32 (writes full word — TODO: use write16)
+                w.call(3); // low byte
+                w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
+                w.get_local(TMP1); w.i32_const(8); w.op(op_i32_shr_u); w.call(3);
             } else if ((insn & 0xF800) == 0x7800) {
                 // LDRB Rt, [Rn, #imm5]
                 int rt = insn & 7;
@@ -3604,7 +3680,7 @@ namespace eka2l1::arm::aot {
                 w.state_ptr();
                 w.get_local(ADDR_TMP);
                 w.get_local(TMP1);
-                w.call(1); // tlb_write32 (TODO: write8)
+                w.call(3); // tlb_write8
             } else if ((insn & 0xFE00) == 0x5600) {
                 // LDRSB Rt, [Rn, Rm]
                 int rt = insn & 7;
@@ -3692,7 +3768,9 @@ namespace eka2l1::arm::aot {
                 w.state_ptr();
                 w.get_local(ADDR_TMP);
                 w.get_local(TMP1);
-                w.call(1); // tlb_write32 (TODO: write16 — may overwrite adjacent halfword)
+                w.call(3); // low byte
+                w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
+                w.get_local(TMP1); w.i32_const(8); w.op(op_i32_shr_u); w.call(3);
             } else if ((insn & 0xFE00) == 0x5400) {
                 // STRB Rt, [Rn, Rm]
                 int rt = insn & 7;
@@ -3709,7 +3787,7 @@ namespace eka2l1::arm::aot {
                 w.state_ptr();
                 w.get_local(ADDR_TMP);
                 w.get_local(TMP1);
-                w.call(1); // tlb_write32 (TODO: write8)
+                w.call(3); // tlb_write8
             } else if ((insn & 0xF800) == 0xA000) {
                 // ADR Rd, label (ADD Rd, PC, #imm8*4)
                 int rd = (insn >> 8) & 7;

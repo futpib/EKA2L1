@@ -2017,7 +2017,20 @@ static bool test_bounded_execution() {
         arm({0xe2500001, 0x1afffffd}), // backward B, must return not recurse
         arm({0xe2810004, 0xe5810000, 0xe5912000}), // memory
         arm({0xe12fff1e}), // mode-changing BX
+        arm({0xe1b00f00}), // MOVS R0, R0 LSL #30
+        arm({0xe1b00020}), // MOVS R0, R0 LSR #32
+        arm({0xe1b00040}), // MOVS R0, R0 ASR #32
+        arm({0xe1b00060}), // RRX
+        arm({0xe1b00070}), // ROR R0
+        arm({0xe1b00010}), // LSL R0
+        arm({0xe1902f9f}), // LDREX must fall back
+        arm({0xe1803f91}), // STREX must fall back
         thumb({0x3001, 0x3801, 0x2107}),
+        thumb({0x2203,0x0712}), // live failure: LSLS must clear carry
+        thumb({0x3001}), thumb({0x3801}), thumb({0x2801}),
+        thumb({0x0000}), thumb({0x0800}), thumb({0x1000}),
+        thumb({0x4000}), thumb({0x43c0}),
+        thumb({0x7008}), thumb({0x8008}), // byte/halfword stores
         thumb({0x2800, 0xd000, 0x2107, 0x2209}),
         thumb({0x3801, 0xd1fd}),
         thumb({0x6008, 0x680a}),
@@ -2033,7 +2046,7 @@ static bool test_bounded_execution() {
                           : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true);
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
             {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false}});
-        for (unsigned r0 : {0u, 2u}) for (unsigned budget = 0; budget <= 5; ++budget) {
+        for (unsigned r0 : {0u, 2u, 0xffffffffu, 0x7fffffffu, 0x80000000u}) for (unsigned budget = 0; budget <= 5; ++budget) {
             test_mem actual, reference;
             actual.write_code(0x1000, p.bytes); reference.write_code(0x1000, p.bytes);
             alignas(8) std::uint8_t state[1024]{};
@@ -2045,12 +2058,13 @@ static bool test_bounded_execution() {
                 unsigned v = r == 0 ? r0 : (r == 1 || r == 13) ? 0x8000 : r == 14 ? 0x2001 : r == 15 ? 0x1000 : 0;
                 cpu->set_reg(r, v); set(state_offsets::reg(r), v);
             }
-            cpu->set_cpsr(0x10 | (p.thumb ? 0x20 : 0));
+            cpu->set_cpsr(0x30000010 | (p.thumb ? 0x20 : 0));
+            set(state_offsets::CFLAG,1); set(state_offsets::VFLAG,1);
             set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget);
             g_test_mem = &actual;
             const int count = js_run_aot_wasm(module.data(), module.size(), state, sizeof(state));
             g_test_mem = nullptr;
-            if (count < 0 || count > static_cast<int>(budget) || (budget && !count)) {
+            if (count < 0 || count > static_cast<int>(budget) || (budget && !count && tr.entry_supported)) {
                 printf("  FAIL bounded %d budget %u count %d\n",index,budget,count); return false;
             }
             if (count) cpu->run(count);
@@ -2071,7 +2085,7 @@ static bool test_bounded_execution() {
         }
         ++index;
     }
-    printf("  PASS bounded_execution (168 exact budget/state/memory comparisons)\n");
+    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*30);
 #endif
     return true;
 }

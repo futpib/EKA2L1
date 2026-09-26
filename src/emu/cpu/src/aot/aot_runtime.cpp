@@ -21,12 +21,106 @@
 #include <cpu/aot/aot_registry.h>
 #include <cpu/dyncom/armstate.h>
 #include <common/log.h>
+#include <cpu/dyncom/arm_dyncom.h>
+#include <cpu/12l1r/exclusive_monitor.h>
+#include <unordered_map>
+#include <cstdlib>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #endif
 
 namespace eka2l1::arm::aot {
+// Optional differential execution. Guest memory is changed only by compiled
+// execution; the reference interpreter uses a private byte overlay.
+bool validation_running = false;
+static bool validating = false;
+static ARMul_State *validation_guest = nullptr;
+static core::thread_context validation_before;
+static std::unordered_map<std::uint32_t, std::uint8_t> validation_memory;
+static std::unordered_map<std::uint32_t, std::uint8_t> reference_writes;
+
+void validation_begin(ARMul_State *cpu) {
+    static const bool enabled = std::getenv("EKA2L1_AOT_VERIFY") != nullptr;
+    validating = enabled;
+    if (!validating) return;
+    validation_guest = cpu;
+    cpu->parent()->save_context(validation_before);
+    validation_before.cpsr = (cpu->Cpsr & 0x0fffffdf) | (cpu->NFlag << 31)
+        | (cpu->ZFlag << 30) | (cpu->CFlag << 29) | (cpu->VFlag << 28) | (cpu->TFlag << 5);
+    validation_memory.clear(); reference_writes.clear();
+}
+
+static void validation_access(ARMul_State *cpu, std::uint32_t addr, unsigned size) {
+    if (!validating) return;
+    for (unsigned i = 0; i < size; ++i)
+        if (!validation_memory.count(addr + i)) validation_memory[addr+i] = cpu->ReadMemory8(addr+i);
+}
+
+template<typename T> static bool reference_read(std::uint32_t addr, T *value) {
+    auto *bytes = reinterpret_cast<std::uint8_t *>(value);
+    for (unsigned i = 0; i < sizeof(T); ++i) {
+        const auto a = addr + i;
+        auto w = reference_writes.find(a);
+        auto v = validation_memory.find(a);
+        bytes[i] = w != reference_writes.end() ? w->second
+            : v != validation_memory.end() ? v->second : validation_guest->ReadMemory8(a);
+    }
+    return true;
+}
+template<typename T> static bool reference_write(std::uint32_t addr, T *value) {
+    const auto *bytes = reinterpret_cast<std::uint8_t *>(value);
+    for (unsigned i = 0; i < sizeof(T); ++i) reference_writes[addr+i] = bytes[i];
+    return true;
+}
+
+void validation_end(ARMul_State *cpu, std::uint32_t count) {
+    if (!validating || !count) { validating = false; return; }
+    static r12l1::exclusive_monitor monitor(1);
+    static dyncom_core reference(&monitor, 12);
+    reference.read_code = [cpu](address addr, std::uint32_t *v) { return cpu->parent()->read_code(addr, v); };
+    reference.read_8bit = reference_read<std::uint8_t>; reference.write_8bit = reference_write<std::uint8_t>;
+    reference.read_16bit = reference_read<std::uint16_t>; reference.write_16bit = reference_write<std::uint16_t>;
+    reference.read_32bit = reference_read<std::uint32_t>; reference.write_32bit = reference_write<std::uint32_t>;
+    reference.read_64bit = reference_read<std::uint64_t>; reference.write_64bit = reference_write<std::uint64_t>;
+    reference.load_context(validation_before);
+    validation_running = true;
+    reference.run(count);
+    validation_running = false;
+    bool same = true;
+    for (unsigned r = 0; r < 16; ++r) {
+        auto actual = cpu->Reg[r];
+        if (r == 15) actual &= cpu->TFlag ? ~1u : ~3u;
+        if (actual != reference.get_reg(r)) {
+            fprintf(stderr, "AOT VERIFY pc=%08X count=%u R%u compiled=%08X reference=%08X\n",
+                validation_before.cpu_registers[15],count,r,actual,reference.get_reg(r));
+            same = false;
+        }
+    }
+    const auto flags = (cpu->NFlag<<31)|(cpu->ZFlag<<30)|(cpu->CFlag<<29)|(cpu->VFlag<<28)|(cpu->TFlag<<5);
+    if ((reference.get_cpsr() & 0xF0000020) != flags) {
+        fprintf(stderr,"AOT VERIFY flags pc=%08X count=%u compiled=%08X reference=%08X\n",
+            validation_before.cpu_registers[15],count,flags,reference.get_cpsr()); same=false;
+    }
+    for (const auto &[addr, value] : validation_memory) {
+        auto it = reference_writes.find(addr);
+        const auto expected = it == reference_writes.end() ? value : it->second;
+        if (cpu->ReadMemory8(addr) != expected) { fprintf(stderr,"AOT VERIFY memory %08X\n",addr);same=false;break; }
+    }
+    for (const auto &[addr, value] : reference_writes)
+        if (cpu->ReadMemory8(addr) != value) { fprintf(stderr,"AOT VERIFY reference write %08X\n",addr);same=false;break; }
+    if (!same) {
+        fprintf(stderr,"AOT VERIFY entry mode=%u code:", (validation_before.cpsr>>5)&1);
+        for (unsigned i=0;i<32;i+=4) fprintf(stderr," %08X",cpu->ReadCode(validation_before.cpu_registers[15]+i));
+        fprintf(stderr,"\n");
+        for(unsigned i=0;i<16;++i) fprintf(stderr," r%u=%08X",i,validation_before.cpu_registers[i]);
+        fprintf(stderr,"\n");
+        std::abort();
+    }
+    validating = false;
+}
+
+
 
 #ifdef __EMSCRIPTEN__
 
@@ -35,31 +129,37 @@ namespace eka2l1::arm::aot {
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t aot_tlb_read32(ARMul_State *state, std::uint32_t arm_addr) {
+        validation_access(state, arm_addr, 4);
         return state->ReadMemory32(arm_addr);
     }
 
     EMSCRIPTEN_KEEPALIVE
     void aot_tlb_write32(ARMul_State *state, std::uint32_t arm_addr, std::uint32_t value) {
+        validation_access(state, arm_addr, 4);
         state->WriteMemory32(arm_addr, value);
     }
 
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t aot_tlb_read8(ARMul_State *state, std::uint32_t arm_addr) {
+        validation_access(state, arm_addr, 1);
         return state->ReadMemory8(arm_addr);
     }
 
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t aot_tlb_read16(ARMul_State *state, std::uint32_t arm_addr) {
+        validation_access(state, arm_addr, 2);
         return state->ReadMemory16(arm_addr);
     }
 
     EMSCRIPTEN_KEEPALIVE
     void aot_tlb_write16(ARMul_State *state, std::uint32_t arm_addr, std::uint16_t value) {
+        validation_access(state, arm_addr, 2);
         state->WriteMemory16(arm_addr, value);
     }
 
     EMSCRIPTEN_KEEPALIVE
     void aot_tlb_write8(ARMul_State *state, std::uint32_t arm_addr, std::uint8_t value) {
+        validation_access(state, arm_addr, 1);
         state->WriteMemory8(arm_addr, value);
     }
 }

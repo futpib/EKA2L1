@@ -193,7 +193,7 @@ namespace eka2l1::arm::aot {
     // If carry_out is needed (for S-bit logical ops), sets TMP_CARRY.
     static void emit_shifter_operand(emit &w, std::uint32_t inst,
                                      std::uint32_t TMP1, std::uint32_t TMP2,
-                                     std::uint32_t TMP_CARRY) {
+                                     std::uint32_t TMP_CARRY, std::uint32_t pc) {
         bool I = (inst >> 25) & 1;
         if (I) {
             // Immediate: val = imm8 ROR (rotate_imm * 2)
@@ -220,10 +220,7 @@ namespace eka2l1::arm::aot {
 
             // Get Rm value. For Rm==15, value is PC+8 in ARM mode.
             if (rm == 15) {
-                // PC is at the instruction address + 8 in ARM
-                // But we don't know the address here — caller must handle
-                // For now, load from state
-                w.load_reg(15);
+                w.i32_const(pc + (reg_shift ? 12 : 8));
             } else {
                 w.load_reg(rm);
             }
@@ -236,6 +233,10 @@ namespace eka2l1::arm::aot {
                     // No shift: just Rm
                     w.get_local(TMP1);
                 } else {
+                    unsigned bit = shift_type == 0 ? 32 - shift_imm
+                        : shift_imm ? shift_imm - 1 : shift_type == 3 ? 0 : 31;
+                    w.get_local(TMP1); w.i32_const(bit); w.op(op_i32_shr_u);
+                    w.i32_const(1); w.op(op_i32_and); w.set_local(TMP_CARRY);
                     switch (shift_type) {
                     case 0: // LSL
                         w.get_local(TMP1);
@@ -283,34 +284,38 @@ namespace eka2l1::arm::aot {
                     }
                 }
             } else {
-                // Register shift: Rs in bits [11:8]
+                // Register shifts use the low byte; WASM's modulo-32 shift
+                // semantics need explicit ARM cases for zero and >=32 amounts.
                 int rs = (inst >> 8) & 0xF;
-                w.load_reg(rs);
-                w.i32_const(0xFF);
-                w.op(op_i32_and); // only low byte
-                w.set_local(TMP2);
-                switch (shift_type) {
-                case 0: // LSL
+                w.load_reg(rs); w.i32_const(255); w.op(op_i32_and); w.set_local(TMP2);
+                w.get_local(TMP2); w.op(op_if); w.op(type_void);
+                if (shift_type == 3) {
+                    w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_rotr); w.set_local(TMP1);
+                    w.get_local(TMP1); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP_CARRY);
+                } else {
+                    w.get_local(TMP2); w.i32_const(32); w.op(op_i32_lt_u);
+                    w.op(op_if); w.op(type_void);
                     w.get_local(TMP1);
-                    w.get_local(TMP2);
-                    w.op(op_i32_shl);
-                    break;
-                case 1: // LSR
-                    w.get_local(TMP1);
-                    w.get_local(TMP2);
-                    w.op(op_i32_shr_u);
-                    break;
-                case 2: // ASR
-                    w.get_local(TMP1);
-                    w.get_local(TMP2);
-                    w.op(op_i32_shr_s);
-                    break;
-                case 3: // ROR
-                    w.get_local(TMP1);
-                    w.get_local(TMP2);
-                    w.op(op_i32_rotr);
-                    break;
+                    if (shift_type == 0) { w.i32_const(32); w.get_local(TMP2); w.op(op_i32_sub); }
+                    else { w.get_local(TMP2); w.i32_const(1); w.op(op_i32_sub); }
+                    w.op(op_i32_shr_u); w.i32_const(1); w.op(op_i32_and); w.set_local(TMP_CARRY);
+                    w.get_local(TMP1); w.get_local(TMP2);
+                    w.op(shift_type == 0 ? op_i32_shl : shift_type == 1 ? op_i32_shr_u : op_i32_shr_s); w.set_local(TMP1);
+                    w.op(op_else);
+                    if (shift_type == 2) {
+                        w.get_local(TMP1); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP_CARRY);
+                        w.get_local(TMP1); w.i32_const(31); w.op(op_i32_shr_s); w.set_local(TMP1);
+                    } else {
+                        w.get_local(TMP2); w.i32_const(32); w.op(op_i32_eq);
+                        w.op(op_if); w.op(type_i32);
+                        w.get_local(TMP1); w.i32_const(shift_type == 0 ? 0 : 31); w.op(op_i32_shr_u); w.i32_const(1); w.op(op_i32_and);
+                        w.op(op_else); w.i32_const(0); w.op(op_end); w.set_local(TMP_CARRY);
+                        w.i32_const(0); w.set_local(TMP1);
+                    }
+                    w.op(op_end);
                 }
+                w.op(op_end);
+                w.get_local(TMP1);
             }
         }
     }
@@ -424,13 +429,13 @@ namespace eka2l1::arm::aot {
         result.export_name = "f_" + std::to_string(start_address);
 
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
-        result.num_locals = 6;
+        result.num_locals = 7;
         result.num_f32_locals = 0;
         result.num_f64_locals = 0;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
         const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
         // TMP4 doubles as carry_out for shifter operand
-        const std::uint32_t TMP_CARRY = TMP4;
+        const std::uint32_t TMP_CARRY = 7;
 
         emit w{result.body};
 
@@ -535,6 +540,13 @@ namespace eka2l1::arm::aot {
                 w.op(op_if); w.op(type_void);
                 w.bail(insn_addr, insn_idx);
                 w.op(op_end);
+                // Exclusive/swap encodings overlap broad data-processing masks.
+                // Let DynCom preserve the exclusive monitor and instruction semantics.
+                if ((inst & 0x0F0000F0) == 0x01000090 || (inst >> 28) == 15) {
+                    w.bail_unsupported(insn_addr, insn_idx);
+                    decoded_end_offset = static_cast<std::uint32_t>(i);
+                    break;
+                }
             }
 
             std::uint32_t cond = (inst >> 28) & 0xF;
@@ -975,9 +987,12 @@ namespace eka2l1::arm::aot {
                 w.set_local(TMP1); // Rn value
 
                 // Get shifter operand
-                emit_shifter_operand(w, inst, TMP2, TMP3, TMP_CARRY);
+                w.load_i32(S::CFLAG); w.set_local(TMP_CARRY);
+                emit_shifter_operand(w, inst, TMP2, TMP3, TMP_CARRY, insn_addr);
                 w.set_local(TMP2); // operand 2
 
+                if (set_flags && (opcode == 0 || opcode == 1 || opcode == 8 || opcode == 9 || opcode >= 12))
+                    w.store_i32(S::CFLAG, TMP_CARRY);
                 // Execute operation
                 switch (opcode) {
                 case 0x0: // AND
