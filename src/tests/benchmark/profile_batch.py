@@ -11,9 +11,16 @@ ROOT = Path(__file__).resolve().parents[3]
 p = argparse.ArgumentParser()
 p.add_argument('--assets', type=Path, required=True)
 p.add_argument('--output', type=Path, required=True)
-p.add_argument('--compare-aot', action='store_true', help='Compare interpreter, exports and hot-ROM compilation with timing repeats')
-p.add_argument('--compare-diagnostics', action='store_true', help='Measure optional AOT bookkeeping with paired controls')
+modes = p.add_mutually_exclusive_group()
+modes.add_argument('--compare-aot', action='store_true', help='Compare interpreter, exports and hot-ROM compilation with timing repeats')
+modes.add_argument('--compare-diagnostics', action='store_true', help='Measure optional AOT bookkeeping with paired controls')
+modes.add_argument('--compare-stages', action='store_true', help='Compare interpreter, hot ROM, RAM and chained/register-cached execution')
+p.add_argument('--measure-gate', type=Path, help='Wait for this new gate file after all fixtures are paused')
 a = p.parse_args()
+if a.measure_gate:
+    a.measure_gate = a.measure_gate.resolve()
+    if a.measure_gate.exists() or Path(str(a.measure_gate) + '.ready').exists():
+        p.error('Measurement gate and ready marker must be new paths')
 a.output = a.output.resolve()
 a.output.mkdir(parents=True, exist_ok=False)
 plan = [('full-1', 0, None), ('no-png', 1, None), ('no-readback', 2, None), ('full-2', 0, None)]
@@ -21,6 +28,9 @@ if a.compare_aot:
     plan = [('interpreter-1', 0, 0), ('exports', 0, 1), ('hot-rom-1', 0, 2), ('hot-rom-2', 0, 2), ('interpreter-2', 0, 0)]
 if a.compare_diagnostics:
     plan = [('diagnostics-off-1', 0, 2), ('diagnostics-on', 0, 2), ('diagnostics-off-2', 0, 2)]
+if a.compare_stages:
+    plan = [('interpreter-1', 0, 0), ('hot-rom', 0, 2), ('hot-ram', 0, 3),
+            ('chained-1', 0, 4), ('chained-2', 0, 4), ('interpreter-2', 0, 0)]
 processes = []
 logs = []
 try:
@@ -34,6 +44,8 @@ try:
         if aot_mode is not None:
             environment['EKA2L1_BENCHMARK_AOT'] = str(aot_mode)
             environment.pop('EKA2L1_AOT_VERIFY', None)
+            if not a.compare_diagnostics:
+                environment['EKA2L1_AOT_DIAGNOSTICS'] = '0'
         process = subprocess.Popen(['node', 'profile.ts', str(a.assets.resolve()), str(a.output/name), str(mode), '0'],
             cwd=ROOT/'src/tests/wasm', env=environment, stdout=log, stderr=subprocess.STDOUT)
         processes.append((name, process, gate))
@@ -45,6 +57,16 @@ try:
         if time.monotonic() > deadline:
             raise RuntimeError('Parallel warmup timed out')
         time.sleep(1)
+    if a.measure_gate:
+        Path(str(a.measure_gate) + '.ready').touch()
+        print('All guests paused; waiting for external measurement gate.', flush=True)
+        deadline = time.monotonic() + 3600
+        while not a.measure_gate.exists():
+            if time.monotonic() > deadline:
+                raise RuntimeError('External measurement gate timed out')
+            if any(process.poll() is not None for _, process, _ in processes):
+                raise RuntimeError('A fixture exited while waiting for external gate')
+            time.sleep(1)
     print('All guests paused at 21 seconds. Starting serial measurements.', flush=True)
     for name, process, gate in processes:
         gate.touch()

@@ -68,3 +68,9 @@ Registers/flags are flushed before memory callbacks and exits, and reloaded
 after callbacks. The deferred barriers include registers first used later in
 the block, so a callback cannot leave a stale cached register. PC stays in the
 CPU state throughout. Diagnostics record a whole runner call in this mode.
+
+`profile_batch.py --compare-stages` compares modes 0, 2, 3, 4, 4, 0 serially.
+All fixtures use full capture, no CPU sampling, and no per-block verification
+or dispatch diagnostics. With `--measure-gate /new/path`, the batch creates
+`/new/path.ready` after warmup and waits until `/new/path` exists. This allows
+correctness jobs to finish before any timed window is released.
