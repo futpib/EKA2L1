@@ -32,6 +32,7 @@ namespace eka2l1::arm::aot {
     struct state_offsets {
         static constexpr std::uint32_t REG = 0;          // Reg[0]
         static constexpr std::uint32_t CPSR = 784;
+        static constexpr std::uint32_t MODE = 796;
         static constexpr std::uint32_t NFLAG = 804;
         static constexpr std::uint32_t ZFLAG = 808;
         static constexpr std::uint32_t CFLAG = 812;

@@ -1033,8 +1033,13 @@ namespace eka2l1::arm::aot {
                     // User-mode MSR CPSR_f, Rm: NZCVQ only, no banking or mode change.
                     // Privileged/SPSR/control-field forms stay interpreter-owned.
                     if ((inst & 0x0FFFFFF0) == 0x0128F000 && (inst & 15) != 15) {
-                        w.load_i32(S::CPSR); w.i32_const(31); w.op(op_i32_and);
-                        w.i32_const(16); w.op(op_i32_ne);
+                        w.load_i32(S::MODE); w.i32_const(16); w.op(op_i32_ne);
+                        // EKA2L1 also uses CPSR mode=0 with active USER32MODE.
+                        // ChangePrivilegeMode(0) is a no-op; other mismatches can bank registers.
+                        w.load_i32(S::CPSR); w.i32_const(31); w.op(op_i32_and); w.tee_local(TMP1);
+                        w.i32_const(0); w.op(op_i32_ne);
+                        w.get_local(TMP1); w.i32_const(16); w.op(op_i32_ne);
+                        w.op(op_i32_and); w.op(op_i32_or);
                         w.op(op_if); w.op(type_void); w.bail(insn_addr,insn_idx); w.op(op_end);
                         w.load_reg(inst & 15); w.set_local(TMP1);
                         for (auto flag : {std::pair<unsigned,unsigned>{S::NFLAG,31},

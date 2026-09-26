@@ -2137,6 +2137,7 @@ static bool test_bounded_execution() {
             }
             cpu->set_cpsr(0x10000010 | (carry<<29) | (p.thumb ? 0x20 : 0));
             set(state_offsets::CPSR,cpu->get_cpsr());
+            set(state_offsets::MODE,16);
             set(state_offsets::CFLAG,carry); set(state_offsets::VFLAG,1);
             set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget);
             g_test_mem = &actual;
@@ -2245,11 +2246,12 @@ static bool test_msr_privilege_guard() {
         auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&instruction),4,
             0x1000,nullptr,nullptr,true,true,cached);
         auto module = build_wasm_module({tr.func});
-        for (unsigned mode : {0x11u,0x12u,0x13u,0x17u,0x1bu,0x1fu}) {
+        for (unsigned mode : {0x11u,0x12u,0x13u,0x17u,0x1bu,0x1fu}) for (unsigned active_mode : {mode,16u}) {
             alignas(8) std::array<std::uint32_t,256> state{};
             state[0] = 0xffffffffu;
             state[state_offsets::PC/4] = 0x1000;
             state[state_offsets::CPSR/4] = mode;
+            state[state_offsets::MODE/4] = active_mode;
             state[state_offsets::AOT_BUDGET/4] = 1;
             const auto before = state;
             const int count = js_run_aot_wasm(module.data(),module.size(),
@@ -2257,6 +2259,30 @@ static bool test_msr_privilege_guard() {
             if (count != 0 || state != before) {
                 printf("  FAIL MSR privileged mode %u modified state\n",mode); return false;
             }
+        }
+    }
+    for (bool cached : {false,true}) for (unsigned mode_bits : {0u,16u})
+    for (unsigned operand : {0u,0xffffffffu,0x80000000u,0x08000000u,0x40000020u}) {
+        auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&instruction),4,
+            0x1000,nullptr,nullptr,true,true,cached);
+        auto module = build_wasm_module({tr.func});
+        alignas(8) std::array<std::uint32_t,256> state{};
+        state[0] = operand;
+        state[state_offsets::PC/4] = 0x1000;
+        state[state_offsets::CPSR/4] = mode_bits;
+        state[state_offsets::MODE/4] = 16;
+        state[state_offsets::AOT_BUDGET/4] = 1;
+        test_mem memory;
+        memory.write32(0x1000,instruction);
+        r12l1::exclusive_monitor monitor(1);
+        auto cpu = make_cpu(memory,monitor);
+        cpu->set_reg(0,operand); cpu->set_reg(15,0x1000); cpu->set_cpsr(mode_bits);
+        cpu->run(1);
+        const int count = js_run_aot_wasm(module.data(),module.size(),
+            reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
+        if (count != 1 || state[state_offsets::CPSR/4] != cpu->get_cpsr()
+            || state[state_offsets::MODE/4] != 16 || state[state_offsets::PC/4] != cpu->get_reg(15)) {
+            printf("  FAIL MSR user mode bits=%u operand=%08X\n",mode_bits,operand);return false;
         }
     }
     printf("  PASS msr_privilege_guard\n");

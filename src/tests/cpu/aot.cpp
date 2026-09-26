@@ -622,6 +622,7 @@ TEST_CASE("armul_state_offsets", "[aot]") {
     // Verify the field offsets we need for the WASM translator
     // Reg[16] is at offset 0
     REQUIRE(offsetof(ARMul_State, Reg) == 0);
+    REQUIRE(offsetof(ARMul_State, Mode) == eka2l1::arm::aot::state_offsets::MODE);
 
     // These offsets are used by the WASM translator to access CPU state.
     // If any change, the translator constants must be updated.
