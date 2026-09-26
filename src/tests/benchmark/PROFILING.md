@@ -1,5 +1,7 @@
 # WASM performance profiling
 
+Measured findings and ranked options: [PERFORMANCE_RESULTS.md](PERFORMANCE_RESULTS.md).
+
 The profiling APIs are opt-in and use the existing deterministic replay. They
 pause between guest dispatches at 21 guest seconds, let the browser profiler
 attach, and measure until 25 guest seconds. Host measurements never advance the
