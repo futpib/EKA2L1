@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/deterministic.h>
 #include <common/algorithm.h>
 #include <common/log.h>
 #include <common/platform.h>
@@ -104,7 +105,7 @@ namespace eka2l1::drivers {
         init_gl_graphics_library(context_->gl_mode());
         list_queue.max_pending_count_ = 128;
 
-        context_->set_swap_interval(1);
+        context_->set_swap_interval(common::benchmark::enabled() ? 0 : 1);
 
         is_gles = (context_->gl_mode() == graphics::gl_context::mode::opengl_es);
 

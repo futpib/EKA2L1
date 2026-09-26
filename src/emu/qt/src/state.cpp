@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/deterministic.h>
 #include <common/algorithm.h>
 #include <common/cvt.h>
 #include <common/fileutils.h>
@@ -156,8 +157,9 @@ namespace eka2l1::desktop {
             }
 
             // Create audio driver
-            audio_driver = drivers::make_audio_driver(drivers::audio_driver_backend::cubeb, conf.audio_master_volume,
-                player_be);
+            if (!common::benchmark::enabled())
+                audio_driver = drivers::make_audio_driver(drivers::audio_driver_backend::cubeb, conf.audio_master_volume,
+                    player_be);
 
             if (audio_driver) {
                 audio_driver->set_bank_path(drivers::MIDI_BANK_TYPE_HSB, conf.hsb_bank_path);
@@ -186,13 +188,14 @@ namespace eka2l1::desktop {
                 conf.serialize(false);
             }
 
-            // Copy additional DLLs
+            // Keep the benchmark's device dump identical to the WASM fixture.
+            // Interactive Qt replaces these DLLs for host UI integration.
             std::vector<std::tuple<std::u16string, std::string, epocver>> dlls_need_to_copy = {
                 { u"Z:\\sys\\bin\\goommonitor.dll", "patch\\goommonitor_general.dll", epocver::epoc94 },
                 { u"Z:\\sys\\bin\\avkonfep.dll", "patch\\avkonfep_general.dll", epocver::epoc93fp1 }
             };
 
-            for (std::size_t i = 0; i < dlls_need_to_copy.size(); i++) {
+            for (std::size_t i = 0; !common::benchmark::enabled() && i < dlls_need_to_copy.size(); i++) {
                 epocver ver_required = std::get<2>(dlls_need_to_copy[i]);
                 if (symsys->get_symbian_version_use() < ver_required) {
                     continue;

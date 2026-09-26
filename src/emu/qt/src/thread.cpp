@@ -26,6 +26,8 @@
 #include <common/configure.h>
 #include <common/cvt.h>
 #include <common/frame_dumper.h>
+#include <common/deterministic.h>
+#include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <common/log.h>
 #include <common/random.h>
@@ -83,6 +85,7 @@ static eka2l1::drivers::input_event make_mouse_event_driver(const float x, const
  * \param action       0: press, 1: repeat(move), 2: release      
  */
 static void on_ui_window_mouse_evt(void *userdata, eka2l1::vec3 mouse_pos, int button, int action, int mouse_id) {
+    if (eka2l1::common::benchmark::enabled()) return;
     float mouse_pos_x = static_cast<float>(mouse_pos.x), mouse_pos_y = static_cast<float>(mouse_pos.y),
         mouse_pos_z = static_cast<float>(mouse_pos.z);
 
@@ -134,6 +137,7 @@ static eka2l1::drivers::input_event make_key_event_driver(const int key, const e
 }
 
 static void on_ui_window_key_release(void *userdata, const int key) {
+    if (eka2l1::common::benchmark::enabled()) return;
     eka2l1::desktop::emulator *emu = reinterpret_cast<eka2l1::desktop::emulator *>(userdata);
     auto key_evt = make_key_event_driver(key, eka2l1::drivers::key_state::released);
 
@@ -146,6 +150,7 @@ static void on_ui_window_key_release(void *userdata, const int key) {
 }
 
 static void on_ui_window_key_press(void *userdata, const int key) {
+    if (eka2l1::common::benchmark::enabled()) return;
     eka2l1::desktop::emulator *emu = reinterpret_cast<eka2l1::desktop::emulator *>(userdata);
     auto key_evt = make_key_event_driver(key, eka2l1::drivers::key_state::pressed);
 
@@ -238,7 +243,7 @@ namespace eka2l1::desktop {
                     if (dumper->done()) {
                         LOG_INFO(FRONTEND_CMDLINE, "Frame dump complete, exiting");
                         dyncom_dump_pc_histogram();
-                        _exit(0);
+                        std::_Exit(0);
                     }
                 }
                 window->swap_buffer();
@@ -275,7 +280,8 @@ namespace eka2l1::desktop {
         };
 
         // Signal that the initialization is done
-        state.graphics_event.set();
+        if (common::benchmark::enabled()) state.benchmark_graphics_ready.set();
+        else state.graphics_event.set();
         return 0;
     }
 
@@ -297,7 +303,7 @@ namespace eka2l1::desktop {
             return;
         }
 
-        state.joystick_controller->start_polling();
+        if (!common::benchmark::enabled()) state.joystick_controller->start_polling();
 
         // Keep running. User which want to change the graphics backend will have to restart EKA2L1.
         state.graphics_event.reset();
@@ -336,7 +342,8 @@ namespace eka2l1::desktop {
             state.init_event.set();
 
             if (first_time) {
-                state.graphics_event.wait();
+                if (common::benchmark::enabled()) state.benchmark_graphics_ready.wait();
+                else state.graphics_event.wait();
                 first_time = false;
             }
 
@@ -347,6 +354,13 @@ namespace eka2l1::desktop {
             // Try wait for initialization from other parties to make this success.
             state.init_event.reset();
             state.init_event.wait();
+        }
+
+        if (state.should_emu_quit) return;
+
+        if (common::benchmark::enabled()) {
+            state.benchmark_ready.wait();
+            start_benchmark_input(state.symsys.get(), state.winserv);
         }
 
         // Register SEH handler for this thread
@@ -468,6 +482,7 @@ namespace eka2l1::desktop {
                 // Notify the OS thread that is still sleeping, waiting for
                 // graphics sema to be freed.
                 state.graphics_event.set();
+                state.benchmark_graphics_ready.set();
                 state.kill_event.set();
 
                 std::cout << err << std::endl;
@@ -495,6 +510,7 @@ namespace eka2l1::desktop {
             state.ui_main->setup_and_switch_to_game_mode();
         }
 
+        state.benchmark_ready.set();
         const int exec_code = application.exec();
         kill_emulator(state);
 

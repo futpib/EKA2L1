@@ -20,6 +20,7 @@
 #include <common/algorithm.h>
 #include <common/armemitter.h>
 #include <common/cvt.h>
+#include <common/deterministic.h>
 #include <common/fileutils.h>
 #include <common/ini.h>
 #include <common/log.h>
@@ -413,7 +414,15 @@ namespace eka2l1::hle {
 
         std::vector<std::string> patch_image_paths;
 
-        while (iterator->next_entry(entry) == 0) {
+        std::vector<common::dir_entry> entries;
+        while (iterator->next_entry(entry) == 0) entries.push_back(entry);
+        // Host directory order changes guest DLL addresses and execution paths.
+        if (common::benchmark::enabled()) {
+            std::sort(entries.begin(), entries.end(), [](const auto &a, const auto &b) {
+                return a.name < b.name;
+            });
+        }
+        for (const auto &entry : entries) {
             const std::string original_map_name = eka2l1::replace_extension(eka2l1::filename(entry.name), "");
             const std::string patch_map_path = eka2l1::add_path(patch_folder, entry.name);
 

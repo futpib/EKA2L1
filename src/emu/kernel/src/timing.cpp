@@ -19,6 +19,7 @@
  */
 
 #include <common/algorithm.h>
+#include <common/deterministic.h>
 #include <common/chunkyseri.h>
 #include <common/log.h>
 #include <common/platform.h>
@@ -33,6 +34,7 @@
 
 namespace eka2l1 {
     ntimer::ntimer(const std::uint32_t cpu_hz) {
+        deterministic_ = common::benchmark::enabled();
         CPU_HZ_ = cpu_hz;
         should_stop_ = false;
         should_paused_ = false;
@@ -68,6 +70,14 @@ namespace eka2l1 {
 
         new_event_evt_.reset();
         pause_evt_.reset();
+
+        if (deterministic_) {
+            common::benchmark::virtual_us = 0;
+            common::benchmark::instructions = 0;
+            cycle_remainder_ = 0;
+            timer_thread_.reset();
+            return;
+        }
 
         timer_thread_ = std::make_unique<std::thread>([this]() {
             loop();
@@ -132,16 +142,38 @@ namespace eka2l1 {
     }
 
     const std::uint64_t ntimer::ticks() {
+        if (deterministic_) return microseconds() * (CPU_HZ_ / 1000000);
         return teletimer_->ticks();
     }
 
     const std::uint64_t ntimer::microseconds() {
+        if (deterministic_) return common::benchmark::virtual_us.load();
         return teletimer_->microseconds();
+    }
+
+    void ntimer::advance_instructions(std::uint64_t instructions) {
+        common::benchmark::instructions += instructions;
+        cycle_remainder_ += instructions;
+        const auto cycles_per_us = CPU_HZ_ / 1000000;
+        common::benchmark::virtual_us += cycle_remainder_ / cycles_per_us;
+        cycle_remainder_ %= cycles_per_us;
+        advance();
+    }
+
+    bool ntimer::advance_to_next_event() {
+        {
+            const std::lock_guard<std::mutex> guard(lock_);
+            if (events_.empty()) return false;
+            common::benchmark::virtual_us = std::max(microseconds(), events_.back().event_time);
+            cycle_remainder_ = 0;
+        }
+        advance();
+        return true;
     }
 
     std::optional<std::uint64_t> ntimer::advance() {
         std::unique_lock<std::mutex> unq(lock_);
-        std::uint64_t global_timer = teletimer_->microseconds();
+        std::uint64_t global_timer = microseconds();
 
         while (!events_.empty() && events_.back().event_time <= global_timer) {
             event evt = std::move(events_.back());
@@ -173,7 +205,7 @@ namespace eka2l1 {
 
         event evt;
 
-        evt.event_time = teletimer_->microseconds() + us_into_future;
+        evt.event_time = microseconds() + us_into_future;
         evt.event_type = event_type;
         evt.event_user_data = userdata;
 

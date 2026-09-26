@@ -83,6 +83,8 @@ namespace eka2l1::desktop {
         common::event init_event;
         common::event pause_event;
         common::event kill_event;
+        common::event benchmark_ready;
+        common::event benchmark_graphics_ready;
 
         config::state conf;
         window_server *winserv;

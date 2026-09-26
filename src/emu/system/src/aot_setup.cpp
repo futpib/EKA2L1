@@ -29,6 +29,7 @@
 #include <mem/mem.h>
 #include <loader/rom.h>
 #include <common/log.h>
+#include <common/deterministic.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -80,6 +81,8 @@ namespace eka2l1::arm::aot {
     static constexpr std::uint32_t DLL_UID1 = 0x10000079;
 
     void initialize(eka2l1::system *sys, const std::string &config_override) {
+        // Establish the shared interpreter baseline before comparing AOT.
+        if (common::benchmark::enabled()) return;
         if (config_override == "none") {
             LOG_INFO(KERNEL, "AOT: disabled by config");
             return;

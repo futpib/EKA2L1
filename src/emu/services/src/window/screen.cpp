@@ -491,6 +491,11 @@ namespace eka2l1::epoc {
     }
 
     void screen::vsync(ntimer *timing, std::uint64_t &next_vsync_us) {
+        if (timing->deterministic()) {
+            const std::uint64_t period = 1000000 / refresh_rate;
+            next_vsync_us = period - timing->microseconds() % period;
+            return;
+        }
         const std::uint64_t tnow = common::get_current_utc_time_in_microseconds_since_epoch();
 
         std::uint64_t delta = tnow - last_vsync;

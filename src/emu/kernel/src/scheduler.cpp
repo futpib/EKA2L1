@@ -180,7 +180,7 @@ namespace eka2l1::kernel {
                 queue_thread_ready(old_friend);
             }
 
-            if (!next_thread && kern->should_core_idle_when_inactive()) {
+            if (!next_thread && (kern->should_core_idle_when_inactive() || timing->deterministic())) {
                 // Use our old outdated friend, it seems only one thread exists
                 next_thread = old_friend;
             }

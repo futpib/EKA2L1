@@ -19,6 +19,8 @@
 
 #include <common/cvt.h>
 #include <common/frame_dumper.h>
+#include <common/deterministic.h>
+#include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <common/log.h>
 #include <common/path.h>
@@ -68,7 +70,9 @@ namespace {
 
         config::state conf;
         window_server *winserv = nullptr;
-        bool running = false;
+        std::atomic<bool> running{false};
+        std::atomic<bool> benchmark_done{false};
+        std::atomic<int> benchmark_captured{0};
         bool system_started = false;
         int present_status = 0;
         std::size_t screen_redraw_cb_id = 0;
@@ -132,6 +136,17 @@ namespace {
 }
 
 extern "C" {
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_benchmark_configure(int frames, int start_us, int unique) {
+    if (g_state || frames < 1 || frames > 100000 || start_us < 0 || start_us > 120000000) return -1;
+    setenv("EKA2L1_BENCHMARK", "1", 1);
+    setenv("EKA2L1_BENCHMARK_FRAMES", std::to_string(frames).c_str(), 1);
+    setenv("EKA2L1_BENCHMARK_INPUT", "/benchmark.input", 1);
+    setenv("EKA2L1_BENCHMARK_START_US", std::to_string(start_us).c_str(), 1);
+    setenv("EKA2L1_BENCHMARK_UNIQUE", unique ? "1" : "0", 1);
+    return 0;
+}
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_init(const char *data_path) {
@@ -308,6 +323,13 @@ int eka2l1_run(const char *app_name) {
                     std::memcpy(&pixels[(h - 1 - y) * stride], row.data(), stride);
                 }
                 g_state->dumper->on_frame(pixels.data(), w, h);
+                if (common::benchmark::enabled()) {
+                    g_state->benchmark_captured = g_state->dumper->captured();
+                    if (g_state->dumper->done()) {
+                        g_state->running = false;
+                        g_state->benchmark_done = true;
+                    }
+                }
             }
         });
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver ready, entering command loop");
@@ -477,6 +499,8 @@ int eka2l1_run(const char *app_name) {
 
                     auto cmd_list = builder.retrieve_command_list();
                     g_state->graphics_driver->submit_command_list(cmd_list);
+                    if (common::benchmark::enabled())
+                        g_state->graphics_driver->wait_for(&g_state->present_status);
                 });
             LOG_INFO(FRONTEND_CMDLINE, "Screen redraw callback registered");
         } else {
@@ -487,6 +511,7 @@ int eka2l1_run(const char *app_name) {
     }
 
     g_state->running = true;
+    start_benchmark_input(g_state->symsys.get(), g_state->winserv);
 
     // Run the emulator loop on a background thread so the main thread stays free
     g_state->emu_thread = std::make_unique<std::thread>([]() {
@@ -508,6 +533,7 @@ int eka2l1_run(const char *app_name) {
 
 EMSCRIPTEN_KEEPALIVE
 void eka2l1_press_key(int key_code) {
+    if (common::benchmark::enabled()) return;
     if (!g_state || !g_state->winserv) return;
 
     drivers::input_event press_evt;
@@ -540,6 +566,7 @@ void eka2l1_start_frame_dump(const char *output_dir, int total_frames) {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_frame_dump_done() {
+    if (g_state && common::benchmark::enabled()) return g_state->benchmark_done ? 1 : 0;
     if (!g_state || !g_state->dumper) return 1;
     bool done = g_state->dumper->done();
     if (done) {
@@ -554,6 +581,7 @@ int eka2l1_frame_dump_done() {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_frame_dump_captured() {
+    if (g_state && common::benchmark::enabled()) return g_state->benchmark_captured.load();
     if (!g_state || !g_state->dumper) return 0;
     return g_state->dumper->captured();
 }

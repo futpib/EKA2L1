@@ -1317,7 +1317,7 @@ namespace eka2l1 {
     }
 
     bool kernel_system::should_core_idle_when_inactive() {
-        return conf_->cpu_load_save;
+        return conf_->cpu_load_save && !timing_->deterministic();
     }
 
     void kernel_system::set_current_language(const language new_lang) {

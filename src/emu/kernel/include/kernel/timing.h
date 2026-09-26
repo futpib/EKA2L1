@@ -83,6 +83,8 @@ namespace eka2l1 {
 
         common::high_resolution_timer_period_guard res_guard_;
         realtime_level acc_level_;
+        bool deterministic_ = false;
+        std::uint64_t cycle_remainder_ = 0;
 
     protected:
         void loop();
@@ -145,6 +147,10 @@ namespace eka2l1 {
          * @returns     Nanoseconds to next timer.
          */
         std::optional<std::uint64_t> advance();
+
+        bool deterministic() const { return deterministic_; }
+        void advance_instructions(std::uint64_t instructions);
+        bool advance_to_next_event();
 
         int register_event(const std::string &name, timed_callback callback);
         int get_register_event(const std::string &name);

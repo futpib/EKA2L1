@@ -5,6 +5,7 @@ add_subdirectory(common)
 add_subdirectory(cpu)
 
 add_executable(ekatests
+    host_ui.cpp
 	tests.cpp
     ${COMMON_TEST_FILES}
     ${CORE_TEST_FILES}
@@ -12,6 +13,7 @@ add_executable(ekatests
 
 
 target_link_libraries(ekatests PRIVATE
+    drivers
     Catch2
     common
     cpu

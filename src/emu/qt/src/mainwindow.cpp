@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/deterministic.h>
 #include "./ui_mainwindow.h"
 #include "./links.h"
 
@@ -230,6 +231,8 @@ static void draw_emulator_screen(void *userdata, eka2l1::epoc::screen *scr, cons
 
     eka2l1::drivers::command_list retrieved = builder.retrieve_command_list();
     state.graphics_driver->submit_command_list(retrieved);
+    if (eka2l1::common::benchmark::enabled())
+        state.graphics_driver->wait_for(&state_ptr->present_status);
 }
 
 
@@ -1261,6 +1264,7 @@ void main_window::on_package_install_clicked() {
 
 void main_window::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
+    if (eka2l1::common::benchmark::enabled()) return;
 
     // Only care to redraw if displayer is active
     if (!displayer_->isVisible()) {

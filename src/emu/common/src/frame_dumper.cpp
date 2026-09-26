@@ -1,4 +1,5 @@
 #include <common/frame_dumper.h>
+#include <common/deterministic.h>
 #include <common/log.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -7,11 +8,24 @@
 #include <cstdio>
 #include <cstring>
 #include <set>
+#include <fstream>
+#include <stdexcept>
 
 namespace eka2l1::common {
     frame_dumper::frame_dumper(const std::string &output_dir, int total_frames)
         : output_dir_(output_dir)
         , total_frames_(total_frames) {
+        if (benchmark::enabled()) {
+            total_frames_ = benchmark::frame_count();
+            if (const char *start = std::getenv("EKA2L1_BENCHMARK_START_US"))
+                start_us_ = std::strtoull(start, nullptr, 10);
+            if (const char *unique = std::getenv("EKA2L1_BENCHMARK_UNIQUE"))
+                unique_ = std::strcmp(unique, "1") == 0;
+            if (total_frames_ <= 0 || total_frames_ > 100000)
+                throw std::runtime_error("Benchmark frame count must be 1..100000");
+            for (int i = 0; i < total_frames_; ++i) fib_indices_.push_back(i);
+            return;
+        }
         // Generate fibonacci indices, deduplicated
         int a = 0, b = 1;
         while (static_cast<int>(fib_indices_.size()) < total_frames_) {
@@ -53,12 +67,19 @@ namespace eka2l1::common {
             return false;
         }
 
+        if (benchmark::enabled()) {
+            ++presentation_;
+            if (benchmark::virtual_us.load() < start_us_) return false;
+        }
+
         // Don't start counting until we see a contentful frame
         if (!started_) {
             if (!is_contentful(rgba_data, width, height)) {
                 return false;
             }
             started_ = true;
+            capture_start_ = std::chrono::steady_clock::now();
+            first_virtual_us_ = benchmark::virtual_us.load();
             LOG_INFO(COMMON, "Frame dumper: first contentful frame detected, starting capture");
         }
 
@@ -82,15 +103,44 @@ namespace eka2l1::common {
                 }
             }
 
+            if (unique_) {
+                if (previous_pixels_ == flipped) {
+                    ++duplicates_;
+                    return false;
+                }
+                previous_pixels_ = flipped;
+            }
+
             int ok = stbi_write_png(filename, width, height, 4, flipped.data(), width * 4);
             if (ok) {
                 LOG_INFO(COMMON, "Frame dumper: captured frame {} -> {}", frame_index_, filename);
             } else {
                 LOG_ERROR(COMMON, "Frame dumper: failed to write {}", filename);
+                throw std::runtime_error("Failed to write captured frame");
+            }
+
+            if (benchmark::enabled()) {
+                std::ofstream manifest(output_dir_ + "/frames.jsonl", std::ios::app);
+                manifest << "{\"frame\":" << frame_index_
+                         << ",\"presentation\":" << presentation_
+                         << ",\"virtual_us\":" << benchmark::virtual_us.load()
+                         << ",\"instructions\":" << benchmark::instructions.load()
+                         << ",\"width\":" << width << ",\"height\":" << height << "}\n";
+                if (!manifest) throw std::runtime_error("Failed to write frame manifest");
             }
 
             captured_++;
             next_fib_pos_++;
+            if (benchmark::enabled() && done()) {
+                const double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - capture_start_).count();
+                std::ofstream metrics(output_dir_ + "/metrics.json");
+                metrics << "{\"frames\":" << captured_ << ",\"capture_wall_seconds\":" << seconds
+                        << ",\"first_virtual_us\":" << first_virtual_us_
+                        << ",\"duplicate_presentations\":" << duplicates_
+                        << ",\"last_virtual_us\":" << benchmark::virtual_us.load()
+                        << ",\"instructions\":" << benchmark::instructions.load() << "}\n";
+                if (!metrics) throw std::runtime_error("Failed to write benchmark metrics");
+            }
         }
 
         frame_index_++;

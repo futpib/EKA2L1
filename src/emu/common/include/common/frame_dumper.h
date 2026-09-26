@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -33,6 +34,13 @@ namespace eka2l1::common {
         // Precomputed fibonacci frame indices
         std::vector<int> fib_indices_;
         int next_fib_pos_ = 0;
+        std::uint64_t first_virtual_us_ = 0;
+        std::uint64_t start_us_ = 0;
+        std::uint64_t presentation_ = 0;
+        std::uint64_t duplicates_ = 0;
+        bool unique_ = false;
+        std::vector<std::uint8_t> previous_pixels_;
         bool started_ = false;
+        std::chrono::steady_clock::time_point capture_start_;
     };
 }

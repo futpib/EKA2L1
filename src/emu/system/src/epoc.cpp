@@ -61,6 +61,7 @@
 #include <j2me/applist.h>
 #include <kernel/libmanager.h>
 #include <kernel/timing.h>
+#include <common/deterministic.h>
 #include <ldd/collection.h>
 #include <loader/rom.h>
 #include <package/manager.h>
@@ -622,6 +623,7 @@ namespace eka2l1 {
         cpu_type = /*arm::string_to_arm_emulator_type(conf_->cpu_backend);*/ arm_emulator_type::dynarmic;
 #endif
         dvcmngr_ = std::make_unique<device_manager>(conf_);
+        if (common::benchmark::enabled()) cpu_type = arm_emulator_type::dyncom;
 
         disassembler_ = std::make_unique<disasm>();
         io_ = std::make_unique<io_system>();
@@ -726,7 +728,9 @@ namespace eka2l1 {
 
         if (to_run != nullptr) {
             if (!should_step) {
-                cpu->run(to_run->get_remaining_screenticks());
+                cpu->run(timing_->deterministic()
+                    ? std::min<std::uint32_t>(to_run->get_remaining_screenticks(), 4840)
+                    : to_run->get_remaining_screenticks());
             } else {
                 cpu->step();
 
@@ -737,6 +741,11 @@ namespace eka2l1 {
             }
 
             to_run->add_ticks(cpu->get_num_instruction_executed());
+        }
+
+        if (timing_->deterministic()) {
+            if (to_run) timing_->advance_instructions(cpu->get_num_instruction_executed());
+            else timing_->advance_to_next_event();
         }
 
         if (!kern_->should_terminate()) {

@@ -22,6 +22,7 @@
 #include <common/cvt.h>
 #include <common/fileutils.h>
 #include <common/log.h>
+#include <common/deterministic.h>
 #include <common/path.h>
 #include <common/platform.h>
 #include <common/wildcard.h>
@@ -477,6 +478,8 @@ namespace eka2l1 {
 
         std::unique_ptr<common::dir_iterator> iterator;
         common::dir_entry entry;
+        std::vector<common::dir_entry> sorted_entries_;
+        std::size_t sorted_index_ = 0;
 
         std::optional<entry_info> peek_info;
         bool peeking;
@@ -501,6 +504,13 @@ namespace eka2l1 {
                 return;
             }
             iterator->detail = true;
+            if (common::benchmark::enabled()) {
+                common::dir_entry item{};
+                while (iterator->next_entry(item) == 0) sorted_entries_.push_back(item);
+                std::sort(sorted_entries_.begin(), sorted_entries_.end(), [](const auto &a, const auto &b) {
+                    return a.name < b.name;
+                });
+            }
             is_root = eka2l1::relative_path(vir_path).empty();
         }
 
@@ -511,12 +521,20 @@ namespace eka2l1 {
             }
 
             while (true) {
-                if (!iterator->is_valid()) {
+                if (!iterator || (!common::benchmark::enabled() && !iterator->is_valid())) {
                     return std::optional<entry_info>{};
                 }
 
                 std::string name = "";
-                int error_code = iterator->next_entry(entry);
+                int error_code = -1;
+                if (common::benchmark::enabled()) {
+                    if (sorted_index_ < sorted_entries_.size()) {
+                        entry = sorted_entries_[sorted_index_++];
+                        error_code = 0;
+                    }
+                } else {
+                    error_code = iterator->next_entry(entry);
+                }
 
                 if (error_code != 0) {
                     return std::optional<entry_info>{};
@@ -878,7 +896,7 @@ namespace eka2l1 {
                 return std::nullopt;
             }
 
-            entry_info info;
+            entry_info info{};
 
             if (common::is_file(real_path_utf8, common::FILE_DIRECTORY)) {
                 info.type = io_component_type::dir;
@@ -1096,7 +1114,7 @@ namespace eka2l1 {
                 return physical_file_system::get_entry_info(path);
             }
 
-            entry_info info;
+            entry_info info{};
             info.type = (entry->attrib & 0x10) ? io_component_type::dir : io_component_type::file;
             info.has_raw_attribute = true;
             info.raw_attribute = entry->attrib;

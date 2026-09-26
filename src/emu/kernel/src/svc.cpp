@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/deterministic.h>
 #include <common/uid.h>
 #include <utils/chunk.h>
 #include <utils/des.h>
@@ -3367,6 +3368,13 @@ namespace eka2l1::epoc {
     }
 
     BRIDGE_FUNC(std::uint32_t, math_rand) {
+        if (common::benchmark::enabled()) {
+            static std::uint32_t seed = 0x12345678;
+            seed ^= seed << 13;
+            seed ^= seed >> 17;
+            seed ^= seed << 5;
+            return seed;
+        }
         return eka2l1::random();
     }
 

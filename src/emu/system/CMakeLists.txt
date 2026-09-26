@@ -1,4 +1,5 @@
 add_library(epoc
+        src/deterministic.cpp
         include/system/installation/firmware.h
         include/system/installation/install_device.h
         include/system/installation/rpkg.h

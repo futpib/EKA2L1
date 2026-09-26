@@ -22,6 +22,7 @@
  */
 
 #include <chrono>
+#include <common/deterministic.h>
 #include <common/algorithm.h>
 #include <common/platform.h>
 #include <common/time.h>
@@ -36,15 +37,18 @@
 
 namespace eka2l1::common {
     std::uint64_t get_current_utc_time_in_microseconds_since_epoch() {
+        if (benchmark::enabled()) return benchmark::epoch_us + benchmark::virtual_us.load();
         return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     }
 
     std::uint64_t get_current_utc_time_in_microseconds_since_0ad() {
+        if (benchmark::enabled()) return get_current_utc_time_in_microseconds_since_epoch() + ad_epoc_dist_microsecs;
         return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count()
             + ad_epoc_dist_microsecs;
     }
 
     std::uint64_t get_current_utc_time_in_nanoseconds_since_epoch() {
+        if (benchmark::enabled()) return get_current_utc_time_in_microseconds_since_epoch() * 1000;
         return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     }
 
@@ -57,6 +61,7 @@ namespace eka2l1::common {
     }
 
     int get_current_utc_offset() {
+        if (benchmark::enabled()) return 0;
 #if EKA2L1_PLATFORM(WIN32)
         TIME_ZONE_INFORMATION tz_info{};
         GetTimeZoneInformation(&tz_info);

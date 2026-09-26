@@ -1,0 +1,80 @@
+# Deterministic Snakes benchmark
+
+The benchmark is opt-in (`EKA2L1_BENCHMARK=1`). It uses the DynCom interpreter on both targets; experimental AOT is disabled for this reference workload.
+
+- The guest clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
+- When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
+- Guest UTC starts at 2024-01-01 00:00:00, timezone UTC. Guest `Math::Random` and host-generated kernel object names have fixed seeds.
+- Input comes from `snakes.input`: virtual microseconds, raw Symbian scan code, press/release. Host keyboard, mouse and controller input are excluded.
+- Native retains the original device input-method DLL, matching WASM instead of applying Qt-only host-input replacements. Patch libraries and guest directory entries use sorted order so guest addresses and file-search work do not depend on the host filesystem.
+- Audio uses the same silent DSP stub as the browser reference. This benchmark does not measure audio fidelity.
+- By default, capture starts at 21 virtual seconds, after the scripted replay has entered gameplay. Adjacent identical RGBA images are suppressed, so duplicate presentations do not consume the 1,000-image budget. `frames.jsonl` retains the presentation ordinal, guest time and instruction count for every accepted image. GPU completion is synchronized before guest execution continues.
+- Each native repeat begins with a copy of the freshly installed device. Pixel hashes and guest timing must match exactly.
+
+## Native build
+
+```sh
+git submodule update --init --recursive
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DEKA2L1_ENABLE_SCRIPTING_ABILITY=OFF -DEKA2L1_BUILD_TOOLS=OFF \
+  -DMBEDTLS_FATAL_WARNINGS=OFF
+cmake --build build -j8
+ctest --test-dir build --output-on-failure
+python3 src/tests/benchmark/run_native.py \
+  --assets /absolute/path/to/assets --output /absolute/path/to/new-results \
+  --frames 1000 --repeat 2
+```
+
+The runner requires Xvfb, Mesa software OpenGL and Python Pillow. Output must be a new directory. It records wall elapsed time separately; wall time never feeds back into the guest. A host timeout detects stalls, it does not pace execution.
+
+## Assets
+
+Use the original assets (not committed to this repository). The runner validates their SHA-256 hashes before installation. Public gateway errors must never be accepted as asset data.
+
+| Filename | IPFS CID |
+| --- | --- |
+| SYM.ROM | bafybeicj2jkrjfirzdz5jezz6hjbx2ylyv343kaecnhytl3g6yjy3mwmqm |
+| SYM.RPKG | bafybeihjy4vjxb5cy7zxca4kedg5ncxf5xrbj5basirfefemqwru73aipu |
+| Snakes.sis | bafybeicuomcc2zhzi3vwfb5xihnlkikz3biaa43g4d22z2wptcmhvmp3di |
+
+Retrieve using `ipfs cat CID > filename` with a running IPFS node. The old `@futpib/fetch-cid` downloader does not check HTTP status and can cache gateway notices as files.
+
+## Browser build and comparison
+
+Use Emscripten 4.0.10 (the version used for validation), Node.js with TypeScript stripping, and Chromium. Activate the SDK environment first.
+
+```sh
+emcmake cmake -S . -B build-wasm -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DEKA2L1_ENABLE_SCRIPTING_ABILITY=OFF -DEKA2L1_BUILD_TOOLS=OFF \
+  -DMBEDTLS_FATAL_WARNINGS=OFF
+cmake --build build-wasm -j8
+node build-wasm/src/tests/aot/test_aot_wasm.js
+cd src/tests/wasm
+npm ci --ignore-scripts
+node benchmark.ts /absolute/path/to/assets /absolute/path/to/wasm-run-1 1000
+node benchmark.ts /absolute/path/to/assets /absolute/path/to/wasm-run-2 1000
+cd ../../..
+python3 src/tests/benchmark/compare.py \
+  /absolute/path/to/wasm-run-1 /absolute/path/to/wasm-run-2
+python3 src/tests/benchmark/compare.py \
+  /absolute/path/to/new-results/run-0/frames /absolute/path/to/wasm-run-1
+```
+
+Set `CHROMIUM_PATH` if Chromium is not at `/usr/bin/chromium`. The local server supplies the isolation headers required by WASM pthreads. Each browser run gets a fresh memory filesystem. The same replay file and asset hashes are used on both targets. Browser polling only observes completion; it does not deliver input or pace guest execution.
+
+`compare.py` checks every RGBA pixel, frame number, presentation ordinal, size, virtual timestamp and instruction count. It exits nonzero and prints the first differing record on divergence. There is no pixel tolerance or frame realignment. Startup screens are warmup and do not count toward the default 1,000-image window. The replay enters Level 1 automatically, then supplies direction changes. Native `--start-us` selects a different warmup boundary; `--all-presentations` retains duplicates for diagnostics. The optional last positional browser argument selects the warmup boundary. Always use the same settings when comparing targets.
+
+`metrics.json` measures wall time from the first contentful presentation after the warmup boundary through the last captured image, including rendering, readback and PNG/manifest writes. Use that common capture window for performance comparisons. `report.json` also records runner elapsed time, which includes different amounts of setup/export work on each target and is not directly comparable. Host time is diagnostic only; it never advances the guest clock. This is a correctness baseline using interpreters and software rendering, not an optimized native-versus-WASM speed comparison.
+
+The benchmark is scoped to this fixed Snakes/device replay in fresh processes. It does not promise deterministic network, audio, arbitrary host services, save-state resumes, or hardware-accurate instruction timing.
+
+## Gameplay and clock validation
+
+```sh
+python3 src/tests/benchmark/validate_gameplay.py /absolute/path/to/new-results/run-0/frames
+python3 src/tests/benchmark/validate_gameplay.py /absolute/path/to/wasm-run-1
+```
+
+This fixed-replay gate requires at least 95% distinct 3D viewports, at least 1% changed viewport pixels between every pair of adjacent images, strictly increasing guest timestamps, no gap above 100 ms, and 18–25 changing images per virtual second. It excludes the HUD from its motion checks. Inspect the captured images/video as well: image variation alone cannot identify gameplay. The capture filter only removes adjacent identical full-frame images; it never skips a changed image after warmup.
+
+Guest timers, tick counters, UTC and display refresh use the same virtual clock. The emulated display refresh is 60 Hz; this Snakes replay produces about 21.3 changed images per virtual second, consistent with three 64 Hz guest ticks between game updates. Output images therefore need their recorded timestamps for playback, rather than being forced to 60 different game images per second. This verifies emulated time progression, not physical-handset FPS or cycle accuracy.

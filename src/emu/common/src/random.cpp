@@ -19,6 +19,8 @@
  */
 
 #include <common/random.h>
+#include <common/deterministic.h>
+#include <mutex>
 
 namespace eka2l1 {
     uint32_t random() {
@@ -26,6 +28,17 @@ namespace eka2l1 {
     }
 
     uint32_t random_range(uint32_t beg, uint32_t end) {
+        if (common::benchmark::enabled()) {
+            // Explicit arithmetic keeps the sequence identical across C++ libraries.
+            // These values also name guest-visible kernel objects and temporary files.
+            static std::mutex lock;
+            const std::lock_guard<std::mutex> guard(lock);
+            static std::uint32_t seed = 0x87654321;
+            seed ^= seed << 13;
+            seed ^= seed >> 17;
+            seed ^= seed << 5;
+            return beg + seed % (static_cast<std::uint64_t>(end) - beg + 1);
+        }
         std::mt19937 rng;
         rng.seed(std::random_device()());
         std::uniform_int_distribution<std::mt19937::result_type> dist(beg, end);

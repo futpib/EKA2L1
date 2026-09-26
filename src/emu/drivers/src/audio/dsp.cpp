@@ -18,6 +18,7 @@
  */
 
 #include <common/platform.h>
+#include <common/deterministic.h>
 #if !EKA2L1_PLATFORM(EMSCRIPTEN)
 #include <drivers/audio/backend/ffmpeg/dsp_ffmpeg.h>
 #endif
@@ -119,6 +120,7 @@ namespace eka2l1::drivers {
     };
 
     std::unique_ptr<dsp_stream> new_dsp_out_stream(drivers::audio_driver *aud, const dsp_stream_backend dsp_backend) {
+        if (common::benchmark::enabled()) return std::make_unique<noop_dsp_output_stream>();
 #if !EKA2L1_PLATFORM(EMSCRIPTEN)
         switch (dsp_backend) {
         case dsp_stream_backend_ffmpeg:
@@ -133,6 +135,7 @@ namespace eka2l1::drivers {
     }
 
     std::unique_ptr<dsp_stream> new_dsp_in_stream(drivers::audio_driver *aud, const dsp_stream_backend dsp_backend) {
+        if (common::benchmark::enabled()) return std::make_unique<noop_dsp_input_stream>();
 #if !EKA2L1_PLATFORM(EMSCRIPTEN)
         switch (dsp_backend) {
         case dsp_stream_backend_ffmpeg:
