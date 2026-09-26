@@ -80,6 +80,7 @@ namespace eka2l1::arm::aot {
     // Code emitter helper
     struct emit {
         std::vector<std::uint8_t> &b;
+        bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
         // Number of early-exit bails emitted into the function body.
         // Incremented every time the decoder gives up mid-function and
@@ -170,6 +171,7 @@ namespace eka2l1::arm::aot {
         // Bail due to unsupported instruction — marks the translation as incomplete
         void bail_unsupported(std::uint32_t pc, std::uint32_t instr_count) {
             unsupported = true;
+            if (!instr_count) entry_supported = false;
             bail(pc, instr_count);
         }
     };
@@ -408,8 +410,11 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code)
+        const code_window *dll_code, bool bounded)
     {
+        // Bounded blocks exit on branches instead of recursively calling siblings.
+        // Keep guest-visible instructions (including veneers) in the execution stream.
+        if (bounded) { siblings = nullptr; dll_code = nullptr; }
         translate_result tr;
         tr.complete = false;
         wasm_func_def &result = tr.func;
@@ -425,7 +430,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t FTMP1 = 7, FTMP2 = 8;
         const std::uint32_t DTMP1 = 9;
 
-        emit w{result.body, false};
+        emit w{result.body};
 
         // Build instruction address → index map
         std::map<std::uint32_t, std::uint32_t> addr_to_idx;
@@ -487,6 +492,7 @@ namespace eka2l1::arm::aot {
             }
         }
         // Sorted ascending: earliest target first.
+        if (bounded) forward_targets_set.clear();
         std::vector<std::uint32_t> fwd_sorted(
             forward_targets_set.begin(), forward_targets_set.end());
 
@@ -572,6 +578,24 @@ namespace eka2l1::arm::aot {
             while (closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
                 w.op(op_end);
                 closed_count++;
+            }
+
+            if (bounded) {
+                w.store_i32_const(S::PC, insn_addr);
+                w.load_i32(S::AOT_BUDGET);
+                w.i32_const(insn_idx);
+                w.op(op_i32_le_u);
+                w.op(op_if); w.op(type_void);
+                w.bail(insn_addr, insn_idx);
+                w.op(op_end);
+                // The ARMv5/v6 interpreter executes long Thumb calls as two
+                // halfwords. Leave these and unsupported Thumb-2 to it so budget
+                // boundaries and instruction accounting stay exactly comparable.
+                if ((insn & 0xF800) >= 0xE800) {
+                    w.bail_unsupported(insn_addr, insn_idx);
+                    decoded_end_offset = static_cast<std::uint32_t>(i);
+                    break;
+                }
             }
 
             // Check for 32-bit Thumb (wide instruction)
@@ -3396,6 +3420,8 @@ namespace eka2l1::arm::aot {
                     w.call(0);
                     w.set_local(TMP2);
                     w.store_reg(15, TMP2); // set PC
+                    w.get_local(TMP2); w.i32_const(1); w.op(op_i32_and);
+                    w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
                     offset += 4;
                 }
                 // Count registers popped
@@ -3457,6 +3483,9 @@ namespace eka2l1::arm::aot {
                 // BX LR — function return. Load LR into PC (clearing the
                 // Thumb bit since the interpreter masks it anyway) and bail.
                 w.load_reg(14);
+                w.i32_const(1); w.op(op_i32_and); w.set_local(TMP2);
+                w.store_i32(S::TFLAG, TMP2);
+                w.load_reg(14);
                 w.i32_const(~1);
                 w.op(op_i32_and);
                 w.set_local(TMP1);
@@ -3485,6 +3514,9 @@ namespace eka2l1::arm::aot {
                     tr.resume_points.push_back(insn_addr + 2);
                 }
                 // Set PC = Rm (mask Thumb bit) and bail without overwriting PC.
+                w.load_reg(rm);
+                w.i32_const(1); w.op(op_i32_and); w.set_local(TMP2);
+                w.store_i32(S::TFLAG, TMP2);
                 w.load_reg(rm);
                 w.i32_const(~1);
                 w.op(op_i32_and);
@@ -3939,9 +3971,10 @@ namespace eka2l1::arm::aot {
         w.op(op_end); // end block
 
         // Return total instruction count
-        w.i32_const(num_insns);
-        w.ret();
+        if (bounded) w.bail(start_address + decoded_end_offset, insn_idx);
+        else { w.i32_const(num_insns); w.ret(); }
 
+        tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;
         tr.end_address = start_address + decoded_end_offset;
         tr.bail_count = w.bail_count;

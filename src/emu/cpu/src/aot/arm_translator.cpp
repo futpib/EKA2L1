@@ -50,6 +50,7 @@ namespace eka2l1::arm::aot {
 
     struct emit {
         std::vector<std::uint8_t> &b;
+        bool entry_supported = true;
         bool unsupported = false;
         std::uint32_t bail_count = 0;
 
@@ -96,6 +97,7 @@ namespace eka2l1::arm::aot {
 
         void bail_unsupported(std::uint32_t pc, std::uint32_t instr_count) {
             unsupported = true;
+            if (!instr_count) entry_supported = false;
             bail(pc, instr_count);
         }
     };
@@ -411,8 +413,11 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code)
+        const code_window *dll_code, bool bounded)
     {
+        // Bounded blocks exit on branches instead of recursively calling siblings.
+        // Keep guest-visible instructions (including veneers) in the execution stream.
+        if (bounded) { siblings = nullptr; dll_code = nullptr; }
         translate_result tr;
         tr.complete = false;
         wasm_func_def &result = tr.func;
@@ -427,7 +432,7 @@ namespace eka2l1::arm::aot {
         // TMP4 doubles as carry_out for shifter operand
         const std::uint32_t TMP_CARRY = TMP4;
 
-        emit w{result.body, false};
+        emit w{result.body};
 
         // Build instruction address → index map
         std::uint32_t num_insns = 0;
@@ -480,6 +485,7 @@ namespace eka2l1::arm::aot {
             }
         }
 
+        if (bounded) forward_targets_set.clear();
         std::vector<std::uint32_t> fwd_sorted(
             forward_targets_set.begin(), forward_targets_set.end());
         std::unordered_map<std::uint32_t, std::uint32_t> fwd_idx;
@@ -519,6 +525,16 @@ namespace eka2l1::arm::aot {
             while (closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
                 w.op(op_end);
                 closed_count++;
+            }
+
+            if (bounded) {
+                w.store_i32_const(S::PC, insn_addr);
+                w.load_i32(S::AOT_BUDGET);
+                w.i32_const(insn_idx);
+                w.op(op_i32_le_u);
+                w.op(op_if); w.op(type_void);
+                w.bail(insn_addr, insn_idx);
+                w.op(op_end);
             }
 
             std::uint32_t cond = (inst >> 28) & 0xF;
@@ -575,7 +591,7 @@ namespace eka2l1::arm::aot {
                     w.op(op_br);
                     leb(result.body, depth);
                     if (cond_opened) w.op(op_end);
-                } else if (target >= start_address && target < start_address + code_size) {
+                } else if (!bounded && target >= start_address && target < start_address + code_size) {
                     // Backward branch within block: br to loop
                     std::uint32_t loop_depth = N_fwd - closed_count + 0; // loop is right after blocks
                     w.op(op_br);
@@ -1350,9 +1366,10 @@ namespace eka2l1::arm::aot {
         w.op(op_end); // end block
 
         // Return total instruction count
-        w.i32_const(num_insns);
-        w.ret();
+        if (bounded) w.bail(start_address + decoded_end_offset, insn_idx);
+        else { w.i32_const(num_insns); w.ret(); }
 
+        tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;
         tr.end_address = start_address + decoded_end_offset;
         tr.bail_count = w.bail_count;

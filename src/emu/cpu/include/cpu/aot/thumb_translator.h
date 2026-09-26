@@ -37,6 +37,7 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t CFLAG = 812;
         static constexpr std::uint32_t VFLAG = 816;
         static constexpr std::uint32_t TFLAG = 828;
+        static constexpr std::uint32_t AOT_BUDGET = 848;
 
         // VFP system registers (FPSID, FPSCR, FPEXC, ...)
         static constexpr std::uint32_t VFP_SYS = 496;
@@ -59,6 +60,7 @@ namespace eka2l1::arm::aot {
 
     struct translate_result {
         wasm_func_def func;
+        bool entry_supported = true;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call
         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling
@@ -129,5 +131,5 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings = nullptr,
-        const code_window *dll_code = nullptr);
+        const code_window *dll_code = nullptr, bool bounded = false);
 }

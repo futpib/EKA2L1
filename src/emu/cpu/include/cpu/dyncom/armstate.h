@@ -228,6 +228,7 @@ public:
 
     unsigned long long NumInstrs; // The number of instructions executed
     std::uint64_t NumInstrsToExecute;
+    std::uint32_t aot_budget = 0; // Remaining guest instructions for a bounded compiled block.
 
     unsigned NresetSig; // Reset the processor
     unsigned NfiqSig;

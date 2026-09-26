@@ -140,6 +140,14 @@ namespace {
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_aot_configure(int enabled) {
+    if (g_state || (enabled != 0 && enabled != 1)) return -1;
+    if (enabled) setenv("EKA2L1_BENCHMARK_AOT", "1", 1);
+    else unsetenv("EKA2L1_BENCHMARK_AOT");
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_profile_configure(int start_us, int end_us, int mode) {
     if (g_state || start_us < 0 || end_us <= start_us || end_us > 120000000 || mode < 0 || mode > 2) return -1;
     common::performance::enabled = true;

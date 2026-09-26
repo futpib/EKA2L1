@@ -1737,6 +1737,7 @@ static_assert(offsetof(ARMul_State, NFlag) == state_offsets::NFLAG, "NFLAG offse
 static_assert(offsetof(ARMul_State, ZFlag) == state_offsets::ZFLAG, "ZFLAG offset mismatch");
 static_assert(offsetof(ARMul_State, CFlag) == state_offsets::CFLAG, "CFLAG offset mismatch");
 static_assert(offsetof(ARMul_State, VFlag) == state_offsets::VFLAG, "VFLAG offset mismatch");
+static_assert(offsetof(ARMul_State, aot_budget) == state_offsets::AOT_BUDGET, "AOT budget offset mismatch");
 static_assert(offsetof(ARMul_State, TFlag) == state_offsets::TFLAG, "TFLAG offset mismatch");
 static_assert(offsetof(ARMul_State, VFP) == state_offsets::VFP_SYS, "VFP_SYS offset mismatch");
 static_assert(offsetof(ARMul_State, ExtReg) == state_offsets::EXTREG, "EXTREG offset mismatch");
@@ -1992,6 +1993,86 @@ static bool test_arm_clz() {
         return false;
     }
     printf("  PASS arm_clz\n");
+    return true;
+}
+
+// Execute bounded blocks and compare all registers, flags and memory against
+// exactly the same number of DynCom instructions, including partial budgets.
+static bool test_bounded_execution() {
+#ifdef __EMSCRIPTEN__
+    struct program { bool thumb; std::vector<std::uint8_t> bytes; };
+    auto arm = [](std::initializer_list<std::uint32_t> words) {
+        std::vector<std::uint8_t> bytes(words.size() * 4);
+        std::memcpy(bytes.data(), words.begin(), bytes.size());
+        return program{false, bytes};
+    };
+    auto thumb = [](std::initializer_list<std::uint16_t> words) {
+        std::vector<std::uint8_t> bytes(words.size() * 2);
+        std::memcpy(bytes.data(), words.begin(), bytes.size());
+        return program{true, bytes};
+    };
+    const std::vector<program> programs = {
+        arm({0xe3a00001, 0xe2800002, 0xe2400001}), // straight-line fallthrough
+        arm({0xe3500000, 0x0a000000, 0xe3a01007, 0xe3a02009}), // taken/not-taken B
+        arm({0xe2500001, 0x1afffffd}), // backward B, must return not recurse
+        arm({0xe2810004, 0xe5810000, 0xe5912000}), // memory
+        arm({0xe12fff1e}), // mode-changing BX
+        thumb({0x3001, 0x3801, 0x2107}),
+        thumb({0x2800, 0xd000, 0x2107, 0x2209}),
+        thumb({0x3801, 0xd1fd}),
+        thumb({0x6008, 0x680a}),
+        thumb({0x4770}),
+        thumb({0x4708}), // BX to ARM
+        thumb({0x4788}), // BLX to ARM
+        thumb({0xbd00}), // POP PC mode switch
+        thumb({0x3001, 0xf000, 0xf800}), // return before long call halfwords
+    };
+    int index = 0;
+    for (const auto &p : programs) {
+        auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true)
+                          : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true);
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
+            {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false}});
+        for (unsigned r0 : {0u, 2u}) for (unsigned budget = 0; budget <= 5; ++budget) {
+            test_mem actual, reference;
+            actual.write_code(0x1000, p.bytes); reference.write_code(0x1000, p.bytes);
+            alignas(8) std::uint8_t state[1024]{};
+            auto set = [&](unsigned off, unsigned v) { std::memcpy(state + off, &v, 4); };
+            auto get = [&](unsigned off) { unsigned v; std::memcpy(&v,state+off,4); return v; };
+            r12l1::exclusive_monitor monitor(1);
+            auto cpu = make_cpu(reference, monitor);
+            for (int r = 0; r < 16; ++r) {
+                unsigned v = r == 0 ? r0 : (r == 1 || r == 13) ? 0x8000 : r == 14 ? 0x2001 : r == 15 ? 0x1000 : 0;
+                cpu->set_reg(r, v); set(state_offsets::reg(r), v);
+            }
+            cpu->set_cpsr(0x10 | (p.thumb ? 0x20 : 0));
+            set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget);
+            g_test_mem = &actual;
+            const int count = js_run_aot_wasm(module.data(), module.size(), state, sizeof(state));
+            g_test_mem = nullptr;
+            if (count < 0 || count > static_cast<int>(budget) || (budget && !count)) {
+                printf("  FAIL bounded %d budget %u count %d\n",index,budget,count); return false;
+            }
+            if (count) cpu->run(count);
+            for (int r = 0; r < 16; ++r) {
+                unsigned v = get(state_offsets::reg(r));
+                if (r == 15) v &= get(state_offsets::TFLAG) ? ~1u : ~3u;
+                if (v != cpu->get_reg(r)) {
+                    printf("  FAIL bounded %d budget %u R%d %08X vs %08X count %d\n",index,budget,r,v,cpu->get_reg(r),count);return false;
+                }
+            }
+            const unsigned cpsr = cpu->get_cpsr();
+            for (auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},
+                    {state_offsets::ZFLAG,30},{state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if (get(pair.first) != ((cpsr >> pair.second)&1)) {
+                    printf("  FAIL bounded %d budget %u flag %u\n",index,budget,pair.first);return false;
+                }
+            if (actual.data != reference.data) { printf("  FAIL bounded memory %d\n",index); return false; }
+        }
+        ++index;
+    }
+    printf("  PASS bounded_execution (168 exact budget/state/memory comparisons)\n");
+#endif
     return true;
 }
 
@@ -2579,6 +2660,7 @@ int main() {
     if (test_sibling_bl_resume_point()) passed++; else failed++;
 
     printf("\nRunning ARM translator-level tests...\n\n");
+    if (test_bounded_execution()) passed++; else failed++;
     if (test_arm_mov_imm()) passed++; else failed++;
     if (test_arm_add_sub_imm()) passed++; else failed++;
     if (test_arm_cmp_beq()) passed++; else failed++;
