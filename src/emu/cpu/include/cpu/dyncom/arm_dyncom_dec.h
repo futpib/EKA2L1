@@ -10,3 +10,5 @@ enum class ARMDecodeStatus { SUCCESS,
     FAILURE };
 
 ARMDecodeStatus decode_arm_instruction(std::uint32_t instr, int *idx);
+
+const char *dyncom_instruction_name(unsigned index);

@@ -22,6 +22,9 @@
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/code_cache.h>
+#include <common/guest_profile.h>
+#include <cpu/dyncom/arm_dyncom_dec.h>
+#include <common/performance.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/arm_translator.h>
@@ -969,4 +972,55 @@ TEST_CASE("Compiled successor chains respect budgets, mode and interrupts", "[ao
     result = aot::execute_chain(&state, first);
     REQUIRE(result.blocks == 64); // bounded host runner even with a larger caller budget
     registry.clear();
+}
+
+TEST_CASE("Guest profiling separates decoding and execution without advancing guest state", "[aot]") {
+    namespace gp = eka2l1::common::guest_profile;
+    namespace perf = eka2l1::common::performance;
+    struct restore {
+        bool enabled = gp::enabled, perf_enabled = perf::enabled;
+        int phase = perf::phase;
+        ~restore() { gp::enabled = enabled; perf::enabled = perf_enabled; perf::phase = phase; gp::state = {}; }
+    } cleanup;
+    gp::enabled = true; gp::state = {}; gp::state.stride = 1;
+    perf::enabled = true; perf::phase = 2;
+    aot_test_env env;
+    env.write_code(0x1000, {0xe3a00007, 0xe2800001, 0xeafffffe});
+    auto cpu = env.make_cpu();
+    cpu->describe_code = [](std::uint32_t) { return eka2l1::arm::core::diagnostic_code{"test-process", "test-module"}; };
+    cpu->set_reg(15, 0x1000);
+    cpu->run(3);
+    CHECK(cpu->get_reg(0) == 8);
+    CHECK(cpu->get_reg(15) == 0x1008);
+    CHECK(gp::state.total[0] == 3);
+    CHECK(gp::state.total[1] == 3);
+    std::uint64_t executions = 0;
+    for (const auto &[key, count] : gp::state.samples) if (std::get<0>(key) == 0) {
+        executions += count;
+        CHECK(std::get<7>(key) == "test-process");
+        CHECK(std::get<8>(key) == "test-module");
+    }
+    CHECK(executions == 3);
+    perf::phase = 3;
+    cpu->run(1);
+    CHECK(gp::state.total[0] == 3); // outside measurement window
+}
+
+TEST_CASE("Guest profile sampling preserves exact type totals and identities", "[aot]") {
+    namespace gp = eka2l1::common::guest_profile;
+    CHECK(std::string(dyncom_instruction_name(196)) == "bbl");
+    CHECK(std::string(dyncom_instruction_name(197)) == "b_thumb");
+    CHECK(std::string(dyncom_instruction_name(205)) == "unknown");
+    gp::histogram h;
+    h.stride = 3;
+    CHECK_FALSE(h.record(0, 0, 1));
+    CHECK_FALSE(h.record(0, 1, 2));
+    CHECK(h.record(0, 0, 1));
+    CHECK_FALSE(h.record(1, 0, 1)); // independent decoding stream
+    CHECK(h.types[0][0][1] == 2);
+    CHECK(h.types[0][1][2] == 1);
+    h.sample({0,0,1,4,0x1000,0,true,"process","first"});
+    h.sample({0,0,1,5,0x1000,0,true,"process","second"});
+    REQUIRE(h.samples.size() == 2);
+    CHECK(gp::quote("a\n\"\\") == "\"a\\u000a\\\"\\\\\"");
 }

@@ -20,6 +20,8 @@
 #include <common/cvt.h>
 #include <common/frame_dumper.h>
 #include <common/performance.h>
+#include <common/guest_profile.h>
+#include <cpu/dyncom/arm_dyncom_dec.h>
 #include <drivers/audio/deterministic.h>
 #include <common/deterministic.h>
 #include <system/deterministic.h>
@@ -155,6 +157,23 @@ int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
     if (enabled) setenv("EKA2L1_BENCHMARK_AOT", "1", 1);
     else unsetenv("EKA2L1_BENCHMARK_AOT");
     return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_guest_profile_configure(int stride) {
+    if (g_state || stride < 0) return -1;
+    common::guest_profile::enabled = stride != 0;
+    common::guest_profile::state = {};
+    if (stride) common::guest_profile::state.stride = stride;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+const char *eka2l1_guest_profile_report() {
+    static std::string result;
+    if (common::performance::phase.load() != 3) return "{}";
+    result = common::guest_profile::state.report(dyncom_instruction_name);
+    return result.c_str();
 }
 
 EMSCRIPTEN_KEEPALIVE

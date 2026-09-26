@@ -119,6 +119,8 @@ namespace eka2l1::arm {
             std::size_t size = 0;
         };
         std::function<bool(address, code_mapping &)> resolve_code;
+        struct diagnostic_code { std::string process, module; };
+        std::function<diagnostic_code(address)> describe_code;
 
         memory_operation_ew_8bit_func exclusive_write_8bit;
         memory_operation_ew_16bit_func exclusive_write_16bit;

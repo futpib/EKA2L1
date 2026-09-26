@@ -10,6 +10,9 @@ const frameArg = '100000', inputArg = '../benchmark/snakes.input', startArg = '2
 const captureMode = Number(modeArg), sampling = samplingArg === '1', endUs = Number(endArg);
 if (![0,1,2].includes(captureMode) || !Number.isInteger(endUs) || endUs <= Number(startArg) || endUs > 120000000) throw new Error('Invalid profile settings');
 if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_OUTPUT [CAPTURE_MODE:0/1/2] [SAMPLING:0/1] [END_US]');
+const guestProfile = Number(process.env.EKA2L1_GUEST_PROFILE || "0");
+if (!Number.isSafeInteger(guestProfile) || guestProfile < 0 || guestProfile > 2147483647)
+  throw new Error('EKA2L1_GUEST_PROFILE must be a nonnegative sample stride');
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
 const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
 if (!Number.isSafeInteger(verifyAot) || verifyAot < 0 || verifyAot > 2147483647)
@@ -63,7 +66,7 @@ try {
   page.on('response', response => {if (response.status() >= 400) failures.push(`HTTP ${response.status()} ${response.url()}`);});
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
-  await page.evaluate(async ({count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics}) => {
+  await page.evaluate(async ({count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -72,6 +75,7 @@ try {
     call('eka2l1_profile_configure', ['number', 'number', 'number'], [startUs, endUs, captureMode]);
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
     call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot, aotDiagnostics ? 1 : 0]);
+    call('eka2l1_guest_profile_configure', ['number'], [guestProfile]);
     call('eka2l1_init', ['string'], ['/data']);
     for (const name of ['SYM.ROM', 'SYM.RPKG', 'Snakes.sis', 'input']) {
       const response = await fetch(`/preload/${name}`);
@@ -83,7 +87,7 @@ try {
     g.FS.mkdir('/frames');
     g.Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], ['/frames', count]);
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics});
+  }, {count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -116,6 +120,10 @@ try {
   await waitPhase(3);
   const measured = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_profile_report', 'string', [], [])));
   console.log(JSON.stringify(measured));
+  if (guestProfile) {
+    const guest = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_guest_profile_report', 'string', [], [])));
+    fs.writeFileSync(path.join(output, 'guest-profile.json'), JSON.stringify(guest));
+  }
   if (sampling) await Promise.all(clients.map(async ({name, client}) => {
     const {profile} = await client.send('Profiler.stop');
     fs.writeFileSync(path.join(output, `${name}.cpuprofile`), JSON.stringify(profile));
@@ -134,7 +142,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({measurement: measured, warmup_seconds: warmupSeconds,
-    sampling, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash,
+    guest_profile_stride: guestProfile, sampling, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash,
     aot, aot_diagnostics: aotDiagnostics, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     user_agent: await page.evaluate(() => navigator.userAgent),
     renderer: await page.evaluate(() => {

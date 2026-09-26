@@ -15,6 +15,7 @@
 #include <common/performance.h>
 #include <common/types.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
+#include <common/guest_profile.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <cpu/dyncom/arm_dyncom_run.h>
 #include <cpu/dyncom/arm_dyncom_thumb.h>
@@ -806,6 +807,26 @@ static ThumbDecodeStatus decode_thumb_instruction(ARMul_State *cpu, std::uint32_
 enum { KEEP_GOING,
     FETCH_EXCEPTION };
 
+static void guest_profile_instruction(ARMul_State *cpu, std::uint32_t pc, unsigned handler, unsigned kind) {
+    namespace gp = eka2l1::common::guest_profile;
+    if (!eka2l1::common::performance::counting() || eka2l1::arm::aot::validation_running) return;
+    const unsigned thumb = cpu->TFlag != 0;
+    if (!gp::state.record(kind, thumb, handler)) return;
+    eka2l1::arm::core::code_mapping view;
+    const bool mapped = cpu->parent()->resolve_code && cpu->parent()->resolve_code(pc, view);
+    std::uint32_t opcode = 0;
+    const auto size = thumb ? 2u : 4u;
+    const bool readable = mapped && view.bytes && view.size >= size;
+    if (readable) std::memcpy(&opcode, view.bytes, size); // no guest reads or faults
+    auto owner = cpu->parent()->describe_code ? cpu->parent()->describe_code(pc)
+        : eka2l1::arm::core::diagnostic_code{"<unknown>", "<unknown>"};
+    if (owner.module.empty()) {
+        auto *module = eka2l1::arm::aot::lookup_module(pc);
+        owner.module = module ? module->name : "<unattributed>";
+    }
+    gp::state.sample({kind, thumb, handler, view.address_space, pc, opcode, readable, owner.process, owner.module});
+}
+
 static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std::uint32_t phys_addr,
     ARM_INST_PTR &inst_base) {
     if (eka2l1::common::performance::counting()) ++eka2l1::common::performance::decoded_instructions;
@@ -820,6 +841,7 @@ static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std:
 
         // We have translated the Thumb branch instruction in the Thumb decoder
         if (state == ThumbDecodeStatus::BRANCH) {
+            if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, phys_addr, inst_base->idx, 1);
             return inst_size;
         }
         inst = arm_inst;
@@ -834,6 +856,7 @@ static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std:
         CITRA_IGNORE_EXIT(-1);
     }
     inst_base = arm_instruction_trans[idx](cpu, inst, idx);
+    if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, phys_addr, inst_base->idx, 1);
 
     return inst_size;
 }
@@ -978,6 +1001,7 @@ unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
         goto END;                              \
     num_instrs++;                              \
     g_interp_instrs++;                         \
+    if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, cpu->Reg[15], inst_base->idx, 0); \
     goto *InstLabel[inst_base->idx]
 #else
 #define GOTO_NEXT_INST                         \
@@ -985,6 +1009,7 @@ unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
         goto END;                              \
     num_instrs++;                              \
     g_interp_instrs++;                         \
+    if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, cpu->Reg[15], inst_base->idx, 0); \
     switch (inst_base->idx) {                  \
     case 0:                                    \
         goto VMLA_INST;                        \

@@ -63,6 +63,7 @@
 #include <kernel/timing.h>
 #include <common/deterministic.h>
 #include <common/performance.h>
+#include <common/guest_profile.h>
 #include <ldd/collection.h>
 #include <loader/rom.h>
 #include <package/manager.h>
@@ -605,6 +606,21 @@ namespace eka2l1 {
         kern_ = std::make_unique<kernel_system>(parent_, timing_.get(), io_.get(), conf_, app_settings_, &romf_, cpu.get(),
             disassembler_.get());
 
+        if (common::guest_profile::enabled) cpu->describe_code = [this](address pc) {
+            arm::core::diagnostic_code result;
+            auto *process = kern_->crr_process();
+            result.process = process ? process->name() : "<no-process>";
+            if (!process) return result;
+            for (const auto &object : kern_->get_codeseg_list()) {
+                auto *segment = static_cast<kernel::codeseg *>(object.get());
+                const auto base = segment->get_code_run_addr(process);
+                if (base && pc >= base && pc - base < segment->get_code_size()) {
+                    result.module = segment->name();
+                    break;
+                }
+            }
+            return result;
+        };
         epoc::init_panic_descriptions();
     }
 

@@ -500,3 +500,10 @@ ARMDecodeStatus decode_arm_instruction(std::uint32_t instr, int *idx) {
     }
     return ret;
 }
+
+const char *dyncom_instruction_name(unsigned index) {
+    if (index < sizeof(arm_instruction) / sizeof(arm_instruction[0])) return arm_instruction[index].name;
+    static const char *extra[] = {"b_thumb", "b_cond_thumb", "bl_prefix_thumb", "bl_suffix_thumb",
+        "blx_suffix_thumb", "dispatch", "init_length", "end"};
+    return index < 205 ? extra[index - 197] : "unknown";
+}
