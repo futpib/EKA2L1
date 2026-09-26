@@ -1,5 +1,13 @@
 add_executable(eka2l1_wasm main.cpp)
 
+option(EKA2L1_WASM_CHECK_EVERY_STACK_UPDATE "Instrument every WASM stack-pointer update" OFF)
+if (EKA2L1_WASM_CHECK_EVERY_STACK_UPDATE)
+    set(EKA2L1_WASM_STACK_CHECK_LEVEL 2)
+else()
+    # Retain the stack cookie; per-assignment instrumentation is diagnostic.
+    set(EKA2L1_WASM_STACK_CHECK_LEVEL 1)
+endif()
+
 # graphics_driver_shared.h needs glm (used for reading screen_texture FBO)
 target_include_directories(eka2l1_wasm PRIVATE
     ${PROJECT_SOURCE_DIR}/src/external/glm)
@@ -25,7 +33,7 @@ target_link_options(eka2l1_wasm PRIVATE
     "SHELL:-s ERROR_ON_UNDEFINED_SYMBOLS=0"
     "SHELL:-Wl,--unresolved-symbols=ignore-all"
     "SHELL:-s ASSERTIONS=1"
-    "SHELL:-s STACK_OVERFLOW_CHECK=2"
+    "SHELL:-s STACK_OVERFLOW_CHECK=${EKA2L1_WASM_STACK_CHECK_LEVEL}"
     "SHELL:-s STACK_SIZE=4194304"
     "SHELL:-s DEFAULT_PTHREAD_STACK_SIZE=2097152"
     "SHELL:-s ABORT_ON_WASM_EXCEPTIONS=1"

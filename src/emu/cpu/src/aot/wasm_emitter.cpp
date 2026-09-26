@@ -193,6 +193,19 @@ namespace eka2l1::arm::aot {
             emit_section(module, 10, sec);
         }
 
+        // Names carry guest entry PCs into browser CPU profiles without adding
+        // any instructions or runtime bookkeeping to generated execution.
+        {
+            std::vector<std::uint8_t> names, custom;
+            leb128(names, num_funcs);
+            for (std::uint32_t i = 0; i < num_funcs; ++i) {
+                leb128(names, num_imports + i);
+                emit_str(names, funcs[i].export_name);
+            }
+            emit_str(custom, "name");
+            emit_section(custom, 1, names); // function-name subsection
+            emit_section(module, 0, custom);
+        }
         return module;
     }
 }
