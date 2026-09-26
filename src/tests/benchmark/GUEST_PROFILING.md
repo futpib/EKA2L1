@@ -32,3 +32,5 @@ against total guest execution, and independently reconciles decoder counts.
 Sampled module shares are approximate; exact handler counts are not sampled.
 Interpreter differential-check executions are excluded. The diagnostic affects
 host runtime and is never used as a performance timing control.
+
+Measured Snakes results: [GUEST_PROFILE_RESULTS.md](GUEST_PROFILE_RESULTS.md).

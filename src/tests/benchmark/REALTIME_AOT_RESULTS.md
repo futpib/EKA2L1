@@ -27,7 +27,7 @@ RAM compilation raises compiled coverage from 18.84% to **69.97%**. Decoded inst
 
 The final sampled emulation worker attributes **26.35%** of its sampled span to translation, **14.62%** to RAM-cache lookup, **14.11%** to the interpreter loop, **5.67%** to WASM-to-JS transitions, **4.04%** to the mapping resolver and **2.53%** to byte comparison. Waits occupy 7.54%. These are self-sample shares from one worker, not additive cross-thread CPU utilization or measured optimization opportunities. The earlier whole-window byte validation profile showed 16.65% in memcmp, which motivated comparing only the emitted prefix; those profiles ran under different load conditions.
 
-The next compiler bottlenecks are lookup/validation and frequent short compiled-function transitions, alongside remaining interpreter translation. This profiling reports host functions and execution counters; guest module/opcode attribution was not collected. Skipping RAM validation would violate the current correctness model.
+The next compiler bottlenecks are lookup/validation and frequent short compiled-function transitions, alongside remaining interpreter translation. This initial profiling reported host functions and execution counters. The missing guest module/opcode attribution is now completed in [GUEST_PROFILE_RESULTS.md](GUEST_PROFILE_RESULTS.md). Skipping RAM validation would violate the current correctness model.
 
 Machine-readable reports, hashes, exact comparisons and test log hashes: [REALTIME_AOT_EVIDENCE.json](REALTIME_AOT_EVIDENCE.json). Host: Intel Core i7-10875H, 8 cores/16 threads; Chromium 150 with SwiftShader, Emscripten Release -O3.
 

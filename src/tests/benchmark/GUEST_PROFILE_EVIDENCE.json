@@ -1,0 +1,4357 @@
+{
+  "runtime_revision": "5e1c46333d4e563975db87c9c5a1adbd7da5921c",
+  "test_revision": "651bf078d199144f4cc91f36605adf337cbcc2af",
+  "runs": {
+    "1021": {
+      "path": "/home/claude/.scratch/eka-benchmark/guest-profile-1021",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 49.9609,
+          "presentations": 170,
+          "aot_dispatches": 117675732,
+          "aot_instructions": 458913845,
+          "compiled_runner_calls": 16860275,
+          "ram_aot_dispatches": 106804779,
+          "ram_blocks_compiled": 329,
+          "decoded_instructions": 26137201,
+          "cache_hits": 17549243,
+          "cache_misses": 1842176,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 49.8511,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 49.0504,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.13294,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.211217,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 3.51495,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 3.50744,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 1.054,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.301498,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.723458,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.676705,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00516736,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 156.05321754899998,
+        "guest_profile_stride": 1021,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "53bd06408f704c3898ff449c9c74eca73a993d0144a1a455f5b1552aca6e9fab",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "5e1c46333d4e563975db87c9c5a1adbd7da5921c",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "summary": {
+        "stride": 1021,
+        "measurement_guest_seconds": 4.0,
+        "guest_instructions": 655867149,
+        "aot_instructions": 458913845,
+        "git_head": "5e1c46333d4e563975db87c9c5a1adbd7da5921c",
+        "wasm_sha256": "53bd06408f704c3898ff449c9c74eca73a993d0144a1a455f5b1552aca6e9fab",
+        "streams": {
+          "executed": {
+            "exact_instructions": 196953304,
+            "samples": 192902,
+            "unmapped_opcode_samples": 0,
+            "modules": [
+              {
+                "module": "6r45_1b.exe",
+                "samples": 177054,
+                "percent_samples": 91.78442939938414,
+                "sampled_types": {
+                  "arm:ldr": 37884,
+                  "arm:mov": 36571,
+                  "arm:smlal": 36095,
+                  "arm:str": 13418,
+                  "arm:orr": 11005,
+                  "arm:cmp": 10068,
+                  "arm:bbl": 8383,
+                  "arm:bx": 5109,
+                  "arm:add": 4573,
+                  "arm:cpy": 4052,
+                  "arm:ldm": 3751,
+                  "arm:sub": 3256,
+                  "arm:smull": 1574,
+                  "arm:rsb": 278,
+                  "arm:tst": 243,
+                  "arm:and": 231,
+                  "arm:ldrsh": 168,
+                  "arm:ldrcond": 139,
+                  "arm:strh": 84,
+                  "arm:mul": 80,
+                  "arm:cmn": 33,
+                  "arm:mla": 26,
+                  "arm:ldrb": 20,
+                  "arm:stm": 11,
+                  "arm:mvn": 1,
+                  "arm:strb": 1
+                }
+              },
+              {
+                "module": "euser.dll",
+                "samples": 11918,
+                "percent_samples": 6.178266684637795,
+                "sampled_types": {
+                  "arm:stm": 2513,
+                  "arm:ldm": 1963,
+                  "arm:bbl": 1617,
+                  "arm:cmp": 1306,
+                  "arm:pld": 967,
+                  "arm:msr": 788,
+                  "arm:ldrcond": 785,
+                  "arm:str": 740,
+                  "arm:mov": 679,
+                  "arm:sub": 312,
+                  "thumb:bl_prefix_thumb": 74,
+                  "thumb:blx_suffix_thumb": 41,
+                  "thumb:bl_suffix_thumb": 26,
+                  "arm:teq": 20,
+                  "arm:strex": 18,
+                  "arm:ldrex": 17,
+                  "arm:bx": 14,
+                  "arm:swi": 14,
+                  "arm:cpy": 8,
+                  "arm:add": 8,
+                  "arm:and": 4,
+                  "arm:bic": 2,
+                  "arm:ldr": 2
+                }
+              },
+              {
+                "module": "dfpaeabi.dll",
+                "samples": 3125,
+                "percent_samples": 1.6199935718655067,
+                "sampled_types": {
+                  "arm:orr": 535,
+                  "arm:adc": 421,
+                  "arm:mov": 415,
+                  "arm:cmp": 400,
+                  "arm:teq": 396,
+                  "arm:tst": 160,
+                  "arm:umull": 148,
+                  "arm:bbl": 133,
+                  "arm:add": 131,
+                  "arm:bx": 130,
+                  "arm:and": 124,
+                  "arm:sub": 124,
+                  "arm:eor": 3,
+                  "arm:bic": 2,
+                  "arm:rsb": 2,
+                  "arm:mvn": 1
+                }
+              },
+              {
+                "module": "drtaeabi.dll",
+                "samples": 732,
+                "percent_samples": 0.37946729427377635,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 372,
+                  "thumb:blx_suffix_thumb": 306,
+                  "thumb:bl_suffix_thumb": 47,
+                  "arm:rsb": 3,
+                  "thumb:cmp": 3,
+                  "thumb:bx": 1
+                }
+              },
+              {
+                "module": "fbscli.dll",
+                "samples": 20,
+                "percent_samples": 0.010367958859939243,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 14,
+                  "thumb:bl_suffix_thumb": 4,
+                  "thumb:blx_suffix_thumb": 2
+                }
+              },
+              {
+                "module": "cone.dll",
+                "samples": 17,
+                "percent_samples": 0.008812765030948357,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 9,
+                  "thumb:bl_prefix_thumb": 6,
+                  "thumb:bl_suffix_thumb": 2
+                }
+              },
+              {
+                "module": "scppnwdl.dll",
+                "samples": 11,
+                "percent_samples": 0.0057023773729665845,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 7,
+                  "thumb:blx_suffix_thumb": 4
+                }
+              },
+              {
+                "module": "bitgdi.dll",
+                "samples": 8,
+                "percent_samples": 0.004147183543975697,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 4,
+                  "thumb:blx_suffix_thumb": 2,
+                  "thumb:mov": 1,
+                  "thumb:bl_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "scdv_general.dll",
+                "samples": 7,
+                "percent_samples": 0.0036287856009787353,
+                "sampled_types": {
+                  "thumb:add": 2,
+                  "arm:swi": 1,
+                  "thumb:blx": 1,
+                  "thumb:stm": 1,
+                  "thumb:strb": 1,
+                  "thumb:bl_prefix_thumb": 1
+                }
+              },
+              {
+                "module": "mediaclientaudiostream_general.dll",
+                "samples": 6,
+                "percent_samples": 0.0031103876579817733,
+                "sampled_types": {
+                  "thumb:sub": 2,
+                  "arm:bx": 1,
+                  "thumb:cmp": 1,
+                  "thumb:bl_suffix_thumb": 1,
+                  "thumb:blx_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "ws32.dll",
+                "samples": 2,
+                "percent_samples": 0.0010367958859939244,
+                "sampled_types": {
+                  "thumb:mov": 1,
+                  "thumb:ldr": 1
+                }
+              },
+              {
+                "module": "avkon.dll",
+                "samples": 1,
+                "percent_samples": 0.0005183979429969622,
+                "sampled_types": {
+                  "thumb:cmp": 1
+                }
+              },
+              {
+                "module": "apparc.dll",
+                "samples": 1,
+                "percent_samples": 0.0005183979429969622,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 1
+                }
+              }
+            ],
+            "processes": [
+              {
+                "process": "Snakes[2000730f]0003",
+                "samples": 192902,
+                "percent_samples": 100.0
+              }
+            ],
+            "exact_handler_types": [
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldr",
+                "count": 38615299
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mov",
+                "count": 38538835
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "smlal",
+                "count": 36798864
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "str",
+                "count": 14529167
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cmp",
+                "count": 12191982
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "orr",
+                "count": 11625793
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bbl",
+                "count": 10209483
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldm",
+                "count": 5884443
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bx",
+                "count": 5436389
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "add",
+                "count": 4879187
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cpy",
+                "count": 4114087
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "sub",
+                "count": 3777937
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "stm",
+                "count": 2609169
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "smull",
+                "count": 1610318
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "pld",
+                "count": 990602
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrcond",
+                "count": 924221
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "msr",
+                "count": 789275
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bl_prefix_thumb",
+                "count": 456836
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "teq",
+                "count": 421989
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "adc",
+                "count": 420077
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "blx_suffix_thumb",
+                "count": 373524
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "and",
+                "count": 370469
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "tst",
+                "count": 368377
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "rsb",
+                "count": 293011
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrsh",
+                "count": 179980
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "umull",
+                "count": 145020
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strh",
+                "count": 84367
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bl_suffix_thumb",
+                "count": 83312
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mul",
+                "count": 81687
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cmn",
+                "count": 34001
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mla",
+                "count": 21064
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrb",
+                "count": 17232
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strex",
+                "count": 16964
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrex",
+                "count": 16964
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "swi",
+                "count": 14982
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bic",
+                "count": 3751
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mvn",
+                "count": 3444
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "add",
+                "count": 2934
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "eor",
+                "count": 2929
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldr",
+                "count": 2119
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strb",
+                "count": 1985
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "mov",
+                "count": 1870
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "cpy",
+                "count": 1544
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "str",
+                "count": 1206
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "b_cond_thumb",
+                "count": 1046
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldm",
+                "count": 1038
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "stm",
+                "count": 1005
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrh",
+                "count": 883
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "cmp",
+                "count": 809
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "sub",
+                "count": 680
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bx",
+                "count": 250
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "blx",
+                "count": 225
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "blx",
+                "count": 220
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "b_thumb",
+                "count": 206
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "strb",
+                "count": 160
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "orr",
+                "count": 48
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "mul",
+                "count": 29
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldrh",
+                "count": 7
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "strh",
+                "count": 6
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bic",
+                "count": 3
+              }
+            ],
+            "hot_pcs": [
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002a8",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe4813004",
+                "samples": 2450,
+                "percent_samples": 1.2700749603425574
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002ac",
+                "thumb": 0,
+                "handler": "sub",
+                "opcode": "0xe25bb001",
+                "samples": 2444,
+                "percent_samples": 1.2669645726845755
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002b0",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0x1afffffc",
+                "samples": 2414,
+                "percent_samples": 1.2514126343946668
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b0c",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 2379,
+                "percent_samples": 1.2332687063897732
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b04",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xa3a00000",
+                "samples": 2341,
+                "percent_samples": 1.2135695845558885
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b00",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 2333,
+                "percent_samples": 1.2094224010119128
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b08",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xb3a00001",
+                "samples": 2326,
+                "percent_samples": 1.205793615410934
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a6c",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xc3a00001",
+                "samples": 2016,
+                "percent_samples": 1.0450902530818758
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a70",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 1941,
+                "percent_samples": 1.0062104073571037
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a68",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xd3a00000",
+                "samples": 1935,
+                "percent_samples": 1.0031000196991218
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a64",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 1911,
+                "percent_samples": 0.9906584690671948
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063760",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54c97",
+                "samples": 1221,
+                "percent_samples": 0.6329638883992909
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063758",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917014",
+                "samples": 1208,
+                "percent_samples": 0.6262247151403303
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063790",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54396",
+                "samples": 1181,
+                "percent_samples": 0.6122279706794124
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063734",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe592200c",
+                "samples": 1178,
+                "percent_samples": 0.6106727768504214
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006376c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54e96",
+                "samples": 1177,
+                "percent_samples": 0.6101543789074245
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063774",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 1176,
+                "percent_samples": 0.6096359809644275
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063744",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1844a05",
+                "samples": 1171,
+                "percent_samples": 0.6070439912494427
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063754",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 1163,
+                "percent_samples": 0.602896807705467
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063730",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591700c",
+                "samples": 1159,
+                "percent_samples": 0.6008232159334792
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063738",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54e96",
+                "samples": 1158,
+                "percent_samples": 0.6003048179904822
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e4",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1811a04",
+                "samples": 1156,
+                "percent_samples": 0.5992680221044883
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70062ed4",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0xe8bd8010",
+                "samples": 1155,
+                "percent_samples": 0.5987496241614914
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c8",
+                "thumb": 0,
+                "handler": "cpy",
+                "opcode": "0xe1a03005",
+                "samples": 1154,
+                "percent_samples": 0.5982312262184943
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063728",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54c97",
+                "samples": 1151,
+                "percent_samples": 0.5966760323895035
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063768",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591701c",
+                "samples": 1150,
+                "percent_samples": 0.5961576344465065
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006377c",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804004",
+                "samples": 1148,
+                "percent_samples": 0.5951208385605126
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063748",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804000",
+                "samples": 1146,
+                "percent_samples": 0.5940840426745186
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637b0",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804008",
+                "samples": 1145,
+                "percent_samples": 0.5935656447315217
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063784",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a04000",
+                "samples": 1142,
+                "percent_samples": 0.5920104509025308
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637ac",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1844a05",
+                "samples": 1140,
+                "percent_samples": 0.5909736550165369
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637bc",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 1140,
+                "percent_samples": 0.5909736550165369
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006378c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917024",
+                "samples": 1137,
+                "percent_samples": 0.589418461187546
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c4",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916034",
+                "samples": 1137,
+                "percent_samples": 0.589418461187546
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70062ec8",
+                "thumb": 0,
+                "handler": "smull",
+                "opcode": "0xe0c20091",
+                "samples": 1134,
+                "percent_samples": 0.5878632673585551
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637a0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54e96",
+                "samples": 1134,
+                "percent_samples": 0.5878632673585551
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063780",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916020",
+                "samples": 1133,
+                "percent_samples": 0.5873448694155582
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006374c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916010",
+                "samples": 1131,
+                "percent_samples": 0.5863080735295643
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063798",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916028",
+                "samples": 1127,
+                "percent_samples": 0.5842344817575764
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063724",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54396",
+                "samples": 1126,
+                "percent_samples": 0.5837160838145794
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637dc",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e43291",
+                "samples": 1121,
+                "percent_samples": 0.5811240940995946
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063770",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54297",
+                "samples": 1119,
+                "percent_samples": 0.5800872982136007
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063764",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916018",
+                "samples": 1119,
+                "percent_samples": 0.5800872982136007
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637b4",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916030",
+                "samples": 1119,
+                "percent_samples": 0.5800872982136007
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006379c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591702c",
+                "samples": 1118,
+                "percent_samples": 0.5795689002706037
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e8",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe580100c",
+                "samples": 1118,
+                "percent_samples": 0.5795689002706037
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006372c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916008",
+                "samples": 1114,
+                "percent_samples": 0.5774953084986159
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e45396",
+                "samples": 1111,
+                "percent_samples": 0.575940114669625
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70062ed0",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1800702",
+                "samples": 1110,
+                "percent_samples": 0.575421716726628
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637ec",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0xe8bd80f0",
+                "samples": 1110,
+                "percent_samples": 0.575421716726628
+              }
+            ]
+          },
+          "decoded": {
+            "exact_instructions": 26137201,
+            "samples": 25599,
+            "unmapped_opcode_samples": 0,
+            "modules": [
+              {
+                "module": "6r45_1b.exe",
+                "samples": 23273,
+                "percent_samples": 90.91370756670183,
+                "sampled_types": {
+                  "arm:ldr": 5518,
+                  "arm:smlal": 5050,
+                  "arm:mov": 4768,
+                  "arm:str": 1827,
+                  "arm:orr": 1350,
+                  "arm:cmp": 1080,
+                  "arm:add": 796,
+                  "arm:bbl": 719,
+                  "arm:cpy": 674,
+                  "arm:ldm": 461,
+                  "arm:bx": 407,
+                  "arm:sub": 296,
+                  "arm:rsb": 128,
+                  "arm:smull": 82,
+                  "arm:and": 32,
+                  "arm:ldrcond": 22,
+                  "arm:tst": 19,
+                  "arm:mul": 12,
+                  "arm:stm": 10,
+                  "arm:mla": 9,
+                  "arm:ldrb": 9,
+                  "arm:ldrh": 2,
+                  "arm:ldrsh": 1,
+                  "arm:strb": 1
+                }
+              },
+              {
+                "module": "dfpaeabi.dll",
+                "samples": 1117,
+                "percent_samples": 4.363451697331927,
+                "sampled_types": {
+                  "arm:orr": 189,
+                  "arm:adc": 160,
+                  "arm:mov": 157,
+                  "arm:cmp": 145,
+                  "arm:teq": 137,
+                  "arm:tst": 58,
+                  "arm:and": 49,
+                  "arm:bbl": 47,
+                  "arm:umull": 45,
+                  "arm:add": 44,
+                  "arm:sub": 42,
+                  "arm:bx": 38,
+                  "arm:rsb": 2,
+                  "arm:mvn": 2,
+                  "arm:bic": 1,
+                  "arm:eor": 1
+                }
+              },
+              {
+                "module": "euser.dll",
+                "samples": 1048,
+                "percent_samples": 4.093909918356186,
+                "sampled_types": {
+                  "arm:stm": 213,
+                  "arm:ldm": 125,
+                  "arm:bbl": 121,
+                  "arm:cmp": 104,
+                  "arm:str": 76,
+                  "arm:mov": 66,
+                  "arm:msr": 55,
+                  "arm:pld": 49,
+                  "thumb:bl_prefix_thumb": 48,
+                  "arm:ldrcond": 40,
+                  "thumb:blx_suffix_thumb": 36,
+                  "arm:sub": 31,
+                  "thumb:bl_suffix_thumb": 22,
+                  "arm:ldrex": 14,
+                  "arm:cpy": 11,
+                  "arm:teq": 10,
+                  "arm:strex": 8,
+                  "arm:bx": 5,
+                  "arm:and": 5,
+                  "arm:swi": 5,
+                  "arm:add": 4
+                }
+              },
+              {
+                "module": "drtaeabi.dll",
+                "samples": 92,
+                "percent_samples": 0.35938903863432164,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 39,
+                  "thumb:bl_suffix_thumb": 27,
+                  "thumb:blx_suffix_thumb": 24,
+                  "thumb:b_cond_thumb": 2
+                }
+              },
+              {
+                "module": "fbscli.dll",
+                "samples": 28,
+                "percent_samples": 0.10937927262783702,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 15,
+                  "thumb:bl_suffix_thumb": 8,
+                  "thumb:blx_suffix_thumb": 5
+                }
+              },
+              {
+                "module": "cone.dll",
+                "samples": 12,
+                "percent_samples": 0.046876831126215865,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 5,
+                  "thumb:bl_prefix_thumb": 4,
+                  "thumb:bl_suffix_thumb": 2,
+                  "thumb:ldr": 1
+                }
+              },
+              {
+                "module": "bitgdi.dll",
+                "samples": 10,
+                "percent_samples": 0.03906402593851322,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 4,
+                  "thumb:blx_suffix_thumb": 4,
+                  "thumb:str": 1,
+                  "thumb:bl_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "mediaclientaudiostream_general.dll",
+                "samples": 8,
+                "percent_samples": 0.03125122075081058,
+                "sampled_types": {
+                  "thumb:add": 2,
+                  "thumb:bl_prefix_thumb": 2,
+                  "arm:swi": 1,
+                  "thumb:cmp": 1,
+                  "thumb:sub": 1,
+                  "thumb:bl_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "scdv_general.dll",
+                "samples": 5,
+                "percent_samples": 0.01953201296925661,
+                "sampled_types": {
+                  "thumb:add": 2,
+                  "thumb:cpy": 1,
+                  "thumb:stm": 1,
+                  "thumb:ldr": 1
+                }
+              },
+              {
+                "module": "avkonfep.dll",
+                "samples": 3,
+                "percent_samples": 0.011719207781553966,
+                "sampled_types": {
+                  "thumb:add": 1,
+                  "thumb:mov": 1,
+                  "thumb:str": 1
+                }
+              },
+              {
+                "module": "apparc.dll",
+                "samples": 2,
+                "percent_samples": 0.007812805187702644,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 2
+                }
+              },
+              {
+                "module": "ws32.dll",
+                "samples": 1,
+                "percent_samples": 0.003906402593851322,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 1
+                }
+              }
+            ],
+            "processes": [
+              {
+                "process": "Snakes[2000730f]0003",
+                "samples": 25599,
+                "percent_samples": 100.0
+              }
+            ],
+            "exact_handler_types": [
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldr",
+                "count": 5698051
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "smlal",
+                "count": 5178516
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mov",
+                "count": 4956749
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "str",
+                "count": 1888327
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "orr",
+                "count": 1648475
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cmp",
+                "count": 1344908
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bbl",
+                "count": 948258
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "add",
+                "count": 897375
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cpy",
+                "count": 645293
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldm",
+                "count": 585145
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bx",
+                "count": 446583
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "sub",
+                "count": 400741
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "stm",
+                "count": 227447
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "adc",
+                "count": 153917
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "teq",
+                "count": 153035
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "rsb",
+                "count": 140723
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bl_prefix_thumb",
+                "count": 118107
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "smull",
+                "count": 117481
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "and",
+                "count": 78169
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrcond",
+                "count": 73499
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "tst",
+                "count": 71704
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "blx_suffix_thumb",
+                "count": 65230
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "msr",
+                "count": 62738
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "umull",
+                "count": 54322
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bl_suffix_thumb",
+                "count": 52942
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "pld",
+                "count": 50488
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mul",
+                "count": 11916
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "swi",
+                "count": 10052
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strex",
+                "count": 9900
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrex",
+                "count": 9900
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrb",
+                "count": 6103
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mla",
+                "count": 4458
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "add",
+                "count": 2932
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mvn",
+                "count": 2542
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldr",
+                "count": 2061
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bic",
+                "count": 1933
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "eor",
+                "count": 1865
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "mov",
+                "count": 1820
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strb",
+                "count": 1818
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "cpy",
+                "count": 1544
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "str",
+                "count": 1198
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrsh",
+                "count": 1135
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldm",
+                "count": 1024
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "b_cond_thumb",
+                "count": 1016
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "stm",
+                "count": 991
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cmn",
+                "count": 949
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrh",
+                "count": 883
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "cmp",
+                "count": 781
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "sub",
+                "count": 668
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strh",
+                "count": 351
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bx",
+                "count": 248
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "blx",
+                "count": 220
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "blx",
+                "count": 211
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "b_thumb",
+                "count": 206
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "strb",
+                "count": 160
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "orr",
+                "count": 48
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "mul",
+                "count": 29
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldrh",
+                "count": 7
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "strh",
+                "count": 6
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bic",
+                "count": 3
+              }
+            ],
+            "hot_pcs": [
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a64",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 117,
+                "percent_samples": 0.45704910348060473
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a6c",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xc3a00001",
+                "samples": 117,
+                "percent_samples": 0.45704910348060473
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006378c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917024",
+                "samples": 117,
+                "percent_samples": 0.45704910348060473
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e0",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a01623",
+                "samples": 116,
+                "percent_samples": 0.4531427008867534
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063748",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804000",
+                "samples": 114,
+                "percent_samples": 0.44532989569905074
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e8",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe580100c",
+                "samples": 114,
+                "percent_samples": 0.44532989569905074
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637d0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e43c96",
+                "samples": 111,
+                "percent_samples": 0.4336106879174968
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a68",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xd3a00000",
+                "samples": 110,
+                "percent_samples": 0.42970428532364546
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063774",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 109,
+                "percent_samples": 0.42579788272979413
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b0c",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 108,
+                "percent_samples": 0.4218914801359428
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b04",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xa3a00000",
+                "samples": 108,
+                "percent_samples": 0.4218914801359428
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637b4",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916030",
+                "samples": 107,
+                "percent_samples": 0.41798507754209147
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c8",
+                "thumb": 0,
+                "handler": "cpy",
+                "opcode": "0xe1a03005",
+                "samples": 106,
+                "percent_samples": 0.4140786749482402
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637a0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54e96",
+                "samples": 106,
+                "percent_samples": 0.4140786749482402
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e45396",
+                "samples": 105,
+                "percent_samples": 0.41017227235438886
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a70",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 104,
+                "percent_samples": 0.4062658697605375
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006377c",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804004",
+                "samples": 104,
+                "percent_samples": 0.4062658697605375
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637a8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 101,
+                "percent_samples": 0.3945466619789836
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637ec",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0xe8bd80f0",
+                "samples": 101,
+                "percent_samples": 0.3945466619789836
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063798",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916028",
+                "samples": 100,
+                "percent_samples": 0.39064025938513225
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637d8",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e43e95",
+                "samples": 99,
+                "percent_samples": 0.3867338567912809
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006374c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916010",
+                "samples": 98,
+                "percent_samples": 0.3828274541974296
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063794",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54c97",
+                "samples": 96,
+                "percent_samples": 0.3750146490097269
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e4",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1811a04",
+                "samples": 95,
+                "percent_samples": 0.37110824641587564
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637bc",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 94,
+                "percent_samples": 0.3672018438220243
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063740",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 93,
+                "percent_samples": 0.363295441228173
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063780",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916020",
+                "samples": 93,
+                "percent_samples": 0.363295441228173
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063778",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1844a05",
+                "samples": 92,
+                "percent_samples": 0.35938903863432164
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637ac",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1844a05",
+                "samples": 92,
+                "percent_samples": 0.35938903863432164
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637b8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a04000",
+                "samples": 92,
+                "percent_samples": 0.35938903863432164
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b00",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 91,
+                "percent_samples": 0.3554826360404703
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063738",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54e96",
+                "samples": 91,
+                "percent_samples": 0.3554826360404703
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063790",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54396",
+                "samples": 91,
+                "percent_samples": 0.3554826360404703
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063788",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 91,
+                "percent_samples": 0.3554826360404703
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063764",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916018",
+                "samples": 91,
+                "percent_samples": 0.3554826360404703
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c4",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916034",
+                "samples": 91,
+                "percent_samples": 0.3554826360404703
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637a4",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54297",
+                "samples": 90,
+                "percent_samples": 0.35157623344661904
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006373c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54297",
+                "samples": 89,
+                "percent_samples": 0.3476698308527677
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637dc",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e43291",
+                "samples": 89,
+                "percent_samples": 0.3476698308527677
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637cc",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5915038",
+                "samples": 89,
+                "percent_samples": 0.3476698308527677
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063770",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54297",
+                "samples": 88,
+                "percent_samples": 0.34376342825891637
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063750",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a04000",
+                "samples": 88,
+                "percent_samples": 0.34376342825891637
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b08",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xb3a00001",
+                "samples": 88,
+                "percent_samples": 0.34376342825891637
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063758",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917014",
+                "samples": 88,
+                "percent_samples": 0.34376342825891637
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063768",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591701c",
+                "samples": 88,
+                "percent_samples": 0.34376342825891637
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063754",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 87,
+                "percent_samples": 0.33985702566506504
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063784",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a04000",
+                "samples": 84,
+                "percent_samples": 0.3281378178835111
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637d4",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591103c",
+                "samples": 84,
+                "percent_samples": 0.3281378178835111
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063724",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54396",
+                "samples": 83,
+                "percent_samples": 0.32423141528965976
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063760",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54c97",
+                "samples": 83,
+                "percent_samples": 0.32423141528965976
+              }
+            ]
+          }
+        }
+      },
+      "regions_end_exclusive": {
+        "0x70063700-0x70063800": {
+          "executed": {
+            "samples": 58341,
+            "percent_samples": 30.24385439238577
+          },
+          "decoded": {
+            "samples": 4923,
+            "percent_samples": 19.23121996953006
+          }
+        },
+        "0x700002a8-0x700002b4": {
+          "executed": {
+            "samples": 7308,
+            "percent_samples": 3.7884521674217995
+          },
+          "decoded": {
+            "samples": 89,
+            "percent_samples": 0.3476698308527677
+          }
+        },
+        "0x70065b00-0x70065b10": {
+          "executed": {
+            "samples": 9379,
+            "percent_samples": 4.862054307368508
+          },
+          "decoded": {
+            "samples": 395,
+            "percent_samples": 1.5430290245712723
+          }
+        },
+        "0x70065a64-0x70065a74": {
+          "executed": {
+            "samples": 7803,
+            "percent_samples": 4.045059149205296
+          },
+          "decoded": {
+            "samples": 448,
+            "percent_samples": 1.7500683620453923
+          }
+        }
+      },
+      "raw_guest_profile_sha256": "74473a58a23f260a3cc927f9fee66ed00eceb128a7b5fa924184a9cce22c9a22",
+      "frame_records_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9"
+    },
+    "1009": {
+      "path": "/home/claude/.scratch/eka-benchmark/guest-profile-1009",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 49.7137,
+          "presentations": 170,
+          "aot_dispatches": 117675732,
+          "aot_instructions": 458913845,
+          "compiled_runner_calls": 16860275,
+          "ram_aot_dispatches": 106804779,
+          "ram_blocks_compiled": 329,
+          "decoded_instructions": 26137201,
+          "cache_hits": 17549243,
+          "cache_misses": 1842176,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 49.6071,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 48.8105,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.130153,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.213003,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 3.47579,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 3.46817,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 1.01649,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.295735,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.692669,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.646886,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00517171,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 156.62879954399997,
+        "guest_profile_stride": 1009,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "53bd06408f704c3898ff449c9c74eca73a993d0144a1a455f5b1552aca6e9fab",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "5e1c46333d4e563975db87c9c5a1adbd7da5921c",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "summary": {
+        "stride": 1009,
+        "measurement_guest_seconds": 4.0,
+        "guest_instructions": 655867149,
+        "aot_instructions": 458913845,
+        "git_head": "5e1c46333d4e563975db87c9c5a1adbd7da5921c",
+        "wasm_sha256": "53bd06408f704c3898ff449c9c74eca73a993d0144a1a455f5b1552aca6e9fab",
+        "streams": {
+          "executed": {
+            "exact_instructions": 196953304,
+            "samples": 195196,
+            "unmapped_opcode_samples": 0,
+            "modules": [
+              {
+                "module": "6r45_1b.exe",
+                "samples": 179226,
+                "percent_samples": 91.81847988688293,
+                "sampled_types": {
+                  "arm:ldr": 38240,
+                  "arm:mov": 36685,
+                  "arm:smlal": 36580,
+                  "arm:str": 13675,
+                  "arm:orr": 11059,
+                  "arm:cmp": 10528,
+                  "arm:bbl": 8300,
+                  "arm:bx": 5189,
+                  "arm:add": 4698,
+                  "arm:cpy": 4175,
+                  "arm:ldm": 3818,
+                  "arm:sub": 3352,
+                  "arm:smull": 1579,
+                  "arm:rsb": 283,
+                  "arm:and": 253,
+                  "arm:tst": 203,
+                  "arm:ldrcond": 182,
+                  "arm:ldrsh": 176,
+                  "arm:mul": 85,
+                  "arm:strh": 79,
+                  "arm:cmn": 39,
+                  "arm:stm": 17,
+                  "arm:ldrb": 14,
+                  "arm:mla": 13,
+                  "arm:strb": 3,
+                  "arm:mvn": 1
+                }
+              },
+              {
+                "module": "euser.dll",
+                "samples": 12005,
+                "percent_samples": 6.150228488288694,
+                "sampled_types": {
+                  "arm:stm": 2593,
+                  "arm:ldm": 2033,
+                  "arm:bbl": 1572,
+                  "arm:cmp": 1287,
+                  "arm:pld": 977,
+                  "arm:str": 800,
+                  "arm:msr": 759,
+                  "arm:ldrcond": 752,
+                  "arm:mov": 703,
+                  "arm:sub": 287,
+                  "thumb:bl_prefix_thumb": 61,
+                  "thumb:blx_suffix_thumb": 48,
+                  "thumb:bl_suffix_thumb": 34,
+                  "arm:strex": 24,
+                  "arm:swi": 17,
+                  "arm:bx": 14,
+                  "arm:ldrex": 14,
+                  "arm:teq": 11,
+                  "arm:cpy": 8,
+                  "arm:and": 5,
+                  "arm:add": 3,
+                  "arm:strb": 1,
+                  "arm:ldr": 1,
+                  "thumb:stm": 1
+                }
+              },
+              {
+                "module": "dfpaeabi.dll",
+                "samples": 3132,
+                "percent_samples": 1.604541076661407,
+                "sampled_types": {
+                  "arm:orr": 547,
+                  "arm:teq": 427,
+                  "arm:adc": 413,
+                  "arm:mov": 409,
+                  "arm:cmp": 379,
+                  "arm:add": 158,
+                  "arm:bx": 145,
+                  "arm:umull": 140,
+                  "arm:sub": 131,
+                  "arm:bbl": 128,
+                  "arm:tst": 124,
+                  "arm:and": 122,
+                  "arm:mvn": 4,
+                  "arm:eor": 3,
+                  "arm:bic": 1,
+                  "arm:rsb": 1
+                }
+              },
+              {
+                "module": "drtaeabi.dll",
+                "samples": 758,
+                "percent_samples": 0.3883276296645423,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 367,
+                  "thumb:blx_suffix_thumb": 337,
+                  "thumb:bl_suffix_thumb": 52,
+                  "thumb:add": 1,
+                  "thumb:str": 1
+                }
+              },
+              {
+                "module": "fbscli.dll",
+                "samples": 22,
+                "percent_samples": 0.01127072276071231,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 9,
+                  "thumb:bl_suffix_thumb": 9,
+                  "thumb:blx_suffix_thumb": 4
+                }
+              },
+              {
+                "module": "cone.dll",
+                "samples": 17,
+                "percent_samples": 0.00870919486055042,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 10,
+                  "thumb:blx_suffix_thumb": 4,
+                  "thumb:stm": 2,
+                  "thumb:bl_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "scdv_general.dll",
+                "samples": 12,
+                "percent_samples": 0.006147666960388532,
+                "sampled_types": {
+                  "thumb:add": 3,
+                  "arm:swi": 2,
+                  "thumb:cpy": 2,
+                  "thumb:ldr": 2,
+                  "thumb:ldm": 1,
+                  "thumb:str": 1,
+                  "thumb:blx_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "scppnwdl.dll",
+                "samples": 12,
+                "percent_samples": 0.006147666960388532,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 7,
+                  "thumb:blx_suffix_thumb": 5
+                }
+              },
+              {
+                "module": "mediaclientaudiostream_general.dll",
+                "samples": 5,
+                "percent_samples": 0.0025615279001618887,
+                "sampled_types": {
+                  "thumb:ldr": 2,
+                  "arm:swi": 1,
+                  "thumb:add": 1,
+                  "thumb:bl_prefix_thumb": 1
+                }
+              },
+              {
+                "module": "bitgdi.dll",
+                "samples": 3,
+                "percent_samples": 0.001536916740097133,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 2,
+                  "thumb:add": 1
+                }
+              },
+              {
+                "module": "drtrvct2_2.dll",
+                "samples": 1,
+                "percent_samples": 0.0005123055800323777,
+                "sampled_types": {
+                  "arm:mov": 1
+                }
+              },
+              {
+                "module": "avkonfep.dll",
+                "samples": 1,
+                "percent_samples": 0.0005123055800323777,
+                "sampled_types": {
+                  "thumb:cmp": 1
+                }
+              },
+              {
+                "module": "ws32.dll",
+                "samples": 1,
+                "percent_samples": 0.0005123055800323777,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 1
+                }
+              },
+              {
+                "module": "apparc.dll",
+                "samples": 1,
+                "percent_samples": 0.0005123055800323777,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 1
+                }
+              }
+            ],
+            "processes": [
+              {
+                "process": "Snakes[2000730f]0003",
+                "samples": 195196,
+                "percent_samples": 100.0
+              }
+            ],
+            "exact_handler_types": [
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldr",
+                "count": 38615299
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mov",
+                "count": 38538835
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "smlal",
+                "count": 36798864
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "str",
+                "count": 14529167
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cmp",
+                "count": 12191982
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "orr",
+                "count": 11625793
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bbl",
+                "count": 10209483
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldm",
+                "count": 5884443
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bx",
+                "count": 5436389
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "add",
+                "count": 4879187
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cpy",
+                "count": 4114087
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "sub",
+                "count": 3777937
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "stm",
+                "count": 2609169
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "smull",
+                "count": 1610318
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "pld",
+                "count": 990602
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrcond",
+                "count": 924221
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "msr",
+                "count": 789275
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bl_prefix_thumb",
+                "count": 456836
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "teq",
+                "count": 421989
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "adc",
+                "count": 420077
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "blx_suffix_thumb",
+                "count": 373524
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "and",
+                "count": 370469
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "tst",
+                "count": 368377
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "rsb",
+                "count": 293011
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrsh",
+                "count": 179980
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "umull",
+                "count": 145020
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strh",
+                "count": 84367
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bl_suffix_thumb",
+                "count": 83312
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mul",
+                "count": 81687
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cmn",
+                "count": 34001
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mla",
+                "count": 21064
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrb",
+                "count": 17232
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strex",
+                "count": 16964
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrex",
+                "count": 16964
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "swi",
+                "count": 14982
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bic",
+                "count": 3751
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mvn",
+                "count": 3444
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "add",
+                "count": 2934
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "eor",
+                "count": 2929
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldr",
+                "count": 2119
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strb",
+                "count": 1985
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "mov",
+                "count": 1870
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "cpy",
+                "count": 1544
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "str",
+                "count": 1206
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "b_cond_thumb",
+                "count": 1046
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldm",
+                "count": 1038
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "stm",
+                "count": 1005
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrh",
+                "count": 883
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "cmp",
+                "count": 809
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "sub",
+                "count": 680
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bx",
+                "count": 250
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "blx",
+                "count": 225
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "blx",
+                "count": 220
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "b_thumb",
+                "count": 206
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "strb",
+                "count": 160
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "orr",
+                "count": 48
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "mul",
+                "count": 29
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldrh",
+                "count": 7
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "strh",
+                "count": 6
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bic",
+                "count": 3
+              }
+            ],
+            "hot_pcs": [
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002ac",
+                "thumb": 0,
+                "handler": "sub",
+                "opcode": "0xe25bb001",
+                "samples": 2487,
+                "percent_samples": 1.2741039775405234
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002b0",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0x1afffffc",
+                "samples": 2465,
+                "percent_samples": 1.2628332547798111
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b00",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 2458,
+                "percent_samples": 1.2592471157195844
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002a8",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe4813004",
+                "samples": 2431,
+                "percent_samples": 1.2454148650587102
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b0c",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 2371,
+                "percent_samples": 1.2146765302567675
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b08",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xb3a00001",
+                "samples": 2313,
+                "percent_samples": 1.1849628066148896
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b04",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xa3a00000",
+                "samples": 2284,
+                "percent_samples": 1.1701059447939508
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a6c",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xc3a00001",
+                "samples": 2062,
+                "percent_samples": 1.0563741060267628
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a64",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 2026,
+                "percent_samples": 1.0379311051455973
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a68",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xd3a00000",
+                "samples": 1992,
+                "percent_samples": 1.0205127154244964
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a70",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 1965,
+                "percent_samples": 1.0066804647636223
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637d0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e43c96",
+                "samples": 1230,
+                "percent_samples": 0.6301358634398246
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063744",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1844a05",
+                "samples": 1210,
+                "percent_samples": 0.619889751839177
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637d8",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e43e95",
+                "samples": 1204,
+                "percent_samples": 0.6168159183589828
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063760",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54c97",
+                "samples": 1191,
+                "percent_samples": 0.6101559458185618
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006372c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916008",
+                "samples": 1190,
+                "percent_samples": 0.6096436402385295
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006376c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54e96",
+                "samples": 1186,
+                "percent_samples": 0.6075944179184
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e8",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe580100c",
+                "samples": 1180,
+                "percent_samples": 0.6045205844382057
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637ec",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0xe8bd80f0",
+                "samples": 1176,
+                "percent_samples": 0.6024713621180762
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063738",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54e96",
+                "samples": 1171,
+                "percent_samples": 0.5999098342179143
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063750",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a04000",
+                "samples": 1171,
+                "percent_samples": 0.5999098342179143
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637d4",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591103c",
+                "samples": 1170,
+                "percent_samples": 0.5993975286378819
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063748",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804000",
+                "samples": 1170,
+                "percent_samples": 0.5993975286378819
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063778",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1844a05",
+                "samples": 1167,
+                "percent_samples": 0.5978606118977848
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70062ed4",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0xe8bd8010",
+                "samples": 1167,
+                "percent_samples": 0.5978606118977848
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063768",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591701c",
+                "samples": 1163,
+                "percent_samples": 0.5958113895776552
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063734",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe592200c",
+                "samples": 1162,
+                "percent_samples": 0.5952990839976229
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063728",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54c97",
+                "samples": 1158,
+                "percent_samples": 0.5932498616774934
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e45396",
+                "samples": 1158,
+                "percent_samples": 0.5932498616774934
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637b0",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804008",
+                "samples": 1158,
+                "percent_samples": 0.5932498616774934
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637cc",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5915038",
+                "samples": 1157,
+                "percent_samples": 0.592737556097461
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e4",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1811a04",
+                "samples": 1156,
+                "percent_samples": 0.5922252505174286
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637a8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 1154,
+                "percent_samples": 0.5912006393573639
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637a0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54e96",
+                "samples": 1152,
+                "percent_samples": 0.5901760281972991
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006373c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54297",
+                "samples": 1150,
+                "percent_samples": 0.5891514170372344
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e0",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a01623",
+                "samples": 1150,
+                "percent_samples": 0.5891514170372344
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063724",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54396",
+                "samples": 1145,
+                "percent_samples": 0.5865898891370724
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70062ec8",
+                "thumb": 0,
+                "handler": "smull",
+                "opcode": "0xe0c20091",
+                "samples": 1144,
+                "percent_samples": 0.5860775835570401
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063794",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54c97",
+                "samples": 1143,
+                "percent_samples": 0.5855652779770077
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063770",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54297",
+                "samples": 1142,
+                "percent_samples": 0.5850529723969754
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063784",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a04000",
+                "samples": 1141,
+                "percent_samples": 0.5845406668169429
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063754",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 1139,
+                "percent_samples": 0.5835160556568783
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063758",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917014",
+                "samples": 1139,
+                "percent_samples": 0.5835160556568783
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006378c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917024",
+                "samples": 1139,
+                "percent_samples": 0.5835160556568783
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006379c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591702c",
+                "samples": 1139,
+                "percent_samples": 0.5835160556568783
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063780",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916020",
+                "samples": 1138,
+                "percent_samples": 0.5830037500768458
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637bc",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 1135,
+                "percent_samples": 0.5814668333367488
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063790",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54396",
+                "samples": 1132,
+                "percent_samples": 0.5799299165966516
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c8",
+                "thumb": 0,
+                "handler": "cpy",
+                "opcode": "0xe1a03005",
+                "samples": 1127,
+                "percent_samples": 0.5773683886964897
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006374c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916010",
+                "samples": 1127,
+                "percent_samples": 0.5773683886964897
+              }
+            ]
+          },
+          "decoded": {
+            "exact_instructions": 26137201,
+            "samples": 25904,
+            "unmapped_opcode_samples": 0,
+            "modules": [
+              {
+                "module": "6r45_1b.exe",
+                "samples": 23568,
+                "percent_samples": 90.98208770846202,
+                "sampled_types": {
+                  "arm:ldr": 5720,
+                  "arm:smlal": 5059,
+                  "arm:mov": 4744,
+                  "arm:str": 1762,
+                  "arm:orr": 1397,
+                  "arm:cmp": 1104,
+                  "arm:add": 858,
+                  "arm:bbl": 723,
+                  "arm:cpy": 637,
+                  "arm:ldm": 481,
+                  "arm:bx": 398,
+                  "arm:sub": 332,
+                  "arm:rsb": 142,
+                  "arm:smull": 109,
+                  "arm:ldrcond": 27,
+                  "arm:and": 21,
+                  "arm:mul": 15,
+                  "arm:tst": 14,
+                  "arm:stm": 13,
+                  "arm:ldrb": 4,
+                  "arm:strb": 3,
+                  "arm:mla": 2,
+                  "arm:cmn": 1,
+                  "arm:ldrsh": 1,
+                  "arm:strh": 1
+                }
+              },
+              {
+                "module": "dfpaeabi.dll",
+                "samples": 1137,
+                "percent_samples": 4.3892835083384805,
+                "sampled_types": {
+                  "arm:orr": 175,
+                  "arm:cmp": 167,
+                  "arm:teq": 158,
+                  "arm:mov": 144,
+                  "arm:adc": 142,
+                  "arm:bbl": 63,
+                  "arm:bx": 53,
+                  "arm:and": 53,
+                  "arm:umull": 49,
+                  "arm:add": 48,
+                  "arm:tst": 42,
+                  "arm:sub": 37,
+                  "arm:bic": 2,
+                  "arm:eor": 2,
+                  "arm:rsb": 1,
+                  "arm:mvn": 1
+                }
+              },
+              {
+                "module": "euser.dll",
+                "samples": 1050,
+                "percent_samples": 4.053428042001236,
+                "sampled_types": {
+                  "arm:stm": 217,
+                  "arm:bbl": 142,
+                  "arm:cmp": 116,
+                  "arm:ldm": 106,
+                  "arm:str": 59,
+                  "arm:pld": 54,
+                  "thumb:bl_prefix_thumb": 53,
+                  "arm:mov": 52,
+                  "arm:msr": 51,
+                  "arm:ldrcond": 50,
+                  "arm:sub": 37,
+                  "thumb:blx_suffix_thumb": 29,
+                  "arm:teq": 15,
+                  "thumb:bl_suffix_thumb": 15,
+                  "arm:strex": 10,
+                  "arm:swi": 10,
+                  "arm:bx": 9,
+                  "arm:cpy": 7,
+                  "arm:add": 7,
+                  "arm:ldrex": 5,
+                  "arm:and": 5,
+                  "arm:ldr": 1
+                }
+              },
+              {
+                "module": "drtaeabi.dll",
+                "samples": 100,
+                "percent_samples": 0.38604076590487957,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 52,
+                  "thumb:bl_suffix_thumb": 29,
+                  "thumb:blx_suffix_thumb": 14,
+                  "arm:rsb": 2,
+                  "arm:sub": 1,
+                  "thumb:mov": 1,
+                  "thumb:ldm": 1
+                }
+              },
+              {
+                "module": "fbscli.dll",
+                "samples": 23,
+                "percent_samples": 0.0887893761581223,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 11,
+                  "thumb:bl_suffix_thumb": 7,
+                  "thumb:blx_suffix_thumb": 5
+                }
+              },
+              {
+                "module": "bitgdi.dll",
+                "samples": 7,
+                "percent_samples": 0.027022853613341568,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 5,
+                  "thumb:bl_suffix_thumb": 1,
+                  "thumb:blx_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "scdv_general.dll",
+                "samples": 6,
+                "percent_samples": 0.023162445954292774,
+                "sampled_types": {
+                  "thumb:cpy": 1,
+                  "thumb:add": 1,
+                  "thumb:ldr": 1,
+                  "thumb:str": 1,
+                  "thumb:bl_prefix_thumb": 1,
+                  "thumb:blx_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "cone.dll",
+                "samples": 5,
+                "percent_samples": 0.01930203829524398,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 4,
+                  "thumb:mov": 1
+                }
+              },
+              {
+                "module": "mediaclientaudiostream_general.dll",
+                "samples": 3,
+                "percent_samples": 0.011581222977146387,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 2,
+                  "thumb:bl_prefix_thumb": 1
+                }
+              },
+              {
+                "module": "ws32.dll",
+                "samples": 2,
+                "percent_samples": 0.0077208153180975915,
+                "sampled_types": {
+                  "thumb:str": 1,
+                  "thumb:bl_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "apparc.dll",
+                "samples": 2,
+                "percent_samples": 0.0077208153180975915,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 1,
+                  "thumb:blx_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "avkon.dll",
+                "samples": 1,
+                "percent_samples": 0.0038604076590487957,
+                "sampled_types": {
+                  "thumb:stm": 1
+                }
+              }
+            ],
+            "processes": [
+              {
+                "process": "Snakes[2000730f]0003",
+                "samples": 25904,
+                "percent_samples": 100.0
+              }
+            ],
+            "exact_handler_types": [
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldr",
+                "count": 5698051
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "smlal",
+                "count": 5178516
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mov",
+                "count": 4956749
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "str",
+                "count": 1888327
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "orr",
+                "count": 1648475
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cmp",
+                "count": 1344908
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bbl",
+                "count": 948258
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "add",
+                "count": 897375
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cpy",
+                "count": 645293
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldm",
+                "count": 585145
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bx",
+                "count": 446583
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "sub",
+                "count": 400741
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "stm",
+                "count": 227447
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "adc",
+                "count": 153917
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "teq",
+                "count": 153035
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "rsb",
+                "count": 140723
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bl_prefix_thumb",
+                "count": 118107
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "smull",
+                "count": 117481
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "and",
+                "count": 78169
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrcond",
+                "count": 73499
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "tst",
+                "count": 71704
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "blx_suffix_thumb",
+                "count": 65230
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "msr",
+                "count": 62738
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "umull",
+                "count": 54322
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bl_suffix_thumb",
+                "count": 52942
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "pld",
+                "count": 50488
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mul",
+                "count": 11916
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "swi",
+                "count": 10052
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strex",
+                "count": 9900
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrex",
+                "count": 9900
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrb",
+                "count": 6103
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mla",
+                "count": 4458
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "add",
+                "count": 2932
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mvn",
+                "count": 2542
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldr",
+                "count": 2061
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bic",
+                "count": 1933
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "eor",
+                "count": 1865
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "mov",
+                "count": 1820
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strb",
+                "count": 1818
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "cpy",
+                "count": 1544
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "str",
+                "count": 1198
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrsh",
+                "count": 1135
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldm",
+                "count": 1024
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "b_cond_thumb",
+                "count": 1016
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "stm",
+                "count": 991
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cmn",
+                "count": 949
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrh",
+                "count": 883
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "cmp",
+                "count": 781
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "sub",
+                "count": 668
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strh",
+                "count": 351
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bx",
+                "count": 248
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "blx",
+                "count": 220
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "blx",
+                "count": 211
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "b_thumb",
+                "count": 206
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "strb",
+                "count": 160
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "orr",
+                "count": 48
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "mul",
+                "count": 29
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldrh",
+                "count": 7
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "strh",
+                "count": 6
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bic",
+                "count": 3
+              }
+            ],
+            "hot_pcs": [
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b00",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 119,
+                "percent_samples": 0.45938851142680664
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c8",
+                "thumb": 0,
+                "handler": "cpy",
+                "opcode": "0xe1a03005",
+                "samples": 117,
+                "percent_samples": 0.4516676961087091
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a70",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 113,
+                "percent_samples": 0.4362260654725139
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c4",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916034",
+                "samples": 113,
+                "percent_samples": 0.4362260654725139
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006376c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54e96",
+                "samples": 110,
+                "percent_samples": 0.4246448424953675
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e4",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1811a04",
+                "samples": 110,
+                "percent_samples": 0.4246448424953675
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b0c",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 109,
+                "percent_samples": 0.4207844348363187
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a68",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xd3a00000",
+                "samples": 109,
+                "percent_samples": 0.4207844348363187
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063764",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916018",
+                "samples": 107,
+                "percent_samples": 0.4130636195182211
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637c0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e45396",
+                "samples": 106,
+                "percent_samples": 0.40920321185917236
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063774",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 106,
+                "percent_samples": 0.40920321185917236
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637cc",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5915038",
+                "samples": 105,
+                "percent_samples": 0.40534280420012353
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a6c",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xc3a00001",
+                "samples": 104,
+                "percent_samples": 0.40148239654107476
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b04",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xa3a00000",
+                "samples": 104,
+                "percent_samples": 0.40148239654107476
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637ec",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0xe8bd80f0",
+                "samples": 104,
+                "percent_samples": 0.40148239654107476
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637a0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54e96",
+                "samples": 103,
+                "percent_samples": 0.39762198888202593
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063788",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 102,
+                "percent_samples": 0.39376158122297716
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a64",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 101,
+                "percent_samples": 0.38990117356392834
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e0",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a01623",
+                "samples": 101,
+                "percent_samples": 0.38990117356392834
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637a8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 100,
+                "percent_samples": 0.38604076590487957
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637a4",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54297",
+                "samples": 99,
+                "percent_samples": 0.38218035824583074
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637b8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a04000",
+                "samples": 99,
+                "percent_samples": 0.38218035824583074
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637d0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e43c96",
+                "samples": 97,
+                "percent_samples": 0.37445954292773315
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063750",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a04000",
+                "samples": 97,
+                "percent_samples": 0.37445954292773315
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637ac",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1844a05",
+                "samples": 95,
+                "percent_samples": 0.36673872760963555
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063748",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804000",
+                "samples": 95,
+                "percent_samples": 0.36673872760963555
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006373c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54297",
+                "samples": 94,
+                "percent_samples": 0.3628783199505868
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063790",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54396",
+                "samples": 94,
+                "percent_samples": 0.3628783199505868
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637d8",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e43e95",
+                "samples": 94,
+                "percent_samples": 0.3628783199505868
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006377c",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804004",
+                "samples": 94,
+                "percent_samples": 0.3628783199505868
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063798",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916028",
+                "samples": 93,
+                "percent_samples": 0.359017912291538
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006378c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917024",
+                "samples": 92,
+                "percent_samples": 0.3551575046324892
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006379c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591702c",
+                "samples": 92,
+                "percent_samples": 0.3551575046324892
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063760",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54c97",
+                "samples": 90,
+                "percent_samples": 0.3474366893143916
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063794",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54c97",
+                "samples": 90,
+                "percent_samples": 0.3474366893143916
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006375c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54396",
+                "samples": 89,
+                "percent_samples": 0.3435762816553428
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063784",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a04000",
+                "samples": 88,
+                "percent_samples": 0.339715873996294
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637e8",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe580100c",
+                "samples": 88,
+                "percent_samples": 0.339715873996294
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637bc",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 86,
+                "percent_samples": 0.3319950586781964
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063730",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591700c",
+                "samples": 86,
+                "percent_samples": 0.3319950586781964
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063778",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1844a05",
+                "samples": 85,
+                "percent_samples": 0.3281346510191476
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b08",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xb3a00001",
+                "samples": 85,
+                "percent_samples": 0.3281346510191476
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006374c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916010",
+                "samples": 85,
+                "percent_samples": 0.3281346510191476
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063754",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 82,
+                "percent_samples": 0.31655342804200126
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637dc",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e43291",
+                "samples": 81,
+                "percent_samples": 0.31269302038295244
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063740",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 81,
+                "percent_samples": 0.31269302038295244
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637d4",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591103c",
+                "samples": 81,
+                "percent_samples": 0.31269302038295244
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700637b0",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804008",
+                "samples": 81,
+                "percent_samples": 0.31269302038295244
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063724",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54396",
+                "samples": 80,
+                "percent_samples": 0.30883261272390367
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063770",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54297",
+                "samples": 80,
+                "percent_samples": 0.30883261272390367
+              }
+            ]
+          }
+        }
+      },
+      "regions_end_exclusive": {
+        "0x70063700-0x70063800": {
+          "executed": {
+            "samples": 59148,
+            "percent_samples": 30.301850447755076
+          },
+          "decoded": {
+            "samples": 4813,
+            "percent_samples": 18.58014206300185
+          }
+        },
+        "0x700002a8-0x700002b4": {
+          "executed": {
+            "samples": 7383,
+            "percent_samples": 3.7823520973790448
+          },
+          "decoded": {
+            "samples": 106,
+            "percent_samples": 0.40920321185917236
+          }
+        },
+        "0x70065b00-0x70065b10": {
+          "executed": {
+            "samples": 9426,
+            "percent_samples": 4.828992397385193
+          },
+          "decoded": {
+            "samples": 417,
+            "percent_samples": 1.6097899938233478
+          }
+        },
+        "0x70065a64-0x70065a74": {
+          "executed": {
+            "samples": 8045,
+            "percent_samples": 4.121498391360479
+          },
+          "decoded": {
+            "samples": 427,
+            "percent_samples": 1.6483940704138358
+          }
+        }
+      },
+      "raw_guest_profile_sha256": "4c8ecff534c0743a39d30e94cfa97737b9eac9a65276ced73ed481546754fc61",
+      "frame_records_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9"
+    }
+  },
+  "validation": {
+    "native_reference": "/home/claude/.scratch/eka-benchmark/audio-native-0/run-0/frames",
+    "frames_per_run": 85,
+    "png_and_guest_records_exact": true,
+    "exact_type_counts_equal_between_runs": true,
+    "counter_reconciliation": true
+  },
+  "tests": {
+    "wasm_pass": 123,
+    "native_cpu": "pass",
+    "native_package_pass": 83,
+    "native_package_fail": 7
+  },
+  "test_log_sha256": {
+    "/home/claude/.scratch/eka-guest-profile-wasm-tests.log": "4ed0a82766b6075c5a517b6c534fc046fa4afbceeadd4006bb82f8083e989a64",
+    "/home/claude/.scratch/eka-guest-profile-native-tests-final.log": "1d4aa494c1bbdb2d52e136d91dff60327708bcd826bd2ae58e11db1e4a3f723c"
+  }
+}
