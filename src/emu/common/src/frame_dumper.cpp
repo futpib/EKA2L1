@@ -1,5 +1,6 @@
 #include <common/frame_dumper.h>
 #include <common/deterministic.h>
+#include <common/performance.h>
 #include <common/log.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -63,6 +64,7 @@ namespace eka2l1::common {
     }
 
     bool frame_dumper::on_frame(const std::uint8_t *rgba_data, int width, int height) {
+        performance::scope capture_scope(performance::frame_capture);
         if (done()) {
             return false;
         }
@@ -111,7 +113,11 @@ namespace eka2l1::common {
                 previous_pixels_ = flipped;
             }
 
-            int ok = stbi_write_png(filename, width, height, 4, flipped.data(), width * 4);
+            int ok = 1;
+            if (!performance::enabled || performance::capture_mode == 0) {
+                performance::scope png_scope(performance::png_encode);
+                ok = stbi_write_png(filename, width, height, 4, flipped.data(), width * 4);
+            }
             if (ok) {
                 LOG_INFO(COMMON, "Frame dumper: captured frame {} -> {}", frame_index_, filename);
             } else {

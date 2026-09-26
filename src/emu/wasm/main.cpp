@@ -19,6 +19,7 @@
 
 #include <common/cvt.h>
 #include <common/frame_dumper.h>
+#include <common/performance.h>
 #include <drivers/audio/deterministic.h>
 #include <common/deterministic.h>
 #include <system/deterministic.h>
@@ -137,6 +138,30 @@ namespace {
 }
 
 extern "C" {
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_profile_configure(int start_us, int end_us, int mode) {
+    if (g_state || start_us < 0 || end_us <= start_us || end_us > 120000000 || mode < 0 || mode > 2) return -1;
+    common::performance::enabled = true;
+    common::performance::start_us = start_us;
+    common::performance::end_us = end_us;
+    common::performance::capture_mode = mode;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_profile_phase() { return common::performance::phase.load(); }
+
+EMSCRIPTEN_KEEPALIVE
+void eka2l1_profile_resume() { common::performance::resume(); }
+
+EMSCRIPTEN_KEEPALIVE
+const char *eka2l1_profile_report() {
+    static std::string result;
+    if (common::performance::phase.load() != 3) return "{}";
+    result = common::performance::report();
+    return result.c_str();
+}
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_benchmark_configure(int frames, int start_us, int unique) {
@@ -282,6 +307,11 @@ int eka2l1_run(const char *app_name) {
 
         g_state->symsys->set_graphics_driver(g_state->graphics_driver.get());
         g_state->graphics_driver->set_display_hook([]() {
+            common::performance::scope display_scope(common::performance::display_hook);
+            if (common::performance::enabled) {
+                if (common::performance::phase.load() == 2) ++common::performance::presentations;
+                if (common::performance::capture_mode == 2) return;
+            }
             if (!g_state || !g_state->winserv) return;
 
             auto *scr = g_state->winserv->get_screens();
@@ -297,8 +327,9 @@ int eka2l1_run(const char *app_name) {
             std::vector<GLubyte> pixels(total);
             auto *shared_drv = static_cast<drivers::shared_graphics_driver*>(
                 g_state->graphics_driver.get());
-            if (!shared_drv->read_bitmap_pixels(scr->screen_texture, w, h, pixels.data())) {
-                return;
+            {
+                common::performance::scope read_scope(common::performance::readback);
+                if (!shared_drv->read_bitmap_pixels(scr->screen_texture, w, h, pixels.data())) return;
             }
 
             // Count distinct colors (for e2e test verification)
@@ -520,6 +551,10 @@ int eka2l1_run(const char *app_name) {
         LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
         int iterations = 0;
         while (g_state && g_state->running) {
+            if (common::performance::checkpoint(common::benchmark::virtual_us.load(), common::benchmark::instructions.load())) {
+                g_state->running = false;
+                break;
+            }
             int ret = g_state->symsys->loop();
             iterations++;
             if (ret == 0) {

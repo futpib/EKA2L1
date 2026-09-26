@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <vector>
 #include <common/log.h>
+#include <common/performance.h>
 #include <common/types.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
@@ -807,6 +808,7 @@ enum { KEEP_GOING,
 
 static unsigned int InterpreterTranslateInstruction(ARMul_State *cpu, const std::uint32_t phys_addr,
     ARM_INST_PTR &inst_base) {
+    if (eka2l1::common::performance::counting()) ++eka2l1::common::performance::decoded_instructions;
     std::uint32_t inst_size = 4;
     std::uint32_t inst = cpu->ReadCode(phys_addr & 0xFFFFFFFC);
 
@@ -1714,6 +1716,10 @@ DISPATCH : {
 
     // Find the cached instruction cream, otherwise translate it...
     auto itr = cpu->instruction_cache.find(cpu->Reg[15]);
+    if (eka2l1::common::performance::counting()) {
+        if (itr != cpu->instruction_cache.end()) ++eka2l1::common::performance::cache_hits;
+        else ++eka2l1::common::performance::cache_misses;
+    }
     if (itr != cpu->instruction_cache.end()) {
         ptr = itr->second;
     } else if (cpu->NumInstrsToExecute != 1) {

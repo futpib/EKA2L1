@@ -1,6 +1,7 @@
 #include <system/deterministic.h>
 #include <system/epoc.h>
 #include <common/deterministic.h>
+#include <common/performance.h>
 #include <common/log.h>
 #include <kernel/timing.h>
 #include <services/window/window.h>
@@ -18,6 +19,7 @@ namespace eka2l1 {
         auto *timer = sys->get_ntimer();
         drivers::reset_benchmark_audio();
         const int audio_event = timer->register_event("BenchmarkAudio", [timer](std::uint64_t deadline, int) {
+            common::performance::scope audio_scope(common::performance::audio);
             drivers::pump_benchmark_audio(timer->microseconds());
             const auto next = deadline + 10000;
             timer->schedule_event(static_cast<std::int64_t>(next) - timer->microseconds(),

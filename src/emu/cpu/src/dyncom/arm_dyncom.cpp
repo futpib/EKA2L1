@@ -22,6 +22,7 @@
 #include <cpu/dyncom/arm_dyncom_trans.h>
 
 #include <common/log.h>
+#include <common/performance.h>
 
 namespace eka2l1::arm {
     dyncom_core::dyncom_core(arm::exclusive_monitor *monitor, const std::size_t page_bits)
@@ -129,6 +130,7 @@ namespace eka2l1::arm {
     }
 
     void dyncom_core::load_context(const thread_context &ctx) {
+        if (common::performance::counting()) ++common::performance::context_loads;
         clear_instruction_cache();
 
         for (uint8_t i = 0; i < 16; i++) {
@@ -158,11 +160,13 @@ namespace eka2l1::arm {
     }
 
     void dyncom_core::clear_instruction_cache() {
+        if (common::performance::counting()) ++common::performance::cache_clears;
         state_->instruction_cache.clear();
         state_->trans_cache_buf_top = 0;
     }
 
     void dyncom_core::imb_range(address addr, std::size_t size) {
+        if (common::performance::counting()) ++common::performance::imb_calls;
         clear_instruction_cache();
     }
 

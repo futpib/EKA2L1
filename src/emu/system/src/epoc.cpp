@@ -62,6 +62,7 @@
 #include <kernel/libmanager.h>
 #include <kernel/timing.h>
 #include <common/deterministic.h>
+#include <common/performance.h>
 #include <ldd/collection.h>
 #include <loader/rom.h>
 #include <package/manager.h>
@@ -687,6 +688,7 @@ namespace eka2l1 {
     }
 
     int system_impl::loop() {
+        common::performance::scope loop_scope(common::performance::cpu_loop);
         const std::lock_guard<std::mutex> guard(mut);
 
         if (paused) {
@@ -727,6 +729,7 @@ namespace eka2l1 {
         }
 
         if (to_run != nullptr) {
+            common::performance::scope run_scope(common::performance::cpu_run);
             if (!should_step) {
                 cpu->run(timing_->deterministic()
                     ? std::min<std::uint32_t>(to_run->get_remaining_screenticks(), 4840)
@@ -744,11 +747,13 @@ namespace eka2l1 {
         }
 
         if (timing_->deterministic()) {
+            common::performance::scope timer_scope(common::performance::timers);
             if (to_run) timing_->advance_instructions(cpu->get_num_instruction_executed());
             else timing_->advance_to_next_event();
         }
 
         if (!kern_->should_terminate()) {
+            common::performance::scope scheduler_scope(common::performance::scheduler);
             kern_->reschedule();
         } else {
             exit = true;

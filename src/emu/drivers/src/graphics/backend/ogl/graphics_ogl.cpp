@@ -18,6 +18,7 @@
  */
 
 #include <common/deterministic.h>
+#include <common/performance.h>
 #include <common/algorithm.h>
 #include <common/log.h>
 #include <common/platform.h>
@@ -1925,6 +1926,7 @@ namespace eka2l1::drivers {
                 break;
             }
 
+            common::performance::scope dispatch_scope(common::performance::graphics_dispatch);
             for (std::size_t i = 0; i < list->size_; i++) {
                 dispatch(list->base_[i]);
             }
@@ -1941,6 +1943,7 @@ namespace eka2l1::drivers {
     }
 
     void ogl_graphics_driver::wait_for(int *status) {
+        common::performance::scope wait_scope(common::performance::graphics_wait);
         if (should_stop) {
             return;
         }
