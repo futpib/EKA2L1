@@ -35,6 +35,7 @@
 namespace eka2l1::arm::aot {
 // Optional differential execution. Guest memory is changed only by compiled
 // execution; the reference interpreter uses a private byte overlay.
+bool diagnostics_enabled = false;
 bool validation_running = false;
 static bool validating = false;
 static ARMul_State *validation_guest = nullptr;

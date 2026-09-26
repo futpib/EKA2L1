@@ -42,3 +42,8 @@ See [AOT_RESULTS.md](AOT_RESULTS.md) for the measured replay scope, speed and
 remaining limits. The machine-readable reports and binary hashes are in
 [AOT_EVIDENCE.json](AOT_EVIDENCE.json). Do not infer speed from the number of
 compiled functions.
+
+AOT register history and per-module accounting are now disabled by default.
+Set `EKA2L1_AOT_DIAGNOSTICS=1` on either browser runner to restore them.
+`profile_batch.py --compare-diagnostics` measures hot-ROM mode with bookkeeping
+off, on, then off again; instruction budgets and guest behavior are identical.

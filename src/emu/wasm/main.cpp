@@ -24,6 +24,7 @@
 #include <common/deterministic.h>
 #include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
+#include <cpu/aot/aot_runtime.h>
 #include <common/log.h>
 #include <common/path.h>
 #include <common/pystr.h>
@@ -140,8 +141,9 @@ namespace {
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_aot_configure(int enabled, int verify) {
+int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
     if (g_state || (enabled < 0 || enabled > 2)) return -1;
+    eka2l1::arm::aot::diagnostics_enabled = diagnostics != 0;
     if (verify) setenv("EKA2L1_AOT_VERIFY", "1", 1);
     else unsetenv("EKA2L1_AOT_VERIFY");
     if (enabled == 2) setenv("EKA2L1_AOT_HOT", "1", 1);

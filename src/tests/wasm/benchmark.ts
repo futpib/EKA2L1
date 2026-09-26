@@ -7,6 +7,7 @@ import {startServer, buildDir} from './server.ts';
 
 const [assetArg, outputArg, frameArg = '1000', inputArg = '../benchmark/snakes.input', startArg = '21000000'] = process.argv.slice(2);
 if (!assetArg || !outputArg) throw new Error('Usage: node benchmark.ts ASSETS NEW_OUTPUT [FRAMES] [INPUT] [START_US]');
+const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
 const verifyAot = process.env.EKA2L1_AOT_VERIFY === "1";
 const aot = Number(process.env.EKA2L1_BENCHMARK_AOT || "0");
 if (![0,1,2].includes(aot)) throw new Error("AOT mode must be 0, 1 or 2");
@@ -49,14 +50,14 @@ try {
   page.on('response', response => {if (response.status() >= 400) failures.push(`HTTP ${response.status()} ${response.url()}`);});
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
-  await page.evaluate(async ({count, startUs, aot, verifyAot}) => {
+  await page.evaluate(async ({count, startUs, aot, verifyAot, aotDiagnostics}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
       if (code !== 0) throw new Error(`${name} returned ${code}`);
     };
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
-    call('eka2l1_aot_configure', ['number', 'number'], [aot, verifyAot ? 1 : 0]);
+    call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot ? 1 : 0, aotDiagnostics ? 1 : 0]);
     call('eka2l1_init', ['string'], ['/data']);
     for (const name of ['SYM.ROM', 'SYM.RPKG', 'Snakes.sis', 'input']) {
       const response = await fetch(`/preload/${name}`);
@@ -68,7 +69,7 @@ try {
     g.FS.mkdir('/frames');
     g.Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], ['/frames', count]);
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {count: frames, startUs, aot, verifyAot});
+  }, {count: frames, startUs, aot, verifyAot, aotDiagnostics});
   const start = performance.now();
   let lastCount = -1;
   while (true) {
@@ -104,7 +105,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
-    assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, aot, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
+    assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, aot, aot_diagnostics: aotDiagnostics, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');
 } finally {
   await browser?.close();

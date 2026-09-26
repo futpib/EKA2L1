@@ -1671,45 +1671,51 @@ DISPATCH : {
             // Snapshot pre/post register state for this dispatch into the
             // ring buffer so we can print it on crash (see aot_history).
             auto &rec = eka2l1::arm::aot::history[eka2l1::arm::aot::history_head];
-            rec.entry_pc = cpu->Reg[15];
-            for (int i = 0; i < 16; i++) rec.regs_before[i] = cpu->Reg[i];
+            if (eka2l1::arm::aot::diagnostics_enabled) {
+                rec.entry_pc = cpu->Reg[15];
+                for (int i = 0; i < 16; i++) rec.regs_before[i] = cpu->Reg[i];
+            }
 
             cpu->aot_budget = static_cast<std::uint32_t>(std::min<std::uint64_t>(cpu->NumInstrsToExecute - num_instrs, UINT32_MAX));
             eka2l1::arm::aot::validation_begin(cpu);
             std::uint32_t instrs = aot_func(cpu);
             eka2l1::arm::aot::validation_end(cpu, instrs);
 
-            rec.exit_pc = cpu->Reg[15];
-            rec.instrs = instrs;
-            for (int i = 0; i < 16; i++) rec.regs_after[i] = cpu->Reg[i];
-            eka2l1::arm::aot::history_head =
-                (eka2l1::arm::aot::history_head + 1) % eka2l1::arm::aot::AOT_HISTORY;
+            if (eka2l1::arm::aot::diagnostics_enabled) {
+                rec.exit_pc = cpu->Reg[15];
+                rec.instrs = instrs;
+                for (int i = 0; i < 16; i++) rec.regs_after[i] = cpu->Reg[i];
+                eka2l1::arm::aot::history_head =
+                    (eka2l1::arm::aot::history_head + 1) % eka2l1::arm::aot::AOT_HISTORY;
+            }
 
             if (eka2l1::common::performance::counting()) {
                 ++eka2l1::common::performance::aot_dispatches;
                 eka2l1::common::performance::aot_instructions += instrs;
             }
-            aot_dispatch_count++;
-            aot_instr_count += instrs;
-            // Per-module AOT tracking
-            {
-                auto *mod = eka2l1::arm::aot::lookup_module(rec.entry_pc);
-                if (mod) mod->aot_instrs += instrs;
-            }
-            {
-                static std::uint64_t next_log = 1;
-                if (aot_dispatch_count == next_log) {
-                    double aot_pct = (aot_instr_count + g_interp_instrs) > 0
-                        ? 100.0 * aot_instr_count / (aot_instr_count + g_interp_instrs) : 0;
-                    fprintf(stderr, "AOT: %llu dispatches, %llu AOT + %llu interp instrs (%.1f%% AOT)\n",
-                        (unsigned long long)aot_dispatch_count,
-                        (unsigned long long)aot_instr_count,
-                        (unsigned long long)g_interp_instrs,
-                        aot_pct);
-                    if (next_log >= 100000) {
-                        eka2l1::arm::aot::dump_module_stats();
+            if (eka2l1::arm::aot::diagnostics_enabled) {
+                aot_dispatch_count++;
+                aot_instr_count += instrs;
+                // Per-module AOT tracking
+                {
+                    auto *mod = eka2l1::arm::aot::lookup_module(rec.entry_pc);
+                    if (mod) mod->aot_instrs += instrs;
+                }
+                {
+                    static std::uint64_t next_log = 1;
+                    if (aot_dispatch_count == next_log) {
+                        double aot_pct = (aot_instr_count + g_interp_instrs) > 0
+                            ? 100.0 * aot_instr_count / (aot_instr_count + g_interp_instrs) : 0;
+                        fprintf(stderr, "AOT: %llu dispatches, %llu AOT + %llu interp instrs (%.1f%% AOT)\n",
+                            (unsigned long long)aot_dispatch_count,
+                            (unsigned long long)aot_instr_count,
+                            (unsigned long long)g_interp_instrs,
+                            aot_pct);
+                        if (next_log >= 100000) {
+                            eka2l1::arm::aot::dump_module_stats();
+                        }
+                        next_log *= 10;
                     }
-                    next_log *= 10;
                 }
             }
             num_instrs += instrs;
@@ -1719,8 +1725,8 @@ DISPATCH : {
         }
     }
 
-    // Per-module interpreter tracking
-    {
+    // Per-module interpreter tracking is diagnostic, not guest work.
+    if (eka2l1::arm::aot::diagnostics_enabled) {
         auto *mod = eka2l1::arm::aot::lookup_module(cpu->Reg[15]);
         if (mod) mod->interp_dispatches++;
     }

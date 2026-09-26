@@ -12,12 +12,15 @@ p = argparse.ArgumentParser()
 p.add_argument('--assets', type=Path, required=True)
 p.add_argument('--output', type=Path, required=True)
 p.add_argument('--compare-aot', action='store_true', help='Compare interpreter, exports and hot-ROM compilation with timing repeats')
+p.add_argument('--compare-diagnostics', action='store_true', help='Measure optional AOT bookkeeping with paired controls')
 a = p.parse_args()
 a.output = a.output.resolve()
 a.output.mkdir(parents=True, exist_ok=False)
 plan = [('full-1', 0, None), ('no-png', 1, None), ('no-readback', 2, None), ('full-2', 0, None)]
 if a.compare_aot:
     plan = [('interpreter-1', 0, 0), ('exports', 0, 1), ('hot-rom-1', 0, 2), ('hot-rom-2', 0, 2), ('interpreter-2', 0, 0)]
+if a.compare_diagnostics:
+    plan = [('diagnostics-off-1', 0, 2), ('diagnostics-on', 0, 2), ('diagnostics-off-2', 0, 2)]
 processes = []
 logs = []
 try:
@@ -26,6 +29,8 @@ try:
         log = (a.output / f'{name}.log').open('w')
         logs.append(log)
         environment = {**os.environ, 'PROFILE_GATE': str(gate)}
+        if a.compare_diagnostics:
+            environment['EKA2L1_AOT_DIAGNOSTICS'] = '1' if name == 'diagnostics-on' else '0'
         if aot_mode is not None:
             environment['EKA2L1_BENCHMARK_AOT'] = str(aot_mode)
             environment.pop('EKA2L1_AOT_VERIFY', None)
