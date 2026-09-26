@@ -1,0 +1,779 @@
+{
+  "runtime_revision": "fd74f24a01db5932fd33b5d314b95a66577522a0",
+  "reference": "/home/claude/.scratch/eka-benchmark/audio-native-0/run-0/frames",
+  "full_replays": {
+    "native-0": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-native-reference/run-0/frames",
+      "match": true,
+      "frames": 1000,
+      "unique_images": 1000,
+      "first_record": {
+        "frame": 0,
+        "presentation": 862,
+        "virtual_us": 21026182,
+        "instructions": 2540933284,
+        "width": 240,
+        "height": 320,
+        "sha256_rgba": "eb260172fd1b005972ee6a575ea046f6500ddb53097249b6296ab69e3dd39b66"
+      },
+      "last_record": {
+        "frame": 999,
+        "presentation": 2860,
+        "virtual_us": 68040042,
+        "instructions": 10342580529,
+        "width": 240,
+        "height": 320,
+        "sha256_rgba": "e4c04bca1f8a588e361ab20540668e325e4f6ff49ce19b2dfa4e70d0ba902a1e"
+      },
+      "frame_manifest_sha256": "7a404841cab5fece8b97edbcec190ca95dde14bfaaf83761f872e3a8673a3e80",
+      "last_png_sha256": "0db473255c8906711da7afeed03b5f3b6428f4356acd4d2fa74e2fc424e7f51a",
+      "audio": {
+        "sample_frames": 3265922,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "459268607f7e5b52e840e2c2e43bba61b6e8f3c0dd10ebb0291cc5a45e982cff",
+        "sha256_events": "24ccd1b4273371f00ca8a1b145c4b4cb41d6a18547b55887a46399ebcd1a82c8",
+        "writes": 1392,
+        "callbacks": 1391,
+        "gameplay_nonzero_samples": 4417622,
+        "gameplay_peak": 4121
+      },
+      "metrics": {
+        "frames": 1000,
+        "capture_wall_seconds": 668.961,
+        "first_virtual_us": 21026182,
+        "duplicate_presentations": 999,
+        "last_virtual_us": 68040042,
+        "instructions": 10342580529
+      }
+    },
+    "native-1": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-native-reference/run-1/frames",
+      "match": true,
+      "frames": 1000,
+      "unique_images": 1000,
+      "first_record": {
+        "frame": 0,
+        "presentation": 862,
+        "virtual_us": 21026182,
+        "instructions": 2540933284,
+        "width": 240,
+        "height": 320,
+        "sha256_rgba": "eb260172fd1b005972ee6a575ea046f6500ddb53097249b6296ab69e3dd39b66"
+      },
+      "last_record": {
+        "frame": 999,
+        "presentation": 2860,
+        "virtual_us": 68040042,
+        "instructions": 10342580529,
+        "width": 240,
+        "height": 320,
+        "sha256_rgba": "e4c04bca1f8a588e361ab20540668e325e4f6ff49ce19b2dfa4e70d0ba902a1e"
+      },
+      "frame_manifest_sha256": "7a404841cab5fece8b97edbcec190ca95dde14bfaaf83761f872e3a8673a3e80",
+      "last_png_sha256": "0db473255c8906711da7afeed03b5f3b6428f4356acd4d2fa74e2fc424e7f51a",
+      "audio": {
+        "sample_frames": 3265922,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "459268607f7e5b52e840e2c2e43bba61b6e8f3c0dd10ebb0291cc5a45e982cff",
+        "sha256_events": "24ccd1b4273371f00ca8a1b145c4b4cb41d6a18547b55887a46399ebcd1a82c8",
+        "writes": 1392,
+        "callbacks": 1391,
+        "gameplay_nonzero_samples": 4417622,
+        "gameplay_peak": 4121
+      },
+      "metrics": {
+        "frames": 1000,
+        "capture_wall_seconds": 556.271,
+        "first_virtual_us": 21026182,
+        "duplicate_presentations": 999,
+        "last_virtual_us": 68040042,
+        "instructions": 10342580529
+      }
+    },
+    "hot-rom-1": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-reviewed-1",
+      "match": true,
+      "frames": 1000,
+      "unique_images": 1000,
+      "first_record": {
+        "frame": 0,
+        "presentation": 862,
+        "virtual_us": 21026182,
+        "instructions": 2540933284,
+        "width": 240,
+        "height": 320,
+        "sha256_rgba": "eb260172fd1b005972ee6a575ea046f6500ddb53097249b6296ab69e3dd39b66"
+      },
+      "last_record": {
+        "frame": 999,
+        "presentation": 2860,
+        "virtual_us": 68040042,
+        "instructions": 10342580529,
+        "width": 240,
+        "height": 320,
+        "sha256_rgba": "e4c04bca1f8a588e361ab20540668e325e4f6ff49ce19b2dfa4e70d0ba902a1e"
+      },
+      "frame_manifest_sha256": "7a404841cab5fece8b97edbcec190ca95dde14bfaaf83761f872e3a8673a3e80",
+      "last_png_sha256": "0db473255c8906711da7afeed03b5f3b6428f4356acd4d2fa74e2fc424e7f51a",
+      "audio": {
+        "sample_frames": 3265922,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "459268607f7e5b52e840e2c2e43bba61b6e8f3c0dd10ebb0291cc5a45e982cff",
+        "sha256_events": "24ccd1b4273371f00ca8a1b145c4b4cb41d6a18547b55887a46399ebcd1a82c8",
+        "writes": 1392,
+        "callbacks": 1391,
+        "gameplay_nonzero_samples": 4417622,
+        "gameplay_peak": 4121
+      },
+      "metrics": {
+        "frames": 1000,
+        "capture_wall_seconds": 886.899,
+        "first_virtual_us": 21026182,
+        "duplicate_presentations": 999,
+        "last_virtual_us": 68040042,
+        "instructions": 10342580529
+      },
+      "report": {
+        "frames": 1000,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 1192.447906852,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "92463f0da6bb5bcdef70990442ca2cddfc543e7dabd927f1b0f62e0f9ac8cd7b",
+        "aot": 2,
+        "verify_aot": false,
+        "git_head": "fd74f24a01db5932fd33b5d314b95a66577522a0",
+        "dirty_worktree": false
+      }
+    },
+    "hot-rom-2": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-reviewed-2",
+      "match": true,
+      "frames": 1000,
+      "unique_images": 1000,
+      "first_record": {
+        "frame": 0,
+        "presentation": 862,
+        "virtual_us": 21026182,
+        "instructions": 2540933284,
+        "width": 240,
+        "height": 320,
+        "sha256_rgba": "eb260172fd1b005972ee6a575ea046f6500ddb53097249b6296ab69e3dd39b66"
+      },
+      "last_record": {
+        "frame": 999,
+        "presentation": 2860,
+        "virtual_us": 68040042,
+        "instructions": 10342580529,
+        "width": 240,
+        "height": 320,
+        "sha256_rgba": "e4c04bca1f8a588e361ab20540668e325e4f6ff49ce19b2dfa4e70d0ba902a1e"
+      },
+      "frame_manifest_sha256": "7a404841cab5fece8b97edbcec190ca95dde14bfaaf83761f872e3a8673a3e80",
+      "last_png_sha256": "0db473255c8906711da7afeed03b5f3b6428f4356acd4d2fa74e2fc424e7f51a",
+      "audio": {
+        "sample_frames": 3265922,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "459268607f7e5b52e840e2c2e43bba61b6e8f3c0dd10ebb0291cc5a45e982cff",
+        "sha256_events": "24ccd1b4273371f00ca8a1b145c4b4cb41d6a18547b55887a46399ebcd1a82c8",
+        "writes": 1392,
+        "callbacks": 1391,
+        "gameplay_nonzero_samples": 4417622,
+        "gameplay_peak": 4121
+      },
+      "metrics": {
+        "frames": 1000,
+        "capture_wall_seconds": 893.654,
+        "first_virtual_us": 21026182,
+        "duplicate_presentations": 999,
+        "last_virtual_us": 68040042,
+        "instructions": 10342580529
+      },
+      "report": {
+        "frames": 1000,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 1206.609978507,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "92463f0da6bb5bcdef70990442ca2cddfc543e7dabd927f1b0f62e0f9ac8cd7b",
+        "aot": 2,
+        "verify_aot": false,
+        "git_head": "fd74f24a01db5932fd33b5d314b95a66577522a0",
+        "dirty_worktree": false
+      }
+    }
+  },
+  "timings": {
+    "interpreter-1": {
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 55.5895,
+          "presentations": 170,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "decoded_instructions": 90055999,
+          "cache_hits": 82190219,
+          "cache_misses": 14069057,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 55.496,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 54.522,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.113798,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.472893,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.9818,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.97378,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.880287,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.236738,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.617495,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.573028,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00512794,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 345.57029142199997,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "92463f0da6bb5bcdef70990442ca2cddfc543e7dabd927f1b0f62e0f9ac8cd7b",
+        "aot": 0,
+        "verify_aot": false,
+        "git_head": "fd74f24a01db5932fd33b5d314b95a66577522a0",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "matching_frames": 85,
+      "frame_manifest_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9",
+      "instruction_delta": 655867149,
+      "aot_instruction_fraction": 0.0,
+      "guest_seconds_per_host_second": 0.07195603486269889
+    },
+    "exports": {
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 58.159,
+          "presentations": 170,
+          "aot_dispatches": 658343,
+          "aot_instructions": 3068999,
+          "decoded_instructions": 89621016,
+          "cache_hits": 81424682,
+          "cache_misses": 13973133,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 58.0654,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 57.1149,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.110009,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.462889,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.90069,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.89284,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.859578,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.230791,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.603262,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.56043,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00497075,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 371.188436068,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "92463f0da6bb5bcdef70990442ca2cddfc543e7dabd927f1b0f62e0f9ac8cd7b",
+        "aot": 1,
+        "verify_aot": false,
+        "git_head": "fd74f24a01db5932fd33b5d314b95a66577522a0",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "matching_frames": 85,
+      "frame_manifest_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9",
+      "instruction_delta": 655867149,
+      "aot_instruction_fraction": 0.0046792997708137996,
+      "guest_seconds_per_host_second": 0.06877697346928248
+    },
+    "hot-rom-1": {
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 54.0323,
+          "presentations": 170,
+          "aot_dispatches": 10924720,
+          "aot_instructions": 123534715,
+          "decoded_instructions": 81038003,
+          "cache_hits": 64188527,
+          "cache_misses": 12379963,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 53.9416,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 53.0366,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.105357,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.434422,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.86565,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.85653,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.848443,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.221249,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.60204,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.559091,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00486861,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 351.528230491,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "92463f0da6bb5bcdef70990442ca2cddfc543e7dabd927f1b0f62e0f9ac8cd7b",
+        "aot": 2,
+        "verify_aot": false,
+        "git_head": "fd74f24a01db5932fd33b5d314b95a66577522a0",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "matching_frames": 85,
+      "frame_manifest_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9",
+      "instruction_delta": 655867149,
+      "aot_instruction_fraction": 0.18835325902258293,
+      "guest_seconds_per_host_second": 0.07402979329030969
+    },
+    "hot-rom-2": {
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 54.7929,
+          "presentations": 170,
+          "aot_dispatches": 10924720,
+          "aot_instructions": 123534715,
+          "decoded_instructions": 81038003,
+          "cache_hits": 64188527,
+          "cache_misses": 12379963,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 54.7011,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 53.7701,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.108021,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.442358,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.94992,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.94146,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.878886,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.232055,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.621214,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.578109,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00494618,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 348.958238969,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "92463f0da6bb5bcdef70990442ca2cddfc543e7dabd927f1b0f62e0f9ac8cd7b",
+        "aot": 2,
+        "verify_aot": false,
+        "git_head": "fd74f24a01db5932fd33b5d314b95a66577522a0",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "matching_frames": 85,
+      "frame_manifest_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9",
+      "instruction_delta": 655867149,
+      "aot_instruction_fraction": 0.18835325902258293,
+      "guest_seconds_per_host_second": 0.07300215903885357
+    },
+    "interpreter-2": {
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 54.706,
+          "presentations": 170,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "decoded_instructions": 90055999,
+          "cache_hits": 82190219,
+          "cache_misses": 14069057,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 54.6154,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 53.674,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.108789,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.459885,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.94706,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.9395,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.858216,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.23123,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.601695,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.558296,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00501709,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 352.59520656399997,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "92463f0da6bb5bcdef70990442ca2cddfc543e7dabd927f1b0f62e0f9ac8cd7b",
+        "aot": 0,
+        "verify_aot": false,
+        "git_head": "fd74f24a01db5932fd33b5d314b95a66577522a0",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "matching_frames": 85,
+      "frame_manifest_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9",
+      "instruction_delta": 655867149,
+      "aot_instruction_fraction": 0.0,
+      "guest_seconds_per_host_second": 0.07311812232661864
+    }
+  },
+  "native_report": {
+    "git_head": "ec8c8bc084c4f56c37ecc9ab6a23dfd0b8ca07c2",
+    "dirty_worktree": true,
+    "binary_sha256": "786785b30c8a0712d9bf84c0f1e947cf876fe36442ddbf0067b210aab8394750",
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "frames": 1000,
+    "start_us": 21000000,
+    "unique": true,
+    "runs": [
+      {
+        "wall_seconds": 833.5185655625537,
+        "last_virtual_us": 68040042
+      },
+      {
+        "wall_seconds": 762.3896814826876,
+        "last_virtual_us": 68040042
+      }
+    ]
+  },
+  "native_run_1_provenance": [
+    {
+      "pid": 2639709,
+      "command": "/home/claude/REPOS/EKA2L1-benchmark/build/bin/eka2l1_qt --install /home/claude/.scratch/eka-benchmark/assets/Snakes.sis --run Snakes --dump-frames /home/claude/.scratch/eka-benchmark/aot-native-reference/run-1/frames",
+      "running_binary_sha256": "2a77131fa2f66cfe09a0c0c12f8844f8d4e9d64080778f4cc26ef2613a03de41",
+      "current_binary_sha256": "2a77131fa2f66cfe09a0c0c12f8844f8d4e9d64080778f4cc26ef2613a03de41",
+      "git_head": "fd74f24a01db5932fd33b5d314b95a66577522a0"
+    }
+  ],
+  "native_provenance_note": "The runner report binary hash applies to native run 0. Run 1 started after the reviewed rebuild; its running executable was hashed separately and matches fd74f24a build. No further runtime edits or rebuilds occurred.",
+  "summary": {
+    "interpreter_mean_seconds": 55.14775,
+    "hot_rom_mean_seconds": 54.4126,
+    "exports_seconds": 58.159,
+    "hot_rom_speedup": 1.0135106574580153,
+    "hot_rom_time_reduction_percent": 1.333055292373675,
+    "exports_speedup": 0.9482238346601558
+  },
+  "checker_report": {
+    "frames": 20,
+    "start_us": 21000000,
+    "unique": true,
+    "wall_seconds": 843.366580695,
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "wasm_sha256": "5b824db95cbdebcaf7726133ee0a372c246d03c1553dcc3b7b1a67536c7f5d2b",
+    "aot": 2,
+    "verify_aot": true,
+    "git_head": "53d78d006fe68d35261b467c9acac24d1520dd3a",
+    "dirty_worktree": false
+  },
+  "tests": {
+    "revision": "fd74f24a01db5932fd33b5d314b95a66577522a0",
+    "wasm_passed": 122,
+    "bounded_differential_comparisons": 23268,
+    "native_cpu_target": "passed",
+    "native_ekatests": {
+      "passed": 78,
+      "failed": 7,
+      "assertions_passed": 410,
+      "assertions_total": 417
+    },
+    "logs": {
+      "wasm": {
+        "path": "/home/claude/.scratch/eka-aot-final-wasm-tests.log",
+        "sha256": "5820727d33eaf648e0216d56e308225ca9436f13cd8d2f3ce4d823d45c0630f0"
+      },
+      "native": {
+        "path": "/home/claude/.scratch/eka-aot-final-native-tests.log",
+        "sha256": "a2cdb5c94dfa0f45f0fcb71b0650e9af33ca3b7948905ea1a0c55e288044c02b"
+      }
+    }
+  },
+  "gameplay": {
+    "frames": 1000,
+    "unique_images": 1000,
+    "unique_viewports": 1000,
+    "first_virtual_us": 21026182,
+    "last_virtual_us": 68040042,
+    "virtual_seconds": 47.01386,
+    "game_images_per_virtual_second": 21.249052938856753,
+    "median_interval_us": 46868,
+    "max_interval_us": 50166,
+    "min_viewport_changed_fraction": 0.22053333333333336,
+    "median_viewport_changed_fraction": 0.29456666666666664,
+    "pass": true
+  },
+  "environment": {
+    "cpu": "Intel Core i7-10875H, 8 cores / 16 threads",
+    "memory_gib": 62,
+    "cpu_governor": "powersave; no frequency pinning",
+    "emscripten": "4.0.10",
+    "build": "Release",
+    "graphics": "SwiftShader; see exact renderer in timing reports",
+    "measurement_order": [
+      "interpreter-1",
+      "exports",
+      "hot-rom-1",
+      "hot-rom-2",
+      "interpreter-2"
+    ],
+    "method": "Fresh fixtures warmed concurrently, then paused; serial unsampled measured windows began only after correctness jobs exited. No per-block verifier during timing. All modes retained full captures. Other desktop activity was not globally disabled."
+  },
+  "wasm_binary_sha256": "92463f0da6bb5bcdef70990442ca2cddfc543e7dabd927f1b0f62e0f9ac8cd7b"
+}

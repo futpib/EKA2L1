@@ -1,6 +1,7 @@
 # WASM performance profiling
 
-Measured findings and ranked options: [PERFORMANCE_RESULTS.md](PERFORMANCE_RESULTS.md).
+Initial findings and ranked options: [PERFORMANCE_RESULTS.md](PERFORMANCE_RESULTS.md).
+Compiled execution follow-up: [AOT_RESULTS.md](AOT_RESULTS.md).
 
 The profiling APIs are opt-in and use the existing deterministic replay. They
 pause between guest dispatches at 21 guest seconds, let the browser profiler
@@ -55,3 +56,12 @@ assertions, guest clock model, audio callbacks and graphics synchronization rema
 the same across capture modes. Sampling and scope instrumentation have overhead;
 compare the unsampled repeated runs for timing effects, and use samples to
 identify functions rather than claim cycle-accurate costs.
+
+For an AOT comparison, add `--compare-aot` to `profile_batch.py`. It measures
+interpreter, repaired exports, hot ROM twice, and interpreter again, with full
+capture and CPU sampling disabled for every fixture. Per-block verification is
+also disabled. Reports include `aot_dispatches` and `aot_instructions`; divide
+the latter by `last_instructions - first_instructions` for executed instruction
+coverage. This is instruction coverage, not a percentage of CPU time. Stop
+other benchmark/build jobs before running measured windows. The hot mode remains
+opt-in; see [AOT.md](AOT.md) for configuration and safety boundaries.

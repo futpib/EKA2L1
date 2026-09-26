@@ -38,7 +38,7 @@ samples. Compilation is batched (up to 32 functions per module, with a flush eve
 at 65,536. Counts depend on guest execution, not host timing. RAM code is excluded;
 it needs address-space-aware invalidation before it can be compiled safely.
 
-This work is still being validated against the full replay. The repaired export
-path has passed 20 gameplay images and metadata against the native reference
-with per-block checking enabled. See the final results report for measured scope;
-do not infer a performance gain from the number of compiled functions.
+See [AOT_RESULTS.md](AOT_RESULTS.md) for the measured replay scope, speed and
+remaining limits. The machine-readable reports and binary hashes are in
+[AOT_EVIDENCE.json](AOT_EVIDENCE.json). Do not infer speed from the number of
+compiled functions.

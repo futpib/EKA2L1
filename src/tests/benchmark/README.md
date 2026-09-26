@@ -2,7 +2,7 @@
 
 The [verified audio replay results](RESULTS.md) record the four-run comparison and test limitations.
 
-The benchmark is opt-in (`EKA2L1_BENCHMARK=1`). It uses the DynCom interpreter on both targets; experimental AOT is disabled for this reference workload.
+The benchmark is opt-in (`EKA2L1_BENCHMARK=1`). The default reference uses the DynCom interpreter on both targets. Browser runs can opt into repaired and extended compiled execution; see [AOT modes and reproduction](AOT.md) and [AOT validation and performance](AOT_RESULTS.md).
 
 - The guest clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
 - When no guest thread is runnable, execution jumps to the next scheduled event. There is no real-time timer thread or host vsync pacing.
