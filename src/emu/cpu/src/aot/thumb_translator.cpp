@@ -233,6 +233,58 @@ namespace eka2l1::arm::aot {
             w.set_local(result); w.store_reg(rd,result); nz(); return true;
         }
         const auto op = (insn>>6)&15;
+        if ((insn & 0xFC00) == 0x4000 && (op == 2 || op == 3 || op == 4 || op == 7)) {
+            const auto rd = insn & 7;
+            w.load_reg(rd); w.set_local(lhs);
+            w.load_reg((insn>>3)&7); w.i32_const(255); w.op(op_i32_and); w.set_local(rhs);
+            w.load_i32(S::CFLAG); w.set_local(tmp);
+            w.get_local(rhs); w.op(op_if); w.op(type_void);
+            if (op == 7) {
+                w.get_local(lhs); w.get_local(rhs); w.op(op_i32_rotr); w.set_local(lhs);
+                w.get_local(lhs); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(tmp);
+            } else {
+                w.get_local(rhs); w.i32_const(32); w.op(op_i32_lt_u); w.op(op_if); w.op(type_void);
+                w.get_local(lhs);
+                if (op == 2) { w.i32_const(32); w.get_local(rhs); w.op(op_i32_sub); }
+                else { w.get_local(rhs); w.i32_const(1); w.op(op_i32_sub); }
+                w.op(op_i32_shr_u); w.i32_const(1); w.op(op_i32_and); w.set_local(tmp);
+                w.get_local(lhs); w.get_local(rhs);
+                w.op(op == 2 ? op_i32_shl : op == 3 ? op_i32_shr_u : op_i32_shr_s); w.set_local(lhs);
+                w.op(op_else);
+                if (op == 4) {
+                    w.get_local(lhs); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(tmp);
+                    w.get_local(lhs); w.i32_const(31); w.op(op_i32_shr_s); w.set_local(lhs);
+                } else {
+                    w.get_local(rhs); w.i32_const(32); w.op(op_i32_eq); w.op(op_if); w.op(type_i32);
+                    w.get_local(lhs); w.i32_const(op == 2 ? 0 : 31); w.op(op_i32_shr_u); w.i32_const(1); w.op(op_i32_and);
+                    w.op(op_else); w.i32_const(0); w.op(op_end); w.set_local(tmp);
+                    w.i32_const(0); w.set_local(lhs);
+                }
+                w.op(op_end);
+            }
+            w.op(op_end); w.store_i32(S::CFLAG,tmp);
+            w.get_local(lhs); w.set_local(result); w.store_reg(rd,result); nz(); return true;
+        }
+        if ((insn & 0xFC00) == 0x4000 && (op == 5 || op == 6)) {
+            const auto rd = insn & 7;
+            w.load_reg(rd); w.set_local(lhs); w.load_reg((insn>>3)&7); w.set_local(rhs);
+            w.get_local(lhs); w.get_local(rhs); w.op(op == 5 ? op_i32_add : op_i32_sub);
+            w.load_i32(S::CFLAG);
+            if (op == 6) w.op(op_i32_eqz);
+            w.op(op == 5 ? op_i32_add : op_i32_sub); w.set_local(result);
+            nz();
+            if (op == 5) { w.get_local(result); w.get_local(lhs); w.op(op_i32_lt_u);
+                w.get_local(result); w.get_local(lhs); w.op(op_i32_eq); }
+            else { w.get_local(lhs); w.get_local(rhs); w.op(op_i32_gt_u);
+                w.get_local(lhs); w.get_local(rhs); w.op(op_i32_eq); }
+            w.load_i32(S::CFLAG); w.op(op_i32_and); w.op(op_i32_or); w.set_local(tmp); w.store_i32(S::CFLAG,tmp);
+            w.get_local(lhs); w.get_local(rhs); w.op(op_i32_xor);
+            if (op == 5) { w.i32_const(-1); w.op(op_i32_xor); }
+            w.get_local(lhs); w.get_local(result); w.op(op_i32_xor); w.op(op_i32_and);
+            w.i32_const(31); w.op(op_i32_shr_u); w.set_local(tmp); w.store_i32(S::VFLAG,tmp);
+            w.store_reg(rd,result); return true;
+        }
+
         if ((insn & 0xFC00) == 0x4000 && (op == 0 || op == 1 || op == 8 || op == 12 || op == 13 || op == 14 || op == 15)) {
             const auto rd = insn&7, rm = (insn>>3)&7;
             if (op != 15) w.load_reg(rd);

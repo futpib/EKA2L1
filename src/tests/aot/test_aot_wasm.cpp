@@ -2011,7 +2011,7 @@ static bool test_bounded_execution() {
         std::memcpy(bytes.data(), words.begin(), bytes.size());
         return program{true, bytes};
     };
-    const std::vector<program> programs = {
+    std::vector<program> programs = {
         arm({0xe3a00001, 0xe2800002, 0xe2400001}), // straight-line fallthrough
         arm({0xe3500000, 0x0a000000, 0xe3a01007, 0xe3a02009}), // taken/not-taken B
         arm({0xe2500001, 0x1afffffd}), // backward B, must return not recurse
@@ -2037,6 +2037,8 @@ static bool test_bounded_execution() {
         thumb({0x3001}), thumb({0x3801}), thumb({0x2801}),
         thumb({0x0000}), thumb({0x0800}), thumb({0x1000}),
         thumb({0x4000}), thumb({0x43c0}),
+        thumb({0x4080}), thumb({0x40c0}), thumb({0x4100}), thumb({0x41c0}),
+        thumb({0x4140}), thumb({0x4180}),
         thumb({0x7008}), thumb({0x8008}), // byte/halfword stores
         thumb({0x2800, 0xd000, 0x2107, 0x2209}),
         thumb({0x3801, 0xd1fd}),
@@ -2048,13 +2050,23 @@ static bool test_bounded_execution() {
         thumb({0xbd00}), // POP PC mode switch
         thumb({0x3001, 0xf000, 0xf800}), // return before long call halfwords
     };
+    // Exercise whole ALU families against the independent interpreter, not
+    // just the operand values that happened to expose a live replay failure.
+    for (unsigned opcode = 0; opcode < 16; ++opcode) {
+        for (unsigned shift : {0u, 0x80u, 0xF80u, 0x20u, 0xFA0u, 0x40u, 0xFC0u, 0x60u, 0xFE0u, 0x10u, 0x30u, 0x50u, 0x70u}) {
+            const auto rd = opcode >= 8 && opcode <= 11 ? 0u : 2u;
+            programs.push_back(arm({0xE0100000u | (opcode<<21) | (rd<<12) | shift}));
+        }
+    }
+    for (unsigned opcode = 0; opcode < 16; ++opcode)
+        programs.push_back(thumb({static_cast<std::uint16_t>(0x4008 | (opcode<<6))}));
     int index = 0;
     for (const auto &p : programs) {
         auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true)
                           : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true);
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
             {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false}});
-        for (unsigned r0 : {0u, 2u, 0xffffffffu, 0x7fffffffu, 0x80000000u}) for (unsigned budget = 0; budget <= 5; ++budget) {
+        for (unsigned carry : {0u, 1u}) for (unsigned r0 : {0u, 2u, 32u, 33u, 0xffffffffu, 0x7fffffffu, 0x80000000u}) for (unsigned budget = 0; budget <= 5; ++budget) {
             test_mem actual, reference;
             actual.write_code(0x1000, p.bytes); reference.write_code(0x1000, p.bytes);
             actual.write32(0x8000, 0x000A8001); reference.write32(0x8000, 0x000A8001);
@@ -2067,8 +2079,8 @@ static bool test_bounded_execution() {
                 unsigned v = r == 0 ? r0 : (r == 1 || r == 13) ? 0x8000 : r == 14 ? 0x2001 : r == 15 ? 0x1000 : 0;
                 cpu->set_reg(r, v); set(state_offsets::reg(r), v);
             }
-            cpu->set_cpsr(0x30000010 | (p.thumb ? 0x20 : 0));
-            set(state_offsets::CFLAG,1); set(state_offsets::VFLAG,1);
+            cpu->set_cpsr(0x10000010 | (carry<<29) | (p.thumb ? 0x20 : 0));
+            set(state_offsets::CFLAG,carry); set(state_offsets::VFLAG,1);
             set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget);
             g_test_mem = &actual;
             const int count = js_run_aot_wasm(module.data(), module.size(), state, sizeof(state));
@@ -2094,7 +2106,7 @@ static bool test_bounded_execution() {
         }
         ++index;
     }
-    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*30);
+    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*84);
 #endif
     return true;
 }
