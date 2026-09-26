@@ -17,6 +17,7 @@ namespace eka2l1::common::performance {
         std::atomic<std::uint64_t> calls{0};
     };
     inline counter counters[category_count];
+    inline bool detailed = true;
     inline bool enabled = false; // Configured before starting guest threads.
     inline int capture_mode = 0; // 0: full, 1: no PNG encoding, 2: no readback/capture.
     inline std::uint64_t start_us = 0, end_us = 0;
@@ -31,7 +32,7 @@ namespace eka2l1::common::performance {
     inline std::uint64_t ram_aot_dispatches = 0, ram_blocks_compiled = 0, compiled_runner_calls = 0;
     inline std::uint64_t decoded_instructions = 0, cache_hits = 0, cache_misses = 0;
     inline std::uint64_t cache_clears = 0, context_loads = 0, imb_calls = 0;
-    inline bool counting() { return enabled && phase.load(std::memory_order_relaxed) == 2; }
+    inline bool counting() { return enabled && detailed && phase.load(std::memory_order_relaxed) == 2; }
     inline std::chrono::steady_clock::time_point begin;
     inline double wall_seconds = 0;
 
@@ -39,7 +40,7 @@ namespace eka2l1::common::performance {
         category id;
         bool active;
         std::chrono::steady_clock::time_point start;
-        explicit scope(category value) : id(value), active(enabled && phase.load(std::memory_order_relaxed) == 2) {
+        explicit scope(category value) : id(value), active(enabled && detailed && phase.load(std::memory_order_relaxed) == 2) {
             if (active) start = std::chrono::steady_clock::now();
         }
         ~scope() {
@@ -82,7 +83,7 @@ namespace eka2l1::common::performance {
 
     inline std::string report() {
         std::ostringstream out;
-        out << "{\"capture_mode\":" << capture_mode << ",\"first_virtual_us\":" << first_us
+        out << "{\"detailed\":" << (detailed ? "true" : "false") << ",\"capture_mode\":" << capture_mode << ",\"first_virtual_us\":" << first_us
             << ",\"last_virtual_us\":" << last_us << ",\"first_instructions\":" << first_instructions
             << ",\"last_instructions\":" << last_instructions << ",\"wall_seconds\":" << wall_seconds
             << ",\"presentations\":" << presentations.load()

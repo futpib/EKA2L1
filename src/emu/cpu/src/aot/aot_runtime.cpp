@@ -229,6 +229,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
             ++profile.block_lengths[count];
             if (++profile.compiled_blocks % profile.stride == 0) {
                 core::code_mapping view;
+                if (cpu->parent()->resolve_code) cpu->parent()->resolve_code(entry_pc & ~1u,view);
                 const auto width = (entry_pc & 1) ? 2u : 4u;
                 std::uint32_t last = 0;
                 if (!region_enabled && count && cpu->parent()->resolve_code && cpu->parent()->resolve_code((entry_pc & ~1u)+(count-1)*width,view)

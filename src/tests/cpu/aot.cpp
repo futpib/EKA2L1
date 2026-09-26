@@ -930,18 +930,18 @@ TEST_CASE("RAM recent lookup survives collisions, replacement and reset", "[aot]
     REQUIRE(cache.find(0x1000, view)->function == nullptr); // dead recent entry
     cache.attach(replacement, second);
     REQUIRE(cache.find(0x1000, view)->function == second); // attach after lookup
-    cache.attach(cache.insert(0x1200, view, 8).version, first); // same recent slot
+    cache.attach(cache.insert(0x3000, view, 8).version, first); // same recent slot
     for (unsigned i = 0; i < 4; ++i) {
-        REQUIRE(cache.find(0x1200, view)->function == first);
+        REQUIRE(cache.find(0x3000, view)->function == first);
         REQUIRE(cache.find(0x1000, view)->function == second);
     }
     cache.invalidate(0x1000, 1);
     REQUIRE(cache.find(0x1000, view) == nullptr); // invalidated recent pointer
-    REQUIRE(cache.find(0x1200, view)->function == first);
+    REQUIRE(cache.find(0x3000, view)->function == first);
     cache = aot::validated_code_cache{};
-    REQUIRE(cache.find(0x1200, view) == nullptr); // no pointer into freed deque
-    cache.attach(cache.insert(0x1200, view, 8).version, second);
-    REQUIRE(cache.find(0x1200, view)->function == second);
+    REQUIRE(cache.find(0x3000, view) == nullptr); // no pointer into freed deque
+    cache.attach(cache.insert(0x3000, view, 8).version, second);
+    REQUIRE(cache.find(0x3000, view)->function == second);
 }
 
 TEST_CASE("RAM translation dependencies end after the first store", "[aot]") {
@@ -1051,4 +1051,18 @@ TEST_CASE("Guest profile sampling preserves exact type totals and identities", "
     h.sample({0,0,1,5,0x1000,0,true,"process","second"});
     REQUIRE(h.samples.size() == 2);
     CHECK(gp::quote("a\n\"\\") == "\"a\\u000a\\\"\\\\\"");
+}
+
+TEST_CASE("Bounded unconditional calls do not retain unreachable continuation", "[aot]") {
+    using namespace eka2l1::arm::aot;
+    const std::uint32_t arm[] = {0xe2800001,0xeb000010,0xe2899001,0xe28aa001};
+    for (bool region : {false,true}) {
+        const auto t = translate_arm_block(reinterpret_cast<const std::uint8_t *>(arm),sizeof(arm),0x1000,nullptr,nullptr,true,true,true,region);
+        REQUIRE(t.end_address == 0x1008);
+        REQUIRE(t.entry_supported);
+    }
+    // A separate conditional branch still makes the continuation reachable.
+    const std::uint32_t branch[] = {0x0a000000,0xeb000010,0xe2899001};
+    const auto t = translate_arm_block(reinterpret_cast<const std::uint8_t *>(branch),sizeof(branch),0x1000,nullptr,nullptr,true,true,true,true);
+    REQUIRE(t.end_address == 0x100c);
 }

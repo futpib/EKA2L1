@@ -197,6 +197,13 @@ int eka2l1_profile_configure(int start_us, int end_us, int mode) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_profile_detail_configure(int enabled) {
+    if (g_state || (enabled != 0 && enabled != 1)) return -1;
+    common::performance::detailed = enabled != 0;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_profile_phase() { return common::performance::phase.load(); }
 
 EMSCRIPTEN_KEEPALIVE

@@ -13,6 +13,9 @@ if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_
 const guestProfile = Number(process.env.EKA2L1_GUEST_PROFILE || "0");
 if (!Number.isSafeInteger(guestProfile) || guestProfile < 0 || guestProfile > 2147483647)
   throw new Error('EKA2L1_GUEST_PROFILE must be a nonnegative sample stride');
+const detailedProfile = process.env.EKA2L1_PROFILE_DETAIL !== '0';
+if (!detailedProfile && guestProfile) throw new Error('Guest profiling requires detailed counters');
+const hardwareGpu = process.env.EKA2L1_GPU === 'hardware';
 const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
 const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
@@ -56,9 +59,11 @@ try {
     executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
     headless: true,
     protocolTimeout: 1800000,
-    args: ['--no-sandbox', '--disable-dev-shm-usage', '--use-gl=angle', '--use-angle=swiftshader',
-           '--enable-unsafe-swiftshader', '--disable-background-timer-throttling'],
+    args: ['--no-sandbox', '--disable-dev-shm-usage', '--use-gl=angle', ...(hardwareGpu ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']), '--disable-background-timer-throttling'],
   });
+  const system = await browser.target().createCDPSession();
+  const gpuInfo = await system.send('SystemInfo.getInfo');
+  fs.writeFileSync(path.join(output, 'gpu.json'), JSON.stringify(gpuInfo.gpu, null, 2));
   const page = await browser.newPage();
   const failures: string[] = [];
   page.on('console', msg => {log.write(`${msg.type()}: ${msg.text()}\n`); if (msg.text().includes('ABORT:')) failures.push(msg.text());});
@@ -68,12 +73,13 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics}) => {
+  await page.evaluate(async ({count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
       if (code !== 0) throw new Error(`${name} returned ${code}`);
     };
+    if (!detailedProfile) call('eka2l1_profile_detail_configure', ['number'], [0]);
     call('eka2l1_profile_configure', ['number', 'number', 'number'], [startUs, endUs, captureMode]);
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
     call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot, aotDiagnostics ? 1 : 0]);
@@ -92,7 +98,7 @@ try {
     g.FS.mkdir('/frames');
     g.Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], ['/frames', count]);
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics});
+  }, {count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {

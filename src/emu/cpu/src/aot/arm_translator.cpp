@@ -56,7 +56,7 @@ namespace eka2l1::arm::aot {
         std::uint32_t current_pc = 0;
         bool pc_written = false;
         // Reserved i32 locals for region instruction count and memory fast path.
-        static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13;
+        static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13, READ_PAGE=14, READ_BASE=15, WRITE_PAGE=16, WRITE_BASE=17;
         bool memory_write = false;
         bool entry_supported = true;
         bool unsupported = false;
@@ -105,7 +105,11 @@ namespace eka2l1::arm::aot {
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
-            if (region) store_i32_const(S::AOT_EXIT, 1);
+            if (region) {
+                store_i32_const(S::AOT_EXIT, 1);
+                i32_const(0); set_local(READ_BASE);
+                i32_const(0); set_local(WRITE_BASE);
+            }
         }
         void call(std::uint32_t func_idx) {
             const bool write = func_idx == 1 || func_idx == 3 || func_idx == 5;
@@ -117,6 +121,15 @@ namespace eka2l1::arm::aot {
             set_local(HOST); // consume state_ptr; HOST is overwritten below
             // Only aligned, within-page, little-endian accesses with the exact
             // required TLB permission may bypass the existing memory helpers.
+            const auto page_local = write ? WRITE_PAGE : READ_PAGE;
+            const auto base_local = write ? WRITE_BASE : READ_BASE;
+            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); get_local(page_local); op(op_i32_eq);
+            get_local(base_local); op(op_i32_eqz); op(op_i32_eqz); op(op_i32_and);
+            get_local(ADDRESS); i32_const(size-1); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            op(op_if); op(type_void);
+            get_local(base_local); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
+            op(op_else);
             load_i32(S::AOT_TLB); set_local(ENTRY);
             get_local(ENTRY); op(op_i32_eqz); op(op_if); op(type_void);
             i32_const(0); set_local(HOST);
@@ -131,10 +144,13 @@ namespace eka2l1::arm::aot {
             op(op_if); op(type_void);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
             get_local(HOST); op(op_if); op(type_void);
+            get_local(HOST); set_local(base_local);
+            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); set_local(page_local);
             get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
             op(op_end);
             op(op_else); i32_const(0); set_local(HOST); op(op_end);
             op(op_end);
+            op(op_end); // cached-page miss
             get_local(HOST); op(op_if); op(write ? type_void : type_i32);
             get_local(HOST);
             if (write) get_local(VALUE);
@@ -409,7 +425,7 @@ namespace eka2l1::arm::aot {
 
     // CFG walker for ARM code. Returns reachable 4-byte-aligned offsets.
     static std::set<std::size_t> find_reachable_offsets_arm(
-        const std::uint8_t *code, std::size_t code_size)
+        const std::uint8_t *code, std::size_t code_size, bool bounded)
     {
         std::set<std::size_t> reachable;
         if (code_size < 4) return reachable;
@@ -433,7 +449,10 @@ namespace eka2l1::arm::aot {
                     std::int32_t target_off = static_cast<std::int32_t>(i) + offset;
                     bool is_link = (inst >> 24) & 1;
                     if (is_link) {
-                        // BL: function call, fall through
+                        // Bounded BL exits to the runner. Its return address is
+                        // a separate entry, not reachable fallthrough in this region.
+                        if (bounded && cond >= 0xE) break;
+                        // Conditional BL can fall through when its condition fails.
                         i += 4;
                         continue;
                     }
@@ -507,7 +526,7 @@ namespace eka2l1::arm::aot {
 
         // A fixed i64 prefix keeps its index independent of lazily allocated i32 register locals.
         // Locals: 0=state_ptr(param), 1=wide result, 2..8=i32 scratch.
-        result.num_locals = region ? 12 : 7;
+        result.num_locals = region ? 16 : 7;
         result.num_prefix_i64_locals = 1;
         result.num_f32_locals = 0;
         result.num_f64_locals = 0;
@@ -528,7 +547,7 @@ namespace eka2l1::arm::aot {
             num_insns++;
         }
 
-        auto reachable = find_reachable_offsets_arm(code, code_size);
+        auto reachable = find_reachable_offsets_arm(code, code_size, bounded);
 
         // Collect forward branch targets
         std::set<std::uint32_t> forward_targets_set;

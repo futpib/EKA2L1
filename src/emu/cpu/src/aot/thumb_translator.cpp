@@ -734,9 +734,29 @@ namespace eka2l1::arm::aot {
                     decoded_end_offset = static_cast<std::uint32_t>(i);
                     break;
                 }
-                // The ARMv5/v6 interpreter executes long Thumb calls as two
-                // halfwords. Leave these and unsupported Thumb-2 to it so budget
-                // boundaries and instruction accounting stay exactly comparable.
+                // ARMv5/v6 long calls are two separately budgeted halfwords.
+                // Keep the intermediate LR visible even if execution stops between them.
+                const auto call_half = insn & 0xF800;
+                if (call_half == 0xF000) {
+                    const std::uint32_t displacement = ((insn & 0x7FF) << 12) | ((insn & 0x400) ? 0xFF800000u : 0u);
+                    w.store_i32_const(S::LR, insn_addr + 4 + displacement);
+                    w.bail(insn_addr + 2, insn_idx + 1);
+                    tr.resume_points.push_back(insn_addr + 2);
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                    ++insn_idx; break;
+                }
+                // Odd BLX suffix encodings are undefined in the guest decoder.
+                if (call_half == 0xF800 || (call_half == 0xE800 && !(insn & 1))) {
+                    w.load_reg(14); w.i32_const((insn & 0x7FF) << 1); w.op(op_i32_add);
+                    if (call_half == 0xE800) { w.i32_const(-4); w.op(op_i32_and); }
+                    w.set_local(TMP1); w.store_reg(15,TMP1);
+                    w.store_i32_const(S::LR,(insn_addr+2)|1);
+                    if (call_half == 0xE800) w.store_i32_const(S::TFLAG,0);
+                    w.bail_preserve_pc(insn_idx+1);
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                    ++insn_idx; break;
+                }
+                // Other Thumb-2 forms remain with the interpreter.
                 if ((insn & 0xF800) >= 0xE800) {
                     w.bail_unsupported(insn_addr, insn_idx);
                     decoded_end_offset = static_cast<std::uint32_t>(i);

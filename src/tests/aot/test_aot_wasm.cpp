@@ -19,6 +19,7 @@
 #include <cpu/12l1r/tlb.h>
 #include <cpu/dyncom/armstate.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/code_cache.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 
@@ -2033,6 +2034,10 @@ static bool test_bounded_execution() {
         return program{true, bytes};
     };
     std::vector<program> programs = {
+        thumb({0xF000}), thumb({0xF001}), thumb({0xF400}), thumb({0xF7FF}),
+        thumb({0xF800}), thumb({0xF801}), thumb({0xFFFF}),
+        thumb({0xE800}), thumb({0xE801}), thumb({0xEFFF}),
+        thumb({0x2001,0xF000,0xF801}),
         arm({0xe3a00001, 0xe2800002, 0xe2400001}), // straight-line fallthrough
         arm({0xe49df004}), // post-indexed LDR PC and ARM/Thumb return
         arm({0xe128f000,0x02822001,0xe2a33000}), // MSR CPSR_f affects conditions/carry
@@ -2213,6 +2218,20 @@ static bool test_region_code_alias() {
 #endif
     printf("  PASS region_code_alias\n");
     return true;
+}
+
+static bool test_exact_code_compare() {
+    std::array<std::uint8_t,545> a{},b{};
+    for(unsigned i=0;i<a.size();++i) a[i]=b[i]=i*37;
+    for(unsigned offset=0;offset<16;++offset) for(unsigned size=0;size<=512;++size) {
+        if(!equal_code_bytes(a.data()+offset,b.data()+offset,size)) return false;
+        for(unsigned at : {0u,size/2,size ? size-1 : 0u}) if(size) {
+            b[offset+at]^=1;
+            if(equal_code_bytes(a.data()+offset,b.data()+offset,size)) return false;
+            b[offset+at]^=1;
+        }
+    }
+    printf("  PASS exact_code_compare (unaligned/tails/mutations)\n"); return true;
 }
 
 // Exercise long products, modulo-64 accumulation, aliasing and conditional flags
@@ -2949,6 +2968,7 @@ int main() {
 
     printf("\nRunning ARM translator-level tests...\n\n");
     if (test_bounded_execution()) passed++; else failed++;
+    if (test_exact_code_compare()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;

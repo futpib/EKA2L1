@@ -8,6 +8,8 @@
 #include <unordered_map>
 
 namespace eka2l1::arm::aot {
+    bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size);
+
     // RAM code may be patched through host pointers as well as guest stores.
     // Validate bytes on every entry; mapping notifications alone are insufficient.
     class validated_code_cache {
@@ -46,7 +48,7 @@ namespace eka2l1::arm::aot {
             // at the caller and check the backing, extent and exact bytes every
             // time, including after aliased/host writes and address-space reuse.
             if (!view.bytes || view.bytes != entry->backing || view.size < entry->code.size()
-                || std::memcmp(view.bytes, entry->code.data(), entry->code.size()) != 0) {
+                || !equal_code_bytes(view.bytes, entry->code.data(), entry->code.size())) {
                 entry->live = false;
                 current_.erase(k);
                 recent = nullptr;
@@ -90,11 +92,11 @@ namespace eka2l1::arm::aot {
     private:
         static std::size_t recent_index(std::uint64_t k) {
             const auto pc_mode = static_cast<std::uint32_t>(k);
-            return ((pc_mode >> 1) ^ (pc_mode << 7) ^ (k >> 32)) & 255;
+            return ((pc_mode >> 1) ^ (pc_mode << 7) ^ (k >> 32)) & 4095;
         }
         // deque entries stay allocated until reset; invalidation/replacement
         // marks old entries dead before a cached pointer can be reused.
-        std::array<block *, 256> recent_{};
+        std::array<block *, 4096> recent_{};
         // Versions remain allocated until reset so late module instantiation can
         // never attach an old function to a replacement block. Runtime caps growth.
         std::deque<block> versions_;

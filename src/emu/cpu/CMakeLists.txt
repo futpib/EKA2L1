@@ -85,6 +85,7 @@ set(SOURCE_AOT
         include/cpu/aot/arm_translator.h
         include/cpu/aot/thumb_translator.h
         include/cpu/aot/wasm_emitter.h
+        src/aot/code_compare.cpp
         src/aot/aot_registry.cpp
         src/aot/aot_runtime.cpp
         src/aot/arm_translator.cpp
@@ -124,3 +125,6 @@ target_link_libraries(cpu PUBLIC common)
 target_link_libraries(cpu
         PRIVATE
         capstone_static)
+if (EMSCRIPTEN)
+    set_source_files_properties(src/aot/code_compare.cpp PROPERTIES COMPILE_OPTIONS "-msimd128")
+endif()
