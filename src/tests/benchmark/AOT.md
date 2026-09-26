@@ -47,3 +47,14 @@ AOT register history and per-module accounting are now disabled by default.
 Set `EKA2L1_AOT_DIAGNOSTICS=1` on either browser runner to restore them.
 `profile_batch.py --compare-diagnostics` measures hot-ROM mode with bookkeeping
 off, on, then off again; instruction budgets and guest behavior are identical.
+
+Mode `3` adds hot RAM code. Each cache entry includes address-space identity,
+PC/instruction mode and a distinct compiled version. Before executing a RAM
+block, the runtime resolves the current executable mapping and compares its
+backing pointer and exact code bytes with that version. This catches writes
+through aliases or host pointers as well as remapping; explicit unmap/IMB hooks
+also invalidate overlapping entries. Late module instantiation cannot revive an
+obsolete version. RAM blocks stay within one page, span at most 256 code bytes,
+and stop at their first store. Versions are capped at 16,384 for bounded storage.
+This initial validation assumes the emulator's serialized guest execution;
+concurrent external writes to code while a block is running are outside its scope.

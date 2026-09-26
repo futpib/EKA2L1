@@ -23,6 +23,7 @@
 
 #include <common/log.h>
 #include <common/performance.h>
+#include <cpu/aot/aot_runtime.h>
 
 namespace eka2l1::arm {
     dyncom_core::dyncom_core(arm::exclusive_monitor *monitor, const std::size_t page_bits)
@@ -153,6 +154,7 @@ namespace eka2l1::arm {
 
     void dyncom_core::dirty_tlb_page(address addr) {
         mem_cache_.make_dirty(addr);
+        aot::invalidate_ram_code(addr & ~mem_cache_.page_mask, mem_cache_.page_mask + 1);
     }
 
     void dyncom_core::flush_tlb() {
@@ -167,6 +169,7 @@ namespace eka2l1::arm {
 
     void dyncom_core::imb_range(address addr, std::size_t size) {
         if (common::performance::counting()) ++common::performance::imb_calls;
+        aot::invalidate_ram_code(addr, size);
         clear_instruction_cache();
     }
 

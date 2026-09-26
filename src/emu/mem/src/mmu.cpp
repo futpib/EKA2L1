@@ -37,6 +37,16 @@ namespace eka2l1::mem {
         cpu->read_32bit = [this](const vm_address addr, std::uint32_t *data) { return read_32bit_data(addr, data); };
         cpu->read_64bit = [this](const vm_address addr, std::uint64_t *data) { return read_64bit_data(addr, data); };
         cpu->read_code = [this](const vm_address addr, std::uint32_t *data) { return read_code(addr, data); };
+        cpu->resolve_code = [this](const vm_address addr, arm::core::code_mapping &view) {
+            view = {};
+            view.address_space = current_addr_space();
+            auto *page = manager_->get_page_info(current_addr_space(), addr);
+            if (!page || !page->host_addr || !(page->perm & prot_exec)) return false;
+            const auto offset = addr & manager_->offset_mask_;
+            view.bytes = static_cast<const std::uint8_t *>(page->host_addr) + offset;
+            view.size = manager_->page_size() - offset;
+            return true;
+        };
 
         cpu->write_8bit = [this](const vm_address addr, std::uint8_t *data) { return write_8bit_data(addr, data); };
         cpu->write_16bit = [this](const vm_address addr, std::uint16_t *data) { return write_16bit_data(addr, data); };

@@ -10,7 +10,7 @@ if (!assetArg || !outputArg) throw new Error('Usage: node benchmark.ts ASSETS NE
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
 const verifyAot = process.env.EKA2L1_AOT_VERIFY === "1";
 const aot = Number(process.env.EKA2L1_BENCHMARK_AOT || "0");
-if (![0,1,2].includes(aot)) throw new Error("AOT mode must be 0, 1 or 2");
+if (![0,1,2,3].includes(aot)) throw new Error("AOT mode must be 0, 1, 2 or 3");
 const assets = path.resolve(assetArg), output = path.resolve(outputArg), frames = Number(frameArg);
 if (!Number.isInteger(frames) || frames < 1 || frames > 100000) throw new Error('Invalid frame count');
 const input = path.resolve(inputArg);

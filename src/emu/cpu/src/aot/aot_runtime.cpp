@@ -19,6 +19,8 @@
 
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/aot_registry.h>
+#include <cpu/aot/code_cache.h>
+#include <common/performance.h>
 #include <cpu/dyncom/armstate.h>
 #include <common/log.h>
 #include <cpu/dyncom/arm_dyncom.h>
@@ -128,6 +130,9 @@ void validation_end(ARMul_State *cpu, std::uint32_t count) {
 // Extend export-based compilation using deterministic dispatch samples. Only
 // immutable ROM addresses are eligible; RAM code needs explicit invalidation.
 bool hot_compilation_enabled = false;
+bool ram_compilation_enabled = false;
+static validated_code_cache ram_cache;
+static std::unordered_map<std::uint64_t, unsigned> ram_counts;
 static const std::uint8_t *hot_rom = nullptr;
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 static std::uint64_t hot_dispatches = 0;
@@ -149,15 +154,60 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
     hot_rom = host; hot_rom_base = base; hot_rom_size = size;
     hot_compilation_enabled = enabled;
     hot_dispatches = 0; hot_compiled = 0; hot_counts.clear(); hot_pending.clear();
+    ram_cache = {}; ram_counts.clear();
+    const char *ram = std::getenv("EKA2L1_AOT_RAM");
+    ram_compilation_enabled = enabled && ram && ram[0] == '1';
+}
+
+void invalidate_ram_code(std::uint32_t address, std::size_t size) {
+    ram_cache.invalidate(address, size);
+}
+
+aot_func lookup_compiled(ARMul_State *cpu) {
+    if (validation_running) return nullptr;
+    const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
+    // Existing ROM functions use immutable bytes and need no mapping lookup.
+    if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size))
+        return global_registry().lookup(pc_mode);
+    core::code_mapping view;
+    if (!cpu->parent()->resolve_code) return nullptr;
+    const bool mapped = cpu->parent()->resolve_code(pc, view);
+    auto *entry = ram_cache.find(pc_mode, view);
+    if (!mapped || !entry) return nullptr;
+    if (entry->function && common::performance::counting()) ++common::performance::ram_aot_dispatches;
+    return entry->function;
 }
 
 void observe_hot_pc(ARMul_State *cpu) {
 #ifdef __EMSCRIPTEN__
     if (!hot_compilation_enabled || validation_running || (++hot_dispatches & 31)) return;
     if ((hot_dispatches & 8191) == 0) flush_hot_blocks();
-    if (hot_compiled >= 4096) return;
     const auto pc = cpu->Reg[15], key = pc | cpu->TFlag;
-    if (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size) return;
+    if (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size) {
+        if (!ram_compilation_enabled || ram_cache.versions() >= 16384 || !cpu->parent()->resolve_code) return;
+        core::code_mapping view;
+        if (!cpu->parent()->resolve_code(pc, view)) return;
+        if (ram_cache.find(key, view)) return; // compiled or awaiting instantiation
+        const auto identity = validated_code_cache::key(view.address_space, key);
+        if (ram_counts.size() >= 131072 && !ram_counts.count(identity)) return;
+        auto &count = ram_counts[identity];
+        if (++count % 8) return;
+        const auto size = std::min(std::size_t(256), view.size);
+        auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true)
+                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true);
+        if (tr.func.body.empty() || !tr.entry_supported) {
+            // Cache rejection against these exact bytes; retry only after mutation.
+            ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4)));
+            return;
+        }
+        auto &entry = ram_cache.insert(key, view, size);
+        tr.func.export_name = "r_" + std::to_string(entry.version);
+        hot_pending.push_back(std::move(tr.func));
+        if (common::performance::counting()) ++common::performance::ram_blocks_compiled;
+        if (hot_pending.size() >= 32) flush_hot_blocks();
+        return;
+    }
+    if (hot_compiled >= 4096) return;
     if (hot_counts.size() >= 65536 && !hot_counts.count(key)) return;
     auto &count = hot_counts[key];
     if (count >= 8 || ++count != 8) return; // one attempt per immutable entry
@@ -319,6 +369,12 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
         int table_idx = std::atoi(entry.substr(colon + 1).c_str());
 
         // Parse address from "f_<decimal_addr>"
+        if (name.substr(0, 2) == "r_") {
+            ram_cache.attach(static_cast<std::uint32_t>(std::stoul(name.substr(2))),
+                reinterpret_cast<aot_func>(table_idx));
+            ++count;
+            continue;
+        }
         if (name.substr(0, 2) != "f_") continue;
         std::uint32_t addr = static_cast<std::uint32_t>(std::stoul(name.substr(2)));
 

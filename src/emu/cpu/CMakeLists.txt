@@ -80,6 +80,7 @@ set(SOURCE_DYNCOM
 set(SOURCE_AOT
         include/cpu/aot/aot_registry.h
         include/cpu/aot/aot_runtime.h
+    include/cpu/aot/code_cache.h
         include/cpu/aot/arm_translator.h
         include/cpu/aot/thumb_translator.h
         include/cpu/aot/wasm_emitter.h

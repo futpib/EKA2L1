@@ -80,6 +80,7 @@ namespace eka2l1::arm::aot {
     // Code emitter helper
     struct emit {
         std::vector<std::uint8_t> &b;
+        bool memory_write = false;
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
         // Number of early-exit bails emitted into the function body.
@@ -146,7 +147,10 @@ namespace eka2l1::arm::aot {
         void store_reg(int r, std::uint32_t local) { store_i32(S::reg(r), local); }
 
         // Call imported function (index relative to imports)
-        void call(std::uint32_t func_idx) { op(op_call); leb(b, func_idx); }
+        void call(std::uint32_t func_idx) {
+            if (func_idx == 1 || func_idx == 3 || func_idx == 5) memory_write = true;
+            op(op_call); leb(b, func_idx);
+        }
 
         void ret() { op(op_return); }
 
@@ -530,7 +534,7 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded)
+        const code_window *dll_code, bool bounded, bool stop_after_store)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -674,6 +678,7 @@ namespace eka2l1::arm::aot {
         // loop (typically at a terminator like POP {PC}).
         std::uint32_t decoded_end_offset = 0;
         for (std::size_t i = 0; i + 1 < code_size; i += 2) {
+            if (bounded && stop_after_store && w.memory_write) break;
             // Skip unreachable offsets. `reachable` is the CFG closure
             // from offset 0, so anything not in it is either the middle
             // halfword of a wide insn or literal-pool data past the

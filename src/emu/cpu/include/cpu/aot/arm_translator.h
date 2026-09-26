@@ -37,5 +37,5 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings = nullptr,
-        const code_window *dll_code = nullptr, bool bounded = false);
+        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false);
 }

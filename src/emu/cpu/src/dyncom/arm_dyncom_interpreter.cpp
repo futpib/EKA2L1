@@ -1659,10 +1659,10 @@ DISPATCH : {
 
     // Check if an AOT-compiled function exists for this PC
     {
-        auto aot_func = eka2l1::arm::aot::validation_running ? nullptr : eka2l1::arm::aot::global_registry().lookup(cpu->Reg[15] | cpu->TFlag);
+        auto aot_func = eka2l1::arm::aot::lookup_compiled(cpu);
         if (!aot_func && eka2l1::arm::aot::hot_compilation_enabled && !eka2l1::arm::aot::validation_running) {
             eka2l1::arm::aot::observe_hot_pc(cpu);
-            aot_func = eka2l1::arm::aot::global_registry().lookup(cpu->Reg[15] | cpu->TFlag);
+            // Newly compiled entries can be picked up on the next dispatch.
         }
         if (aot_func) {
             static std::uint64_t aot_dispatch_count = 0;

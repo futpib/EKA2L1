@@ -21,6 +21,7 @@
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/aot/aot_registry.h>
+#include <cpu/aot/code_cache.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 
@@ -859,4 +860,46 @@ TEST_CASE("AOT dispatch distinguishes instruction mode and falls back on zero pr
     CHECK(cpu->get_reg(0) == 7);
     CHECK(cpu->get_reg(15) == 0x1002);
     reg.clear();
+}
+
+TEST_CASE("RAM compiled code rejects stale mappings and versions", "[aot]") {
+    using namespace eka2l1::arm;
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t, 32> code{}, other{};
+    core::code_mapping view{1, code.data(), code.size()};
+    auto first = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    auto second = +[](ARMul_State *) -> std::uint32_t { return 2; };
+    const auto version = cache.insert(0x1000, view, 8).version;
+    cache.attach(version, first);
+    REQUIRE(cache.find(0x1000, view)->function == first);
+    REQUIRE(cache.find(0x1001, view) == nullptr); // same PC, different instruction mode
+    auto other_space = view;
+    other_space.address_space = 2;
+    REQUIRE(cache.find(0x1000, other_space) == nullptr);
+    cache.attach(cache.insert(0x1000, other_space, 8).version, second);
+    REQUIRE(cache.find(0x1000, view)->function == first);
+    REQUIRE(cache.find(0x1000, other_space)->function == second);
+
+    code[3] = 42; // Includes writes through any alias or host pointer.
+    REQUIRE(cache.find(0x1000, view) == nullptr);
+    const auto replacement = cache.insert(0x1000, view, 8).version;
+    cache.attach(version, second); // Late old compilation cannot attach to replacement.
+    REQUIRE(cache.find(0x1000, view)->function == nullptr);
+    cache.attach(replacement, first);
+    other = code;
+    auto remapped = view;
+    remapped.bytes = other.data();
+    REQUIRE(cache.find(0x1000, remapped) == nullptr); // same bytes, different backing
+    cache.attach(cache.insert(0x1000, remapped, 8).version, second);
+    cache.invalidate(0x1007, 1); // overlapping final byte
+    REQUIRE(cache.find(0x1000, remapped) == nullptr);
+    cache.insert(0x1000, view, 8);
+    auto unmapped = view;
+    unmapped.bytes = nullptr;
+    unmapped.size = 0;
+    REQUIRE(cache.find(0x1000, unmapped) == nullptr);
+    cache.insert(0x1000, view, 8);
+    auto short_mapping = view;
+    short_mapping.size = 4;
+    REQUIRE(cache.find(0x1000, short_mapping) == nullptr);
 }

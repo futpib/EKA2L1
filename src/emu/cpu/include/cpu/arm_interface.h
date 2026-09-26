@@ -111,6 +111,15 @@ namespace eka2l1::arm {
 
         memory_operation_32bit_func read_code;
 
+        // A side-effect-free view of executable bytes in the current address space.
+        // Views never span a mapping/page boundary and must not outlive a dispatch.
+        struct code_mapping {
+            std::uint32_t address_space = 0;
+            const std::uint8_t *bytes = nullptr;
+            std::size_t size = 0;
+        };
+        std::function<bool(address, code_mapping &)> resolve_code;
+
         memory_operation_ew_8bit_func exclusive_write_8bit;
         memory_operation_ew_16bit_func exclusive_write_16bit;
         memory_operation_ew_32bit_func exclusive_write_32bit;

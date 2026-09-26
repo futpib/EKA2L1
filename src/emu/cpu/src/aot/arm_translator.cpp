@@ -50,6 +50,7 @@ namespace eka2l1::arm::aot {
 
     struct emit {
         std::vector<std::uint8_t> &b;
+        bool memory_write = false;
         bool entry_supported = true;
         bool unsupported = false;
         std::uint32_t bail_count = 0;
@@ -79,7 +80,10 @@ namespace eka2l1::arm::aot {
         void load_reg(int r) { load_i32(S::reg(r)); }
         void store_reg(int r, std::uint32_t local) { store_i32(S::reg(r), local); }
 
-        void call(std::uint32_t func_idx) { op(op_call); leb(b, func_idx); }
+        void call(std::uint32_t func_idx) {
+            if (func_idx == 1 || func_idx == 3 || func_idx == 5) memory_write = true;
+            op(op_call); leb(b, func_idx);
+        }
         void ret() { op(op_return); }
 
         void bail(std::uint32_t pc, std::uint32_t instr_count) {
@@ -418,7 +422,7 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded)
+        const code_window *dll_code, bool bounded, bool stop_after_store)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -517,6 +521,7 @@ namespace eka2l1::arm::aot {
         std::uint32_t decoded_end_offset = 0;
 
         for (std::size_t i = 0; i + 3 < code_size; i += 4) {
+            if (bounded && stop_after_store && w.memory_write) break;
             if (!reachable.count(i)) {
                 insn_idx++;
                 continue;

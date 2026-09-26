@@ -2077,9 +2077,9 @@ static bool test_bounded_execution() {
     for (unsigned opcode = 0; opcode < 16; ++opcode)
         programs.push_back(thumb({static_cast<std::uint16_t>(0x4008 | (opcode<<6))}));
     int index = 0;
-    for (const auto &p : programs) {
-        auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true)
-                          : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true);
+    for (bool stop_after_store : {false, true}) for (const auto &p : programs) {
+        auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store)
+                          : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store);
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
             {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
             {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
@@ -2123,7 +2123,7 @@ static bool test_bounded_execution() {
         }
         ++index;
     }
-    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*84);
+    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*168);
 #endif
     return true;
 }
