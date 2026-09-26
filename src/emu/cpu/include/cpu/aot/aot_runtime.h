@@ -30,6 +30,9 @@ namespace eka2l1::arm::aot {
     extern bool diagnostics_enabled;
     extern bool hot_compilation_enabled;
     extern bool ram_compilation_enabled;
+    extern bool chaining_enabled;
+    struct compiled_run { std::uint32_t instructions = 0, blocks = 0; };
+    compiled_run execute_chain(ARMul_State *cpu, aot_func function);
     aot_func lookup_compiled(ARMul_State *cpu);
     void invalidate_ram_code(std::uint32_t address, std::size_t size);
     void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled);

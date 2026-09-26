@@ -37,6 +37,7 @@
 namespace eka2l1::arm::aot {
 // Optional differential execution. Guest memory is changed only by compiled
 // execution; the reference interpreter uses a private byte overlay.
+static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 bool diagnostics_enabled = false;
 bool validation_running = false;
 static bool validating = false;
@@ -46,6 +47,9 @@ static std::unordered_map<std::uint32_t, std::uint8_t> validation_memory;
 static std::unordered_map<std::uint32_t, std::uint8_t> reference_writes;
 
 void validation_begin(ARMul_State *cpu) {
+    if (common::performance::counting() && ram_compilation_enabled
+        && (cpu->Reg[15] < hot_rom_base || cpu->Reg[15] - hot_rom_base >= hot_rom_size))
+        ++common::performance::ram_aot_dispatches;
     static const bool enabled = std::getenv("EKA2L1_AOT_VERIFY") != nullptr;
     validating = enabled;
     if (!validating) return;
@@ -131,10 +135,10 @@ void validation_end(ARMul_State *cpu, std::uint32_t count) {
 // immutable ROM addresses are eligible; RAM code needs explicit invalidation.
 bool hot_compilation_enabled = false;
 bool ram_compilation_enabled = false;
+bool chaining_enabled = false;
 static validated_code_cache ram_cache;
 static std::unordered_map<std::uint64_t, unsigned> ram_counts;
 static const std::uint8_t *hot_rom = nullptr;
-static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 static std::uint64_t hot_dispatches = 0;
 static std::uint32_t hot_compiled = 0;
 static std::unordered_map<std::uint32_t, unsigned> hot_counts;
@@ -157,6 +161,8 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
     ram_cache = {}; ram_counts.clear();
     const char *ram = std::getenv("EKA2L1_AOT_RAM");
     ram_compilation_enabled = enabled && ram && ram[0] == '1';
+    const char *chain = std::getenv("EKA2L1_AOT_CHAIN");
+    chaining_enabled = enabled && chain && chain[0] == '1';
 }
 
 void invalidate_ram_code(std::uint32_t address, std::size_t size) {
@@ -174,8 +180,27 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     const bool mapped = cpu->parent()->resolve_code(pc, view);
     auto *entry = ram_cache.find(pc_mode, view);
     if (!mapped || !entry) return nullptr;
-    if (entry->function && common::performance::counting()) ++common::performance::ram_aot_dispatches;
     return entry->function;
+}
+
+compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+    const auto budget = cpu->aot_budget;
+    compiled_run result;
+    while (function && result.instructions < budget && result.blocks < 64) {
+        cpu->aot_budget = budget - result.instructions;
+        validation_begin(cpu);
+        const auto count = function(cpu);
+        validation_end(cpu, count);
+        if (count > cpu->aot_budget) std::abort(); // generated-code contract
+        ++result.blocks;
+        result.instructions += count;
+        if (!count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
+        cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
+        // This stays inside the compiled runner. Every RAM successor is validated;
+        // no stale function pointer is linked across a mapping/code change.
+        function = lookup_compiled(cpu);
+    }
+    return result;
 }
 
 void observe_hot_pc(ARMul_State *cpu) {
@@ -192,9 +217,9 @@ void observe_hot_pc(ARMul_State *cpu) {
         if (ram_counts.size() >= 131072 && !ram_counts.count(identity)) return;
         auto &count = ram_counts[identity];
         if (++count % 8) return;
-        const auto size = std::min(std::size_t(256), view.size);
-        auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true)
-                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true);
+        const auto size = std::min(std::size_t(chaining_enabled ? 512 : 256), view.size);
+        auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
+                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled);
         if (tr.func.body.empty() || !tr.entry_supported) {
             // Cache rejection against these exact bytes; retry only after mutation.
             ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4)));
@@ -212,9 +237,9 @@ void observe_hot_pc(ARMul_State *cpu) {
     auto &count = hot_counts[key];
     if (count >= 8 || ++count != 8) return; // one attempt per immutable entry
     const auto offset = pc - hot_rom_base;
-    const auto size = std::min(128u, hot_rom_size - offset);
-    auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true)
-                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true);
+    const auto size = std::min(chaining_enabled ? 512u : 128u, hot_rom_size - offset);
+    auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
+                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled);
     if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
     hot_pending.push_back(std::move(tr.func));

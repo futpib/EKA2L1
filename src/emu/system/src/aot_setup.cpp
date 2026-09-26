@@ -252,10 +252,10 @@ namespace eka2l1::arm::aot {
                 const auto c = pending[i];
                 const auto key = c.func_addr | (c.is_arm ? 0u : 1u);
                 if (!visited.insert(key).second) continue;
-                const auto size = std::min(c.func_size, 128u);
+                const auto size = std::min(c.func_size, chaining_enabled ? 512u : 128u);
                 auto tr = c.is_arm
-                    ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true)
-                    : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true);
+                    ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled)
+                    : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled);
                 if (tr.func.body.empty() || !tr.entry_supported) continue;
                 tr.func.export_name = "f_" + std::to_string(key);
                 all_funcs.push_back(std::move(tr.func));

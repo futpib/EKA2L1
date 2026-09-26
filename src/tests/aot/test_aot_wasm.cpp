@@ -132,11 +132,17 @@ static cpu_state capture_state(dyncom_core &cpu) {
 
 // The test memory — accessible from JS for the tlb imports
 static test_mem *g_test_mem = nullptr;
+static bool g_mutate_callback_state = false, g_callback_observed_state = false;
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read32(std::uint32_t state_ptr, std::uint32_t addr) {
-        (void)state_ptr;
+        if (g_mutate_callback_state) {
+            auto *state = reinterpret_cast<std::uint32_t *>(state_ptr);
+            g_callback_observed_state = state[2] == 7;
+            state[3] = 11;
+            state[state_offsets::CFLAG / 4] = 1;
+        }
         return g_test_mem ? g_test_mem->read32(addr) : 0;
     }
     EMSCRIPTEN_KEEPALIVE
@@ -2077,9 +2083,9 @@ static bool test_bounded_execution() {
     for (unsigned opcode = 0; opcode < 16; ++opcode)
         programs.push_back(thumb({static_cast<std::uint16_t>(0x4008 | (opcode<<6))}));
     int index = 0;
-    for (bool stop_after_store : {false, true}) for (const auto &p : programs) {
-        auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store)
-                          : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store);
+    for (bool cache_registers : {false, true}) for (bool stop_after_store : {false, true}) for (const auto &p : programs) {
+        auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers)
+                          : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers);
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
             {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
             {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
@@ -2123,7 +2129,38 @@ static bool test_bounded_execution() {
         }
         ++index;
     }
-    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*168);
+    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*336);
+#endif
+    return true;
+}
+
+static bool test_cached_callback_state() {
+#ifdef __EMSCRIPTEN__
+    const std::uint32_t code[] = {0xE3A02007, 0xE5910000, 0xE2834001, 0xE2A05000};
+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(code), sizeof(code),
+        0x1000, nullptr, nullptr, true, false, true);
+    auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
+        {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+        {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    alignas(8) std::uint32_t state[256]{};
+    state[1] = 0x8000;
+    state[state_offsets::PC / 4] = 0x1000;
+    state[state_offsets::AOT_BUDGET / 4] = 4;
+    test_mem memory;
+    memory.write32(0x8000, 20);
+    g_test_mem = &memory;
+    g_mutate_callback_state = true;
+    g_callback_observed_state = false;
+    const auto count = js_run_aot_wasm(module.data(), module.size(),
+        reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+    g_mutate_callback_state = false;
+    g_test_mem = nullptr;
+    if (count != 4 || !g_callback_observed_state || state[3] != 11 || state[4] != 12 || state[5] != 21) {
+        printf("  FAIL cached_callback_state count=%d observed=%d r3=%u r4=%u r5=%u\n",
+            count, g_callback_observed_state, state[3], state[4], state[5]);
+        return false;
+    }
+    printf("  PASS cached_callback_state\n");
 #endif
     return true;
 }
@@ -2713,6 +2750,7 @@ int main() {
 
     printf("\nRunning ARM translator-level tests...\n\n");
     if (test_bounded_execution()) passed++; else failed++;
+    if (test_cached_callback_state()) passed++; else failed++;
     if (test_arm_mov_imm()) passed++; else failed++;
     if (test_arm_add_sub_imm()) passed++; else failed++;
     if (test_arm_cmp_beq()) passed++; else failed++;

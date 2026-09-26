@@ -58,3 +58,13 @@ obsolete version. RAM blocks stay within one page, span at most 256 code bytes,
 and stop at their first store. Versions are capped at 16,384 for bounded storage.
 This initial validation assumes the emulator's serialized guest execution;
 concurrent external writes to code while a block is running are outside its scope.
+
+Mode `4` adds bounded compiled-successor execution and register/flag locals.
+Eligible source windows grow to 512 bytes; RAM still exits at stores. Up to 64
+compiled blocks can execute in one runner call, always within the remaining
+guest instruction budget. Every successor checks mode, pending interrupts and
+RAM code validity; missing or zero-progress blocks return to the interpreter.
+Registers/flags are flushed before memory callbacks and exits, and reloaded
+after callbacks. The deferred barriers include registers first used later in
+the block, so a callback cannot leave a stale cached register. PC stays in the
+CPU state throughout. Diagnostics record a whole runner call in this mode.

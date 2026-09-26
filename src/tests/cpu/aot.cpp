@@ -22,6 +22,7 @@
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/code_cache.h>
+#include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 
@@ -902,4 +903,46 @@ TEST_CASE("RAM compiled code rejects stale mappings and versions", "[aot]") {
     auto short_mapping = view;
     short_mapping.size = 4;
     REQUIRE(cache.find(0x1000, short_mapping) == nullptr);
+}
+
+TEST_CASE("Compiled successor chains respect budgets, mode and interrupts", "[aot]") {
+    using namespace eka2l1::arm;
+    aot_test_env env;
+    auto cpu = env.make_cpu();
+    auto storage = std::make_unique<ARMul_State>(cpu.get(), USER32MODE);
+    auto &state = *storage;
+    auto &registry = aot::global_registry();
+    registry.clear();
+    auto first = +[](ARMul_State *s) -> std::uint32_t {
+        ++s->Reg[0]; s->Reg[15] = 0x1004; s->TFlag = 1; return 1;
+    };
+    auto next = +[](ARMul_State *s) -> std::uint32_t {
+        ++s->Reg[0]; s->Reg[15] = 0x1000; s->TFlag = 0; return 1;
+    };
+    registry.register_function(0x1000, first);
+    registry.register_function(0x1005, next);
+    state.Reg[0] = 0; state.Reg[15] = 0x1000;
+    state.NirqSig = 1; state.NumInstrsToExecute = 100; state.aot_budget = 5;
+    auto result = aot::execute_chain(&state, first);
+    REQUIRE(result.instructions == 5);
+    REQUIRE(result.blocks == 5);
+    REQUIRE(state.Reg[0] == 5);
+    REQUIRE(state.TFlag == 1);
+    REQUIRE(state.aot_budget == 1);
+    state.aot_budget = 0;
+    REQUIRE(aot::execute_chain(&state, first).blocks == 0);
+    state.aot_budget = 10;
+    auto zero = +[](ARMul_State *) -> std::uint32_t { return 0; };
+    REQUIRE(aot::execute_chain(&state, zero).instructions == 0);
+    auto interrupt = +[](ARMul_State *s) -> std::uint32_t {
+        s->Reg[15] = 0x1000; s->TFlag = 0; s->NirqSig = 0; s->Cpsr &= ~0x80u; return 1;
+    };
+    result = aot::execute_chain(&state, interrupt);
+    REQUIRE(result.instructions == 1);
+    REQUIRE(result.blocks == 1);
+    state.NirqSig = 1;
+    state.aot_budget = 100;
+    result = aot::execute_chain(&state, first);
+    REQUIRE(result.blocks == 64); // bounded host runner even with a larger caller budget
+    registry.clear();
 }

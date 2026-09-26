@@ -1677,9 +1677,15 @@ DISPATCH : {
             }
 
             cpu->aot_budget = static_cast<std::uint32_t>(std::min<std::uint64_t>(cpu->NumInstrsToExecute - num_instrs, UINT32_MAX));
-            eka2l1::arm::aot::validation_begin(cpu);
-            std::uint32_t instrs = aot_func(cpu);
-            eka2l1::arm::aot::validation_end(cpu, instrs);
+            std::uint32_t instrs = 0, blocks = 1;
+            if (eka2l1::arm::aot::chaining_enabled) {
+                auto run = eka2l1::arm::aot::execute_chain(cpu, aot_func);
+                instrs = run.instructions; blocks = run.blocks;
+            } else {
+                eka2l1::arm::aot::validation_begin(cpu);
+                instrs = aot_func(cpu);
+                eka2l1::arm::aot::validation_end(cpu, instrs);
+            }
 
             if (eka2l1::arm::aot::diagnostics_enabled) {
                 rec.exit_pc = cpu->Reg[15];
@@ -1690,11 +1696,12 @@ DISPATCH : {
             }
 
             if (eka2l1::common::performance::counting()) {
-                ++eka2l1::common::performance::aot_dispatches;
+                eka2l1::common::performance::aot_dispatches += blocks;
+                ++eka2l1::common::performance::compiled_runner_calls;
                 eka2l1::common::performance::aot_instructions += instrs;
             }
             if (eka2l1::arm::aot::diagnostics_enabled) {
-                aot_dispatch_count++;
+                aot_dispatch_count += blocks;
                 aot_instr_count += instrs;
                 // Per-module AOT tracking
                 {

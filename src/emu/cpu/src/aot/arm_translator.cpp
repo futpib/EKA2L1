@@ -18,6 +18,7 @@
  */
 
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/state_locals.h>
 
 #include <cstring>
 #include <map>
@@ -50,6 +51,7 @@ namespace eka2l1::arm::aot {
 
     struct emit {
         std::vector<std::uint8_t> &b;
+        state_local_cache cache;
         bool memory_write = false;
         bool entry_supported = true;
         bool unsupported = false;
@@ -63,15 +65,22 @@ namespace eka2l1::arm::aot {
         void i32_const(std::int32_t v) { op(op_i32_const); sleb(b, v); }
 
         void load_i32(std::uint32_t offset) {
+            if (cache.accepts(offset)) { get_local(cache.local(offset)); return; }
             state_ptr();
             op(op_i32_load); leb(b, 2); leb(b, offset);
         }
         void store_i32(std::uint32_t offset, std::uint32_t local) {
+            if (cache.accepts(offset)) {
+                get_local(local); set_local(cache.local(offset)); cache.written.insert(offset); return;
+            }
             state_ptr();
             get_local(local);
             op(op_i32_store); leb(b, 2); leb(b, offset);
         }
         void store_i32_const(std::uint32_t offset, std::int32_t val) {
+            if (cache.accepts(offset)) {
+                i32_const(val); set_local(cache.local(offset)); cache.written.insert(offset); return;
+            }
             state_ptr();
             i32_const(val);
             op(op_i32_store); leb(b, 2); leb(b, offset);
@@ -82,9 +91,11 @@ namespace eka2l1::arm::aot {
 
         void call(std::uint32_t func_idx) {
             if (func_idx == 1 || func_idx == 3 || func_idx == 5) memory_write = true;
+            cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
+            cache.barrier_at(b.size(), true);
         }
-        void ret() { op(op_return); }
+        void ret() { cache.barrier_at(b.size()); op(op_return); }
 
         void bail(std::uint32_t pc, std::uint32_t instr_count) {
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
@@ -422,7 +433,7 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -442,6 +453,8 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP_CARRY = 7;
 
         emit w{result.body};
+        w.cache.enabled = bounded && cache_registers;
+        w.cache.first_local = result.num_locals + 1;
 
         // Build instruction address → index map
         std::uint32_t num_insns = 0;
@@ -1459,6 +1472,7 @@ namespace eka2l1::arm::aot {
         if (bounded) w.bail(start_address + decoded_end_offset, insn_idx);
         else { w.i32_const(num_insns); w.ret(); }
 
+        w.cache.finish(result);
         tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;
         tr.end_address = start_address + decoded_end_offset;
