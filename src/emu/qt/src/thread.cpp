@@ -26,6 +26,7 @@
 #include <common/configure.h>
 #include <common/cvt.h>
 #include <common/frame_dumper.h>
+#include <drivers/audio/deterministic.h>
 #include <common/deterministic.h>
 #include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
@@ -242,6 +243,8 @@ namespace eka2l1::desktop {
                     }
                     if (dumper->done()) {
                         LOG_INFO(FRONTEND_CMDLINE, "Frame dump complete, exiting");
+                        if (common::benchmark::enabled())
+                            drivers::export_benchmark_audio(state.dump_frames_dir_, common::benchmark::virtual_us.load());
                         dyncom_dump_pc_histogram();
                         std::_Exit(0);
                     }

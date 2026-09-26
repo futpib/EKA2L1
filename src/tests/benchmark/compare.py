@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 from run_native import frame_records
+from validate_audio import audio_record
 
 p = argparse.ArgumentParser()
 p.add_argument('reference', type=Path)
@@ -22,5 +23,10 @@ for expected, got in zip(reference, actual):
         print(json.dumps({'match': False, 'frames': len(reference), 'differing_frames_by_field': differences,
                           'first_divergence': i, 'expected': expected, 'actual': got}, indent=2))
         raise SystemExit(1)
-print(json.dumps({'match': True, 'frames': len(reference), 'unique_images': len({r['sha256_rgba'] for r in reference}),
+expected_audio = audio_record(a.reference, reference[0]['virtual_us'], reference[-1]['virtual_us'])
+actual_audio = audio_record(a.actual, actual[0]['virtual_us'], actual[-1]['virtual_us'])
+if expected_audio != actual_audio:
+    print(json.dumps({'match': False, 'expected_audio': expected_audio, 'actual_audio': actual_audio}, indent=2))
+    raise SystemExit(1)
+print(json.dumps({'match': True, 'audio': actual_audio, 'frames': len(reference), 'unique_images': len({r['sha256_rgba'] for r in reference}),
                   'last_virtual_us': reference[-1]['virtual_us'], 'instructions': reference[-1]['instructions']}, indent=2))

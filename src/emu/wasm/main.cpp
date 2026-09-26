@@ -19,6 +19,7 @@
 
 #include <common/cvt.h>
 #include <common/frame_dumper.h>
+#include <drivers/audio/deterministic.h>
 #include <common/deterministic.h>
 #include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
@@ -326,6 +327,7 @@ int eka2l1_run(const char *app_name) {
                 if (common::benchmark::enabled()) {
                     g_state->benchmark_captured = g_state->dumper->captured();
                     if (g_state->dumper->done()) {
+                        drivers::export_benchmark_audio("/frames", common::benchmark::virtual_us.load());
                         g_state->running = false;
                         g_state->benchmark_done = true;
                     }

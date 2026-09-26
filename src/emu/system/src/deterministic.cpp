@@ -5,6 +5,7 @@
 #include <kernel/timing.h>
 #include <services/window/window.h>
 #include <drivers/input/common.h>
+#include <drivers/audio/deterministic.h>
 
 #include <fstream>
 #include <sstream>
@@ -15,6 +16,14 @@ namespace eka2l1 {
         if (!common::benchmark::enabled()) return;
         if (!winserv) throw std::runtime_error("Benchmark requires a window server");
         auto *timer = sys->get_ntimer();
+        drivers::reset_benchmark_audio();
+        const int audio_event = timer->register_event("BenchmarkAudio", [timer](std::uint64_t deadline, int) {
+            drivers::pump_benchmark_audio(timer->microseconds());
+            const auto next = deadline + 10000;
+            timer->schedule_event(static_cast<std::int64_t>(next) - timer->microseconds(),
+                timer->get_register_event("BenchmarkAudio"), next);
+        });
+        timer->schedule_event(10000, audio_event, timer->microseconds() + 10000);
         const char *path = std::getenv("EKA2L1_BENCHMARK_INPUT");
         if (!path) throw std::runtime_error("Set EKA2L1_BENCHMARK_INPUT to a replay file");
         std::ifstream input(path);

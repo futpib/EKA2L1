@@ -7,7 +7,7 @@ The benchmark is opt-in (`EKA2L1_BENCHMARK=1`). It uses the DynCom interpreter o
 - Guest UTC starts at 2024-01-01 00:00:00, timezone UTC. Guest `Math::Random` and host-generated kernel object names have fixed seeds.
 - Input comes from `snakes.input`: virtual microseconds, raw Symbian scan code, press/release. Host keyboard, mouse and controller input are excluded.
 - Native retains the original device input-method DLL, matching WASM instead of applying Qt-only host-input replacements. Patch libraries and guest directory entries use sorted order so guest addresses and file-search work do not depend on the host filesystem.
-- Audio uses the same silent DSP stub as the browser reference. This benchmark does not measure audio fidelity.
+- Audio uses the same guest-clock PCM DSP on both targets. A virtual timer requests buffers every 10 ms, with a 40 ms low-water threshold. Signed PCM8/PCM16 mono/stereo is mixed into 48 kHz stereo PCM16 using integer zero-order-hold resampling and saturating volume/mixing. Unsupported compressed formats are rejected. Host audio callbacks never advance the guest.
 - By default, capture starts at 21 virtual seconds, after the scripted replay has entered gameplay. Adjacent identical RGBA images are suppressed, so duplicate presentations do not consume the 1,000-image budget. `frames.jsonl` retains the presentation ordinal, guest time and instruction count for every accepted image. GPU completion is synchronized before guest execution continues.
 - Each native repeat begins with a copy of the freshly installed device. Pixel hashes and guest timing must match exactly.
 
@@ -62,11 +62,11 @@ python3 src/tests/benchmark/compare.py \
 
 Set `CHROMIUM_PATH` if Chromium is not at `/usr/bin/chromium`. The local server supplies the isolation headers required by WASM pthreads. Each browser run gets a fresh memory filesystem. The same replay file and asset hashes are used on both targets. Browser polling only observes completion; it does not deliver input or pace guest execution.
 
-`compare.py` checks every RGBA pixel, frame number, presentation ordinal, size, virtual timestamp and instruction count. It exits nonzero and prints the first differing record on divergence. There is no pixel tolerance or frame realignment. Startup screens are warmup and do not count toward the default 1,000-image window. The replay enters Level 1 automatically, then supplies direction changes. Native `--start-us` selects a different warmup boundary; `--all-presentations` retains duplicates for diagnostics. The optional last positional browser argument selects the warmup boundary. Always use the same settings when comparing targets.
+`compare.py` requires non-silent gameplay PCM with buffer callbacks and compares the entire audio sample stream and timestamped audio events exactly, as well as every RGBA pixel, frame number, presentation ordinal, size, virtual timestamp and instruction count. It exits nonzero and prints the first differing record on divergence. There is no pixel tolerance or frame realignment. Startup screens are warmup and do not count toward the default 1,000-image window. The replay enters Level 1 automatically, then supplies direction changes. Native `--start-us` selects a different warmup boundary; `--all-presentations` retains duplicates for diagnostics. The optional last positional browser argument selects the warmup boundary. Always use the same settings when comparing targets.
 
 `metrics.json` measures wall time from the first contentful presentation after the warmup boundary through the last captured image, including rendering, readback and PNG/manifest writes. Use that common capture window for performance comparisons. `report.json` also records runner elapsed time, which includes different amounts of setup/export work on each target and is not directly comparable. Host time is diagnostic only; it never advances the guest clock. This is a correctness baseline using interpreters and software rendering, not an optimized native-versus-WASM speed comparison.
 
-The benchmark is scoped to this fixed Snakes/device replay in fresh processes. It does not promise deterministic network, audio, arbitrary host services, save-state resumes, or hardware-accurate instruction timing.
+The benchmark is scoped to this fixed Snakes/device replay in fresh processes. It does not promise deterministic network, compressed audio, microphone input, arbitrary host services, save-state resumes, or hardware-accurate instruction timing.
 
 ## Gameplay and clock validation
 
@@ -78,3 +78,24 @@ python3 src/tests/benchmark/validate_gameplay.py /absolute/path/to/wasm-run-1
 This fixed-replay gate requires at least 95% distinct 3D viewports, at least 1% changed viewport pixels between every pair of adjacent images, strictly increasing guest timestamps, no gap above 100 ms, and 18–25 changing images per virtual second. It excludes the HUD from its motion checks. Inspect the captured images/video as well: image variation alone cannot identify gameplay. The capture filter only removes adjacent identical full-frame images; it never skips a changed image after warmup.
 
 Guest timers, tick counters, UTC and display refresh use the same virtual clock. The emulated display refresh is 60 Hz; this Snakes replay produces about 21.3 changed images per virtual second, consistent with three 64 Hz guest ticks between game updates. Output images therefore need their recorded timestamps for playback, rather than being forced to 60 different game images per second. This verifies emulated time progression, not physical-handset FPS or cycle accuracy.
+
+## Audio capture
+
+Each run exports `audio.wav` and `audio.jsonl` next to `frames.jsonl`. The WAV
+starts at guest time zero, including startup silence, and ends at the final
+captured image (rounded down to a 48 kHz sample boundary). The event log records
+stream creation, format/rate/channel/volume changes, writes, buffer requests,
+and stop/destruction with guest timestamps. The native runner checks audio on
+every repeat; `compare.py` requires both audio files, so the older silent baseline
+cannot accidentally pass the audio gate.
+
+```sh
+python3 src/tests/benchmark/validate_audio.py /absolute/path/to/wasm-run-1
+```
+
+Play `audio.wav` in a media player. When combining it with the gameplay frames,
+trim the audio at the first frame's `virtual_us` and retain the frame timestamps.
+The benchmark runs without host pacing and exports audio for playback afterwards;
+it does not turn on real-time speaker playback in either frontend. The existing
+interactive audio paths are unchanged. This is a deterministic PCM reference,
+not a hardware DSP/filter or codec-fidelity claim.

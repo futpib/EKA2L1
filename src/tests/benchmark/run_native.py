@@ -10,6 +10,7 @@ import signal
 import subprocess
 import time
 from PIL import Image
+from validate_audio import audio_record
 
 ROOT = Path(__file__).resolve().parents[3]
 ASSETS = {
@@ -93,6 +94,7 @@ def main():
               'assets': ASSETS, 'input_sha256': hashlib.sha256(a.input.read_bytes()).hexdigest(),
               'frames': a.frames, 'start_us': a.start_us, 'unique': not a.all_presentations, 'runs': []}
     baseline = None
+    baseline_audio = None
     for i in range(a.repeat):
         directory = a.output / f'run-{i}'
         shutil.copytree(a.output / 'template', directory / 'state')
@@ -110,10 +112,15 @@ def main():
         elif baseline != records:
             first = next(j for j, (x, y) in enumerate(zip(baseline, records)) if x != y)
             raise RuntimeError(f'Run {i} differs at frame {first}: {baseline[first]} != {records[first]}')
+        audio = audio_record(frames, records[0]['virtual_us'], records[-1]['virtual_us'])
+        if baseline_audio is not None and audio != baseline_audio:
+            raise RuntimeError(f'Run {i} audio differs: {audio} != {baseline_audio}')
+        baseline_audio = audio
+        (directory / 'audio.json').write_text(json.dumps(audio, indent=2) + '\n')
         report['runs'].append({'wall_seconds': elapsed, 'last_virtual_us': records[-1]['virtual_us']})
         print(f'Run {i}: {len(records)} frames in {elapsed:.3f}s', flush=True)
         (a.output / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
-    print('PASS: all frame pixels and guest timestamps match', flush=True)
+    print('PASS: all frame pixels, guest timestamps, PCM and audio events match', flush=True)
 
 if __name__ == '__main__':
     main()

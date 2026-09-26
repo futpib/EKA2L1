@@ -43,6 +43,7 @@ add_library(drivers
         src/itc.cpp
         src/audio/audio.cpp
         src/audio/dsp.cpp
+        src/audio/deterministic.cpp
         src/audio/player.cpp
         src/audio/stream.cpp
         src/audio/backend/cubeb/audio_cubeb.cpp
