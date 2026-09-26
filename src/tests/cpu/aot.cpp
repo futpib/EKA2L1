@@ -993,7 +993,7 @@ TEST_CASE("Guest profiling separates decoding and execution without advancing gu
     CHECK(cpu->get_reg(0) == 8);
     CHECK(cpu->get_reg(15) == 0x1008);
     CHECK(gp::state.total[0] == 3);
-    CHECK(gp::state.total[1] == 3);
+    CHECK(gp::state.total[1] == 4); // branch target decoded again before the exhausted-budget exit
     std::uint64_t executions = 0;
     for (const auto &[key, count] : gp::state.samples) if (std::get<0>(key) == 0) {
         executions += count;
