@@ -560,6 +560,13 @@ namespace eka2l1::arm::aot {
                 w.op(op_if); w.op(type_void);
                 w.bail(insn_addr, insn_idx);
                 w.op(op_end);
+                // Match DynCom's PLD decode: an optional prefetch hint has no
+                // architectural effect, but still consumes one guest instruction.
+                if ((inst & 0xFD70F000) == 0xF550F000) {
+                    ++insn_idx;
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                    continue;
+                }
                 // Exclusive/swap encodings overlap broad data-processing masks.
                 // Let DynCom preserve the exclusive monitor and instruction semantics.
                 if ((inst & 0x0F0000F0) == 0x01000090 || (inst >> 28) == 15) {
@@ -831,8 +838,9 @@ namespace eka2l1::arm::aot {
                                   ((inst >> 4) & 1) == 1 &&
                                   ((inst >> 4) & 0xF) != 9;
 
-                // MRS/MSR: bits [27:23] = 00010, I=0, bit 20 depends
+                // MRS/MSR: bits [27:23] = 00010, I=0, S=0
                 bool is_mrs_msr = ((inst >> 23) & 0x1F) == 2 &&
+                                  !((inst >> 20) & 1) && // TST/TEQ/CMP/CMN have S=1
                                   !((inst >> 25) & 1) &&
                                   ((inst >> 4) & 0xF) == 0;
 
@@ -943,17 +951,18 @@ namespace eka2l1::arm::aot {
                     }
 
                     if (!preindex) {
-                        // Post-indexed: use Rn as address, then compute Rn+offset
-                        // For simplicity, bail on post-indexed for now
-                        w.op(op_drop); // drop stale address value
-                        w.bail_unsupported(insn_addr, insn_idx);
-                        if (cond_opened) w.op(op_end);
-                        insn_idx++;
-                        decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
-                        continue;
+                        if (writeback || rn == 15 || rd == 15 || rn == rd) {
+                            w.op(op_drop);
+                            w.bail_unsupported(insn_addr, insn_idx);
+                            if (cond_opened) w.op(op_end);
+                            ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                            continue;
+                        }
+                        w.set_local(TMP4); // updated base; keep across the memory callback
+                        w.load_reg(rn); // access uses the original base
                     }
-
                     w.set_local(ADDR_TMP);
+                    if (!preindex) w.store_reg(rn, TMP4); // DynCom updates the base before the access.
 
                     if (load) {
                         w.state_ptr();
@@ -1007,8 +1016,8 @@ namespace eka2l1::arm::aot {
                         }
                     }
 
-                    if (writeback || !preindex) {
-                        // Write-back: Rn = computed address
+                    if (writeback) {
+                        // Write-back for pre-indexed forms.
                         w.store_reg(rn, ADDR_TMP);
                     }
 
@@ -1402,17 +1411,20 @@ namespace eka2l1::arm::aot {
                 }
 
                 if (!preindex) {
-                    // Post-indexed: use Rn as address, then update
-                    // Bail for simplicity
-                    w.op(op_drop); // drop stale address value
-                    w.bail_unsupported(insn_addr, insn_idx);
-                    if (cond_opened) w.op(op_end);
-                    insn_idx++;
-                    decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
-                    continue;
+                    // W=1 post-indexed forms use unprivileged access semantics.
+                    // Keep them and unpredictable register combinations in DynCom.
+                    if (writeback || rn == 15 || rd == 15 || rn == rd) {
+                        w.op(op_drop);
+                        w.bail_unsupported(insn_addr, insn_idx);
+                        if (cond_opened) w.op(op_end);
+                        ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                        continue;
+                    }
+                    w.set_local(TMP4);
+                    w.load_reg(rn);
                 }
-
                 w.set_local(ADDR_TMP);
+                if (!preindex) w.store_reg(rn, TMP4);
 
                 if (load) {
                     if (byte) {

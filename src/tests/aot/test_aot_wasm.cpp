@@ -2031,6 +2031,7 @@ static bool test_bounded_execution() {
     };
     std::vector<program> programs = {
         arm({0xe3a00001, 0xe2800002, 0xe2400001}), // straight-line fallthrough
+        arm({0xf5d1f000,0xf551f040,0xf7d1f002,0xe2800001}), // PLD hints must consume budgets without memory access
         arm({0xe3500000, 0x0a000000, 0xe3a01007, 0xe3a02009}), // taken/not-taken B
         arm({0xe2500001, 0x1afffffd}), // backward B, must return not recurse
         arm({0xe8a18000}), // STM stores pipeline PC
@@ -2082,6 +2083,34 @@ static bool test_bounded_execution() {
     }
     for (unsigned opcode = 0; opcode < 16; ++opcode)
         programs.push_back(thumb({static_cast<std::uint16_t>(0x4008 | (opcode<<6))}));
+    // Post-indexed byte/word/halfword accesses, both offsets and conditions.
+    // R2 is set inside the program so register offsets are safe for all R0 seeds.
+    for (unsigned cond : {0u,14u}) for (unsigned up : {0u,1u}) for (unsigned reg_offset : {0u,1u}) {
+        for (unsigned load : {0u,1u}) for (unsigned byte : {0u,1u}) {
+            unsigned inst = (cond<<28) | 0x04010000 | (up<<23) | (byte<<22) | (load<<20)
+                | (reg_offset ? 0x02000002 : 4);
+            auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true);
+            if (!tr.entry_supported) { printf("  FAIL post-index entry %08X rejected\n",inst); return false; }
+            programs.push_back(arm({0xE3A02004,inst,0xE2813000}));
+        }
+        for (unsigned sh : {1u,2u,3u}) for (unsigned load : {0u,1u}) {
+            if (!load && sh != 1) continue; // dualword transfers remain unsupported
+            unsigned inst = (cond<<28) | 0x00010090 | (up<<23) | (load<<20) | (sh<<5)
+                | (reg_offset ? 2 : 0x00400002);
+            auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true);
+            if (!tr.entry_supported) { printf("  FAIL post-index halfword %08X rejected\n",inst); return false; }
+            programs.push_back(arm({0xE3A02002,inst,0xE2813000}));
+        }
+    }
+    for (unsigned inst : {0xE4811004u,0xE4911004u,0xE4B10004u,0xE0D110B2u,0xE10F0000u,0xE128F000u}) {
+        auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true);
+        if (tr.entry_supported) { printf("  FAIL guarded form %08X accepted\n",inst); return false; }
+    }
+    for (unsigned opcode = 8; opcode <= 11; ++opcode) {
+        unsigned inst = 0xE0100001 | (opcode<<21);
+        auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true);
+        if (!tr.entry_supported) { printf("  FAIL test/compare %08X misclassified\n",inst); return false; }
+    }
     int index = 0;
     for (bool cache_registers : {false, true}) for (bool stop_after_store : {false, true}) for (const auto &p : programs) {
         auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers)
