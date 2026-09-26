@@ -5,7 +5,9 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export const buildDir = path.resolve(__dirname, "../../../build-wasm/src/emu/wasm");
+export const buildDir = process.env.EKA2L1_WASM_BUILD_DIR
+  ? path.resolve(process.env.EKA2L1_WASM_BUILD_DIR)
+  : path.resolve(__dirname, "../../../build-wasm/src/emu/wasm");
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html",

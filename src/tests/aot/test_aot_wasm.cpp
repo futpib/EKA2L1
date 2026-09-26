@@ -2134,6 +2134,73 @@ static bool test_bounded_execution() {
     return true;
 }
 
+// Exercise long products, modulo-64 accumulation, aliasing and conditional flags
+// against DynCom with zero, partial, exact and oversized instruction budgets.
+static bool test_arm_long_multiply() {
+#ifdef __EMSCRIPTEN__
+    const std::array<std::array<unsigned, 4>, 6> registers{{
+        {{2,3,0,1}}, {{0,3,0,1}}, {{2,0,0,1}},
+        {{1,3,0,1}}, {{2,1,0,1}}, {{0,1,0,1}}
+    }}; // lo, hi, rm, rs (including both destinations overlapping inputs)
+    const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
+    unsigned comparisons = 0;
+    for (bool cached : {false,true}) for (unsigned form = 0; form < 8; ++form)
+    for (const auto &r : registers) for (unsigned cond : {0u,1u,14u}) {
+        const unsigned instruction = (cond << 28) | 0x00800090u | (form << 20)
+            | (r[1]<<16) | (r[0]<<12) | (r[3]<<8) | r[2];
+        const std::uint32_t code[] = {instruction, 0x02866001u, instruction}; // ADDEQ between products
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code);
+        auto tr = translate_arm_block(bytes, sizeof(code), 0x1000, nullptr, nullptr, true, true, cached);
+        if (!tr.entry_supported || !tr.complete) { printf("  FAIL long multiply not compiled %08X\n",instruction); return false; }
+        auto module = build_wasm_module({tr.func});
+        for (unsigned seed = 0; seed < 8; ++seed) for (unsigned flags : {0u,3u,12u,15u})
+        for (unsigned budget : {0u,1u,2u,3u,4u}) {
+            test_mem memory;
+            memory.write_code(0x1000, {bytes, bytes + sizeof(code)});
+            r12l1::exclusive_monitor monitor(1);
+            auto cpu = make_cpu(memory, monitor);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned reg = 0; reg < 16; ++reg) {
+                unsigned value = reg == 15 ? 0x1000 : values[(seed + reg * 3) % 8];
+                // Alternate high accumulator between signed extremes and all bits set.
+                if (reg == 3) value = seed & 1 ? 0xffffffffu : 0x7fffffffu;
+                state[state_offsets::reg(reg)/4] = value;
+                cpu->set_reg(reg,value);
+            }
+            cpu->set_cpsr(0x10 | (flags<<28));
+            for (auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,3},
+                    {state_offsets::ZFLAG,2},{state_offsets::CFLAG,1},{state_offsets::VFLAG,0}})
+                state[pair.first/4] = (flags >> pair.second)&1;
+            state[state_offsets::AOT_BUDGET/4] = budget;
+            const auto count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            if (count != static_cast<int>(std::min(budget,3u))) {
+                printf("  FAIL long multiply budget %u count %d\n",budget,count); return false;
+            }
+            if (count) cpu->run(count);
+            for (unsigned reg = 0; reg < 16; ++reg) if (state[state_offsets::reg(reg)/4] != cpu->get_reg(reg)) {
+                printf("  FAIL long multiply %08X cached=%d seed=%u flags=%u budget=%u R%u %08X vs %08X\n",
+                    instruction,cached,seed,flags,budget,reg,state[state_offsets::reg(reg)/4],cpu->get_reg(reg)); return false;
+            }
+            for (auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},
+                    {state_offsets::ZFLAG,30},{state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if (state[pair.first/4] != ((cpu->get_cpsr() >> pair.second)&1)) {
+                    printf("  FAIL long multiply flags %08X budget=%u\n",instruction,budget); return false;
+                }
+            ++comparisons;
+        }
+    }
+    // Do not compile architecturally unpredictable register combinations.
+    for (unsigned code : {0xE0822F90u,0xE08F2190u,0xE083F190u,0xE083219Fu,0xE0822190u}) {
+        auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&code),4,
+            0x1000,nullptr,nullptr,true,true,true);
+        if (tr.entry_supported) { printf("  FAIL invalid long multiply %08X accepted\n",code); return false; }
+    }
+    printf("  PASS arm_long_multiply (%u exact budget/state comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
 static bool test_cached_callback_state() {
 #ifdef __EMSCRIPTEN__
     const std::uint32_t code[] = {0xE3A02007, 0xE5910000, 0xE2834001, 0xE2A05000};
@@ -2750,6 +2817,7 @@ int main() {
 
     printf("\nRunning ARM translator-level tests...\n\n");
     if (test_bounded_execution()) passed++; else failed++;
+    if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_arm_mov_imm()) passed++; else failed++;
     if (test_arm_add_sub_imm()) passed++; else failed++;

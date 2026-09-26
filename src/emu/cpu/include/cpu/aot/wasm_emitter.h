@@ -77,6 +77,16 @@ namespace eka2l1::arm::aot {
         op_i32_rotr = 0x78,
         op_i32_clz = 0x67,
 
+        op_i64_const = 0x42,
+        op_i64_add = 0x7C,
+        op_i64_mul = 0x7E,
+        op_i64_or = 0x84,
+        op_i64_shl = 0x86,
+        op_i64_shr_u = 0x88,
+        op_i32_wrap_i64 = 0xA7,
+        op_i64_extend_i32_s = 0xAC,
+        op_i64_extend_i32_u = 0xAD,
+
         // Float opcodes for VFP support
         op_f32_const = 0x43,
         op_f64_const = 0x44,
@@ -133,6 +143,7 @@ namespace eka2l1::arm::aot {
         std::uint32_t num_locals;             // i32 locals (beyond the state_ptr param)
         std::uint32_t num_f32_locals = 0;     // f32 locals (after i32 locals)
         std::uint32_t num_f64_locals = 0;     // f64 locals (after f32 locals)
+        std::uint32_t num_prefix_i64_locals = 0; // before i32 scratch/cache locals
     };
 
     // Describes an imported function.

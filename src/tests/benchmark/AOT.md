@@ -82,3 +82,15 @@ correctness jobs to finish before any timed window is released.
 The RAM/chaining follow-up, final replay checks and measured speed are in
 [REALTIME_AOT_RESULTS.md](REALTIME_AOT_RESULTS.md), with machine-readable
 [REALTIME_AOT_EVIDENCE.json](REALTIME_AOT_EVIDENCE.json).
+
+ARM `SMULL`, `SMLAL`, `UMULL` and `UMLAL` compile to WASM i64 arithmetic.
+All inputs are captured before destination writes, accumulation wraps modulo
+2^64, and flag-setting forms update N/Z while preserving C/V. PC operands and
+identical destination registers fall back. Each instruction uses the existing
+budget/condition machinery; register-local mode uses one fixed i64 scratch local
+before the dynamically allocated i32 locals.
+
+For comparisons with an archived build, set `EKA2L1_WASM_BUILD_DIR` to its
+frontend directory (containing `eka2l1.js` and `eka2l1.wasm`) on either runner.
+The report's WASM hash identifies the loaded binary; its Git HEAD identifies the
+runner checkout, which can differ from the archived binary's source commit.

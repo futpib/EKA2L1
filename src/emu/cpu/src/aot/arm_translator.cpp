@@ -443,18 +443,20 @@ namespace eka2l1::arm::aot {
         wasm_func_def &result = tr.func;
         result.export_name = "f_" + std::to_string(start_address);
 
-        // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
+        // A fixed i64 prefix keeps its index independent of lazily allocated i32 register locals.
+        // Locals: 0=state_ptr(param), 1=wide result, 2..8=i32 scratch.
         result.num_locals = 7;
+        result.num_prefix_i64_locals = 1;
         result.num_f32_locals = 0;
         result.num_f64_locals = 0;
-        const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
-        const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
+        const std::uint32_t WIDE = 1, TMP1 = 2, TMP2 = 3, TMP3 = 4, TMP4 = 5;
+        const std::uint32_t PC_IDX = 6, ADDR_TMP = 7;
         // Separate carry local survives N/Z scratch updates.
-        const std::uint32_t TMP_CARRY = 7;
+        const std::uint32_t TMP_CARRY = 8;
 
         emit w{result.body};
         w.cache.enabled = bounded && cache_registers;
-        w.cache.first_local = result.num_locals + 1;
+        w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
 
         // Build instruction address → index map
         std::uint32_t num_insns = 0;
@@ -863,8 +865,36 @@ namespace eka2l1::arm::aot {
                 }
 
                 if (is_long_multiply) {
-                    // UMULL/SMULL/UMLAL/SMLAL — bail for now (need i64)
-                    w.bail_unsupported(insn_addr, insn_idx);
+                    const unsigned hi = (inst >> 16) & 15, lo = (inst >> 12) & 15;
+                    const unsigned rs = (inst >> 8) & 15, rm = inst & 15;
+                    const bool signed_product = (inst >> 22) & 1;
+                    const bool accumulate = (inst >> 21) & 1, set_flags = (inst >> 20) & 1;
+                    // PC operands and identical destination registers are unpredictable.
+                    if (hi == 15 || lo == 15 || rs == 15 || rm == 15 || hi == lo) {
+                        w.bail_unsupported(insn_addr, insn_idx);
+                    } else {
+                        // Read every input before either destination is changed (overlap is valid).
+                        w.load_reg(rm); w.op(signed_product ? op_i64_extend_i32_s : op_i64_extend_i32_u);
+                        w.load_reg(rs); w.op(signed_product ? op_i64_extend_i32_s : op_i64_extend_i32_u);
+                        w.op(op_i64_mul);
+                        if (accumulate) {
+                            w.load_reg(hi); w.op(op_i64_extend_i32_u);
+                            w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shl);
+                            w.load_reg(lo); w.op(op_i64_extend_i32_u); w.op(op_i64_or);
+                            w.op(op_i64_add); // WASM wraps modulo 2^64, including signed overflow.
+                        }
+                        w.tee_local(WIDE); w.op(op_i32_wrap_i64); w.set_local(TMP1);
+                        w.get_local(WIDE); w.op(op_i64_const); w.b.push_back(32);
+                        w.op(op_i64_shr_u); w.op(op_i32_wrap_i64); w.set_local(TMP2);
+                        w.store_reg(lo, TMP1); w.store_reg(hi, TMP2);
+                        if (set_flags) {
+                            w.get_local(TMP2); w.i32_const(31); w.op(op_i32_shr_u);
+                            w.set_local(TMP3); w.store_i32(state_offsets::NFLAG, TMP3);
+                            w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_or); w.op(op_i32_eqz);
+                            w.set_local(TMP3); w.store_i32(state_offsets::ZFLAG, TMP3);
+                            // C and V are unchanged.
+                        }
+                    }
                     if (cond_opened) w.op(op_end);
                     insn_idx++;
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
