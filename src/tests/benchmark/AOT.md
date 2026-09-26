@@ -94,3 +94,7 @@ For comparisons with an archived build, set `EKA2L1_WASM_BUILD_DIR` to its
 frontend directory (containing `eka2l1.js` and `eka2l1.wasm`) on either runner.
 The report's WASM hash identifies the loaded binary; its Git HEAD identifies the
 runner checkout, which can differ from the archived binary's source commit.
+
+Use `profile_batch.py --compare-build /absolute/archived-frontend` for serial
+mode-4 old/new/new/old trials. See [LONG_MULTIPLY_RESULTS.md](LONG_MULTIPLY_RESULTS.md)
+for the verified long-multiply change and its measured incremental speed gain.

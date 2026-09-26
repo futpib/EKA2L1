@@ -1,0 +1,5102 @@
+{
+  "runtime_revision": "eef67480e89fb860f0da4fd530831e3be1989070",
+  "harness_revision": "26b4e4ad33c7bc5c01d1689794170ba2a046df20",
+  "baseline_binary_source": {
+    "head": "87fd0b13cd66f1212e841bf76a086939fdf2cfb8",
+    "wasm_sha256": "53bd06408f704c3898ff449c9c74eca73a993d0144a1a455f5b1552aca6e9fab"
+  },
+  "reference": "/home/claude/.scratch/eka-benchmark/audio-native-0/run-0/frames",
+  "full_replays": {
+    "longmul-full-checked": {
+      "path": "/home/claude/.scratch/eka-benchmark/longmul-full-checked",
+      "report": {
+        "frames": 1000,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 816.888475171,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6fda3ae3941441131d6004135ba3aece7a52546f316a8cec8efc5418293ba664",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 1024,
+        "git_head": "eef67480e89fb860f0da4fd530831e3be1989070",
+        "dirty_worktree": false
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 3265922,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "459268607f7e5b52e840e2c2e43bba61b6e8f3c0dd10ebb0291cc5a45e982cff",
+          "sha256_events": "24ccd1b4273371f00ca8a1b145c4b4cb41d6a18547b55887a46399ebcd1a82c8",
+          "writes": 1392,
+          "callbacks": 1391,
+          "gameplay_nonzero_samples": 4417622,
+          "gameplay_peak": 4121
+        },
+        "frames": 1000,
+        "unique_images": 1000,
+        "last_virtual_us": 68040042,
+        "instructions": 10342580529
+      },
+      "gameplay": {
+        "frames": 1000,
+        "unique_images": 1000,
+        "unique_viewports": 1000,
+        "first_virtual_us": 21026182,
+        "last_virtual_us": 68040042,
+        "virtual_seconds": 47.01386,
+        "game_images_per_virtual_second": 21.249052938856753,
+        "median_interval_us": 46868,
+        "max_interval_us": 50166,
+        "min_viewport_changed_fraction": 0.22053333333333336,
+        "median_viewport_changed_fraction": 0.29456666666666664,
+        "pass": true
+      },
+      "frame_records_sha256": "7a404841cab5fece8b97edbcec190ca95dde14bfaaf83761f872e3a8673a3e80",
+      "last_png_sha256": "0db473255c8906711da7afeed03b5f3b6428f4356acd4d2fa74e2fc424e7f51a"
+    },
+    "longmul-full-repeat": {
+      "path": "/home/claude/.scratch/eka-benchmark/longmul-full-repeat",
+      "report": {
+        "frames": 1000,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 790.221319043,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6fda3ae3941441131d6004135ba3aece7a52546f316a8cec8efc5418293ba664",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "eef67480e89fb860f0da4fd530831e3be1989070",
+        "dirty_worktree": false
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 3265922,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "459268607f7e5b52e840e2c2e43bba61b6e8f3c0dd10ebb0291cc5a45e982cff",
+          "sha256_events": "24ccd1b4273371f00ca8a1b145c4b4cb41d6a18547b55887a46399ebcd1a82c8",
+          "writes": 1392,
+          "callbacks": 1391,
+          "gameplay_nonzero_samples": 4417622,
+          "gameplay_peak": 4121
+        },
+        "frames": 1000,
+        "unique_images": 1000,
+        "last_virtual_us": 68040042,
+        "instructions": 10342580529
+      },
+      "gameplay": {
+        "frames": 1000,
+        "unique_images": 1000,
+        "unique_viewports": 1000,
+        "first_virtual_us": 21026182,
+        "last_virtual_us": 68040042,
+        "virtual_seconds": 47.01386,
+        "game_images_per_virtual_second": 21.249052938856753,
+        "median_interval_us": 46868,
+        "max_interval_us": 50166,
+        "min_viewport_changed_fraction": 0.22053333333333336,
+        "median_viewport_changed_fraction": 0.29456666666666664,
+        "pass": true
+      },
+      "frame_records_sha256": "7a404841cab5fece8b97edbcec190ca95dde14bfaaf83761f872e3a8673a3e80",
+      "last_png_sha256": "0db473255c8906711da7afeed03b5f3b6428f4356acd4d2fa74e2fc424e7f51a"
+    }
+  },
+  "profiles": {
+    "longmul-guest-profile": {
+      "path": "/home/claude/.scratch/eka-benchmark/longmul-guest-profile",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 69.0445,
+          "presentations": 170,
+          "aot_dispatches": 123797767,
+          "aot_instructions": 539682871,
+          "compiled_runner_calls": 13683043,
+          "ram_aot_dispatches": 112927088,
+          "ram_blocks_compiled": 341,
+          "decoded_instructions": 19224720,
+          "cache_hits": 14517148,
+          "cache_misses": 1570153,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 68.8812,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 67.6551,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.20122,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.320392,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 5.67863,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 5.66798,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 1.68883,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.470667,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 1.1785,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 1.11406,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00722048,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 232.273996052,
+        "guest_profile_stride": 1021,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6fda3ae3941441131d6004135ba3aece7a52546f316a8cec8efc5418293ba664",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "eef67480e89fb860f0da4fd530831e3be1989070",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "summary": {
+        "stride": 1021,
+        "measurement_guest_seconds": 4.0,
+        "guest_instructions": 655867149,
+        "aot_instructions": 539682871,
+        "git_head": "eef67480e89fb860f0da4fd530831e3be1989070",
+        "wasm_sha256": "6fda3ae3941441131d6004135ba3aece7a52546f316a8cec8efc5418293ba664",
+        "streams": {
+          "executed": {
+            "exact_instructions": 116184278,
+            "samples": 113794,
+            "unmapped_opcode_samples": 0,
+            "modules": [
+              {
+                "module": "6r45_1b.exe",
+                "samples": 98115,
+                "percent_samples": 86.22159340562771,
+                "sampled_types": {
+                  "arm:mov": 21492,
+                  "arm:ldr": 16516,
+                  "arm:smlal": 14390,
+                  "arm:cmp": 10355,
+                  "arm:bbl": 8157,
+                  "arm:str": 7485,
+                  "arm:bx": 5067,
+                  "arm:orr": 3818,
+                  "arm:add": 3603,
+                  "arm:sub": 3289,
+                  "arm:cpy": 1722,
+                  "arm:ldm": 977,
+                  "arm:rsb": 270,
+                  "arm:and": 228,
+                  "arm:tst": 193,
+                  "arm:ldrsh": 175,
+                  "arm:ldrcond": 129,
+                  "arm:strh": 86,
+                  "arm:mul": 67,
+                  "arm:cmn": 34,
+                  "arm:stm": 24,
+                  "arm:mla": 19,
+                  "arm:ldrb": 17,
+                  "arm:blx": 1,
+                  "arm:ldrh": 1
+                }
+              },
+              {
+                "module": "euser.dll",
+                "samples": 11810,
+                "percent_samples": 10.378403079248466,
+                "sampled_types": {
+                  "arm:stm": 2646,
+                  "arm:ldm": 1932,
+                  "arm:bbl": 1436,
+                  "arm:cmp": 1208,
+                  "arm:pld": 935,
+                  "arm:msr": 819,
+                  "arm:ldrcond": 813,
+                  "arm:str": 750,
+                  "arm:mov": 716,
+                  "arm:sub": 300,
+                  "thumb:bl_prefix_thumb": 69,
+                  "thumb:blx_suffix_thumb": 44,
+                  "arm:ldrex": 25,
+                  "thumb:bl_suffix_thumb": 23,
+                  "arm:teq": 21,
+                  "arm:bx": 16,
+                  "arm:cpy": 14,
+                  "arm:strex": 14,
+                  "arm:swi": 10,
+                  "arm:and": 8,
+                  "arm:add": 8,
+                  "arm:bic": 2,
+                  "arm:ldr": 1
+                }
+              },
+              {
+                "module": "dfpaeabi.dll",
+                "samples": 3100,
+                "percent_samples": 2.72422096068334,
+                "sampled_types": {
+                  "arm:orr": 519,
+                  "arm:cmp": 442,
+                  "arm:adc": 417,
+                  "arm:mov": 390,
+                  "arm:teq": 379,
+                  "arm:tst": 159,
+                  "arm:umull": 138,
+                  "arm:and": 135,
+                  "arm:sub": 133,
+                  "arm:add": 130,
+                  "arm:bx": 126,
+                  "arm:bbl": 124,
+                  "arm:rsb": 5,
+                  "arm:eor": 2,
+                  "arm:bic": 1
+                }
+              },
+              {
+                "module": "drtaeabi.dll",
+                "samples": 701,
+                "percent_samples": 0.6160254494964585,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 346,
+                  "thumb:blx_suffix_thumb": 312,
+                  "thumb:bl_suffix_thumb": 41,
+                  "thumb:b_cond_thumb": 2
+                }
+              },
+              {
+                "module": "fbscli.dll",
+                "samples": 20,
+                "percent_samples": 0.01757561910118284,
+                "sampled_types": {
+                  "thumb:bl_suffix_thumb": 11,
+                  "thumb:bl_prefix_thumb": 7,
+                  "thumb:blx_suffix_thumb": 2
+                }
+              },
+              {
+                "module": "cone.dll",
+                "samples": 14,
+                "percent_samples": 0.012302933370827987,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 5,
+                  "thumb:bl_prefix_thumb": 4,
+                  "thumb:bl_suffix_thumb": 2,
+                  "thumb:add": 1,
+                  "thumb:sub": 1,
+                  "thumb:str": 1
+                }
+              },
+              {
+                "module": "bitgdi.dll",
+                "samples": 10,
+                "percent_samples": 0.00878780955059142,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 4,
+                  "thumb:blx_suffix_thumb": 4,
+                  "thumb:ldr": 1,
+                  "thumb:bl_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "scppnwdl.dll",
+                "samples": 10,
+                "percent_samples": 0.00878780955059142,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 7,
+                  "thumb:bl_prefix_thumb": 3
+                }
+              },
+              {
+                "module": "mediaclientaudiostream_general.dll",
+                "samples": 6,
+                "percent_samples": 0.005272685730354852,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 2,
+                  "arm:bx": 1,
+                  "arm:swi": 1,
+                  "thumb:add": 1,
+                  "thumb:blx_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "scdv_general.dll",
+                "samples": 5,
+                "percent_samples": 0.00439390477529571,
+                "sampled_types": {
+                  "thumb:cpy": 2,
+                  "thumb:ldm": 1,
+                  "thumb:ldr": 1,
+                  "thumb:bl_prefix_thumb": 1
+                }
+              },
+              {
+                "module": "avkon.dll",
+                "samples": 1,
+                "percent_samples": 0.0008787809550591419,
+                "sampled_types": {
+                  "thumb:cmp": 1
+                }
+              },
+              {
+                "module": "ws32.dll",
+                "samples": 1,
+                "percent_samples": 0.0008787809550591419,
+                "sampled_types": {
+                  "thumb:mov": 1
+                }
+              },
+              {
+                "module": "avkonfep.dll",
+                "samples": 1,
+                "percent_samples": 0.0008787809550591419,
+                "sampled_types": {
+                  "thumb:ldm": 1
+                }
+              }
+            ],
+            "processes": [
+              {
+                "process": "Snakes[2000730f]0003",
+                "samples": 113794,
+                "percent_samples": 100.0
+              }
+            ],
+            "exact_handler_types": [
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mov",
+                "count": 23063689
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldr",
+                "count": 17166119
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "smlal",
+                "count": 14713038
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cmp",
+                "count": 12192173
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bbl",
+                "count": 9973205
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "str",
+                "count": 8411266
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bx",
+                "count": 5257588
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "orr",
+                "count": 4352570
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "add",
+                "count": 3820576
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "sub",
+                "count": 3777185
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldm",
+                "count": 3012468
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "stm",
+                "count": 2608719
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cpy",
+                "count": 1724787
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "pld",
+                "count": 990602
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrcond",
+                "count": 924198
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "msr",
+                "count": 789275
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bl_prefix_thumb",
+                "count": 456836
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "teq",
+                "count": 421989
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "adc",
+                "count": 410097
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "blx_suffix_thumb",
+                "count": 373524
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "and",
+                "count": 370199
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "tst",
+                "count": 368388
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "rsb",
+                "count": 293630
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrsh",
+                "count": 179980
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "umull",
+                "count": 135054
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strh",
+                "count": 84367
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bl_suffix_thumb",
+                "count": 83312
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mul",
+                "count": 81309
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cmn",
+                "count": 33902
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mla",
+                "count": 21224
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrb",
+                "count": 17528
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strex",
+                "count": 16964
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrex",
+                "count": 16964
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "swi",
+                "count": 14982
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bic",
+                "count": 3798
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "add",
+                "count": 3101
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "eor",
+                "count": 2978
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldr",
+                "count": 2390
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "mov",
+                "count": 2099
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strb",
+                "count": 1880
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "cpy",
+                "count": 1430
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "str",
+                "count": 1309
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mvn",
+                "count": 1188
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldm",
+                "count": 953
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "b_cond_thumb",
+                "count": 931
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "stm",
+                "count": 845
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrh",
+                "count": 837
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "sub",
+                "count": 747
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "cmp",
+                "count": 694
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "smull",
+                "count": 275
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "blx",
+                "count": 271
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bx",
+                "count": 250
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "blx",
+                "count": 225
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "b_thumb",
+                "count": 192
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "strb",
+                "count": 85
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "orr",
+                "count": 48
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "mul",
+                "count": 29
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldrh",
+                "count": 7
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "strh",
+                "count": 6
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bic",
+                "count": 3
+              }
+            ],
+            "hot_pcs": [
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002b0",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0x1afffffc",
+                "samples": 2492,
+                "percent_samples": 2.189922140007382
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002a8",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe4813004",
+                "samples": 2472,
+                "percent_samples": 2.1723465209061987
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002ac",
+                "thumb": 0,
+                "handler": "sub",
+                "opcode": "0xe25bb001",
+                "samples": 2415,
+                "percent_samples": 2.1222560064678277
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b0c",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 2400,
+                "percent_samples": 2.1090742921419405
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b08",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xb3a00001",
+                "samples": 2374,
+                "percent_samples": 2.086225987310403
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b00",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 2359,
+                "percent_samples": 2.0730442729845158
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b04",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xa3a00000",
+                "samples": 2305,
+                "percent_samples": 2.0255901014113222
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a64",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 2017,
+                "percent_samples": 1.7725011863542894
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a68",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xd3a00000",
+                "samples": 2014,
+                "percent_samples": 1.769864843489112
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a70",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 1975,
+                "percent_samples": 1.7355923862418055
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a6c",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xc3a00001",
+                "samples": 1960,
+                "percent_samples": 1.7224106719159182
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004f68",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500002",
+                "samples": 645,
+                "percent_samples": 0.5668137160131466
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004f6c",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0xbafffff9",
+                "samples": 588,
+                "percent_samples": 0.5167232015747755
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0798",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0xe92d4ff1",
+                "samples": 521,
+                "percent_samples": 0.45784487758581294
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a080c",
+                "thumb": 0,
+                "handler": "ldrcond",
+                "opcode": "0x64919004",
+                "samples": 505,
+                "percent_samples": 0.44378438230486666
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0800",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0x48a007f8",
+                "samples": 495,
+                "percent_samples": 0.4349965727542753
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0814",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0x28a00180",
+                "samples": 491,
+                "percent_samples": 0.4314814489340387
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0810",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0x08a00078",
+                "samples": 488,
+                "percent_samples": 0.4288451060688613
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0804",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0x08b10078",
+                "samples": 486,
+                "percent_samples": 0.427087544158743
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0790",
+                "thumb": 0,
+                "handler": "pld",
+                "opcode": "0xf5d1f000",
+                "samples": 485,
+                "percent_samples": 0.42620876320368384
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07f8",
+                "thumb": 0,
+                "handler": "msr",
+                "opcode": "0xe128f00c",
+                "samples": 480,
+                "percent_samples": 0.4218148584283881
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004db8",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe15c0001",
+                "samples": 467,
+                "percent_samples": 0.4103907060126193
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0818",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0x64809004",
+                "samples": 459,
+                "percent_samples": 0.4033604583721462
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a079c",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe3530000",
+                "samples": 458,
+                "percent_samples": 0.402481677417087
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a081c",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1b0cf02",
+                "samples": 458,
+                "percent_samples": 0.402481677417087
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07fc",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0x48b107f8",
+                "samples": 455,
+                "percent_samples": 0.39984533455190957
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0808",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0x28b10180",
+                "samples": 455,
+                "percent_samples": 0.39984533455190957
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0820",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0x1a000000",
+                "samples": 447,
+                "percent_samples": 0.39281508691143646
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0794",
+                "thumb": 0,
+                "handler": "pld",
+                "opcode": "0xf5d1f020",
+                "samples": 445,
+                "percent_samples": 0.3910575250013182
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004dbc",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0xbafffffa",
+                "samples": 433,
+                "percent_samples": 0.38051215354060847
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07a0",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0x0a0000a5",
+                "samples": 429,
+                "percent_samples": 0.3769970297203719
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004da4",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0xcafffffa",
+                "samples": 394,
+                "percent_samples": 0.3462396962933019
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004da0",
+                "thumb": 0,
+                "handler": "add",
+                "opcode": "0xc2844001",
+                "samples": 389,
+                "percent_samples": 0.3418457915180062
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004d9c",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe15c0001",
+                "samples": 380,
+                "percent_samples": 0.33393676292247393
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07c8",
+                "thumb": 0,
+                "handler": "msr",
+                "opcode": "0xe128f004",
+                "samples": 317,
+                "percent_samples": 0.278573562753748
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07cc",
+                "thumb": 0,
+                "handler": "ldrcond",
+                "opcode": "0x2491e004",
+                "samples": 295,
+                "percent_samples": 0.2592403817424469
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07e0",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0x08a00208",
+                "samples": 286,
+                "percent_samples": 0.2513313531469146
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7000c558",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1570004",
+                "samples": 284,
+                "percent_samples": 0.24957379123679632
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07e4",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0x48a001e0",
+                "samples": 282,
+                "percent_samples": 0.24781622932667804
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7000c55c",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0xbaffffbb",
+                "samples": 281,
+                "percent_samples": 0.24693744837161888
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07d8",
+                "thumb": 0,
+                "handler": "sub",
+                "opcode": "0xe0422da4",
+                "samples": 277,
+                "percent_samples": 0.24342232455138232
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07dc",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0x2480e004",
+                "samples": 273,
+                "percent_samples": 0.23990720073114574
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700633c8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a05625",
+                "samples": 271,
+                "percent_samples": 0.23814963882102747
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07d4",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0x48b101e0",
+                "samples": 270,
+                "percent_samples": 0.23727085786596833
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07ec",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0x2a00001d",
+                "samples": 269,
+                "percent_samples": 0.2363920769109092
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063404",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5805004",
+                "samples": 265,
+                "percent_samples": 0.2328769530906726
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063400",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1855a06",
+                "samples": 264,
+                "percent_samples": 0.23199817213561347
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635c8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a06000",
+                "samples": 264,
+                "percent_samples": 0.23199817213561347
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635e0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e6579e",
+                "samples": 263,
+                "percent_samples": 0.23111939118055433
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636ec",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e4369c",
+                "samples": 260,
+                "percent_samples": 0.2284830483153769
+              }
+            ]
+          },
+          "decoded": {
+            "exact_instructions": 19224720,
+            "samples": 18829,
+            "unmapped_opcode_samples": 0,
+            "modules": [
+              {
+                "module": "6r45_1b.exe",
+                "samples": 16543,
+                "percent_samples": 87.85915343353338,
+                "sampled_types": {
+                  "arm:ldr": 3797,
+                  "arm:mov": 3406,
+                  "arm:smlal": 3129,
+                  "arm:str": 1270,
+                  "arm:cmp": 1049,
+                  "arm:orr": 848,
+                  "arm:bbl": 738,
+                  "arm:add": 703,
+                  "arm:cpy": 428,
+                  "arm:bx": 369,
+                  "arm:sub": 328,
+                  "arm:ldm": 218,
+                  "arm:rsb": 143,
+                  "arm:and": 29,
+                  "arm:ldrcond": 21,
+                  "arm:tst": 19,
+                  "arm:ldrb": 12,
+                  "arm:stm": 10,
+                  "arm:mul": 9,
+                  "arm:mla": 5,
+                  "arm:strb": 5,
+                  "arm:mvn": 3,
+                  "arm:ldrsh": 2,
+                  "arm:cmn": 1,
+                  "arm:strh": 1
+                }
+              },
+              {
+                "module": "euser.dll",
+                "samples": 1067,
+                "percent_samples": 5.6667905889850765,
+                "sampled_types": {
+                  "arm:stm": 208,
+                  "arm:ldm": 132,
+                  "arm:bbl": 127,
+                  "arm:cmp": 100,
+                  "arm:str": 83,
+                  "arm:msr": 71,
+                  "arm:mov": 71,
+                  "thumb:bl_prefix_thumb": 45,
+                  "arm:pld": 43,
+                  "arm:ldrcond": 43,
+                  "thumb:blx_suffix_thumb": 31,
+                  "arm:sub": 27,
+                  "thumb:bl_suffix_thumb": 20,
+                  "arm:strex": 11,
+                  "arm:ldrex": 11,
+                  "arm:swi": 10,
+                  "arm:cpy": 9,
+                  "arm:add": 9,
+                  "arm:bx": 8,
+                  "arm:teq": 7,
+                  "arm:and": 1
+                }
+              },
+              {
+                "module": "dfpaeabi.dll",
+                "samples": 1064,
+                "percent_samples": 5.650857719475278,
+                "sampled_types": {
+                  "arm:orr": 178,
+                  "arm:mov": 158,
+                  "arm:cmp": 144,
+                  "arm:adc": 143,
+                  "arm:teq": 121,
+                  "arm:tst": 60,
+                  "arm:bbl": 48,
+                  "arm:bx": 46,
+                  "arm:umull": 43,
+                  "arm:sub": 40,
+                  "arm:and": 38,
+                  "arm:add": 37,
+                  "arm:bic": 3,
+                  "arm:rsb": 3,
+                  "arm:eor": 2
+                }
+              },
+              {
+                "module": "drtaeabi.dll",
+                "samples": 94,
+                "percent_samples": 0.4992299113070264,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 46,
+                  "thumb:blx_suffix_thumb": 30,
+                  "thumb:bl_suffix_thumb": 16,
+                  "arm:eor": 1,
+                  "thumb:ldr": 1
+                }
+              },
+              {
+                "module": "fbscli.dll",
+                "samples": 20,
+                "percent_samples": 0.10621913006532477,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 8,
+                  "thumb:bl_suffix_thumb": 7,
+                  "thumb:blx_suffix_thumb": 4,
+                  "thumb:mov": 1
+                }
+              },
+              {
+                "module": "scdv_general.dll",
+                "samples": 11,
+                "percent_samples": 0.058420521535928624,
+                "sampled_types": {
+                  "thumb:ldr": 3,
+                  "thumb:cpy": 2,
+                  "arm:swi": 1,
+                  "thumb:add": 1,
+                  "thumb:mov": 1,
+                  "thumb:ldm": 1,
+                  "thumb:str": 1,
+                  "thumb:blx_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "mediaclientaudiostream_general.dll",
+                "samples": 11,
+                "percent_samples": 0.058420521535928624,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 4,
+                  "thumb:blx_suffix_thumb": 3,
+                  "thumb:add": 2,
+                  "thumb:cpy": 1,
+                  "thumb:bl_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "bitgdi.dll",
+                "samples": 9,
+                "percent_samples": 0.047798608529396144,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 4,
+                  "thumb:blx_suffix_thumb": 4,
+                  "thumb:str": 1
+                }
+              },
+              {
+                "module": "cone.dll",
+                "samples": 6,
+                "percent_samples": 0.03186573901959743,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 3,
+                  "thumb:cmp": 1,
+                  "thumb:ldm": 1,
+                  "thumb:bl_prefix_thumb": 1
+                }
+              },
+              {
+                "module": "ws32.dll",
+                "samples": 3,
+                "percent_samples": 0.015932869509798716,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 2,
+                  "thumb:mov": 1
+                }
+              },
+              {
+                "module": "avkon.dll",
+                "samples": 1,
+                "percent_samples": 0.005310956503266238,
+                "sampled_types": {
+                  "thumb:ldr": 1
+                }
+              }
+            ],
+            "processes": [
+              {
+                "process": "Snakes[2000730f]0003",
+                "samples": 18829,
+                "percent_samples": 100.0
+              }
+            ],
+            "exact_handler_types": [
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldr",
+                "count": 3831863
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mov",
+                "count": 3677132
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "smlal",
+                "count": 3259038
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "str",
+                "count": 1348718
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cmp",
+                "count": 1345171
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "orr",
+                "count": 1044908
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bbl",
+                "count": 935890
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "add",
+                "count": 785136
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cpy",
+                "count": 456548
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bx",
+                "count": 424841
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "sub",
+                "count": 400184
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldm",
+                "count": 347540
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "stm",
+                "count": 226980
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "teq",
+                "count": 153035
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "adc",
+                "count": 147459
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "rsb",
+                "count": 141340
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bl_prefix_thumb",
+                "count": 118107
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "and",
+                "count": 77929
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrcond",
+                "count": 73702
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "tst",
+                "count": 71722
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "blx_suffix_thumb",
+                "count": 65230
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "msr",
+                "count": 62738
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bl_suffix_thumb",
+                "count": 52942
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "pld",
+                "count": 50488
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "umull",
+                "count": 47886
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mul",
+                "count": 11778
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "swi",
+                "count": 10052
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strex",
+                "count": 9900
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrex",
+                "count": 9900
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrb",
+                "count": 6405
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mla",
+                "count": 4618
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "add",
+                "count": 3099
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldr",
+                "count": 2316
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "mov",
+                "count": 2049
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bic",
+                "count": 1980
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "eor",
+                "count": 1912
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strb",
+                "count": 1713
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "cpy",
+                "count": 1430
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "str",
+                "count": 1301
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mvn",
+                "count": 1137
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrsh",
+                "count": 1135
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldm",
+                "count": 939
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "b_cond_thumb",
+                "count": 893
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cmn",
+                "count": 848
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrh",
+                "count": 837
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "stm",
+                "count": 831
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "sub",
+                "count": 735
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "cmp",
+                "count": 658
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strh",
+                "count": 351
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "smull",
+                "count": 275
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "blx",
+                "count": 272
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bx",
+                "count": 248
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "blx",
+                "count": 211
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "b_thumb",
+                "count": 192
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "strb",
+                "count": 85
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "orr",
+                "count": 48
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "mul",
+                "count": 29
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldrh",
+                "count": 7
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "strh",
+                "count": 6
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bic",
+                "count": 3
+              }
+            ],
+            "hot_pcs": [
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a70",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 112,
+                "percent_samples": 0.5948271283658186
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b04",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xa3a00000",
+                "samples": 111,
+                "percent_samples": 0.5895161718625525
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a6c",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xc3a00001",
+                "samples": 110,
+                "percent_samples": 0.5842052153592862
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b08",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xb3a00001",
+                "samples": 107,
+                "percent_samples": 0.5682723458494875
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a64",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 105,
+                "percent_samples": 0.557650432842955
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b0c",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 104,
+                "percent_samples": 0.5523394763396888
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a68",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xd3a00000",
+                "samples": 95,
+                "percent_samples": 0.5045408678102926
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b00",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 92,
+                "percent_samples": 0.4886079983004939
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636c4",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 72,
+                "percent_samples": 0.38238886823516915
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063618",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e5369e",
+                "samples": 70,
+                "percent_samples": 0.3717669552286367
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634b4",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 70,
+                "percent_samples": 0.3717669552286367
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063598",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5918014",
+                "samples": 70,
+                "percent_samples": 0.3717669552286367
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063628",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe580302c",
+                "samples": 70,
+                "percent_samples": 0.3717669552286367
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636a4",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 68,
+                "percent_samples": 0.3611450422221042
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063668",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916004",
+                "samples": 68,
+                "percent_samples": 0.3611450422221042
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634c0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e65793",
+                "samples": 67,
+                "percent_samples": 0.35583408571883796
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635e8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a05625",
+                "samples": 66,
+                "percent_samples": 0.3505231292155717
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636f0",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591103c",
+                "samples": 66,
+                "percent_samples": 0.3505231292155717
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063568",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e6589c",
+                "samples": 65,
+                "percent_samples": 0.3452121727123055
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634e8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 65,
+                "percent_samples": 0.3452121727123055
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063638",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a04000",
+                "samples": 65,
+                "percent_samples": 0.3452121727123055
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006362c",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0xe8925008",
+                "samples": 65,
+                "percent_samples": 0.3452121727123055
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063648",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916020",
+                "samples": 65,
+                "percent_samples": 0.3452121727123055
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636e4",
+                "thumb": 0,
+                "handler": "cpy",
+                "opcode": "0xe1a03005",
+                "samples": 64,
+                "percent_samples": 0.33990121620903924
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063640",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54693",
+                "samples": 64,
+                "percent_samples": 0.33990121620903924
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063634",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916000",
+                "samples": 64,
+                "percent_samples": 0.33990121620903924
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063664",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804030",
+                "samples": 64,
+                "percent_samples": 0.33990121620903924
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636ec",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e4369c",
+                "samples": 63,
+                "percent_samples": 0.334590259705773
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636f8",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e43192",
+                "samples": 62,
+                "percent_samples": 0.32927930320250676
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635a8",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5918034",
+                "samples": 62,
+                "percent_samples": 0.32927930320250676
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635c8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a06000",
+                "samples": 61,
+                "percent_samples": 0.3239683466992405
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006356c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917020",
+                "samples": 61,
+                "percent_samples": 0.3239683466992405
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063604",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591701c",
+                "samples": 61,
+                "percent_samples": 0.3239683466992405
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006364c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917030",
+                "samples": 61,
+                "percent_samples": 0.3239683466992405
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063684",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917034",
+                "samples": 61,
+                "percent_samples": 0.3239683466992405
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635bc",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5805024",
+                "samples": 61,
+                "percent_samples": 0.3239683466992405
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063698",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804034",
+                "samples": 61,
+                "percent_samples": 0.3239683466992405
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063654",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e5469e",
+                "samples": 60,
+                "percent_samples": 0.3186573901959743
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063554",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 60,
+                "percent_samples": 0.3186573901959743
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006347c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917000",
+                "samples": 60,
+                "percent_samples": 0.3186573901959743
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635d8",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917028",
+                "samples": 60,
+                "percent_samples": 0.3186573901959743
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636a8",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917018",
+                "samples": 60,
+                "percent_samples": 0.3186573901959743
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636d0",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591600c",
+                "samples": 60,
+                "percent_samples": 0.3186573901959743
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636e8",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591502c",
+                "samples": 60,
+                "percent_samples": 0.3186573901959743
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634d0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e6579e",
+                "samples": 59,
+                "percent_samples": 0.31334643369270804
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063578",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e6579e",
+                "samples": 59,
+                "percent_samples": 0.31334643369270804
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063678",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54693",
+                "samples": 59,
+                "percent_samples": 0.31334643369270804
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635ec",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1855a06",
+                "samples": 59,
+                "percent_samples": 0.31334643369270804
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063670",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 59,
+                "percent_samples": 0.31334643369270804
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063690",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 59,
+                "percent_samples": 0.31334643369270804
+              }
+            ]
+          }
+        }
+      },
+      "comparison": {
+        "frames": 85,
+        "pixels_and_records_match_native": true,
+        "frame_records_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9"
+      },
+      "raw_guest_profile_sha256": "ca2ffa044397afe25f3ceead0cd6adf83818fac5146319013ea09dffc6666ebf"
+    },
+    "longmul-guest-profile-1009": {
+      "path": "/home/claude/.scratch/eka-benchmark/longmul-guest-profile-1009",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 64.6448,
+          "presentations": 170,
+          "aot_dispatches": 123797767,
+          "aot_instructions": 539682871,
+          "compiled_runner_calls": 13683043,
+          "ram_aot_dispatches": 112927088,
+          "ram_blocks_compiled": 341,
+          "decoded_instructions": 19224720,
+          "cache_hits": 14517148,
+          "cache_misses": 1570153,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 64.478,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 63.2376,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.203807,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.319725,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 5.03553,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 5.01973,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 1.45867,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.435531,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.98823,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.92952,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00690381,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 172.683835701,
+        "guest_profile_stride": 1009,
+        "sampling": true,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6fda3ae3941441131d6004135ba3aece7a52546f316a8cec8efc5418293ba664",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "26b4e4ad33c7bc5c01d1689794170ba2a046df20",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "summary": {
+        "stride": 1009,
+        "measurement_guest_seconds": 4.0,
+        "guest_instructions": 655867149,
+        "aot_instructions": 539682871,
+        "git_head": "26b4e4ad33c7bc5c01d1689794170ba2a046df20",
+        "wasm_sha256": "6fda3ae3941441131d6004135ba3aece7a52546f316a8cec8efc5418293ba664",
+        "streams": {
+          "executed": {
+            "exact_instructions": 116184278,
+            "samples": 115147,
+            "unmapped_opcode_samples": 0,
+            "modules": [
+              {
+                "module": "6r45_1b.exe",
+                "samples": 99192,
+                "percent_samples": 86.14379879632122,
+                "sampled_types": {
+                  "arm:mov": 21929,
+                  "arm:ldr": 16971,
+                  "arm:smlal": 14565,
+                  "arm:cmp": 10368,
+                  "arm:bbl": 8237,
+                  "arm:str": 7527,
+                  "arm:bx": 4997,
+                  "arm:orr": 3754,
+                  "arm:add": 3630,
+                  "arm:sub": 3252,
+                  "arm:cpy": 1695,
+                  "arm:ldm": 932,
+                  "arm:rsb": 281,
+                  "arm:and": 256,
+                  "arm:tst": 225,
+                  "arm:ldrsh": 177,
+                  "arm:ldrcond": 140,
+                  "arm:mul": 88,
+                  "arm:strh": 82,
+                  "arm:cmn": 39,
+                  "arm:mla": 21,
+                  "arm:ldrb": 13,
+                  "arm:stm": 11,
+                  "arm:bic": 1,
+                  "arm:mvn": 1
+                }
+              },
+              {
+                "module": "euser.dll",
+                "samples": 12057,
+                "percent_samples": 10.470963203557192,
+                "sampled_types": {
+                  "arm:stm": 2568,
+                  "arm:ldm": 1977,
+                  "arm:bbl": 1581,
+                  "arm:cmp": 1336,
+                  "arm:pld": 961,
+                  "arm:msr": 801,
+                  "arm:ldrcond": 782,
+                  "arm:mov": 759,
+                  "arm:str": 731,
+                  "arm:sub": 300,
+                  "thumb:bl_prefix_thumb": 67,
+                  "thumb:blx_suffix_thumb": 51,
+                  "thumb:bl_suffix_thumb": 26,
+                  "arm:bx": 23,
+                  "arm:strex": 21,
+                  "arm:teq": 17,
+                  "arm:cpy": 16,
+                  "arm:swi": 13,
+                  "arm:ldrex": 12,
+                  "arm:add": 7,
+                  "arm:and": 6,
+                  "arm:bic": 1,
+                  "arm:ldr": 1
+                }
+              },
+              {
+                "module": "dfpaeabi.dll",
+                "samples": 3139,
+                "percent_samples": 2.7260805752646617,
+                "sampled_types": {
+                  "arm:orr": 569,
+                  "arm:teq": 448,
+                  "arm:adc": 422,
+                  "arm:mov": 384,
+                  "arm:cmp": 365,
+                  "arm:add": 163,
+                  "arm:tst": 154,
+                  "arm:umull": 145,
+                  "arm:sub": 128,
+                  "arm:bbl": 124,
+                  "arm:and": 114,
+                  "arm:bx": 112,
+                  "arm:eor": 4,
+                  "arm:rsb": 4,
+                  "arm:bic": 3
+                }
+              },
+              {
+                "module": "drtaeabi.dll",
+                "samples": 692,
+                "percent_samples": 0.6009709328076285,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 319,
+                  "thumb:blx_suffix_thumb": 310,
+                  "thumb:bl_suffix_thumb": 59,
+                  "thumb:str": 2,
+                  "thumb:cmp": 1,
+                  "thumb:ldr": 1
+                }
+              },
+              {
+                "module": "fbscli.dll",
+                "samples": 21,
+                "percent_samples": 0.018237557209480056,
+                "sampled_types": {
+                  "thumb:bl_suffix_thumb": 11,
+                  "thumb:bl_prefix_thumb": 7,
+                  "thumb:blx_suffix_thumb": 3
+                }
+              },
+              {
+                "module": "cone.dll",
+                "samples": 18,
+                "percent_samples": 0.015632191893840047,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 9,
+                  "thumb:blx_suffix_thumb": 5,
+                  "thumb:bl_suffix_thumb": 3,
+                  "thumb:b_thumb": 1
+                }
+              },
+              {
+                "module": "bitgdi.dll",
+                "samples": 7,
+                "percent_samples": 0.006079185736493352,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 3,
+                  "thumb:blx_suffix_thumb": 3,
+                  "thumb:add": 1
+                }
+              },
+              {
+                "module": "mediaclientaudiostream_general.dll",
+                "samples": 6,
+                "percent_samples": 0.005210730631280016,
+                "sampled_types": {
+                  "thumb:add": 2,
+                  "thumb:bl_prefix_thumb": 2,
+                  "arm:bx": 1,
+                  "thumb:blx_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "scdv_general.dll",
+                "samples": 5,
+                "percent_samples": 0.00434227552606668,
+                "sampled_types": {
+                  "thumb:add": 2,
+                  "thumb:cpy": 1,
+                  "thumb:str": 1,
+                  "thumb:blx_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "scppnwdl.dll",
+                "samples": 5,
+                "percent_samples": 0.00434227552606668,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 4,
+                  "thumb:bl_prefix_thumb": 1
+                }
+              },
+              {
+                "module": "avkon.dll",
+                "samples": 3,
+                "percent_samples": 0.002605365315640008,
+                "sampled_types": {
+                  "thumb:cmp": 1,
+                  "thumb:sub": 1,
+                  "thumb:bl_prefix_thumb": 1
+                }
+              },
+              {
+                "module": "ws32.dll",
+                "samples": 2,
+                "percent_samples": 0.001736910210426672,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 1,
+                  "thumb:bl_suffix_thumb": 1
+                }
+              }
+            ],
+            "processes": [
+              {
+                "process": "Snakes[2000730f]0003",
+                "samples": 115147,
+                "percent_samples": 100.0
+              }
+            ],
+            "exact_handler_types": [
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mov",
+                "count": 23063689
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldr",
+                "count": 17166119
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "smlal",
+                "count": 14713038
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cmp",
+                "count": 12192173
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bbl",
+                "count": 9973205
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "str",
+                "count": 8411266
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bx",
+                "count": 5257588
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "orr",
+                "count": 4352570
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "add",
+                "count": 3820576
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "sub",
+                "count": 3777185
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldm",
+                "count": 3012468
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "stm",
+                "count": 2608719
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cpy",
+                "count": 1724787
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "pld",
+                "count": 990602
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrcond",
+                "count": 924198
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "msr",
+                "count": 789275
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bl_prefix_thumb",
+                "count": 456836
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "teq",
+                "count": 421989
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "adc",
+                "count": 410097
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "blx_suffix_thumb",
+                "count": 373524
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "and",
+                "count": 370199
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "tst",
+                "count": 368388
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "rsb",
+                "count": 293630
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrsh",
+                "count": 179980
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "umull",
+                "count": 135054
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strh",
+                "count": 84367
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bl_suffix_thumb",
+                "count": 83312
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mul",
+                "count": 81309
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "cmn",
+                "count": 33902
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mla",
+                "count": 21224
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrb",
+                "count": 17528
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strex",
+                "count": 16964
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrex",
+                "count": 16964
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "swi",
+                "count": 14982
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "bic",
+                "count": 3798
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "add",
+                "count": 3101
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "eor",
+                "count": 2978
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldr",
+                "count": 2390
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "mov",
+                "count": 2099
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "strb",
+                "count": 1880
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "cpy",
+                "count": 1430
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "str",
+                "count": 1309
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "mvn",
+                "count": 1188
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldm",
+                "count": 953
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "b_cond_thumb",
+                "count": 931
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "stm",
+                "count": 845
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "ldrh",
+                "count": 837
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "sub",
+                "count": 747
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "cmp",
+                "count": 694
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "smull",
+                "count": 275
+              },
+              {
+                "kind": 0,
+                "thumb": 0,
+                "handler": "blx",
+                "count": 271
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bx",
+                "count": 250
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "blx",
+                "count": 225
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "b_thumb",
+                "count": 192
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "strb",
+                "count": 85
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "orr",
+                "count": 48
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "mul",
+                "count": 29
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "ldrh",
+                "count": 7
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "strh",
+                "count": 6
+              },
+              {
+                "kind": 0,
+                "thumb": 1,
+                "handler": "bic",
+                "count": 3
+              }
+            ],
+            "hot_pcs": [
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002a8",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe4813004",
+                "samples": 2489,
+                "percent_samples": 2.1615847568759934
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002b0",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0x1afffffc",
+                "samples": 2484,
+                "percent_samples": 2.1572424813499267
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700002ac",
+                "thumb": 0,
+                "handler": "sub",
+                "opcode": "0xe25bb001",
+                "samples": 2423,
+                "percent_samples": 2.104266719931913
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b08",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xb3a00001",
+                "samples": 2416,
+                "percent_samples": 2.0981875341954197
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b0c",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 2344,
+                "percent_samples": 2.0356587666200596
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b00",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 2312,
+                "percent_samples": 2.0078682032532327
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b04",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xa3a00000",
+                "samples": 2268,
+                "percent_samples": 1.969656178623846
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a68",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xd3a00000",
+                "samples": 2093,
+                "percent_samples": 1.8176765352115123
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a6c",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xc3a00001",
+                "samples": 2070,
+                "percent_samples": 1.7977020677916056
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a64",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 2030,
+                "percent_samples": 1.762963863583072
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a70",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 1960,
+                "percent_samples": 1.7021720062181385
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004f68",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500002",
+                "samples": 626,
+                "percent_samples": 0.5436528958635484
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004f6c",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0xbafffff9",
+                "samples": 598,
+                "percent_samples": 0.519336152917575
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a079c",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe3530000",
+                "samples": 505,
+                "percent_samples": 0.43856982813273465
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07a0",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0x0a0000a5",
+                "samples": 504,
+                "percent_samples": 0.4377013730275213
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a081c",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1b0cf02",
+                "samples": 499,
+                "percent_samples": 0.4333590975014547
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0798",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0xe92d4ff1",
+                "samples": 498,
+                "percent_samples": 0.43249064239624135
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a080c",
+                "thumb": 0,
+                "handler": "ldrcond",
+                "opcode": "0x64919004",
+                "samples": 485,
+                "percent_samples": 0.421200726028468
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0820",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0x1a000000",
+                "samples": 485,
+                "percent_samples": 0.421200726028468
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0790",
+                "thumb": 0,
+                "handler": "pld",
+                "opcode": "0xf5d1f000",
+                "samples": 483,
+                "percent_samples": 0.41946381581804126
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07f8",
+                "thumb": 0,
+                "handler": "msr",
+                "opcode": "0xe128f00c",
+                "samples": 480,
+                "percent_samples": 0.4168584505024013
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0808",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0x28b10180",
+                "samples": 473,
+                "percent_samples": 0.4107792647659079
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0794",
+                "thumb": 0,
+                "handler": "pld",
+                "opcode": "0xf5d1f020",
+                "samples": 472,
+                "percent_samples": 0.4099108096606946
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0810",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0x08a00078",
+                "samples": 468,
+                "percent_samples": 0.40643698923984123
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0814",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0x28a00180",
+                "samples": 468,
+                "percent_samples": 0.40643698923984123
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0800",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0x48a007f8",
+                "samples": 460,
+                "percent_samples": 0.39948934839813455
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0804",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0x08b10078",
+                "samples": 450,
+                "percent_samples": 0.3908047973460012
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a0818",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0x64809004",
+                "samples": 450,
+                "percent_samples": 0.3908047973460012
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07fc",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0x48b107f8",
+                "samples": 444,
+                "percent_samples": 0.3855940667147212
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004db8",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe15c0001",
+                "samples": 436,
+                "percent_samples": 0.3786464258730145
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004da4",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0xcafffffa",
+                "samples": 427,
+                "percent_samples": 0.3708303299260945
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004dbc",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0xbafffffa",
+                "samples": 408,
+                "percent_samples": 0.3543296829270411
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004d9c",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe15c0001",
+                "samples": 367,
+                "percent_samples": 0.3187230236132943
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70004da0",
+                "thumb": 0,
+                "handler": "add",
+                "opcode": "0xc2844001",
+                "samples": 364,
+                "percent_samples": 0.3161176582976543
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07e4",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0x48a001e0",
+                "samples": 317,
+                "percent_samples": 0.2753002683526275
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07d4",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0x48b101e0",
+                "samples": 301,
+                "percent_samples": 0.26140498666921413
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07c8",
+                "thumb": 0,
+                "handler": "msr",
+                "opcode": "0xe128f004",
+                "samples": 299,
+                "percent_samples": 0.2596680764587875
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7000c55c",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0xbaffffbb",
+                "samples": 299,
+                "percent_samples": 0.2596680764587875
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07ec",
+                "thumb": 0,
+                "handler": "bbl",
+                "opcode": "0x2a00001d",
+                "samples": 288,
+                "percent_samples": 0.25011507030144076
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063544",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a03623",
+                "samples": 286,
+                "percent_samples": 0.2483781600910141
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07e8",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe3520040",
+                "samples": 285,
+                "percent_samples": 0.24750970498580077
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07d0",
+                "thumb": 0,
+                "handler": "ldm",
+                "opcode": "0x08b10208",
+                "samples": 284,
+                "percent_samples": 0.24664124988058742
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07cc",
+                "thumb": 0,
+                "handler": "ldrcond",
+                "opcode": "0x2491e004",
+                "samples": 280,
+                "percent_samples": 0.24316742945973407
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07e0",
+                "thumb": 0,
+                "handler": "stm",
+                "opcode": "0x08a00208",
+                "samples": 277,
+                "percent_samples": 0.24056206414409406
+              },
+              {
+                "module": "euser.dll",
+                "pc": "0x801a07d8",
+                "thumb": 0,
+                "handler": "sub",
+                "opcode": "0xe0422da4",
+                "samples": 276,
+                "percent_samples": 0.23969360903888073
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063480",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a06000",
+                "samples": 276,
+                "percent_samples": 0.23969360903888073
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063658",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54792",
+                "samples": 275,
+                "percent_samples": 0.2388251539336674
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063694",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1844a05",
+                "samples": 274,
+                "percent_samples": 0.23795669882845405
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006359c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e65793",
+                "samples": 272,
+                "percent_samples": 0.2362197886180274
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7000c558",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1570004",
+                "samples": 271,
+                "percent_samples": 0.23535133351281406
+              }
+            ]
+          },
+          "decoded": {
+            "exact_instructions": 19224720,
+            "samples": 19053,
+            "unmapped_opcode_samples": 0,
+            "modules": [
+              {
+                "module": "6r45_1b.exe",
+                "samples": 16665,
+                "percent_samples": 87.46654070225162,
+                "sampled_types": {
+                  "arm:ldr": 3774,
+                  "arm:mov": 3402,
+                  "arm:smlal": 3261,
+                  "arm:str": 1267,
+                  "arm:cmp": 1045,
+                  "arm:orr": 848,
+                  "arm:bbl": 717,
+                  "arm:add": 698,
+                  "arm:cpy": 472,
+                  "arm:bx": 368,
+                  "arm:sub": 339,
+                  "arm:ldm": 222,
+                  "arm:rsb": 130,
+                  "arm:ldrcond": 32,
+                  "arm:and": 24,
+                  "arm:tst": 23,
+                  "arm:stm": 13,
+                  "arm:mul": 11,
+                  "arm:ldrb": 6,
+                  "arm:mla": 4,
+                  "arm:strb": 3,
+                  "arm:mvn": 2,
+                  "arm:cmn": 1,
+                  "arm:bic": 1,
+                  "arm:ldrsh": 1,
+                  "arm:ldrh": 1
+                }
+              },
+              {
+                "module": "dfpaeabi.dll",
+                "samples": 1129,
+                "percent_samples": 5.925576024773002,
+                "sampled_types": {
+                  "arm:orr": 174,
+                  "arm:teq": 160,
+                  "arm:mov": 149,
+                  "arm:adc": 146,
+                  "arm:cmp": 137,
+                  "arm:and": 58,
+                  "arm:bbl": 57,
+                  "arm:tst": 55,
+                  "arm:add": 55,
+                  "arm:bx": 46,
+                  "arm:umull": 45,
+                  "arm:sub": 42,
+                  "arm:bic": 3,
+                  "arm:eor": 1,
+                  "arm:rsb": 1
+                }
+              },
+              {
+                "module": "euser.dll",
+                "samples": 1118,
+                "percent_samples": 5.867842334540493,
+                "sampled_types": {
+                  "arm:stm": 236,
+                  "arm:ldm": 149,
+                  "arm:bbl": 133,
+                  "arm:cmp": 110,
+                  "arm:str": 76,
+                  "arm:msr": 58,
+                  "arm:mov": 56,
+                  "arm:pld": 52,
+                  "arm:ldrcond": 46,
+                  "thumb:bl_prefix_thumb": 44,
+                  "arm:sub": 37,
+                  "thumb:blx_suffix_thumb": 34,
+                  "thumb:bl_suffix_thumb": 15,
+                  "arm:ldrex": 13,
+                  "arm:cpy": 12,
+                  "arm:teq": 10,
+                  "arm:strex": 9,
+                  "arm:add": 9,
+                  "arm:bx": 8,
+                  "arm:swi": 7,
+                  "arm:and": 2,
+                  "arm:strb": 1,
+                  "arm:ldr": 1
+                }
+              },
+              {
+                "module": "drtaeabi.dll",
+                "samples": 77,
+                "percent_samples": 0.4041358316275652,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 35,
+                  "thumb:bl_suffix_thumb": 20,
+                  "thumb:blx_suffix_thumb": 18,
+                  "thumb:mov": 2,
+                  "arm:rsb": 1,
+                  "thumb:ldr": 1
+                }
+              },
+              {
+                "module": "fbscli.dll",
+                "samples": 22,
+                "percent_samples": 0.11546738046501863,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 12,
+                  "thumb:bl_suffix_thumb": 7,
+                  "thumb:blx_suffix_thumb": 3
+                }
+              },
+              {
+                "module": "cone.dll",
+                "samples": 11,
+                "percent_samples": 0.057733690232509315,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 8,
+                  "thumb:ldr": 1,
+                  "thumb:bl_suffix_thumb": 1,
+                  "thumb:blx_suffix_thumb": 1
+                }
+              },
+              {
+                "module": "mediaclientaudiostream_general.dll",
+                "samples": 10,
+                "percent_samples": 0.05248517293864483,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 2,
+                  "thumb:blx_suffix_thumb": 2,
+                  "arm:bx": 1,
+                  "arm:swi": 1,
+                  "thumb:add": 1,
+                  "thumb:mov": 1,
+                  "thumb:ldr": 1,
+                  "thumb:str": 1
+                }
+              },
+              {
+                "module": "scdv_general.dll",
+                "samples": 8,
+                "percent_samples": 0.04198813835091587,
+                "sampled_types": {
+                  "thumb:add": 3,
+                  "thumb:cpy": 2,
+                  "thumb:ldm": 2,
+                  "thumb:ldr": 1
+                }
+              },
+              {
+                "module": "bitgdi.dll",
+                "samples": 8,
+                "percent_samples": 0.04198813835091587,
+                "sampled_types": {
+                  "thumb:bl_prefix_thumb": 4,
+                  "thumb:blx_suffix_thumb": 3,
+                  "thumb:ldr": 1
+                }
+              },
+              {
+                "module": "scppnwdl.dll",
+                "samples": 3,
+                "percent_samples": 0.01574555188159345,
+                "sampled_types": {
+                  "thumb:blx_suffix_thumb": 2,
+                  "thumb:bl_prefix_thumb": 1
+                }
+              },
+              {
+                "module": "avkon.dll",
+                "samples": 1,
+                "percent_samples": 0.005248517293864483,
+                "sampled_types": {
+                  "thumb:add": 1
+                }
+              },
+              {
+                "module": "ws32.dll",
+                "samples": 1,
+                "percent_samples": 0.005248517293864483,
+                "sampled_types": {
+                  "thumb:mov": 1
+                }
+              }
+            ],
+            "processes": [
+              {
+                "process": "Snakes[2000730f]0003",
+                "samples": 19053,
+                "percent_samples": 100.0
+              }
+            ],
+            "exact_handler_types": [
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldr",
+                "count": 3831863
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mov",
+                "count": 3677132
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "smlal",
+                "count": 3259038
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "str",
+                "count": 1348718
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cmp",
+                "count": 1345171
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "orr",
+                "count": 1044908
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bbl",
+                "count": 935890
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "add",
+                "count": 785136
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cpy",
+                "count": 456548
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bx",
+                "count": 424841
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "sub",
+                "count": 400184
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldm",
+                "count": 347540
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "stm",
+                "count": 226980
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "teq",
+                "count": 153035
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "adc",
+                "count": 147459
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "rsb",
+                "count": 141340
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bl_prefix_thumb",
+                "count": 118107
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "and",
+                "count": 77929
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrcond",
+                "count": 73702
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "tst",
+                "count": 71722
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "blx_suffix_thumb",
+                "count": 65230
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "msr",
+                "count": 62738
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bl_suffix_thumb",
+                "count": 52942
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "pld",
+                "count": 50488
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "umull",
+                "count": 47886
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mul",
+                "count": 11778
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "swi",
+                "count": 10052
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strex",
+                "count": 9900
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrex",
+                "count": 9900
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrb",
+                "count": 6405
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mla",
+                "count": 4618
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "add",
+                "count": 3099
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldr",
+                "count": 2316
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "mov",
+                "count": 2049
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "bic",
+                "count": 1980
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "eor",
+                "count": 1912
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strb",
+                "count": 1713
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "cpy",
+                "count": 1430
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "str",
+                "count": 1301
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "mvn",
+                "count": 1137
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrsh",
+                "count": 1135
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldm",
+                "count": 939
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "b_cond_thumb",
+                "count": 893
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "cmn",
+                "count": 848
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "ldrh",
+                "count": 837
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "stm",
+                "count": 831
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "sub",
+                "count": 735
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "cmp",
+                "count": 658
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "strh",
+                "count": 351
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "smull",
+                "count": 275
+              },
+              {
+                "kind": 1,
+                "thumb": 0,
+                "handler": "blx",
+                "count": 272
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bx",
+                "count": 248
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "blx",
+                "count": 211
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "b_thumb",
+                "count": 192
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "strb",
+                "count": 85
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "orr",
+                "count": 48
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "mul",
+                "count": 29
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "ldrh",
+                "count": 7
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "strh",
+                "count": 6
+              },
+              {
+                "kind": 1,
+                "thumb": 1,
+                "handler": "bic",
+                "count": 3
+              }
+            ],
+            "hot_pcs": [
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b00",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 127,
+                "percent_samples": 0.6665616963207894
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b04",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xa3a00000",
+                "samples": 121,
+                "percent_samples": 0.6350705925576025
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a70",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 114,
+                "percent_samples": 0.5983309715005511
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a68",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xd3a00000",
+                "samples": 113,
+                "percent_samples": 0.5930824542066866
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b08",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xb3a00001",
+                "samples": 107,
+                "percent_samples": 0.5615913504434997
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a6c",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xc3a00001",
+                "samples": 98,
+                "percent_samples": 0.5143546947987193
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065b0c",
+                "thumb": 0,
+                "handler": "bx",
+                "opcode": "0xe12fff1e",
+                "samples": 95,
+                "percent_samples": 0.49860914291712594
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70065a64",
+                "thumb": 0,
+                "handler": "cmp",
+                "opcode": "0xe1500001",
+                "samples": 92,
+                "percent_samples": 0.48286359103553245
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636f0",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591103c",
+                "samples": 72,
+                "percent_samples": 0.3778932451582428
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636dc",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e45693",
+                "samples": 71,
+                "percent_samples": 0.3726447278643783
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636e4",
+                "thumb": 0,
+                "handler": "cpy",
+                "opcode": "0xe1a03005",
+                "samples": 70,
+                "percent_samples": 0.3673962105705138
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063690",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a04624",
+                "samples": 70,
+                "percent_samples": 0.3673962105705138
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006368c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54792",
+                "samples": 69,
+                "percent_samples": 0.36214769327664936
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063664",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5804030",
+                "samples": 67,
+                "percent_samples": 0.35165065868892037
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063538",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591c03c",
+                "samples": 66,
+                "percent_samples": 0.3464021413950559
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636fc",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a01623",
+                "samples": 65,
+                "percent_samples": 0.34115362410119143
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063624",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1833a05",
+                "samples": 64,
+                "percent_samples": 0.33590510680732694
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636c8",
+                "thumb": 0,
+                "handler": "orr",
+                "opcode": "0xe1844a05",
+                "samples": 64,
+                "percent_samples": 0.33590510680732694
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635a8",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5918034",
+                "samples": 64,
+                "percent_samples": 0.33590510680732694
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063704",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe580103c",
+                "samples": 64,
+                "percent_samples": 0.33590510680732694
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635b0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e65894",
+                "samples": 63,
+                "percent_samples": 0.33065658951346244
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635c4",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 63,
+                "percent_samples": 0.33065658951346244
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063604",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591701c",
+                "samples": 63,
+                "percent_samples": 0.33065658951346244
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063614",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591c03c",
+                "samples": 63,
+                "percent_samples": 0.33065658951346244
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063504",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e6579e",
+                "samples": 62,
+                "percent_samples": 0.32540807221959794
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635e8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a05625",
+                "samples": 62,
+                "percent_samples": 0.32540807221959794
+              },
+              {
+                "module": "dfpaeabi.dll",
+                "pc": "0x801957f0",
+                "thumb": 0,
+                "handler": "teq",
+                "opcode": "0x1132000c",
+                "samples": 61,
+                "percent_samples": 0.3201595549257335
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636c0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54792",
+                "samples": 61,
+                "percent_samples": 0.3201595549257335
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635c8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a06000",
+                "samples": 61,
+                "percent_samples": 0.3201595549257335
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634ac",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5805010",
+                "samples": 61,
+                "percent_samples": 0.3201595549257335
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634c4",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e6589c",
+                "samples": 60,
+                "percent_samples": 0.314911037631869
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006353c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e5369e",
+                "samples": 60,
+                "percent_samples": 0.314911037631869
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635ac",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e6579e",
+                "samples": 60,
+                "percent_samples": 0.314911037631869
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006361c",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e53c94",
+                "samples": 60,
+                "percent_samples": 0.314911037631869
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063640",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e54693",
+                "samples": 60,
+                "percent_samples": 0.314911037631869
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634e8",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a05000",
+                "samples": 60,
+                "percent_samples": 0.314911037631869
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063408",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917008",
+                "samples": 60,
+                "percent_samples": 0.314911037631869
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634f0",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5918018",
+                "samples": 60,
+                "percent_samples": 0.314911037631869
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700636b4",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916028",
+                "samples": 60,
+                "percent_samples": 0.314911037631869
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700635f0",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe5805028",
+                "samples": 60,
+                "percent_samples": 0.314911037631869
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063488",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e65793",
+                "samples": 59,
+                "percent_samples": 0.3096625203380045
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063600",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e56793",
+                "samples": 59,
+                "percent_samples": 0.3096625203380045
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634a4",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe1a05625",
+                "samples": 59,
+                "percent_samples": 0.3096625203380045
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634ec",
+                "thumb": 0,
+                "handler": "mov",
+                "opcode": "0xe3a06000",
+                "samples": 59,
+                "percent_samples": 0.3096625203380045
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063534",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe591602c",
+                "samples": 59,
+                "percent_samples": 0.3096625203380045
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006363c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5917010",
+                "samples": 59,
+                "percent_samples": 0.3096625203380045
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x70063650",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe592200c",
+                "samples": 59,
+                "percent_samples": 0.3096625203380045
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006369c",
+                "thumb": 0,
+                "handler": "ldr",
+                "opcode": "0xe5916008",
+                "samples": 59,
+                "percent_samples": 0.3096625203380045
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x7006354c",
+                "thumb": 0,
+                "handler": "str",
+                "opcode": "0xe580301c",
+                "samples": 59,
+                "percent_samples": 0.3096625203380045
+              },
+              {
+                "module": "6r45_1b.exe",
+                "pc": "0x700634a0",
+                "thumb": 0,
+                "handler": "smlal",
+                "opcode": "0xe0e65894",
+                "samples": 58,
+                "percent_samples": 0.30441400304414
+              }
+            ]
+          }
+        }
+      },
+      "comparison": {
+        "frames": 85,
+        "pixels_and_records_match_native": true,
+        "frame_records_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9"
+      },
+      "raw_guest_profile_sha256": "054b94baacff17bf6de16b3b0ffce2a6bb34ed4b556a3494ca50cfadf1e81ae6"
+    }
+  },
+  "timings": {
+    "before-1": {
+      "path": "/home/claude/.scratch/eka-benchmark/longmul-timing/before-1",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 37.2568,
+          "presentations": 170,
+          "aot_dispatches": 117675732,
+          "aot_instructions": 458913845,
+          "compiled_runner_calls": 16860275,
+          "ram_aot_dispatches": 106804779,
+          "ram_blocks_compiled": 329,
+          "decoded_instructions": 26137201,
+          "cache_hits": 17549243,
+          "cache_misses": 1842176,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 37.1687,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 36.495,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.114797,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.18099,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.82819,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.82071,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.836059,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.21936,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.592084,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.550808,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00448794,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 247.82435763900003,
+        "guest_profile_stride": 0,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "53bd06408f704c3898ff449c9c74eca73a993d0144a1a455f5b1552aca6e9fab",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "26b4e4ad33c7bc5c01d1689794170ba2a046df20",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "comparison": {
+        "frames": 85,
+        "pixels_and_records_match_native": true,
+        "frame_records_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9"
+      }
+    },
+    "after-1": {
+      "path": "/home/claude/.scratch/eka-benchmark/longmul-timing/after-1",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 34.8793,
+          "presentations": 170,
+          "aot_dispatches": 123797767,
+          "aot_instructions": 539682871,
+          "compiled_runner_calls": 13683043,
+          "ram_aot_dispatches": 112927088,
+          "ram_blocks_compiled": 341,
+          "decoded_instructions": 19224720,
+          "cache_hits": 14517148,
+          "cache_misses": 1570153,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 34.7892,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 34.1269,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.109871,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.176578,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.8282,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.8207,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.834831,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.220115,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.589819,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.549385,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00430848,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 240.238882764,
+        "guest_profile_stride": 0,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6fda3ae3941441131d6004135ba3aece7a52546f316a8cec8efc5418293ba664",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "26b4e4ad33c7bc5c01d1689794170ba2a046df20",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "comparison": {
+        "frames": 85,
+        "pixels_and_records_match_native": true,
+        "frame_records_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9"
+      }
+    },
+    "after-2": {
+      "path": "/home/claude/.scratch/eka-benchmark/longmul-timing/after-2",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 36.8284,
+          "presentations": 170,
+          "aot_dispatches": 123797767,
+          "aot_instructions": 539682871,
+          "compiled_runner_calls": 13683043,
+          "ram_aot_dispatches": 112927088,
+          "ram_blocks_compiled": 341,
+          "decoded_instructions": 19224720,
+          "cache_hits": 14517148,
+          "cache_misses": 1570153,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 36.7343,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 36.0526,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.11458,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.178251,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.99152,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.98441,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.872674,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.228552,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.617807,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.574649,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00459546,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 237.99344493200002,
+        "guest_profile_stride": 0,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6fda3ae3941441131d6004135ba3aece7a52546f316a8cec8efc5418293ba664",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "26b4e4ad33c7bc5c01d1689794170ba2a046df20",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "comparison": {
+        "frames": 85,
+        "pixels_and_records_match_native": true,
+        "frame_records_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9"
+      }
+    },
+    "before-2": {
+      "path": "/home/claude/.scratch/eka-benchmark/longmul-timing/before-2",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 38.9242,
+          "presentations": 170,
+          "aot_dispatches": 117675732,
+          "aot_instructions": 458913845,
+          "compiled_runner_calls": 16860275,
+          "ram_aot_dispatches": 106804779,
+          "ram_blocks_compiled": 329,
+          "decoded_instructions": 26137201,
+          "cache_hits": 17549243,
+          "cache_misses": 1842176,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 38.8315,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 38.146,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.115479,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.180479,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.99424,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.98829,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.869711,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.229448,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.614719,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.569898,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00451149,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 245.81566034,
+        "guest_profile_stride": 0,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "53bd06408f704c3898ff449c9c74eca73a993d0144a1a455f5b1552aca6e9fab",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "26b4e4ad33c7bc5c01d1689794170ba2a046df20",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "comparison": {
+        "frames": 85,
+        "pixels_and_records_match_native": true,
+        "frame_records_sha256": "b029c86a83ee1746de6cd704235f4250d042e1e0f88eb0091cc61ec55102e9b9"
+      }
+    }
+  },
+  "diagnostic_cpu_profile": {
+    "path": "/home/claude/.scratch/eka-benchmark/longmul-guest-profile-1009",
+    "emulation_worker": {
+      "file": "worker-45.cpuprofile",
+      "sampled_seconds": 65.140656,
+      "nonidle_seconds": 59.647519,
+      "top_self": [
+        {
+          "function": "InterpreterTranslateInstruction(ARMul_State*, unsigned int, arm_inst*&)",
+          "seconds": 13.010983,
+          "percent_all_samples": 19.973675119268066
+        },
+        {
+          "function": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "seconds": 8.747083,
+          "percent_all_samples": 13.42799341781268
+        },
+        {
+          "function": "eka2l1::arm::aot::validated_code_cache::find(unsigned int, eka2l1::arm::core::code_mapping const&)",
+          "seconds": 8.213716,
+          "percent_all_samples": 12.609200619656026
+        },
+        {
+          "function": "__timedwait_cp",
+          "seconds": 5.243785,
+          "percent_all_samples": 8.049941959442348
+        },
+        {
+          "function": "wasm-to-js",
+          "seconds": 5.07321,
+          "percent_all_samples": 7.788085523731907
+        },
+        {
+          "function": "guest_profile_instruction(ARMul_State*, unsigned int, unsigned int, unsigned int)",
+          "seconds": 2.568964,
+          "percent_all_samples": 3.943718343886497
+        },
+        {
+          "function": "std::__2::__function::__func<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_5, std::__2::allocator<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_5>, bool (unsigned int, eka2l1::arm::core::code_mapping&)>::operator()(unsigned int&&, eka2l1::arm::core::code_mapping&)",
+          "seconds": 2.284273,
+          "percent_all_samples": 3.5066779186258117
+        },
+        {
+          "function": "memcmp",
+          "seconds": 1.514563,
+          "percent_all_samples": 2.32506562414723
+        },
+        {
+          "function": "(anonymous)",
+          "seconds": 1.504287,
+          "percent_all_samples": 2.309290529711583
+        },
+        {
+          "function": "wasm-function[6]",
+          "seconds": 1.470954,
+          "percent_all_samples": 2.258119721729545
+        },
+        {
+          "function": "ARMul_State::ReadMemory32(unsigned int) const",
+          "seconds": 1.439885,
+          "percent_all_samples": 2.210424469781207
+        },
+        {
+          "function": "eka2l1::arm::aot::validation_access(ARMul_State*, unsigned int, unsigned int)",
+          "seconds": 1.240804,
+          "percent_all_samples": 1.904807344893794
+        },
+        {
+          "function": "_emscripten_get_now",
+          "seconds": 1.019302,
+          "percent_all_samples": 1.5647708552397752
+        },
+        {
+          "function": "ARMul_State::WriteMemory32(unsigned int, unsigned int)",
+          "seconds": 1.007559,
+          "percent_all_samples": 1.546743711024341
+        },
+        {
+          "function": "js-to-wasm:ii:i",
+          "seconds": 0.89424,
+          "percent_all_samples": 1.3727832277280105
+        },
+        {
+          "function": "eka2l1::arm::aot::validation_end(ARMul_State*, unsigned int)",
+          "seconds": 0.839606,
+          "percent_all_samples": 1.2889124113211263
+        },
+        {
+          "function": "wasm-function[7]",
+          "seconds": 0.811435,
+          "percent_all_samples": 1.2456659939070924
+        },
+        {
+          "function": "js-to-wasm:iii:",
+          "seconds": 0.741847,
+          "percent_all_samples": 1.1388387000585318
+        },
+        {
+          "function": "wasm-function[8]",
+          "seconds": 0.715166,
+          "percent_all_samples": 1.0978796406348748
+        },
+        {
+          "function": "eka2l1::mem::page_directory::get_page_info(unsigned int)",
+          "seconds": 0.648711,
+          "percent_all_samples": 0.9958619391244694
+        },
+        {
+          "function": "eka2l1::arm::aot::validation_begin(ARMul_State*)",
+          "seconds": 0.555092,
+          "percent_all_samples": 0.852143705768023
+        },
+        {
+          "function": "ARMul_State::ReadCode(unsigned int) const",
+          "seconds": 0.490842,
+          "percent_all_samples": 0.7535109870554574
+        },
+        {
+          "function": "wasm-function[9]",
+          "seconds": 0.487812,
+          "percent_all_samples": 0.7488595140951605
+        },
+        {
+          "function": "wasm-function[11]",
+          "seconds": 0.352062,
+          "percent_all_samples": 0.5404643146363156
+        },
+        {
+          "function": "wasm-function[10]",
+          "seconds": 0.338925,
+          "percent_all_samples": 0.5202971858312265
+        }
+      ]
+    },
+    "limitations": "Guest profiling enabled, concurrent correctness runs; not a clean timing comparison."
+  },
+  "timing_summary": {
+    "before_mean_seconds": 38.0905,
+    "after_mean_seconds": 35.85385,
+    "throughput_multiplier": 1.06238242197142,
+    "elapsed_reduction_percent": 5.871936572111148,
+    "guest_seconds_per_host_second": 0.11156403008324071,
+    "additional_throughput_needed_for_realtime": 8.9634625,
+    "order": [
+      "before-1",
+      "after-1",
+      "after-2",
+      "before-2"
+    ],
+    "notes": "All owned correctness, unit-test, build and sampling processes finished before release. Same four guest seconds, AOT4, SwiftShader, full capture. Two trials per build; shared-host variability remains."
+  },
+  "profile_comparison": {
+    "before": {
+      "path": "/home/claude/.scratch/eka-benchmark/guest-profile-1021",
+      "measurement": {
+        "capture_mode": 0,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 25000000,
+        "first_instructions": 2532882497,
+        "last_instructions": 3188749646,
+        "wall_seconds": 49.9609,
+        "presentations": 170,
+        "aot_dispatches": 117675732,
+        "aot_instructions": 458913845,
+        "compiled_runner_calls": 16860275,
+        "ram_aot_dispatches": 106804779,
+        "ram_blocks_compiled": 329,
+        "decoded_instructions": 26137201,
+        "cache_hits": 17549243,
+        "cache_misses": 1842176,
+        "cache_clears": 137740,
+        "context_loads": 137740,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 49.8511,
+            "calls": 138236
+          },
+          "cpu_run": {
+            "seconds": 49.0504,
+            "calls": 137741
+          },
+          "timers": {
+            "seconds": 0.13294,
+            "calls": 138236
+          },
+          "scheduler": {
+            "seconds": 0.211217,
+            "calls": 138236
+          },
+          "graphics_dispatch": {
+            "seconds": 3.51495,
+            "calls": 340
+          },
+          "graphics_wait": {
+            "seconds": 3.50744,
+            "calls": 340
+          },
+          "display_hook": {
+            "seconds": 1.054,
+            "calls": 170
+          },
+          "readback": {
+            "seconds": 0.301498,
+            "calls": 170
+          },
+          "frame_capture": {
+            "seconds": 0.723458,
+            "calls": 170
+          },
+          "png_encode": {
+            "seconds": 0.676705,
+            "calls": 85
+          },
+          "audio": {
+            "seconds": 0.00516736,
+            "calls": 400
+          }
+        }
+      },
+      "total_instructions": 655867149,
+      "compiled_percent": 69.9705490204389,
+      "instructions_per_block": 3.8998172112496396,
+      "interpreted": 196953304,
+      "decoded": 26137201,
+      "longmultiply": {
+        "smull": 1610318,
+        "umull": 145020,
+        "smlal": 36798864
+      },
+      "hot_region": {
+        "executed": {
+          "samples": 58341,
+          "total_samples": 192902,
+          "percent": 30.24385439238577
+        },
+        "decoded": {
+          "samples": 4923,
+          "total_samples": 25599,
+          "percent": 19.23121996953006
+        }
+      }
+    },
+    "after": {
+      "path": "/home/claude/.scratch/eka-benchmark/longmul-guest-profile",
+      "measurement": {
+        "capture_mode": 0,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 25000000,
+        "first_instructions": 2532882497,
+        "last_instructions": 3188749646,
+        "wall_seconds": 69.0445,
+        "presentations": 170,
+        "aot_dispatches": 123797767,
+        "aot_instructions": 539682871,
+        "compiled_runner_calls": 13683043,
+        "ram_aot_dispatches": 112927088,
+        "ram_blocks_compiled": 341,
+        "decoded_instructions": 19224720,
+        "cache_hits": 14517148,
+        "cache_misses": 1570153,
+        "cache_clears": 137740,
+        "context_loads": 137740,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 68.8812,
+            "calls": 138236
+          },
+          "cpu_run": {
+            "seconds": 67.6551,
+            "calls": 137741
+          },
+          "timers": {
+            "seconds": 0.20122,
+            "calls": 138236
+          },
+          "scheduler": {
+            "seconds": 0.320392,
+            "calls": 138236
+          },
+          "graphics_dispatch": {
+            "seconds": 5.67863,
+            "calls": 340
+          },
+          "graphics_wait": {
+            "seconds": 5.66798,
+            "calls": 340
+          },
+          "display_hook": {
+            "seconds": 1.68883,
+            "calls": 170
+          },
+          "readback": {
+            "seconds": 0.470667,
+            "calls": 170
+          },
+          "frame_capture": {
+            "seconds": 1.1785,
+            "calls": 170
+          },
+          "png_encode": {
+            "seconds": 1.11406,
+            "calls": 85
+          },
+          "audio": {
+            "seconds": 0.00722048,
+            "calls": 400
+          }
+        }
+      },
+      "total_instructions": 655867149,
+      "compiled_percent": 82.28539450753921,
+      "instructions_per_block": 4.359390997739078,
+      "interpreted": 116184278,
+      "decoded": 19224720,
+      "longmultiply": {
+        "smull": 275,
+        "umull": 135054,
+        "smlal": 14713038
+      },
+      "hot_region": {
+        "executed": {
+          "samples": 663,
+          "total_samples": 113794,
+          "percent": 0.5826317732042111
+        },
+        "decoded": {
+          "samples": 158,
+          "total_samples": 18829,
+          "percent": 0.8391311275160657
+        }
+      }
+    }
+  },
+  "tests": {
+    "source_revision": "26b4e4ad33c7bc5c01d1689794170ba2a046df20",
+    "wasm": {
+      "passed": 124,
+      "failed": 0,
+      "new_long_multiply_budget_state_comparisons": 46080,
+      "existing_budget_state_memory_comparisons": 93072
+    },
+    "native": {
+      "cpu_target_pass": true,
+      "package_passed": 83,
+      "package_failed": 7,
+      "notes": "Same previously observed allocator, number parsing and app registration failures; no clean-base run establishes origin."
+    },
+    "logs": {
+      "eka-longmul-tests-committed.log": {
+        "path": "/home/claude/.scratch/eka-longmul-tests-committed.log",
+        "sha256": "255da646b20de5e2504be6b91cd18c47edbb3dc5be8621ee5638c6e740ec6f82"
+      },
+      "eka-longmul-native-tests-committed.log": {
+        "path": "/home/claude/.scratch/eka-longmul-native-tests-committed.log",
+        "sha256": "1cbd330cc46859ca069cf417d74d673ddb3f19fad75fc87f262ee4ae5ae80e0c"
+      }
+    }
+  }
+}
