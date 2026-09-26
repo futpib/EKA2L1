@@ -22,6 +22,8 @@
 #include <common/types.h>
 #include <mem/common.h>
 #include <vector>
+#include <array>
+#include <atomic>
 
 namespace eka2l1::mem {
     enum : uint32_t {
@@ -102,12 +104,39 @@ namespace eka2l1::mem {
      * 
      * In real OS, this is also called a page entry.
      */
+    // Conservative process-wide generation: mappings are mutated under the
+    // emulator's existing memory/scheduler ownership, never by this cache.
+    inline std::atomic<std::uint64_t> mapping_generation{1};
+    inline void mapping_changed() { mapping_generation.fetch_add(1, std::memory_order_release); }
+
     struct page_info {
         prot perm; ///< The permission of this page.
         void *host_addr; ///< Pointer to the host memory chunk. Nullptr for unoccupied
 
+        void assign(void *host, prot permission) {
+            host_addr = host; perm = permission; mapping_changed();
+        }
+        void clear() { host_addr = nullptr; mapping_changed(); }
         bool occupied() const {
             return host_addr;
+        }
+    };
+
+    // Stores values, not page_info pointers, so a retired page table cannot be
+    // dereferenced. Address-space reuse and remapping invalidate through the
+    // global generation; byte changes are still checked by the compiled cache.
+    class executable_mapping_cache {
+        struct entry { std::uint64_t generation=0; asid space=0; vm_address page=0; page_info info{}; };
+        std::array<entry,64> entries_{};
+    public:
+        template<class Resolve> page_info lookup(asid space, vm_address page, unsigned bits, Resolve resolve) {
+            const auto generation = mapping_generation.load(std::memory_order_acquire);
+            auto &e = entries_[((page >> bits) ^ space) & 63];
+            if (e.generation != generation || e.space != space || e.page != page) {
+                const auto *p = resolve();
+                e = {generation,space,page,p ? *p : page_info{}};
+            }
+            return e.info;
         }
     };
 
@@ -126,6 +155,7 @@ namespace eka2l1::mem {
 
     public:
         explicit page_table(const std::uint32_t id, const std::size_t page_size);
+        ~page_table() { mapping_changed(); }
 
         /**
          * \brief Get a page info at the given index.
@@ -168,6 +198,7 @@ namespace eka2l1::mem {
 
     public:
         explicit page_directory(const std::size_t page_size, const asid id);
+        ~page_directory() { mapping_changed(); }
 
         void *get_pointer(const vm_address addr);
         page_info *get_page_info(const vm_address addr);
@@ -186,6 +217,7 @@ namespace eka2l1::mem {
         }
 
         void occupied(const bool will_it) {
+            if (occupied_ != will_it) mapping_changed();
             occupied_ = will_it;
         }
     };

@@ -18,6 +18,8 @@ modes.add_argument('--compare-build', type=Path, help='Compare an archived front
 modes.add_argument('--compare-steps', type=Path, nargs=2, metavar=('BASELINE', 'STEP1'), help='Compare baseline, step 1 and current build serially in forward/reverse order')
 modes.add_argument('--compare-stages', action='store_true', help='Compare interpreter, hot ROM, RAM and chained/register-cached execution')
 p.add_argument('--capture-mode', type=int, choices=(0, 1, 2), default=0, help='Capture mode for comparison trials: 0 full, 1 hashes only, 2 no readback')
+p.add_argument('--before-aot', type=int, choices=range(6), default=4)
+p.add_argument('--after-aot', type=int, choices=range(6), default=4)
 p.add_argument('--measure-gate', type=Path, help='Wait for this new gate file after all fixtures are paused')
 a = p.parse_args()
 if a.measure_gate:
@@ -38,7 +40,7 @@ if a.compare_build:
     a.compare_build = a.compare_build.resolve()
     if not (a.compare_build / 'eka2l1.wasm').is_file():
         p.error('Archived build must contain eka2l1.wasm')
-    plan = [('before-1', 0, 4), ('after-1', 0, 4), ('after-2', 0, 4), ('before-2', 0, 4)]
+    plan = [('before-1', 0, a.before_aot), ('after-1', 0, a.after_aot), ('after-2', 0, a.after_aot), ('before-2', 0, a.before_aot)]
 if a.compare_steps:
     a.compare_steps = [path.resolve() for path in a.compare_steps]
     if not all((path / 'eka2l1.wasm').is_file() for path in a.compare_steps):

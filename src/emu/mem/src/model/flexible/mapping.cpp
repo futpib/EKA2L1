@@ -132,8 +132,7 @@ namespace eka2l1::mem::flexible {
             while (start_page_index < end_page_index) {
                 page_info *info = tbl->get_page_info(start_page_index & control->page_index_mask_);
                 if (info) {
-                    info->host_addr = starting_point_host;
-                    info->perm = permissions;
+                    info->assign(starting_point_host, permissions);
                 }
 
                 start_page_index++;
@@ -177,7 +176,7 @@ namespace eka2l1::mem::flexible {
                     page_info *info = tbl->get_page_info(start_page_index & control->page_index_mask_);
                     if (info) {
                         // Empty it out
-                        info->host_addr = nullptr;
+                        info->clear();
                     }
 
                     start_page_index++;

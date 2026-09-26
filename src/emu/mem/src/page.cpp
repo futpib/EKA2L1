@@ -60,6 +60,7 @@ namespace eka2l1::mem {
     }
 
     void page_directory::reset() {
+        mapping_changed();
         std::fill(page_tabs_.begin(), page_tabs_.end(), nullptr);
     }
 
@@ -114,6 +115,7 @@ namespace eka2l1::mem {
         }
 
         page_tabs_[off] = tab;
+        mapping_changed();
         return true;
     }
 }

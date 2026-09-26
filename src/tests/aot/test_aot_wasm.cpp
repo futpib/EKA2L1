@@ -2128,7 +2128,7 @@ static bool test_bounded_execution() {
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
             {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
             {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        for (unsigned carry : {0u, 1u}) for (unsigned r0 : {0u, 2u, 32u, 33u, 0xffffffffu, 0x7fffffffu, 0x80000000u}) for (unsigned budget = 0; budget <= 5; ++budget) {
+        for (unsigned carry : {0u, 1u}) for (unsigned r0 : {0u, 2u, 32u, 33u, 0xffffffffu, 0x7fffffffu, 0x80000000u}) for (unsigned budget : {0u,1u,2u,3u,4u,5u,16u,31u}) {
             test_mem actual, reference;
             actual.write_code(0x1000, p.bytes); reference.write_code(0x1000, p.bytes);
             actual.write32(0x8000, 0x000A8001); reference.write32(0x8000, 0x000A8001);
@@ -2181,8 +2181,37 @@ static bool test_bounded_execution() {
         }
         ++index;
     }
-    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*588);
+    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*784);
 #endif
+    return true;
+}
+
+// A guest alias must not let a region execute code overwritten by an inline store.
+static bool test_region_code_alias() {
+#ifdef __EMSCRIPTEN__
+    const std::uint32_t words[] = {0xe5810004,0xe2822001,0xeafffffc};
+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
+    auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    for (unsigned address : {0x1000u,0x8000u}) {
+        test_mem memory;
+        std::memcpy(memory.data.data()+0x1000,words,sizeof(words));
+        r12l1::tlb tlb(12);
+        tlb.add(address,memory.data.data()+0x1000,7);
+        alignas(8) std::uint32_t state[256]{};
+        state[0]=0xe3a04001; state[1]=address; state[15]=0x1000;
+        state[state_offsets::AOT_BUDGET/4]=31;
+        state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
+        state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(words);
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        if(count!=1 || state[15]!=0x1004 || state[2]!=0 || memory.read32(0x1004)!=state[0] || !state[state_offsets::AOT_EXIT/4]) {
+            printf("  FAIL region code alias %x count %d\n",address,count); return false;
+        }
+    }
+#endif
+    printf("  PASS region_code_alias\n");
     return true;
 }
 
@@ -2920,6 +2949,7 @@ int main() {
 
     printf("\nRunning ARM translator-level tests...\n\n");
     if (test_bounded_execution()) passed++; else failed++;
+    if (test_region_code_alias()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;

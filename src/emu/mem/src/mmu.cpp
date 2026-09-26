@@ -37,13 +37,14 @@ namespace eka2l1::mem {
         cpu->read_32bit = [this](const vm_address addr, std::uint32_t *data) { return read_32bit_data(addr, data); };
         cpu->read_64bit = [this](const vm_address addr, std::uint64_t *data) { return read_64bit_data(addr, data); };
         cpu->read_code = [this](const vm_address addr, std::uint32_t *data) { return read_code(addr, data); };
-        cpu->resolve_code = [this](const vm_address addr, arm::core::code_mapping &view) {
+        cpu->resolve_code = [this, cache = executable_mapping_cache{}](const vm_address addr, arm::core::code_mapping &view) mutable {
             view = {};
             view.address_space = current_addr_space();
-            auto *page = manager_->get_page_info(current_addr_space(), addr);
-            if (!page || !page->host_addr || !(page->perm & prot_exec)) return false;
+            const auto page = cache.lookup(view.address_space, addr & ~manager_->offset_mask_, manager_->page_size_bits_,
+                [&] { return manager_->get_page_info(view.address_space, addr); });
+            if (!page.host_addr || !(page.perm & prot_exec)) return false;
             const auto offset = addr & manager_->offset_mask_;
-            view.bytes = static_cast<const std::uint8_t *>(page->host_addr) + offset;
+            view.bytes = static_cast<const std::uint8_t *>(page.host_addr) + offset;
             view.size = manager_->page_size() - offset;
             return true;
         };

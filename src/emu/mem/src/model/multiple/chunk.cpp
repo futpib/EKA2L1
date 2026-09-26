@@ -78,8 +78,7 @@ namespace eka2l1::mem {
             for (int poff = ps_off; poff < ps_off + page_num; poff++) {
                 // If the entry has not yet been committed.
                 if (pt->pages_[poff].host_addr == nullptr) {
-                    pt->pages_[poff].host_addr = reinterpret_cast<std::uint8_t *>(host_base_) + (poff << control_->page_size_bits_) + pt_base;
-                    pt->pages_[poff].perm = permission_;
+                    pt->pages_[poff].assign(reinterpret_cast<std::uint8_t *>(host_base_) + (poff << control_->page_size_bits_) + pt_base, permission_);
 
                     // Increase committed size.
                     committed_ += psize;
@@ -181,7 +180,7 @@ namespace eka2l1::mem {
             for (int poff = ps_off; poff < ps_off + page_num; poff++) {
                 // If the entry has not yet been committed.
                 if (pt->pages_[poff].host_addr != nullptr) {
-                    pt->pages_[poff].host_addr = nullptr;
+                    pt->pages_[poff].clear();
 
                     // Increase committed size.
                     committed_ -= psize;

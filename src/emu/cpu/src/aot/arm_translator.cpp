@@ -49,7 +49,7 @@ namespace eka2l1::arm::aot {
         }
     }
 
-    struct emit {
+    struct arm_emit {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
         bool region = false;
@@ -169,9 +169,9 @@ namespace eka2l1::arm::aot {
 
     // Emit condition check. ARM condition code in bits [31:28].
     // Emits: if (cond) { ... } with the caller responsible for closing the block.
-    // Returns true if a conditional block was opened (caller must emit op_end).
+    // Returns true if a conditional block was opened (caller must arm_emit op_end).
     // Returns false for AL/NV (unconditional).
-    static bool emit_cond_check(emit &w, std::uint32_t cond,
+    static bool emit_cond_check(arm_emit &w, std::uint32_t cond,
                                 std::uint32_t TMP1, std::uint32_t TMP2) {
         // AL (14) and NV (15) are unconditional
         if (cond >= 0xE) return false;
@@ -256,7 +256,7 @@ namespace eka2l1::arm::aot {
     //
     // Emits WASM code that leaves the operand value on the stack.
     // If carry_out is needed (for S-bit logical ops), sets TMP_CARRY.
-    static void emit_shifter_operand(emit &w, std::uint32_t inst,
+    static void emit_shifter_operand(arm_emit &w, std::uint32_t inst,
                                      std::uint32_t TMP1, std::uint32_t TMP2,
                                      std::uint32_t TMP_CARRY, std::uint32_t pc) {
         bool I = (inst >> 25) & 1;
@@ -386,7 +386,7 @@ namespace eka2l1::arm::aot {
     }
 
     // Emit N/Z flag update from result in local `res`.
-    static void emit_nz_flags(emit &w, std::uint32_t res, std::uint32_t tmp) {
+    static void emit_nz_flags(arm_emit &w, std::uint32_t res, std::uint32_t tmp) {
         w.get_local(res);
         w.i32_const(31);
         w.op(op_i32_shr_u);
@@ -507,7 +507,7 @@ namespace eka2l1::arm::aot {
         // Separate carry local survives N/Z scratch updates.
         const std::uint32_t TMP_CARRY = 8;
 
-        emit w{result.body};
+        arm_emit w{result.body};
         w.region = region && bounded;
         w.cache.enabled = bounded && cache_registers;
         w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
@@ -534,7 +534,7 @@ namespace eka2l1::arm::aot {
                 if (offset & 0x00800000) offset |= 0xFF000000;
                 offset = (offset << 2) + 8;
                 std::uint32_t target = src + static_cast<std::uint32_t>(offset);
-                if (target > src && target >= start_address &&
+                if ((target > src || (region && target != start_address)) && target >= start_address &&
                     target < start_address + code_size) {
                     forward_targets_set.insert(target);
                 }
@@ -575,7 +575,7 @@ namespace eka2l1::arm::aot {
         w.i32_const(0);
         w.set_local(PC_IDX);
 
-        if (region) { w.i32_const(0); w.set_local(emit::COUNT); }
+        if (region) { w.i32_const(0); w.set_local(arm_emit::COUNT); }
 
         // block $exit
         w.op(op_block); w.op(type_void);
@@ -584,6 +584,15 @@ namespace eka2l1::arm::aot {
         // Forward target blocks
         for (std::size_t k = 0; k < fwd_sorted.size(); k++) {
             w.op(op_block); w.op(type_void);
+        }
+        if (region) {
+            // Entry zero starts at the first instruction. Backedges select an
+            // interior entry in the same loop without flushing register locals.
+            w.op(op_block); w.op(type_void);
+            w.get_local(PC_IDX); w.op(op_br_table); leb(result.body,static_cast<std::uint32_t>(fwd_sorted.size()+1));
+            for (unsigned n=0;n<=fwd_sorted.size();++n) leb(result.body,n);
+            leb(result.body,0);
+            w.op(op_end);
         }
         std::uint32_t closed_count = 0;
         const std::uint32_t N_fwd = static_cast<std::uint32_t>(fwd_sorted.size());
@@ -611,13 +620,13 @@ namespace eka2l1::arm::aot {
             if (bounded) {
                 w.store_i32_const(S::PC, insn_addr);
                 w.load_i32(S::AOT_BUDGET);
-                if (region) w.get_local(emit::COUNT); else w.i32_const(insn_idx);
+                if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
                 w.op(op_i32_le_u);
                 if (region) { w.load_i32(S::AOT_EXIT); w.op(op_i32_or); }
                 w.op(op_if); w.op(type_void);
                 w.bail(insn_addr, insn_idx);
                 w.op(op_end);
-                if (region) { w.get_local(emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(emit::COUNT); }
+                if (region) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(arm_emit::COUNT); }
                 // Match DynCom's PLD decode: an optional prefetch hint has no
                 // architectural effect, but still consumes one guest instruction.
                 if ((inst & 0xFD70F000) == 0xF550F000) {
@@ -688,8 +697,9 @@ namespace eka2l1::arm::aot {
                     w.op(op_br);
                     leb(result.body, depth);
                     if (cond_opened) w.op(op_end);
-                } else if ((!bounded && target >= start_address && target < start_address + code_size) || (region && target == start_address)) {
+                } else if ((!bounded && target >= start_address && target < start_address + code_size) || (region && target >= start_address && target < start_address + code_size && (target == start_address || fit != fwd_idx.end()))) {
                     if (region) {
+                        w.i32_const(target == start_address ? 0 : fit->second+1); w.set_local(PC_IDX);
                         w.load_i32(S::NIRQ); w.op(op_i32_eqz);
                         w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
                         w.op(op_i32_and);
@@ -1102,7 +1112,7 @@ namespace eka2l1::arm::aot {
                         w.i32_const(0); w.op(op_i32_ne);
                         w.get_local(TMP1); w.i32_const(16); w.op(op_i32_ne);
                         w.op(op_i32_and); w.op(op_i32_or);
-                        w.op(op_if); w.op(type_void); if (region) { w.get_local(emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(emit::COUNT); } w.bail(insn_addr,insn_idx); w.op(op_end);
+                        w.op(op_if); w.op(type_void); if (region) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); } w.bail(insn_addr,insn_idx); w.op(op_end);
                         w.load_reg(inst & 15); w.set_local(TMP1);
                         for (auto flag : {std::pair<unsigned,unsigned>{S::NFLAG,31},
                                 {S::ZFLAG,30},{S::CFLAG,29},{S::VFLAG,28}}) {
