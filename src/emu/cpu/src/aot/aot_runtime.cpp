@@ -212,7 +212,20 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         cpu->aot_budget = budget - result.instructions;
         count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);
+        const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
         const auto count = function(cpu);
+        if (common::guest_profile::enabled && common::performance::counting()) {
+            auto &profile = common::guest_profile::state;
+            ++profile.block_lengths[count];
+            if (++profile.compiled_blocks % profile.stride == 0) {
+                core::code_mapping view;
+                const auto width = (entry_pc & 1) ? 2u : 4u;
+                std::uint32_t last = 0;
+                if (count && cpu->parent()->resolve_code && cpu->parent()->resolve_code((entry_pc & ~1u)+(count-1)*width,view)
+                    && view.size >= width) std::memcpy(&last,view.bytes,width);
+                profile.edge(entry_pc,cpu->Reg[15] | cpu->TFlag,view.address_space,count,last);
+            }
+        }
         if constexpr (Verify) validation_end(cpu, count);
         if (count > cpu->aot_budget) std::abort(); // generated-code contract
         if ((common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
@@ -350,6 +363,16 @@ static void raw_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { s->W
 static void raw_write16(ARMul_State *s, std::uint32_t a, std::uint16_t v) { s->WriteMemory16(a, v); }
 static void raw_write8(ARMul_State *s, std::uint32_t a, std::uint8_t v) { s->WriteMemory8(a, v); }
 
+template<unsigned Index> static void count_memory() {
+    if (common::performance::counting()) ++common::guest_profile::state.memory_calls[Index];
+}
+static std::uint32_t prof_read32(ARMul_State *s, std::uint32_t a) { count_memory<0>(); return raw_read32(s,a); }
+static void prof_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<1>(); raw_write32(s,a,v); }
+static std::uint32_t prof_read8(ARMul_State *s, std::uint32_t a) { count_memory<2>(); return raw_read8(s,a); }
+static void prof_write8(ARMul_State *s, std::uint32_t a, std::uint8_t v) { count_memory<3>(); raw_write8(s,a,v); }
+static std::uint32_t prof_read16(ARMul_State *s, std::uint32_t a) { count_memory<4>(); return raw_read16(s,a); }
+static void prof_write16(ARMul_State *s, std::uint32_t a, std::uint16_t v) { count_memory<5>(); raw_write16(s,a,v); }
+
 // JS function that instantiates a WASM module and returns exported function
 // addresses as a comma-separated string of "name:table_idx" pairs.
 // Returns empty string on failure.
@@ -421,12 +444,12 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 
     const bool verify = verification_stride() != 0;
     const std::uintptr_t helpers[] = {
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read32 : raw_read32),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write32 : raw_write32),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : raw_read8),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : raw_write8),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : raw_read16),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : raw_write16)
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read32 : common::guest_profile::enabled ? prof_read32 : raw_read32),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write32 : common::guest_profile::enabled ? prof_write32 : raw_write32),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : common::guest_profile::enabled ? prof_read8 : raw_read8),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : common::guest_profile::enabled ? prof_write8 : raw_write8),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : common::guest_profile::enabled ? prof_read16 : raw_read16),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? prof_write16 : raw_write16)
     };
     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
         static_cast<int>(wasm_bytes.size()), helpers);
