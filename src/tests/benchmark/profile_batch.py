@@ -14,6 +14,7 @@ p.add_argument('--output', type=Path, required=True)
 modes = p.add_mutually_exclusive_group()
 modes.add_argument('--compare-aot', action='store_true', help='Compare interpreter, exports and hot-ROM compilation with timing repeats')
 modes.add_argument('--compare-diagnostics', action='store_true', help='Measure optional AOT bookkeeping with paired controls')
+modes.add_argument('--compare-build', type=Path, help='Compare an archived frontend build with the current build in AOT mode 4 (old/new/new/old)')
 modes.add_argument('--compare-stages', action='store_true', help='Compare interpreter, hot ROM, RAM and chained/register-cached execution')
 p.add_argument('--measure-gate', type=Path, help='Wait for this new gate file after all fixtures are paused')
 a = p.parse_args()
@@ -31,6 +32,11 @@ if a.compare_diagnostics:
 if a.compare_stages:
     plan = [('interpreter-1', 0, 0), ('hot-rom', 0, 2), ('hot-ram', 0, 3),
             ('chained-1', 0, 4), ('chained-2', 0, 4), ('interpreter-2', 0, 0)]
+if a.compare_build:
+    a.compare_build = a.compare_build.resolve()
+    if not (a.compare_build / 'eka2l1.wasm').is_file():
+        p.error('Archived build must contain eka2l1.wasm')
+    plan = [('before-1', 0, 4), ('after-1', 0, 4), ('after-2', 0, 4), ('before-2', 0, 4)]
 processes = []
 logs = []
 try:
@@ -39,6 +45,11 @@ try:
         log = (a.output / f'{name}.log').open('w')
         logs.append(log)
         environment = {**os.environ, 'PROFILE_GATE': str(gate)}
+        if a.compare_build:
+            environment.pop('EKA2L1_GUEST_PROFILE', None)
+            environment.pop('EKA2L1_WASM_BUILD_DIR', None)
+            if name.startswith('before-'):
+                environment['EKA2L1_WASM_BUILD_DIR'] = str(a.compare_build)
         if a.compare_diagnostics:
             environment['EKA2L1_AOT_DIAGNOSTICS'] = '1' if name == 'diagnostics-on' else '0'
         if aot_mode is not None:
