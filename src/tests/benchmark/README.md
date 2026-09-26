@@ -1,5 +1,7 @@
 # Deterministic Snakes benchmark
 
+The [verified audio replay results](RESULTS.md) record the four-run comparison and test limitations.
+
 The benchmark is opt-in (`EKA2L1_BENCHMARK=1`). It uses the DynCom interpreter on both targets; experimental AOT is disabled for this reference workload.
 
 - The guest clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
