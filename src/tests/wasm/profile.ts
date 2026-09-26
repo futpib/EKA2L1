@@ -11,7 +11,8 @@ const captureMode = Number(modeArg), sampling = samplingArg === '1', endUs = Num
 if (![0,1,2].includes(captureMode) || !Number.isInteger(endUs) || endUs <= Number(startArg) || endUs > 120000000) throw new Error('Invalid profile settings');
 if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_OUTPUT [CAPTURE_MODE:0/1/2] [SAMPLING:0/1] [END_US]');
 const verifyAot = process.env.EKA2L1_AOT_VERIFY === "1";
-const aot = process.env.EKA2L1_BENCHMARK_AOT === "1";
+const aot = Number(process.env.EKA2L1_BENCHMARK_AOT || "0");
+if (![0,1,2].includes(aot)) throw new Error("AOT mode must be 0, 1 or 2");
 const assets = path.resolve(assetArg), output = path.resolve(outputArg), frames = Number(frameArg);
 if (!Number.isInteger(frames) || frames < 1 || frames > 100000) throw new Error('Invalid frame count');
 const input = path.resolve(inputArg);
@@ -67,7 +68,7 @@ try {
     };
     call('eka2l1_profile_configure', ['number', 'number', 'number'], [startUs, endUs, captureMode]);
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
-    call('eka2l1_aot_configure', ['number', 'number'], [aot ? 1 : 0, verifyAot ? 1 : 0]);
+    call('eka2l1_aot_configure', ['number', 'number'], [aot, verifyAot ? 1 : 0]);
     call('eka2l1_init', ['string'], ['/data']);
     for (const name of ['SYM.ROM', 'SYM.RPKG', 'Snakes.sis', 'input']) {
       const response = await fetch(`/preload/${name}`);
@@ -131,7 +132,7 @@ try {
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({measurement: measured, warmup_seconds: warmupSeconds,
     sampling, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash,
-    aot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
+    aot, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     user_agent: await page.evaluate(() => navigator.userAgent),
     renderer: await page.evaluate(() => {
       const gl = document.createElement('canvas').getContext('webgl2');

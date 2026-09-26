@@ -141,8 +141,11 @@ extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_aot_configure(int enabled, int verify) {
-    if (g_state || (enabled != 0 && enabled != 1)) return -1;
+    if (g_state || (enabled < 0 || enabled > 2)) return -1;
     if (verify) setenv("EKA2L1_AOT_VERIFY", "1", 1);
+    else unsetenv("EKA2L1_AOT_VERIFY");
+    if (enabled == 2) setenv("EKA2L1_AOT_HOT", "1", 1);
+    else unsetenv("EKA2L1_AOT_HOT");
     if (enabled) setenv("EKA2L1_BENCHMARK_AOT", "1", 1);
     else unsetenv("EKA2L1_BENCHMARK_AOT");
     return 0;

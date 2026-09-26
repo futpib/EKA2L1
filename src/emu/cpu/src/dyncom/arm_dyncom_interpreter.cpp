@@ -1660,6 +1660,10 @@ DISPATCH : {
     // Check if an AOT-compiled function exists for this PC
     {
         auto aot_func = eka2l1::arm::aot::validation_running ? nullptr : eka2l1::arm::aot::global_registry().lookup(cpu->Reg[15] | cpu->TFlag);
+        if (!aot_func && eka2l1::arm::aot::hot_compilation_enabled && !eka2l1::arm::aot::validation_running) {
+            eka2l1::arm::aot::observe_hot_pc(cpu);
+            aot_func = eka2l1::arm::aot::global_registry().lookup(cpu->Reg[15] | cpu->TFlag);
+        }
         if (aot_func) {
             static std::uint64_t aot_dispatch_count = 0;
             static std::uint64_t aot_instr_count = 0;
@@ -1681,6 +1685,10 @@ DISPATCH : {
             eka2l1::arm::aot::history_head =
                 (eka2l1::arm::aot::history_head + 1) % eka2l1::arm::aot::AOT_HISTORY;
 
+            if (eka2l1::common::performance::counting()) {
+                ++eka2l1::common::performance::aot_dispatches;
+                eka2l1::common::performance::aot_instructions += instrs;
+            }
             aot_dispatch_count++;
             aot_instr_count += instrs;
             // Per-module AOT tracking
@@ -1698,7 +1706,6 @@ DISPATCH : {
                         (unsigned long long)aot_instr_count,
                         (unsigned long long)g_interp_instrs,
                         aot_pct);
-                    if (next_log == 1000000) eka2l1::arm::aot::dump_history();
                     if (next_log >= 100000) {
                         eka2l1::arm::aot::dump_module_stats();
                     }

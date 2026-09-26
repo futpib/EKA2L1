@@ -23,6 +23,8 @@
 #include <common/log.h>
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/12l1r/exclusive_monitor.h>
+#include <cpu/aot/arm_translator.h>
+#include <algorithm>
 #include <unordered_map>
 #include <cstdlib>
 
@@ -121,6 +123,53 @@ void validation_end(ARMul_State *cpu, std::uint32_t count) {
 }
 
 
+
+// Extend export-based compilation using deterministic dispatch samples. Only
+// immutable ROM addresses are eligible; RAM code needs explicit invalidation.
+bool hot_compilation_enabled = false;
+static const std::uint8_t *hot_rom = nullptr;
+static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
+static std::uint64_t hot_dispatches = 0;
+static std::uint32_t hot_compiled = 0;
+static std::unordered_map<std::uint32_t, unsigned> hot_counts;
+static std::vector<wasm_func_def> hot_pending;
+
+static void flush_hot_blocks() {
+    if (hot_pending.empty()) return;
+    auto bytes = build_wasm_module(hot_pending, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false}});
+    stage_aot_module(std::move(bytes), "hot-rom");
+    instantiate_staged_modules();
+    hot_pending.clear();
+}
+
+void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled) {
+    hot_rom = host; hot_rom_base = base; hot_rom_size = size;
+    hot_compilation_enabled = enabled;
+    hot_dispatches = 0; hot_compiled = 0; hot_counts.clear(); hot_pending.clear();
+}
+
+void observe_hot_pc(ARMul_State *cpu) {
+#ifdef __EMSCRIPTEN__
+    if (!hot_compilation_enabled || validation_running || (++hot_dispatches & 31)) return;
+    if ((hot_dispatches & 8191) == 0) flush_hot_blocks();
+    if (hot_compiled >= 4096) return;
+    const auto pc = cpu->Reg[15], key = pc | cpu->TFlag;
+    if (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size) return;
+    if (hot_counts.size() >= 65536 && !hot_counts.count(key)) return;
+    auto &count = hot_counts[key];
+    if (count >= 8 || ++count != 8) return; // one attempt per immutable entry
+    const auto offset = pc - hot_rom_base;
+    const auto size = std::min(128u, hot_rom_size - offset);
+    auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true)
+                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true);
+    if (tr.func.body.empty() || !tr.entry_supported) return;
+    tr.func.export_name = "f_" + std::to_string(key);
+    hot_pending.push_back(std::move(tr.func));
+    if (hot_pending.size() >= 32) flush_hot_blocks();
+    ++hot_compiled;
+#endif
+}
 
 #ifdef __EMSCRIPTEN__
 
@@ -225,7 +274,7 @@ void stage_aot_module(
     std::vector<std::uint8_t> wasm_bytes,
     const std::string &dll_name)
 {
-    fprintf(stderr, "AOT: staging %zu-byte WASM module for %s\n",
+    if (dll_name != "hot-rom") fprintf(stderr, "AOT: staging %zu-byte WASM module for %s\n",
         wasm_bytes.size(), dll_name.c_str());
     g_staged_modules.push_back({std::move(wasm_bytes), dll_name});
 }
@@ -274,18 +323,17 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
         reg.register_function(addr, func);
         count++;
 
-        LOG_INFO(CPU_DYNCOM, "AOT: registered {} at 0x{:08X} (table idx {})", name, addr, table_idx);
+
     }
 
-    LOG_INFO(CPU_DYNCOM, "AOT: instantiated {} functions for {}", count, dll_name);
+    if (dll_name != "hot-rom") LOG_INFO(CPU_DYNCOM, "AOT: instantiated {} functions for {}", count, dll_name);
     return count;
 }
 
 bool instantiate_staged_modules() {
     if (g_staged_modules.empty()) return false;
 
-    fprintf(stderr, "AOT: instantiating %zu staged module(s) on worker thread\n",
-        g_staged_modules.size());
+
 
     for (auto &mod : g_staged_modules) {
         do_instantiate(mod.wasm_bytes, mod.dll_name);

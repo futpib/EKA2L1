@@ -27,6 +27,7 @@ namespace eka2l1::common::performance {
     inline std::atomic<std::uint64_t> presentations{0};
     // These counters are written only by the guest CPU thread and read after
     // phase 3's release/acquire handoff. No atomics in the instruction hot path.
+    inline std::uint64_t aot_dispatches = 0, aot_instructions = 0;
     inline std::uint64_t decoded_instructions = 0, cache_hits = 0, cache_misses = 0;
     inline std::uint64_t cache_clears = 0, context_loads = 0, imb_calls = 0;
     inline bool counting() { return enabled && phase.load(std::memory_order_relaxed) == 2; }
@@ -84,6 +85,7 @@ namespace eka2l1::common::performance {
             << ",\"last_virtual_us\":" << last_us << ",\"first_instructions\":" << first_instructions
             << ",\"last_instructions\":" << last_instructions << ",\"wall_seconds\":" << wall_seconds
             << ",\"presentations\":" << presentations.load()
+            << ",\"aot_dispatches\":" << aot_dispatches << ",\"aot_instructions\":" << aot_instructions
             << ",\"decoded_instructions\":" << decoded_instructions
             << ",\"cache_hits\":" << cache_hits << ",\"cache_misses\":" << cache_misses
             << ",\"cache_clears\":" << cache_clears << ",\"context_loads\":" << context_loads

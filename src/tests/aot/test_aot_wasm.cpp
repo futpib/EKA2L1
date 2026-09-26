@@ -2015,8 +2015,15 @@ static bool test_bounded_execution() {
         arm({0xe3a00001, 0xe2800002, 0xe2400001}), // straight-line fallthrough
         arm({0xe3500000, 0x0a000000, 0xe3a01007, 0xe3a02009}), // taken/not-taken B
         arm({0xe2500001, 0x1afffffd}), // backward B, must return not recurse
+        arm({0xe1c100b0}), // STRH preserves neighboring bytes
+        arm({0xe1d100b2}), // LDRH at halfword offset
+        arm({0xe1d100f2}), // LDRSH at halfword offset
         arm({0xe2810004, 0xe5810000, 0xe5912000}), // memory
+        arm({0xe1a0f00e}), // MOV PC preserves ARM mode
         arm({0xe12fff1e}), // mode-changing BX
+        arm({0xe0b00000}), // ADCS carry/overflow
+        arm({0xe0d00000}), // SBCS carry/overflow
+        arm({0xe0f00000}), // RSCS carry/overflow
         arm({0xe1b00f00}), // MOVS R0, R0 LSL #30
         arm({0xe1b00020}), // MOVS R0, R0 LSR #32
         arm({0xe1b00040}), // MOVS R0, R0 ASR #32
@@ -2036,6 +2043,7 @@ static bool test_bounded_execution() {
         thumb({0x6008, 0x680a}),
         thumb({0x4770}),
         thumb({0x4708}), // BX to ARM
+        thumb({0x47f0}), // BLX LR captures the old target
         thumb({0x4788}), // BLX to ARM
         thumb({0xbd00}), // POP PC mode switch
         thumb({0x3001, 0xf000, 0xf800}), // return before long call halfwords
@@ -2049,6 +2057,7 @@ static bool test_bounded_execution() {
         for (unsigned r0 : {0u, 2u, 0xffffffffu, 0x7fffffffu, 0x80000000u}) for (unsigned budget = 0; budget <= 5; ++budget) {
             test_mem actual, reference;
             actual.write_code(0x1000, p.bytes); reference.write_code(0x1000, p.bytes);
+            actual.write32(0x8000, 0x000A8001); reference.write32(0x8000, 0x000A8001);
             alignas(8) std::uint8_t state[1024]{};
             auto set = [&](unsigned off, unsigned v) { std::memcpy(state + off, &v, 4); };
             auto get = [&](unsigned off) { unsigned v; std::memcpy(&v,state+off,4); return v; };

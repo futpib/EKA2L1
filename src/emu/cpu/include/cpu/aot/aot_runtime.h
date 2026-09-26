@@ -26,6 +26,9 @@
 struct ARMul_State;
 
 namespace eka2l1::arm::aot {
+    extern bool hot_compilation_enabled;
+    void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled);
+    void observe_hot_pc(ARMul_State *cpu);
     extern bool validation_running;
     void validation_begin(ARMul_State *cpu);
     void validation_end(ARMul_State *cpu, std::uint32_t count);

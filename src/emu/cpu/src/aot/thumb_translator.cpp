@@ -3579,6 +3579,7 @@ namespace eka2l1::arm::aot {
                 // BX Rm / BLX Rm
                 int rm = (insn >> 3) & 0xF;
                 bool is_blx = (insn & 0x80) != 0;
+                w.load_reg(rm); w.set_local(TMP3); // capture before BLX overwrites LR
                 if (is_blx) {
                     // BLX Rm — set LR = next instruction | 1 (Thumb)
                     w.store_i32_const(S::LR, static_cast<std::int32_t>((insn_addr + 2) | 1));
@@ -3588,10 +3589,10 @@ namespace eka2l1::arm::aot {
                     tr.resume_points.push_back(insn_addr + 2);
                 }
                 // Set PC = Rm (mask Thumb bit) and bail without overwriting PC.
-                w.load_reg(rm);
+                w.get_local(TMP3);
                 w.i32_const(1); w.op(op_i32_and); w.set_local(TMP2);
                 w.store_i32(S::TFLAG, TMP2);
-                w.load_reg(rm);
+                w.get_local(TMP3);
                 w.i32_const(~1);
                 w.op(op_i32_and);
                 w.set_local(TMP1);

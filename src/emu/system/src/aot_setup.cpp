@@ -126,6 +126,8 @@ namespace eka2l1::arm::aot {
             return;
         }
 
+        const char *hot_env = std::getenv("EKA2L1_AOT_HOT");
+        configure_hot_rom(rom_host, rom_base, rom_size, hot_env && hot_env[0] == '1');
         std::vector<wasm_func_def> all_funcs;
 
         for (std::uint32_t offset = 0; offset + sizeof(rom_image_header_raw) < rom_size; offset += 4) {

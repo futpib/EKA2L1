@@ -839,3 +839,24 @@ TEST_CASE("thumb_translator_multiple_funcs_one_module", "[aot]") {
     CHECK(module[0] == 0x00);
     CHECK(module[1] == 0x61);
 }
+
+TEST_CASE("AOT dispatch distinguishes instruction mode and falls back on zero progress", "[aot]") {
+    aot_test_env env;
+    env.write_code(0x1000, {0xe7fe2007}); // Thumb MOVS R0,#7; B .
+    auto cpu = env.make_cpu();
+    auto &reg = eka2l1::arm::aot::global_registry();
+    reg.clear();
+    reg.register_function(0x1000, [](ARMul_State *state) -> std::uint32_t {
+        state->Reg[0] = 99; state->Reg[15] += 4; return 1;
+    });
+    cpu->set_pc(0x1000); cpu->set_cpsr(USER32MODE | 0x20);
+    cpu->run(1);
+    CHECK(cpu->get_reg(0) == 7);
+    CHECK(cpu->get_reg(15) == 0x1002);
+    reg.register_function(0x1001, [](ARMul_State *) -> std::uint32_t { return 0; });
+    cpu->set_reg(0, 0); cpu->set_pc(0x1000);
+    cpu->run(1);
+    CHECK(cpu->get_reg(0) == 7);
+    CHECK(cpu->get_reg(15) == 0x1002);
+    reg.clear();
+}

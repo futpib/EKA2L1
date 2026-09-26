@@ -898,9 +898,9 @@ namespace eka2l1::arm::aot {
                         w.get_local(ADDR_TMP);
                         if (sh == 1) {
                             // LDRH: unsigned halfword
-                            w.call(0); // tlb_read32
-                            w.i32_const(0xFFFF);
-                            w.op(op_i32_and);
+                            w.call(2); // low byte
+                            w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
+                            w.call(2); w.i32_const(8); w.op(op_i32_shl); w.op(op_i32_or);
                         } else if (sh == 2) {
                             // LDRSB: signed byte
                             w.call(2); // tlb_read8
@@ -911,9 +911,9 @@ namespace eka2l1::arm::aot {
                             w.op(op_i32_shr_s);
                         } else if (sh == 3) {
                             // LDRSH: signed halfword
-                            w.call(0); // tlb_read32
-                            w.i32_const(0xFFFF);
-                            w.op(op_i32_and);
+                            w.call(2); // low byte
+                            w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
+                            w.call(2); w.i32_const(8); w.op(op_i32_shl); w.op(op_i32_or);
                             // Sign-extend halfword
                             w.i32_const(16);
                             w.op(op_i32_shl);
@@ -931,7 +931,9 @@ namespace eka2l1::arm::aot {
                         w.state_ptr();
                         w.get_local(ADDR_TMP);
                         w.get_local(TMP1);
-                        w.call(1); // tlb_write32
+                        w.call(3); // low byte
+                        w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
+                        w.get_local(TMP1); w.i32_const(8); w.op(op_i32_shr_u); w.call(3);
                     }
 
                     if (writeback || !preindex) {
@@ -973,6 +975,13 @@ namespace eka2l1::arm::aot {
                 bool set_flags = (inst >> 20) & 1;
                 int rn = (inst >> 16) & 0xF;
                 int rd = (inst >> 12) & 0xF;
+
+                if (bounded && set_flags && rd == 15 && (opcode < 8 || opcode > 11)) {
+                    w.bail_unsupported(insn_addr, insn_idx); // SPSR restore is interpreter-owned.
+                    if (cond_opened) w.op(op_end);
+                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                    continue;
+                }
 
                 // For Rn==15, the value is PC+8 in ARM mode
                 // We need to handle this specially for immediate ops
@@ -1071,7 +1080,17 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_add);
                     w.set_local(TMP3);
                     if (rd != 15) w.store_reg(rd, TMP3);
-                    if (set_flags) emit_nz_flags(w, TMP3, TMP4);
+                    if (set_flags) {
+                        emit_nz_flags(w, TMP3, TMP4);
+                        w.get_local(TMP3); w.get_local(TMP1); w.op(op_i32_lt_u);
+                        w.get_local(TMP3); w.get_local(TMP1); w.op(op_i32_eq);
+                        w.load_i32(S::CFLAG); w.op(op_i32_and); w.op(op_i32_or);
+                        w.set_local(TMP4); w.store_i32(S::CFLAG,TMP4);
+                        w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
+                        w.i32_const(-1); w.op(op_i32_xor);
+                        w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor); w.op(op_i32_and);
+                        w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4); w.store_i32(S::VFLAG,TMP4);
+                    }
                     break;
                 case 0x6: // SBC
                     w.get_local(TMP1); w.get_local(TMP2);
@@ -1081,7 +1100,16 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_sub);
                     w.set_local(TMP3);
                     if (rd != 15) w.store_reg(rd, TMP3);
-                    if (set_flags) emit_nz_flags(w, TMP3, TMP4);
+                    if (set_flags) {
+                        emit_nz_flags(w, TMP3, TMP4);
+                        w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_gt_u);
+                        w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_eq);
+                        w.load_i32(S::CFLAG); w.op(op_i32_and); w.op(op_i32_or);
+                        w.set_local(TMP4); w.store_i32(S::CFLAG,TMP4);
+                        w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
+                        w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor); w.op(op_i32_and);
+                        w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4); w.store_i32(S::VFLAG,TMP4);
+                    }
                     break;
                 case 0x7: // RSC
                     w.get_local(TMP2); w.get_local(TMP1);
@@ -1091,7 +1119,16 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_sub);
                     w.set_local(TMP3);
                     if (rd != 15) w.store_reg(rd, TMP3);
-                    if (set_flags) emit_nz_flags(w, TMP3, TMP4);
+                    if (set_flags) {
+                        emit_nz_flags(w, TMP3, TMP4);
+                        w.get_local(TMP2); w.get_local(TMP1); w.op(op_i32_gt_u);
+                        w.get_local(TMP2); w.get_local(TMP1); w.op(op_i32_eq);
+                        w.load_i32(S::CFLAG); w.op(op_i32_and); w.op(op_i32_or);
+                        w.set_local(TMP4); w.store_i32(S::CFLAG,TMP4);
+                        w.get_local(TMP2); w.get_local(TMP1); w.op(op_i32_xor);
+                        w.get_local(TMP2); w.get_local(TMP3); w.op(op_i32_xor); w.op(op_i32_and);
+                        w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4); w.store_i32(S::VFLAG,TMP4);
+                    }
                     break;
                 case 0x8: // TST (always sets flags, no Rd write)
                     w.get_local(TMP1); w.get_local(TMP2);
@@ -1173,12 +1210,8 @@ namespace eka2l1::arm::aot {
                 if (rd == 15 && opcode != 0x8 && opcode != 0x9 &&
                     opcode != 0xA && opcode != 0xB) {
                     w.store_reg(15, TMP3);
-                    // Check T flag from bit 0
-                    w.get_local(TMP3);
-                    w.i32_const(1);
-                    w.op(op_i32_and);
-                    w.set_local(TMP4);
-                    w.store_i32(S::TFLAG, TMP4);
+                    // Data-processing writes to PC keep the instruction mode;
+                    // only interworking branches/loads derive T from bit zero.
                     w.bail_preserve_pc(insn_idx + 1);
                     if (cond_opened) w.op(op_end);
                     if (cond >= 0xE && closed_count >= N_fwd) {

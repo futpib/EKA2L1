@@ -1,0 +1,38 @@
+# Bounded browser AOT
+
+The replay runner accepts `EKA2L1_BENCHMARK_AOT=0` (interpreter reference), `1`
+(bounded ROM export blocks), or `2` (exports plus hot ROM blocks). Capture and
+virtual guest timing are otherwise identical. AOT is implemented by generating
+WASM functions on the executing worker; native runs remain interpreter references.
+
+```sh
+cd src/tests/wasm
+EKA2L1_BENCHMARK_AOT=2 node benchmark.ts /absolute/assets /absolute/new-output 1000
+EKA2L1_BENCHMARK_AOT=2 node profile.ts /absolute/assets /absolute/new-profile 0 0
+EKA2L1_BENCHMARK_AOT=2 EKA2L1_AOT_VERIFY=1 node benchmark.ts /absolute/assets /absolute/new-checked-output 20
+```
+
+The optional verifier executes every nonempty compiled block again in a private
+interpreter state and memory overlay. It compares registers, NZCV/T and memory,
+then aborts at the first divergence. It is a diagnostic mode, not a performance
+measurement. The guest memory changes only once, through compiled execution.
+Keep this diagnostic scoped to the deterministic replay's ordinary memory; it is
+not intended to duplicate side-effecting MMIO reads or emulate devices twice.
+
+Bounded blocks stop at the remaining instruction budget and return at branches;
+there are no recursive sibling calls. Registry keys include ARM/Thumb mode.
+Unsupported instructions, including exclusive accesses and long Thumb call
+halfwords, fall back to DynCom. This preserves the reference instruction clock
+and its scheduling boundaries. Native CPU tests exercise mode separation and
+zero-progress fallback; the WASM suite checks compiled execution against DynCom.
+
+Mode 2 samples every 32nd uncompiled dispatch and queues a ROM entry after eight
+samples. Compilation is batched (up to 32 functions per module, with a flush every
+8,192 uncompiled dispatches). It caps new entries at 4,096 and sampled candidates
+at 65,536. Counts depend on guest execution, not host timing. RAM code is excluded;
+it needs address-space-aware invalidation before it can be compiled safely.
+
+This work is still being validated against the full replay. The repaired export
+path has passed 20 gameplay images and metadata against the native reference
+with per-block checking enabled. See the final results report for measured scope;
+do not infer a performance gain from the number of compiled functions.
