@@ -917,6 +917,33 @@ TEST_CASE("RAM compiled code rejects stale mappings and versions", "[aot]") {
     REQUIRE(cache.find(0x1000, short_mapping) == nullptr);
 }
 
+TEST_CASE("RAM recent lookup survives collisions, replacement and reset", "[aot]") {
+    using namespace eka2l1::arm;
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t, 16> code{};
+    core::code_mapping view{7, code.data(), code.size()};
+    auto first = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    auto second = +[](ARMul_State *) -> std::uint32_t { return 2; };
+    cache.attach(cache.insert(0x1000, view, 8).version, first);
+    REQUIRE(cache.find(0x1000, view)->function == first); // populate recent
+    const auto replacement = cache.insert(0x1000, view, 8).version;
+    REQUIRE(cache.find(0x1000, view)->function == nullptr); // dead recent entry
+    cache.attach(replacement, second);
+    REQUIRE(cache.find(0x1000, view)->function == second); // attach after lookup
+    cache.attach(cache.insert(0x1200, view, 8).version, first); // same recent slot
+    for (unsigned i = 0; i < 4; ++i) {
+        REQUIRE(cache.find(0x1200, view)->function == first);
+        REQUIRE(cache.find(0x1000, view)->function == second);
+    }
+    cache.invalidate(0x1000, 1);
+    REQUIRE(cache.find(0x1000, view) == nullptr); // invalidated recent pointer
+    REQUIRE(cache.find(0x1200, view)->function == first);
+    cache = aot::validated_code_cache{};
+    REQUIRE(cache.find(0x1200, view) == nullptr); // no pointer into freed deque
+    cache.attach(cache.insert(0x1200, view, 8).version, second);
+    REQUIRE(cache.find(0x1200, view)->function == second);
+}
+
 TEST_CASE("RAM translation dependencies end after the first store", "[aot]") {
     using namespace eka2l1::arm::aot;
     const std::uint32_t arm[] = {0xe3a00007, 0xe5810000, 0xe2800001};

@@ -3,6 +3,7 @@
 #include <cpu/aot/aot_registry.h>
 #include <cpu/arm_interface.h>
 #include <cstring>
+#include <array>
 #include <deque>
 #include <unordered_map>
 
@@ -11,6 +12,12 @@ namespace eka2l1::arm::aot {
     // Validate bytes on every entry; mapping notifications alone are insufficient.
     class validated_code_cache {
     public:
+        validated_code_cache() = default;
+        validated_code_cache(const validated_code_cache &) = delete;
+        validated_code_cache &operator=(const validated_code_cache &) = delete;
+        validated_code_cache(validated_code_cache &&) = default;
+        validated_code_cache &operator=(validated_code_cache &&) = default;
+
         struct block {
             std::uint64_t key;
             std::uint32_t version;
@@ -26,17 +33,27 @@ namespace eka2l1::arm::aot {
         }
 
         block *find(std::uint32_t pc_mode, const core::code_mapping &view) {
-            auto it = current_.find(key(view.address_space, pc_mode));
-            if (it == current_.end()) return nullptr;
-            auto &entry = versions_[it->second];
-            if (!view.bytes || view.bytes != entry.backing || view.size < entry.code.size()
-                || std::memcmp(view.bytes, entry.code.data(), entry.code.size()) != 0) {
-                entry.live = false;
-                current_.erase(it);
+            const auto k = key(view.address_space, pc_mode);
+            auto &recent = recent_[recent_index(k)];
+            block *entry = recent;
+            if (!entry || !entry->live || entry->key != k) {
+                auto it = current_.find(k);
+                if (it == current_.end()) return nullptr;
+                entry = &versions_[it->second];
+                recent = entry;
+            }
+            // A recent hit only skips the container search. Resolve the mapping
+            // at the caller and check the backing, extent and exact bytes every
+            // time, including after aliased/host writes and address-space reuse.
+            if (!view.bytes || view.bytes != entry->backing || view.size < entry->code.size()
+                || std::memcmp(view.bytes, entry->code.data(), entry->code.size()) != 0) {
+                entry->live = false;
+                current_.erase(k);
+                recent = nullptr;
                 ++invalidations;
                 return nullptr;
             }
-            return &entry;
+            return entry;
         }
 
         block &insert(std::uint32_t pc_mode, const core::code_mapping &view, std::size_t size) {
@@ -71,6 +88,13 @@ namespace eka2l1::arm::aot {
         std::uint64_t invalidations = 0;
 
     private:
+        static std::size_t recent_index(std::uint64_t k) {
+            const auto pc_mode = static_cast<std::uint32_t>(k);
+            return ((pc_mode >> 1) ^ (pc_mode << 7) ^ (k >> 32)) & 255;
+        }
+        // deque entries stay allocated until reset; invalidation/replacement
+        // marks old entries dead before a cached pointer can be reused.
+        std::array<block *, 256> recent_{};
         // Versions remain allocated until reset so late module instantiation can
         // never attach an old function to a replacement block. Runtime caps growth.
         std::deque<block> versions_;

@@ -15,6 +15,7 @@ modes = p.add_mutually_exclusive_group()
 modes.add_argument('--compare-aot', action='store_true', help='Compare interpreter, exports and hot-ROM compilation with timing repeats')
 modes.add_argument('--compare-diagnostics', action='store_true', help='Measure optional AOT bookkeeping with paired controls')
 modes.add_argument('--compare-build', type=Path, help='Compare an archived frontend build with the current build in AOT mode 4 (old/new/new/old)')
+modes.add_argument('--compare-steps', type=Path, nargs=2, metavar=('BASELINE', 'STEP1'), help='Compare baseline, step 1 and current build serially in forward/reverse order')
 modes.add_argument('--compare-stages', action='store_true', help='Compare interpreter, hot ROM, RAM and chained/register-cached execution')
 p.add_argument('--measure-gate', type=Path, help='Wait for this new gate file after all fixtures are paused')
 a = p.parse_args()
@@ -37,6 +38,12 @@ if a.compare_build:
     if not (a.compare_build / 'eka2l1.wasm').is_file():
         p.error('Archived build must contain eka2l1.wasm')
     plan = [('before-1', 0, 4), ('after-1', 0, 4), ('after-2', 0, 4), ('before-2', 0, 4)]
+if a.compare_steps:
+    a.compare_steps = [path.resolve() for path in a.compare_steps]
+    if not all((path / 'eka2l1.wasm').is_file() for path in a.compare_steps):
+        p.error('Each archived step must contain eka2l1.wasm')
+    plan = [('baseline-1', 0, 4), ('step1-1', 0, 4), ('combined-1', 0, 4),
+            ('combined-2', 0, 4), ('step1-2', 0, 4), ('baseline-2', 0, 4)]
 processes = []
 logs = []
 try:
@@ -50,6 +57,13 @@ try:
             environment.pop('EKA2L1_WASM_BUILD_DIR', None)
             if name.startswith('before-'):
                 environment['EKA2L1_WASM_BUILD_DIR'] = str(a.compare_build)
+        if a.compare_steps:
+            environment.pop('EKA2L1_GUEST_PROFILE', None)
+            environment.pop('EKA2L1_WASM_BUILD_DIR', None)
+            if name.startswith('baseline-'):
+                environment['EKA2L1_WASM_BUILD_DIR'] = str(a.compare_steps[0])
+            elif name.startswith('step1-'):
+                environment['EKA2L1_WASM_BUILD_DIR'] = str(a.compare_steps[1])
         if a.compare_diagnostics:
             environment['EKA2L1_AOT_DIAGNOSTICS'] = '1' if name == 'diagnostics-on' else '0'
         if aot_mode is not None:
