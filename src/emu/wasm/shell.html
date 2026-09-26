@@ -13,6 +13,7 @@
         #controls button { padding: 4px 12px; cursor: pointer; font-family: monospace; }
         #canvas-container { flex: 1; display: flex; justify-content: center; align-items: center; background: #000; }
         canvas { border: 1px solid #333; }
+        #log-panel summary { padding: 4px 8px; cursor: pointer; background: #0f0f23; }
         #log { height: 150px; overflow-y: auto; padding: 4px 8px; background: #0f0f23; font-size: 12px; border-top: 1px solid #333; white-space: pre-wrap; }
         #status { padding: 4px 8px; background: #16213e; font-size: 12px; }
     </style>
@@ -29,45 +30,63 @@
         <canvas id="canvas" width="360" height="640" oncontextmenu="event.preventDefault()"></canvas>
     </div>
     <div id="status">Ready</div>
-    <div id="log"></div>
+    <details id="log-panel"><summary>Log</summary><div id="log" role="log"></div></details>
 
     <script>
         var Module = window.Module || {async: true};
         Module.canvas = document.getElementById('canvas');
 
-        // Batched logging: buffer print output, flush every 200ms
-        var _logBuffer = [];
-        var _logTimer = null;
-        var _origPrint = Module.print;
-        function _flushLog() {
-            if (_logBuffer.length === 0) return;
-            var batch = _logBuffer.join('\n');
-            _logBuffer.length = 0;
-            console.log(batch);
-            var log = document.getElementById('log');
-            if (log) {
-                log.textContent += batch + '\n';
-                log.scrollTop = log.scrollHeight;
+        // Console output stays complete. The optional DOM view holds only a
+        // bounded tail and does no rendering/layout work while collapsed.
+        var _logBuffer = [], _logBytes = 0, _logTimer = null;
+        var _logTail = [], _logTailBytes = 0, _logTrimmed = false, _logPaint = null;
+        var _origPrint = Module.print, _origPrintErr = Module.printErr;
+        function _rememberLog(text) {
+            var lines = String(text).split('\n');
+            for (var line of lines) {
+                if (line.length > 32767) { line = line.slice(-32767); _logTrimmed = true; }
+                _logTail.push(line);
+                _logTailBytes += line.length + 1;
+                while (_logTail.length > 200 || _logTailBytes > 32768) {
+                    _logTailBytes -= _logTail.shift().length + 1;
+                    _logTrimmed = true;
+                }
             }
+            _scheduleLogPaint();
+        }
+        function _scheduleLogPaint() {
+            var panel = document.getElementById('log-panel');
+            if (!panel.open || _logPaint !== null) return;
+            _logPaint = requestAnimationFrame(function() {
+                _logPaint = null;
+                if (!panel.open) return;
+                var log = document.getElementById('log');
+                log.textContent = (_logTrimmed ? '[Earlier log entries omitted]\n' : '') + _logTail.join('\n');
+                log.scrollTop = 2147483647;
+            });
+        }
+        document.getElementById('log-panel').addEventListener('toggle', _scheduleLogPaint);
+        function _flushLog() {
+            if (_logTimer !== null) { clearTimeout(_logTimer); _logTimer = null; }
+            if (!_logBuffer.length) return;
+            var batch = _logBuffer.join('\n');
+            _logBuffer = []; _logBytes = 0;
+            console.log(batch);
+            _rememberLog(batch);
             if (_origPrint) _origPrint(batch);
         }
         Module.print = function(text) {
-            _logBuffer.push(text);
-            if (!_logTimer) {
-                _logTimer = setTimeout(function() { _logTimer = null; _flushLog(); }, 200);
-            }
+            text = String(text);
+            _logBuffer.push(text); _logBytes += text.length + 1;
+            if (_logBytes >= 32768) _flushLog();
+            else if (_logTimer === null) _logTimer = setTimeout(_flushLog, 200);
         };
-        // Expose flush for tests/cleanup
         window._flushLog = _flushLog;
-        var _origPrintErr = Module.printErr;
         Module.printErr = function(text) {
             if (text && text.indexOf('__syscall_mprotect') !== -1) return;
+            _flushLog();
             console.warn(text);
-            var log = document.getElementById('log');
-            if (log) {
-                log.textContent += '[ERR] ' + text + '\n';
-                log.scrollTop = log.scrollHeight;
-            }
+            _rememberLog('[ERR] ' + text);
             if (_origPrintErr) _origPrintErr(text);
         };
         var _origOnAbort = Module.onAbort;

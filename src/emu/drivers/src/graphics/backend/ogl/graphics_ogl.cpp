@@ -24,6 +24,7 @@
 #include <common/platform.h>
 #include <common/rgb.h>
 #include <fstream>
+#include <cstdlib>
 #include <sstream>
 
 #include <drivers/graphics/backend/ogl/common_ogl.h>
@@ -49,6 +50,10 @@ namespace eka2l1::drivers {
             LOG_ERROR(DRIVER_GRAPHICS, "{} encounters error {}", name, error_code);
         }
     }
+
+#if EKA2L1_PLATFORM(EMSCRIPTEN)
+    static void gl_post_callback_noop(const char *, void *, int, ...) {}
+#endif
 
     void init_gl_graphics_library(graphics::gl_context::mode api) {
         switch (api) {
@@ -78,7 +83,18 @@ namespace eka2l1::drivers {
                 return;
         }
 
+#if EKA2L1_PLATFORM(EMSCRIPTEN)
+        // Querying WebGL errors after every call serializes the browser path.
+        // Explicit error queries used by functional fallback logic remain intact.
+        const char *diagnostics = std::getenv("EKA2L1_GL_DIAGNOSTICS");
+        if (diagnostics && diagnostics[0] == '1') {
+            glad_set_post_callback(gl_post_callback_for_error);
+        } else {
+            glad_set_post_callback(gl_post_callback_noop);
+        }
+#else
         glad_set_post_callback(gl_post_callback_for_error);
+#endif
     }
 
     ogl_graphics_driver::ogl_graphics_driver(const window_system_info &info)
