@@ -50,8 +50,12 @@ void validation_begin(ARMul_State *cpu) {
     if (common::performance::counting() && ram_compilation_enabled
         && (cpu->Reg[15] < hot_rom_base || cpu->Reg[15] - hot_rom_base >= hot_rom_size))
         ++common::performance::ram_aot_dispatches;
-    static const bool enabled = std::getenv("EKA2L1_AOT_VERIFY") != nullptr;
-    validating = enabled;
+    static const unsigned stride = [] {
+        const char *value = std::getenv("EKA2L1_AOT_VERIFY");
+        return value ? std::max(1ul, std::strtoul(value, nullptr, 10)) : 0ul;
+    }();
+    static std::uint64_t attempts = 0;
+    validating = stride && (++attempts % stride == 0);
     if (!validating) return;
     validation_guest = cpu;
     cpu->parent()->save_context(validation_before);
@@ -225,7 +229,12 @@ void observe_hot_pc(ARMul_State *cpu) {
             ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4)));
             return;
         }
-        auto &entry = ram_cache.insert(key, view, size);
+        // Only emitted instructions depend on these bytes. The rest of the
+        // translation window is unused after a store/terminator; validating it
+        // on millions of short-block entries needlessly scans unrelated code.
+        const auto consumed = std::clamp(std::size_t(tr.end_address - pc),
+            std::size_t(cpu->TFlag ? 2 : 4), size);
+        auto &entry = ram_cache.insert(key, view, consumed);
         tr.func.export_name = "r_" + std::to_string(entry.version);
         hot_pending.push_back(std::move(tr.func));
         if (common::performance::counting()) ++common::performance::ram_blocks_compiled;

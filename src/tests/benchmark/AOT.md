@@ -18,10 +18,13 @@ For a serial timing comparison (with concurrent warmup and paired repeats):
 python3 src/tests/benchmark/profile_batch.py --assets /absolute/assets --output /absolute/new-comparison --compare-aot
 ```
 
-The optional verifier executes every nonempty compiled block again in a private
+With `EKA2L1_AOT_VERIFY=1`, the optional verifier executes every nonempty compiled block again in a private
 interpreter state and memory overlay. It compares registers, NZCV/T and memory,
 then aborts at the first divergence. It is a diagnostic mode, not a performance
-measurement. The guest memory changes only once, through compiled execution.
+measurement. Values greater than one check every Nth compiled block (for example,
+`EKA2L1_AOT_VERIFY=1024`), using an execution counter, never wall time. This is
+sampled differential validation, not an exhaustive per-block pass. Runner reports
+record the integer stride. The guest memory changes only once, through compiled execution.
 Keep this diagnostic scoped to the deterministic replay's ordinary memory; it is
 not intended to duplicate side-effecting MMIO reads or emulate devices twice.
 
@@ -49,7 +52,8 @@ Set `EKA2L1_AOT_DIAGNOSTICS=1` on either browser runner to restore them.
 off, on, then off again; instruction budgets and guest behavior are identical.
 
 Mode `3` adds hot RAM code. Each cache entry includes address-space identity,
-PC/instruction mode and a distinct compiled version. Before executing a RAM
+PC/instruction mode and a distinct compiled version. Only the emitted instruction
+prefix is a code dependency; unused translation-window suffix bytes are excluded. Before executing a RAM
 block, the runtime resolves the current executable mapping and compares its
 backing pointer and exact code bytes with that version. This catches writes
 through aliases or host pointers as well as remapping; explicit unmap/IMB hooks

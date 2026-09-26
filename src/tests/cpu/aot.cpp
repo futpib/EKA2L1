@@ -24,6 +24,7 @@
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/thumb_translator.h>
+#include <cpu/aot/arm_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 
 #include <cpu/dyncom/armstate.h>
@@ -881,6 +882,13 @@ TEST_CASE("RAM compiled code rejects stale mappings and versions", "[aot]") {
     REQUIRE(cache.find(0x1000, view)->function == first);
     REQUIRE(cache.find(0x1000, other_space)->function == second);
 
+    code[8] = 19; // Uncompiled suffix is not a dependency of this version.
+    REQUIRE(cache.find(0x1000, view)->function == first);
+    code[7] = 23; // The final compiled byte is still guarded.
+    REQUIRE(cache.find(0x1000, view) == nullptr);
+    code[7] = 0;
+    cache.attach(cache.insert(0x1000, view, 8).version, first);
+
     code[3] = 42; // Includes writes through any alias or host pointer.
     REQUIRE(cache.find(0x1000, view) == nullptr);
     const auto replacement = cache.insert(0x1000, view, 8).version;
@@ -903,6 +911,22 @@ TEST_CASE("RAM compiled code rejects stale mappings and versions", "[aot]") {
     auto short_mapping = view;
     short_mapping.size = 4;
     REQUIRE(cache.find(0x1000, short_mapping) == nullptr);
+}
+
+TEST_CASE("RAM translation dependencies end after the first store", "[aot]") {
+    using namespace eka2l1::arm::aot;
+    const std::uint32_t arm[] = {0xe3a00007, 0xe5810000, 0xe2800001};
+    const std::uint16_t thumb[] = {0x2007, 0x6008, 0x3001};
+    for (bool locals : {false, true}) {
+        const auto a = translate_arm_block(reinterpret_cast<const std::uint8_t *>(arm),
+            sizeof(arm), 0x1000, nullptr, nullptr, true, true, locals);
+        const auto t = translate_thumb_block(reinterpret_cast<const std::uint8_t *>(thumb),
+            sizeof(thumb), 0x1000, nullptr, nullptr, true, true, locals);
+        REQUIRE(a.entry_supported);
+        REQUIRE(t.entry_supported);
+        CHECK(a.end_address == 0x1008);
+        CHECK(t.end_address == 0x1004);
+    }
 }
 
 TEST_CASE("Compiled successor chains respect budgets, mode and interrupts", "[aot]") {

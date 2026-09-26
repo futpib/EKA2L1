@@ -8,7 +8,9 @@ import {startServer, buildDir} from './server.ts';
 const [assetArg, outputArg, frameArg = '1000', inputArg = '../benchmark/snakes.input', startArg = '21000000'] = process.argv.slice(2);
 if (!assetArg || !outputArg) throw new Error('Usage: node benchmark.ts ASSETS NEW_OUTPUT [FRAMES] [INPUT] [START_US]');
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
-const verifyAot = process.env.EKA2L1_AOT_VERIFY === "1";
+const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
+if (!Number.isSafeInteger(verifyAot) || verifyAot < 0 || verifyAot > 2147483647)
+  throw new Error('EKA2L1_AOT_VERIFY must be a nonnegative integer stride');
 const aot = Number(process.env.EKA2L1_BENCHMARK_AOT || "0");
 if (![0,1,2,3,4].includes(aot)) throw new Error("AOT mode must be 0, 1, 2, 3 or 4");
 const assets = path.resolve(assetArg), output = path.resolve(outputArg), frames = Number(frameArg);
@@ -57,7 +59,7 @@ try {
       if (code !== 0) throw new Error(`${name} returned ${code}`);
     };
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
-    call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot ? 1 : 0, aotDiagnostics ? 1 : 0]);
+    call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot, aotDiagnostics ? 1 : 0]);
     call('eka2l1_init', ['string'], ['/data']);
     for (const name of ['SYM.ROM', 'SYM.RPKG', 'Snakes.sis', 'input']) {
       const response = await fetch(`/preload/${name}`);
