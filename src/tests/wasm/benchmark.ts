@@ -94,6 +94,9 @@ try {
     }), names.slice(i, i+25));
     for (const [name, bytes] of data) fs.writeFileSync(path.join(output, name), Buffer.from(bytes, 'base64'));
   }
+  const audio = JSON.parse(execFileSync('python3', [path.resolve('../benchmark/validate_audio.py'), output],
+    {encoding: 'utf8', env: {...process.env, PYTHONDONTWRITEBYTECODE: '1'}}));
+  fs.writeFileSync(path.join(output, 'audio.json'), JSON.stringify(audio, null, 2));
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,

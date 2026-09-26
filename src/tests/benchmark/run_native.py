@@ -120,7 +120,8 @@ def main():
         report['runs'].append({'wall_seconds': elapsed, 'last_virtual_us': records[-1]['virtual_us']})
         print(f'Run {i}: {len(records)} frames in {elapsed:.3f}s', flush=True)
         (a.output / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
-    print('PASS: all frame pixels, guest timestamps, PCM and audio events match', flush=True)
+    print('PASS: all frame pixels, guest timestamps, PCM and audio events match' if a.repeat > 1
+          else 'PASS: captured frames and validated guest-clock audio', flush=True)
 
 if __name__ == '__main__':
     main()

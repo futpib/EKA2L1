@@ -41,7 +41,7 @@ Retrieve using `ipfs cat CID > filename` with a running IPFS node. The old `@fut
 
 ## Browser build and comparison
 
-Use Emscripten 4.0.10 (the version used for validation), Node.js with TypeScript stripping, and Chromium. Activate the SDK environment first.
+Use Emscripten 4.0.10 (the version used for validation), Node.js with TypeScript stripping, Python 3 for audio validation, and Chromium. Activate the SDK environment first.
 
 ```sh
 emcmake cmake -S . -B build-wasm -G Ninja -DCMAKE_BUILD_TYPE=Release \
