@@ -78,3 +78,7 @@ All fixtures use full capture, no CPU sampling, and no per-block verification
 or dispatch diagnostics. With `--measure-gate /new/path`, the batch creates
 `/new/path.ready` after warmup and waits until `/new/path` exists. This allows
 correctness jobs to finish before any timed window is released.
+
+The RAM/chaining follow-up, final replay checks and measured speed are in
+[REALTIME_AOT_RESULTS.md](REALTIME_AOT_RESULTS.md), with machine-readable
+[REALTIME_AOT_EVIDENCE.json](REALTIME_AOT_EVIDENCE.json).

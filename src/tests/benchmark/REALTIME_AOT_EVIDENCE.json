@@ -1,0 +1,1422 @@
+{
+  "runtime_revision": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+  "reference": "/home/claude/.scratch/eka-benchmark/audio-native-0/run-0/frames",
+  "full_replays": {
+    "aot-final-checked-1": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-final-checked-1",
+      "report": {
+        "frames": 1000,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 1153.392624667,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 1024,
+        "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+        "dirty_worktree": false
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 3265922,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "459268607f7e5b52e840e2c2e43bba61b6e8f3c0dd10ebb0291cc5a45e982cff",
+          "sha256_events": "24ccd1b4273371f00ca8a1b145c4b4cb41d6a18547b55887a46399ebcd1a82c8",
+          "writes": 1392,
+          "callbacks": 1391,
+          "gameplay_nonzero_samples": 4417622,
+          "gameplay_peak": 4121
+        },
+        "frames": 1000,
+        "unique_images": 1000,
+        "last_virtual_us": 68040042,
+        "instructions": 10342580529
+      },
+      "gameplay": {
+        "frames": 1000,
+        "unique_images": 1000,
+        "unique_viewports": 1000,
+        "first_virtual_us": 21026182,
+        "last_virtual_us": 68040042,
+        "virtual_seconds": 47.01386,
+        "game_images_per_virtual_second": 21.249052938856753,
+        "median_interval_us": 46868,
+        "max_interval_us": 50166,
+        "min_viewport_changed_fraction": 0.22053333333333336,
+        "median_viewport_changed_fraction": 0.29456666666666664,
+        "pass": true
+      },
+      "frame_records_sha256": "7a404841cab5fece8b97edbcec190ca95dde14bfaaf83761f872e3a8673a3e80",
+      "last_png_sha256": "0db473255c8906711da7afeed03b5f3b6428f4356acd4d2fa74e2fc424e7f51a"
+    },
+    "aot-final-full-2": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-final-full-2",
+      "report": {
+        "frames": 1000,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 1097.8123997839998,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+        "dirty_worktree": false
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 3265922,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "459268607f7e5b52e840e2c2e43bba61b6e8f3c0dd10ebb0291cc5a45e982cff",
+          "sha256_events": "24ccd1b4273371f00ca8a1b145c4b4cb41d6a18547b55887a46399ebcd1a82c8",
+          "writes": 1392,
+          "callbacks": 1391,
+          "gameplay_nonzero_samples": 4417622,
+          "gameplay_peak": 4121
+        },
+        "frames": 1000,
+        "unique_images": 1000,
+        "last_virtual_us": 68040042,
+        "instructions": 10342580529
+      },
+      "gameplay": {
+        "frames": 1000,
+        "unique_images": 1000,
+        "unique_viewports": 1000,
+        "first_virtual_us": 21026182,
+        "last_virtual_us": 68040042,
+        "virtual_seconds": 47.01386,
+        "game_images_per_virtual_second": 21.249052938856753,
+        "median_interval_us": 46868,
+        "max_interval_us": 50166,
+        "min_viewport_changed_fraction": 0.22053333333333336,
+        "median_viewport_changed_fraction": 0.29456666666666664,
+        "pass": true
+      },
+      "frame_records_sha256": "7a404841cab5fece8b97edbcec190ca95dde14bfaaf83761f872e3a8673a3e80",
+      "last_png_sha256": "0db473255c8906711da7afeed03b5f3b6428f4356acd4d2fa74e2fc424e7f51a"
+    }
+  },
+  "timings": {
+    "interpreter-1": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-final-stages/interpreter-1",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 93.1222,
+          "presentations": 170,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 90055999,
+          "cache_hits": 82190219,
+          "cache_misses": 14069057,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 92.9641,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 91.3547,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.186297,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.769884,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 5.06068,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 5.04859,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 1.46687,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.422815,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 1.00849,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.947336,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00720998,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 453.599466312,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+        "aot": 0,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "native_prefix_match": true,
+      "frames": 85
+    },
+    "hot-rom": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-final-stages/hot-rom",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 61.5241,
+          "presentations": 170,
+          "aot_dispatches": 10924809,
+          "aot_instructions": 123534300,
+          "compiled_runner_calls": 10924809,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 81038684,
+          "cache_hits": 64188438,
+          "cache_misses": 12380006,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 61.4113,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 60.2704,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.134973,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.548568,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 3.43818,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 3.42787,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 1.01501,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.282687,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.702416,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.654162,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00616858,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 422.96524478500004,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+        "aot": 2,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "native_prefix_match": true,
+      "frames": 85
+    },
+    "hot-ram": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-final-stages/hot-ram",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 46.4559,
+          "presentations": 170,
+          "aot_dispatches": 117732931,
+          "aot_instructions": 458919389,
+          "compiled_runner_calls": 117732931,
+          "ram_aot_dispatches": 106808903,
+          "ram_blocks_compiled": 306,
+          "decoded_instructions": 26134149,
+          "cache_hits": 17548735,
+          "cache_misses": 1841297,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 46.3458,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 45.5358,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.131944,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.218982,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 3.44477,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 3.43573,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 1.00236,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.274823,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.699112,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.648396,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00586342,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 373.079447873,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+        "aot": 3,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "native_prefix_match": true,
+      "frames": 85
+    },
+    "chained-1": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-final-stages/chained-1",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 45.4495,
+          "presentations": 170,
+          "aot_dispatches": 117675732,
+          "aot_instructions": 458913845,
+          "compiled_runner_calls": 16860275,
+          "ram_aot_dispatches": 106804779,
+          "ram_blocks_compiled": 329,
+          "decoded_instructions": 26137201,
+          "cache_hits": 17549243,
+          "cache_misses": 1842176,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 45.3441,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 44.5653,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.124336,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.212242,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 3.26831,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 3.25882,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.967139,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.262861,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.676085,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.628271,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00534374,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 376.485121349,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "native_prefix_match": true,
+      "frames": 85
+    },
+    "chained-2": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-final-stages/chained-2",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 42.3157,
+          "presentations": 170,
+          "aot_dispatches": 117675732,
+          "aot_instructions": 458913845,
+          "compiled_runner_calls": 16860275,
+          "ram_aot_dispatches": 106804779,
+          "ram_blocks_compiled": 329,
+          "decoded_instructions": 26137201,
+          "cache_hits": 17549243,
+          "cache_misses": 1842176,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 42.2196,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 41.4962,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.121791,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.193929,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 3.03797,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 3.0297,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.890864,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.234527,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.630047,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.585516,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00475315,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 376.14199020899997,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "native_prefix_match": true,
+      "frames": 85
+    },
+    "interpreter-2": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-final-stages/interpreter-2",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 57.3742,
+          "presentations": 170,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 90055999,
+          "cache_hits": 82190219,
+          "cache_misses": 14069057,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 57.2799,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 56.3082,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.109006,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.481633,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 3.02269,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 3.01548,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.89286,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.239811,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.62688,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.581761,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00495616,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 457.307617967,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+        "aot": 0,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "native_prefix_match": true,
+      "frames": 85
+    }
+  },
+  "tests": {
+    "wasm_pass": 123,
+    "bounded_comparisons": 93072,
+    "native_cpu": "pass",
+    "native_package_pass": 81,
+    "native_package_fail": 7
+  },
+  "limits": [
+    "SwiftShader; no physical GPU or interactive input latency measured",
+    "Every-block replay checks incomplete; final checked replay uses stride 1024",
+    "PCM comparison is a regression guard, not an audio quality claim"
+  ],
+  "confirmation": {
+    "interpreter": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-final-confirm/interpreter",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 55.627,
+          "presentations": 170,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 90055999,
+          "cache_hits": 82190219,
+          "cache_misses": 14069057,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 55.5346,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 54.5921,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.108621,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.458734,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.99789,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.98989,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.870312,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.235322,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.610014,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.567159,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00453248,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 202.999194628,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+        "aot": 0,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "native_prefix_match": true
+    },
+    "chained": {
+      "path": "/home/claude/.scratch/eka-benchmark/aot-final-confirm/chained",
+      "report": {
+        "measurement": {
+          "capture_mode": 0,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2532882497,
+          "last_instructions": 3188749646,
+          "wall_seconds": 39.3339,
+          "presentations": 170,
+          "aot_dispatches": 117675732,
+          "aot_instructions": 458913845,
+          "compiled_runner_calls": 16860275,
+          "ram_aot_dispatches": 106804779,
+          "ram_blocks_compiled": 329,
+          "decoded_instructions": 26137201,
+          "cache_hits": 17549243,
+          "cache_misses": 1842176,
+          "cache_clears": 137740,
+          "context_loads": 137740,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 39.2383,
+              "calls": 138236
+            },
+            "cpu_run": {
+              "seconds": 38.5492,
+              "calls": 137741
+            },
+            "timers": {
+              "seconds": 0.112086,
+              "calls": 138236
+            },
+            "scheduler": {
+              "seconds": 0.183183,
+              "calls": 138236
+            },
+            "graphics_dispatch": {
+              "seconds": 2.98217,
+              "calls": 340
+            },
+            "graphics_wait": {
+              "seconds": 2.97483,
+              "calls": 340
+            },
+            "display_hook": {
+              "seconds": 0.873842,
+              "calls": 170
+            },
+            "readback": {
+              "seconds": 0.230597,
+              "calls": 170
+            },
+            "frame_capture": {
+              "seconds": 0.617796,
+              "calls": 170
+            },
+            "png_encode": {
+              "seconds": 0.575056,
+              "calls": 85
+            },
+            "audio": {
+              "seconds": 0.00464358,
+              "calls": 400
+            }
+          }
+        },
+        "warmup_seconds": 153.31586563099998,
+        "sampling": false,
+        "isolates": 65,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+        "aot": 4,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+        "dirty_worktree": false,
+        "browser": "Chrome/150.0.7871.186",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "native_prefix_match": true
+    }
+  },
+  "sampled_profile": {
+    "measurement": {
+      "capture_mode": 0,
+      "first_virtual_us": 21000000,
+      "last_virtual_us": 25000000,
+      "first_instructions": 2532882497,
+      "last_instructions": 3188749646,
+      "wall_seconds": 52.6773,
+      "presentations": 170,
+      "aot_dispatches": 117675732,
+      "aot_instructions": 458913845,
+      "compiled_runner_calls": 16860275,
+      "ram_aot_dispatches": 106804779,
+      "ram_blocks_compiled": 329,
+      "decoded_instructions": 26137201,
+      "cache_hits": 17549243,
+      "cache_misses": 1842176,
+      "cache_clears": 137740,
+      "context_loads": 137740,
+      "imb_calls": 0,
+      "scopes": {
+        "cpu_loop": {
+          "seconds": 52.5491,
+          "calls": 138236
+        },
+        "cpu_run": {
+          "seconds": 51.5784,
+          "calls": 137741
+        },
+        "timers": {
+          "seconds": 0.15697,
+          "calls": 138236
+        },
+        "scheduler": {
+          "seconds": 0.262346,
+          "calls": 138236
+        },
+        "graphics_dispatch": {
+          "seconds": 3.84449,
+          "calls": 340
+        },
+        "graphics_wait": {
+          "seconds": 3.83,
+          "calls": 340
+        },
+        "display_hook": {
+          "seconds": 1.12546,
+          "calls": 170
+        },
+        "readback": {
+          "seconds": 0.321762,
+          "calls": 170
+        },
+        "frame_capture": {
+          "seconds": 0.771599,
+          "calls": 170
+        },
+        "png_encode": {
+          "seconds": 0.719976,
+          "calls": 85
+        },
+        "audio": {
+          "seconds": 0.00600499,
+          "calls": 400
+        }
+      }
+    },
+    "browser": "Chrome/150.0.7871.186",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "isolates": [
+      {
+        "file": "worker-47.cpuprofile",
+        "sampled_seconds": 53.131664,
+        "nonidle_seconds": 48.851668,
+        "top_self": [
+          {
+            "function": "InterpreterTranslateInstruction(ARMul_State*, unsigned int, arm_inst*&)",
+            "seconds": 13.99873,
+            "percent_all_samples": 26.347245589748518
+          },
+          {
+            "function": "eka2l1::arm::aot::validated_code_cache::find(unsigned int, eka2l1::arm::core::code_mapping const&)",
+            "seconds": 7.765782,
+            "percent_all_samples": 14.616109143504334
+          },
+          {
+            "function": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+            "seconds": 7.497809,
+            "percent_all_samples": 14.111752645277589
+          },
+          {
+            "function": "__timedwait_cp",
+            "seconds": 4.005075,
+            "percent_all_samples": 7.538019136761838
+          },
+          {
+            "function": "wasm-to-js",
+            "seconds": 3.013855,
+            "percent_all_samples": 5.672427274252129
+          },
+          {
+            "function": "std::__2::__function::__func<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_5, std::__2::allocator<eka2l1::mem::mmu_base::mmu_base(eka2l1::mem::control_base*, eka2l1::arm::core*, eka2l1::config::state*)::$_5>, bool (unsigned int, eka2l1::arm::core::code_mapping&)>::operator()(unsigned int&&, eka2l1::arm::core::code_mapping&)",
+            "seconds": 2.145431,
+            "percent_all_samples": 4.037951832263337
+          },
+          {
+            "function": "memcmp",
+            "seconds": 1.343584,
+            "percent_all_samples": 2.5287820836930686
+          },
+          {
+            "function": "ARMul_State::ReadMemory32(unsigned int) const",
+            "seconds": 1.236466,
+            "percent_all_samples": 2.3271734911219797
+          },
+          {
+            "function": "wasm-function[6]",
+            "seconds": 0.912134,
+            "percent_all_samples": 1.7167427694340611
+          },
+          {
+            "function": "(anonymous)",
+            "seconds": 0.896264,
+            "percent_all_samples": 1.686873575049334
+          },
+          {
+            "function": "ARMul_State::WriteMemory32(unsigned int, unsigned int)",
+            "seconds": 0.820033,
+            "percent_all_samples": 1.5433979255759804
+          },
+          {
+            "function": "_emscripten_get_now",
+            "seconds": 0.774705,
+            "percent_all_samples": 1.4580853330699373
+          },
+          {
+            "function": "js-to-wasm:ii:i",
+            "seconds": 0.69789,
+            "percent_all_samples": 1.3135105273570953
+          },
+          {
+            "function": "eka2l1::arm::aot::validation_access(ARMul_State*, unsigned int, unsigned int)",
+            "seconds": 0.67386,
+            "percent_all_samples": 1.2682832594891063
+          },
+          {
+            "function": "eka2l1::arm::aot::validation_end(ARMul_State*, unsigned int)",
+            "seconds": 0.662376,
+            "percent_all_samples": 1.2466690296016327
+          },
+          {
+            "function": "js-to-wasm:iii:",
+            "seconds": 0.559477,
+            "percent_all_samples": 1.0530010880141079
+          },
+          {
+            "function": "wasm-function[7]",
+            "seconds": 0.52999,
+            "percent_all_samples": 0.9975031085041869
+          },
+          {
+            "function": "ARMul_State::ReadCode(unsigned int) const",
+            "seconds": 0.475314,
+            "percent_all_samples": 0.894596487698936
+          },
+          {
+            "function": "eka2l1::mem::page_directory::get_page_info(unsigned int)",
+            "seconds": 0.460697,
+            "percent_all_samples": 0.8670855857253031
+          },
+          {
+            "function": "wasm-function[8]",
+            "seconds": 0.459553,
+            "percent_all_samples": 0.8649324440506889
+          },
+          {
+            "function": "eka2l1::arm::aot::validation_begin(ARMul_State*)",
+            "seconds": 0.399457,
+            "percent_all_samples": 0.7518247499268986
+          },
+          {
+            "function": "wasm-function[9]",
+            "seconds": 0.286188,
+            "percent_all_samples": 0.5386392566210613
+          },
+          {
+            "function": "(idle)",
+            "seconds": 0.274921,
+            "percent_all_samples": 0.517433446089699
+          },
+          {
+            "function": "wasm-function[10]",
+            "seconds": 0.225082,
+            "percent_all_samples": 0.42363062448034755
+          },
+          {
+            "function": "wasm-function[12]",
+            "seconds": 0.217085,
+            "percent_all_samples": 0.4085793360433808
+          }
+        ]
+      },
+      {
+        "file": "page.cpuprofile",
+        "sampled_seconds": 53.142999,
+        "nonidle_seconds": 12.578029,
+        "top_self": [
+          {
+            "function": "(idle)",
+            "seconds": 40.56497,
+            "percent_all_samples": 76.33172903922866
+          },
+          {
+            "function": "_flushLog",
+            "seconds": 6.999763,
+            "percent_all_samples": 13.171561883438306
+          },
+          {
+            "function": "(program)",
+            "seconds": 2.956753,
+            "percent_all_samples": 5.5637676752115555
+          },
+          {
+            "function": "getError",
+            "seconds": 2.009342,
+            "percent_all_samples": 3.7810097996163146
+          },
+          {
+            "function": "readPixels",
+            "seconds": 0.185578,
+            "percent_all_samples": 0.3492049818264867
+          },
+          {
+            "function": "getParameter",
+            "seconds": 0.142484,
+            "percent_all_samples": 0.2681143380711352
+          },
+          {
+            "function": "__emscripten_thread_mailbox_await",
+            "seconds": 0.067427,
+            "percent_all_samples": 0.12687842475732317
+          },
+          {
+            "function": "(garbage collector)",
+            "seconds": 0.044021,
+            "percent_all_samples": 0.08283499393777156
+          },
+          {
+            "function": "_do_call",
+            "seconds": 0.040368,
+            "percent_all_samples": 0.07596108755548403
+          },
+          {
+            "function": "(anonymous)",
+            "seconds": 0.019201,
+            "percent_all_samples": 0.036130817532522015
+          },
+          {
+            "function": "growMemViews",
+            "seconds": 0.010531,
+            "percent_all_samples": 0.01981634495260608
+          },
+          {
+            "function": "emscriptenWebGLGet",
+            "seconds": 0.007423,
+            "percent_all_samples": 0.01396797346721061
+          },
+          {
+            "function": "ErrnoError",
+            "seconds": 0.007392,
+            "percent_all_samples": 0.013909640289589227
+          },
+          {
+            "function": "checkMailbox",
+            "seconds": 0.007366,
+            "percent_all_samples": 0.013860715689003551
+          },
+          {
+            "function": "texSubImage2D",
+            "seconds": 0.006369,
+            "percent_all_samples": 0.011984645428083576
+          },
+          {
+            "function": "get buffer",
+            "seconds": 0.004232,
+            "percent_all_samples": 0.007963419603022404
+          },
+          {
+            "function": "wasm-to-js",
+            "seconds": 0.004219,
+            "percent_all_samples": 0.007938957302729565
+          },
+          {
+            "function": "emscripten_builtin_free",
+            "seconds": 0.003194,
+            "percent_all_samples": 0.0060101990104096305
+          },
+          {
+            "function": "js-to-wasm::i",
+            "seconds": 0.003175,
+            "percent_all_samples": 0.0059744464176739445
+          },
+          {
+            "function": "js-to-wasm::",
+            "seconds": 0.003168,
+            "percent_all_samples": 0.005961274409823954
+          },
+          {
+            "function": "callUserCallback",
+            "seconds": 0.003146,
+            "percent_all_samples": 0.005919876670866844
+          },
+          {
+            "function": "_glGetError",
+            "seconds": 0.003124,
+            "percent_all_samples": 0.005878478931909733
+          },
+          {
+            "function": "emscripten_futex_wake",
+            "seconds": 0.003124,
+            "percent_all_samples": 0.005878478931909733
+          },
+          {
+            "function": "bufferData",
+            "seconds": 0.003106,
+            "percent_all_samples": 0.005844608054581188
+          },
+          {
+            "function": "flush",
+            "seconds": 0.002138,
+            "percent_all_samples": 0.004023107540468313
+          }
+        ]
+      },
+      {
+        "file": "worker-48.cpuprofile",
+        "sampled_seconds": 53.125998,
+        "nonidle_seconds": 0.978027,
+        "top_self": [
+          {
+            "function": "__timedwait_cp",
+            "seconds": 49.376417,
+            "percent_all_samples": 92.94209776539162
+          },
+          {
+            "function": "emscripten_futex_wait",
+            "seconds": 2.771554,
+            "percent_all_samples": 5.216944818617807
+          },
+          {
+            "function": "std::__2::__function::__func<eka2l1_run::$_0::operator()() const::'lambda'(), std::__2::allocator<eka2l1_run::$_0::operator()() const::'lambda'()>, void ()>::operator()()",
+            "seconds": 0.488997,
+            "percent_all_samples": 0.9204476497552102
+          },
+          {
+            "function": "stbiw__encode_png_line(unsigned char*, int, int, int, int, int, int, signed char*)",
+            "seconds": 0.224985,
+            "percent_all_samples": 0.42349322077676543
+          },
+          {
+            "function": "do_proxy",
+            "seconds": 0.079229,
+            "percent_all_samples": 0.14913413956007002
+          },
+          {
+            "function": "_emscripten_get_now",
+            "seconds": 0.074145,
+            "percent_all_samples": 0.13956443698243562
+          },
+          {
+            "function": "eka2l1::drivers::shared_graphics_driver::update_bitmap(unsigned long long, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, void const*, unsigned long)",
+            "seconds": 0.028513,
+            "percent_all_samples": 0.05367052116366831
+          },
+          {
+            "function": "now",
+            "seconds": 0.009478,
+            "percent_all_samples": 0.017840606024944698
+          },
+          {
+            "function": "eka2l1::drivers::ogl_graphics_driver::dispatch(eka2l1::drivers::command&)",
+            "seconds": 0.00945,
+            "percent_all_samples": 0.017787901132699662
+          },
+          {
+            "function": "memcmp",
+            "seconds": 0.007409,
+            "percent_all_samples": 0.01394609095155257
+          },
+          {
+            "function": "wasm-to-js",
+            "seconds": 0.007401,
+            "percent_all_samples": 0.013931032410911133
+          },
+          {
+            "function": "eka2l1::drivers::gl_post_callback_for_error(char const*, void*, int, ...)",
+            "seconds": 0.006306,
+            "percent_all_samples": 0.011869894660614187
+          },
+          {
+            "function": "__pthread_mutex_lock",
+            "seconds": 0.003166,
+            "percent_all_samples": 0.005959417458849432
+          },
+          {
+            "function": "__pthread_mutex_unlock",
+            "seconds": 0.003143,
+            "percent_all_samples": 0.005916124154505295
+          },
+          {
+            "function": "emscripten_builtin_free",
+            "seconds": 0.00212,
+            "percent_all_samples": 0.0039905132699813
+          },
+          {
+            "function": "glad_debug_impl_glTexParameteri",
+            "seconds": 0.002111,
+            "percent_all_samples": 0.003973572411759681
+          },
+          {
+            "function": "eka2l1::drivers::ogl_graphics_driver::run()",
+            "seconds": 0.002109,
+            "percent_all_samples": 0.003969807776599322
+          },
+          {
+            "function": "glad_debug_impl_glBindBuffer",
+            "seconds": 0.002107,
+            "percent_all_samples": 0.003966043141438962
+          },
+          {
+            "function": "void std::__2::__tree_balance_after_insert[abi:ne200100]<std::__2::__tree_node_base<void*>*>(std::__2::__tree_node_base<void*>*, std::__2::__tree_node_base<void*>*)",
+            "seconds": 0.002104,
+            "percent_all_samples": 0.003960396188698422
+          },
+          {
+            "function": "void std::__2::vector<unsigned char, std::__2::allocator<unsigned char>>::__assign_with_size[abi:ne200100]<unsigned char*, unsigned char*>(unsigned char*, unsigned char*, long)",
+            "seconds": 0.001943,
+            "percent_all_samples": 0.003657343058289465
+          },
+          {
+            "function": "(garbage collector)",
+            "seconds": 0.001084,
+            "percent_all_samples": 0.0020404322569149667
+          },
+          {
+            "function": "glad_debug_impl_glBindFramebuffer",
+            "seconds": 0.001081,
+            "percent_all_samples": 0.002034785304174427
+          },
+          {
+            "function": "std::__2::num_put<char, std::__2::ostreambuf_iterator<char, std::__2::char_traits<char>>>::do_put(std::__2::ostreambuf_iterator<char, std::__2::char_traits<char>>, std::__2::ios_base&, char, long) const",
+            "seconds": 0.001069,
+            "percent_all_samples": 0.0020121974932122686
+          },
+          {
+            "function": "_clock_time_get",
+            "seconds": 0.001065,
+            "percent_all_samples": 0.002004668222891549
+          },
+          {
+            "function": "eka2l1::dispatch::egl_context::on_surface_changed(eka2l1::drivers::graphics_driver*, eka2l1::dispatch::egl_surface*, eka2l1::dispatch::egl_surface*)",
+            "seconds": 0.001064,
+            "percent_all_samples": 0.0020027859053113693
+          }
+        ]
+      }
+    ],
+    "isolate_count": 65
+  },
+  "sampled_report": {
+    "measurement": {
+      "capture_mode": 0,
+      "first_virtual_us": 21000000,
+      "last_virtual_us": 25000000,
+      "first_instructions": 2532882497,
+      "last_instructions": 3188749646,
+      "wall_seconds": 52.6773,
+      "presentations": 170,
+      "aot_dispatches": 117675732,
+      "aot_instructions": 458913845,
+      "compiled_runner_calls": 16860275,
+      "ram_aot_dispatches": 106804779,
+      "ram_blocks_compiled": 329,
+      "decoded_instructions": 26137201,
+      "cache_hits": 17549243,
+      "cache_misses": 1842176,
+      "cache_clears": 137740,
+      "context_loads": 137740,
+      "imb_calls": 0,
+      "scopes": {
+        "cpu_loop": {
+          "seconds": 52.5491,
+          "calls": 138236
+        },
+        "cpu_run": {
+          "seconds": 51.5784,
+          "calls": 137741
+        },
+        "timers": {
+          "seconds": 0.15697,
+          "calls": 138236
+        },
+        "scheduler": {
+          "seconds": 0.262346,
+          "calls": 138236
+        },
+        "graphics_dispatch": {
+          "seconds": 3.84449,
+          "calls": 340
+        },
+        "graphics_wait": {
+          "seconds": 3.83,
+          "calls": 340
+        },
+        "display_hook": {
+          "seconds": 1.12546,
+          "calls": 170
+        },
+        "readback": {
+          "seconds": 0.321762,
+          "calls": 170
+        },
+        "frame_capture": {
+          "seconds": 0.771599,
+          "calls": 170
+        },
+        "png_encode": {
+          "seconds": 0.719976,
+          "calls": 85
+        },
+        "audio": {
+          "seconds": 0.00600499,
+          "calls": 400
+        }
+      }
+    },
+    "warmup_seconds": 217.42477953600002,
+    "sampling": true,
+    "isolates": 65,
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "wasm_sha256": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+    "aot": 4,
+    "aot_diagnostics": false,
+    "verify_aot": 0,
+    "git_head": "4c46b0ba1dc435d2ad7c1fe82a8a17dfabff232e",
+    "dirty_worktree": false,
+    "browser": "Chrome/150.0.7871.186",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+  },
+  "sampled_prefix_match": true,
+  "binary_sha256": {
+    "wasm": "6643099bf571ea78d935acfa7b70795816f6815e191a771b6c3118e01184d54d",
+    "native": "d3d8d0464d5cb9f882deab2d44bae75769cceb9308ed5eeea58df88cf916f5e4"
+  },
+  "test_logs": {
+    "/home/claude/.scratch/eka-aot-prefix-tests2.log": "4ed0a82766b6075c5a517b6c534fc046fa4afbceeadd4006bb82f8083e989a64",
+    "/home/claude/.scratch/eka-aot-prefix-native-tests2.log": "cca19870c38dcd38edec97e7655de0fa1832eb064ea88b41d9c8e3ff887de305"
+  }
+}
