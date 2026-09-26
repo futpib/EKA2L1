@@ -1111,3 +1111,22 @@ TEST_CASE("Generation guarded RAM lookup still validates host writes and address
     REQUIRE(cache.find(0x1000,*cpu)); REQUIRE(cache.find(0x1000,*cpu));
     CHECK(resolutions == before + 2);
 }
+
+TEST_CASE("decoded_cache_separates_arm_thumb_contexts", "[aot][dyncom]") {
+    aot_test_env env;
+    // ARM MOV r2,#1; the same first halfword is Thumb MOV r0,#1.
+    env.write_code(0x1000, {0xE3A02001, 0xEAFFFFFE});
+    auto cpu = env.make_cpu();
+    cpu->set_asid(7);
+    for (bool thumb : {false, true, false, true}) {
+        eka2l1::arm::core::thread_context ctx{};
+        ctx.cpsr = thumb ? 0x30 : 0x10;
+        ctx.cpu_registers[15] = 0x1000;
+        cpu->load_context(ctx);
+        cpu->run(1);
+        CHECK(cpu->get_num_instruction_executed() == 1);
+        CHECK(cpu->get_reg(0) == (thumb ? 1 : 0));
+        CHECK(cpu->get_reg(2) == (thumb ? 0 : 1));
+        CHECK(cpu->get_pc() == (thumb ? 0x1002 : 0x1004));
+    }
+}

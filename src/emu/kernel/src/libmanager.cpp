@@ -369,6 +369,7 @@ namespace eka2l1::hle {
     static std::string epocver_to_plat_suffix(const epocver ver) {
         switch (ver) {
         case epocver::epoc6:
+        case epocver::epoc70:
             return "v6";
 
         case epocver::epoc81b:
@@ -379,6 +380,9 @@ namespace eka2l1::hle {
 
         case epocver::epoc80:
             return "v80";
+
+        case epocver::epoc91:
+            return "v91";
 
         case epocver::epoc93fp1:
             return "v93fp1";
@@ -435,54 +439,14 @@ namespace eka2l1::hle {
             common::ini_file map_file_parser;
             map_file_parser.load(patch_map_path.c_str());
 
-            std::string source_dll_name_from_patch = eka2l1::replace_extension(original_map_name, "_");
-            common::ini_node_ptr pair_source_node = map_file_parser.find("source");
-            if (pair_source_node != nullptr) {
-                common::ini_pair *pair = pair_source_node->get_as<common::ini_pair>();
-                if (pair != nullptr) {
-                    if (pair->get_value_count() >= 1) {
-                        std::vector<std::string> sources_dll_list(1);
-                        pair->get(sources_dll_list);
-
-                        if (sources_dll_list.size() >= 1) {
-                            source_dll_name_from_patch = sources_dll_list[0] + "_";
-                        }
-                    }
-                }
+            const auto requirements_node = map_file_parser.find("requirements");
+            auto *requirements = requirements_node && requirements_node->get_node_type() == common::INI_NODE_SECTION
+                ? requirements_node->get_as<common::ini_section>() : nullptr;
+            if (requirements && requirements->find("host-tls") &&
+                kern_->get_epoc_version() < epocver::epoc93fp1) {
+                continue;
             }
 
-            while (true) {
-                if (start_ver >= epocver::epocverend) {
-                    break;
-                }
-
-                const std::string source_dll_name = source_dll_name_from_patch + epocver_to_plat_suffix(start_ver) + ".dll";
-                patch_dll_map = eka2l1::add_path(patch_folder, source_dll_name);
-
-                if (!common::exists(patch_dll_map)) {
-                    patch_dll_map.clear();
-                    start_ver++;
-
-                    continue;
-                }
-
-                LOG_TRACE(KERNEL, "Using dll {} as patch dll for map file {}", source_dll_name, original_map_name);
-                break;
-            }
-
-            if (patch_dll_map.empty()) {
-                const std::string source_dll_name = source_dll_name_from_patch + "general.dll";
-                patch_dll_map = eka2l1::add_path(patch_folder, source_dll_name);
-
-                if (!common::exists(patch_dll_map)) {
-                    LOG_ERROR(KERNEL, "Can't find suitable patch DLL for map {}", original_map_name);
-                    continue;
-                }
-
-                LOG_TRACE(KERNEL, "Using general DLL {} as patch DLL for map file {}", source_dll_name, original_map_name);
-            }
-
-            patch_image_paths.push_back(patch_dll_map);
             patch_info the_patch;
 
             the_patch.name_ = original_map_name;
@@ -534,6 +498,58 @@ namespace eka2l1::hle {
                 }
             }
 
+            if (the_patch.routes_.empty()) {
+                continue;
+            }
+
+            std::string source_dll_name_from_patch = eka2l1::replace_extension(original_map_name, "_");
+            common::ini_node_ptr pair_source_node = map_file_parser.find("source");
+            if (pair_source_node != nullptr) {
+                common::ini_pair *pair = pair_source_node->get_as<common::ini_pair>();
+                if (pair != nullptr) {
+                    if (pair->get_value_count() >= 1) {
+                        std::vector<std::string> sources_dll_list(1);
+                        pair->get(sources_dll_list);
+
+                        if (sources_dll_list.size() >= 1) {
+                            source_dll_name_from_patch = sources_dll_list[0] + "_";
+                        }
+                    }
+                }
+            }
+
+            while (true) {
+                if (start_ver >= epocver::epocverend) {
+                    break;
+                }
+
+                const std::string source_dll_name = source_dll_name_from_patch + epocver_to_plat_suffix(start_ver) + ".dll";
+                patch_dll_map = eka2l1::add_path(patch_folder, source_dll_name);
+
+                if (!common::exists(patch_dll_map)) {
+                    patch_dll_map.clear();
+                    start_ver++;
+
+                    continue;
+                }
+
+                LOG_TRACE(KERNEL, "Using dll {} as patch dll for map file {}", source_dll_name, original_map_name);
+                break;
+            }
+
+            if (patch_dll_map.empty()) {
+                const std::string source_dll_name = source_dll_name_from_patch + "general.dll";
+                patch_dll_map = eka2l1::add_path(patch_folder, source_dll_name);
+
+                if (!common::exists(patch_dll_map)) {
+                    LOG_ERROR(KERNEL, "Can't find suitable patch DLL for map {}", original_map_name);
+                    continue;
+                }
+
+                LOG_TRACE(KERNEL, "Using general DLL {} as patch DLL for map file {}", source_dll_name, original_map_name);
+            }
+
+            patch_image_paths.push_back(patch_dll_map);
             patches_.push_back(the_patch);
         }
 
@@ -675,7 +691,9 @@ namespace eka2l1::hle {
 
     drive_number lib_manager::get_drive_rom() {
         if (rom_drv_ == drive_invalid) {
-            for (drive_number drv = drive_z; drv >= drive_a; drv = static_cast<drive_number>(static_cast<int>(drv) - 1)) {
+            // Stepping one below drive_a would leave the enum's value range.
+            for (int drv_index = drive_z; drv_index >= drive_a; drv_index--) {
+                const drive_number drv = static_cast<drive_number>(drv_index);
                 if (auto ent = io_->get_drive_entry(drv)) {
                     if (ent->media_type == drive_media::rom) {
                         rom_drv_ = drv;
@@ -694,6 +712,42 @@ namespace eka2l1::hle {
         }
 
         return import_e32img(&img, mem_, kern_, *this, path);
+    }
+
+    // Stage ROFS ROM images at their linked address.
+    bool lib_manager::stage_rom_image_outside_core(common::ro_stream *stream, const address code_address) {
+        const std::uint64_t image_size = stream->size();
+
+        if (mem_->get_real_pointer(code_address)) {
+            return true;
+        }
+
+        const address image_base = code_address - loader::rom_image_header_file_size(kern_->get_epoc_version());
+
+        mem::control_base *control = mem_->get_control();
+        const std::uint32_t table_size = (1U << control->page_per_tab_shift_) << control->page_size_bits_;
+        const address chunk_addr = image_base & ~(table_size - 1);
+        const std::size_t head_gap = image_base - chunk_addr;
+        const std::size_t chunk_size = head_gap + static_cast<std::size_t>(image_size);
+
+        kernel::chunk *img_chunk = kern_->create<kernel::chunk>(mem_, nullptr, "ROFS image", static_cast<address>(head_gap),
+            static_cast<address>(chunk_size), chunk_size, prot_read_write_exec, kernel::chunk_type::normal,
+            kernel::chunk_access::rom, kernel::chunk_attrib::none, 0x00, false, chunk_addr);
+
+        if (!img_chunk) {
+            LOG_ERROR(KERNEL, "Can't map a ROM image linked at 0x{:X}", image_base);
+            return false;
+        }
+
+        std::uint8_t *host = reinterpret_cast<std::uint8_t *>(img_chunk->host_base()) + head_gap;
+
+        if (stream->read(host, static_cast<std::uint32_t>(image_size)) != image_size) {
+            kern_->destroy(img_chunk);
+            return false;
+        }
+
+        stream->seek(0, common::seek_where::beg);
+        return true;
     }
 
     codeseg_ptr lib_manager::load_as_romimg(loader::romimg &romimg, const std::u16string &path, const bool only_shell) {
@@ -762,7 +816,6 @@ namespace eka2l1::hle {
                     }
 
                     if (auto ref_seg = kern_->pull_codeseg_by_ep(entry_point)) {
-                        // Add ref
                         kernel::codeseg_dependency_info dep_info;
                         dep_info.dep_ = ref_seg;
 
@@ -855,7 +908,7 @@ namespace eka2l1::hle {
             std::pair<std::optional<loader::e32img>, std::optional<loader::romimg>>
                 result{ std::nullopt, std::nullopt };
 
-            if (io_->exist(lib_path)) {
+            if (io_->exist(path)) {
                 symfile f = io_->open_file(path, READ_MODE | BIN_MODE | additional_mode_);
                 if (!f) {
                     return result;
@@ -930,6 +983,26 @@ namespace eka2l1::hle {
             return std::pair<std::optional<loader::e32img>, std::optional<loader::romimg>>{};
         }
 
+        if (!eka2l1::has_root_name(lib_path, true)) {
+            // A path like \sys\bin\foo.exe names a directory but no drive. Symbian's
+            // loader searches every drive for it; opening it verbatim finds nothing.
+            for (drive_number drv = drive_a; drv <= drive_z; drv = static_cast<drive_number>(static_cast<int>(drv) + 1)) {
+                std::u16string candidate(1, drive_to_char16(drv));
+                candidate += u':';
+                candidate += lib_path;
+
+                auto result = open_and_get(candidate);
+                if (result.first != std::nullopt || result.second != std::nullopt) {
+                    if (full_path)
+                        *full_path = candidate;
+
+                    return result;
+                }
+            }
+
+            return std::pair<std::optional<loader::e32img>, std::optional<loader::romimg>>{};
+        }
+
         if (full_path) {
             *full_path = lib_path;
         }
@@ -959,9 +1032,18 @@ namespace eka2l1::hle {
 
             eka2l1::ro_file_stream image_data_stream(f.get());
 
-            if (f->is_in_rom()) {
+            const bool is_e32 = loader::is_e32img(reinterpret_cast<common::ro_stream *>(&image_data_stream));
+            const bool is_rom = !is_e32 && (f->is_in_rom() || (kern_->get_epoc_version() == epocver::epoc91));
+
+            if (is_rom) {
                 auto romimg = loader::parse_romimg(reinterpret_cast<common::ro_stream *>(&image_data_stream), mem_, kern_->get_epoc_version(), is_driver_lib);
                 if (!romimg) {
+                    return nullptr;
+                }
+
+                if ((kern_->get_epoc_version() == epocver::epoc91)
+                    && !stage_rom_image_outside_core(reinterpret_cast<common::ro_stream *>(&image_data_stream),
+                        romimg->header.code_address)) {
                     return nullptr;
                 }
 
@@ -979,6 +1061,26 @@ namespace eka2l1::hle {
         };
 
         std::u16string lib_path = name;
+
+        // A Symbian absolute path can be rooted without naming a drive (for
+        // example, "\\sys\\bin\\foo.dll"). Resolve that form against each
+        // mounted drive instead of treating it as a complete VFS path.
+        if (eka2l1::has_root_dir(lib_path) && eka2l1::root_name(lib_path, true).empty()) {
+            for (drive_number drv = drive_a; drv <= drive_z; drv = static_cast<drive_number>(static_cast<int>(drv) + 1)) {
+                std::u16string candidate(1, drive_to_char16(drv));
+                candidate += u':';
+                candidate += lib_path;
+
+                if (io_->exist(candidate)) {
+                    if (codeseg_ptr result = load_depend_on_drive(candidate, is_driver_lib)) {
+                        result->set_full_path(candidate);
+                        return result;
+                    }
+                }
+            }
+
+            return nullptr;
+        }
 
         // Create a new codeseg, we should try search these files
         // Absolute yet ?
@@ -1045,16 +1147,29 @@ namespace eka2l1::hle {
     }
 
     void lib_manager::jump_trampoline_through_svc() {
-        kernel::thread *crr = kern_->crr_thread();
-        arm::core::thread_context &context = crr->get_thread_context();
-        address lookup_addr = (context.get_pc() | ((context.cpsr & 0x20) ? 1 : 0));
+        arm::core *cpu = kern_->get_cpu();
+        const bool thumb = (cpu->get_cpsr() & 0x20) != 0;
+
+        // CPU backends advance PC before invoking the SVC handler. The
+        // trampoline map is keyed by the address at which the SVC was
+        // installed, so recover that instruction address before lookup.
+        const address lookup_addr = (cpu->get_pc() - (thumb ? 2 : 4)) | (thumb ? 1 : 0);
+
+        auto branch_to = [cpu](const address target) {
+            std::uint32_t cpsr = cpu->get_cpsr() & ~0x20;
+            if (target & 1) {
+                cpsr |= 0x20;
+            }
+            cpu->set_cpsr(cpsr);
+            cpu->set_pc(target & ~1);
+        };
 
         auto ite = trampoline_lookup_.find(lookup_addr);
         if (ite != trampoline_lookup_.end()) {
-            context.set_pc(ite->second);
+            branch_to(ite->second);
         } else {
             LOG_ERROR(KERNEL, "Unable to find jump for patched address 0x{:X} (impossible)", lookup_addr);
-            context.set_pc(context.get_lr());
+            branch_to(cpu->get_lr());
         }
     }
 
@@ -1130,7 +1245,7 @@ namespace eka2l1::hle {
         const std::uint32_t TOTAL_EP_TO_ALLOC = 100;
 
         /* CODE FOR DLL's ENTRY POINTS INVOKE */
-        emitter.PUSH(4, common::armgen::R3, common::armgen::R4, common::armgen::R5, common::armgen::R_LR);
+        emitter.PUSH(6, common::armgen::R3, common::armgen::R4, common::armgen::R5, common::armgen::R6, common::armgen::R7, common::armgen::R_LR);
 
         // Allocate entry point addresses on stack, plus also allocate the total entry point count
         emitter.MOVI2R(common::armgen::R3, TOTAL_EP_TO_ALLOC * sizeof(address) + sizeof(std::uint32_t));
@@ -1146,38 +1261,36 @@ namespace eka2l1::hle {
         emitter.MOV(common::armgen::R_LR, common::armgen::R_PC); // This PC will skip forwards to the POP, no need to add or sub more thing.
         emitter.SVC(STATIC_CALL_LIST_SVC_FAKE); // Call SVC StaticCallList, our own SVC :D
 
-        emitter.MOV(common::armgen::R3, 0); // R3 is iterator
+        emitter.MOV(common::armgen::R6, 0);
         emitter.LDR(common::armgen::R4, common::armgen::R_SP); // R4 is total of entry point to iterate.
         emitter.SUB(common::armgen::R4, common::armgen::R4, 1);
         emitter.ADD(common::armgen::R_SP, common::armgen::R_SP, sizeof(std::uint32_t)); // Free our count variable
 
         std::uint8_t *loop_continue_ptr = emitter.get_writeable_code_ptr();
-        emitter.CMP(common::armgen::R3, common::armgen::R4);
+        emitter.CMP(common::armgen::R6, common::armgen::R4);
 
         common::armgen::fixup_branch entry_point_call_loop_done = emitter.B_CC(common::cc_flags::CC_GE);
 
         emitter.MOV(common::armgen::R0, common::armgen::R5); // Move in the entry point invoke reason, in case other function trashed this out.
-        emitter.LSL(common::armgen::R12, common::armgen::R3, 2); // Calculate the offset of this entry point, 4 bytes
+        emitter.LSL(common::armgen::R12, common::armgen::R6, 2); // Calculate the offset of this entry point, 4 bytes
         emitter.ADD(common::armgen::R12, common::armgen::R12, common::armgen::R_SP);
         emitter.LDR(common::armgen::R12, common::armgen::R12); // Jump
         emitter.BL(common::armgen::R12);
-        emitter.ADD(common::armgen::R3, common::armgen::R3, 1);
+        emitter.ADD(common::armgen::R6, common::armgen::R6, 1);
         emitter.B(loop_continue_ptr);
 
         emitter.set_jump_target(entry_point_call_loop_done);
 
         emitter.MOVI2R(common::armgen::R3, TOTAL_EP_TO_ALLOC * sizeof(address));
         emitter.ADD(common::armgen::R_SP, common::armgen::R_SP, common::armgen::R3);
-        emitter.POP(4, common::armgen::R3, common::armgen::R4, common::armgen::R5, common::armgen::R_PC);
+        emitter.POP(6, common::armgen::R3, common::armgen::R4, common::armgen::R5, common::armgen::R6, common::armgen::R7, common::armgen::R_PC);
 
         emitter.flush_lit_pool();
 
         /* CODE FOR THREAD INITIALIZATION */
         thread_entry_routine_ = emitter.get_code_pointer();
 
-        emitter.MOV(common::armgen::R0, kernel::dll_reason_thread_attach); // Set the first argument the DLL reason
         emitter.MOV(common::armgen::R4, common::armgen::R1); // Info struct in R1 to R4
-        emitter.BL(entry_points_call_routine_);
 
         // Check the allocator in the thread create info
         emitter.LDR(common::armgen::R0, common::armgen::R4, offsetof(kernel::epoc9_std_epoc_thread_create_info, allocator));
@@ -1203,6 +1316,10 @@ namespace eka2l1::hle {
         emitter.BL(common::armgen::R12);
 
         emitter.set_jump_target(allocator_setup_done);
+
+        // DLL entry points may allocate from the thread heap.
+        emitter.MOV(common::armgen::R0, kernel::dll_reason_thread_attach);
+        emitter.BL(entry_points_call_routine_);
 
         // Jump to our friend
         // Load userdata to first argument.
@@ -1253,6 +1370,7 @@ namespace eka2l1::hle {
 
         switch (kern_->get_epoc_version()) {
         case epocver::epoc6:
+        case epocver::epoc70:
             epoc::register_epocv6(*this);
             break;
 
@@ -1271,6 +1389,10 @@ namespace eka2l1::hle {
 
         case epocver::epoc94:
             epoc::register_epocv94(*this);
+            break;
+
+        case epocver::epoc91:
+            epoc::register_epocv91(*this);
             break;
 
         case epocver::epoc93fp1:

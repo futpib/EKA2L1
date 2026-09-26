@@ -103,6 +103,9 @@ namespace eka2l1 {
         }
 
         size_t read_file(void *data, uint32_t size, uint32_t count) override {
+            if (!file_ptr || crr_pos >= file.size) {
+                return 0;
+            }
             auto will_read = std::min((uint64_t)count * size, file.size - crr_pos);
             memcpy(data, &file_ptr[crr_pos], will_read);
 
@@ -310,6 +313,15 @@ namespace eka2l1 {
     if (closed)    \
         LOG_WARN(VFS, "File {} closed but operation still continues", common::ucs2_to_utf8(input_name));
 
+// An open that failed (or a resize that could not get its handle back) leaves
+// this file without a host FILE. Fail the operation instead of handing a null
+// handle to the C library, which faults inside it.
+#define NO_HANDLE_RETURN(val)                                                                 \
+    if (!file) {                                                                              \
+        LOG_ERROR(VFS, "File {} has no host handle open", common::ucs2_to_utf8(input_name));   \
+        return val;                                                                           \
+    }
+
         physical_file(const utf16_str &vfs_path, const utf16_str &real_path, const int mode)
             : file(nullptr) {
             init(vfs_path, real_path, mode);
@@ -323,6 +335,13 @@ namespace eka2l1 {
             return file && !feof(file);
         }
 
+        // Whether the host actually handed us a file. Unlike valid() this does
+        // not care about the stream position, so it can be asked right after
+        // construction.
+        bool is_open() const {
+            return file != nullptr;
+        }
+
         int file_mode() const override {
             return fmode;
         }
@@ -330,9 +349,15 @@ namespace eka2l1 {
         void init(const utf16_str &vfs_path, const utf16_str &real_path, const int mode) {
             // Disable directory check here
             closed = false;
-            file = common::open_c_file(common::ucs2_to_utf8(real_path).c_str(), translate_mode(mode));
 
+            // Fill the descriptive members in first, so a failed open still
+            // leaves a fully initialised object behind (an uninitialised fmode
+            // would make the mode checks below read garbage).
+            input_name = vfs_path;
             physical_path = real_path;
+            fmode = mode;
+
+            file = common::open_c_file(common::ucs2_to_utf8(real_path).c_str(), translate_mode(mode));
 
             // LOG_TRACE(VFS, "Open with mode: {}", cmode);
 
@@ -340,9 +365,6 @@ namespace eka2l1 {
                 LOG_ERROR(VFS, "Can't open file: {}", common::ucs2_to_utf8(real_path));
                 return;
             }
-
-            input_name = vfs_path;
-            fmode = mode;
         }
 
         void shutdown() {
@@ -353,18 +375,21 @@ namespace eka2l1 {
 
         size_t write_file(const void *data, uint32_t size, uint32_t count) override {
             WARN_CLOSE
+            NO_HANDLE_RETURN(0)
 
             return fwrite(data, size, count, file) * size;
         }
 
         size_t read_file(void *data, uint32_t size, uint32_t count) override {
             WARN_CLOSE
+            NO_HANDLE_RETURN(0)
 
             return fread(data, size, count, file) * size;
         }
 
         std::uint64_t size() const override {
             WARN_CLOSE
+            NO_HANDLE_RETURN(0)
 
             auto crr_pos = ftell(file);
             fseek(file, 0, SEEK_END);
@@ -378,7 +403,11 @@ namespace eka2l1 {
         bool close() override {
             WARN_CLOSE
 
-            fclose(file);
+            if (file) {
+                fclose(file);
+                file = nullptr;
+            }
+
             closed = true;
 
             return true;
@@ -386,12 +415,14 @@ namespace eka2l1 {
 
         uint64_t tell() override {
             WARN_CLOSE
+            NO_HANDLE_RETURN(0)
 
             return ftell(file);
         }
 
         std::uint64_t seek(std::int64_t seek_off, file_seek_mode where) override {
             WARN_CLOSE
+            NO_HANDLE_RETURN(0xFFFFFFFFFFFFFFFF)
 
             if (where == file_seek_mode::address) {
                 return 0xFFFFFFFFFFFFFFFF;
@@ -421,6 +452,7 @@ namespace eka2l1 {
 
         bool flush() override {
             WARN_CLOSE
+            NO_HANDLE_RETURN(false)
 
             if (!(fmode & WRITE_MODE)) {
                 // Undefined behaviour on all platforms.
@@ -437,9 +469,12 @@ namespace eka2l1 {
                 return false;
             }
 
+            NO_HANDLE_RETURN(false)
+
             // Temporary close the file to let resize function works.
             const std::uint64_t saved_pos = tell();
             fclose(file);
+            file = nullptr;
 
             int err_code = common::resize(common::ucs2_to_utf8(physical_path), new_size);
 
@@ -449,6 +484,15 @@ namespace eka2l1 {
 #else
             file = fopen(common::ucs2_to_utf8(physical_path).c_str(), translate_mode(fmode, true));
 #endif
+
+            if (!file) {
+                // The reopen can fail for reasons outside our control (the host
+                // is out of descriptors, the file disappeared under us, ...).
+                // Stay handle-less: every other operation now fails cleanly
+                // instead of faulting on a null FILE inside the C library.
+                LOG_ERROR(VFS, "Can't reopen file {} after resize", common::ucs2_to_utf8(physical_path));
+                return false;
+            }
 
             fseek(file, static_cast<long>(saved_pos), SEEK_SET);
 
@@ -690,11 +734,19 @@ namespace eka2l1 {
             const std::string root = eka2l1::root_name(path_ucs8);
             std::u16string vert_path_copy = vert_path;
 
-            if (root == "" || !mappings[ascii_to_drive_number(static_cast<char>(std::towlower(root[0])))].second) {
+            if (root == "") {
                 return std::nullopt;
             }
 
-            drive &drv = mappings[ascii_to_drive_number(static_cast<char>(std::towlower(root[0])))].first;
+            const char root_letter = static_cast<char>(std::towlower(root[0]));
+
+            // root_name only looks for a ':', so this is not necessarily a drive letter. Anything
+            // else would index the mappings array out of bounds.
+            if ((root_letter < 'a') || (root_letter > 'z') || !mappings[ascii_to_drive_number(root_letter)].second) {
+                return std::nullopt;
+            }
+
+            drive &drv = mappings[ascii_to_drive_number(root_letter)].first;
             std::u16string map_path = common::utf8_to_ucs2(drv.real_path);
 
             if (!eka2l1::is_separator(static_cast<char>(map_path.back()))) {
@@ -718,13 +770,18 @@ namespace eka2l1 {
                 }
             }
 
-            std::u16string vert_path_no_root = vert_path_copy.substr(root.size());
-
-            if (!common::is_system_case_insensitive()) {
-                vert_path_no_root = common::lowercase_ucs2_string(vert_path_no_root);
+            const std::u16string vert_path_no_root = vert_path_copy.substr(root.size());
+            const std::u16string exact_path = eka2l1::add_path(map_path, vert_path_no_root);
+            if (common::exists(common::ucs2_to_utf8(exact_path))) {
+                return exact_path;
             }
 
-            return eka2l1::add_path(map_path, vert_path_no_root);
+            // Symbian file systems are case-insensitive but case-preserving. Resolve from
+            // the real entries on hosts that distinguish case instead of lowercasing the
+            // guest path: directory enumeration must still return the spelling installed
+            // by the application.
+            return common::utf8_to_ucs2(common::resolve_case_insensitive_path(common::ucs2_to_utf8(map_path),
+                common::ucs2_to_utf8(vert_path_no_root)));
         }
 
     public:
@@ -875,10 +932,6 @@ namespace eka2l1 {
                 return std::unique_ptr<directory>(nullptr);
             }
 
-            if (!common::is_system_case_insensitive()) {
-                filter = common::lowercase_string(filter);
-            }
-
             return std::make_unique<physical_directory>(this, new_path_utf8,
                 common::ucs2_to_utf8(vir_path), filter, type, attrib);
         }
@@ -934,7 +987,7 @@ namespace eka2l1 {
                     return nullptr;
                 }
 
-                if ((mode & WRITE_MODE) && (mappings[static_cast<int>(drv)].first.attribute & io_attrib_write_protected)) {
+                if ((mode & (WRITE_MODE | APPEND_MODE)) && (mappings[static_cast<int>(drv)].first.attribute & io_attrib_write_protected)) {
                     LOG_ERROR(VFS, "Request to open {} with write mode, but the drive is write-protected!",
                         common::ucs2_to_utf8(path));
 
@@ -954,7 +1007,16 @@ namespace eka2l1 {
                 return nullptr;
             }
 
-            return std::make_unique<physical_file>(path, *real_path, mode);
+            auto opened = std::make_unique<physical_file>(path, *real_path, mode);
+
+            if (!opened->is_open()) {
+                // The host refused to give us a handle. Report the file as not
+                // openable, so the caller answers the guest with an error
+                // instead of getting a file object with nothing behind it.
+                return nullptr;
+            }
+
+            return opened;
         }
 
         std::int64_t watch_directory(const std::u16string &path, common::directory_watcher_callback callback,
@@ -1001,18 +1063,8 @@ namespace eka2l1 {
         }
 
         void validate_for_host() override {
-            if (common::is_platform_case_sensitive()) {
-                LOG_INFO(VFS, "Iterating through all emulated drive to lowercase all filesystem entities!");
-
-                for (auto &mapping : mappings) {
-                    if (!mapping.second) {
-                        continue;
-                    }
-
-                    common::copy_folder(mapping.first.real_path, mapping.first.real_path, common::FOLDER_COPY_FLAG_LOWERCASE_NAME,
-                        nullptr);
-                }
-            }
+            // Case-sensitive hosts are handled at lookup time. Rewriting a mounted tree
+            // loses the spelling that Symbian directory enumeration is required to keep.
         }
     };
 
@@ -1095,7 +1147,7 @@ namespace eka2l1 {
             auto ff = physical_file_system::open_file(new_path, mode);
 
             // Dont change order!
-            if (!entry || ((mode & PREFER_PHYSICAL) && (ff->size() != entry->size))) {
+            if (!entry || (ff && (mode & PREFER_PHYSICAL) && (ff->size() != entry->size))) {
                 return ff;
             }
 

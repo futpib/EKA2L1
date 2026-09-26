@@ -28,7 +28,12 @@
 
 #include <common/queue.h>
 #include <common/region.h>
+#include <common/platform.h>
+#if EKA2L1_PLATFORM(IOS)
+#include <drivers/graphics/backend/ogl/ios_gl_loader.h>
+#else
 #include <glad/glad.h>
+#endif
 
 #include <memory>
 #include <queue>
@@ -60,6 +65,7 @@ namespace eka2l1::drivers {
         OGL_FEATURE_SUPPORT_PVRTC = 1 << 1,
         OGL_FEATURE_SUPPORT_ANISOTROPHY = 1 << 2,
         OGL_FEATURE_COMPABILITY_ES31 = 1 << 3,
+        OGL_FEATURE_SUPPORT_GLSL_ES_100 = 1 << 4,
         OGL_MAX_FEATURE = 2
     };
 
@@ -137,6 +143,8 @@ namespace eka2l1::drivers {
 
         bool is_gles;
         bool support_line_width_;
+
+        std::uint32_t max_texture_size_ = 2048;
 
         float point_size;
         pen_style line_style;
@@ -216,6 +224,10 @@ namespace eka2l1::drivers {
 
         bool is_stricted() const override {
             return is_gles;
+        }
+
+        std::uint32_t max_texture_size() const override {
+            return max_texture_size_;
         }
 
         bool get_supported_feature(const std::uint32_t feature_mask) const {

@@ -21,6 +21,8 @@
 #include <android/launcher.h>
 #include <android/state.h>
 
+#include <drivers/camera/camera_collection.h>
+
 #include <package/manager.h>
 #include <system/devices.h>
 
@@ -31,8 +33,6 @@
 #include <common/pystr.h>
 #include <common/fileutils.h>
 #include <loader/mif.h>
-#include <loader/svgb.h>
-#include <loader/nvg.h>
 #include <services/fbs/fbs.h>
 #include <system/installation/firmware.h>
 #include <system/installation/rpkg.h>
@@ -158,38 +158,18 @@ namespace eka2l1::android {
                             data.resize(dest_size);
                             file_mif_parser.read_mif_entry(0, data.data(), dest_size);
 
-                            eka2l1::common::ro_buf_stream inside_stream(data.data(), data.size());
                             std::unique_ptr<eka2l1::common::wo_std_file_stream> outfile_stream =
                                     std::make_unique<eka2l1::common::wo_std_file_stream>(cached_path, true);
 
-                            eka2l1::loader::mif_icon_header header;
-                            inside_stream.read(&header, sizeof(eka2l1::loader::mif_icon_header));
+                            const bool converted = eka2l1::loader::convert_mif_icon_to_svg(data.data(),
+                                    data.size(), *outfile_stream);
+                            outfile_stream.reset();
 
-                            std::vector<eka2l1::loader::svgb_convert_error_description> errors;
-                            std::vector<eka2l1::loader::nvg_convert_error_description> errors_nvg;
-
-                            if (header.type == eka2l1::loader::mif_icon_type_svg) {
-                                if (!eka2l1::loader::convert_svgb_to_svg(inside_stream, *outfile_stream, errors)) {
-                                    if (errors[0].reason_ == eka2l1::loader::svgb_convert_error_invalid_file) {
-                                        outfile_stream->write(reinterpret_cast<const char *>(data.data()) + sizeof(eka2l1::loader::mif_icon_header), data.size() - sizeof(eka2l1::loader::mif_icon_header));
-                                    }
-                                }
-
-                                outfile_stream.reset();
+                            if (converted) {
                                 document = lunasvg::Document::loadFromFile(cached_path.c_str());
                             } else {
-                                inside_stream = eka2l1::common::ro_buf_stream(data.data() + sizeof(eka2l1::loader::mif_icon_header),
-                                                                              data.size() - sizeof(eka2l1::loader::mif_icon_header));
-
-                                if (eka2l1::loader::convert_nvg_to_svg(inside_stream, *outfile_stream, errors_nvg)) {
-                                    outfile_stream.reset();
-                                    document = lunasvg::Document::loadFromFile(cached_path.c_str());
-                                } else  {
-                                    LOG_ERROR(eka2l1::FRONTEND_UI, "Icon for app {} can't be decoded!", header.type, app_name);
-                                    outfile_stream.reset();
-
-                                    eka2l1::common::remove(cached_path);
-                                }
+                                LOG_ERROR(eka2l1::FRONTEND_UI, "Icon for app {} can't be decoded!", app_name);
+                                eka2l1::common::remove(cached_path);
                             }
                         }
                     }
@@ -252,7 +232,7 @@ namespace eka2l1::android {
                 }
             }
         } else {
-            std::optional<eka2l1::apa_app_masked_icon_bitmap> icon_pair = alserv->get_icon(*reg, 0);
+            std::optional<eka2l1::apa_app_masked_icon_bitmap> icon_pair = alserv->get_list_icon(*reg);
 
             if (icon_pair.has_value()) {
                 eka2l1::epoc::bitwise_bitmap *main_bitmap = icon_pair->first;
@@ -603,6 +583,15 @@ namespace eka2l1::android {
 
         if (scr) {
             auto &crr_mode = scr->current_mode();
+
+            // A camera is bolted to the device body, so a guest needs its frames
+            // rotated into the picture it composes for. Only the guest term is
+            // known here; the host interface's own rotation is added by the
+            // backend, which reads the display rotation directly (see
+            // EmulatorCamera.receiveViewfinderFeed).
+            const eka2l1::epoc::config::screen_mode *natural_mode = scr->mode_info(0);
+            drivers::camera::set_frame_rotation(crr_mode.rotation
+                - (natural_mode ? natural_mode->rotation : 0));
 
             eka2l1::vec2 size = crr_mode.size;
             src.size = size;

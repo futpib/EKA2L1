@@ -40,6 +40,7 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <thread>
 #include <unordered_map>
@@ -144,7 +145,13 @@ namespace eka2l1 {
         fbs_atlas_font_count,
         fbs_atlas_glyph_count,
         fbs_oogm_notification,
-        fbs_get_glyph_cache_metrics
+        fbs_get_glyph_cache_metrics,
+
+        // Past the public TFbsMessage enum: Symbian^3 fbserv moves these CFbsBitmap
+        // header mutations server-side, where stock Symbian does them in the client.
+        fbs_bitmap_set_display_mode = 73,
+        fbs_bitmap_set_size_in_twips = 74,
+        fbs_bitmap_swap_width_height = 75
     };
 
     enum fbs_legacy_level {
@@ -209,6 +216,7 @@ namespace eka2l1 {
         void duplicate_bitmap(service::ipc_context *ctx);
         void create_bitmap(service::ipc_context *ctx);
         void resize_bitmap(service::ipc_context *ctx);
+        void set_bitmap_size_in_twips(service::ipc_context *ctx);
         void notify_dirty_bitmap(service::ipc_context *ctx);
         void cancel_notify_dirty_bitmap(service::ipc_context *ctx);
         void get_clean_bitmap(service::ipc_context *ctx);
@@ -318,6 +326,10 @@ namespace std {
 namespace eka2l1 {
     class io_system;
 
+    namespace common {
+        class ro_stream;
+    }
+
     enum fbs_load_data_err {
         fbs_load_data_err_none,
         fbs_load_data_err_out_of_mem,
@@ -360,6 +372,13 @@ namespace eka2l1 {
         std::unique_ptr<epoc::chunk_allocator> shared_chunk_allocator;
         std::unique_ptr<epoc::chunk_allocator> large_chunk_allocator;
 
+        // The applist server loads registries (including their icon bitmaps) on a worker
+        // thread pool, so create_bitmap()/free_bitmap() and the general/large data
+        // allocators can be entered concurrently with the main HLE thread. The two chunk
+        // allocators are plain host allocators with no internal locking, so guard every
+        // mutation of them with this recursive mutex to avoid heap corruption.
+        std::recursive_mutex allocator_lock_;
+
         std::unique_ptr<compress_queue> compressor;
         std::unique_ptr<std::thread> compressor_thread;
 
@@ -369,6 +388,8 @@ namespace eka2l1 {
         epoc::font_store persistent_font_store;
 
         void load_fonts(eka2l1::io_system *io);
+        void load_custom_fonts(const std::string &storage);
+        void load_linked_fonts(eka2l1::io_system *io);
 
         std::atomic<service::uid> connection_id_counter{ 0x1234 }; // Easier to debug
 
@@ -379,8 +400,10 @@ namespace eka2l1 {
 
     protected:
         void load_fonts_from_directory(eka2l1::io_system *io, eka2l1::directory *dir);
+        void load_linked_fonts_from_directory(eka2l1::io_system *io, const std::u16string &fonts_folder_path);
         void initialize_server();
 
+        bool add_font(common::ro_stream &stream, const std::string &name, const bool user_font = false);
         bool add_single_font(eka2l1::io_system *io, const std::u16string &path);
 
     public:
@@ -414,6 +437,18 @@ namespace eka2l1 {
          */
         fbsbitmap *create_bitmap(fbs_bitmap_data_info &info, const bool alloc_data = true, const bool support_current_display_mod_flag = true,
             const bool support_dirty = true);
+
+        /**
+         * \brief   Turn an NVG extended bitmap into a plain raster one, in place.
+         *
+         * Replaces the vector data in the shared region with rendered pixels in the
+         * bitmap's own display mode and clears the extended UID, so guest code that
+         * blits the bitmap itself gets pixels instead of the compressed commands.
+         *
+         * \param   bmp The server bitmap object.
+         * \returns True if the bitmap was an NVG one and has been rasterised.
+         */
+        bool rasterize_nvg_bitmap(fbsbitmap *bmp);
 
         /**
          * \brief   Free a bitmap object.
@@ -471,6 +506,21 @@ namespace eka2l1 {
             return static_cast<std::int32_t>(reinterpret_cast<std::uint8_t *>(ptr) - base_shared_chunk);
         }
 
+        /**
+         * @brief   Get the number of bytes readable from a host pointer that lives in
+         *          the shared or large bitmap chunk.
+         *
+         * Bitmap headers sit in guest-writable memory, so sizes derived from them can
+         * claim more data than the backing chunk actually commits. Use this to bound
+         * host-side reads of bitmap data.
+         *
+         * @returns Bytes readable up to the containing chunk's committed end, or zero
+         *          if the pointer belongs to neither chunk. All bitmap pixels are
+         *          allocated from one of the two, so a pointer that is in neither is
+         *          not something the host may read at all.
+         */
+        std::size_t readable_bytes_from(const std::uint8_t *ptr) const;
+
         template <typename T>
         void destroy_bitmap_font(T *bitmapfont);
 
@@ -526,6 +576,7 @@ namespace eka2l1 {
         */
         template <typename T, typename... Args>
         T *allocate_general_data(Args... construct_args) {
+            const std::lock_guard<std::recursive_mutex> guard(allocator_lock_);
             return shared_chunk_allocator->allocate_struct<T>(construct_args...);
         }
 

@@ -73,7 +73,8 @@ namespace eka2l1::epoc {
         saved_setting = *the_setting;
 
         if (this == scr->focus) {
-            scr->restore_from_config(client->get_ws().get_graphics_driver(), saved_setting);
+            scr->restore_from_config(client->get_ws().get_graphics_driver(), saved_setting,
+                &client->get_ws());
         }
     }
 
@@ -118,6 +119,10 @@ namespace eka2l1::epoc {
         if (this == scr->focus) {
             set_receive_focus(false);
             scr->update_focus(&client->get_ws(), this);
+        }
+
+        if (scr && (this == scr->default_owning_group)) {
+            scr->default_owning_group = nullptr;
         }
 
         if (scr) {
@@ -313,6 +318,11 @@ namespace eka2l1::epoc {
 
         case EWsWinOpAddPriorityKey:
             add_priority_key(ctx, cmd);
+            break;
+
+        case EWsWinOpDefaultOwningWindow:
+            scr->default_owning_group = this;
+            ctx.complete(epoc::error_none);
             break;
 
         default: {

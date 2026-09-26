@@ -12,6 +12,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Looper;
 import android.util.Log;
 import android.util.Size;
+import android.view.Surface;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -50,6 +51,7 @@ public class EmulatorCamera {
     private static final int FORMAT_DRIVER_ARGB8888 = 0x08;
     private static final int FORMAT_DRIVER_JPEG = 0x10;
     private static final int FORMAT_DRIVER_EXIF = 0x20;
+    private static final int FORMAT_DRIVER_FBS_BMP_4K = 0x40;
     private static final int FORMAT_DRIVER_FBS_BMP_64K = 0x80;
     private static final int FORMAT_DRIVER_FBS_BMP_16M = 0x100;
     private static final int FORMAT_DRIVER_FBS_BMP_16MU = 0x10000;
@@ -243,7 +245,7 @@ public class EmulatorCamera {
 
     public static int[] getSupportedImageOutputFormats() {
         return new int[]{ FORMAT_DRIVER_ARGB8888, FORMAT_DRIVER_JPEG, FORMAT_DRIVER_RGB565,
-                FORMAT_DRIVER_FBS_BMP_64K, FORMAT_DRIVER_FBS_BMP_16M, FORMAT_DRIVER_FBS_BMP_16MU,
+                FORMAT_DRIVER_FBS_BMP_4K, FORMAT_DRIVER_FBS_BMP_64K, FORMAT_DRIVER_FBS_BMP_16M, FORMAT_DRIVER_FBS_BMP_16MU,
                 FORMAT_DRIVER_EXIF };
     }
 
@@ -334,7 +336,8 @@ public class EmulatorCamera {
 
     private boolean isSupportedFormat(int requestedFormat) {
         return ((requestedFormat == FORMAT_DRIVER_ARGB8888) || (requestedFormat == FORMAT_DRIVER_RGB565) ||
-                (requestedFormat == FORMAT_DRIVER_JPEG) || (requestedFormat == FORMAT_DRIVER_FBS_BMP_64K) ||
+                (requestedFormat == FORMAT_DRIVER_JPEG) || (requestedFormat == FORMAT_DRIVER_FBS_BMP_4K) ||
+                (requestedFormat == FORMAT_DRIVER_FBS_BMP_64K) ||
                 (requestedFormat == FORMAT_DRIVER_FBS_BMP_16M) || (requestedFormat == FORMAT_DRIVER_FBS_BMP_16MU) ||
                 (requestedFormat == FORMAT_DRIVER_EXIF));
     }
@@ -409,6 +412,22 @@ public class EmulatorCamera {
         }
     }
 
+    // How far, counter-clockwise, a frame that is upright in the device's natural
+    // orientation still has to turn to be upright in the guest's picture.
+    //
+    // Display.getRotation() reports how far the screen has turned counter-
+    // clockwise from natural; the interface counter-rotates by the same amount to
+    // stay upright for the viewer, while the camera keeps looking out of the
+    // device body -- so it enters with the display's sign. The native side
+    // contributes the guest term alone (see launcher.cpp), because only the
+    // backend can see the host display.
+    private int frameRotationDegrees() {
+        final int display_rotation =
+            applicationActivity.getWindowManager().getDefaultDisplay().getRotation() * 90;
+
+        return ((guestFrameRotation() + display_rotation) % 360 + 360) % 360;
+    }
+
     private int getTargetCaptureRotation() {
         int rotation = applicationActivity.getWindowManager().getDefaultDisplay().getRotation() * 90;
         int cameraOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
@@ -443,13 +462,18 @@ public class EmulatorCamera {
         applicationActivity.runOnUiThread(() -> {
             Size sizeFinned = new Size(width, height);
 
+            // Pin the target to the device's natural orientation so that the
+            // per-image rotation degrees always mean "rotate by this to be upright
+            // in the natural orientation", whatever the display was doing when the
+            // use case got bound. The display's own rotation is folded back in per
+            // frame, together with the guest's, in frameRotationDegrees().
             currentAnalysis = new ImageAnalysis.Builder()
                     .setTargetResolution(sizeFinned)
+                    .setTargetRotation(Surface.ROTATION_0)
                     .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                     .build();
 
             camera = cameraProvider.bindToLifecycle(applicationActivity, getCameraSelector(), currentAnalysis);
-            currentAnalysis.getTargetRotation();
 
             currentAnalysis.setAnalyzer(cameraExecutor,
                     image -> {
@@ -461,7 +485,14 @@ public class EmulatorCamera {
                         ByteBuffer imageBuffer = image.getPlanes()[0].getBuffer();
 
                         Size sizeRotatedReceived = new Size(image.getWidth(), image.getHeight());
-                        int rotationGivenByImage = image.getImageInfo().getRotationDegrees();
+
+                        // getRotationDegrees() turns the raw frame upright in the
+                        // device's natural orientation (the target is pinned to it
+                        // above); frameRotationDegrees() carries it the rest of the
+                        // way into the guest's picture. postRotate turns clockwise,
+                        // so the counter-clockwise remainder is subtracted.
+                        int rotationGivenByImage = ((image.getImageInfo().getRotationDegrees()
+                                - frameRotationDegrees()) % 360 + 360) % 360;
 
                         Bitmap finalBitmap = null;
                         int stride = image.getPlanes()[0].getRowStride();
@@ -514,7 +545,23 @@ public class EmulatorCamera {
                             imageBuffer.position(0);
                         }
 
-                        if (requestedFormat == FORMAT_DRIVER_FBS_BMP_64K) {
+                        if (requestedFormat == FORMAT_DRIVER_FBS_BMP_4K) {
+                            int byteWidth = (sizeFinned.getWidth() * 2 + 3) / 4 * 4;
+                            byte []buffer = new byte[byteWidth * sizeFinned.getHeight()];
+
+                            for (int i = 0; i < sizeFinned.getWidth(); i++) {
+                                for (int j = 0; j < sizeFinned.getHeight(); j++) {
+                                    short pixel4k = (short) (((imageBuffer.get(j * stride + i * 4)) & 0xF0) << 4 |
+                                            (imageBuffer.get(j * stride + i * 4 + 1) & 0xF0) |
+                                            ((imageBuffer.get(j * stride + i * 4 + 2) & 0xF0) >> 4));
+
+                                    buffer[j * byteWidth + i * 2] = (byte) (pixel4k & 0xFF);
+                                    buffer[j * byteWidth + i * 2 + 1] = (byte) ((pixel4k >> 8) & 0xFF);
+                                }
+                            }
+
+                            onFrameViewfinderDelivered(index, buffer, buffer.length);
+                        } else if (requestedFormat == FORMAT_DRIVER_FBS_BMP_64K) {
                             int byteWidth = (sizeFinned.getWidth() * 2 + 3) / 4 * 4;
                             byte []buffer = new byte[byteWidth * sizeFinned.getHeight()];
 
@@ -656,6 +703,7 @@ public class EmulatorCamera {
                                     BitmapFactory.Options opt = new BitmapFactory.Options();
                                     switch (requestedFormat) {
                                         case FORMAT_DRIVER_RGB565:
+                                        case FORMAT_DRIVER_FBS_BMP_4K:
                                         case FORMAT_DRIVER_FBS_BMP_64K:
                                             opt.inPreferredConfig = Bitmap.Config.RGB_565;
                                             break;
@@ -681,20 +729,28 @@ public class EmulatorCamera {
                                         Log.i(TAG, "Decoding bitmap encountered exception: " + ex);
                                     }
 
-                                    if (!finalSizeFin.equals(finalOutputSize)) {
-                                        decodedBitmap = Bitmap.createScaledBitmap(decodedBitmap, finalOutputSize.getWidth(),
-                                                finalOutputSize.getHeight(), false);
-                                    }
-
                                     if (decodedBitmap == null) {
                                         Log.e(TAG, "Error decoding bitmap image, null encountered");
                                         onCaptureImageDelivered(index, null, - 1);
                                     } else {
-                                        int size = decodedBitmap.getRowBytes() * decodedBitmap.getHeight();
-                                        ByteBuffer byteBuffer = ByteBuffer.allocate(size);
-                                        decodedBitmap.copyPixelsToBuffer(byteBuffer);
+                                        if (!finalSizeFin.equals(finalOutputSize)) {
+                                            decodedBitmap = Bitmap.createScaledBitmap(decodedBitmap, finalOutputSize.getWidth(),
+                                                    finalOutputSize.getHeight(), false);
+                                        }
 
-                                        onCaptureImageDelivered(index, byteBuffer.array(), 0);
+                                        if ((requestedFormat == FORMAT_DRIVER_FBS_BMP_4K)
+                                                || (requestedFormat == FORMAT_DRIVER_FBS_BMP_64K)
+                                                || (requestedFormat == FORMAT_DRIVER_FBS_BMP_16M)
+                                                || (requestedFormat == FORMAT_DRIVER_FBS_BMP_16MU)) {
+                                            onCaptureImageDelivered(index,
+                                                    convertBitmapToFbs(decodedBitmap, requestedFormat), 0);
+                                        } else {
+                                            int size = decodedBitmap.getRowBytes() * decodedBitmap.getHeight();
+                                            ByteBuffer byteBuffer = ByteBuffer.allocate(size);
+                                            decodedBitmap.copyPixelsToBuffer(byteBuffer);
+
+                                            onCaptureImageDelivered(index, byteBuffer.array(), 0);
+                                        }
                                     }
                                 }
 
@@ -719,6 +775,51 @@ public class EmulatorCamera {
 
         return true;
     }
+
+    private static byte[] convertBitmapToFbs(Bitmap bitmap, int requestedFormat) {
+        final int width = bitmap.getWidth();
+        final int height = bitmap.getHeight();
+        final int bytesPerPixel = (requestedFormat == FORMAT_DRIVER_FBS_BMP_16M) ? 3
+                : ((requestedFormat == FORMAT_DRIVER_FBS_BMP_16MU) ? 4 : 2);
+        final int byteWidth = (width * bytesPerPixel + 3) / 4 * 4;
+        byte[] buffer = new byte[byteWidth * height];
+        int[] pixels = new int[width * height];
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                final int argb = pixels[y * width + x];
+                final int red = (argb >> 16) & 0xFF;
+                final int green = (argb >> 8) & 0xFF;
+                final int blue = argb & 0xFF;
+                final int offset = y * byteWidth + x * bytesPerPixel;
+
+                if (requestedFormat == FORMAT_DRIVER_FBS_BMP_4K) {
+                    final int pixel4k = ((red & 0xF0) << 4) | (green & 0xF0) | (blue >> 4);
+                    buffer[offset] = (byte) (pixel4k & 0xFF);
+                    buffer[offset + 1] = (byte) ((pixel4k >> 8) & 0xFF);
+                } else if (requestedFormat == FORMAT_DRIVER_FBS_BMP_64K) {
+                    final int pixel565 = ((red & 0xF8) << 8) | ((green & 0xFC) << 3) | (blue >> 3);
+                    buffer[offset] = (byte) (pixel565 & 0xFF);
+                    buffer[offset + 1] = (byte) ((pixel565 >> 8) & 0xFF);
+                } else {
+                    buffer[offset] = (byte) blue;
+                    buffer[offset + 1] = (byte) green;
+                    buffer[offset + 2] = (byte) red;
+                    if (requestedFormat == FORMAT_DRIVER_FBS_BMP_16MU) {
+                        buffer[offset + 3] = (byte) 0xFF;
+                    }
+                }
+            }
+        }
+
+        return buffer;
+    }
+
+    // The rotation, counter-clockwise, that the guest's picture sits at from the
+    // emulated device's natural orientation. Read per frame: an app switches
+    // screen mode while the camera runs.
+    private static native int guestFrameRotation();
 
     private static native boolean doesCameraAllowNewFrame(int index);
     private static native void onCaptureImageDelivered(int index, byte[] rawData, int errorCode);

@@ -24,6 +24,7 @@
 #include <kernel/kernel.h>
 #include <loader/common.h>
 #include <xxHash/xxhash.h>
+#include <utils/consts.h>
 
 #include <algorithm>
 
@@ -102,6 +103,72 @@ namespace eka2l1::kernel {
         return true;
     }
 
+    void codeseg::apply_relocations(std::uint8_t *code_base_ptr, std::uint8_t *data_base_ptr,
+        const address code_run_addr, const address data_run_addr, const bool data_only) {
+        const std::uint32_t code_delta = code_run_addr - code_base;
+        const std::uint32_t data_delta = data_run_addr - data_base;
+
+        for (const std::uint64_t relocate_info : relocation_list) {
+            const loader::relocation_type rel_type = static_cast<loader::relocation_type>((relocate_info >> 32) & 0xFFFF);
+            const loader::relocate_section sect_type = static_cast<loader::relocate_section>((relocate_info >> 48) & 0xFFFF);
+
+            if (data_only && (sect_type != loader::relocate_section_data)) {
+                continue;
+            }
+
+            const std::uint32_t offset_to_relocate = static_cast<std::uint32_t>(relocate_info);
+            std::uint8_t *base_ptr = nullptr;
+
+            switch (sect_type) {
+            case loader::relocate_section_text:
+                base_ptr = code_base_ptr;
+                break;
+
+            case loader::relocate_section_data:
+                base_ptr = data_base_ptr;
+                break;
+
+            default:
+                continue;
+            }
+
+            address the_delta = 0;
+            switch (rel_type) {
+            case loader::relocation_type::data:
+                the_delta = data_delta;
+                break;
+
+            case loader::relocation_type::text:
+                the_delta = code_delta;
+                break;
+
+            case loader::relocation_type::inferred: {
+                const std::uint32_t val = *reinterpret_cast<std::uint32_t *>(&base_ptr[offset_to_relocate]);
+
+                if ((code_base <= val) && (val <= code_base + code_size)) {
+                    the_delta = code_delta;
+                } else if ((data_base <= val) && (val <= data_base + data_size + bss_size)) {
+                    the_delta = data_delta;
+                } else {
+                    LOG_ERROR(KERNEL, "Unable to infer the relocation type of offset 0x{:X}", val);
+                }
+
+                break;
+            }
+
+            case loader::relocation_type::reserved:
+                continue;
+
+            default:
+                LOG_ERROR(KERNEL, "Unknown code relocation type {}", static_cast<std::uint32_t>(rel_type));
+                break;
+            }
+
+            std::uint32_t *to_relocate_ptr = reinterpret_cast<std::uint32_t *>(&base_ptr[offset_to_relocate]);
+            *to_relocate_ptr += the_delta;
+        }
+    }
+
     bool codeseg::attach(kernel::process *new_foe, const bool forcefully) {
         if (!new_foe && !forcefully) {
             return false;
@@ -140,6 +207,12 @@ namespace eka2l1::kernel {
                         if (data_size != 0) {
                             std::uint8_t *data_base_ptr = reinterpret_cast<std::uint8_t *>(att->get()->data_chunk->host_base()) + add_offset;
                             std::copy(constant_data.get(), constant_data.get() + data_size, data_base_ptr); // .data
+
+                            // The saved image contains link-time addresses. Restoring it
+                            // after a detach must repeat data relocations just like the
+                            // initial attachment, while leaving the retained code alone.
+                            const address data_run_addr = att->get()->data_chunk->base(new_foe).ptr_address() + add_offset;
+                            apply_relocations(nullptr, data_base_ptr, get_code_run_addr(new_foe), data_run_addr, true);
                         }
                     }
 
@@ -254,6 +327,8 @@ namespace eka2l1::kernel {
 
         if (attaches.empty()) {
             if (!garbage_link.alone()) {
+                // Drops the collector's reference on this deceased codeseg. Safe only
+                // because we already hold our own (increase_access_count() above).
                 kern->get_codedump_collector().remove(this);
             }
         }
@@ -274,7 +349,13 @@ namespace eka2l1::kernel {
 
                         const address addr = dependency.dep_->lookup(new_foe, ord);
                         if (!addr) {
-                            LOG_ERROR(KERNEL, "Invalid ordinal {}, requested from {}", ord, dependency.dep_->name());
+                            // The import is left pointing at address zero, so the first call
+                            // through it runs off into unmapped memory. Name the importer and
+                            // where the veneer lives: that is what makes such a fault, which
+                            // surfaces far away as a wild PC, traceable back to here.
+                            LOG_ERROR(KERNEL, "Invalid ordinal {} (of {}), requested from {} by {}, patched at code+0x{:X}",
+                                ord, dependency.dep_->get_export_table_raw().size(), dependency.dep_->name(),
+                                name(), offset_to_apply);
                         }
 
                         *reinterpret_cast<std::uint32_t *>(&code_base_ptr[offset_to_apply]) = addr + adj;
@@ -283,71 +364,8 @@ namespace eka2l1::kernel {
             }
         }
 
-        if (need_patch_and_reloc) {
-            if (!relocation_list.empty()) {
-                const std::uint32_t code_delta = the_addr_of_code_run - code_base;
-                const std::uint32_t data_delta = the_addr_of_data_run - data_base;
-
-                // Relocate the image
-                for (const std::uint64_t relocate_info : relocation_list) {
-                    const loader::relocation_type rel_type = static_cast<loader::relocation_type>((relocate_info >> 32) & 0xFFFF);
-                    const std::uint32_t offset_to_relocate = static_cast<std::uint32_t>(relocate_info);
-
-                    loader::relocate_section sect_type = static_cast<loader::relocate_section>((relocate_info >> 48) & 0xFFFF);
-                    address the_delta = 0;
-
-                    std::uint8_t *base_ptr = nullptr;
-
-                    switch (sect_type) {
-                    case loader::relocate_section_text:
-                        base_ptr = code_base_ptr;
-                        break;
-
-                    case loader::relocate_section_data:
-                        base_ptr = data_base_ptr;
-                        break;
-
-                    default:
-                        break;
-                    }
-
-                    std::uint32_t *to_relocate_ptr = reinterpret_cast<std::uint32_t *>(&base_ptr[offset_to_relocate]);
-
-                    switch (rel_type) {
-                    case loader::relocation_type::data:
-                        the_delta = data_delta;
-                        break;
-
-                    case loader::relocation_type::text:
-                        the_delta = code_delta;
-                        break;
-
-                    case loader::relocation_type::inferred: {
-                        // This one is harder
-                        std::uint32_t val = *to_relocate_ptr;
-
-                        if ((code_base <= val) && (val <= code_base + code_size)) {
-                            the_delta = code_delta;
-                        } else if ((data_base <= val) && (val <= data_base + data_size + bss_size)) {
-                            the_delta = data_delta;
-                        } else {
-                            LOG_ERROR(KERNEL, "Unable to infer the relocation type of offset 0x{:X}", val);
-                        }
-
-                        break;
-                    }
-
-                    case loader::relocation_type::reserved:
-                        continue;
-
-                    default:
-                        LOG_ERROR(KERNEL, "Unknown code relocation type {}", static_cast<std::uint32_t>(rel_type));
-                        break;
-                    }
-
-                    *to_relocate_ptr = *to_relocate_ptr + the_delta;
-                }
-            }
+        if (need_patch_and_reloc && !relocation_list.empty()) {
+            apply_relocations(code_base_ptr, data_base_ptr, the_addr_of_code_run, the_addr_of_data_run, false);
         }
 
         if (new_foe)
@@ -384,6 +402,11 @@ namespace eka2l1::kernel {
         if (!code_chunk_shared && info.code_chunk) {
             kern->destroy(info.code_chunk);
         }
+
+        // An earlier non-fatal detach may have parked this attach info in the
+        // codedump collector; erasing it below while its garbage link is still
+        // enqueued leaves the collector walking freed memory on its next clean.
+        kern->get_codedump_collector().remove(info);
 
         info.closing_lib_link.deque();
         info.process_link.deque();
@@ -653,7 +676,7 @@ namespace eka2l1::kernel {
         return attach_info->get()->code_chunk->base(pr).ptr_address() + lookup_res - code_base;
     }
 
-    void codeseg::queries_call_list(kernel::process *pr, std::vector<std::uint32_t> &call_list, const bool for_init) {
+    void codeseg::queries_call_list(kernel::process *pr, std::vector<std::uint32_t> &call_list, const bool for_init, const bool include_entry) {
         // Add forced entry points
         call_list.insert(call_list.end(), premade_eps.begin(), premade_eps.end());
 
@@ -661,12 +684,13 @@ namespace eka2l1::kernel {
         for (auto &dependency : dependencies) {
             if (!dependency.dep_->mark) {
                 dependency.dep_->mark = true;
-                dependency.dep_->queries_call_list(pr, call_list, for_init);
+                // An imported executable supplies exports, not a DLL entry point.
+                dependency.dep_->queries_call_list(pr, call_list, for_init, dependency.dep_->uids[0] != epoc::EXECUTABLE_UID);
             }
         }
 
         // Add our last. Don't change order, this is how it supposed to be
-        if (!ep_disabled_) {
+        if (!ep_disabled_ && include_entry) {
             auto attach_info = common::find_and_ret_if(attaches, [=](const std::unique_ptr<attached_info> &info) {
                 return info->attached_process == pr;
             });
@@ -804,9 +828,13 @@ namespace eka2l1::kernel {
 
     void codeseg::calculate_hash() {
         XXH32_state_t *state = XXH32_createState();
+        std::uint8_t *mapped_code = nullptr;
+        if (is_rom()) {
+            get_code_run_addr(nullptr, &mapped_code);
+        }
 
         XXH32_reset(state, 0x5B001101);
-        XXH32_update(state, code_data.get(), code_size);
+        XXH32_update(state, is_rom() ? mapped_code : code_data.get(), code_size);
 
         hash_ = XXH32_digest(state);
         XXH32_freeState(state);

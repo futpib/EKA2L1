@@ -46,6 +46,37 @@ namespace eka2l1::epoc {
 
     static const std::size_t SUPPORTED_REV2_UID_COUNT = sizeof(SUPPORTED_REV2_UIDS) / sizeof(std::uint32_t);
 
+    // Which NVG extended bitmaps we swap for plain rasterised pixels so guest-side
+    // BitGDI can read them (see fbs_server::rasterize_nvg_bitmap).
+    //
+    // On a device the pixels come from the licensee's CFbsRasterizer plugin, which
+    // BitGDI consults for *any* extended bitmap it has to read, rasterising into the
+    // bitmap's own TBitmapDesc::iSizeInPixels and iDispMode. There is no notion there
+    // of some extended bitmaps being readable and others not, so the only conditions
+    // we impose are our own rasteriser's limits.
+    static constexpr std::size_t NVG_RASTERIZE_MAX_BYTES = 4 * 1024 * 1024;
+
+    static inline bool is_nvg_bitmap_rasterizable(const eka2l1::vec2 &size, const display_mode dpm) {
+        if ((size.x <= 0) || (size.y <= 0)) {
+            return false;
+        }
+
+        const int bpp = get_bpp_from_display_mode(dpm);
+
+        // Whole-byte pixels only: rasterize_nvg_bitmap stores one pixel at a time and
+        // has no packing for the sub-byte modes.
+        if ((bpp != 8) && (bpp != 16) && (bpp != 24) && (bpp != 32)) {
+            return false;
+        }
+
+        // Unlike a real rasterizer, which keeps its pixels in a cache of its own, we
+        // expand the bitmap in place and so have to reserve room for the raster form
+        // up front (see fbscli::create_bitmap). Cap that reservation: a skin graphic
+        // is screen sized at most, while the conceptual size Symbian itself allows an
+        // extended bitmap runs up to KMaxTInt / 4 per side.
+        return (get_byte_width(size.x, bpp) * static_cast<std::size_t>(size.y)) <= NVG_RASTERIZE_MAX_BYTES;
+    }
+
     enum bitmap_file_compression {
         bitmap_file_no_compression = 0,
         bitmap_file_byte_rle_compression = 1,
@@ -108,6 +139,9 @@ namespace eka2l1::epoc {
         int compressed_in_ram_;
         bool offset_from_me_;
 
+        // EKA1 ROM bitmaps only carry the initial display mode.
+        epoc::display_mode current_display_mode() const;
+
         void construct(loader::sbm_header &info, epoc::display_mode disp_mode, void *data, const void *base,
             const bool support_current_display_mode_flag, const bool white_fill = false);
 
@@ -125,4 +159,10 @@ namespace eka2l1::epoc {
     bool convert_to_rgba8888(fbs_server *serv, common::ro_stream &source, common::wo_stream &dest, loader::sbm_header &header, std::int32_t byte_width, const bitmap_file_compression comp, const bool make_standard_mask = false);
     bool convert_to_rgba8888(fbs_server *serv, bitwise_bitmap *bmp, common::wo_stream &dest, const bool make_standard_mask = false);
     bool convert_to_rgba8888(fbs_server *serv, loader::mbm_file &file, const std::size_t index, common::wo_stream &dest, const bool make_standard_mask = false);
+    bitmap_color get_bitmap_color_from_display_mode(const display_mode mode);
+
+    // Buffers must be equal-sized RGBA8888; decode the mask with make_standard_mask.
+    // EGray256 supplies opacity; other modes are stencils with white transparent.
+    void apply_icon_mask_alpha(std::uint8_t *icon_rgba, const std::uint8_t *mask_rgba,
+        const std::size_t width, const std::size_t height, const epoc::display_mode mask_mode);
 }

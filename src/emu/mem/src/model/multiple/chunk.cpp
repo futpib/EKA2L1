@@ -173,7 +173,6 @@ namespace eka2l1::mem {
             const auto pt_base = (running_offset >> control_->chunk_shift_) << control_->chunk_shift_;
             const vm_address crr_base_addr = base_;
 
-            multiple_mem_model_process *mul_process = reinterpret_cast<multiple_mem_model_process *>(own_process_);
             control_multiple *mul_ctrl = reinterpret_cast<control_multiple *>(control_);
 
             // Fill the entry
@@ -190,14 +189,15 @@ namespace eka2l1::mem {
                         off_start_just_unmapped = (poff << control_->page_size_bits_) + crr_base_addr + pt_base;
                     }
                 } else {
-                    // Map those just mapped to the CPU. It will love this
+                    // Invalidate the CPU TLB unconditionally: globally-visible pages
+                    // (shared/global sections, code) may sit in the running core's TLB
+                    // even when the chunk's owner is not the current address space, and
+                    // the host memory is about to be freed. Dirtying a stale-tagged or
+                    // foreign entry is always safe (it just re-resolves on next access).
                     if (size_just_unmapped != 0) {
                         // Use linear loop since the size is expected to be small
                         for (auto &mm : mul_ctrl->mmus_) {
-                            if (!own_process_ || mul_process->addr_space_id_ == mm->current_addr_space()) {
-                                mm->unmap_from_cpu(off_start_just_unmapped, size_just_unmapped);
-                                break;
-                            }
+                            mm->unmap_from_cpu(off_start_just_unmapped, size_just_unmapped);
                         }
 
                         size_just_unmapped = 0;
@@ -210,10 +210,7 @@ namespace eka2l1::mem {
             if (size_just_unmapped != 0) {
                 //LOG_TRACE(MEMORY, "Unmapped from CPU: 0x{:X}, size 0x{:X}", off_start_just_unmapped, size_just_unmapped);
                 for (auto &mm : mul_ctrl->mmus_) {
-                    if (!own_process_ || mul_process->addr_space_id_ == mm->current_addr_space()) {
-                        mm->unmap_from_cpu(off_start_just_unmapped, size_just_unmapped);
-                        break;
-                    }
+                    mm->unmap_from_cpu(off_start_just_unmapped, size_just_unmapped);
                 }
             }
 
@@ -338,11 +335,20 @@ namespace eka2l1::mem {
         } else {
             addr &= ~(((1 << control_->page_per_tab_shift_) << control_->page_size_bits_) - 1);
 
-            // Mark those as allocated
-            max_size_ = chunk_sec->alloc_.force_fill((addr - chunk_sec->beg_) >> control_->page_size_bits_,
-                static_cast<int>(total_pt << control_->page_per_tab_shift_), false);
+            const std::uint32_t total_page = total_pt << control_->page_per_tab_shift_;
+            const std::size_t total_page_size = static_cast<std::size_t>(total_page) << control_->page_size_bits_;
 
-            max_size_ <<= control_->page_size_bits_;
+            // Forced ROM chunks may live outside the allocator's section.
+            if ((addr >= chunk_sec->beg_) && (static_cast<std::uint64_t>(addr) + total_page_size <= chunk_sec->end_)) {
+                // Mark those as allocated
+                max_size_ = chunk_sec->alloc_.force_fill((addr - chunk_sec->beg_) >> control_->page_size_bits_,
+                    static_cast<int>(total_page), false);
+
+                max_size_ <<= control_->page_size_bits_;
+            } else {
+                max_size_ = total_page_size;
+            }
+
             create_flags_ |= MEM_MODEL_CHUNK_INTERNAL_FORCE_FILL;
         }
 

@@ -113,6 +113,7 @@ namespace eka2l1 {
 
         config::state *conf_;
         config::app_settings *settings_;
+        std::string cache_root_;
 
         explicit system_create_components();
     };
@@ -142,6 +143,7 @@ namespace eka2l1 {
         loader::rom *get_rom_info();
         epocver get_symbian_version_use() const;
         bool is_s80_device_active();
+        bool is_uiq_2_device_active();
 
         void prepare_reschedule();
 
@@ -176,7 +178,10 @@ namespace eka2l1 {
         zip_mount_error mount_game_zip(drive_number drv, const drive_media media, const std::string &zip_path, const std::uint32_t base_attrib = io_attrib_none,
             progress_changed_callback progress_cb = nullptr, cancel_requested_callback cancel_cb = nullptr);
 
-        ngage_game_card_install_error install_ngage_game_card(const std::string &folder_path, std::function<void(std::string)> game_name_found_cb, progress_changed_callback progress_cb = nullptr);
+        // Installs a classic N-Gage game card onto drive E. `card_path` is either the card folder
+        // itself or an archive holding it (anything libarchive reads - .zip, .7z), told apart by
+        // whether the path is a directory.
+        ngage_game_card_install_error install_ngage_game_card(const std::string &card_path, std::function<void(std::string)> game_name_found_cb, progress_changed_callback progress_cb = nullptr);
         bool get_ngage_game_info_mounted(apa_app_registry &result);
 
         bool reset();

@@ -303,6 +303,9 @@ namespace eka2l1::epoc {
     
     int get_approximate_pixel_to_twips_mul(const epocver ver) {
         switch (ver) {
+        case epocver::epoc70:
+            return 16;
+
         case epocver::epoc6:
         case epocver::epoc7:
         case epocver::epoc80:
@@ -310,6 +313,7 @@ namespace eka2l1::epoc {
         case epocver::epoc81b:
             return 15;
 
+        case epocver::epoc91:
         case epocver::epoc93fp1:
         case epocver::epoc93fp2:
         case epocver::epoc94:

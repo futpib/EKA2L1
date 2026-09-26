@@ -36,25 +36,18 @@
 #include <kernel/kernel.h>
 #include <system/epoc.h>
 #include <utils/err.h>
+#include <utils/guest/akn.h>
 #include <vfs/vfs.h>
+
+#include <common/buffer.h>
+#include <loader/nvg.h>
+
+#include <lunasvg.h>
 
 #include <algorithm>
 #include <cassert>
 
 namespace eka2l1 {
-    static epoc::bitmap_color get_bitmap_color_type_from_display_mode(const epoc::display_mode bpp) {
-        switch (bpp) {
-        case epoc::display_mode::gray2:
-            return epoc::monochrome_bitmap;
-        case epoc::display_mode::color16ma:
-        case epoc::display_mode::color16map:
-            return epoc::color_bitmap_with_alpha;
-        default:
-            break;
-        }
-
-        return epoc::color_bitmap;
-    }
 
     fbs_bitmap_data_info::fbs_bitmap_data_info()
         : dpm_(epoc::display_mode::none)
@@ -87,6 +80,29 @@ namespace eka2l1 {
         void bitwise_bitmap::settings::initial_display_mode(const display_mode &mode) {
             flags_ &= 0xFFFFFF00;
             flags_ |= static_cast<std::uint32_t>(mode);
+        }
+
+        bitmap_color get_bitmap_color_from_display_mode(const display_mode mode) {
+            // SEpocBitmapHeader::TColor distinguishes grayscale, colour and alpha
+            // (Symbian bmconv/PBMCOMP.CPP and CBitwiseBitmap::IsColor()).
+            if (is_display_mode_mono(mode)) {
+                return monochrome_bitmap;
+            }
+
+            if (mode == display_mode::color16map) {
+                return color_bitmap_with_alpha_pm;
+            }
+
+            if (mode == display_mode::color16ma) {
+                return color_bitmap_with_alpha;
+            }
+
+            return color_bitmap;
+        }
+
+        display_mode bitwise_bitmap::current_display_mode() const {
+            const display_mode mode = settings_.current_display_mode();
+            return (mode == display_mode::none) ? settings_.initial_display_mode() : mode;
         }
 
         bool bitwise_bitmap::settings::dirty_bitmap() const {
@@ -132,6 +148,22 @@ namespace eka2l1 {
         }
 
         static void do_white_fill(std::uint8_t *dest, const std::size_t size, epoc::display_mode mode) {
+            // EColor4K keeps 12 bits in a 16-bit pixel, so an all-ones byte fill gives 0xFFFF
+            // rather than white. Every other mode's all-ones pattern is already white.
+            if (mode == epoc::display_mode::color4k) {
+                const std::size_t pixel_count = size >> 1;
+                for (std::size_t i = 0; i < pixel_count; i++) {
+                    dest[i * 2] = 0xFF;
+                    dest[i * 2 + 1] = 0x0F;
+                }
+
+                if (size & 1) {
+                    dest[size - 1] = 0xFF;
+                }
+
+                return;
+            }
+
             std::fill(dest, dest + size, 0xFF);
         }
 
@@ -172,7 +204,7 @@ namespace eka2l1 {
             byte_width_ = get_byte_width(info.size_pixels.width(), static_cast<std::uint8_t>(info.bit_per_pixels));
 
             if (white_fill && (data_offset_ != 0)) {
-                do_white_fill(reinterpret_cast<std::uint8_t *>(data), info.bitmap_size - sizeof(loader::sbm_header), settings_.current_display_mode());
+                do_white_fill(reinterpret_cast<std::uint8_t *>(data), info.bitmap_size - sizeof(loader::sbm_header), disp_mode);
             }
         }
 
@@ -441,11 +473,16 @@ namespace eka2l1 {
         std::size_t avail_dest_size = common::align(size_when_compressed, 4);
         void *data = nullptr;
 
-        if (is_large_bitmap(static_cast<std::uint32_t>(avail_dest_size))) {
-            data = large_chunk_allocator->allocate(avail_dest_size);
-        } else {
-            data = shared_chunk_allocator->allocate(avail_dest_size);
-            *err_code = fbs_load_data_err_small_bitmap;
+        {
+            // Shared with worker-thread bitmap creation; see create_bitmap().
+            const std::lock_guard<std::recursive_mutex> guard(allocator_lock_);
+
+            if (is_large_bitmap(static_cast<std::uint32_t>(avail_dest_size))) {
+                data = large_chunk_allocator->allocate(avail_dest_size);
+            } else {
+                data = shared_chunk_allocator->allocate(avail_dest_size);
+                *err_code = fbs_load_data_err_small_bitmap;
+            }
         }
 
         if (data == nullptr) {
@@ -535,6 +572,11 @@ namespace eka2l1 {
         }
 
         bmp = get_clean_bitmap(bmp);
+
+        // A second client is picking the bitmap up, so whoever created it is done
+        // writing. If it holds NVG vector data, turn it into pixels now — the new
+        // owner may well blit it with BitGDI, which cannot decode NVG here.
+        server<fbs_server>()->rasterize_nvg_bitmap(bmp);
 
         const std::uint32_t handle_ret = obj_table_.add(bmp);
         const std::uint32_t server_handle = bmp->id;
@@ -742,6 +784,159 @@ namespace eka2l1 {
         return epoc::get_byte_width(size.x, epoc::get_bpp_from_display_mode(bpp)) * size.y;
     }
 
+    // Symbian keeps an NVG icon as an *extended* bitmap: the shared data holds an
+    // akn_icon_header plus the compressed vector commands, and BitGDI asks the ROM's
+    // CFbsRasterizer plugin to turn that into pixels whenever a client reads it,
+    // rasterising into the bitmap's conceptual size and display mode. The emulator
+    // has no such plugin, so a guest that draws an extended bitmap on its own — an
+    // app painting a skin frame into its own bitmap through CFbsBitGc, or Avkon
+    // dimming an icon by blitting its mask into a plain EGray256 one — copies the
+    // raw NVG bytes as if they were pixels and ends up with noise.
+    //
+    // Stand in for the rasterizer: render the icon into the shared data and demote
+    // the bitmap to a plain one, so every reader — guest BitGDI and our own window
+    // server bitmap cache alike — sees real pixels. Overwriting the vector data is
+    // safe because extended bitmaps are immutable by contract (CreateExtendedBitmap
+    // documents modification as undefined behaviour), so nothing re-reads it; a
+    // different size means a different extended bitmap. This runs when a *second*
+    // client picks the bitmap up (duplicate), by which point the creator has
+    // finished the Mem::Copy of the vector data that follows creation.
+    bool fbs_server::rasterize_nvg_bitmap(fbsbitmap *bmp) {
+        if (!bmp || !bmp->bitmap_ || (bmp->bitmap_->uid_ != epoc::NVG_BITMAP_UID_REV2)) {
+            return false;
+        }
+
+        epoc::bitwise_bitmap *bws = bmp->bitmap_;
+        std::uint8_t *data = reinterpret_cast<std::uint8_t *>(bws->data_pointer(this));
+        if (!data) {
+            return false;
+        }
+
+        const int width = bws->header_.size_pixels.x;
+        const int height = bws->header_.size_pixels.y;
+        if (!epoc::is_nvg_bitmap_rasterizable(bws->header_.size_pixels, bws->settings_.current_display_mode())) {
+            return false;
+        }
+
+        // The data region was sized for the raster form at creation time (see
+        // create_bitmap), so bail out rather than overrun a too-small allocation.
+        const std::size_t raster_bytes = calculate_aligned_bitmap_bytes(bws->header_.size_pixels,
+            bws->settings_.current_display_mode());
+        const std::uint32_t available = bws->header_.bitmap_size - bws->header_.header_len;
+
+        if ((raster_bytes == 0) || (available < raster_bytes)) {
+            return false;
+        }
+
+        utils::akn_icon_header *icon_header = reinterpret_cast<utils::akn_icon_header *>(data);
+        const std::uint8_t *nvg_data = data + icon_header->header_size_;
+        const std::uint32_t nvg_size = (available > icon_header->header_size_)
+            ? (available - icon_header->header_size_) : 0;
+        const bool is_mask = icon_header->is_mask_;
+
+        std::vector<std::uint8_t> rgba(static_cast<std::size_t>(width) * height * 4, 0);
+
+        if (!is_mask && (icon_header->icon_color_ & 0xFFFFFF)) {
+            // A colour icon with a forced tint: the vector data only describes the
+            // shape, the paired mask carries it. Mirror the window server and fill
+            // the colour plane flat.
+            const std::uint32_t colour = static_cast<std::uint32_t>(icon_header->icon_color_);
+            for (std::size_t i = 0; i < rgba.size(); i += 4) {
+                rgba[i + 0] = static_cast<std::uint8_t>((colour >> 16) & 0xFF);
+                rgba[i + 1] = static_cast<std::uint8_t>((colour >> 8) & 0xFF);
+                rgba[i + 2] = static_cast<std::uint8_t>(colour & 0xFF);
+                rgba[i + 3] = 0xFF;
+            }
+        } else {
+            if (nvg_size == 0) {
+                return false;
+            }
+
+            common::ro_buf_stream nvg_in(const_cast<std::uint8_t *>(nvg_data), nvg_size);
+            common::wo_growable_buf_stream svg_out;
+            std::vector<loader::nvg_convert_error_description> errors;
+
+            loader::nvg_options opts;
+            opts.width = width;
+            opts.height = height;
+            opts.aspect_ratio_mode_ = static_cast<loader::nvg_aspect_ratio_mode>(icon_header->aspect_ratio_);
+
+            if (!loader::convert_nvg_to_svg(nvg_in, svg_out, errors, &opts)) {
+                return false;
+            }
+
+            auto doc = lunasvg::Document::loadFromData(svg_out.content());
+            if (!doc) {
+                return false;
+            }
+
+            lunasvg::Bitmap luna(rgba.data(), width, height, width * 4);
+            doc->render(luna, lunasvg::Matrix{ 1, 0, 0, 1, 0, 0 });
+            luna.convertToRGBA();
+        }
+
+        // Write the pixels back in the bitmap's own display mode. A mask keeps only
+        // coverage, a colour plane keeps the rendered colour.
+        const epoc::display_mode dpm = bws->settings_.current_display_mode();
+        const int bpp = epoc::get_bpp_from_display_mode(dpm);
+        const int byte_width = bws->byte_width_;
+
+        // Scanlines are word aligned, so an odd width leaves padding pixels the loop
+        // below never touches. Clear the whole raster region first: leftover vector
+        // bytes there show up as a stray column of noise once BitGDI blits the bitmap.
+        std::memset(data, 0, raster_bytes);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                const std::uint8_t *src = rgba.data() + (static_cast<std::size_t>(y) * width + x) * 4;
+                std::uint8_t *dst = data + static_cast<std::size_t>(y) * byte_width;
+
+                switch (bpp) {
+                case 8:
+                    dst[x] = epoc::is_display_mode_mono(dpm) ? src[3] : src[0];
+                    break;
+
+                case 16: {
+                    const std::uint16_t px = static_cast<std::uint16_t>(((src[0] >> 3) << 11)
+                        | ((src[1] >> 2) << 5) | (src[2] >> 3));
+                    *reinterpret_cast<std::uint16_t *>(dst + x * 2) = px;
+                    break;
+                }
+
+                case 24:
+                    dst[x * 3 + 0] = src[2];
+                    dst[x * 3 + 1] = src[1];
+                    dst[x * 3 + 2] = src[0];
+                    break;
+
+                case 32:
+                    dst[x * 4 + 0] = src[2];
+                    dst[x * 4 + 1] = src[1];
+                    dst[x * 4 + 2] = src[0];
+                    dst[x * 4 + 3] = epoc::is_display_mode_alpha(dpm) ? src[3] : 0xFF;
+                    break;
+
+                default:
+                    return false;
+                }
+            }
+        }
+
+        // Shrink the advertised data size back to the raster form. The region was
+        // over-allocated to fit whichever of the two was bigger, and every reader
+        // derives its buffer size from the header.
+        bws->header_.bitmap_size = static_cast<std::uint32_t>(raster_bytes) + bws->header_.header_len;
+        bws->header_.compression = epoc::bitmap_file_no_compression;
+        bws->compressed_in_ram_ = false;
+
+        // The shared structure identifies a plain bitmap by BITWISE_BITMAP_UID, not by
+        // the NORMAL_BITMAP_UID_REV2 the creation IPC speaks in; readers key their
+        // pixel format off this field.
+        bws->uid_ = epoc::BITWISE_BITMAP_UID;
+
+        return true;
+    }
+
     static std::uint32_t calculate_reserved_each_side(const std::uint32_t height) {
         // Reserve some space in left and right. Observed shows some apps outwrite their
         // available data region, a little bit, hopefully.
@@ -752,6 +947,11 @@ namespace eka2l1 {
     }
 
     fbsbitmap *fbs_server::create_bitmap(fbs_bitmap_data_info &info, const bool alloc_data, const bool support_current_display_mode_flag, const bool support_dirty) {
+        // Registry loading (applist server) calls this from a worker thread pool, so guard
+        // the whole routine: it both lazily initializes the server and mutates the shared
+        // chunk allocators, none of which are otherwise thread-safe.
+        const std::lock_guard<std::recursive_mutex> guard(allocator_lock_);
+
         if (!shared_chunk || !large_chunk) {
             initialize_server();
         }
@@ -803,7 +1003,7 @@ namespace eka2l1 {
         header.compression = info.comp_;
         header.bitmap_size = static_cast<std::uint32_t>(original_bytes + sizeof(loader::sbm_header));
         header.size_pixels = info.size_;
-        header.color = get_bitmap_color_type_from_display_mode(info.dpm_);
+        header.color = epoc::get_bitmap_color_from_display_mode(info.dpm_);
         header.header_len = sizeof(loader::sbm_header);
         header.palette_size = 0;
         header.size_twips = info.size_ * epoc::get_approximate_pixel_to_twips_mul(kern->get_epoc_version());
@@ -833,6 +1033,9 @@ namespace eka2l1 {
             return false;
         }
 
+        // See create_bitmap(): the chunk allocators are shared with worker threads.
+        const std::lock_guard<std::recursive_mutex> guard(allocator_lock_);
+
         bool no_failure = true;
 
         if (bmp->bitmap_->data_offset_) {
@@ -858,6 +1061,28 @@ namespace eka2l1 {
         });
 
         return no_failure;
+    }
+
+    std::size_t fbs_server::readable_bytes_from(const std::uint8_t *ptr) const {
+        // Membership is tested against the whole reserved range so a pointer past
+        // the committed end still resolves to this chunk (and clamps to zero)
+        // instead of falling through with an unbounded size.
+        if (shared_chunk && base_shared_chunk && (ptr >= base_shared_chunk) && (ptr < base_shared_chunk + shared_chunk->max_size())) {
+            const std::uint8_t *committed_end = base_shared_chunk + shared_chunk->committed();
+            return (ptr < committed_end) ? static_cast<std::size_t>(committed_end - ptr) : 0;
+        }
+
+        if (large_chunk && base_large_chunk && (ptr >= base_large_chunk) && (ptr < base_large_chunk + large_chunk->max_size())) {
+            const std::uint8_t *committed_end = base_large_chunk + large_chunk->committed();
+            return (ptr < committed_end) ? static_cast<std::size_t>(committed_end - ptr) : 0;
+        }
+
+        // Pixels always come out of one of the two chunks above, whatever the
+        // bitmap's age or format: even a bitmap read straight from a ROM MBM is
+        // decompressed into them (load_data_to_rom). A pointer that lands outside
+        // both was computed from a header field that no longer describes reality,
+        // and following it walks host memory the emulator does not own.
+        return 0;
     }
 
     bool fbs_server::is_large_bitmap(const std::uint32_t compressed_size) const {
@@ -928,6 +1153,16 @@ namespace eka2l1 {
 
         fbs_server *fbss = server<fbs_server>();
 
+        // An NVG extended bitmap is only as big as its compressed vector data, which is
+        // usually smaller than the raster form. Reserve room for the pixels up front so
+        // rasterize_nvg_bitmap() can expand it in place later on.
+        const std::uint32_t vector_size = force_size;
+
+        if ((assign_uid == epoc::NVG_BITMAP_UID_REV2) && epoc::is_nvg_bitmap_rasterizable(specs.size, specs.bpp)) {
+            force_size = common::max(force_size,
+                static_cast<std::uint32_t>(calculate_aligned_bitmap_bytes(specs.size, specs.bpp)));
+        }
+
         fbs_bitmap_data_info info;
         info.size_ = specs.size;
         info.dpm_ = specs.bpp;
@@ -938,6 +1173,14 @@ namespace eka2l1 {
         if (!bmp) {
             ctx->complete(epoc::error_no_memory);
             return;
+        }
+
+        if ((force_size > vector_size) && bmp->bitmap_) {
+            // The client only fills the vector part; keep the padding deterministic so a
+            // reader that trusts the (now larger) data size never sees stale heap.
+            if (std::uint8_t *data = reinterpret_cast<std::uint8_t *>(bmp->bitmap_->data_pointer(fbss))) {
+                std::memset(data + vector_size, 0, force_size - vector_size);
+            }
         }
 
         if (use_bmp_handles_writeback) {
@@ -1098,6 +1341,11 @@ namespace eka2l1 {
             old_header.size_pixels.y = new_size.y;
             old_header.size_twips = old_header.size_pixels * epoc::get_approximate_pixel_to_twips_mul(fbss->kern->get_epoc_version());
 
+            // data_pointer() re-derives which chunk the pixels live in from this size, so a
+            // resize that leaves it describing the old data sends the next read to the wrong base.
+            old_header.bitmap_size = old_header.header_len + epoc::get_byte_width(new_size.x,
+                static_cast<std::uint8_t>(old_header.bit_per_pixels)) * new_size.y;
+
             // Free old data
             std::uint8_t *data = new_bmp->original_pointer(fbss);
             if (new_bmp->bitmap_->offset_from_me_) {
@@ -1124,6 +1372,23 @@ namespace eka2l1 {
                 server<fbs_server>()->compressor->notify(dirty_nof_);
             }
         }
+    }
+
+    void fbscli::set_bitmap_size_in_twips(service::ipc_context *ctx) {
+        const epoc::handle handle = *(ctx->get_argument_value<std::uint32_t>(0));
+        fbsbitmap *bmp = obj_table_.get<fbsbitmap>(handle);
+
+        if (!bmp) {
+            ctx->complete(epoc::error_unknown);
+            return;
+        }
+
+        // Metadata only, like the client-side CFbsBitmap::SetSizeInTwips this replaces.
+        bmp = get_clean_bitmap(bmp);
+        bmp->bitmap_->header_.size_twips = eka2l1::object_size(*(ctx->get_argument_value<int>(1)),
+            *(ctx->get_argument_value<int>(2)));
+
+        ctx->complete(epoc::error_none);
     }
 
     void fbscli::cancel_notify_dirty_bitmap(service::ipc_context *ctx) {
@@ -1526,7 +1791,8 @@ namespace eka2l1 {
                         dest.write(&pixel, 1);
                         dest.write(&pixel, 1);
                         dest.write(&pixel, 1);
-                        dest.write(&pixel, 1);
+                        const std::uint8_t alpha = make_standard_mask ? pixel : 255;
+                        dest.write(&alpha, 1);
                     }
                 }
 
@@ -1582,6 +1848,23 @@ namespace eka2l1 {
 
             common::ro_buf_stream buf_stream(data.data(), data.size());
             return convert_to_rgba8888(serv, buf_stream, dest, file.sbm_headers[index], -1, static_cast<bitmap_file_compression>(file.sbm_headers[index].compression), make_standard_mask);
+        }
+
+        // BITGDI treats only EGray256 as alpha; Avkon uses inverted stencils otherwise
+        // (BITBLT.CPP, EIKCLBD.CPP), so a stencil's white preserves the destination.
+        void apply_icon_mask_alpha(std::uint8_t *icon_rgba, const std::uint8_t *mask_rgba,
+            const std::size_t width, const std::size_t height, const epoc::display_mode mask_mode) {
+            if (!icon_rgba || !mask_rgba) {
+                return;
+            }
+
+            const bool soft = (mask_mode == epoc::display_mode::gray256);
+
+            for (std::size_t i = 0; i < width * height; i++) {
+                icon_rgba[i * 4 + 3] = soft
+                    ? mask_rgba[i * 4]
+                    : static_cast<std::uint8_t>(255 - mask_rgba[i * 4 + 3]);
+            }
         }
     }
 

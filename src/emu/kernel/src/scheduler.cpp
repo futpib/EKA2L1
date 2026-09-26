@@ -116,8 +116,9 @@ namespace eka2l1::kernel {
 
                 run_core->flush_tlb();
 
-                // NOTE: This is not needed now
-                //run_core->set_asid(mm_process->address_space_id());
+                // Let the core tag its translation cache with the new address
+                // space so blocks survive this switch instead of being discarded.
+                run_core->set_asid(mm_process->address_space_id());
             }
 
             run_core->load_context(crr_thread->ctx);
@@ -130,7 +131,6 @@ namespace eka2l1::kernel {
             if (kern->should_core_idle_when_inactive()) {
                 kern->unlock();
                 idle_event.wait();
-                idle_event.reset();
                 kern->lock();
             }
         }
@@ -184,6 +184,19 @@ namespace eka2l1::kernel {
                 // Use our old outdated friend, it seems only one thread exists
                 next_thread = old_friend;
             }
+        }
+
+        // A ready thread can briefly outlive its process's memory model during a
+        // multi-step teardown. Drop the stale entries so switch_context receives a
+        // runnable thread with a valid address space.
+        while (next_thread) {
+            kernel::process *owner = next_thread->owning_process();
+            if (owner && owner->get_mem_model()) {
+                break;
+            }
+
+            dequeue_thread_from_ready(next_thread);
+            next_thread = next_ready_thread();
         }
 
         switch_context(crr_thread, next_thread);
@@ -281,6 +294,7 @@ namespace eka2l1::kernel {
 
             thr->state = thread_state::wait;
             dequeue_thread_from_ready(thr);
+            kern->prepare_reschedule();
         }
 
         // Schedule the thread to be waken up

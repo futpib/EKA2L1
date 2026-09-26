@@ -1,5 +1,6 @@
 add_library(epoc
         src/deterministic.cpp
+        include/system/installation/archive.h
         include/system/installation/firmware.h
         include/system/installation/install_device.h
         include/system/installation/rpkg.h
@@ -8,6 +9,7 @@ add_library(epoc
         include/system/epoc.h
         include/system/hal.h
         include/system/software.h
+        src/installation/archive.cpp
         src/installation/firmware.cpp
         src/installation/install_device.cpp
         src/installation/rpkg.cpp
@@ -35,7 +37,6 @@ target_link_libraries(epoc PRIVATE
         FAT
         gdbstub
         j2me
-        miniz
         pugixml)
 
 if (EKA2L1_ENABLE_SCRIPTING_ABILITY)

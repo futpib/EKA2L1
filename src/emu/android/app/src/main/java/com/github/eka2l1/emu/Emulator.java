@@ -33,6 +33,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
@@ -112,6 +113,7 @@ public class Emulator {
     private static Context context;
     private static boolean vibrationEnabled;
     private static Vibrator vibrator;
+    private static WifiManager.MulticastLock multicastLock;
     private static AlertDialog inputDialog;
 
     private static AlertDialog questionDialog;
@@ -133,16 +135,18 @@ public class Emulator {
     public static void initializePath(Context context) {
         Emulator.context = context;
 
-        if (FileUtils.isExternalStorageLegacy()) {
-            String defaultEmulatorDir = Environment.getExternalStorageDirectory() + "/EKA2L1/";
+        final String defaultEmulatorDir = FileUtils.isExternalStorageLegacy()
+                ? Environment.getExternalStorageDirectory() + "/EKA2L1/"
+                : context.getExternalFilesDir(null).getPath() + "/";
 
-            // Order is important :)
-            persistentDataDir = defaultEmulatorDir;
-            emulatorDir = AppDataStore.getAndroidStore().getString(PREF_EMULATOR_DIR, defaultEmulatorDir);
-        } else {
-            emulatorDir = context.getExternalFilesDir(null).getPath() + "/";
-            persistentDataDir = emulatorDir;
-        }
+        // Order is important :) The settings store holds the working directory
+        // override, so it stays in the default directory, which is always reachable.
+        persistentDataDir = defaultEmulatorDir;
+
+        final String customDir = AppDataStore.getAndroidStore().getString(PREF_EMULATOR_DIR, null);
+        emulatorDir = FileUtils.isUsableWorkingDir(customDir)
+                ? FileUtils.ensureTrailingSeparator(customDir)
+                : defaultEmulatorDir;
 
         compatDir = emulatorDir + "compat/";
         configsDir = emulatorDir + "android/configs/";
@@ -350,6 +354,26 @@ public class Emulator {
     public static void stopVibrate() {
         if (vibrator != null) {
             vibrator.cancel();
+        }
+    }
+
+    @SuppressLint("unused")
+    public static synchronized void setMulticastLock(boolean held) {
+        if (multicastLock == null) {
+            if (context == null) {
+                return;
+            }
+            WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            if (wifiManager == null) {
+                return;
+            }
+            multicastLock = wifiManager.createMulticastLock("EKA2L1 netplay");
+            multicastLock.setReferenceCounted(false);
+        }
+        if (held) {
+            multicastLock.acquire();
+        } else if (multicastLock.isHeld()) {
+            multicastLock.release();
         }
     }
 
@@ -752,6 +776,8 @@ public class Emulator {
     public static native int installNGageGame(String path);
 
     public static native void loadConfig();
+
+    public static native boolean validHostMapping(String hostname, String target);
 
     public static native void setLanguage(int languageId);
 

@@ -23,6 +23,7 @@
 #include <services/applist/common.h>
 #include <services/framework.h>
 
+#include <common/vecx.h>
 #include <utils/des.h>
 #include <vfs/vfs.h>
 
@@ -111,6 +112,9 @@ namespace eka2l1 {
 
         bool supports_screen_mode(const int mode_num);
     };
+
+    epoc::uid find_data_type_handler(const std::vector<apa_app_registry> &registries,
+        const std::string &mime_type, epoc::uid native_uid = 0);
 
     /**
      * \brief Read registeration info from a stream.
@@ -229,8 +233,6 @@ namespace eka2l1 {
         void sort_registry_list();
         void init();
 
-        bool delete_registry(const std::u16string &rsc_path);
-
         bool load_registry(eka2l1::io_system *io, const std::u16string &path, drive_number land_drive,
             const language ideal_lang = language::en);
 
@@ -261,6 +263,9 @@ namespace eka2l1 {
          * Expected request status: KErrNone. 
         */
         void app_language(service::ipc_context &ctx);
+
+        /*! \brief Get how many applications the list holds, as the completion code. */
+        void app_count(service::ipc_context &ctx);
 
         /*! \brief Request the server to run app.
          *
@@ -301,15 +306,16 @@ namespace eka2l1 {
         void get_app_icon_sizes(service::ipc_context &ctx);
         void get_native_executable_name_if_non_native(service::ipc_context &ctx);
         void app_info_provided_by_reg_file(service::ipc_context &ctx);
-        std::string recognize_data_impl(common::ro_stream &stream);
 
         void launch_app(service::ipc_context &ctx);
         void is_program(service::ipc_context &ctx);
         void get_preferred_buf_size(service::ipc_context &ctx);
         void get_app_for_document(service::ipc_context &ctx);
+        void get_app_for_data_type(service::ipc_context &ctx);
         void get_app_for_document_by_file_handle(service::ipc_context &ctx);
         void get_app_for_document_impl(service::ipc_context &ctx, const std::u16string &path);
         void get_app_executable_name_given_app_uid(service::ipc_context &ctx);
+        void recognize_data(service::ipc_context &ctx);
         void recognize_data_by_file_handle(service::ipc_context &ctx);
         void get_supported_data_types_phase1(service::ipc_context &ctx);
         void get_supported_data_types_phase2(service::ipc_context &ctx);
@@ -319,11 +325,25 @@ namespace eka2l1 {
     protected:
         bool launch_app(const std::u16string &exe_path, const std::u16string &cmd, kernel::uid *thread_id,
             kernel::process *requester = nullptr, const epoc::uid known_uid = 0,
-            std::function<void(kernel::process*)> app_exit_callback = nullptr);
+            std::function<void(kernel::process*)> app_exit_callback = nullptr,
+            const std::string *environment_main = nullptr);
 
     public:
         explicit applist_server(system *sys);
         ~applist_server() override;
+
+        // Recognition depends on the data and the name, not on server state, so this
+        // is a static and can be exercised on its own.
+        static data_recog_result recognize_data_impl(common::ro_stream &stream, const std::u16string &name);
+
+        /**
+         * \brief Forget a registeration without waiting for the next rescan.
+         *
+         * Used by frontends that delete an installed app's files themselves.
+         *
+         * \param rsc_path Path of the registeration file the entry was read from.
+         */
+        bool delete_registry(const std::u16string &rsc_path);
 
         /**
          * @brief       Get the legacy level of the server.
@@ -333,7 +353,11 @@ namespace eka2l1 {
         bool launch_app(apa_app_registry &registry, epoc::apa::command_line &parameter, kernel::uid *thread_id,
                         std::function<void(kernel::process*)> app_exit_callback = nullptr);
 
-        std::optional<apa_app_masked_icon_bitmap> get_icon(apa_app_registry &registry, const std::int8_t index);
+        std::optional<apa_app_masked_icon_bitmap> get_icon(apa_app_registry &registry, const std::size_t index);
+
+        // Exact dimensions win; otherwise choose the nearest area that does not exceed the request.
+        std::optional<apa_app_masked_icon_bitmap> get_icon_by_size(apa_app_registry &registry, const eka2l1::vec2 &size);
+        std::optional<apa_app_masked_icon_bitmap> get_list_icon(apa_app_registry &registry);
 
         std::mutex list_access_mut_;
 

@@ -56,7 +56,9 @@ namespace eka2l1 {
         std::u16string priority_filename = u"resource\\apps\\PrioritySet.rsc";
         symfile f = nullptr;
 
-        for (drive_number drive = drive_z; drive >= drive_a; drive = static_cast<drive_number>(static_cast<int>(drive) - 1)) {
+        // Stepping one below drive_a would leave the enum's value range.
+        for (int drive_index = drive_z; drive_index >= drive_a; drive_index--) {
+            const drive_number drive = static_cast<drive_number>(drive_index);
             if (io->get_drive_entry(drive)) {
                 f = io->open_file(std::u16string(drive_to_char16(drive), 1) + priority_filename, READ_MODE | BIN_MODE);
 
@@ -203,6 +205,24 @@ namespace eka2l1 {
                 queue_.queue_event({ ui::view::view_event::event_deactive_notification, id, ui::view::EMPTY_VIEW_ID, 0, 0 });
             }
         }
+    }
+
+    void view_session::notify_next_transition(service::ipc_context *ctx, const bool activation) {
+        const auto id = ctx->get_argument_data_from_descriptor<ui::view::view_id>(0);
+        if (!id) {
+            ctx->complete(epoc::error_argument);
+            return;
+        }
+
+        if (activation) {
+            outstanding_activation_notify_ = true;
+            next_activation_id_ = *id;
+        } else {
+            outstanding_deactivation_notify_ = true;
+            next_deactivation_id_ = *id;
+        }
+
+        ctx->complete(epoc::error_none);
     }
 
     void view_session::add_view(service::ipc_context *ctx) {
@@ -432,6 +452,14 @@ namespace eka2l1 {
 
         case view_opcode_create_deactivate_view_event:
             deactive_view(ctx, false);
+            break;
+
+        case view_opcode_notify_next_activation:
+            notify_next_transition(ctx, true);
+            break;
+
+        case view_opcode_notify_next_deactivation:
+            notify_next_transition(ctx, false);
             break;
 
         case view_opcode_request_custom_message:

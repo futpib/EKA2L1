@@ -27,13 +27,13 @@ TEST_CASE("Deterministic PCM consumes source frames on the guest clock", "audio"
     REQUIRE_FALSE(out.set_properties(8000, 3));
     REQUIRE_FALSE(out.format(MP3_FOUR_CC_CODE));
     unsigned requests = 0;
-    out.register_callback(dsp_stream_notification_more_buffer, [&](void *) { ++requests; }, nullptr);
+    out.register_callback(dsp_stream_notification_more_buffer, [&](void *) { ++requests; return true; }, nullptr);
     std::vector<std::uint8_t> pcm(800 * 4, 0x10); // 100 ms stereo.
     REQUIRE_FALSE(out.write(pcm.data(), 3));
     REQUIRE(out.write(pcm.data(), pcm.size()));
     REQUIRE(out.start());
     fixture.advance(50000);
-    REQUIRE(out.samples_played() == 400);
+    REQUIRE(out.samples_played() == 800);
     REQUIRE(out.samples_copied() == 800);
     REQUIRE(out.bytes_rendered() == 1600);
     REQUIRE(out.position() == 50000);
@@ -66,7 +66,7 @@ TEST_CASE("Deterministic mixer exports signed PCM with exact duration and safe c
     const std::uint8_t pcm[] = {0x80, 0x7f};
     REQUIRE(out.write(pcm, sizeof(pcm)));
     REQUIRE(out.start());
-    out.register_callback(dsp_stream_notification_more_buffer, [&](void *) { stream.reset(); }, nullptr);
+    out.register_callback(dsp_stream_notification_more_buffer, [&](void *) { stream.reset(); return false; }, nullptr);
     fixture.advance(250);
     REQUIRE_FALSE(stream);
     const auto dir = std::filesystem::temp_directory_path() / "eka-audio-unit";
@@ -81,4 +81,17 @@ TEST_CASE("Deterministic mixer exports signed PCM with exact duration and safe c
         REQUIRE((bytes[46 + i * 4] | bytes[47 + i * 4] << 8) == expected);
     }
     std::filesystem::remove_all(dir);
+}
+
+TEST_CASE("Deterministic PCM retries declined buffer notifications", "audio") {
+    using namespace eka2l1::drivers;
+    audio_fixture fixture;
+    auto stream = new_benchmark_dsp_out_stream();
+    auto &out = static_cast<dsp_output_stream &>(*stream);
+    unsigned requests = 0;
+    out.register_callback(dsp_stream_notification_more_buffer,
+        [&](void *) { return ++requests == 3; }, nullptr);
+    REQUIRE(out.start());
+    for (unsigned tick = 1; tick <= 4; ++tick) fixture.advance(tick * 10000);
+    REQUIRE(requests == 3);
 }

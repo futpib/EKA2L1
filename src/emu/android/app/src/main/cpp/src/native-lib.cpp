@@ -25,6 +25,7 @@
 #include <common/android/storage.h>
 #include <common/fileutils.h>
 #include <common/path.h>
+#include <config/config.h>
 #include <drivers/audio/audio.h>
 #include <drivers/camera/backend/android/emulator_camera_jni_public.h>
 #include <drivers/camera/camera_collection.h>
@@ -261,6 +262,26 @@ Java_com_github_eka2l1_emu_Emulator_loadConfig(JNIEnv *env, jclass clazz) {
     state->launcher->load_config();
 }
 
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_github_eka2l1_emu_Emulator_validHostMapping(JNIEnv *env, jclass clazz, jstring hostname, jstring target) {
+    if (!hostname || !target) {
+        return JNI_FALSE;
+    }
+    const char *name = env->GetStringUTFChars(hostname, nullptr);
+    if (!name) {
+        return JNI_FALSE;
+    }
+    const std::string name_copy(name);
+    env->ReleaseStringUTFChars(hostname, name);
+    const char *address = env->GetStringUTFChars(target, nullptr);
+    if (!address) {
+        return JNI_FALSE;
+    }
+    const bool valid = eka2l1::config::valid_host_pattern(name_copy) && eka2l1::config::valid_host_target(address);
+    env->ReleaseStringUTFChars(target, address);
+    return valid;
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_com_github_eka2l1_emu_Emulator_setLanguage(JNIEnv *env, jclass clazz, jint language_id) {
     state->launcher->set_language(language_id);
@@ -381,6 +402,12 @@ Java_com_github_eka2l1_emu_EmulatorCamera_onFrameViewfinderDelivered(JNIEnv *env
         env->ReleaseByteArrayElements(raw_data, data, 0);
     }
 }
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_github_eka2l1_emu_EmulatorCamera_guestFrameRotation(JNIEnv *env, jclass clazz) {
+    return eka2l1::drivers::camera::frame_rotation();
+}
+
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_github_eka2l1_emu_EmulatorCamera_doesCameraAllowNewFrame(JNIEnv *env, jclass clazz,

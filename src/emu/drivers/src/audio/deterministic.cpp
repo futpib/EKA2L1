@@ -144,7 +144,7 @@ namespace eka2l1::drivers {
                     if (!queue_.empty()) {
                         queue_.pop_front();
                         ++played_frames_;
-                        ++samples_played_;
+                        samples_played_ += channels_;
                         samples_copied_ += channels_;
                     }
                 }
@@ -157,7 +157,13 @@ namespace eka2l1::drivers {
                 record("more_buffer");
                 auto callback = more_buffer_callback_;
                 auto userdata = more_buffer_userdata_;
-                if (callback) callback(userdata); // May stop or destroy the stream.
+                const auto id = id_;
+                if (callback && !callback(userdata)) {
+                    // Upstream callbacks may decline delivery. Retry next guest
+                    // tick, but never touch a stream destroyed by the callback.
+                    if (std::find(streams.begin(), streams.end(), this) != streams.end() && id_ == id)
+                        requested_ = false;
+                }
             }
         };
 

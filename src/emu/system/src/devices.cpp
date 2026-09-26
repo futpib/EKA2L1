@@ -144,6 +144,7 @@ namespace eka2l1 {
         { "rm-670", 0x2002C12C }, // Nokia 700
         { "rm-779", 0x20035565 }, // Nokia 603
         { "rm-750", 0x20035566 }, // Nokia 500
+        { "p900", 0x101FB2AE }, // Sony Ericsson P900
     };
 
     static std::array<std::string, 3> S80_DEVICES_FIRMCODE = {
@@ -354,6 +355,34 @@ namespace eka2l1 {
         devices.push_back(dvc);
 
         return add_device_none;
+    }
+
+    std::vector<std::string> per_device_storage_paths(const std::string &firmware_code) {
+        const std::string firmcode = common::lowercase_string(firmware_code);
+
+        std::vector<std::string> paths{
+            "drives/z/" + firmcode + "/",
+            "roms/" + firmcode + "/"
+        };
+
+        // Kept in step with the servers that write these: the central repository
+        // persists a repo per device (see central_repo::write_changes), and the
+        // message store keeps a mail folder and an MTM registry per device (see
+        // msv_server::init, which uses the older System paths on EKA1).
+        static const char *SHARED_DRIVE_DIRS[] = {
+            "private/10202be9/persists/",
+            "private/1000484b/mail2/",
+            "system/mail/",
+            "system/mtm/"
+        };
+
+        for (const char *drive : { "c", "d", "e" }) {
+            for (const char *dir : SHARED_DRIVE_DIRS) {
+                paths.push_back(std::string("drives/") + drive + "/" + dir + firmcode + "/");
+            }
+        }
+
+        return paths;
     }
 
     bool device_manager::delete_device(const std::string &firmcode) {

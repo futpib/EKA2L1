@@ -24,6 +24,7 @@
 
 #include <drivers/graphics/graphics.h>
 #include <kernel/kernel.h>
+#include <kernel/thread.h>
 #include <services/window/common.h>
 #include <services/window/window.h>
 #include <services/window/classes/wingroup.h>
@@ -42,14 +43,31 @@ namespace eka2l1::dispatch {
     }
 
     void screen_post_transferer::complete_notify(epoc::notify_info *info) {
-        const std::lock_guard<std::mutex> guard(lock_);
+        {
+            const std::lock_guard<std::mutex> guard(lock_);
 
-        auto ite = std::find(vsync_notifies_.begin(), vsync_notifies_.end(), info);
-        if (ite != vsync_notifies_.end()) {
+            auto ite = std::find(vsync_notifies_.begin(), vsync_notifies_.end(), info);
+            if (ite == vsync_notifies_.end()) {
+                delete info;
+                return;
+            }
+
             vsync_notifies_.erase(ite);
         }
 
+        // Completing a guest request needs the kernel lock; this runs on the posting
+        // thread, so take it here rather than signalling the guest unlocked.
+        kernel_system *kern = info->requester ? info->requester->get_kernel_object_owner() : nullptr;
+        if (kern) {
+            kern->lock();
+        }
+
         info->complete(epoc::error_none);
+
+        if (kern) {
+            kern->unlock();
+        }
+
         delete info;
     }
 
@@ -194,111 +212,43 @@ namespace eka2l1::dispatch {
 
     BRIDGE_FUNC_DISPATCHER(void, update_screen, const std::uint32_t screen_number, const std::uint32_t num_rects, const eka2l1::rect *rect_list) {
         dispatch::dispatcher *dispatcher = sys->get_dispatcher();
-        drivers::graphics_driver *driver = sys->get_graphics_driver();
-        kernel_system *kern = sys->get_kernel_system();
 
         // TODO: Update only some regions specified. Rotation makes it complicated
         epoc::screen *scr = dispatcher->winserv_->get_screens();
 
         while (scr != nullptr) {
-            if (scr->number == screen_number) {
-                // Update the DSA screen texture
-                const epoc::config::screen_mode &mode_info = scr->current_mode();
-                const eka2l1::vec2 screen_size = mode_info.size;
-
-                const char *data_ptr = reinterpret_cast<const char *>(scr->screen_buffer_ptr());
-                const std::size_t buffer_size = mode_info.size.x * mode_info.size.y * 4;
-
+            if (scr->number == static_cast<int>(screen_number)) {
                 std::uint64_t next_vsync_us = 0;
                 scr->vsync(sys->get_ntimer(), next_vsync_us);
-
                 if (next_vsync_us) {
-                    kern->crr_thread()->sleep(static_cast<std::uint32_t>(next_vsync_us));
+                    sys->get_kernel_system()->crr_thread()->sleep(static_cast<std::uint32_t>(next_vsync_us));
                 }
-
-                std::unique_lock<std::mutex> guard(scr->screen_mutex);
-
-                if (!scr->dsa_texture) {
-                    const int max_square_width = common::max<int>(screen_size.x, screen_size.y);
-
-                    kern->unlock();
-                    guard.unlock();
-
-                    drivers::handle bitmap_handle = drivers::create_bitmap(driver, eka2l1::vec2(max_square_width, max_square_width), epoc::get_bpp_from_display_mode(scr->disp_mode));
-
-                    kern->lock();
-                    guard.lock();
-
-                    scr->dsa_texture = bitmap_handle;
+                if (scr->direct_framebuffer_mapped) {
+                    scr->update_direct_framebuffer();
                 }
-
-                if (!scr->screen_texture) {
-                    scr->set_screen_mode(nullptr, driver, scr->crr_mode);
-                }
-
-                eka2l1::drivers::filter_option filter = (kern->get_config()->nearest_neighbor_filtering ? eka2l1::drivers::filter_option::nearest : eka2l1::drivers::filter_option::linear);
-                drivers::graphics_command_builder builder;
-
-                // Only one rectangle for now!
-                builder.update_bitmap(scr->dsa_texture, data_ptr, buffer_size, { 0, 0 }, screen_size);
-
-                // NOTE: This is a hack for some apps that dont fill alpha
-                // TODO: Figure out why or better solution (maybe the display mode is not really correct?)
-                switch (scr->disp_mode) {
-                case epoc::display_mode::color16m:
-                case epoc::display_mode::color16mu:
-                case epoc::display_mode::color16ma:
-                    builder.set_swizzle(scr->dsa_texture, drivers::channel_swizzle::red, drivers::channel_swizzle::green,
-                        drivers::channel_swizzle::blue, drivers::channel_swizzle::one);
-
-                    break;
-
-                default:
-                    break;
-                }
-
-                // 270 rotation clock-wise makes screen content comes from the top where camera lies, to down where the ports reside.
-                // That makes it a standard, non-flip landscape. 0 is obviously standard too. Therefore mode 90 and 180 needs flip.
-                const float rotation_draw = ((mode_info.rotation == 90) || (mode_info.rotation == 180)) ? 180.0f : 0.0f;
-
-                eka2l1::rect source_rect { eka2l1::vec2(0, 0), mode_info.size };
-                eka2l1::rect dest_rect = source_rect;
-                if (rotation_draw != 0.0f) {
-                    // Advance position for rotation origin. We can't gurantee the origin to be exactly div by 2.
-                    // So do this for safety and soverginity.
-                    dest_rect.top = dest_rect.size;
-                }
-
-                dest_rect.scale(scr->display_scale_factor);
-
-                builder.bind_bitmap(scr->screen_texture);
-                builder.set_feature(drivers::graphics_feature::clipping, false);
-
-                builder.set_texture_filter(scr->dsa_texture, true, filter);
-                builder.set_texture_filter(scr->dsa_texture, false, filter);
-
-                builder.draw_bitmap(scr->dsa_texture, 0, dest_rect, source_rect, eka2l1::vec2(0, 0), rotation_draw, 0);
-                builder.bind_bitmap(0);
-
-                drivers::command_list retrieved = builder.retrieve_command_list();
-                driver->submit_command_list(retrieved);
-
-                if (((scr->flags_ & epoc::screen::FLAG_SCREEN_UPSCALE_FACTOR_LOCK) == 0) && scr->sync_screen_buffer) {    
-                    // The app/game updates normally, try to avoid upscaling it
-                    // Sometimes UI are mixed in, and these syncs need to sync UI's data too!
-                    // Automatically flag and save this settings
-                    if (scr->focus) {
-                        scr->focus->saved_setting.screen_upscale_method = 1;
-                        scr->restore_from_config(driver, scr->focus->saved_setting);
-                        scr->try_change_display_rescale(driver, scr->display_scale_factor);
-                    }
-                }
-
-                scr->fire_screen_redraw_callbacks(true);
+                scr->present_framebuffer(sys->get_graphics_driver(), sys->get_kernel_system());
+                break;
             }
 
             scr = scr->next;
         }
+    }
+
+    BRIDGE_FUNC_DISPATCHER(std::int32_t, get_screen_buffer_byte_width, const std::uint32_t screen_number,
+        const std::int32_t display_mode) {
+        dispatch::dispatcher *dispatcher = sys->get_dispatcher();
+        epoc::screen *scr = dispatcher->winserv_->get_screens();
+
+        while (scr != nullptr) {
+            if (scr->number == static_cast<int>(screen_number)) {
+                return static_cast<std::int32_t>(scr->screen_buffer_byte_width(
+                    static_cast<epoc::display_mode>(display_mode)));
+            }
+
+            scr = scr->next;
+        }
+
+        return 0;
     }
 
     BRIDGE_FUNC_DISPATCHER(std::int32_t, wait_vsync, const std::int32_t screen_index, eka2l1::ptr<epoc::request_status> sts) {

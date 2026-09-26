@@ -38,7 +38,28 @@
 
 #include <memory>
 
+#if EKA2L1_PLATFORM(UNIX)
+// The AppImage bundles Qt's GStreamer backend but none of the plugins it needs,
+// leaving Qt Multimedia with no camera. Its FFmpeg backend is bundled whole, so
+// prefer that inside an AppImage. An explicit choice still wins.
+static void prefer_selfcontained_media_backend() {
+    if (!qEnvironmentVariableIsEmpty("QT_MEDIA_BACKEND")) {
+        return;
+    }
+
+    if (qEnvironmentVariableIsEmpty("APPIMAGE") && qEnvironmentVariableIsEmpty("APPDIR")) {
+        return;
+    }
+
+    qputenv("QT_MEDIA_BACKEND", "ffmpeg");
+}
+#endif
+
 int main(int argc, char *argv[]) {
+#if EKA2L1_PLATFORM(UNIX)
+    prefer_selfcontained_media_backend();
+#endif
+
     QApplication a(argc, argv);
 
     QCoreApplication::setOrganizationName("EKA2L1");
@@ -87,9 +108,10 @@ int main(int argc, char *argv[]) {
     eka2l1::common::copy_folder(app_path_str + "/patch", data_path_str + "/patch", 0, nullptr);
     eka2l1::common::copy_folder(app_path_str + "/resources", data_path_str + "/resources", 0, nullptr);
 
-    if (!eka2l1::common::exists(data_path_str + "/scripts/")) {
-        eka2l1::common::copy_folder(app_path_str + "/scripts", data_path_str + "/scripts", 0, nullptr);
-    }
+    // Keep shipped compatibility scripts current across application upgrades.
+    // copy_folder merges into the destination, so separately named user scripts
+    // remain untouched while updated bundled scripts replace stale copies.
+    eka2l1::common::copy_folder(app_path_str + "/scripts", data_path_str + "/scripts", 0, nullptr);
     
     if (!eka2l1::common::exists(data_path_str + "/compat/")) {
         eka2l1::common::copy_folder(app_path_str + "/compat", data_path_str + "/compat", 0, nullptr);

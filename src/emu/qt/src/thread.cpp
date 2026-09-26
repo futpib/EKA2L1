@@ -308,8 +308,13 @@ namespace eka2l1::desktop {
 
         if (!common::benchmark::enabled()) state.joystick_controller->start_polling();
 
+        // Do not reset graphics_event here. The initialization above set it to release the OS
+        // thread, which consumes the signal itself now that common::event is auto-reset. Clearing
+        // it before that waiter has re-acquired the event lock erases the wake, and the OS thread
+        // never leaves its startup wait -- no guest instruction ever runs, and the later shutdown
+        // handshake over the same event deadlocks with it.
+
         // Keep running. User which want to change the graphics backend will have to restart EKA2L1.
-        state.graphics_event.reset();
         state.graphics_driver->run();
 
         result = graphics_driver_thread_deinitialization(state);
@@ -342,7 +347,7 @@ namespace eka2l1::desktop {
             }
 
             const bool success = state.stage_two();
-            state.init_event.set();
+            state.init_done_event.set();
 
             if (first_time) {
                 if (common::benchmark::enabled()) state.benchmark_graphics_ready.wait();
@@ -354,8 +359,9 @@ namespace eka2l1::desktop {
                 break;
             }
 
-            // Try wait for initialization from other parties to make this success.
-            state.init_event.reset();
+            // Try wait for initialization from other parties to make this success. The wait
+            // consumes the signal by itself; resetting afterwards would drop a request raised
+            // between the wait returning and the reset.
             state.init_event.wait();
         }
 
@@ -388,7 +394,6 @@ namespace eka2l1::desktop {
 
             if (state.should_emu_pause && !state.should_emu_quit) {
                 state.pause_event.wait();
-                state.pause_event.reset();
             }
         }
 
@@ -435,7 +440,7 @@ namespace eka2l1::desktop {
         std::thread os_thread_obj;
         if (!install_only) {
             os_thread_obj = std::thread(os_thread, std::ref(state));
-            state.init_event.wait();
+            state.init_done_event.wait();
         }
 
         eka2l1::common::arg_parser parser(argc, argv);

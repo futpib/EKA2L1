@@ -19,6 +19,7 @@
 
 #include <dispatch/dispatcher.h>
 #include <dispatch/libraries/register.h>
+#include <dispatch/libraries/featmgr/register.h>
 #include <dispatch/libraries/sysutils/register.h>
 #include <dispatch/libraries/egl/register.h>
 #include <dispatch/libraries/gles1/register.h>
@@ -31,10 +32,27 @@
 namespace eka2l1::dispatch::libraries {
     void register_functions(kernel_system *kern, dispatcher *disp) {
         if (kern->get_epoc_version() <= epocver::epoc81a) {
+            config::state *conf = kern->get_config();
+
             disp->patch_libraries(u"Z:\\System\\Libs\\SysUtil.dll", SYSUTILS_PATCH_EPOCV81A_INFOS,
                 SYSUTILS_PATCH_EPOCV81A_COUNT);
-        } else if (kern->get_epoc_version() >= epocver::epoc93fp1) {
+
+            // EKA1 devices keep the GLES/EGL implementation in \System\Libs rather than
+            // \Sys\Bin. Their libgles_cm.dll only freezes the GLES 1.0 part of the DEF
+            // file, but the ordinals it does export match the 1.1 one, so the same patch
+            // table applies and the missing ordinals are skipped. Without this the guest
+            // runs Nokia's own software rasteriser, which wants frame buffer access the
+            // emulator does not reproduce.
+            if (conf->enable_hw_gles1) {
+                disp->patch_libraries(u"Z:\\System\\Libs\\libgles_cm.dll", LIBGLES_CM_PATCH_INFOS,
+                    LIBGLES_CM_PATCH_COUNT);
+            }
+        } else if (kern->get_epoc_version() >= epocver::epoc91) {
             config::state *conf = kern->get_config();
+
+            if (kern->get_epoc_version() == epocver::epoc91) {
+                disp->patch_libraries(u"Z:\\Sys\\Bin\\FEATMGR.DLL", FEATMGR_PATCH_INFOS, FEATMGR_PATCH_COUNT);
+            }
 
             if (conf->enable_hw_gles1) {
                 disp->patch_libraries(u"Z:\\Sys\\Bin\\libgles_cm.dll", LIBGLES_CM_PATCH_INFOS, LIBGLES_CM_PATCH_COUNT);
