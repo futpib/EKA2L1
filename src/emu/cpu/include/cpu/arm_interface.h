@@ -20,6 +20,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <functional>
 #include <memory>
 
@@ -119,6 +120,11 @@ namespace eka2l1::arm {
             std::size_t size = 0;
         };
         std::function<bool(address, code_mapping &)> resolve_code;
+        // Optional mapping contract: the MMU updates the space on switches and
+        // advances the generation on every mapping/permission/lifetime change.
+        // Code contents are deliberately not covered and must still be checked.
+        const std::atomic<std::uint64_t> *code_mapping_generation = nullptr;
+        std::uint32_t code_address_space = 0;
         struct diagnostic_code { std::string process, module; };
         std::function<diagnostic_code(address)> describe_code;
 

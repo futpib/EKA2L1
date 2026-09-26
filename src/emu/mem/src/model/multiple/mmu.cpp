@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <cpu/arm_interface.h>
 #include <mem/model/multiple/control.h>
 #include <mem/model/multiple/mmu.h>
 
@@ -33,6 +34,7 @@ namespace eka2l1::mem {
 
         if (id == 0) {
             cur_dir_ = &ctrl_mul->global_dir_;
+            cpu_->code_address_space = id;
             return true;
         }
 
@@ -41,6 +43,7 @@ namespace eka2l1::mem {
         }
 
         cur_dir_ = ctrl_mul->dirs_[id - 1].get();
+        cpu_->code_address_space = id;
         return true;
     }
 

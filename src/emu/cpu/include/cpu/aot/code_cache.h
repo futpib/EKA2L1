@@ -28,6 +28,8 @@ namespace eka2l1::arm::aot {
             aot_func function = nullptr;
             bool live = true;
             bool rejected = false;
+            std::uint64_t mapping_generation = 0;
+            const std::atomic<std::uint64_t> *mapping_source = nullptr;
         };
 
         static std::uint64_t key(std::uint32_t space, std::uint32_t pc_mode) {
@@ -54,6 +56,35 @@ namespace eka2l1::arm::aot {
                 recent = nullptr;
                 ++invalidations;
                 return nullptr;
+            }
+            return entry;
+        }
+
+        block *find(std::uint32_t pc_mode, core &cpu) {
+            const auto generation = cpu.code_mapping_generation
+                ? cpu.code_mapping_generation->load(std::memory_order_acquire) : 0;
+            const auto k = key(cpu.code_address_space, pc_mode);
+            auto &recent = recent_[recent_index(k)];
+            if (generation && recent && recent->live && recent->key == k
+                && recent->mapping_source == cpu.code_mapping_generation
+                && recent->mapping_generation == generation) {
+                if (equal_code_bytes(recent->backing, recent->code.data(), recent->code.size())) return recent;
+                recent->live = false;
+                current_.erase(k);
+                recent = nullptr;
+                ++invalidations;
+                return nullptr;
+            }
+            core::code_mapping view;
+            if (!cpu.resolve_code || !cpu.resolve_code(pc_mode & ~1u, view)) {
+                // No cached pointer may survive a failed mapping refresh.
+                if (recent && recent->key == k) recent->mapping_generation = 0;
+                return nullptr;
+            }
+            auto *entry = find(pc_mode, view);
+            if (entry) {
+                entry->mapping_generation = generation;
+                entry->mapping_source = cpu.code_mapping_generation;
             }
             return entry;
         }

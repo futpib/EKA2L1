@@ -196,6 +196,15 @@ aot_func lookup_compiled(ARMul_State *cpu) {
         if ((common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
         return function;
     }
+    // The normal path avoids the resolver callback on a generation/space hit,
+    // while comparing the exact compiled bytes on every entry.
+    if (!(common::guest_profile::enabled && common::performance::counting())) {
+        auto *entry = ram_cache.find(pc_mode, *cpu->parent());
+        if (!entry) return nullptr;
+        cpu->aot_code_begin = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(entry->backing));
+        cpu->aot_code_end = cpu->aot_code_begin + static_cast<std::uint32_t>(entry->code.size());
+        return entry->function;
+    }
     core::code_mapping view;
     if (!cpu->parent()->resolve_code) return nullptr;
     const bool mapped = cpu->parent()->resolve_code(pc, view);

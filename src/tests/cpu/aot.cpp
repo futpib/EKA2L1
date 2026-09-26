@@ -1066,3 +1066,48 @@ TEST_CASE("Bounded unconditional calls do not retain unreachable continuation", 
     const auto t = translate_arm_block(reinterpret_cast<const std::uint8_t *>(branch),sizeof(branch),0x1000,nullptr,nullptr,true,true,true,true);
     REQUIRE(t.end_address == 0x100c);
 }
+
+TEST_CASE("Generation guarded RAM lookup still validates host writes and address spaces", "[aot]") {
+    using namespace eka2l1::arm;
+    aot_test_env env;
+    auto cpu = env.make_cpu();
+    aot::validated_code_cache cache;
+    std::atomic<std::uint64_t> generation{1};
+    cpu->code_mapping_generation = &generation;
+    cpu->code_address_space = 1;
+    std::array<std::uint8_t,16> code{}, remap{};
+    core::code_mapping view{1,code.data(),code.size()};
+    unsigned resolutions = 0;
+    bool mapped = true;
+    cpu->resolve_code = [&](address, core::code_mapping &out) {
+        ++resolutions; out = view; out.address_space = cpu->code_address_space; return mapped;
+    };
+    cache.insert(0x1000,view,8);
+    REQUIRE(cache.find(0x1000,*cpu));
+    REQUIRE(cache.find(0x1000,*cpu));
+    CHECK(resolutions == 1);
+    code[0] = 1; // Host/alias writes do not need a mapping notification.
+    REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    cache.insert(0x1000,view,8);
+    REQUIRE(cache.find(0x1000,*cpu));
+    cpu->code_address_space = 2;
+    REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    cpu->code_address_space = 1;
+    REQUIRE(cache.find(0x1000,*cpu));
+    remap = code; view.bytes = remap.data(); ++generation;
+    REQUIRE_FALSE(cache.find(0x1000,*cpu)); // Identical bytes in different backing.
+    cache.insert(0x1000,view,8);
+    REQUIRE(cache.find(0x1000,*cpu));
+    mapped = false; ++generation; // Unmap or remove execute permission.
+    REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    mapped = true; ++generation;
+    REQUIRE(cache.find(0x1000,*cpu));
+    view.size = 4; ++generation;
+    REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    view.size = 16;
+    cache.insert(0x1000,view,8);
+    cpu->code_mapping_generation = nullptr; // Legacy cores resolve every entry.
+    const auto before = resolutions;
+    REQUIRE(cache.find(0x1000,*cpu)); REQUIRE(cache.find(0x1000,*cpu));
+    CHECK(resolutions == before + 2);
+}

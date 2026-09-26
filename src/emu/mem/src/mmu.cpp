@@ -31,6 +31,8 @@ namespace eka2l1::mem {
         : manager_(manager)
         , cpu_(cpu)
         , conf_(conf) {
+        cpu->code_mapping_generation = &mapping_generation;
+        cpu->code_address_space = 0;
         // Set CPU read/write functions
         cpu->read_8bit = [this](const vm_address addr, std::uint8_t *data) { return read_8bit_data(addr, data); };
         cpu->read_16bit = [this](const vm_address addr, std::uint16_t *data) { return read_16bit_data(addr, data); };

@@ -18,6 +18,7 @@
  */
 
 #include <mem/model/flexible/control.h>
+#include <cpu/arm_interface.h>
 #include <mem/model/flexible/mmu.h>
 
 #include <common/log.h>
@@ -45,6 +46,7 @@ namespace eka2l1::mem::flexible {
         }
 
         cur_dir_ = associated_dir;
+        cpu_->code_address_space = id;
         return true;
     }
 
