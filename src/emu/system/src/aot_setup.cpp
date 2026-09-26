@@ -292,6 +292,8 @@ namespace eka2l1::arm::aot {
             {"env", "tlb_write32", 3, false},
             {"env", "tlb_read8", 2, true},
             {"env", "tlb_write8", 3, false},
+            {"env", "tlb_read16", 2, true},
+            {"env", "tlb_write16", 3, false},
         };
 
         auto wasm_bytes = build_wasm_module(all_funcs, imports);

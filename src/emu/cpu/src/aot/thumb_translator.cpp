@@ -3686,7 +3686,7 @@ namespace eka2l1::arm::aot {
                 // TODO: use tlb_read16 import when available
                 w.state_ptr();
                 w.get_local(ADDR_TMP);
-                w.call(0); // tlb_read32 (reads 32 bits, we mask to 16)
+                w.call(bounded ? 4 : 0); // tlb_read16 in bounded mode (reads 32 bits, we mask to 16)
                 w.i32_const(0xFFFF);
                 w.op(op_i32_and);
                 w.set_local(TMP1);
@@ -3704,9 +3704,12 @@ namespace eka2l1::arm::aot {
                 w.state_ptr();
                 w.get_local(ADDR_TMP);
                 w.get_local(TMP1);
-                w.call(3); // low byte
-                w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
-                w.get_local(TMP1); w.i32_const(8); w.op(op_i32_shr_u); w.call(3);
+                if (bounded) w.call(5); // tlb_write16
+                else {
+                    w.call(3);
+                    w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
+                    w.get_local(TMP1); w.i32_const(8); w.op(op_i32_shr_u); w.call(3);
+                }
             } else if ((insn & 0xF800) == 0x7800) {
                 // LDRB Rt, [Rn, #imm5]
                 int rt = insn & 7;
@@ -3765,7 +3768,7 @@ namespace eka2l1::arm::aot {
                 // tlb_read32 then mask to 16 bits and sign-extend
                 w.state_ptr();
                 w.get_local(ADDR_TMP);
-                w.call(0); // tlb_read32
+                w.call(bounded ? 4 : 0); // tlb_read16 in bounded mode
                 w.i32_const(0xFFFF);
                 w.op(op_i32_and);
                 w.i32_const(16);
@@ -3785,7 +3788,7 @@ namespace eka2l1::arm::aot {
                 w.set_local(ADDR_TMP);
                 w.state_ptr();
                 w.get_local(ADDR_TMP);
-                w.call(0); // tlb_read32
+                w.call(bounded ? 4 : 0); // tlb_read16 in bounded mode
                 w.i32_const(0xFFFF);
                 w.op(op_i32_and);
                 w.set_local(TMP1);
@@ -3821,9 +3824,12 @@ namespace eka2l1::arm::aot {
                 w.state_ptr();
                 w.get_local(ADDR_TMP);
                 w.get_local(TMP1);
-                w.call(3); // low byte
-                w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
-                w.get_local(TMP1); w.i32_const(8); w.op(op_i32_shr_u); w.call(3);
+                if (bounded) w.call(5); // tlb_write16
+                else {
+                    w.call(3);
+                    w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
+                    w.get_local(TMP1); w.i32_const(8); w.op(op_i32_shr_u); w.call(3);
+                }
             } else if ((insn & 0xFE00) == 0x5400) {
                 // STRB Rt, [Rn, Rm]
                 int rt = insn & 7;

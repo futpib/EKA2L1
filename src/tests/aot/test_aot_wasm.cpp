@@ -150,6 +150,16 @@ extern "C" {
         return g_test_mem ? g_test_mem->data[addr] : 0;
     }
     EMSCRIPTEN_KEEPALIVE
+    std::uint32_t test_tlb_read16(std::uint32_t, std::uint32_t addr) {
+        std::uint16_t value = 0;
+        if (g_test_mem && addr + 2 <= test_mem::SIZE) std::memcpy(&value, &g_test_mem->data[addr], 2);
+        return value;
+    }
+    EMSCRIPTEN_KEEPALIVE
+    void test_tlb_write16(std::uint32_t, std::uint32_t addr, std::uint32_t value) {
+        if (g_test_mem) g_test_mem->write16(addr, value);
+    }
+    EMSCRIPTEN_KEEPALIVE
     void test_tlb_write8(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t val) {
         (void)state_ptr;
         if (g_test_mem && addr < test_mem::SIZE) g_test_mem->data[addr] = static_cast<std::uint8_t>(val);
@@ -172,6 +182,8 @@ EM_JS(int, js_run_aot_wasm, (const uint8_t* wasm_bytes, int wasm_len, uint8_t* s
                 tlb_write32: Module._test_tlb_write32,
                 tlb_read8: Module._test_tlb_read8,
                 tlb_write8: Module._test_tlb_write8,
+                tlb_read16: Module._test_tlb_read16,
+                tlb_write16: Module._test_tlb_write16,
             }
         });
 
@@ -2015,6 +2027,8 @@ static bool test_bounded_execution() {
         arm({0xe3a00001, 0xe2800002, 0xe2400001}), // straight-line fallthrough
         arm({0xe3500000, 0x0a000000, 0xe3a01007, 0xe3a02009}), // taken/not-taken B
         arm({0xe2500001, 0x1afffffd}), // backward B, must return not recurse
+        arm({0xe1c100d0}), // LDRD is not STRH
+        arm({0xe1c100f0}), // STRD is not STRH
         arm({0xe1c100b0}), // STRH preserves neighboring bytes
         arm({0xe1d100b2}), // LDRH at halfword offset
         arm({0xe1d100f2}), // LDRSH at halfword offset
@@ -2065,7 +2079,8 @@ static bool test_bounded_execution() {
         auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true)
                           : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true);
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
-            {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false}});
+            {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         for (unsigned carry : {0u, 1u}) for (unsigned r0 : {0u, 2u, 32u, 33u, 0xffffffffu, 0x7fffffffu, 0x80000000u}) for (unsigned budget = 0; budget <= 5; ++budget) {
             test_mem actual, reference;
             actual.write_code(0x1000, p.bytes); reference.write_code(0x1000, p.bytes);

@@ -857,6 +857,13 @@ namespace eka2l1::arm::aot {
                     bool imm_offset = (inst >> 22) & 1;
                     std::uint32_t sh = (inst >> 5) & 3;
 
+                    if (bounded && !load && sh != 1) {
+                        // LDRD/STRD share this encoding space, not STRH.
+                        w.bail_unsupported(insn_addr, insn_idx);
+                        if (cond_opened) w.op(op_end);
+                        ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                        continue;
+                    }
                     // Compute offset
                     if (imm_offset) {
                         std::uint32_t hi = (inst >> 8) & 0xF;
@@ -898,9 +905,12 @@ namespace eka2l1::arm::aot {
                         w.get_local(ADDR_TMP);
                         if (sh == 1) {
                             // LDRH: unsigned halfword
-                            w.call(2); // low byte
-                            w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
-                            w.call(2); w.i32_const(8); w.op(op_i32_shl); w.op(op_i32_or);
+                            if (bounded) w.call(4); // tlb_read16, including access faults
+                            else {
+                                w.call(2);
+                                w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
+                                w.call(2); w.i32_const(8); w.op(op_i32_shl); w.op(op_i32_or);
+                            }
                         } else if (sh == 2) {
                             // LDRSB: signed byte
                             w.call(2); // tlb_read8
@@ -911,9 +921,12 @@ namespace eka2l1::arm::aot {
                             w.op(op_i32_shr_s);
                         } else if (sh == 3) {
                             // LDRSH: signed halfword
-                            w.call(2); // low byte
-                            w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
-                            w.call(2); w.i32_const(8); w.op(op_i32_shl); w.op(op_i32_or);
+                            if (bounded) w.call(4); // tlb_read16, including access faults
+                            else {
+                                w.call(2);
+                                w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
+                                w.call(2); w.i32_const(8); w.op(op_i32_shl); w.op(op_i32_or);
+                            }
                             // Sign-extend halfword
                             w.i32_const(16);
                             w.op(op_i32_shl);
@@ -931,9 +944,12 @@ namespace eka2l1::arm::aot {
                         w.state_ptr();
                         w.get_local(ADDR_TMP);
                         w.get_local(TMP1);
-                        w.call(3); // low byte
-                        w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
-                        w.get_local(TMP1); w.i32_const(8); w.op(op_i32_shr_u); w.call(3);
+                        if (bounded) w.call(5); // tlb_write16
+                        else {
+                            w.call(3);
+                            w.state_ptr(); w.get_local(ADDR_TMP); w.i32_const(1); w.op(op_i32_add);
+                            w.get_local(TMP1); w.i32_const(8); w.op(op_i32_shr_u); w.call(3);
+                        }
                     }
 
                     if (writeback || !preindex) {
@@ -978,6 +994,14 @@ namespace eka2l1::arm::aot {
 
                 if (bounded && set_flags && rd == 15 && (opcode < 8 || opcode > 11)) {
                     w.bail_unsupported(insn_addr, insn_idx); // SPSR restore is interpreter-owned.
+                    if (cond_opened) w.op(op_end);
+                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                    continue;
+                }
+
+                if (bounded && opcode >= 8 && opcode <= 11 && !set_flags) {
+                    // Miscellaneous/DSP encodings are not ordinary test opcodes.
+                    w.bail_unsupported(insn_addr, insn_idx);
                     if (cond_opened) w.op(op_end);
                     ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                     continue;
@@ -1241,6 +1265,12 @@ namespace eka2l1::arm::aot {
                 int rn = (inst >> 16) & 0xF;
                 int rd = (inst >> 12) & 0xF;
 
+                if (bounded && I && (inst & 16)) {
+                    w.bail_unsupported(insn_addr, insn_idx); // media/undefined encodings
+                    if (cond_opened) w.op(op_end);
+                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                    continue;
+                }
                 // Compute offset
                 if (!I) {
                     // Immediate offset (12-bit)

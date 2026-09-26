@@ -137,7 +137,8 @@ static std::vector<wasm_func_def> hot_pending;
 static void flush_hot_blocks() {
     if (hot_pending.empty()) return;
     auto bytes = build_wasm_module(hot_pending, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
-        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false}});
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+        {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
     stage_aot_module(std::move(bytes), "hot-rom");
     instantiate_staged_modules();
     hot_pending.clear();
@@ -233,6 +234,8 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len), {
                 tlb_write32: wasmExports.aot_tlb_write32,
                 tlb_read8: wasmExports.aot_tlb_read8,
                 tlb_write8: wasmExports.aot_tlb_write8,
+                tlb_read16: wasmExports.aot_tlb_read16,
+                tlb_write16: wasmExports.aot_tlb_write16,
             }
         };
 
