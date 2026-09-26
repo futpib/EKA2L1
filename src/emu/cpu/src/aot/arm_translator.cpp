@@ -434,7 +434,7 @@ namespace eka2l1::arm::aot {
         result.num_f64_locals = 0;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
         const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
-        // TMP4 doubles as carry_out for shifter operand
+        // Separate carry local survives N/Z scratch updates.
         const std::uint32_t TMP_CARRY = 7;
 
         emit w{result.body};
@@ -700,6 +700,12 @@ namespace eka2l1::arm::aot {
                 bool preindex = (inst >> 24) & 1;
                 int rn = (inst >> 16) & 0xF;
                 std::uint32_t reglist = inst & 0xFFFF;
+                if (bounded && ((inst & (1u << 22)) || !reglist || (writeback && (reglist & (1u << rn))))) {
+                    w.bail_unsupported(insn_addr, insn_idx); // banked/SPSR and base-in-list cases
+                    if (cond_opened) w.op(op_end);
+                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                    continue;
+                }
 
                 int count = 0;
                 for (int r = 0; r < 16; r++) {
@@ -739,7 +745,8 @@ namespace eka2l1::arm::aot {
                         w.set_local(TMP2);
                         w.store_reg(r, TMP2);
                     } else {
-                        w.load_reg(r);
+                        if (r == 15) w.i32_const(insn_addr + 8);
+                        else w.load_reg(r);
                         w.set_local(TMP2);
                         w.state_ptr();
                         w.get_local(TMP1);

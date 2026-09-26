@@ -708,6 +708,14 @@ namespace eka2l1::arm::aot {
                 w.op(op_if); w.op(type_void);
                 w.bail(insn_addr, insn_idx);
                 w.op(op_end);
+                // High-register PC operands require pipeline/control-flow semantics.
+                // Keep these rare forms in the interpreter until implemented fully.
+                if ((insn & 0xFC00) == 0x4400 && (insn & 0x0300) != 0x0300
+                        && ((((insn & 7) | ((insn >> 4) & 8)) == 15) || (((insn >> 3) & 15) == 15))) {
+                    w.bail_unsupported(insn_addr, insn_idx);
+                    decoded_end_offset = static_cast<std::uint32_t>(i);
+                    break;
+                }
                 // The ARMv5/v6 interpreter executes long Thumb calls as two
                 // halfwords. Leave these and unsupported Thumb-2 to it so budget
                 // boundaries and instruction accounting stay exactly comparable.

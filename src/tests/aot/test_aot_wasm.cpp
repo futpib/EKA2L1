@@ -2027,6 +2027,7 @@ static bool test_bounded_execution() {
         arm({0xe3a00001, 0xe2800002, 0xe2400001}), // straight-line fallthrough
         arm({0xe3500000, 0x0a000000, 0xe3a01007, 0xe3a02009}), // taken/not-taken B
         arm({0xe2500001, 0x1afffffd}), // backward B, must return not recurse
+        arm({0xe8a18000}), // STM stores pipeline PC
         arm({0xe1c100d0}), // LDRD is not STRH
         arm({0xe1c100f0}), // STRD is not STRH
         arm({0xe1c100b0}), // STRH preserves neighboring bytes
@@ -2057,6 +2058,7 @@ static bool test_bounded_execution() {
         thumb({0x2800, 0xd000, 0x2107, 0x2209}),
         thumb({0x3801, 0xd1fd}),
         thumb({0x6008, 0x680a}),
+        thumb({0x4678}), thumb({0x4478}), thumb({0x4687}), // PC forms fall back
         thumb({0x4770}),
         thumb({0x4708}), // BX to ARM
         thumb({0x47f0}), // BLX LR captures the old target
