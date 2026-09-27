@@ -136,10 +136,17 @@ static cpu_state capture_state(dyncom_core &cpu) {
 static test_mem *g_test_mem = nullptr;
 static bool g_mutate_callback_state = false, g_callback_observed_state = false;
 static bool g_mutate_callback_cpsr = false;
+static unsigned g_expected_callback_pc = 0;
+static bool g_callback_pc_matches = true;
+static bool g_count_memory_helpers = false;
+static unsigned g_memory_helper_calls = 0;
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read32(std::uint32_t state_ptr, std::uint32_t addr) {
+        if (g_count_memory_helpers) ++g_memory_helper_calls;
+        if (g_expected_callback_pc)
+            g_callback_pc_matches &= reinterpret_cast<std::uint32_t *>(state_ptr)[15] == g_expected_callback_pc;
         if (g_mutate_callback_state) {
             auto *state = reinterpret_cast<std::uint32_t *>(state_ptr);
             g_callback_observed_state = state[2] == 7;
@@ -156,6 +163,7 @@ extern "C" {
     EMSCRIPTEN_KEEPALIVE
     void test_tlb_write32(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t val) {
         (void)state_ptr;
+        if (g_count_memory_helpers) ++g_memory_helper_calls;
         if (g_test_mem) g_test_mem->write32(addr, val);
     }
     EMSCRIPTEN_KEEPALIVE
@@ -2131,6 +2139,20 @@ static bool test_bounded_execution() {
         auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true);
         if (!tr.entry_supported) { printf("  FAIL test/compare %08X misclassified\n",inst); return false; }
     }
+    const auto existing_programs = programs.size();
+    // Block-transfer fast spans and fallbacks: modes, writeback, conditions,
+    // sparse/large lists, PC loads/stores, cross-page and unaligned bases.
+    for (unsigned load : {0u,1u}) for (unsigned up : {0u,1u})
+        for (unsigned pre : {0u,1u}) for (unsigned wb : {0u,1u})
+        for (unsigned list : {0xdu,0xfffdu,0x800du}) {
+            const unsigned inst = 0xe8010000u | (pre<<24) | (up<<23) | (wb<<21) | (load<<20) | list;
+            programs.push_back(arm({inst}));
+            programs.push_back(arm({0xe2811eff,0xe281100c,inst})); // page end
+            // Unaligned PC loads can synthesize an unmapped branch destination
+            // from this fixture; cover unaligned data transfers separately.
+            if (!(load && (list & 0x8000))) programs.push_back(arm({0xe2811001,inst}));
+        }
+    std::rotate(programs.begin(), programs.begin() + existing_programs, programs.end());
     int index = 0;
     for (unsigned variant = 0; variant < 7; ++variant) for (const auto &p : programs) {
         const bool region = variant >= 4, cache_registers = region || (variant & 2), stop_after_store = variant & 1;
@@ -2200,7 +2222,8 @@ static bool test_bounded_execution() {
 // A guest alias must not let a region execute code overwritten by an inline store.
 static bool test_region_code_alias() {
 #ifdef __EMSCRIPTEN__
-    const std::uint32_t words[] = {0xe5810004,0xe2822001,0xeafffffc};
+    for (bool block_store : {false, true}) {
+    const std::uint32_t words[] = {block_store ? 0xe8a10009u : 0xe5810004u,0xe2822001,0xeafffffc};
     auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
     auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
@@ -2210,7 +2233,7 @@ static bool test_region_code_alias() {
         r12l1::tlb tlb(12);
         tlb.add(address,memory.data.data()+0x1000,7);
         alignas(8) std::uint32_t state[256]{};
-        state[0]=0xe3a04001; state[1]=address; state[15]=0x1000;
+        state[0]=0xe3a04001; state[3]=state[0]; state[1]=address; state[15]=0x1000;
         state[state_offsets::AOT_BUDGET/4]=31;
         state[state_offsets::NIRQ/4]=1;
         state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
@@ -2221,8 +2244,9 @@ static bool test_region_code_alias() {
             printf("  FAIL region code alias %x count %d\n",address,count); return false;
         }
     }
+    }
 #endif
-    printf("  PASS region_code_alias\n");
+    printf("  PASS region_code_alias (single and multiple stores)\n");
     return true;
 }
 
@@ -2248,6 +2272,54 @@ static bool test_region_cpsr_callback() {
     }
 #endif
     printf("  PASS region_cpsr_callback\n"); return true;
+}
+
+static bool test_block_transfer_guards() {
+#ifdef __EMSCRIPTEN__
+    for (bool load : {false,true}) {
+        const std::uint32_t inst = load ? 0xe891000du : 0xe881000du; // r0,r2,r3
+        auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true,true);
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
+            for (unsigned address : {0x8000u,0x8001u,0x8ffcu}) {
+                test_mem memory;
+                r12l1::tlb direct(12); direct.add(0x8000,memory.data.data()+0x8000,permission);
+                alignas(8) std::uint32_t state[256]{};
+                state[0]=17; state[1]=address; state[2]=19; state[3]=23; state[15]=0x1000;
+                state[state_offsets::CPSR/4]=0x10|endian;
+                state[state_offsets::AOT_BUDGET/4]=1;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(direct.entries);
+                g_test_mem=&memory; g_count_memory_helpers=true; g_memory_helper_calls=0;
+                const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+                g_test_mem=nullptr; g_count_memory_helpers=false;
+                const bool fast = (permission & (load ? 1 : 2)) && !endian && address==0x8000;
+                if (count!=1 || (fast ? g_memory_helper_calls!=0 : g_memory_helper_calls==0)) {
+                    printf("  FAIL block_transfer_guards load=%d perm=%u endian=%x address=%x calls=%u\n",load,permission,endian,address,g_memory_helper_calls);return false;
+                }
+            }
+    }
+#endif
+    printf("  PASS block_transfer_guards (48 permission/endian/alignment/page cases)\n");return true;
+}
+
+static bool test_block_transfer_callback_pc() {
+#ifdef __EMSCRIPTEN__
+    const std::uint32_t words[] = {0xe3a02007,0xe8918009}; // MOV; LDM r1,{r0,r3,pc}
+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
+    auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    test_mem memory; memory.write32(0x8000,17); memory.write32(0x8004,19); memory.write32(0x8008,0x2001);
+    alignas(8) std::uint32_t state[256]{};
+    state[1]=0x8000; state[15]=0x1000; state[state_offsets::AOT_BUDGET/4]=2;
+    g_test_mem=&memory; g_expected_callback_pc=0x1004; g_callback_pc_matches=true;
+    const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+    g_test_mem=nullptr; g_expected_callback_pc=0;
+    if(count!=2 || !g_callback_pc_matches || state[0]!=17 || state[3]!=19 || state[15]!=0x2001 || state[state_offsets::TFLAG/4]!=1) {
+        printf("  FAIL block_transfer_callback_pc\n"); return false;
+    }
+#endif
+    printf("  PASS block_transfer_callback_pc\n"); return true;
 }
 
 static bool test_exact_code_compare() {
@@ -3000,6 +3072,8 @@ int main() {
     if (test_bounded_execution()) passed++; else failed++;
     if (test_exact_code_compare()) passed++; else failed++;
     if (test_region_cpsr_callback()) passed++; else failed++;
+    if (test_block_transfer_callback_pc()) passed++; else failed++;
+    if (test_block_transfer_guards()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;

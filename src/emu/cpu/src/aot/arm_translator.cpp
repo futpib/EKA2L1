@@ -169,6 +169,29 @@ namespace eka2l1::arm::aot {
             slow_call(func_idx);
             op(op_end);
         }
+        // Validate a whole block-transfer span once. It must be aligned and
+        // contained in one permitted TLB page; otherwise use the existing
+        // per-access path, including its fault/endian behavior.
+        void block_transfer_host(unsigned address_local, unsigned bytes, bool write) {
+            i32_const(0); set_local(HOST);
+            load_i32(S::AOT_TLB); tee_local(ENTRY);
+            op(op_if); op(type_void);
+            get_local(address_local); i32_const(3); op(op_i32_and); op(op_i32_eqz);
+            get_local(address_local); i32_const(4095); op(op_i32_and);
+            i32_const(4096 - bytes); op(op_i32_le_u); op(op_i32_and);
+            load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            op(op_if); op(type_void);
+            get_local(address_local); i32_const(12); op(op_i32_shr_u);
+            i32_const(511); op(op_i32_and); i32_const(4); op(op_i32_shl);
+            get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
+            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,write ? 4 : 0);
+            get_local(address_local); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
+            op(op_if); op(type_void);
+            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
+            get_local(HOST); op(op_if); op(type_void);
+            get_local(HOST); get_local(address_local); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
+            op(op_end); op(op_end); op(op_end); op(op_end);
+        }
         void ret() { cache.barrier_at(b.size()); op(op_return); }
 
         void bail(std::uint32_t pc, std::uint32_t instr_count) {
@@ -866,6 +889,36 @@ namespace eka2l1::arm::aot {
                 }
                 w.set_local(TMP1); // base address
 
+                const bool span_fast_path = w.region && count >= 2;
+                const bool pc_written_before_span = w.pc_written;
+                if (span_fast_path) {
+                    w.block_transfer_host(TMP1, count * 4, !load);
+                    w.get_local(arm_emit::HOST); w.op(op_if); w.op(type_void);
+                    unsigned offset = 0;
+                    for (int r = 0; r < 16; ++r) {
+                        if (!(reglist & (1u << r))) continue;
+                        w.get_local(arm_emit::HOST);
+                        if (load) {
+                            w.op(op_i32_load); leb(result.body,2); leb(result.body,offset);
+                            w.set_local(TMP2); w.store_reg(r,TMP2);
+                        } else {
+                            if (r == 15) w.i32_const(insn_addr + 8); else w.load_reg(r);
+                            w.op(op_i32_store); leb(result.body,2); leb(result.body,offset);
+                            w.memory_write = true;
+                        }
+                        offset += 4;
+                    }
+                    if (!load) {
+                        w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
+                        w.get_local(arm_emit::HOST); w.i32_const(count * 4); w.op(op_i32_add);
+                        w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and);
+                        w.op(op_if); w.op(type_void); w.store_i32_const(S::AOT_EXIT,1); w.op(op_end);
+                    }
+                    w.op(op_else);
+                    // Code generation visits both arms; a fast LDM PC store
+                    // must not suppress PC publication before fallback helpers.
+                    w.pc_written = pc_written_before_span;
+                }
                 int off = 0;
                 for (int r = 0; r < 16; r++) {
                     if (!(reglist & (1 << r))) continue;
@@ -888,6 +941,8 @@ namespace eka2l1::arm::aot {
                     }
                     off += 4;
                 }
+
+                if (span_fast_path) w.op(op_end);
 
                 if (writeback) {
                     w.load_reg(rn);
