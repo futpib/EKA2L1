@@ -44,3 +44,39 @@ EKA2L1_LIVE_AUTOSTART=1 node live.ts ASSETS OTHER_NEW_OUTPUT 120
 ```
 
 Raw per-second samples, binary hashes, replay comparisons and the Qt workflow record are in `REALTIME_PLAYABILITY_EVIDENCE.json`. Local screenshots/logs are under `/home/claude/.scratch/eka-benchmark/exit-live-*`, `exit-extended1600*`, and `qt-jit-fixed`. All changes are local; nothing was pushed.
+
+### LAN HTTPS launcher
+
+The launcher accepts `EKA2L1_SERVE_HOST` (bind address), `EKA2L1_SERVE_NAME`
+(displayed hostname), and paired `EKA2L1_TLS_CERT` / `EKA2L1_TLS_KEY` PEM paths.
+Defaults remain HTTP on loopback for local use and automated tests. LAN access
+requires HTTPS with a certificate trusted by the client: plain HTTP `.lan`
+is not a secure context and cannot run the SharedArrayBuffer worker build.
+
+Current machine configuration:
+
+```sh
+cd ~/code/EKA2L1/src/tests/wasm
+EKA2L1_SERVE_HOST=:: EKA2L1_SERVE_NAME=claude-laptop.lan \
+EKA2L1_TLS_CERT="$HOME/.config/eka2l1/tls/server.crt" \
+EKA2L1_TLS_KEY="$HOME/.config/eka2l1/tls/server.key" \
+npm run serve -- 8188
+```
+
+Open `https://claude-laptop.lan:8188/`. The wildcard listener accepts IPv4 and
+IPv6 on this Linux host. Its private keys are outside the repository, mode 0600.
+The public CA certificate is `~/.config/eka2l1/tls/lan-ca.crt`; install/trust it
+on each client device before opening the page. It is installed in this user's
+local NSS browser trust stores as `EKA2L1-LAN-2026`. Other devices do not inherit
+that trust. The certificate expires in September 2027. No emulator rebuild is
+needed to change the listener or renew certificates.
+
+LAN validation on 2026-09-27: Chromium opened the actual `.lan` HTTPS URL
+without certificate-bypass flags, reported secure context / cross-origin
+isolation / SharedArrayBuffer availability, and reached visible Snakes gameplay.
+Keyboard input, 390px layout and shutdown passed without page/request/HTTP
+errors. IPv4 and hostname-resolved IPv6 returned HTTP 200 with COOP/COEP;
+traversal returned 403. Loopback defaults, occupied-port rejection and all seven
+frontend smoke checks passed. Artifacts: `.scratch/eka-benchmark/lan-check.json`,
+`lan-ready.png`, `lan-mobile.png` under `/home/claude`. This verifies the LAN
+interface from this host; a separate physical client was not available for testing.

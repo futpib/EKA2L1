@@ -1,4 +1,5 @@
 import http from "node:http";
+import https from "node:https";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -61,11 +62,12 @@ export function startServer(
   port = 0,
   preloadFiles: Record<string, string> = {},
   appName?: string,
+  options: { host?: string; tls?: https.ServerOptions } = {},
 ): Promise<{ server: http.Server; port: number }> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const autoStartScript = makeAutoStartScript(appName);
 
-    const server = http.createServer((req, res) => {
+    const handler: http.RequestListener = (req, res) => {
       let urlPath = (req.url ?? "/").split("?")[0];
       if (urlPath === "/") urlPath = "/eka2l1.html";
 
@@ -98,7 +100,12 @@ export function startServer(
         return;
       }
 
-      let filePath = path.join(buildDir, urlPath);
+      let filePath = path.resolve(buildDir, "." + urlPath);
+      if (!filePath.startsWith(buildDir + path.sep)) {
+        res.writeHead(403);
+        res.end("Forbidden");
+        return;
+      }
 
       if (!fs.existsSync(filePath)) {
         const altPath = path.join(buildDir, path.basename(urlPath));
@@ -110,6 +117,12 @@ export function startServer(
           res.end("Not found");
           return;
         }
+      }
+
+      if (!fs.statSync(filePath).isFile()) {
+        res.writeHead(404);
+        res.end("Not found");
+        return;
       }
 
       // Inject auto-start script into HTML (before the emscripten module script
@@ -134,9 +147,13 @@ export function startServer(
         "Cross-Origin-Embedder-Policy": "require-corp",
       });
       fs.createReadStream(filePath).pipe(res);
-    });
+    };
+    const server = options.tls
+      ? https.createServer(options.tls, handler)
+      : http.createServer(handler);
+    server.once("error", reject);
 
-    server.listen(port, "127.0.0.1", () => {
+    server.listen(port, options.host ?? "127.0.0.1", () => {
       const addr = server.address();
       const resolvedPort = typeof addr === "object" && addr ? addr.port : 0;
       resolve({ server, port: resolvedPort });
