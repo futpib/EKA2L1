@@ -21,7 +21,8 @@ namespace eka2l1::arm::aot {
             return enabled && ((offset < S::PC && offset % 4 == 0)
                 || offset == S::NFLAG || offset == S::ZFLAG || offset == S::CFLAG
                 || offset == S::VFLAG || offset == S::TFLAG
-                || (runtime_fields && offset >= S::AOT_BUDGET && offset <= S::AOT_EXIT));
+                || (runtime_fields && (offset == S::CPSR
+                    || (offset >= S::AOT_BUDGET && offset <= S::AOT_EXIT))));
         }
         std::uint32_t local(std::uint32_t offset) {
             auto it = locals.find(offset);

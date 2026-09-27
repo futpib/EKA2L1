@@ -135,6 +135,7 @@ static cpu_state capture_state(dyncom_core &cpu) {
 // The test memory — accessible from JS for the tlb imports
 static test_mem *g_test_mem = nullptr;
 static bool g_mutate_callback_state = false, g_callback_observed_state = false;
+static bool g_mutate_callback_cpsr = false;
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
@@ -144,6 +145,11 @@ extern "C" {
             g_callback_observed_state = state[2] == 7;
             state[3] = 11;
             state[state_offsets::CFLAG / 4] = 1;
+        }
+        if (g_mutate_callback_cpsr) {
+            auto *state = reinterpret_cast<std::uint32_t *>(state_ptr);
+            g_callback_observed_state = state[state_offsets::CPSR / 4] == 0xF8000010u;
+            state[state_offsets::CPSR / 4] = 0x20000210u;
         }
         return g_test_mem ? g_test_mem->read32(addr) : 0;
     }
@@ -2220,6 +2226,30 @@ static bool test_region_code_alias() {
     return true;
 }
 
+static bool test_region_cpsr_callback() {
+#ifdef __EMSCRIPTEN__
+    const std::uint32_t code[] = {0xE128F000u, 0xE5912000u, 0xE2833001u};
+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(code), sizeof(code),
+        0x1000, nullptr, nullptr, true, true, true, true);
+    auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
+        {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+        {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    alignas(8) std::uint32_t state[256]{};
+    state[0] = 0xF8000000u; state[1] = 0x8000;
+    state[state_offsets::PC/4] = 0x1000;
+    state[state_offsets::CPSR/4] = state[state_offsets::MODE/4] = 16;
+    state[state_offsets::AOT_BUDGET/4] = 3;
+    g_mutate_callback_cpsr = true; g_callback_observed_state = false;
+    const int count = js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+    g_mutate_callback_cpsr = false;
+    if (count != 2 || !g_callback_observed_state || state[state_offsets::CPSR/4] != 0x20000210u || state[3]) {
+        printf("  FAIL region_cpsr_callback count=%d observed=%d cpsr=%x\n", count,g_callback_observed_state,state[state_offsets::CPSR/4]);
+        return false;
+    }
+#endif
+    printf("  PASS region_cpsr_callback\n"); return true;
+}
+
 static bool test_exact_code_compare() {
     std::array<std::uint8_t,545> a{},b{};
     for(unsigned i=0;i<a.size();++i) a[i]=b[i]=i*37;
@@ -2969,6 +2999,7 @@ int main() {
     printf("\nRunning ARM translator-level tests...\n\n");
     if (test_bounded_execution()) passed++; else failed++;
     if (test_exact_code_compare()) passed++; else failed++;
+    if (test_region_cpsr_callback()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;

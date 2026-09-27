@@ -188,6 +188,31 @@ TEST_CASE("aot_registry_basic", "[aot]") {
     REQUIRE(reg.lookup(0x1000) == nullptr);
 }
 
+TEST_CASE("aot_registry_cache_tracks_replacement_removal_and_mode", "[aot]") {
+    using namespace eka2l1::arm::aot;
+    registry reg;
+    const auto one = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    const auto two = +[](ARMul_State *) -> std::uint32_t { return 2; };
+    reg.register_function(0x1000, one);
+    reg.register_function(0x3000, two); // Same direct-cache slot.
+    reg.register_function(0x1001, two); // Thumb at the same aligned address.
+    for (int i = 0; i < 4; ++i) {
+        REQUIRE(reg.lookup(0x1000) == one);
+        REQUIRE(reg.lookup(0x3000) == two);
+        REQUIRE(reg.lookup(0x1001) == two);
+    }
+    reg.register_function(0x1000, two);
+    REQUIRE(reg.lookup(0x1000) == two);
+    reg.unregister_function(0x3000);
+    REQUIRE(reg.lookup(0x1000) == two);
+    REQUIRE(reg.lookup(0x3000) == nullptr);
+    reg.unregister_function(0x1000);
+    REQUIRE(reg.lookup(0x1000) == nullptr);
+    REQUIRE(reg.lookup(0x1001) == two);
+    reg.clear();
+    REQUIRE(reg.lookup(0x1001) == nullptr);
+}
+
 // --- Test: Simple ADD loop — interpreter vs AOT produce identical results ---
 //
 // ARM code at address 0x1000:

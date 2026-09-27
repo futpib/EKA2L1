@@ -310,7 +310,7 @@ void observe_hot_pc(ARMul_State *cpu) {
         const auto consumed = std::clamp(std::size_t(tr.end_address - pc),
             std::size_t(cpu->TFlag ? 2 : 4), size);
         auto &entry = ram_cache.insert(key, view, consumed);
-        tr.func.export_name = "r_" + std::to_string(entry.version);
+        tr.func.export_name = "r_" + std::to_string(entry.version) + "_pc_" + std::to_string(pc);
         hot_pending.push_back(std::move(tr.func));
         if (common::performance::counting()) ++common::performance::ram_blocks_compiled;
         if (hot_pending.size() >= 32) flush_hot_blocks();
