@@ -90,3 +90,18 @@ runs to one another, not as zero-overhead performance claims. V8 backing storage
 can include shared buffers in multiple isolates; do not sum those values as
 unique process memory. WASM linear-memory capacity alone cannot establish a leak.
 Raw PSS can fluctuate with browser/GPU caches and other shared processes.
+
+Summarize fixed guest-time windows with
+`python3 ../benchmark/summarize_long_run.py NEW_OUTPUT` (from `src/tests/wasm`).
+For a separate diagnostic run, set `EKA2L1_MONITOR_CPU_START_US` to start CPU
+sampling partway through the replay and keep it running to the endpoint.
+`cpu-window.json` records the actual start; those intervals include profiler
+cost and are not timing controls. The monitor also records main-thread-visible
+running/unused worker-pool sizes when exposed by the Emscripten runtime.
+
+`EKA2L1_PROFILE_INPUT=../benchmark/snakes-long.input` uses menu entry/turns
+repeated at four-minute offsets, intended to re-enter gameplay after the first
+run ends without resetting the emulator. Inspect the saved scene images before
+labeling any interval as gameplay; menu residence can be much faster and must
+not be counted as sustained gameplay throughput. The long-monitor replay input
+limit follows its configured endpoint; ordinary replays retain the 120s limit.

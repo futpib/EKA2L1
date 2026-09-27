@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer';
 import {startServer, buildDir} from './server.ts';
 
 const [assetArg, outputArg, modeArg = '0', samplingArg = '1', endArg = '25000000'] = process.argv.slice(2);
-const frameArg = '100000', inputArg = '../benchmark/snakes.input', startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
+const frameArg = '100000', inputArg = process.env.EKA2L1_PROFILE_INPUT || '../benchmark/snakes.input', startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
 const captureMode = Number(modeArg), sampling = samplingArg === '1', endUs = Number(endArg);
 if (![0,1,2].includes(captureMode) || !Number.isInteger(endUs) || endUs <= Number(startArg) || endUs > 1800000000) throw new Error('Invalid profile settings');
 if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_OUTPUT [CAPTURE_MODE:0/1/2] [SAMPLING:0/1] [END_US]');
@@ -14,6 +14,9 @@ const guestProfile = Number(process.env.EKA2L1_GUEST_PROFILE || "0");
 if (!Number.isSafeInteger(guestProfile) || guestProfile < 0 || guestProfile > 2147483647)
   throw new Error('EKA2L1_GUEST_PROFILE must be a nonnegative sample stride');
 const monitor = process.env.EKA2L1_LONG_MONITOR === "1";
+const monitorCpuStart = Number(process.env.EKA2L1_MONITOR_CPU_START_US || '0');
+if (!Number.isSafeInteger(monitorCpuStart) || monitorCpuStart < 0 || monitorCpuStart >= endUs || (monitorCpuStart && (!monitor || sampling)))
+  throw new Error('Monitor CPU start requires monitoring, no whole-window sampling, and a time before the endpoint');
 if (endUs > 120000000 && !monitor) throw new Error("Runs beyond 120 guest seconds require EKA2L1_LONG_MONITOR=1 to discard audio artifacts");
 const detailedProfile = process.env.EKA2L1_PROFILE_DETAIL !== '0';
 if (!detailedProfile && guestProfile) throw new Error('Guest profiling requires detailed counters');
@@ -140,6 +143,7 @@ try {
   }));
   await page.evaluate(() => (window as any).Module._eka2l1_profile_resume());
   const timeline: unknown[] = [];
+  let monitorCpuStarted = false;
   if (monitor) {
     let lastScene = -1;
     const deadline = performance.now() + 1800000;
@@ -148,9 +152,19 @@ try {
       const sample = await page.evaluate(() => {
         const g = window as any;
         return {...JSON.parse(g.Module.ccall('eka2l1_monitor_report', 'string', [], [])),
+          worker_pool: {running: g.PThread?.runningWorkers?.length, unused: g.PThread?.unusedWorkers?.length},
           phase: g.Module._eka2l1_profile_phase(), presentations: g.Module._eka2l1_presentations(),
           linear_bytes: g.HEAPU8?.buffer.byteLength ?? g.Module.HEAPU8?.buffer.byteLength};
       });
+      if (monitorCpuStart && !monitorCpuStarted && sample.guest_us >= monitorCpuStart && sample.phase !== 3) {
+        await Promise.all(clients.map(async ({client}) => {
+          await client.send('Profiler.enable');
+          await client.send('Profiler.setSamplingInterval', {interval: 1000});
+          await client.send('Profiler.start');
+        }));
+        monitorCpuStarted = true;
+        fs.writeFileSync(path.join(output, 'cpu-window.json'), JSON.stringify({first_guest_us: sample.guest_us}));
+      }
       const heaps = [{name: 'page', ...await clients[0].client.send('Runtime.getHeapUsage')}];
       const processes = await system.send('SystemInfo.getProcessInfo');
       let pssKiB = 0;
@@ -176,7 +190,7 @@ try {
     const guest = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_guest_profile_report', 'string', [], [])));
     fs.writeFileSync(path.join(output, 'guest-profile.json'), JSON.stringify(guest));
   }
-  if (sampling) await Promise.all(clients.map(async ({name, client}) => {
+  if (sampling || monitorCpuStarted) await Promise.all(clients.map(async ({name, client}) => {
     const {profile} = await client.send('Profiler.stop');
     fs.writeFileSync(path.join(output, `${name}.cpuprofile`), JSON.stringify(profile));
   }));
@@ -194,7 +208,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({measurement: measured, warmup_seconds: warmupSeconds,
-    guest_profile_stride: guestProfile, monitor, sampling, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash,
+    guest_profile_stride: guestProfile, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     aot, aot_diagnostics: aotDiagnostics, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     user_agent: await page.evaluate(() => navigator.userAgent),

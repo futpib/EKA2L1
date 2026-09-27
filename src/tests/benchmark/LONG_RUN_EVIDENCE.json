@@ -1,0 +1,739 @@
+{
+  "long600-2": {
+    "report": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 600000000,
+        "first_instructions": 2370479891,
+        "last_instructions": 57418568672,
+        "wall_seconds": 362.46,
+        "presentations": 23948,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 19.579881211,
+      "guest_profile_stride": 0,
+      "monitor": true,
+      "sampling": false,
+      "isolates": 65,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "eeafffcccc1ab4f6ff38166f6ef2782cfdd4c37fc1b0525f968b7d4782fdf962",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "1a64ad39df4e1e78b1814b20144dd0de07868827",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "first": {
+      "guest_us": 21015876,
+      "instructions": 2370504372,
+      "allocated_bytes": 572134336,
+      "free_bytes": 16360208,
+      "linear_bytes": 596705280,
+      "compiled_functions": 12943,
+      "pss_kib": 1867282
+    },
+    "last": {
+      "guest_us": 600000000,
+      "instructions": 57418568672,
+      "allocated_bytes": 572835296,
+      "free_bytes": 15659248,
+      "linear_bytes": 596705280,
+      "compiled_functions": 15948,
+      "pss_kib": 2014930
+    },
+    "before_cpu_sampling": {
+      "guest_us": 538220792,
+      "instructions": 54205667080,
+      "allocated_bytes": 572836264,
+      "free_bytes": 15658280,
+      "linear_bytes": 596705280,
+      "compiled_functions": 15944,
+      "pss_kib": 2022486
+    },
+    "windows": [
+      {
+        "first_guest_s": 22,
+        "last_guest_s": 60,
+        "host_seconds": 33.46405092558001,
+        "realtime_ratio": 1.1355469212172606,
+        "million_instructions_per_guest_s": 156.0622578537133
+      },
+      {
+        "first_guest_s": 60,
+        "last_guest_s": 120,
+        "host_seconds": 53.66363700033049,
+        "realtime_ratio": 1.1180755415371957,
+        "million_instructions_per_guest_s": 176.0054410102828
+      },
+      {
+        "first_guest_s": 78,
+        "last_guest_s": 96,
+        "host_seconds": 17.268625773826045,
+        "realtime_ratio": 1.0423527752441364,
+        "million_instructions_per_guest_s": 220.7212426203586
+      },
+      {
+        "first_guest_s": 120,
+        "last_guest_s": 180,
+        "host_seconds": 53.02047674778304,
+        "realtime_ratio": 1.1316382590337382,
+        "million_instructions_per_guest_s": 175.56824930658314
+      },
+      {
+        "first_guest_s": 180,
+        "last_guest_s": 200,
+        "host_seconds": 17.11525312694887,
+        "realtime_ratio": 1.1685483031804504,
+        "million_instructions_per_guest_s": 157.71077549684028
+      },
+      {
+        "first_guest_s": 300,
+        "last_guest_s": 360,
+        "host_seconds": 28.82564504339965,
+        "realtime_ratio": 2.081479873552335,
+        "million_instructions_per_guest_s": 51.8945559825793
+      },
+      {
+        "first_guest_s": 360,
+        "last_guest_s": 420,
+        "host_seconds": 28.867070960784737,
+        "realtime_ratio": 2.0784928294771796,
+        "million_instructions_per_guest_s": 51.79975826550738
+      },
+      {
+        "first_guest_s": 510,
+        "last_guest_s": 535,
+        "host_seconds": 12.031002759949944,
+        "realtime_ratio": 2.077964779729135,
+        "million_instructions_per_guest_s": 51.98876717064728
+      }
+    ],
+    "probe_ms": 4586.1679119997425,
+    "worker_pool_observations": [
+      []
+    ],
+    "files": {
+      "timeline.json": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-2/timeline.json",
+        "sha256": "03664bd8aa8787ae936a3a05bd574ba930fdc745a45fdba61c7abaad99eee890"
+      },
+      "report.json": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-2/report.json",
+        "sha256": "bd01c755672aaa25a9ec9f99b7c96a8528fd9c4c4287c33ab6c3e1fd123092d1"
+      },
+      "gpu.json": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-2/gpu.json",
+        "sha256": "d5336c7e8ea81f17079e04afb655f653c2c876fd38c7f02168c444d3fe7f2fd9"
+      },
+      "browser.log": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-2/browser.log",
+        "sha256": "c216ecc137b31227d7084b1d4a752f4b784940bc82a7cd36deecf9c70a567701"
+      }
+    }
+  },
+  "long600-rounds": {
+    "report": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 600000000,
+        "first_instructions": 2370479891,
+        "last_instructions": 96480979593,
+        "wall_seconds": 503.139,
+        "presentations": 22948,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 16.568179372000003,
+      "guest_profile_stride": 0,
+      "monitor": true,
+      "monitor_cpu_start_us": 540000000,
+      "sampling": false,
+      "isolates": 65,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "d674d2e984a806bc760be94be929726470f3d127b6c6700241ccd170c963a4fe",
+      "wasm_sha256": "7287ccf450742b12d2336621c2c278c913e5368162007825d8bf877d9bb27b47",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "213e55a4c7073f79402808249a5fea8ad992415c",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "first": {
+      "guest_us": 21015876,
+      "instructions": 2370504372,
+      "allocated_bytes": 572133496,
+      "free_bytes": 16361048,
+      "linear_bytes": 596705280,
+      "compiled_functions": 12943,
+      "pss_kib": 1943811
+    },
+    "last": {
+      "guest_us": 600000000,
+      "instructions": 96480979593,
+      "allocated_bytes": 573111744,
+      "free_bytes": 15382800,
+      "linear_bytes": 596705280,
+      "compiled_functions": 16741,
+      "pss_kib": 2358027
+    },
+    "before_cpu_sampling": {
+      "guest_us": 539090371,
+      "instructions": 85850656093,
+      "allocated_bytes": 573046024,
+      "free_bytes": 15448520,
+      "linear_bytes": 596705280,
+      "compiled_functions": 16613,
+      "pss_kib": 2020856
+    },
+    "windows": [
+      {
+        "first_guest_s": 22,
+        "last_guest_s": 60,
+        "host_seconds": 33.47083741833676,
+        "realtime_ratio": 1.1353166795636245,
+        "million_instructions_per_guest_s": 156.19079316690596
+      },
+      {
+        "first_guest_s": 60,
+        "last_guest_s": 120,
+        "host_seconds": 53.32946198709603,
+        "realtime_ratio": 1.1250816671377262,
+        "million_instructions_per_guest_s": 175.9377271331555
+      },
+      {
+        "first_guest_s": 78,
+        "last_guest_s": 96,
+        "host_seconds": 17.354901811320467,
+        "realtime_ratio": 1.0371709500689161,
+        "million_instructions_per_guest_s": 220.51870277908645
+      },
+      {
+        "first_guest_s": 120,
+        "last_guest_s": 180,
+        "host_seconds": 53.294362649492804,
+        "realtime_ratio": 1.1258226389648176,
+        "million_instructions_per_guest_s": 175.5285998069779
+      },
+      {
+        "first_guest_s": 180,
+        "last_guest_s": 200,
+        "host_seconds": 17.259233017767574,
+        "realtime_ratio": 1.1588000451358953,
+        "million_instructions_per_guest_s": 157.7725540460411
+      },
+      {
+        "first_guest_s": 300,
+        "last_guest_s": 360,
+        "host_seconds": 53.26747730426243,
+        "realtime_ratio": 1.1263908680578503,
+        "million_instructions_per_guest_s": 176.04842394113882
+      },
+      {
+        "first_guest_s": 360,
+        "last_guest_s": 420,
+        "host_seconds": 52.93923909449362,
+        "realtime_ratio": 1.1333748090504911,
+        "million_instructions_per_guest_s": 175.74184289358928
+      },
+      {
+        "first_guest_s": 510,
+        "last_guest_s": 535,
+        "host_seconds": 21.447417896051018,
+        "realtime_ratio": 1.1656414828660142,
+        "million_instructions_per_guest_s": 155.54087148503905
+      }
+    ],
+    "probe_ms": 6979.293070999924,
+    "worker_pool_observations": [
+      [
+        [
+          "running",
+          19
+        ],
+        [
+          "unused",
+          45
+        ]
+      ]
+    ],
+    "files": {
+      "timeline.json": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-rounds/timeline.json",
+        "sha256": "4732e770b355d8b43f5937661f198d38e1ee1600d4cdb5d721fd8051adb73229"
+      },
+      "report.json": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-rounds/report.json",
+        "sha256": "c1bfb023ee2c5abe5d108810c9221037b02f6fa7551a8d3a2f29a21212396592"
+      },
+      "gpu.json": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-rounds/gpu.json",
+        "sha256": "3ec4a51b181c7d7e79e307762adc94b5cd2a56e35affda26a4260bee808b7d56"
+      },
+      "browser.log": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-rounds/browser.log",
+        "sha256": "788401a5587423fe295b5934961a814ed00df0275bb927c46464eca0a2a914ec"
+      },
+      "summary.json": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-rounds/summary.json",
+        "sha256": "b74e3366a2a9dace20f9b63d2c8b83833d5ee0d9983c398fb6459e1dff0424a3"
+      },
+      "cpu-window.json": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-rounds/cpu-window.json",
+        "sha256": "659a13041425665e3aa4aea29206d7d36428c990674df2cab172cec64429c9c9"
+      },
+      "process-memory.json": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-rounds/process-memory.json",
+        "sha256": "1639ccc2dee2d690f505e83424b8ddf242da15533fa63bebb118b1adc9511863"
+      },
+      "long-run.png": {
+        "path": "/home/claude/.scratch/eka-benchmark/long600-rounds/long-run.png",
+        "sha256": "9302801f41d21281fb00671d45d2f5544e5b3d9ef37fa9518c1960e673067289"
+      }
+    }
+  },
+  "late_cpu_worker": {
+    "file": "worker-45.cpuprofile",
+    "sampled_seconds": 65.353781,
+    "nonidle_seconds": 62.539771,
+    "generated_code_inclusive": {
+      "seconds": 37.049064,
+      "percent_all_samples": 56.69000849392325,
+      "modules": 436
+    },
+    "top_self": [
+      {
+        "function": "eka2l1::arm::aot::validated_code_cache::find(unsigned int, eka2l1::arm::core&)",
+        "seconds": 11.04538,
+        "percent_all_samples": 16.900904325642614
+      },
+      {
+        "function": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+        "seconds": 7.65814,
+        "percent_all_samples": 11.717975429761287
+      },
+      {
+        "function": "eka2l1::arm::aot::lookup_compiled(ARMul_State*)",
+        "seconds": 3.730296,
+        "percent_all_samples": 5.707850323151158
+      },
+      {
+        "function": "r_261_pc_1879455500",
+        "seconds": 2.901916,
+        "percent_all_samples": 4.440318456861738
+      },
+      {
+        "function": "__timedwait_cp",
+        "seconds": 2.309702,
+        "percent_all_samples": 3.534152063826269
+      },
+      {
+        "function": "f_2149128552",
+        "seconds": 2.189608,
+        "percent_all_samples": 3.3503922290280346
+      },
+      {
+        "function": "r_983_pc_1879129820",
+        "seconds": 2.173592,
+        "percent_all_samples": 3.3258856132593153
+      },
+      {
+        "function": "r_1179_pc_1879454612",
+        "seconds": 1.676674,
+        "percent_all_samples": 2.565534808154405
+      },
+      {
+        "function": "r_725_pc_1879048720",
+        "seconds": 1.554054,
+        "percent_all_samples": 2.3779098565085315
+      },
+      {
+        "function": "r_1236_pc_1879455124",
+        "seconds": 1.109814,
+        "percent_all_samples": 1.6981634161304302
+      },
+      {
+        "function": "r_1578_pc_1879130660",
+        "seconds": 0.843243,
+        "percent_all_samples": 1.29027423830306
+      },
+      {
+        "function": "f_2149189520",
+        "seconds": 0.766689,
+        "percent_all_samples": 1.1731364096592973
+      },
+      {
+        "function": "r_1140_pc_1879063876",
+        "seconds": 0.762592,
+        "percent_all_samples": 1.1668674533153636
+      },
+      {
+        "function": "r_811_pc_1879094644",
+        "seconds": 0.709113,
+        "percent_all_samples": 1.0850374517734482
+      },
+      {
+        "function": "r_771_pc_1879095064",
+        "seconds": 0.644741,
+        "percent_all_samples": 0.9865397076260974
+      },
+      {
+        "function": "std::__2::__hash_iterator<std::__2::__hash_node<std::__2::__hash_value_type<unsigned long long, unsigned long>, void*>*> std::__2::__hash_table<std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::__unordered_map_hasher<unsigned long long, std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::hash<unsigned long long>, std::__2::equal_to<unsigned long long>, true>, std::__2::__unordered_map_equal<unsigned long long, std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::equal_to<unsigned long long>, std::__2::hash<unsigned long long>, true>, std::__2::allocator<std::__2::__hash_value_type<unsigned long long, unsigned long>>>::find<unsigned long long>(unsigned long long const&)",
+        "seconds": 0.593565,
+        "percent_all_samples": 0.9082336031942819
+      },
+      {
+        "function": "r_230_pc_1879464540",
+        "seconds": 0.578563,
+        "percent_all_samples": 0.8852785426446864
+      },
+      {
+        "function": "r_228_pc_1879464696",
+        "seconds": 0.52562,
+        "percent_all_samples": 0.8042686925795464
+      },
+      {
+        "function": "r_269_pc_1879068004",
+        "seconds": 0.517214,
+        "percent_all_samples": 0.7914063916210142
+      },
+      {
+        "function": "eka2l1::arm::aot::equal_code_bytes(unsigned char const*, unsigned char const*, unsigned long)",
+        "seconds": 0.508689,
+        "percent_all_samples": 0.7783620047935712
+      },
+      {
+        "function": "(idle)",
+        "seconds": 0.503254,
+        "percent_all_samples": 0.7700457300244037
+      },
+      {
+        "function": "r_136_pc_1879171264",
+        "seconds": 0.496038,
+        "percent_all_samples": 0.7590042877549809
+      },
+      {
+        "function": "ARMul_State::ReadMemory32Slow(unsigned int) const",
+        "seconds": 0.461663,
+        "percent_all_samples": 0.7064059537733555
+      },
+      {
+        "function": "r_243_pc_1879068332",
+        "seconds": 0.445374,
+        "percent_all_samples": 0.6814816115994881
+      },
+      {
+        "function": "r_761_pc_1879129864",
+        "seconds": 0.404582,
+        "percent_all_samples": 0.6190644118968419
+      }
+    ]
+  },
+  "late_graphics_worker": {
+    "file": "worker-46.cpuprofile",
+    "sampled_seconds": 65.354428,
+    "nonidle_seconds": 2.465101,
+    "generated_code_inclusive": {
+      "seconds": 0.0,
+      "percent_all_samples": 0.0,
+      "modules": 0
+    },
+    "top_self": [
+      {
+        "function": "__timedwait_cp",
+        "seconds": 62.628351,
+        "percent_all_samples": 95.82877995657769
+      },
+      {
+        "function": "getParameter",
+        "seconds": 1.769689,
+        "percent_all_samples": 2.7078333544591655
+      },
+      {
+        "function": "eka2l1::drivers::shared_graphics_driver::update_bitmap(unsigned long long, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, void const*, unsigned long)",
+        "seconds": 0.339925,
+        "percent_all_samples": 0.5201254305217085
+      },
+      {
+        "function": "(idle)",
+        "seconds": 0.259911,
+        "percent_all_samples": 0.397694552540495
+      },
+      {
+        "function": "texSubImage2D",
+        "seconds": 0.067608,
+        "percent_all_samples": 0.10344823154140374
+      },
+      {
+        "function": "emscriptenWebGLGet",
+        "seconds": 0.028427,
+        "percent_all_samples": 0.043496670187366644
+      },
+      {
+        "function": "clear",
+        "seconds": 0.020095,
+        "percent_all_samples": 0.030747725310976633
+      },
+      {
+        "function": "wasm-to-js",
+        "seconds": 0.019007,
+        "percent_all_samples": 0.029082956704938188
+      },
+      {
+        "function": "postMessage",
+        "seconds": 0.016879,
+        "percent_all_samples": 0.02582686516665711
+      },
+      {
+        "function": "_emscripten_get_now",
+        "seconds": 0.016871,
+        "percent_all_samples": 0.025814624221024474
+      },
+      {
+        "function": "eka2l1::drivers::ogl_graphics_driver::dispatch(eka2l1::drivers::command&)",
+        "seconds": 0.014734,
+        "percent_all_samples": 0.02254476161890668
+      },
+      {
+        "function": "growMemViews",
+        "seconds": 0.012699,
+        "percent_all_samples": 0.01943097107360499
+      },
+      {
+        "function": "bufferData",
+        "seconds": 0.009509,
+        "percent_all_samples": 0.01454989400259153
+      },
+      {
+        "function": "uniformMatrix4fv",
+        "seconds": 0.009494,
+        "percent_all_samples": 0.014526942229530338
+      },
+      {
+        "function": "eka2l1::drivers::shared_graphics_driver::dispatch(eka2l1::drivers::command&)",
+        "seconds": 0.008453,
+        "percent_all_samples": 0.012934089179083627
+      },
+      {
+        "function": "bindVertexArray",
+        "seconds": 0.008407,
+        "percent_all_samples": 0.012863703741695973
+      },
+      {
+        "function": "tasks.port1.onmessage",
+        "seconds": 0.008196,
+        "percent_all_samples": 0.012540848800635208
+      },
+      {
+        "function": "flush",
+        "seconds": 0.007423,
+        "percent_all_samples": 0.011358067428881789
+      },
+      {
+        "function": "glad_debug_impl_glGetIntegerv",
+        "seconds": 0.007384,
+        "percent_all_samples": 0.011298392818922691
+      },
+      {
+        "function": "emscripten_futex_wake",
+        "seconds": 0.006339,
+        "percent_all_samples": 0.00969941929565966
+      },
+      {
+        "function": "js-to-wasm:i:i",
+        "seconds": 0.005291,
+        "percent_all_samples": 0.008095855417784393
+      },
+      {
+        "function": "_glTexSubImage2D",
+        "seconds": 0.005284,
+        "percent_all_samples": 0.008085144590355836
+      },
+      {
+        "function": "bindFramebuffer",
+        "seconds": 0.005282,
+        "percent_all_samples": 0.008082084353947678
+      },
+      {
+        "function": "get buffer",
+        "seconds": 0.004187,
+        "percent_all_samples": 0.006406604920480675
+      },
+      {
+        "function": "pixelStorei",
+        "seconds": 0.003226,
+        "percent_all_samples": 0.0049361613263603195
+      }
+    ]
+  },
+  "notes": [
+    "No PNG/frame or PCM/event retention in long timing runs; screenshots once per guest minute.",
+    "First run enters high scores after gameplay; its menu intervals are not gameplay throughput.",
+    "Second run repeats menu entry at 242-264 and 482-504 seconds without resetting emulator.",
+    "CPU sampling begins at 541.531325 guest seconds in second run. Exclude that interval from clean timing/memory conclusions.",
+    "Allocator bytes are WASM malloc accounting; PSS is sum of readable processes returned by Chrome SystemInfo. Worker heaps/shared storage are not summed.",
+    "Raw observations are not synchronized across guest/process samples. Probe and screenshot overhead included."
+  ],
+  "validation": {
+    "wasm_tests": {
+      "path": "/home/claude/.scratch/eka-long-final-wasm-tests.log",
+      "sha256": "66ed46961b2827a17ad648defb9b88e361d34cff0177eaf34278e73485b2c91b"
+    },
+    "native_tests": {
+      "path": "/home/claude/.scratch/eka-long-replay-native-tests.log",
+      "sha256": "b43b442d9f3e5aab36a0b95300f20e3a43c96d3f8f6dad88785ff246d52f0041"
+    },
+    "frontend_tests": {
+      "path": "/home/claude/.scratch/eka-long-final-frontend-tests.log",
+      "sha256": "9345af6f80ada1394b31a44e0dc9330c8f87c5a1e172dcc202d791ccde0b2745"
+    },
+    "wasm_test_binary": {
+      "path": "/home/claude/code/EKA2L1/build-wasm/src/tests/aot/test_aot_wasm.wasm",
+      "sha256": "ed463c1d132c7b15a1fbd5dfb8ac58ca4fb2c705205c65625671fc7cd2b48a3d"
+    },
+    "emulator_binary": {
+      "path": "/home/claude/code/EKA2L1/build-wasm/src/emu/wasm/eka2l1.wasm",
+      "sha256": "7287ccf450742b12d2336621c2c278c913e5368162007825d8bf877d9bb27b47"
+    },
+    "results": {
+      "wasm_tests_passed": 131,
+      "native_ctest_targets_passed": 3,
+      "frontend_tests_passed": 7,
+      "monitor_smoke_exact_native_frames": 80,
+      "smoke_audio_compared": false
+    }
+  }
+}

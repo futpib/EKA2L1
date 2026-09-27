@@ -39,6 +39,9 @@ namespace eka2l1 {
             input.key_.state_ = (data & 1) ? drivers::key_state::pressed : drivers::key_state::released;
             winserv->queue_input_from_driver(input);
         });
+        const std::uint64_t replay_limit_us = !common::benchmark::retain_audio && common::performance::enabled
+            ? std::max(std::uint64_t(120000000), common::performance::end_us)
+            : 120000000;
         std::string line;
         std::uint64_t previous = 0;
         while (std::getline(input, line)) {
@@ -47,7 +50,7 @@ namespace eka2l1 {
             std::uint64_t us;
             unsigned key, down;
             std::string extra;
-            if (!(row >> us >> key >> down) || (row >> extra) || us < previous || us > 120000000 || key > 255 || down > 1)
+            if (!(row >> us >> key >> down) || (row >> extra) || us < previous || us > replay_limit_us || key > 255 || down > 1)
                 throw std::runtime_error("Invalid benchmark replay row: " + line);
             timer->schedule_event(us, event, (static_cast<std::uint64_t>(key) << 1) | down);
             previous = us;
