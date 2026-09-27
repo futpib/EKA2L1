@@ -34,6 +34,22 @@ page.on('response', r => {if (r.status() >= 400) errors.push(`HTTP ${r.status()}
 const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const state = () => page.evaluate(() => ({guest: (window as any).Module._eka2l1_guest_time_us(),
   inputs: (window as any).Module._eka2l1_input_consumed(), frames: (window as any).Module._eka2l1_presentations()}));
+async function resources() {
+  const snapshot = await page.evaluate(() => {
+    const g = window as any;
+    const tmp = g.FS.readdir('/tmp').filter((n:string) => n !== '.' && n !== '..')
+      .map((n:string) => ({name:n, bytes:g.FS.stat('/tmp/'+n).size}));
+    return {tmp, worker_pool:{running:g.PThread.runningWorkers.length,unused:g.PThread.unusedWorkers.length},
+      selected_files:['rom-file','rpkg-file','sis-file'].map(id => (document.getElementById(id) as HTMLInputElement).files!.length),
+      linear_bytes:g.HEAPU8.buffer.byteLength,
+      allocator:JSON.parse(g.Module.ccall('eka2l1_monitor_report','string',[],[]))};
+  });
+  let pssKiB = 0;
+  for (const proc of (await system.send('SystemInfo.getProcessInfo')).processInfo) {
+    try { pssKiB += Number(fs.readFileSync(`/proc/${proc.id}/smaps_rollup`,'utf8').match(/^Pss:\s+(\d+)/m)?.[1] ?? 0); } catch {}
+  }
+  return {...snapshot,pss_kib:pssKiB};
+}
 async function waitGuest(us: number) {
   const deadline = performance.now() + 120000;
   while ((await state()).guest < us) {
@@ -73,6 +89,11 @@ try {
     await page.click('#btn-start');
   }
   await page.waitForFunction(() => (window as any)._gameRunning, {timeout:120000});
+  const startupResources = await resources();
+  if (process.env.EKA2L1_EXPECT_UPLOAD_RELEASE === '1' &&
+      (startupResources.selected_files.some(n => n !== 0) ||
+       startupResources.tmp.some(f => /\.(rom|rpkg|sis)$/i.test(f.name))))
+    throw new Error('Installation retained upload files');
   for (let us=2000000; us<=20000000; us+=2000000) { await waitGuest(us); await key('Enter',50); }
   await waitGuest(23000000);
   const firstImage = await visible('desktop-gameplay');
@@ -125,10 +146,11 @@ try {
   await pause(100);
   if ((await state()).inputs < consumedBefore+2) throw new Error('Blur failed to release held input');
   await page.keyboard.up('ArrowLeft');
+  const finalResources = await resources();
   await page.evaluate(() => { (window as any)._gameRunning = false; (window as any).Module._eka2l1_shutdown(); });
   if (errors.length) throw new Error(errors.join('\n'));
   fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({start,end,host_seconds:elapsed,
-    auto_start:autoStart, sampling:!!profileStart, profile_window:{begin:profileBegin,end:profileFinish},
+    resources:{startup:startupResources,final:finalResources}, auto_start:autoStart, sampling:!!profileStart, profile_window:{begin:profileBegin,end:profileFinish},
     measurement:profileBegin ? {first_virtual_us:profileBegin.guest,last_virtual_us:profileFinish.guest,wall_seconds:profileFinish.host_seconds-profileBegin.host_seconds} : null,
     renderer:'See gpu.json for physical GPU details',
     realtime_ratio:(end.guest-start.guest)/1e6/elapsed, input_delivery_ms:latencies, samples,

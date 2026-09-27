@@ -205,10 +205,19 @@
                         rpkgPath = await uploadFile(rpkgInput.files[0], '/tmp/' + rpkgInput.files[0].name);
                     }
                     Module.setStatus('Installing device...');
-                    var ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string'], [romPath, rpkgPath], {async: true});
+                    var ret;
+                    try {
+                        ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string'], [romPath, rpkgPath], {async: true});
+                    } finally {
+                        // Installation copies/extracts into storage before returning.
+                        for (var uploaded of new Set([romPath, rpkgPath])) {
+                            if (uploaded) FS.unlink(uploaded);
+                        }
+                    }
                     if (ret !== 0) {
                         throw new Error('Device installation failed: ' + ret);
                     }
+                    romInput.value = ''; rpkgInput.value = '';
                 }
 
                 // Install SIS if provided
@@ -216,7 +225,13 @@
                     Module.setStatus('Uploading SIS...');
                     var sisPath = await uploadFile(sisInput.files[0], '/tmp/' + sisInput.files[0].name);
                     Module.setStatus('Installing SIS...');
-                    var ret = await Module.ccall('eka2l1_install_sis', 'number', ['string'], [sisPath], {async: true});
+                    var ret;
+                    try {
+                        ret = await Module.ccall('eka2l1_install_sis', 'number', ['string'], [sisPath], {async: true});
+                    } finally {
+                        FS.unlink(sisPath);
+                    }
+                    sisInput.value = '';
                     if (ret !== 0) {
                         Module.printErr('SIS install returned ' + ret + ' (may already be in ROM)');
                     }

@@ -1,5 +1,10 @@
 add_executable(eka2l1_wasm main.cpp)
 
+set(EKA2L1_WASM_WORKER_POOL_SIZE 32 CACHE STRING "Number of prestarted browser workers")
+if(NOT EKA2L1_WASM_WORKER_POOL_SIZE MATCHES "^[1-9][0-9]*$")
+    message(FATAL_ERROR "EKA2L1_WASM_WORKER_POOL_SIZE must be a positive integer")
+endif()
+
 option(EKA2L1_WASM_CHECK_EVERY_STACK_UPDATE "Instrument every WASM stack-pointer update" OFF)
 if (EKA2L1_WASM_CHECK_EVERY_STACK_UPDATE)
     set(EKA2L1_WASM_STACK_CHECK_LEVEL 2)
@@ -41,7 +46,7 @@ target_link_options(eka2l1_wasm PRIVATE
     "SHELL:-s ALLOW_MEMORY_GROWTH=1"
     "SHELL:-s INITIAL_MEMORY=268435456"
     "SHELL:-s USE_PTHREADS=1"
-    "SHELL:-s PTHREAD_POOL_SIZE=64"
+    "SHELL:-s PTHREAD_POOL_SIZE=${EKA2L1_WASM_WORKER_POOL_SIZE}"
     "SHELL:-s FULL_ES3=1"
     "SHELL:-s MIN_WEBGL_VERSION=2"
     "SHELL:-s MAX_WEBGL_VERSION=2"

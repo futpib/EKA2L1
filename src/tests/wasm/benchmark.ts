@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import puppeteer from 'puppeteer';
@@ -74,6 +75,8 @@ try {
     }
     call('eka2l1_install_device', ['string', 'string'], ['/tmp/SYM.ROM', '/tmp/SYM.RPKG']);
     call('eka2l1_install_sis', ['string'], ['/tmp/Snakes.sis']);
+    // Match the live launcher's storage lifetime after synchronous installation.
+    for (const name of ['SYM.ROM', 'SYM.RPKG', 'Snakes.sis']) g.FS.unlink(`/tmp/${name}`);
     g.FS.mkdir('/frames');
     g.Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], ['/frames', count]);
     if (g.Module._eka2l1_prepare_graphics) {
@@ -120,7 +123,7 @@ try {
     }), names.slice(i, i+25));
     for (const [name, bytes] of data) fs.writeFileSync(path.join(output, name), Buffer.from(bytes, 'base64'));
   }
-  const audio = JSON.parse(execFileSync('python3', [path.resolve('../benchmark/validate_audio.py'), output],
+  const audio = JSON.parse(execFileSync('python3', [fileURLToPath(new URL('../benchmark/validate_audio.py', import.meta.url)), output],
     {encoding: 'utf8', env: {...process.env, PYTHONDONTWRITEBYTECODE: '1'}}));
   fs.writeFileSync(path.join(output, 'audio.json'), JSON.stringify(audio, null, 2));
   await page.screenshot({path: path.join(output, 'browser.png')});
