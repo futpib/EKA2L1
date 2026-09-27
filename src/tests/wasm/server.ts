@@ -26,65 +26,31 @@ function getMime(filePath: string): string {
 
 function makeAutoStartScript(appName?: string): string {
   if (!appName) return "";
+  const encodedName = JSON.stringify(appName).replace(/</g, "\\u003c");
   return `
 <script>
 async function autoStart() {
-  // Wait for WASM runtime to be fully initialized
-  while (typeof Module === 'undefined' || !Module.calledRun) {
-    await new Promise(r => setTimeout(r, 100));
-  }
-  // Extra delay to ensure all runtime initialization is complete
-  await new Promise(r => setTimeout(r, 200));
-  Module.setStatus('Auto-loading...');
-
-  async function fetchToFile(url, emPath) {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const buf = new Uint8Array(await res.arrayBuffer());
-    var parts = emPath.split('/');
-    var dir = '';
-    for (var i = 0; i < parts.length - 1; i++) {
-      dir += '/' + parts[i];
-      try { FS.mkdir(dir); } catch(e) {}
-    }
-    FS.writeFile(emPath, buf);
-    return emPath;
-  }
-
+  while (typeof Module === 'undefined' || !Module.calledRun)
+    await new Promise(resolve => setTimeout(resolve, 100));
   try {
-    await Module.ccall('eka2l1_init', 'number', ['string'], ['/data'], {async: true});
-
-    var romRes = await fetch('/preload/rom');
-    if (romRes.ok) {
-      Module.setStatus('Uploading ROM...');
-      var romPath = await fetchToFile('/preload/rom', '/tmp/SYM.ROM');
-      var rpkgPath = null;
-      var rpkgRes = await fetch('/preload/rpkg');
-      if (rpkgRes.ok) {
-        Module.setStatus('Uploading RPKG...');
-        rpkgPath = await fetchToFile('/preload/rpkg', '/tmp/SYM.RPKG');
-      }
-      Module.setStatus('Installing device...');
-      var ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string'], [romPath, rpkgPath || ''], {async: true});
-      if (ret !== 0) throw new Error('Device install failed: ' + ret);
+    // Use the same live configuration, graphics handshake and input activation
+    // as a manual Start. Keep only preload-file selection in this helper.
+    for (const [endpoint, selector, name] of [
+      ['/preload/rom', 'rom-file', 'SYM.ROM'],
+      ['/preload/rpkg', 'rpkg-file', 'SYM.RPKG'],
+      ['/preload/sis', 'sis-file', 'app.sis']]) {
+      const response = await fetch(endpoint);
+      if (response.status === 404) continue;
+      if (!response.ok) throw new Error(endpoint + ': HTTP ' + response.status);
+      const transfer = new DataTransfer();
+      transfer.items.add(new File([await response.blob()], name));
+      document.getElementById(selector).files = transfer.files;
     }
-
-    var sisRes = await fetch('/preload/sis');
-    if (sisRes.ok) {
-      Module.setStatus('Uploading SIS...');
-      var sisPath = await fetchToFile('/preload/sis', '/tmp/app.sis');
-      Module.setStatus('Installing SIS...');
-      var ret = await Module.ccall('eka2l1_install_sis', 'number', ['string'], [sisPath], {async: true});
-      if (ret !== 0) Module.printErr('SIS install returned ' + ret);
-    }
-
-    Module.setStatus('Starting ${appName}...');
-    var runRet = await Module.ccall('eka2l1_run', 'number', ['string'], ['${appName}'], {async: true});
-    if (runRet !== 0) throw new Error('eka2l1_run failed: ' + runRet);
-    Module.setStatus('Running: ${appName}');
-  } catch(e) {
-    Module.setStatus('Error: ' + e.message);
-    Module.printErr(e.toString());
+    document.getElementById('app-name').value = ${encodedName};
+    await startEmulator();
+  } catch (error) {
+    Module.setStatus('Error: ' + error.message);
+    Module.printErr(error.toString());
   }
 }
 autoStart();

@@ -14,7 +14,10 @@ const profileEnd = Number(process.env.EKA2L1_LIVE_PROFILE_END_US || 0);
 if (profileStart && (!Number.isSafeInteger(profileStart) || !Number.isSafeInteger(profileEnd) || profileEnd <= profileStart)) throw new Error('Invalid live profile window');
 const assets = path.resolve(assetArg), output = path.resolve(outputArg);
 fs.mkdirSync(output);
-const {server, port} = await startServer(0);
+const autoStart = process.env.EKA2L1_LIVE_AUTOSTART === '1';
+const preloads: Record<string,string> = autoStart ? {'/preload/rom':path.join(assets,'SYM.ROM'),
+  '/preload/rpkg':path.join(assets,'SYM.RPKG'),'/preload/sis':path.join(assets,'Snakes.sis')} : {};
+const {server, port} = await startServer(0, preloads, autoStart ? 'Snakes' : undefined);
 const browser = await puppeteer.launch({executablePath: '/usr/bin/chromium', headless: true,
   args: ['--no-sandbox', '--disable-dev-shm-usage', '--use-gl=angle', '--use-angle=vulkan',
     '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist', '--disable-background-timer-throttling']});
@@ -63,10 +66,12 @@ async function visible(name: string, requireContent = true) {
 try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil:'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun);
-  for (const [selector, file] of [['#rom-file','SYM.ROM'],['#rpkg-file','SYM.RPKG'],['#sis-file','Snakes.sis']])
-    await (await page.$(selector))!.uploadFile(path.join(assets,file));
-  await page.type('#app-name','Snakes');
-  await page.click('#btn-start');
+  if (!autoStart) {
+    for (const [selector, file] of [['#rom-file','SYM.ROM'],['#rpkg-file','SYM.RPKG'],['#sis-file','Snakes.sis']])
+      await (await page.$(selector))!.uploadFile(path.join(assets,file));
+    await page.type('#app-name','Snakes');
+    await page.click('#btn-start');
+  }
   await page.waitForFunction(() => (window as any)._gameRunning, {timeout:120000});
   for (let us=2000000; us<=20000000; us+=2000000) { await waitGuest(us); await key('Enter',50); }
   await waitGuest(23000000);
@@ -123,7 +128,7 @@ try {
   await page.evaluate(() => { (window as any)._gameRunning = false; (window as any).Module._eka2l1_shutdown(); });
   if (errors.length) throw new Error(errors.join('\n'));
   fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({start,end,host_seconds:elapsed,
-    sampling:!!profileStart, profile_window:{begin:profileBegin,end:profileFinish},
+    auto_start:autoStart, sampling:!!profileStart, profile_window:{begin:profileBegin,end:profileFinish},
     measurement:profileBegin ? {first_virtual_us:profileBegin.guest,last_virtual_us:profileFinish.guest,wall_seconds:profileFinish.host_seconds-profileBegin.host_seconds} : null,
     renderer:'See gpu.json for physical GPU details',
     realtime_ratio:(end.guest-start.guest)/1e6/elapsed, input_delivery_ms:latencies, samples,
