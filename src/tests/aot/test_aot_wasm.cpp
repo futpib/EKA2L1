@@ -2139,6 +2139,13 @@ static bool test_bounded_execution() {
         auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true);
         if (!tr.entry_supported) { printf("  FAIL test/compare %08X misclassified\n",inst); return false; }
     }
+    // Warm a page with byte accesses, then test wider aligned/unaligned
+    // hits, a different page, and flag-only MSR between cached accesses.
+    for (unsigned offset : {0u, 1u, 2u, 3u, 4u, 4095u, 4096u}) {
+        programs.push_back(arm({0xe5d12000, 0xe5913000u | offset}));
+        programs.push_back(arm({0xe5c12000, 0xe5810000u | offset}));
+        programs.push_back(arm({0xe5d12000, 0xe128f000, 0xe5913000u | offset}));
+    }
     const auto existing_programs = programs.size();
     // Block-transfer fast spans and fallbacks: modes, writeback, conditions,
     // sparse/large lists, PC loads/stores, cross-page and unaligned bases.

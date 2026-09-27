@@ -83,8 +83,15 @@ namespace eka2l1::arm::aot {
                 ? cpu.code_mapping_generation->load(std::memory_order_acquire) : 0;
             const auto k = key(cpu.code_address_space, pc_mode);
             auto &recent = recent_[recent_index(k)];
-            if (generation && recent && recent->live && recent->key == k
-                && recent->mapping_source == cpu.code_mapping_generation
+            // A recent-slot collision does not invalidate an entry's mapping.
+            // Recover the stable version first, then use the same generation
+            // guard as a recent hit. Exact bytes are still checked below.
+            if (!recent || !recent->live || recent->key != k) {
+                auto it = current_.find(k);
+                if (it == current_.end()) return nullptr;
+                recent = &versions_[it->second];
+            }
+            if (generation && recent->mapping_source == cpu.code_mapping_generation
                 && recent->mapping_generation == generation) {
                 if (equal_code_bytes(recent->backing, recent->code.data(), recent->code.size())
                     && dependencies_equal(*recent)) return recent;

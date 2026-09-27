@@ -1185,3 +1185,36 @@ TEST_CASE("Inlined code dependencies validate every mapping and exact byte", "[a
     insert();cpu->code_address_space=2;REQUIRE_FALSE(cache.find(0x1000,*cpu));
     cpu->code_address_space=1;REQUIRE(cache.find(0x1000,*cpu));
 }
+
+TEST_CASE("Colliding recent entries retain generation guards but never skip byte validation", "[aot]") {
+    using namespace eka2l1::arm;
+    aot_test_env env; auto cpu = env.make_cpu();
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t, 16> code{}, other{};
+    std::atomic<std::uint64_t> generation{1}, replacement_source{1};
+    cpu->code_mapping_generation = &generation;
+    cpu->code_address_space = 1;
+    unsigned resolutions = 0;
+    cpu->resolve_code = [&](address pc, core::code_mapping &view) {
+        ++resolutions;
+        view = {cpu->code_address_space, pc == 0x1000 ? code.data() : other.data(), 16};
+        return true;
+    };
+    // These addresses collide in the direct-mapped recent index.
+    cache.insert(0x1000, {1, code.data(), 16}, 8);
+    cache.insert(0x3000, {1, other.data(), 16}, 8);
+    REQUIRE(cache.find(0x1000, *cpu)); REQUIRE(cache.find(0x3000, *cpu));
+    REQUIRE(resolutions == 2);
+    for (int i = 0; i < 8; ++i) {
+        REQUIRE(cache.find(0x1000, *cpu)); REQUIRE(cache.find(0x3000, *cpu));
+    }
+    CHECK(resolutions == 2);
+    code[0] = 1;
+    REQUIRE_FALSE(cache.find(0x1000, *cpu));
+    REQUIRE(cache.find(0x3000, *cpu));
+    // Identical generation values from another MMU cannot reuse old guards.
+    cpu->code_mapping_generation = &replacement_source;
+    REQUIRE(cache.find(0x3000, *cpu)); CHECK(resolutions == 3);
+    cache.invalidate(0x3000, 4);
+    REQUIRE_FALSE(cache.find(0x3000, *cpu));
+}

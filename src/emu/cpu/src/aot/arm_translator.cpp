@@ -127,10 +127,13 @@ namespace eka2l1::arm::aot {
             // required TLB permission may bypass the existing memory helpers.
             const auto page_local = write ? WRITE_PAGE : READ_PAGE;
             const auto base_local = write ? WRITE_BASE : READ_BASE;
-            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); get_local(page_local); op(op_i32_eq);
+            // The cached base was obtained with little-endian and permission
+            // checks. Helpers clear both bases; supported MSR only changes
+            // flags, so those properties cannot change while this base lives.
+            // Combining the page and alignment masks also rejects unaligned
+            // accesses without a second comparison.
+            get_local(ADDRESS); i32_const(-4096 | (size-1)); op(op_i32_and); get_local(page_local); op(op_i32_eq);
             get_local(base_local); op(op_i32_eqz); op(op_i32_eqz); op(op_i32_and);
-            get_local(ADDRESS); i32_const(size-1); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
-            load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
             op(op_if); op(type_void);
             get_local(base_local); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
             op(op_else);
