@@ -20,8 +20,11 @@
 #pragma once
 
 #include <cpu/aot/thumb_translator.h>
+#include <functional>
 
 namespace eka2l1::arm::aot {
+    using leaf_resolver = std::function<std::vector<std::uint8_t>(std::uint32_t)>;
+
     // Translate a block of ARM-mode code into a WASM function body.
     // ARM instructions are 32-bit fixed-width with condition codes in bits [31:28].
     //
@@ -37,5 +40,5 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings = nullptr,
-        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false, bool region = false);
+        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false, bool region = false, const leaf_resolver *leaves = nullptr);
 }

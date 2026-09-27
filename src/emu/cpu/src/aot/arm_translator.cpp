@@ -21,6 +21,7 @@
 #include <cpu/aot/state_locals.h>
 
 #include <cstring>
+#include <algorithm>
 #include <map>
 #include <set>
 
@@ -446,9 +447,36 @@ namespace eka2l1::arm::aot {
         w.store_i32(S::ZFLAG, tmp);
     }
 
+    // Only short straight-line leaves with an unchanged LR can be inlined.
+    // Memory instructions retain the normal region guards and helper exits.
+    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address) {
+        auto bytes = resolve(address);
+        for (std::size_t n = 0; n < 64 && n + 4 <= bytes.size(); n += 4) {
+            std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
+            if (op == 0xe12fff1e) { bytes.resize(n + 4); return bytes; }
+            if ((op >> 28) != 14) return {};
+            const auto group = (op >> 26) & 3;
+            if (group > 1 || ((op >> 16) & 15) >= 13 || ((op >> 12) & 15) >= 13) return {};
+            if (group == 1) {
+                if ((op & (1u << 25)) && ((op & 15) >= 13 || (op & 16))) return {};
+            } else {
+                // Exclude status transfers, misc instructions, and halfword forms.
+                const auto alu = (op >> 21) & 15;
+                if (alu >= 8 && alu <= 11 && !(op & (1u << 20))) return {};
+                if (!(op & (1u << 25))) {
+                    if ((op & 15) >= 13 || ((op & 16) && ((op >> 8) & 15) >= 13)) return {};
+                    if ((op & 0x90) == 0x90) return {};
+                }
+            }
+        }
+        return {};
+    }
+
     // CFG walker for ARM code. Returns reachable 4-byte-aligned offsets.
     static std::set<std::size_t> find_reachable_offsets_arm(
-        const std::uint8_t *code, std::size_t code_size, bool bounded)
+        const std::uint8_t *code, std::size_t code_size, bool bounded,
+        std::uint32_t start_address, const leaf_resolver *leaves,
+        std::map<std::size_t, code_dependency> &inlined)
     {
         std::set<std::size_t> reachable;
         if (code_size < 4) return reachable;
@@ -474,7 +502,18 @@ namespace eka2l1::arm::aot {
                     if (is_link) {
                         // Bounded BL exits to the runner. Its return address is
                         // a separate entry, not reachable fallthrough in this region.
-                        if (bounded && cond >= 0xE) break;
+                        if (bounded && cond >= 0xE) {
+                            if (cond == 14 && leaves && inlined.size() < 8) {
+                                const auto address = start_address + static_cast<std::uint32_t>(target_off);
+                                auto bytes = resolve_leaf(*leaves, address);
+                                if (!bytes.empty()) {
+                                    inlined.emplace(i, code_dependency{address, std::move(bytes)});
+                                    i += 4;
+                                    continue;
+                                }
+                            }
+                            break;
+                        }
                         // Conditional BL can fall through when its condition fails.
                         i += 4;
                         continue;
@@ -536,7 +575,7 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves)
     {
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
@@ -570,7 +609,24 @@ namespace eka2l1::arm::aot {
             num_insns++;
         }
 
-        auto reachable = find_reachable_offsets_arm(code, code_size, bounded);
+        std::map<std::size_t, code_dependency> inlined;
+        auto reachable = find_reachable_offsets_arm(code, code_size, bounded,
+            start_address, region ? leaves : nullptr, inlined);
+        struct instruction { std::size_t offset; std::uint32_t address, opcode; bool leaf; };
+        std::vector<instruction> instructions;
+        for (auto i : reachable) {
+            std::uint32_t op; std::memcpy(&op, code + i, 4);
+            instructions.push_back({i, start_address + static_cast<std::uint32_t>(i), op, false});
+            auto it = inlined.find(i);
+            if (it == inlined.end()) continue;
+            const auto &leaf = it->second;
+            if (std::none_of(tr.dependencies.begin(), tr.dependencies.end(), [&](const auto &d) { return d.address == leaf.address; }))
+                tr.dependencies.push_back(leaf);
+            for (std::size_t n = 0; n < leaf.bytes.size(); n += 4) {
+                std::memcpy(&op, leaf.bytes.data() + n, 4);
+                instructions.push_back({i, leaf.address + static_cast<std::uint32_t>(n), op, true});
+            }
+        }
 
         // Collect forward branch targets
         std::set<std::uint32_t> forward_targets_set;
@@ -652,21 +708,17 @@ namespace eka2l1::arm::aot {
         std::uint32_t insn_idx = 0;
         std::uint32_t decoded_end_offset = 0;
 
-        for (std::size_t i = 0; i + 3 < code_size; i += 4) {
+        for (const auto &instruction : instructions) {
+            const auto i = instruction.offset;
+            if (!region) insn_idx = static_cast<std::uint32_t>(i / 4);
             if (bounded && !region && stop_after_store && w.memory_write) break;
-            if (!reachable.count(i)) {
-                insn_idx++;
-                continue;
-            }
-
-            std::uint32_t inst;
-            std::memcpy(&inst, code + i, 4);
-            std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
+            const auto inst = instruction.opcode;
+            const auto insn_addr = instruction.address;
 
             w.current_pc = insn_addr; w.pc_written = false;
 
             // Close forward-target blocks
-            while (closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
+            while (!instruction.leaf && closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
                 w.op(op_end);
                 closed_count++;
             }
@@ -695,6 +747,20 @@ namespace eka2l1::arm::aot {
                     decoded_end_offset = static_cast<std::uint32_t>(i);
                     break;
                 }
+            }
+
+            if (instruction.leaf && inst == 0xe12fff1e) {
+                // LR still contains this call's ARM return address. The next
+                // emitted instruction is the caller continuation, with no spill.
+                ++insn_idx;
+                decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                continue;
+            }
+            if (!instruction.leaf && inlined.count(i)) {
+                w.store_i32_const(S::LR, insn_addr + 4);
+                ++insn_idx;
+                decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                continue;
             }
 
             std::uint32_t cond = (inst >> 28) & 0xF;

@@ -65,7 +65,13 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t SP = REG + 13 * 4;
     };
 
+    struct code_dependency {
+        std::uint32_t address;
+        std::vector<std::uint8_t> bytes;
+    };
+
     struct translate_result {
+        std::vector<code_dependency> dependencies;
         wasm_func_def func;
         bool entry_supported = true;
         bool complete;  // true if entire block was translated without bailing

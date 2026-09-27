@@ -201,22 +201,22 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     if (!(common::guest_profile::enabled && common::performance::counting())) {
         auto *entry = ram_cache.find(pc_mode, *cpu->parent());
         if (!entry) return nullptr;
-        cpu->aot_code_begin = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(entry->backing));
-        cpu->aot_code_end = cpu->aot_code_begin + static_cast<std::uint32_t>(entry->code.size());
+        cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
+        cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
         return entry->function;
     }
     core::code_mapping view;
     if (!cpu->parent()->resolve_code) return nullptr;
     const bool mapped = cpu->parent()->resolve_code(pc, view);
-    auto *entry = ram_cache.find(pc_mode, view);
+    auto *entry = ram_cache.find(pc_mode, *cpu->parent());
     if ((common::guest_profile::enabled && common::performance::counting()) && (!mapped || !entry || !entry->function)) {
         std::uint32_t opcode = 0;
         if (mapped && view.bytes && view.size >= (cpu->TFlag ? 2u : 4u)) std::memcpy(&opcode,view.bytes,cpu->TFlag ? 2 : 4);
         common::guest_profile::state.event(!mapped ? "ram_unmapped" : !entry ? "ram_missing" : entry->rejected ? "ram_rejected" : "ram_pending",pc_mode,view.address_space,opcode);
     }
     if (!mapped || !entry) return nullptr;
-    cpu->aot_code_begin = static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(view.bytes));
-    cpu->aot_code_end = cpu->aot_code_begin + static_cast<std::uint32_t>(entry->code.size());
+    cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
+    cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
     return entry->function;
 }
 
@@ -287,7 +287,7 @@ void observe_hot_pc(ARMul_State *cpu) {
         }
         core::code_mapping view;
         if (!cpu->parent()->resolve_code(pc, view)) return;
-        if (ram_cache.find(key, view)) return; // compiled or awaiting instantiation
+        if (ram_cache.find(key, *cpu->parent())) return; // compiled or awaiting instantiation
         const auto identity = validated_code_cache::key(view.address_space, key);
         if (ram_counts.size() >= 131072 && !ram_counts.count(identity)) return;
         auto &count = ram_counts[identity];
@@ -296,8 +296,15 @@ void observe_hot_pc(ARMul_State *cpu) {
             return;
         }
         const auto size = std::min(std::size_t(chaining_enabled ? 512 : 256), view.size);
+        leaf_resolver leaves = [&](std::uint32_t target) {
+            core::code_mapping leaf;
+            if (!cpu->parent()->resolve_code(target, leaf) || leaf.address_space != view.address_space)
+                return std::vector<std::uint8_t>{};
+            const auto bytes = std::min(std::size_t(64), leaf.size);
+            return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
+        };
         auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
-                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled);
+                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled, &leaves);
         if (tr.func.body.empty() || !tr.entry_supported) {
             // Cache rejection against these exact bytes; retry only after mutation.
             ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4))).rejected = true;
@@ -310,6 +317,16 @@ void observe_hot_pc(ARMul_State *cpu) {
         const auto consumed = std::clamp(std::size_t(tr.end_address - pc),
             std::size_t(cpu->TFlag ? 2 : 4), size);
         auto &entry = ram_cache.insert(key, view, consumed);
+        for (const auto &dependency : tr.dependencies) {
+            core::code_mapping leaf;
+            if (!cpu->parent()->resolve_code(dependency.address, leaf)
+                || leaf.address_space != view.address_space || leaf.size < dependency.bytes.size()
+                || !equal_code_bytes(leaf.bytes, dependency.bytes.data(), dependency.bytes.size())) {
+                entry.live = false;
+                return;
+            }
+            validated_code_cache::add_dependency(entry, dependency.address, leaf.bytes, dependency.bytes);
+        }
         tr.func.export_name = "r_" + std::to_string(entry.version) + "_pc_" + std::to_string(pc);
         hot_pending.push_back(std::move(tr.func));
         if (common::performance::counting()) ++common::performance::ram_blocks_compiled;

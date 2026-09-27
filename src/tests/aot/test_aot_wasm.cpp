@@ -2250,6 +2250,64 @@ static bool test_region_code_alias() {
     return true;
 }
 
+static bool test_inlined_leaves() {
+#ifdef __EMSCRIPTEN__
+    // Repeated far calls in a loop, including real workload memory leaves.
+    const std::uint32_t caller[] = {0xeb0003fe,0xeb0003fd,0xe2566001,0x1afffffb};
+    const std::vector<std::vector<std::uint32_t>> leaves = {
+        {0xe2800001,0xe12fff1e},
+        {0xe3a03000,0xe5803000,0xe5911000,0xe5922000,0xe0411002,0xe5801000,0xe12fff1e},
+        {0xe3a03000,0xe5803000,0xe5803004,0xe5803008,0xe12fff1e},
+        {0xe12fff1e}
+    };
+    unsigned comparisons=0;
+    for (const auto &words : leaves) {
+        std::vector<std::uint8_t> leaf(words.size()*4); std::memcpy(leaf.data(),words.data(),leaf.size());
+        leaf_resolver resolve = [&](std::uint32_t pc) { return pc == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,true,true,true,&resolve);
+        if (tr.dependencies.size()!=1 || tr.end_address!=0x1010) {printf("  FAIL leaf discovery\n");return false;}
+        auto module=build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned fast : {0u,1u}) for(unsigned alias : {0u,1u}) for(unsigned budget=0;budget<80;++budget) {
+            test_mem actual, reference;
+            std::vector<std::uint8_t> bytes(sizeof(caller));std::memcpy(bytes.data(),caller,sizeof(caller));
+            actual.write_code(0x1000,bytes); reference.write_code(0x1000,bytes);
+            actual.write_code(0x2000,leaf);reference.write_code(0x2000,leaf);
+            actual.write32(0x8000,0x8000);reference.write32(0x8000,0x8000);
+            alignas(8) std::uint32_t state[256]{};
+            r12l1::exclusive_monitor monitor(1);auto cpu=make_cpu(reference,monitor);
+            for(unsigned r=0;r<16;++r) {
+                unsigned v=r==0 ? (alias ? 0x2000 : 0x8000) : (r==1||r==2) ? 0x8000 : r==6 ? 3 : r==15 ? 0x1000 : 0;
+                state[r]=v;cpu->set_reg(r,v);
+            }
+            cpu->set_cpsr(0x10);state[state_offsets::CPSR/4]=0x10;state[state_offsets::MODE/4]=16;
+            state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NIRQ/4]=1;
+            r12l1::tlb direct(12);
+            if(fast) {
+                for(unsigned a=0;a<test_mem::SIZE;a+=4096)direct.add(a,actual.data.data()+a,7);
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(direct.entries);
+                state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+                state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x2000+leaf.size());
+            }
+            g_test_mem=&actual;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr;
+            if(count<0 || count>static_cast<int>(budget))return false;
+            if(count)cpu->run(count);
+            for(unsigned r=0;r<16;++r)if(state[r]!=cpu->get_reg(r)) {
+                printf("  FAIL leaf fast=%u alias=%u budget=%u count=%d R%u %x vs %x\n",fast,alias,budget,count,r,state[r],cpu->get_reg(r));return false;
+            }
+            for(auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},{state_offsets::ZFLAG,30},{state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if(state[pair.first/4]!=((cpu->get_cpsr()>>pair.second)&1))return false;
+            if(actual.data!=reference.data)return false;
+            ++comparisons;
+        }
+    }
+    printf("  PASS inlined_leaves (%u exact budget/state/memory comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
 static bool test_region_cpsr_callback() {
 #ifdef __EMSCRIPTEN__
     const std::uint32_t code[] = {0xE128F000u, 0xE5912000u, 0xE2833001u};
@@ -3069,6 +3127,7 @@ int main() {
     if (test_sibling_bl_resume_point()) passed++; else failed++;
 
     printf("\nRunning ARM translator-level tests...\n\n");
+    if (test_inlined_leaves()) passed++; else failed++;
     if (test_bounded_execution()) passed++; else failed++;
     if (test_exact_code_compare()) passed++; else failed++;
     if (test_region_cpsr_callback()) passed++; else failed++;

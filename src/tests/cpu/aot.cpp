@@ -1021,9 +1021,9 @@ TEST_CASE("Compiled successor chains respect budgets, mode and interrupts", "[ao
     REQUIRE(result.instructions == 1);
     REQUIRE(result.blocks == 1);
     state.NirqSig = 1;
-    state.aot_budget = 100;
+    state.aot_budget = 600;
     result = aot::execute_chain(&state, first);
-    REQUIRE(result.blocks == 64); // bounded host runner even with a larger caller budget
+    REQUIRE(result.blocks == 512); // bounded host runner even with a larger caller budget
     registry.clear();
 }
 
@@ -1154,4 +1154,34 @@ TEST_CASE("decoded_cache_separates_arm_thumb_contexts", "[aot][dyncom]") {
         CHECK(cpu->get_reg(2) == (thumb ? 0 : 1));
         CHECK(cpu->get_pc() == (thumb ? 0x1002 : 0x1004));
     }
+}
+
+TEST_CASE("Inlined code dependencies validate every mapping and exact byte", "[aot]") {
+    using namespace eka2l1::arm;
+    aot_test_env env; auto cpu=env.make_cpu();
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t,16> caller{},leaf{},remap{};
+    std::atomic<std::uint64_t> generation{1};
+    cpu->code_mapping_generation=&generation;cpu->code_address_space=1;
+    bool mapped=true;const std::uint8_t *leaf_backing=leaf.data();
+    cpu->resolve_code=[&](address pc,core::code_mapping &out) {
+        if(pc==0x2000&&!mapped)return false;
+        out={cpu->code_address_space,pc==0x1000?caller.data():leaf_backing,16};return true;
+    };
+    auto insert=[&]() {
+        auto &b=cache.insert(0x1000,{1,caller.data(),16},8);
+        aot::validated_code_cache::add_dependency(b,0x2000,leaf_backing,{leaf_backing,leaf_backing+8});
+        return b.version;
+    };
+    insert();REQUIRE(cache.find(0x1000,*cpu));REQUIRE(cache.find(0x1000,*cpu));
+    leaf[3]=1;REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    insert();REQUIRE(cache.find(0x1000,*cpu));
+    remap=leaf;leaf_backing=remap.data();++generation;
+    REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    insert();REQUIRE(cache.find(0x1000,*cpu));
+    mapped=false;++generation;REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    mapped=true;++generation;insert();REQUIRE(cache.find(0x1000,*cpu));
+    cache.invalidate(0x2004,4);REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    insert();cpu->code_address_space=2;REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    cpu->code_address_space=1;REQUIRE(cache.find(0x1000,*cpu));
 }
