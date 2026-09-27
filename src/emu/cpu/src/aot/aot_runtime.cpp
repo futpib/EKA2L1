@@ -224,7 +224,7 @@ template<bool Verify>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     const auto budget = cpu->aot_budget;
     compiled_run result;
-    while (function && result.instructions < budget && result.blocks < 64) {
+    while (function && result.instructions < budget && result.blocks < 512) {
         cpu->aot_budget = budget - result.instructions;
         count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);

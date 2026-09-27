@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer';
 import {startServer, buildDir} from './server.ts';
 
 const [assetArg, outputArg, modeArg = '0', samplingArg = '1', endArg = '25000000'] = process.argv.slice(2);
-const frameArg = '100000', inputArg = '../benchmark/snakes.input', startArg = '21000000';
+const frameArg = '100000', inputArg = '../benchmark/snakes.input', startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
 const captureMode = Number(modeArg), sampling = samplingArg === '1', endUs = Number(endArg);
 if (![0,1,2].includes(captureMode) || !Number.isInteger(endUs) || endUs <= Number(startArg) || endUs > 120000000) throw new Error('Invalid profile settings');
 if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_OUTPUT [CAPTURE_MODE:0/1/2] [SAMPLING:0/1] [END_US]');
