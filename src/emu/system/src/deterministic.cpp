@@ -8,6 +8,7 @@
 #include <drivers/input/common.h>
 #include <drivers/audio/deterministic.h>
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -52,9 +53,12 @@ namespace eka2l1 {
             previous = us;
         }
         const int limit = timer->register_event("BenchmarkLimit", [](std::uint64_t, int) {
-            LOG_ERROR(FRONTEND_CMDLINE, "Benchmark did not capture the requested frames within 120 virtual seconds");
+            LOG_ERROR(FRONTEND_CMDLINE, "Benchmark exceeded its virtual-time limit");
             std::_Exit(2);
         });
-        timer->schedule_event(120000000, limit, 0);
+        const std::uint64_t limit_us = !common::benchmark::retain_audio && common::performance::enabled
+            ? std::max(std::uint64_t(120000000), common::performance::end_us + 1000000)
+            : 120000000;
+        timer->schedule_event(limit_us, limit, 0);
     }
 }

@@ -37,6 +37,9 @@
 #endif
 
 namespace eka2l1::arm::aot {
+static std::atomic<std::uint64_t> completed_function_count{0};
+std::uint64_t compiled_function_count() { return completed_function_count.load(std::memory_order_relaxed); }
+
 // Optional differential execution. Guest memory is changed only by compiled
 // execution; the reference interpreter uses a private byte overlay.
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
@@ -172,6 +175,7 @@ static void flush_hot_blocks() {
 void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled) {
     hot_rom = host; hot_rom_base = base; hot_rom_size = size;
     hot_compilation_enabled = enabled;
+    completed_function_count = 0;
     hot_dispatches = 0; hot_compiled = 0; hot_counts.clear(); hot_pending.clear();
     ram_cache = {}; ram_counts.clear();
     const char *ram = std::getenv("EKA2L1_AOT_RAM");
@@ -536,6 +540,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 
     }
 
+    completed_function_count.fetch_add(count, std::memory_order_relaxed);
     if (dll_name != "hot-rom") LOG_INFO(CPU_DYNCOM, "AOT: instantiated {} functions for {}", count, dll_name);
     return count;
 }

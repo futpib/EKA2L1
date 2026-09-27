@@ -8,11 +8,13 @@ import {startServer, buildDir} from './server.ts';
 const [assetArg, outputArg, modeArg = '0', samplingArg = '1', endArg = '25000000'] = process.argv.slice(2);
 const frameArg = '100000', inputArg = '../benchmark/snakes.input', startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
 const captureMode = Number(modeArg), sampling = samplingArg === '1', endUs = Number(endArg);
-if (![0,1,2].includes(captureMode) || !Number.isInteger(endUs) || endUs <= Number(startArg) || endUs > 120000000) throw new Error('Invalid profile settings');
+if (![0,1,2].includes(captureMode) || !Number.isInteger(endUs) || endUs <= Number(startArg) || endUs > 1800000000) throw new Error('Invalid profile settings');
 if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_OUTPUT [CAPTURE_MODE:0/1/2] [SAMPLING:0/1] [END_US]');
 const guestProfile = Number(process.env.EKA2L1_GUEST_PROFILE || "0");
 if (!Number.isSafeInteger(guestProfile) || guestProfile < 0 || guestProfile > 2147483647)
   throw new Error('EKA2L1_GUEST_PROFILE must be a nonnegative sample stride');
+const monitor = process.env.EKA2L1_LONG_MONITOR === "1";
+if (endUs > 120000000 && !monitor) throw new Error("Runs beyond 120 guest seconds require EKA2L1_LONG_MONITOR=1 to discard audio artifacts");
 const detailedProfile = process.env.EKA2L1_PROFILE_DETAIL !== '0';
 if (!detailedProfile && guestProfile) throw new Error('Guest profiling requires detailed counters');
 const hardwareGpu = process.env.EKA2L1_GPU === 'hardware';
@@ -27,7 +29,7 @@ const assets = path.resolve(assetArg), output = path.resolve(outputArg), frames 
 if (!Number.isInteger(frames) || frames < 1 || frames > 100000) throw new Error('Invalid frame count');
 const input = path.resolve(inputArg);
 const startUs = Number(startArg);
-if (!Number.isInteger(startUs) || startUs < 0 || startUs > 120000000) throw new Error('Invalid start time');
+if (!Number.isInteger(startUs) || startUs < 0 || startUs > 1800000000) throw new Error('Invalid start time');
 const expected: Record<string,string> = {
   'SYM.ROM': '89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490',
   'SYM.RPKG': '58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531',
@@ -73,12 +75,13 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile}) => {
+  await page.evaluate(async ({count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile, monitor}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
       if (code !== 0) throw new Error(`${name} returned ${code}`);
     };
+    if (monitor) call('eka2l1_monitor_configure', [], []);
     if (!detailedProfile) call('eka2l1_profile_detail_configure', ['number'], [0]);
     call('eka2l1_profile_configure', ['number', 'number', 'number'], [startUs, endUs, captureMode]);
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
@@ -106,7 +109,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile});
+  }, {count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile, monitor});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -136,7 +139,37 @@ try {
     await client.send('Profiler.start');
   }));
   await page.evaluate(() => (window as any).Module._eka2l1_profile_resume());
-  await waitPhase(3);
+  const timeline: unknown[] = [];
+  if (monitor) {
+    let lastScene = -1;
+    const deadline = performance.now() + 1800000;
+    while (true) {
+      const before = performance.now();
+      const sample = await page.evaluate(() => {
+        const g = window as any;
+        return {...JSON.parse(g.Module.ccall('eka2l1_monitor_report', 'string', [], [])),
+          phase: g.Module._eka2l1_profile_phase(), presentations: g.Module._eka2l1_presentations(),
+          linear_bytes: g.HEAPU8?.buffer.byteLength ?? g.Module.HEAPU8?.buffer.byteLength};
+      });
+      const heaps = [{name: 'page', ...await clients[0].client.send('Runtime.getHeapUsage')}];
+      const processes = await system.send('SystemInfo.getProcessInfo');
+      let pssKiB = 0;
+      for (const proc of processes.processInfo) {
+        try { pssKiB += Number(fs.readFileSync(`/proc/${proc.id}/smaps_rollup`, 'utf8').match(/^Pss:\s+(\d+)/m)?.[1] ?? 0); } catch {}
+      }
+      timeline.push({...sample, host_ms: before, probe_ms: performance.now() - before, heaps, pss_kib: pssKiB});
+      fs.writeFileSync(path.join(output, 'timeline.json'), JSON.stringify(timeline));
+      const scene = Math.floor(sample.guest_us / 60000000);
+      if (scene !== lastScene) {
+        lastScene = scene;
+        await page.screenshot({path: path.join(output, `scene-${scene}.png`)});
+      }
+      if (sample.phase === 3) break;
+      if (failures.length) throw new Error(failures.join('\n'));
+      if (performance.now() > deadline) throw new Error('Long monitor timeout');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  } else await waitPhase(3);
   const measured = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_profile_report', 'string', [], [])));
   console.log(JSON.stringify(measured));
   if (guestProfile) {
@@ -161,7 +194,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({measurement: measured, warmup_seconds: warmupSeconds,
-    guest_profile_stride: guestProfile, sampling, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash,
+    guest_profile_stride: guestProfile, monitor, sampling, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     aot, aot_diagnostics: aotDiagnostics, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     user_agent: await page.evaluate(() => navigator.userAgent),

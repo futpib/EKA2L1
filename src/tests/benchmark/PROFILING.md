@@ -65,3 +65,28 @@ the latter by `last_instructions - first_instructions` for executed instruction
 coverage. This is instruction coverage, not a percentage of CPU time. Stop
 other benchmark/build jobs before running measured windows. The hot mode remains
 opt-in; see [AOT.md](AOT.md) for configuration and safety boundaries.
+
+## Long-run speed and memory monitoring
+
+Use `EKA2L1_LONG_MONITOR=1` for windows beyond 120 guest seconds (up to 30
+minutes). This disables retention of benchmark PCM/event exports, while keeping
+all guest audio consumption and callbacks; live play already discards these
+artifacts. Use capture mode 2 to avoid accumulating PNGs/frame records too.
+It does not enable live host pacing or change scripted benchmark input.
+
+```sh
+EKA2L1_BENCHMARK_AOT=5 EKA2L1_GPU=hardware EKA2L1_PROFILE_DETAIL=0 \
+EKA2L1_LONG_MONITOR=1 node profile.ts ASSETS NEW_OUTPUT 2 0 600000000
+```
+
+`timeline.json` samples guest time, instructions, presentations, allocator
+allocated/free bytes, page JS heap/backing storage and the atomic instantiated-AOT-function count,
+and summed browser-process PSS approximately every two host seconds. Snapshots
+are observational and not synchronized across guest execution and browser processes; guest counters
+are atomic, while malloc accounting uses the allocator's own lock. The recorder
+writes a scene screenshot each guest minute. Probe overhead is recorded, but
+screenshots and sampling remain included in elapsed time: compare diagnostic
+runs to one another, not as zero-overhead performance claims. V8 backing storage
+can include shared buffers in multiple isolates; do not sum those values as
+unique process memory. WASM linear-memory capacity alone cannot establish a leak.
+Raw PSS can fluctuate with browser/GPU caches and other shared processes.

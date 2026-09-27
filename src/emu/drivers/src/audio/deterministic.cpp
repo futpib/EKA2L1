@@ -31,7 +31,7 @@ namespace eka2l1::drivers {
 
             void sync() { render_until(common::benchmark::virtual_us.load()); }
             void record(const char *event, std::uint64_t value = 0) {
-                if (common::benchmark::interactive) return;
+                if (common::benchmark::interactive || !common::benchmark::retain_audio) return;
                 events << "{\"virtual_us\":" << common::benchmark::virtual_us.load()
                        << ",\"stream\":" << id_ << ",\"event\":\"" << event
                        << "\",\"value\":" << value << "}\n";
@@ -170,7 +170,7 @@ namespace eka2l1::drivers {
 
         void render_until(std::uint64_t us) {
             const auto target = us * output_rate / 1000000;
-            if (target < output_frames || (!common::benchmark::interactive && us > 120000000))
+            if (target < output_frames || (!common::benchmark::interactive && common::benchmark::retain_audio && us > 120000000))
                 throw std::runtime_error("Invalid benchmark audio clock");
             while (output_frames < target) {
                 std::array<std::int64_t, 2> sum{};
@@ -179,7 +179,7 @@ namespace eka2l1::drivers {
                     sum[0] += sample[0];
                     sum[1] += sample[1];
                 }
-                if (!common::benchmark::interactive) for (auto value : sum)
+                if (!common::benchmark::interactive && common::benchmark::retain_audio) for (auto value : sum)
                     mix.push_back(static_cast<std::int16_t>(std::clamp<std::int64_t>(value, -32768, 32767)));
                 ++output_frames;
             }

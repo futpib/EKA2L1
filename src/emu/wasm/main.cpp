@@ -61,6 +61,8 @@
 #include <pthread.h>
 #include <GLES3/gl3.h>
 
+#include <malloc.h>
+#include <sstream>
 #include <set>
 #include <memory>
 #include <thread>
@@ -228,12 +230,34 @@ const char *eka2l1_guest_profile_report() {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_profile_configure(int start_us, int end_us, int mode) {
-    if (g_state || start_us < 0 || end_us <= start_us || end_us > 120000000 || mode < 0 || mode > 2) return -1;
+    if (g_state || start_us < 0 || end_us <= start_us || end_us > 1800000000 || mode < 0 || mode > 2) return -1;
     common::performance::enabled = true;
     common::performance::start_us = start_us;
     common::performance::end_us = end_us;
     common::performance::capture_mode = mode;
     return 0;
+}
+
+// Called before initialization; does not change guest audio consumption/callbacks.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_monitor_configure() {
+    if (g_state) return -1;
+    common::benchmark::retain_audio = false;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+const char *eka2l1_monitor_report() {
+    static std::string result;
+    const auto heap = mallinfo();
+    std::ostringstream out;
+    out << "{\"guest_us\":" << common::benchmark::virtual_us.load()
+        << ",\"instructions\":" << common::benchmark::instructions.load()
+        << ",\"compiled_functions\":" << arm::aot::compiled_function_count()
+        << ",\"allocated_bytes\":" << heap.uordblks
+        << ",\"free_bytes\":" << heap.fordblks << "}";
+    result = out.str();
+    return result.c_str();
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -259,7 +283,7 @@ const char *eka2l1_profile_report() {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_benchmark_configure(int frames, int start_us, int unique) {
-    if (g_state || frames < 1 || frames > 100000 || start_us < 0 || start_us > 120000000) return -1;
+    if (g_state || frames < 1 || frames > 100000 || start_us < 0 || start_us > 1800000000) return -1;
     setenv("EKA2L1_BENCHMARK", "1", 1);
     common::benchmark::interactive = false;
     setenv("EKA2L1_BENCHMARK_FRAMES", std::to_string(frames).c_str(), 1);
