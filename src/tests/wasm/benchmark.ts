@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import puppeteer from 'puppeteer';
+import {PNG} from 'pngjs';
 import {startServer, buildDir} from './server.ts';
 
 const [assetArg, outputArg, frameArg = '1000', inputArg = '../benchmark/snakes.input', startArg = '21000000'] = process.argv.slice(2);
@@ -75,10 +76,19 @@ try {
     call('eka2l1_install_sis', ['string'], ['/tmp/Snakes.sis']);
     g.FS.mkdir('/frames');
     g.Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], ['/frames', count]);
+    if (g.Module._eka2l1_prepare_graphics) {
+      call('eka2l1_prepare_graphics', [], []);
+      const deadline = performance.now() + 30000;
+      while (g.Module._eka2l1_graphics_ready() === 0) {
+        if (performance.now() > deadline) throw new Error('Graphics initialization timeout');
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+    }
     call('eka2l1_run', ['string'], ['Snakes']);
   }, {count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics});
   const start = performance.now();
   let lastCount = -1;
+  let firstCanvas: Buffer | undefined;
   while (true) {
     if (failures.length) throw new Error(failures.join('\n'));
     const state = await page.evaluate(() => {
@@ -88,6 +98,10 @@ try {
     if (state.captured !== lastCount) {
       console.log(`${state.captured}/${frames} frames, ${((performance.now()-start)/1000).toFixed(1)}s`);
       lastCount = state.captured;
+    }
+    if (!firstCanvas && state.captured > 0 && state.captured < frames) {
+      firstCanvas = Buffer.from(await (await page.$('#canvas'))!.screenshot());
+      fs.writeFileSync(path.join(output, 'visible-first.png'), firstCanvas);
     }
     if (state.done) break;
     if (performance.now() - start > 1800000) throw new Error('Benchmark timeout');
@@ -110,6 +124,15 @@ try {
     {encoding: 'utf8', env: {...process.env, PYTHONDONTWRITEBYTECODE: '1'}}));
   fs.writeFileSync(path.join(output, 'audio.json'), JSON.stringify(audio, null, 2));
   await page.screenshot({path: path.join(output, 'browser.png')});
+  const canvasBytes = Buffer.from(await (await page.$('#canvas'))!.screenshot());
+  fs.writeFileSync(path.join(output, 'visible-last.png'), canvasBytes);
+  const canvasPixels = PNG.sync.read(canvasBytes).data;
+  const visibleColors = new Set<number>();
+  for (let i = 0; i < canvasPixels.length; i += 4)
+    visibleColors.add((canvasPixels[i] << 16) | (canvasPixels[i+1] << 8) | canvasPixels[i+2]);
+  if (visibleColors.size < 32) throw new Error('Visible canvas is blank or trivial');
+  if (firstCanvas && PNG.sync.read(firstCanvas).data.equals(canvasPixels)) throw new Error('Visible canvas did not change');
+  await page.evaluate(() => (window as any).Module._eka2l1_shutdown());
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,

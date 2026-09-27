@@ -164,8 +164,16 @@
                     }
                 }
 
-                // Run
+                // Transfer/initialize WebGL without blocking the browser event loop.
                 if (appName) {
+                    var graphicsRet = Module.ccall('eka2l1_prepare_graphics', 'number', [], []);
+                    if (graphicsRet < 0) throw new Error('Graphics initialization failed: ' + graphicsRet);
+                    var graphicsDeadline = performance.now() + 30000;
+                    while (Module._eka2l1_graphics_ready() === 0) {
+                        if (performance.now() > graphicsDeadline) throw new Error('Graphics initialization timeout');
+                        await new Promise(resolve => setTimeout(resolve, 10));
+                    }
+
                     var runRet = await Module.ccall('eka2l1_run', 'number', ['string'], [appName], {async: true});
                     if (runRet !== 0) {
                         throw new Error('eka2l1_run failed: ' + runRet);

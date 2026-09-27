@@ -57,9 +57,10 @@
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
 #include <emscripten/console.h>
+#include <emscripten/threading.h>
+#include <pthread.h>
 #include <GLES3/gl3.h>
 
-#include <future>
 #include <set>
 #include <memory>
 #include <thread>
@@ -82,7 +83,9 @@ namespace {
         int present_status = 0;
         std::size_t screen_redraw_cb_id = 0;
         std::unique_ptr<std::thread> emu_thread;
-        std::unique_ptr<std::thread> gfx_thread;
+        pthread_t gfx_thread{};
+        bool gfx_thread_started = false;
+        std::atomic<int> gfx_ready{0};
 
         // Pixel readback buffer written by the gfx thread during display()
         std::mutex pixel_mutex;
@@ -334,17 +337,20 @@ int eka2l1_install_sis(const char *sis_path) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_run(const char *app_name) {
+int eka2l1_prepare_graphics() {
     if (!ensure_system_started()) {
         return -1;
     }
 
-    // Create graphics driver on its own thread. With PROXY_TO_PTHREAD, GL calls
-    // from worker threads are properly proxied to the main browser thread.
-    std::promise<bool> gfx_ready_promise;
-    auto gfx_ready_future = gfx_ready_promise.get_future();
+    // Transfer the canvas before context creation. The caller polls readiness
+    // asynchronously so browser startup and worker messages can make progress.
+    if (g_state->gfx_thread_started) return g_state->gfx_ready.load();
 
-    g_state->gfx_thread = std::make_unique<std::thread>([&gfx_ready_promise]() {
+    pthread_attr_t graphics_attr;
+    pthread_attr_init(&graphics_attr);
+    if (emscripten_supports_offscreencanvas())
+        emscripten_pthread_attr_settransferredcanvases(&graphics_attr, "#canvas");
+    const int graphics_error = pthread_create(&g_state->gfx_thread, &graphics_attr, [](void *) -> void * {
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver thread started, creating context...");
 
         drivers::window_system_info wsi;
@@ -355,8 +361,8 @@ int eka2l1_run(const char *app_name) {
 
         if (!g_state->graphics_driver) {
             LOG_ERROR(FRONTEND_CMDLINE, "Failed to create graphics driver");
-            gfx_ready_promise.set_value(false);
-            return;
+            g_state->gfx_ready = -1;
+            return nullptr;
         }
 
         g_state->symsys->set_graphics_driver(g_state->graphics_driver.get());
@@ -420,16 +426,35 @@ int eka2l1_run(const char *app_name) {
             }
         });
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver ready, entering command loop");
-        gfx_ready_promise.set_value(true);
+        g_state->gfx_ready = 1;
 
+        // WebGL resources must be destroyed on their owning worker, including
+        // when the asynchronous command loop exits through pthread_exit.
+        pthread_cleanup_push([](void *) { g_state->graphics_driver.reset(); }, nullptr);
         g_state->graphics_driver->run();
+        pthread_cleanup_pop(1);
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver thread exited");
-    });
-
-    if (!gfx_ready_future.get()) {
-        LOG_ERROR(FRONTEND_CMDLINE, "Graphics driver initialization failed");
+        return nullptr;
+    }, nullptr);
+    pthread_attr_destroy(&graphics_attr);
+    if (graphics_error != 0) {
+        LOG_ERROR(FRONTEND_CMDLINE, "Graphics thread creation failed: {}", graphics_error);
+        g_state->gfx_ready = -1;
         return -1;
     }
+    g_state->gfx_thread_started = true;
+
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_graphics_ready() {
+    return g_state ? g_state->gfx_ready.load() : -1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_run(const char *app_name) {
+    if (!g_state || g_state->gfx_ready.load() != 1) return -1;
 
     // Audio driver not available in WASM (Cubeb requires native audio APIs)
     LOG_INFO(FRONTEND_CMDLINE, "Skipping audio driver (not available in WASM)");
@@ -681,16 +706,23 @@ EMSCRIPTEN_KEEPALIVE
 void eka2l1_shutdown() {
     if (g_state) {
         g_state->running = false;
-        if (g_state->graphics_driver) {
-            g_state->graphics_driver->abort();
-        }
-        if (g_state->gfx_thread && g_state->gfx_thread->joinable()) {
-            g_state->gfx_thread->join();
-        }
         if (g_state->emu_thread && g_state->emu_thread->joinable()) {
             g_state->emu_thread->join();
         }
+        if (g_state->graphics_driver && g_state->winserv) {
+            // Drain prior display hooks before destroying their window server.
+            int drained = -100;
+            drivers::graphics_command_builder barrier;
+            barrier.present(&drained);
+            auto commands = barrier.retrieve_command_list();
+            g_state->graphics_driver->submit_command_list(commands);
+            g_state->graphics_driver->wait_for(&drained);
+        }
+        g_state->winserv = nullptr;
+        // Guest cleanup may still submit graphics resource destruction commands.
         g_state->symsys.reset();
+        if (g_state->graphics_driver) g_state->graphics_driver->abort();
+        if (g_state->gfx_thread_started) pthread_join(g_state->gfx_thread, nullptr);
         g_state->graphics_driver.reset();
         g_state->audio_driver.reset();
         delete g_state;

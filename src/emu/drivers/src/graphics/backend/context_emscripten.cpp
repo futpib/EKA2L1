@@ -77,14 +77,6 @@ namespace eka2l1::drivers::graphics {
     void gl_context_emscripten::swap_buffers() {
         emscripten_webgl_commit_frame();
         glFlush();
-        // Force blit on the main browser thread where the canvas and GL context live.
-        // emscripten_webgl_commit_frame already does this via proxy, but the canvas
-        // compositing may need an explicit flush on the main thread.
-        MAIN_THREAD_EM_ASM({
-            if (typeof GL !== 'undefined' && GL.currentContext && GL.currentContext.defaultFbo) {
-                GL.blitOffscreenFramebuffer(GL.currentContext);
-            }
-        });
     }
 
     void gl_context_emscripten::update(const std::uint32_t new_width, const std::uint32_t new_height) {

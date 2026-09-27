@@ -43,6 +43,21 @@
 #include <EGL/egl.h>
 #elif EKA2L1_PLATFORM(EMSCRIPTEN)
 #include <emscripten/html5_webgl.h>
+#include <emscripten/emscripten.h>
+#include <pthread.h>
+EM_JS(void, start_graphics_tasks, (int callback, void *driver), {
+    const tasks = new MessageChannel();
+    tasks.port1.onmessage = () => {
+        try {
+            if (wasmTable.get(callback)(driver)) tasks.port2.postMessage(0);
+            else { tasks.port1.close(); tasks.port2.close(); }
+        } catch (error) {
+            tasks.port1.close(); tasks.port2.close();
+            if (error !== "unwind") throw error;
+        }
+    };
+    tasks.port2.postMessage(0);
+});
 #endif
 
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
@@ -1979,6 +1994,29 @@ namespace eka2l1::drivers {
     }
 
     void ogl_graphics_driver::run() {
+#if EKA2L1_PLATFORM(EMSCRIPTEN)
+        // OffscreenCanvas presents only when its owning worker yields to JS.
+        const auto process_frame = +[](void *opaque) -> int {
+            auto *driver = static_cast<ogl_graphics_driver *>(opaque);
+            bool presented = false;
+            while (!driver->should_stop && !presented) {
+                auto list = driver->list_queue.pop();
+                if (!list) break;
+                {
+                    common::performance::scope dispatch_scope(common::performance::graphics_dispatch);
+                    for (std::size_t i = 0; i < list->size_; ++i) {
+                        presented |= list->base_[i].opcode_ == graphics_driver_display;
+                        driver->dispatch(list->base_[i]);
+                    }
+                }
+                delete[] list->base_;
+            }
+            if (driver->should_stop) pthread_exit(nullptr);
+            return true;
+        };
+        start_graphics_tasks(reinterpret_cast<int>(process_frame), this);
+        emscripten_exit_with_live_runtime();
+#else
         while (!should_stop) {
             std::optional<command_list> list = list_queue.pop();
 
@@ -1997,6 +2035,7 @@ namespace eka2l1::drivers {
 
             delete[] list->base_;
         }
+#endif
     }
 
     void ogl_graphics_driver::abort() {

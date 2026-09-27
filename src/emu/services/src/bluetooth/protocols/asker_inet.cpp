@@ -53,6 +53,10 @@ namespace eka2l1::epoc::bt {
         // before ordering handle teardown on the loop thread.
         alive_->store(false, std::memory_order_release);
 
+        // Discovery-disabled/browser instances never create network handles
+        // or a libuv loop. There is nothing to dispatch for teardown.
+        if (!asker_ && !asker_retry_timer_) return;
+
         if (!libuv::default_looper->started()) {
             return;
         }

@@ -97,6 +97,14 @@ try {
     call('eka2l1_install_sis', ['string'], ['/tmp/Snakes.sis']);
     g.FS.mkdir('/frames');
     g.Module.ccall('eka2l1_start_frame_dump', null, ['string', 'number'], ['/frames', count]);
+    if (g.Module._eka2l1_prepare_graphics) {
+      call('eka2l1_prepare_graphics', [], []);
+      const deadline = performance.now() + 30000;
+      while (g.Module._eka2l1_graphics_ready() === 0) {
+        if (performance.now() > deadline) throw new Error('Graphics initialization timeout');
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+    }
     call('eka2l1_run', ['string'], ['Snakes']);
   }, {count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile});
   async function waitPhase(phase: number) {
