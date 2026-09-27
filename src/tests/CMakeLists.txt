@@ -86,3 +86,9 @@ set(SYSTEM_ASSETS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/epoc/system/assets/")
 add_assets(ekatests ${SYSTEM_ASSETS_PATH} "systemassets")
 
 add_assets(ekatests "${CMAKE_CURRENT_SOURCE_DIR}/epoc/services/internet/tlsassets/" "tlsassets")
+
+# Optional offline compiler comparison; never linked into the emulator.
+if (TARGET dynarmic AND NOT EMSCRIPTEN)
+    add_executable(eka_compiler_probe EXCLUDE_FROM_ALL benchmark/compiler_probe.cpp)
+    target_link_libraries(eka_compiler_probe PRIVATE cpu dynarmic merry::mcl)
+endif()

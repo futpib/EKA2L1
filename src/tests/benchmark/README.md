@@ -2,6 +2,8 @@
 
 The [verified audio replay results](RESULTS.md) record the four-run comparison and test limitations.
 
+The [four compiler-option experiments](COMPILER_OPTIONS_RESULTS.md) compare V8 tiering, connected regions, a validation-cost ceiling, and restricted Dynarmic-IR-to-WASM kernels.
+
 The benchmark is opt-in (`EKA2L1_BENCHMARK=1`). The default reference uses the DynCom interpreter on both targets. Browser runs can opt into repaired and extended compiled execution; see [AOT modes and reproduction](AOT.md) and [AOT validation and performance](AOT_RESULTS.md).
 
 - The guest clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.

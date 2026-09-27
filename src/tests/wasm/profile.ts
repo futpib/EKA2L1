@@ -1,12 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import puppeteer from 'puppeteer';
 import {startServer, buildDir} from './server.ts';
 
 const [assetArg, outputArg, modeArg = '0', samplingArg = '1', endArg = '25000000'] = process.argv.slice(2);
-const frameArg = '100000', inputArg = process.env.EKA2L1_PROFILE_INPUT || '../benchmark/snakes.input', startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
+const frameArg = '100000', inputArg = process.env.EKA2L1_PROFILE_INPUT || fileURLToPath(new URL('../benchmark/snakes.input', import.meta.url)), startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
 const captureMode = Number(modeArg), sampling = samplingArg === '1', endUs = Number(endArg);
 if (![0,1,2].includes(captureMode) || !Number.isInteger(endUs) || endUs <= Number(startArg) || endUs > 1800000000) throw new Error('Invalid profile settings');
 if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_OUTPUT [CAPTURE_MODE:0/1/2] [SAMPLING:0/1] [END_US]');
@@ -42,10 +43,12 @@ const hash = (data: Uint8Array) => crypto.createHash('sha256').update(data).dige
 for (const [name, digest] of Object.entries(expected))
   if (hash(fs.readFileSync(path.join(assets, name))) !== digest) throw new Error(`Bad asset: ${name}`);
 const wasmHash = hash(fs.readFileSync(path.join(buildDir, 'eka2l1.wasm')));
+const loaderHash = hash(fs.readFileSync(path.join(buildDir, 'eka2l1.js')));
 const inputHash = hash(fs.readFileSync(input));
 const gitHead = execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
 const dirtyWorktree = !!execFileSync('git', ['status', '--porcelain'], {encoding: 'utf8'}).trim();
 fs.mkdirSync(output); // Refuse to mix captures from different runs.
+fs.writeFileSync(path.join(output, 'v8-flags.json'), JSON.stringify({flags: process.env.EKA2L1_V8_FLAGS || ''}));
 const files: Record<string,string> = {'/preload/input': input};
 for (const name of Object.keys(expected)) files[`/preload/${name}`] = path.join(assets, name);
 const {server, port} = await startServer(0, files);
@@ -64,7 +67,8 @@ try {
     executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium',
     headless: true,
     protocolTimeout: 1800000,
-    args: ['--no-sandbox', '--disable-dev-shm-usage', '--use-gl=angle', ...(hardwareGpu ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']), '--disable-background-timer-throttling'],
+    dumpio: process.env.EKA2L1_V8_DUMP === '1',
+    args: [...(process.env.EKA2L1_V8_FLAGS ? [`--js-flags=${process.env.EKA2L1_V8_FLAGS}`] : []), '--no-sandbox', '--disable-dev-shm-usage', '--use-gl=angle', ...(hardwareGpu ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']), '--disable-background-timer-throttling'],
   });
   const system = await browser.target().createCDPSession();
   const gpuInfo = await system.send('SystemInfo.getInfo');
@@ -196,6 +200,14 @@ try {
     const {profile} = await client.send('Profiler.stop');
     fs.writeFileSync(path.join(output, `${name}.cpuprofile`), JSON.stringify(profile));
   }));
+  for (const {client,name} of clients.filter(c => c.name === process.env.EKA2L1_CAPTURE_MODULES)) {
+    const captured = await client.send('Runtime.evaluate', {expression:'JSON.stringify(globalThis.ekaProbeModules || [])',returnByValue:true}, {timeout:10000});
+    for (const mod of JSON.parse(captured.result.value || '[]')) {
+      const base = `${name}-module-${mod.index}`;
+      if (mod.base64) fs.writeFileSync(path.join(output,base+'.wasm'),Buffer.from(mod.base64,'base64'));
+      delete mod.base64;fs.writeFileSync(path.join(output,base+'.json'),JSON.stringify(mod));
+    }
+  }
   const names = await page.evaluate(() => (window as any).FS.readdir('/frames').filter((name: string) => name !== '.' && name !== '..')) as string[];
   for (let i = 0; i < names.length; i += 25) {
     const data = await page.evaluate((batch) => batch.map(name => {
@@ -210,7 +222,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({measurement: measured, warmup_seconds: warmupSeconds,
-    guest_profile_stride: guestProfile, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash,
+    guest_profile_stride: guestProfile, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     aot, aot_diagnostics: aotDiagnostics, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     user_agent: await page.evaluate(() => navigator.userAgent),
