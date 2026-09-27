@@ -59,6 +59,7 @@ namespace eka2l1::arm::aot {
         // Reserved i32 locals for region instruction count and memory fast path.
         static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13, READ_PAGE=14, READ_BASE=15, WRITE_PAGE=16, WRITE_BASE=17;
         bool memory_write = false;
+        bool instruction_may_exit = true;
         bool entry_supported = true;
         bool unsupported = false;
         std::uint32_t bail_count = 0;
@@ -102,6 +103,7 @@ namespace eka2l1::arm::aot {
         }
 
         void slow_call(std::uint32_t func_idx) {
+            instruction_may_exit = true;
             if (region && !pc_written) store_i32_const(S::PC,current_pc);
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
@@ -113,6 +115,7 @@ namespace eka2l1::arm::aot {
             }
         }
         void call(std::uint32_t func_idx) {
+            instruction_may_exit = true;
             const bool write = func_idx == 1 || func_idx == 3 || func_idx == 5;
             if (write) memory_write = true;
             if (!region || func_idx > 5) { slow_call(func_idx); return; }
@@ -715,6 +718,12 @@ namespace eka2l1::arm::aot {
             const auto inst = instruction.opcode;
             const auto insn_addr = instruction.address;
 
+            // Only memory/helper paths can raise AOT_EXIT. Straight-line ALU
+            // successors need just their budget guard; join/loop entries retain
+            // the exit check independently of their lexical predecessor.
+            const bool check_exit = w.instruction_may_exit || insn_addr == start_address
+                || (!instruction.leaf && forward_targets_set.count(insn_addr));
+            w.instruction_may_exit = false;
             w.current_pc = insn_addr; w.pc_written = false;
 
             // Close forward-target blocks
@@ -728,7 +737,7 @@ namespace eka2l1::arm::aot {
                 w.load_i32(S::AOT_BUDGET);
                 if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
                 w.op(op_i32_le_u);
-                if (region) { w.load_i32(S::AOT_EXIT); w.op(op_i32_or); }
+                if (region && check_exit) { w.load_i32(S::AOT_EXIT); w.op(op_i32_or); }
                 w.op(op_if); w.op(type_void);
                 w.bail(insn_addr, insn_idx);
                 w.op(op_end);
