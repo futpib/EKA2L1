@@ -25,7 +25,6 @@
 #include <common/path.h>
 #include <common/version.h>
 #include <gdbstub/gdbstub.h>
-#include <system/aot_setup.h>
 
 #include <drivers/audio/audio.h>
 #include <drivers/graphics/graphics.h>
@@ -176,8 +175,6 @@ namespace eka2l1::desktop {
 
             symsys->set_sensor_driver(sensor_driver.get());
             symsys->initialize_user_parties();
-
-            eka2l1::arm::aot::initialize(symsys.get());
 
             io_system *io = symsys->get_io_system();
 

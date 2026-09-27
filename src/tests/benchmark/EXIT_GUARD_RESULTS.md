@@ -20,3 +20,9 @@ Mean throughput improves **1.0425x**, to **1.0336x realtime** in this fixed heav
 Comparing four SIMD vectors per branch retained exact equality, passed 131 WASM tests and the checked 85-image replay, but regressed: old 17.6850/17.4821 versus new 18.0528/18.1101 seconds. Reverted it. The patch is preserved as `COMPARE64_REJECTED.patch`; no cause is assigned from timing alone.
 
 Raw measurements and exact comparison records: `EXIT_GUARD_EVIDENCE.json`.
+
+## Native Qt reference startup
+
+The normal Qt attempt exposed a real startup regression: its frontend called the WASM AOT initializer, which faulted while scanning ROM (`aot_setup.cpp:136`, saved GDB stack in `qt-jit-backtrace/run.log`). Native `stage_aot_module` is a no-op, so those generated modules had no native consumer. Removed the initializer call and its include from Qt; the browser initializer remains in place.
+
+All native CTest targets pass. The actual Qt/Dynarmic launch with keyboard input now reaches active Snakes gameplay, captures the normal 16 Fibonacci samples through presentation 987, and exits successfully. Artifacts: `qt-jit-fixed/report.json`, `run.log`, and screenshots. This Xvfb/software-GL workflow verifies native startup/gameplay; it is not a physical-GPU performance comparison against the browser.
