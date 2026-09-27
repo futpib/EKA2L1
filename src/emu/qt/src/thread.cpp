@@ -28,6 +28,8 @@
 #include <common/frame_dumper.h>
 #include <drivers/audio/deterministic.h>
 #include <common/deterministic.h>
+#include <common/performance.h>
+#include <fstream>
 #include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <common/log.h>
@@ -206,6 +208,8 @@ namespace eka2l1::desktop {
         switch (state.graphics_driver->get_current_api()) {
         case drivers::graphic_api::opengl: {
             state.graphics_driver->set_display_hook([window, dumper, &state]() {
+                if (common::performance::phase.load() == 2)
+                    ++common::performance::presentations;
                 if (dumper && !dumper->done()) {
                     if (dumper->needs_pixel_data()) {
                         // Read from screen_texture FBO at native resolution
@@ -367,6 +371,7 @@ namespace eka2l1::desktop {
 
         if (state.should_emu_quit) return;
 
+        const char *profile_output = common::benchmark::enabled() ? std::getenv("EKA2L1_QT_PROFILE_OUTPUT") : nullptr;
         if (common::benchmark::enabled()) {
             state.benchmark_ready.wait();
             start_benchmark_input(state.symsys.get(), state.winserv);
@@ -381,6 +386,23 @@ namespace eka2l1::desktop {
 #if ENABLE_SEH_HANDLER
             try {
 #endif
+                if (profile_output) {
+                    const auto us = common::benchmark::virtual_us.load();
+                    const auto instructions = common::benchmark::instructions.load();
+                    // No attach pause is needed for an unsampled serial run.
+                    if (common::performance::phase.load() == 0 && us >= common::performance::start_us) {
+                        common::performance::first_us = us;
+                        common::performance::first_instructions = instructions;
+                        common::performance::begin = std::chrono::steady_clock::now();
+                        common::performance::phase = 2;
+                    }
+                    if (common::performance::checkpoint(us, instructions)) {
+                        std::ofstream out(profile_output);
+                        out << common::performance::report() << '\n';
+                        out.close();
+                        std::_Exit(out ? 0 : 3);
+                    }
+                }
                 state.symsys->loop();
 #if ENABLE_SEH_HANDLER
             } catch (std::exception &exc) {

@@ -686,7 +686,16 @@ namespace eka2l1 {
         cpu_type = arm::string_to_arm_emulator_type(conf_->cpu_backend);
 #endif
         dvcmngr_ = std::make_unique<device_manager>(conf_);
-        if (common::benchmark::enabled()) cpu_type = arm_emulator_type::dyncom;
+        if (common::benchmark::enabled()) {
+            cpu_type = arm_emulator_type::dyncom;
+#if !EKA2L1_PLATFORM(EMSCRIPTEN)
+            // Explicit throughput experiment only. JIT tick exits are not the
+            // exact-budget DynCom reference used by the parity benchmark.
+            const char *backend = std::getenv("EKA2L1_QT_PROFILE_CPU");
+            if (std::getenv("EKA2L1_QT_PROFILE_OUTPUT") && backend && std::strcmp(backend, "dynarmic") == 0)
+                cpu_type = arm_emulator_type::dynarmic;
+#endif
+        }
 
         disassembler_ = std::make_unique<disasm>();
         io_ = std::make_unique<io_system>();

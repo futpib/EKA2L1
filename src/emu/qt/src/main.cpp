@@ -27,6 +27,8 @@
 #include <common/path.h>
 #include <common/platform.h>
 #include <common/log.h>
+#include <common/deterministic.h>
+#include <common/performance.h>
 
 #include <QApplication>
 #include <QDir>
@@ -56,6 +58,15 @@ static void prefer_selfcontained_media_backend() {
 #endif
 
 int main(int argc, char *argv[]) {
+    if (eka2l1::common::benchmark::enabled() && std::getenv("EKA2L1_QT_PROFILE_OUTPUT")) {
+        namespace common = eka2l1::common;
+        common::performance::enabled = true;
+        common::performance::detailed = false;
+        common::performance::capture_mode = 2;
+        common::performance::start_us = 78000000;
+        common::performance::end_us = 96000000;
+        common::benchmark::retain_audio = false;
+    }
 #if EKA2L1_PLATFORM(UNIX)
     prefer_selfcontained_media_backend();
 #endif
