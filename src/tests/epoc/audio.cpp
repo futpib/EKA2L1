@@ -95,3 +95,27 @@ TEST_CASE("Deterministic PCM retries declined buffer notifications", "audio") {
     for (unsigned tick = 1; tick <= 4; ++tick) fixture.advance(tick * 10000);
     REQUIRE(requests == 3);
 }
+
+TEST_CASE("Live deterministic audio runs past capture limit without retaining PCM", "audio") {
+    using namespace eka2l1;
+    struct live_guard {
+        live_guard() { common::benchmark::interactive = true; }
+        ~live_guard() { common::benchmark::interactive = false; }
+    } guard;
+    audio_fixture fixture;
+    auto stream = drivers::new_benchmark_dsp_out_stream();
+    auto &out = static_cast<drivers::dsp_output_stream &>(*stream);
+    REQUIRE(out.set_properties(8000, 1));
+    unsigned requests = 0;
+    out.register_callback(drivers::dsp_stream_notification_more_buffer,
+        [&](void *) { ++requests; return true; }, nullptr);
+    std::vector<std::uint8_t> pcm(1600, 0x10);
+    REQUIRE(out.write(pcm.data(), pcm.size()));
+    REQUIRE(out.start());
+    fixture.advance(100000);
+    REQUIRE(out.position() == 100000);
+    REQUIRE(requests == 1);
+    fixture.advance(121000000);
+    REQUIRE(out.position() == 100000);
+    REQUIRE(drivers::benchmark_audio_buffered_frames() == 0);
+}

@@ -26,6 +26,7 @@ namespace eka2l1 {
                 timer->get_register_event("BenchmarkAudio"), next);
         });
         timer->schedule_event(10000, audio_event, timer->microseconds() + 10000);
+        if (common::benchmark::interactive) return;
         const char *path = std::getenv("EKA2L1_BENCHMARK_INPUT");
         if (!path) throw std::runtime_error("Set EKA2L1_BENCHMARK_INPUT to a replay file");
         std::ifstream input(path);

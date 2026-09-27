@@ -64,6 +64,9 @@
 #include <set>
 #include <memory>
 #include <thread>
+#include <chrono>
+#include <vector>
+#include <drivers/input/common.h>
 
 using namespace eka2l1;
 
@@ -86,6 +89,12 @@ namespace {
         pthread_t gfx_thread{};
         bool gfx_thread_started = false;
         std::atomic<int> gfx_ready{0};
+        struct live_key { int code; bool down; unsigned serial; };
+        std::mutex input_mutex;
+        std::vector<live_key> input_queue;
+        unsigned input_created = 0;
+        std::atomic<unsigned> input_consumed{0};
+        std::atomic<unsigned> presentations{0};
 
         // Pixel readback buffer written by the gfx thread during display()
         std::mutex pixel_mutex;
@@ -173,6 +182,34 @@ int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_live_configure() {
+    if (g_state) return -1;
+    common::benchmark::interactive = true;
+    setenv("EKA2L1_BENCHMARK", "1", 1);
+    return eka2l1_aot_configure(5, 0, 0);
+}
+
+EMSCRIPTEN_KEEPALIVE
+double eka2l1_guest_time_us() { return static_cast<double>(common::benchmark::virtual_us.load()); }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_key_state(int code, int down) {
+    if (!g_state || !common::benchmark::interactive || !g_state->running) return -1;
+    if (code < 0 || code > 255 || (down != 0 && down != 1)) return -2;
+    const std::lock_guard<std::mutex> guard(g_state->input_mutex);
+    if (g_state->input_queue.size() >= 1024) return -3;
+    const auto serial = ++g_state->input_created;
+    g_state->input_queue.push_back({code, down != 0, serial});
+    return static_cast<int>(serial);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_input_consumed() { return g_state ? g_state->input_consumed.load() : 0; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_presentations() { return g_state ? g_state->presentations.load() : 0; }
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_guest_profile_configure(int stride) {
     if (g_state || stride < 0) return -1;
     common::guest_profile::enabled = stride != 0;
@@ -224,6 +261,7 @@ EMSCRIPTEN_KEEPALIVE
 int eka2l1_benchmark_configure(int frames, int start_us, int unique) {
     if (g_state || frames < 1 || frames > 100000 || start_us < 0 || start_us > 120000000) return -1;
     setenv("EKA2L1_BENCHMARK", "1", 1);
+    common::benchmark::interactive = false;
     setenv("EKA2L1_BENCHMARK_FRAMES", std::to_string(frames).c_str(), 1);
     setenv("EKA2L1_BENCHMARK_INPUT", "/benchmark.input", 1);
     setenv("EKA2L1_BENCHMARK_START_US", std::to_string(start_us).c_str(), 1);
@@ -368,6 +406,8 @@ int eka2l1_prepare_graphics() {
         g_state->symsys->set_graphics_driver(g_state->graphics_driver.get());
         g_state->graphics_driver->set_display_hook([]() {
             common::performance::scope display_scope(common::performance::display_hook);
+            ++g_state->presentations;
+            if (common::benchmark::interactive) return;
             if (common::performance::enabled) {
                 if (common::performance::phase.load() == 2) ++common::performance::presentations;
                 if (common::performance::capture_mode == 2) return;
@@ -629,7 +669,36 @@ int eka2l1_run(const char *app_name) {
     g_state->emu_thread = std::make_unique<std::thread>([]() {
         LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
         int iterations = 0;
+        const auto host_origin = std::chrono::steady_clock::now();
+        const auto guest_origin = common::benchmark::virtual_us.load();
+        std::uint64_t pacing_check = guest_origin;
         while (g_state && g_state->running) {
+            if (common::benchmark::interactive) {
+                std::vector<wasm_state::live_key> inputs;
+                {
+                    const std::lock_guard<std::mutex> guard(g_state->input_mutex);
+                    inputs.swap(g_state->input_queue);
+                }
+                for (const auto &key : inputs) {
+                    drivers::input_event event{};
+                    event.type_ = drivers::input_event_type::key_raw;
+                    event.key_.code_ = key.code;
+                    event.key_.state_ = key.down ? drivers::key_state::pressed : drivers::key_state::released;
+                    g_state->winserv->queue_input_from_driver(event);
+                    g_state->input_consumed = key.serial;
+                }
+                const auto guest_now = common::benchmark::virtual_us.load();
+                if (guest_now >= pacing_check) {
+                    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
+                        std::chrono::steady_clock::now() - host_origin).count();
+                    const auto ahead = static_cast<std::int64_t>(guest_now - guest_origin) - elapsed;
+                    if (ahead > 2000) {
+                        std::this_thread::sleep_for(std::chrono::microseconds(std::min<std::int64_t>(ahead - 1000, 2000)));
+                        continue; // Host pacing never advances the guest clock.
+                    }
+                    pacing_check = guest_now + 1000;
+                }
+            }
             if (common::performance::checkpoint(common::benchmark::virtual_us.load(), common::benchmark::instructions.load())) {
                 g_state->running = false;
                 break;
