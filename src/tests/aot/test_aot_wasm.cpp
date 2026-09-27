@@ -2048,6 +2048,13 @@ static bool test_bounded_execution() {
         return program{true, bytes};
     };
     std::vector<program> programs = {
+        arm({0xe5912000,0xe5913004,0xe5914008,0xe591500c}), // unchanged read span
+        arm({0xe5912000,0xe5913004,0xe5914008,0xe2811004,0xe591500c}), // clobbered base
+        arm({0xe5912000,0xe5913004,0xe5914008,0x02811004,0xe591500c}), // conditional clobber
+        arm({0xe5912000,0xe5913004,0xe5914008,0xe5911000,0xe591500c}), // load into base
+        arm({0xe2811001,0xe5912000,0xe5913004,0xe5914008}), // unaligned base
+        arm({0xe2811eff,0xe281100c,0xe5912000,0xe5913004,0xe5914008}), // page end
+        arm({0xe5912000,0xe5913004,0xe5914008,0xe2500001,0x1afffffa}), // cached loop
         thumb({0xF000}), thumb({0xF001}), thumb({0xF400}), thumb({0xF7FF}),
         thumb({0xF800}), thumb({0xF801}), thumb({0xFFFF}),
         thumb({0xE800}), thumb({0xE801}), thumb({0xEFFF}),
@@ -2366,6 +2373,40 @@ static bool test_block_transfer_guards() {
     }
 #endif
     printf("  PASS block_transfer_guards (48 permission/endian/alignment/page cases)\n");return true;
+}
+
+static bool test_repeated_read_guards() {
+#ifdef __EMSCRIPTEN__
+    const std::uint32_t words[] = {0xe5910000,0xe5912004,0xe5913008};
+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
+    auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
+        for (unsigned address : {0x8000u,0x8001u,0x8ffcu}) {
+            test_mem memory;
+            std::vector<std::uint8_t> code(sizeof(words)); std::memcpy(code.data(),words,sizeof(words));
+            memory.write_code(0x1000,code);
+            for (unsigned a=0x8000;a<0xa000;a+=4) { memory.write32(a,a*37); }
+            r12l1::tlb direct(12); direct.add(0x8000,memory.data.data()+0x8000,permission);
+            alignas(8) std::uint32_t state[256]{};
+            state[1]=address; state[15]=0x1000;
+            state[state_offsets::CPSR/4]=0x10|endian;
+            state[state_offsets::AOT_BUDGET/4]=3;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(direct.entries);
+            g_test_mem=&memory; g_count_memory_helpers=true; g_memory_helper_calls=0;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr; g_count_memory_helpers=false;
+            const bool fast=(permission&1)&&!endian&&address==0x8000;
+            if(count<1||count>3||(fast ? count!=3||g_memory_helper_calls!=0 : g_memory_helper_calls==0)) return false;
+            // These test imports deliberately perform raw reads. For endian
+            // and unaligned cases assert helper routing, not CPU semantics.
+            // Full state comparisons for the eligible path are also covered
+            // by bounded_execution at every instruction budget.
+            if (fast && (state[0]!=memory.read32(address)||state[2]!=memory.read32(address+4)
+                ||state[3]!=memory.read32(address+8)||state[15]!=0x100c)) return false;
+        }
+#endif
+    printf("  PASS repeated_read_guards (24 permission/endian/alignment/page cases)\n");return true;
 }
 
 static bool test_block_transfer_callback_pc() {
@@ -3139,6 +3180,7 @@ int main() {
     if (test_exact_code_compare()) passed++; else failed++;
     if (test_region_cpsr_callback()) passed++; else failed++;
     if (test_block_transfer_callback_pc()) passed++; else failed++;
+    if (test_repeated_read_guards()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
