@@ -651,7 +651,10 @@ int eka2l1_run(const char *app_name) {
 
                     auto cmd_list = builder.retrieve_command_list();
                     g_state->graphics_driver->submit_command_list(cmd_list);
-                    if (common::benchmark::enabled())
+                    // Replay capture needs a completed frame at this guest instant.
+                    // Live play follows Qt: overlap rendering with guest execution,
+                    // then wait above before reusing the single presentation slot.
+                    if (common::benchmark::enabled() && !common::benchmark::interactive)
                         g_state->graphics_driver->wait_for(&g_state->present_status);
                 });
             LOG_INFO(FRONTEND_CMDLINE, "Screen redraw callback registered");

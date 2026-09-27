@@ -85,6 +85,9 @@ try {
     await pause(1000);
     const current = await state();
     samples.push({host_seconds:(performance.now()-hostStart)/1000, ...current});
+    // Retain scene evidence throughout long trials so a fast menu cannot be
+    // mistaken for sustained gameplay. Screenshot cost stays in elapsed time.
+    if (samples.length % 20 === 0) await visible(`gameplay-${samples.length}`);
     if (errors.length) throw new Error(errors.join('\n'));
   }
   const end = await state(), elapsed = (performance.now()-hostStart)/1000;
