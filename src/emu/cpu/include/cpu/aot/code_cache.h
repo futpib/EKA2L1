@@ -41,6 +41,9 @@ namespace eka2l1::arm::aot {
             std::uint64_t mapping_generation = 0;
             const std::atomic<std::uint64_t> *mapping_source = nullptr;
             bool tracking_attempted = false;
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            std::uint64_t validation_epoch = 0;
+#endif
             std::vector<common::code_tracking::stamp> stamps;
         };
 
@@ -132,6 +135,12 @@ namespace eka2l1::arm::aot {
 
         static void add_dependency(block &entry, std::uint32_t address,
             const std::uint8_t *backing, const std::vector<std::uint8_t> &bytes) {
+            // A new dependency cannot inherit an earlier validation lease.
+            entry.tracking_attempted = false;
+            entry.stamps.clear();
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            entry.validation_epoch = 0;
+#endif
             entry.dependencies.push_back({address, backing, bytes});
             const auto begin = reinterpret_cast<std::uintptr_t>(backing);
             entry.guard_begin = std::min(entry.guard_begin, begin);
@@ -166,6 +175,17 @@ namespace eka2l1::arm::aot {
 #if !defined(EKA2L1_WASM_CODE_VERSIONS)
             return equal_code_bytes(entry.backing, entry.code.data(), entry.code.size()) && dependencies_equal(entry);
 #else
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            const auto epoch = common::code_tracking::validation_epoch();
+            if (!force && epoch && entry.validation_epoch == epoch && !entry.stamps.empty()) {
+                if (common::performance::counting()) {
+                    ++common::performance::code_version_hits;
+                    ++common::performance::code_epoch_hits;
+                }
+                return true;
+            }
+            entry.validation_epoch = epoch;
+#endif
             if (!force && !entry.stamps.empty()
                 && std::all_of(entry.stamps.begin(), entry.stamps.end(), [](const auto &s) { return s.valid(); })) {
                 if (common::performance::counting()) ++common::performance::code_version_hits;

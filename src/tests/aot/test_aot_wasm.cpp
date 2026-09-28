@@ -2609,7 +2609,18 @@ static bool test_generated_write_versions() {
             state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
             auto before=tracking::snapshot(backing,8);
             if(before.empty())return false;
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            const bool overflow = store == 0xe8a10009u && alias == 0x8000u;
+            if (overflow) tracking::pages[reinterpret_cast<std::uintptr_t>(backing)>>12].version=UINT32_MAX;
+#endif
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            const auto epoch = tracking::validation_epoch();
+#endif
             auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            if (tracking::validation_epoch() == epoch) return false;
+            if (overflow && !tracking::snapshot(backing,8).empty()) return false;
+#endif
             if(count!=3 || state[2]!=1 || before[0].valid() || backing[0]!=0x78) return false;
         }
     }
@@ -2672,6 +2683,72 @@ static bool test_code_validity_versions() {
     if(last[0].valid())return false;
 #endif
     printf("  PASS code_validity_versions (dependencies, aliases, escapes, remap, reuse, overflow)\n");
+    return true;
+}
+
+static bool test_code_lifecycle() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_LIFECYCLE)
+    namespace tracking = eka2l1::common::code_tracking;
+    alignas(4096) static std::uint8_t backing[16384]{};
+    tracking::register_allocation(backing, sizeof(backing));
+    auto epoch = tracking::validation_epoch();
+    // Loader/data writes on unwatched pages do not invalidate compiled code.
+    tracking::guest_write(backing, sizeof(backing));
+    if (tracking::validation_epoch() != epoch) return false;
+    test_mem memory;
+    r12l1::exclusive_monitor monitor(1);
+    auto cpu = make_cpu(memory, monitor);
+    std::atomic<std::uint64_t> mapping{1};
+    cpu->code_mapping_generation = &mapping; cpu->code_address_space = 1;
+    core::code_mapping view{1,backing,4096};
+    cpu->resolve_code = [&](std::uint32_t addr, core::code_mapping &out) {
+        out = view; if (addr == 0x2000) out.bytes = backing+4096; return true;
+    };
+    validated_code_cache cache;
+    auto install = [&]() {
+        auto &b = cache.insert(0x1000,view,8);
+        validated_code_cache::add_dependency(b,0x2000,backing+4096,{backing+4096,backing+4104});
+        return cache.find(0x1000,*cpu);
+    };
+    auto *entry = install();
+    if (!entry || entry->stamps.size()!=2 || entry->validation_epoch != epoch) return false;
+    if (!cache.find(0x1000,*cpu) || entry->validation_epoch != epoch) return false;
+    // Mapping refresh must still reject stale backing even in the same epoch.
+    view.bytes=backing+8192; ++mapping;
+    if (cache.find(0x1000,*cpu)) return false;
+    view.bytes=backing; ++mapping;
+    entry=install(); if(!entry) return false;
+    tracking::guest_write(backing+8192,4);
+    if (tracking::validation_epoch() != epoch) return false;
+    // Multiple writes coalesce; unchanged bytes refresh stamps once.
+    tracking::guest_write(backing,4); tracking::guest_write(backing,4);
+    if (!cache.find(0x1000,*cpu) || entry->validation_epoch != epoch+1) return false;
+    epoch = entry->validation_epoch;
+    auto other = tracking::snapshot(backing+8192,4);
+    if (other.empty()) return false;
+    tracking::guest_write(backing+8192,4);
+    if (!cache.find(0x1000,*cpu) || entry->validation_epoch != epoch+1) return false;
+    // Dependency writes through backing aliases invalidate the caller.
+    backing[4096]=7; tracking::guest_write(backing+4096,1);
+    if (cache.find(0x1000,*cpu)) return false;
+    entry=install(); if (!entry) return false;
+    // Host exposure forces exact checking even after successful epoch hits.
+    tracking::escape_pointer(backing+12288);
+    if (!cache.find(0x1000,*cpu) || !entry->stamps.empty()) return false;
+    backing[0]=3;
+    if (cache.find(0x1000,*cpu)) return false;
+    tracking::retire_allocation(backing);
+    tracking::register_allocation(backing,sizeof(backing));
+    if (!tracking::snapshot(backing,8).empty()) return false;
+    tracking::retire_allocation(backing);
+    const auto saved_epoch=tracking::epoch;
+    tracking::epoch=UINT64_MAX; tracking::dirty.store(1);
+    if(tracking::validation_epoch()!=0) return false;
+    tracking::dirty.store(1);
+    if(tracking::validation_epoch()!=0) return false;
+    tracking::epoch=saved_epoch; // Isolated fixture; no cache entries survive it.
+#endif
+    printf("  PASS code_lifecycle (lazy watch, coalesced changes, dependencies, host escape, reuse)\n");
     return true;
 }
 
@@ -3271,6 +3348,9 @@ int main() {
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
 #ifdef EKA2L1_WASM_CODE_VERSIONS
+#ifdef EKA2L1_WASM_CODE_LIFECYCLE
+    if (test_code_lifecycle()) passed++; else {printf("  FAIL code_lifecycle\n");failed++;}
+#endif
     if (test_generated_write_versions()) passed++; else {printf("  FAIL generated_write_versions\n");failed++;}
     if (test_code_validity_versions()) passed++; else {printf("  FAIL code_validity_versions\n");failed++;}
 #else

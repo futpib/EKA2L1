@@ -1,2 +1,4 @@
 #pragma once
 #cmakedefine EKA2L1_WASM_CODE_VERSIONS 1
+
+#cmakedefine EKA2L1_WASM_CODE_LIFECYCLE 1

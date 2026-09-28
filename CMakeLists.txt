@@ -17,6 +17,10 @@ endif()
 set(EKA2L1_IOS_DEPLOYMENT_TARGET "16.0" CACHE STRING "Minimum iOS version to target")
 
 option(EKA2L1_WASM_CODE_VERSIONS "Experimental WASM code-page versions and guest write barriers" OFF)
+option(EKA2L1_WASM_CODE_LIFECYCLE "Experimental mutation-driven compiled-code validity" OFF)
+if(EKA2L1_WASM_CODE_LIFECYCLE)
+    set(EKA2L1_WASM_CODE_VERSIONS ON)
+endif()
 
 option(EKA2L1_BUILD_TOOLS "Build EKA2L1's tool" ON)
 option(EKA2L1_BUILD_TESTS "Build EKA2L1's tests" ON)

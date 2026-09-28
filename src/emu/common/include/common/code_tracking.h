@@ -25,13 +25,31 @@ namespace eka2l1::common::code_tracking {
     // Indexed by physical WASM backing page, so guest aliases share versions.
     // Stable storage: cached stamp pointers cannot dangle on unload/remapping.
     extern page_state pages[1u << 20];
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+    // Guest writes and host escapes publish mutations. Only the CPU consumes
+    // them; one epoch transition coalesces all writes since its last lookup.
+    extern std::atomic<std::uint32_t> dirty;
+    extern std::uint64_t epoch;
+    inline std::uint64_t validation_epoch() {
+        // CPU-thread only. Zero is permanently exhausted, never reused.
+        if (dirty.load(std::memory_order_acquire)
+            && dirty.exchange(0, std::memory_order_acq_rel) && epoch) ++epoch;
+        return epoch;
+    }
+#endif
     inline void guest_write(const void *ptr, std::size_t size) {
         if (!size) return;
         auto first = reinterpret_cast<std::uintptr_t>(ptr) >> 12;
         auto last = (reinterpret_cast<std::uintptr_t>(ptr) + size - 1) >> 12;
         for (auto p = first; p <= last; ++p) {
             auto &v = pages[p].version;
-            if (v) ++v; // Overflow becomes zero: exact checking forever.
+            if (v) {
+                ++v;
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+                if (!v) pages[p].flags.store(3, std::memory_order_release);
+                dirty.store(1, std::memory_order_release);
+#endif
+            } // Overflow becomes zero: exact checking forever.
         }
     }
     void register_allocation(void *ptr, std::size_t size);

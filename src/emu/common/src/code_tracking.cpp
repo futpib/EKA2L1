@@ -7,6 +7,10 @@
 namespace eka2l1::common::code_tracking {
     static_assert(sizeof(page_state) == 8);
     page_state pages[1u << 20];
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+    std::atomic<std::uint32_t> dirty{0};
+    std::uint64_t epoch = 1;
+#endif
     static std::mutex mutex;
     static std::map<std::uintptr_t, std::uintptr_t> allocations;
 
@@ -22,8 +26,18 @@ namespace eka2l1::common::code_tracking {
             // even when allocations share a host page or a pointer was retained.
             auto &entry = pages[p];
             if (entry.flags.load()) entry.flags.store(3, std::memory_order_release);
-            else { entry.version = 1; entry.flags.store(1, std::memory_order_release); }
+            else {
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+                entry.version = 0; // Loader/data writes do not watch code yet.
+#else
+                entry.version = 1;
+#endif
+                entry.flags.store(1, std::memory_order_release);
+            }
         }
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+        dirty.store(1, std::memory_order_release); // Includes overlapping reuse.
+#endif
     }
     void escape_pointer(const void *ptr) {
         const auto address = reinterpret_cast<std::uintptr_t>(ptr);
@@ -36,6 +50,9 @@ namespace eka2l1::common::code_tracking {
             for (auto p = begin >> 12; p <= (end - 1) >> 12; ++p)
                 pages[p].flags.store(3, std::memory_order_release);
         }
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+        dirty.store(1, std::memory_order_release);
+#endif
     }
     void retire_allocation(void *ptr) {
         escape_pointer(ptr);
@@ -50,6 +67,11 @@ namespace eka2l1::common::code_tracking {
         if (end > (std::uint64_t(1) << 32)) return result;
         for (auto p = begin >> 12; p <= (end - 1) >> 12; ++p) {
             auto &entry = pages[p];
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            if (entry.flags.load(std::memory_order_acquire) != 1) return {};
+            // CPU-thread only, after comparing the snapshot's source bytes.
+            if (!entry.version) entry.version = 1;
+#endif
             if (!entry.version || entry.flags.load(std::memory_order_acquire) != 1) {
                 return {};
             }

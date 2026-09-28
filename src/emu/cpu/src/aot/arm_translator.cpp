@@ -216,7 +216,18 @@ namespace eka2l1::arm::aot {
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,0); set_local(VALUE);
             get_local(VALUE); op(op_if); op(type_void);
             get_local(ENTRY); get_local(VALUE); i32_const(1); op(op_i32_add);
-            op(op_i32_store); leb(b,2); leb(b,0); op(op_end);
+            op(op_i32_store); leb(b,2); leb(b,0);
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            // Page-version overflow must not rearm an exhausted page when a
+            // new region starts watching it. Host flags use atomic operations.
+            get_local(VALUE); i32_const(-1); op(op_i32_eq); op(op_if); op(type_void);
+            get_local(ENTRY); i32_const(3);
+            op(0xfe); leb(b,0x17); leb(b,2); leb(b,4); // i32.atomic.store flags
+            op(op_end);
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&common::code_tracking::dirty)));
+            i32_const(1); op(0xfe); leb(b,0x17); leb(b,2); leb(b,0);
+#endif
+            op(op_end);
 #endif
         }
         void ret() { cache.barrier_at(b.size()); op(op_return); }
