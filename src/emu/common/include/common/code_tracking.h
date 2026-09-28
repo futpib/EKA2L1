@@ -1,4 +1,5 @@
 #pragma once
+#include <common/code_tracking_config.h>
 
 #include <atomic>
 #include <cstddef>
@@ -20,7 +21,7 @@ namespace eka2l1::common::code_tracking {
                 && page->version == version;
         }
     };
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
     // Indexed by physical WASM backing page, so guest aliases share versions.
     // Stable storage: cached stamp pointers cannot dangle on unload/remapping.
     extern page_state pages[1u << 20];

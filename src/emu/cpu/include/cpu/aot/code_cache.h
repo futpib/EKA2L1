@@ -163,6 +163,9 @@ namespace eka2l1::arm::aot {
 
     private:
         static bool bytes_match(block &entry, bool force) {
+#if !defined(EKA2L1_WASM_CODE_VERSIONS)
+            return equal_code_bytes(entry.backing, entry.code.data(), entry.code.size()) && dependencies_equal(entry);
+#else
             if (!force && !entry.stamps.empty()
                 && std::all_of(entry.stamps.begin(), entry.stamps.end(), [](const auto &s) { return s.valid(); })) {
                 if (common::performance::counting()) ++common::performance::code_version_hits;
@@ -191,6 +194,7 @@ namespace eka2l1::arm::aot {
             if (std::any_of(entry.stamps.begin(), entry.stamps.end(), [](const auto &s) { return !s.valid(); }))
                 entry.stamps.clear(); // Escaped pointers/overflow never recover.
             return true;
+#endif
         }
         static bool dependencies_equal(const block &entry) {
             for (const auto &d : entry.dependencies)

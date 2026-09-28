@@ -2592,7 +2592,7 @@ static bool test_cached_callback_state() {
 }
 
 static bool test_generated_write_versions() {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
     namespace tracking = eka2l1::common::code_tracking;
     alignas(4096) static std::uint8_t backing[8192]{};
     tracking::register_allocation(backing,sizeof(backing));
@@ -2620,7 +2620,7 @@ static bool test_generated_write_versions() {
 }
 
 static bool test_code_validity_versions() {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
     namespace tracking = eka2l1::common::code_tracking;
     alignas(4096) static std::uint8_t backing[16384]{};
     tracking::register_allocation(backing, 8192);
@@ -3270,8 +3270,12 @@ int main() {
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
+#ifdef EKA2L1_WASM_CODE_VERSIONS
     if (test_generated_write_versions()) passed++; else {printf("  FAIL generated_write_versions\n");failed++;}
     if (test_code_validity_versions()) passed++; else {printf("  FAIL code_validity_versions\n");failed++;}
+#else
+    printf("  SKIP code validity generation tests (experimental build option disabled)\n");
+#endif
     if (test_arm_mov_imm()) passed++; else failed++;
     if (test_arm_add_sub_imm()) passed++; else failed++;
     if (test_arm_cmp_beq()) passed++; else failed++;

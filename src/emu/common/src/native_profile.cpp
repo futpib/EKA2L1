@@ -23,6 +23,7 @@ namespace eka2l1::common::native_profile {
     static std::chrono::steady_clock::time_point begin;
     static timespec cpu_begin;
     static const char *path;
+    static unsigned period_us = 1000;
     static void sample(int, siginfo_t *, void *context) {
         if (active && count < static_cast<sig_atomic_t>(samples.size())) {
             const auto *state = static_cast<ucontext_t *>(context);
@@ -33,6 +34,13 @@ namespace eka2l1::common::native_profile {
     void start() {
         path = std::getenv("EKA2L1_NATIVE_SAMPLE_OUTPUT");
         if (!path || !*path) return;
+        if (const char *value = std::getenv("EKA2L1_NATIVE_SAMPLE_PERIOD_US")) {
+            char *end = nullptr;
+            const auto parsed = std::strtoul(value, &end, 10);
+            if (!end || *end || parsed < 100 || parsed > 100000)
+                throw std::runtime_error("Native sample period must be 100..100000 us");
+            period_us = static_cast<unsigned>(parsed);
+        }
         struct sigaction action{};
         sigaction(SIGPROF,nullptr,&previous);
         if(previous.sa_handler != SIG_DFL) throw std::runtime_error("SIGPROF already owned");
@@ -44,7 +52,7 @@ namespace eka2l1::common::native_profile {
         if(timer_create(CLOCK_MONOTONIC,&event,&timer)) throw std::runtime_error("timer_create failed");
         count=0;active=1;clock_gettime(CLOCK_THREAD_CPUTIME_ID,&cpu_begin);
         begin=std::chrono::steady_clock::now();
-        itimerspec spec{};spec.it_value.tv_nsec=spec.it_interval.tv_nsec=1000000;
+        itimerspec spec{};spec.it_value.tv_nsec=spec.it_interval.tv_nsec=period_us*1000;
         if(timer_settime(timer,0,&spec,nullptr))throw std::runtime_error("timer_settime failed");
     }
     void stop() {
@@ -69,7 +77,7 @@ namespace eka2l1::common::native_profile {
         }
         std::ofstream maps(std::string(path)+".maps");std::ifstream input("/proc/self/maps");maps<<input.rdbuf();
         std::ofstream meta(std::string(path)+".json");
-        meta<<"{\"period_us\":1000,\"samples\":"<<count<<",\"capacity\":"<<samples.size()
+        meta<<"{\"period_us\":"<<period_us<<",\"samples\":"<<count<<",\"capacity\":"<<samples.size()
             <<",\"wall_seconds\":"<<wall<<",\"thread_cpu_seconds\":"<<cpu<<"}\n";
     }
 }

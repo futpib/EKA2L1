@@ -184,3 +184,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/common/configure.h.in
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/common/version.h.in
         ${COMMON_GENERATED_INCLUDE_DIR}/common/version.h)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/common/code_tracking_config.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/include/common/code_tracking_config.h)

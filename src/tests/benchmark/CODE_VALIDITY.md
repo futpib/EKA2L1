@@ -1,5 +1,7 @@
 # Backing-page validity tracking
 
+This is an **opt-in experiment**, built with `-DEKA2L1_WASM_CODE_VERSIONS=ON`. It defaults off: the initial controlled timing batch did not demonstrate a speedup after paying for guest write barriers. Default builds retain exact byte validation and do not emit those barriers.
+
 WASM code-cache entries may reuse an exact byte comparison only when every included code page has an unchanged tracked version. Mapping generation, address-space identity, ARM/Thumb identity, backing and extent checks remain mandatory. Dependencies from inlined helpers participate in the same validation.
 
 Tracked allocations are newly allocated multiple-model code chunks. Initial loader copying uses a private loader accessor, before compiled execution. Guest writes increment versions indexed by physical WASM backing pages, including interpreter/TLB stores, MMU callbacks, direct compiled stores and block transfers. Aliased guest addresses therefore share versions. Existing within-region code-write exits remain in place.

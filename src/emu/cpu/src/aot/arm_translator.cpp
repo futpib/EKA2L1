@@ -204,7 +204,7 @@ namespace eka2l1::arm::aot {
         // All direct stores are aligned and confined to one physical page.
         // Helpers/interpreter writes use the same backing-indexed versions.
         void track_write() {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
             get_local(HOST); i32_const(12); op(op_i32_shr_u);
             i32_const(3); op(op_i32_shl);
             i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(common::code_tracking::pages)));

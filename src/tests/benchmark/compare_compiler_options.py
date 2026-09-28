@@ -8,7 +8,7 @@ builds=json.loads(a.builds.read_text());plan=list(builds)+list(reversed(builds))
 try:
  for index,name in enumerate(plan):
   out=a.output/f'{index}-{name}';gate=a.output/f'{index}.release';log=(a.output/f'{index}-{name}.log').open('w');logs.append(log)
-  env={**os.environ,'EKA2L1_GPU':'hardware','EKA2L1_PROFILE_DETAIL':'0','EKA2L1_BENCHMARK_AOT':'5','EKA2L1_PROFILE_START_US':'78000000','EKA2L1_WASM_BUILD_DIR':builds[name],'PROFILE_GATE':str(gate),'EKA2L1_CAPTURE_MODULES':'worker-13'}
+  env={**os.environ,'EKA2L1_GPU':'hardware','EKA2L1_PROFILE_DETAIL':'0','EKA2L1_BENCHMARK_AOT':'5','EKA2L1_PROFILE_START_US':'78000000','EKA2L1_WASM_BUILD_DIR':builds[name],'PROFILE_GATE':str(gate)}
   for key in ['EKA2L1_AOT_VERIFY','EKA2L1_V8_FLAGS','EKA2L1_V8_DUMP','EKA2L1_GUEST_PROFILE']:env.pop(key,None)
   proc=subprocess.Popen(['node','profile.ts',str(a.assets.resolve()),str(out),'2','0','96000000'],cwd=root/'src/tests/wasm',env=env,stdout=log,stderr=log);jobs.append((name,proc,gate,out))
  deadline=time.monotonic()+1800

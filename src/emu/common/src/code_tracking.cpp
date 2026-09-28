@@ -1,5 +1,5 @@
 #include <common/code_tracking.h>
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
 #include <map>
 #include <mutex>
 #include <limits>
