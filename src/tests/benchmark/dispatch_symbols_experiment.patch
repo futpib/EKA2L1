@@ -1,0 +1,81 @@
+diff --git a/src/emu/cpu/include/cpu/aot/code_cache.h b/src/emu/cpu/include/cpu/aot/code_cache.h
+index 4ee01fcb7..8ce7c74d3 100644
+--- a/src/emu/cpu/include/cpu/aot/code_cache.h
++++ b/src/emu/cpu/include/cpu/aot/code_cache.h
+@@ -48,7 +48,7 @@ namespace eka2l1::arm::aot {
+             return (std::uint64_t(space) << 32) | pc_mode;
+         }
+ 
+-        block *find(std::uint32_t pc_mode, const core::code_mapping &view, core *cpu = nullptr) {
++        __attribute__((noinline)) block *find(std::uint32_t pc_mode, const core::code_mapping &view, core *cpu = nullptr) {
+             const auto k = key(view.address_space, pc_mode);
+             auto &recent = recent_[recent_index(k)];
+             block *entry = recent;
+@@ -81,7 +81,7 @@ namespace eka2l1::arm::aot {
+             return entry;
+         }
+ 
+-        block *find(std::uint32_t pc_mode, core &cpu) {
++        __attribute__((noinline)) block *find(std::uint32_t pc_mode, core &cpu) {
+             const auto generation = cpu.code_mapping_generation
+                 ? cpu.code_mapping_generation->load(std::memory_order_acquire) : 0;
+             const auto k = key(cpu.code_address_space, pc_mode);
+@@ -162,9 +162,9 @@ namespace eka2l1::arm::aot {
+         std::uint64_t invalidations = 0;
+ 
+     private:
+-        static bool bytes_match(block &entry, bool force) {
++        __attribute__((noinline)) static bool bytes_match(block &entry, bool force) {
+ #if !defined(EKA2L1_WASM_CODE_VERSIONS)
+-            return equal_code_bytes(entry.backing, entry.code.data(), entry.code.size()) && dependencies_equal(entry);
++            return primary_bytes_equal(entry) && dependencies_equal(entry);
+ #else
+             if (!force && !entry.stamps.empty()
+                 && std::all_of(entry.stamps.begin(), entry.stamps.end(), [](const auto &s) { return s.valid(); })) {
+@@ -172,7 +172,7 @@ namespace eka2l1::arm::aot {
+                 return true;
+             }
+             if (common::performance::counting()) ++common::performance::code_byte_checks;
+-            if (!equal_code_bytes(entry.backing, entry.code.data(), entry.code.size()) || !dependencies_equal(entry))
++            if (!primary_bytes_equal(entry) || !dependencies_equal(entry))
+                 return false;
+             if (!entry.tracking_attempted) {
+                 entry.tracking_attempted = true;
+@@ -196,11 +196,14 @@ namespace eka2l1::arm::aot {
+             return true;
+ #endif
+         }
+-        static bool dependencies_equal(const block &entry) {
++        __attribute__((noinline)) static bool dependencies_equal(const block &entry) {
+             for (const auto &d : entry.dependencies)
+                 if (!equal_code_bytes(d.backing, d.code.data(), d.code.size())) return false;
+             return true;
+         }
++        __attribute__((noinline)) static bool primary_bytes_equal(const block &entry) {
++            return equal_code_bytes(entry.backing, entry.code.data(), entry.code.size());
++        }
+         static std::size_t recent_index(std::uint64_t k) {
+             const auto pc_mode = static_cast<std::uint32_t>(k);
+             return ((pc_mode >> 1) ^ (pc_mode << 7) ^ (k >> 32)) & 4095;
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index 8d0722ce3..98f7b5e61 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -190,7 +190,7 @@ void invalidate_ram_code(std::uint32_t address, std::size_t size) {
+     ram_cache.invalidate(address, size);
+ }
+ 
+-aot_func lookup_compiled(ARMul_State *cpu) {
++__attribute__((noinline)) aot_func lookup_compiled(ARMul_State *cpu) {
+     if (validation_running) return nullptr;
+     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
+     // Existing ROM functions use immutable bytes and need no mapping lookup.
+@@ -225,7 +225,7 @@ aot_func lookup_compiled(ARMul_State *cpu) {
+ }
+ 
+ template<bool Verify>
+-static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
++__attribute__((noinline)) static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+     const auto budget = cpu->aot_budget;
+     compiled_run result;
+     while (function && result.instructions < budget && result.blocks < 512) {

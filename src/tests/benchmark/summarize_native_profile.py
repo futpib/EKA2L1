@@ -8,7 +8,7 @@ for line in pathlib.Path(str(a.samples)+'.maps').read_text().splitlines():
  parts=line.split(maxsplit=5);start,end=(int(x,16) for x in parts[0].split('-'))
  maps.append((start,end,parts[1],parts[5] if len(parts)>5 else ''))
 jit=[]
-for path in a.samples.parent.glob('perf-*.map'):
+for path in [*a.samples.parent.glob('perf-*.map'), *a.samples.parent.glob('native-stubs.map')]:
  for line in path.read_text().splitlines():
   start,size,name=line.split(maxsplit=2);jit.append((int(start,16),int(size,16),name))
 jit.sort();starts=[r[0] for r in jit]

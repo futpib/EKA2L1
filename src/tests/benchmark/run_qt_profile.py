@@ -39,11 +39,13 @@ for i,backend in enumerate(a.backends):
          'XDG_DATA_HOME':str(directory/'state/data'),'XDG_CONFIG_HOME':str(directory/'state/config'),
          '__GL_SYNC_TO_VBLANK':'0'}
     env.pop('LIBGL_ALWAYS_SOFTWARE',None)
-    for key in ['EKA2L1_NATIVE_SAMPLE_OUTPUT','EKA2L1_QT_PROFILE_DETAIL','PERF_BUILDID_DIR']: env.pop(key,None)
+    for key in ['EKA2L1_NATIVE_SAMPLE_OUTPUT','EKA2L1_QT_PROFILE_DETAIL','PERF_BUILDID_DIR','EKA2L1_NATIVE_STUB_MAP']: env.pop(key,None)
     if a.detail: env['EKA2L1_QT_PROFILE_DETAIL']='1'
     if a.sample:
         env['EKA2L1_NATIVE_SAMPLE_OUTPUT']=str(directory/'native-pcs.tsv')
         env['PERF_BUILDID_DIR']=str(directory)
+        if os.environ.get('EKA2L1_NATIVE_STUB_SIDECAR') == '1':
+            env['EKA2L1_NATIVE_STUB_MAP']=str(directory/'native-stubs.map')
     with (directory/'run.log').open('w') as log:
         subprocess.run([str(binary),'--install',str(a.assets.resolve()/'Snakes.sis'),'--run','Snakes'],
                        env=env,stdout=log,stderr=subprocess.STDOUT,timeout=a.timeout,check=True)

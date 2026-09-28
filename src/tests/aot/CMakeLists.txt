@@ -13,3 +13,14 @@ if(EMSCRIPTEN)
         OUTPUT_NAME "test_aot_wasm"
         SUFFIX ".js")
 endif()
+
+if(EMSCRIPTEN)
+    add_executable(eka_cpu_fault_wasm EXCLUDE_FROM_ALL ../benchmark/cpu_fault_probe.cpp)
+    target_link_libraries(eka_cpu_fault_wasm PRIVATE cpu)
+    target_link_options(eka_cpu_fault_wasm PRIVATE
+        "SHELL:-s EXPORTED_FUNCTIONS=['_main','_malloc','_free']"
+        "SHELL:-s ALLOW_MEMORY_GROWTH=1" "SHELL:-s INITIAL_MEMORY=134217728"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=['addFunction']"
+        "SHELL:-s ALLOW_TABLE_GROWTH=1" "SHELL:-s EXIT_RUNTIME=1" "SHELL:-s USE_PTHREADS=1")
+    set_target_properties(eka_cpu_fault_wasm PROPERTIES SUFFIX ".js")
+endif()
