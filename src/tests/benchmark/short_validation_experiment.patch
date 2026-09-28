@@ -1,0 +1,94 @@
+diff --git a/src/emu/cpu/include/cpu/aot/code_cache.h b/src/emu/cpu/include/cpu/aot/code_cache.h
+index 5d74863eb..a030164be 100644
+--- a/src/emu/cpu/include/cpu/aot/code_cache.h
++++ b/src/emu/cpu/include/cpu/aot/code_cache.h
+@@ -13,6 +13,31 @@
+ namespace eka2l1::arm::aot {
+     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size);
+ 
++    // Keep tiny snapshot checks at the lookup site without inlining the whole
++    // variable-length scanner. memcpy permits unaligned backing/snapshots and
++    // each fixed load stays strictly inside the validated range.
++    inline bool equal_code_snapshot(const std::uint8_t *a, const std::uint8_t *b, std::size_t size) {
++        switch (size) {
++        case 4: {
++            std::uint32_t x, y;
++            std::memcpy(&x, a, 4); std::memcpy(&y, b, 4);
++            return x == y;
++        }
++        case 8: {
++            std::uint64_t x, y;
++            std::memcpy(&x, a, 8); std::memcpy(&y, b, 8);
++            return x == y;
++        }
++        case 16: {
++            std::uint64_t x[2], y[2];
++            std::memcpy(x, a, 16); std::memcpy(y, b, 16);
++            return ((x[0] ^ y[0]) | (x[1] ^ y[1])) == 0;
++        }
++        default:
++            return equal_code_bytes(a, b, size);
++        }
++    }
++
+     // Known allocations use backing-page write versions. Raw host-pointer
+     // escapes permanently restore exact validation for their whole allocation.
+     class validated_code_cache {
+@@ -173,7 +198,7 @@ namespace eka2l1::arm::aot {
+     private:
+         static bool bytes_match(block &entry, bool force) {
+ #if !defined(EKA2L1_WASM_CODE_VERSIONS)
+-            return equal_code_bytes(entry.backing, entry.code.data(), entry.code.size()) && dependencies_equal(entry);
++            return equal_code_snapshot(entry.backing, entry.code.data(), entry.code.size()) && dependencies_equal(entry);
+ #else
+ #if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+             const auto epoch = common::code_tracking::validation_epoch();
+@@ -192,7 +217,7 @@ namespace eka2l1::arm::aot {
+                 return true;
+             }
+             if (common::performance::counting()) ++common::performance::code_byte_checks;
+-            if (!equal_code_bytes(entry.backing, entry.code.data(), entry.code.size()) || !dependencies_equal(entry))
++            if (!equal_code_snapshot(entry.backing, entry.code.data(), entry.code.size()) || !dependencies_equal(entry))
+                 return false;
+             if (!entry.tracking_attempted) {
+                 entry.tracking_attempted = true;
+@@ -218,7 +243,7 @@ namespace eka2l1::arm::aot {
+         }
+         static bool dependencies_equal(const block &entry) {
+             for (const auto &d : entry.dependencies)
+-                if (!equal_code_bytes(d.backing, d.code.data(), d.code.size())) return false;
++                if (!equal_code_snapshot(d.backing, d.code.data(), d.code.size())) return false;
+             return true;
+         }
+         static std::size_t recent_index(std::uint64_t k) {
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+index d58c54077..e5b61180b 100644
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -2506,13 +2506,24 @@ static bool test_exact_code_compare() {
+     std::array<std::uint8_t,545> a{},b{};
+     for(unsigned i=0;i<a.size();++i) a[i]=b[i]=i*37;
+     for(unsigned offset=0;offset<16;++offset) for(unsigned size=0;size<=512;++size) {
+-        if(!equal_code_bytes(a.data()+offset,b.data()+offset,size)) return false;
++        if(!equal_code_bytes(a.data()+offset,b.data()+offset,size) || !equal_code_snapshot(a.data()+offset,b.data()+offset,size)) return false;
+         for(unsigned at : {0u,size/2,size ? size-1 : 0u}) if(size) {
+             b[offset+at]^=1;
+-            if(equal_code_bytes(a.data()+offset,b.data()+offset,size)) return false;
++            if(equal_code_bytes(a.data()+offset,b.data()+offset,size) || equal_code_snapshot(a.data()+offset,b.data()+offset,size)) return false;
+             b[offset+at]^=1;
+         }
+     }
++    // Exercise every byte and independent alignment of the short snapshots.
++    for (unsigned left=0;left<16;++left) for(unsigned right=0;right<16;++right)
++        for(unsigned size:{4u,8u,16u}) {
++            std::memcpy(b.data()+right,a.data()+left,size);
++            if(!equal_code_snapshot(a.data()+left,b.data()+right,size)) return false;
++            for(unsigned at=0;at<size;++at) {
++                b[right+at]^=128;
++                if(equal_code_snapshot(a.data()+left,b.data()+right,size)) return false;
++                b[right+at]^=128;
++            }
++        }
+     printf("  PASS exact_code_compare (unaligned/tails/mutations)\n"); return true;
+ }
+ 

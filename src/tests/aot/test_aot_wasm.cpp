@@ -2513,6 +2513,17 @@ static bool test_exact_code_compare() {
             b[offset+at]^=1;
         }
     }
+    // Exercise every byte and independent alignment of the short snapshots.
+    for (unsigned left=0;left<16;++left) for(unsigned right=0;right<16;++right)
+        for(unsigned size:{4u,8u,16u}) {
+            std::memcpy(b.data()+right,a.data()+left,size);
+            if(!equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
+            for(unsigned at=0;at<size;++at) {
+                b[right+at]^=128;
+                if(equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
+                b[right+at]^=128;
+            }
+        }
     printf("  PASS exact_code_compare (unaligned/tails/mutations)\n"); return true;
 }
 

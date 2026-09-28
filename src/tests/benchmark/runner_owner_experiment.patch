@@ -1,0 +1,62 @@
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index 8ec6fc662..a64977e7e 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -196,7 +196,7 @@ void invalidate_ram_code(std::uint32_t address, std::size_t size) {
+ }
+ 
+ template<bool Profile>
+-static aot_func lookup_compiled_impl(ARMul_State *cpu) {
++static aot_func lookup_compiled_impl(ARMul_State *cpu, core &owner) {
+     if (validation_running) return nullptr;
+     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
+     // Existing ROM functions use immutable bytes and need no mapping lookup.
+@@ -209,16 +209,16 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
+     // The normal path avoids the resolver callback on a generation/space hit,
+     // while comparing the exact compiled bytes on every entry.
+     if (!Profile || !(common::guest_profile::enabled && common::performance::counting())) {
+-        auto *entry = ram_cache.find(pc_mode, *cpu->parent());
++        auto *entry = ram_cache.find(pc_mode, owner);
+         if (!entry) return nullptr;
+         cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
+         cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
+         return entry->function;
+     }
+     core::code_mapping view;
+-    if (!cpu->parent()->resolve_code) return nullptr;
+-    const bool mapped = cpu->parent()->resolve_code(pc, view);
+-    auto *entry = ram_cache.find(pc_mode, *cpu->parent());
++    if (!owner.resolve_code) return nullptr;
++    const bool mapped = owner.resolve_code(pc, view);
++    auto *entry = ram_cache.find(pc_mode, owner);
+     if (Profile && (common::guest_profile::enabled && common::performance::counting()) && (!mapped || !entry || !entry->function)) {
+         std::uint32_t opcode = 0;
+         if (mapped && view.bytes && view.size >= (cpu->TFlag ? 2u : 4u)) std::memcpy(&opcode,view.bytes,cpu->TFlag ? 2 : 4);
+@@ -232,7 +232,7 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
+ 
+ aot_func lookup_compiled(ARMul_State *cpu) {
+     return common::guest_profile::enabled && common::performance::enabled && common::performance::detailed
+-        ? lookup_compiled_impl<true>(cpu) : lookup_compiled_impl<false>(cpu);
++        ? lookup_compiled_impl<true>(cpu, *cpu->parent()) : lookup_compiled_impl<false>(cpu, *cpu->parent());
+ }
+ 
+ template<bool Verify, bool Profile>
+@@ -241,7 +241,8 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+     compiled_run result;
+     // The owning core and its embedded TLB storage outlive this chain. Entries
+     // still change on remaps; only the address of their fixed array is reused.
+-    auto *tlb = static_cast<dyncom_core *>(cpu->parent())->mem_cache();
++    auto &owner = *cpu->parent();
++    auto *tlb = static_cast<dyncom_core &>(owner).mem_cache();
+     const auto tlb_address = tlb->page_bits == 12
+         ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
+ 
+@@ -275,7 +276,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+         cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
+         // This stays inside the compiled runner. Every RAM successor is validated;
+         // no stale function pointer is linked across a mapping/code change.
+-        function = lookup_compiled_impl<Profile>(cpu);
++        function = lookup_compiled_impl<Profile>(cpu, owner);
+     }
+     return result;
+ }
