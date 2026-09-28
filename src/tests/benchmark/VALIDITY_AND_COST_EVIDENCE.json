@@ -1,0 +1,2708 @@
+{
+  "implementation_commit": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+  "default_off_and_profile_tools_commit": "756061e7f",
+  "environment": {
+    "kernel": "6.12.96-1-MANJARO",
+    "browser": "Chromium 153.0.8010.52 Arch Linux",
+    "compiler": "c++ (GCC) 16.2.1 20260810\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "node": "v26.8.1",
+    "gpu": "Quadro T1000 with Max-Q Design, 610.43.03",
+    "driver_libraries": "/home/claude/.scratch/eka-benchmark/nvidia-610.43/usr/lib",
+    "driver_manifest": "/home/claude/.scratch/eka-benchmark/nvidia-610.43/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "system_driver_note": "System libraries changed to 610.57 while the kernel remained 610.43.03; benchmark subprocesses use an isolated matching Arch package, not a system downgrade."
+  },
+  "method": "18 guest seconds (78-96), Snakes, rendering enabled, no capture, no host pacing. Serial controls; sampling and detailed timings are separate diagnostics. Native JIT executes 0.161% more guest instructions than WASM. No game-wide parity claim for native JIT.",
+  "timings": {
+    "0-before": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 20.7938,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 139.479558946,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "1-versions": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 22.3131,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 136.240543065,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "f1d6a1757af08c4589db04a2e0e05ef86cb796de0160c7f27d37007fd69e96f3",
+      "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "2-versions": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 29.4221,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 135.43192928000002,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "f1d6a1757af08c4589db04a2e0e05ef86cb796de0160c7f27d37007fd69e96f3",
+      "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "3-before": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 23.9035,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 138.263912856,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    }
+  },
+  "profiles": {
+    "native_plain": {
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true,
+      "binary_sha256": "12bab5d63faa565ff6ebef3ef6ec86664fde2b35124842f7d9aebd43bee03945",
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "backends": [
+        "dynarmic",
+        "dynarmic"
+      ],
+      "detail": false,
+      "sample": false,
+      "method": "Serial configured backends; virtual clock, 78-96 guest seconds, rendering on, no capture/audio retention, no host pacing. JIT exits need not match exact interpreter budgets.",
+      "glxinfo": "name of display: :1\ndisplay: :1  screen: 0\ndirect rendering: Yes\nMemory info (GL_NVX_gpu_memory_info):\n    Dedicated video memory: 4096 MB\n    Total available memory: 4096 MB\n    Currently available dedicated video memory: 3709 MB\nOpenGL vendor string: NVIDIA Corporation\nOpenGL renderer string: Quadro T1000 with Max-Q Design/PCIe/SSE2\nOpenGL core profile version string: 4.6.0 NVIDIA 610.43.03\nOpenGL core profile shading language version string: 4.60 NVIDIA\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.6.0 NVIDIA 610.43.03\nOpenGL shading language version string: 4.60 NVIDIA\nOpenGL context flags: (none)\nOpenGL profile mask: (none)\n\nOpenGL ES profile version string: OpenGL ES 3.2 NVIDIA 610.43.03\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+      "runs": [
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 4.1278,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 4.13126,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "native_detail": {
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true,
+      "binary_sha256": "12bab5d63faa565ff6ebef3ef6ec86664fde2b35124842f7d9aebd43bee03945",
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "backends": [
+        "dynarmic",
+        "dynarmic"
+      ],
+      "detail": true,
+      "sample": false,
+      "method": "Serial configured backends; virtual clock, 78-96 guest seconds, rendering on, no capture/audio retention, no host pacing. JIT exits need not match exact interpreter budgets.",
+      "glxinfo": "name of display: :1\ndisplay: :1  screen: 0\ndirect rendering: Yes\nMemory info (GL_NVX_gpu_memory_info):\n    Dedicated video memory: 4096 MB\n    Total available memory: 4096 MB\n    Currently available dedicated video memory: 3709 MB\nOpenGL vendor string: NVIDIA Corporation\nOpenGL renderer string: Quadro T1000 with Max-Q Design/PCIe/SSE2\nOpenGL core profile version string: 4.6.0 NVIDIA 610.43.03\nOpenGL core profile shading language version string: 4.60 NVIDIA\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.6.0 NVIDIA 610.43.03\nOpenGL shading language version string: 4.60 NVIDIA\nOpenGL context flags: (none)\nOpenGL profile mask: (none)\n\nOpenGL ES profile version string: OpenGL ES 3.2 NVIDIA 610.43.03\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+      "runs": [
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": true,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 4.34349,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 4.32048,
+                "calls": 823954
+              },
+              "cpu_run": {
+                "seconds": 3.93648,
+                "calls": 821967
+              },
+              "timers": {
+                "seconds": 0.0461345,
+                "calls": 823954
+              },
+              "scheduler": {
+                "seconds": 0.250013,
+                "calls": 823954
+              },
+              "graphics_dispatch": {
+                "seconds": 0.177879,
+                "calls": 1352
+              },
+              "graphics_wait": {
+                "seconds": 0.178846,
+                "calls": 1352
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0.00527754,
+                "calls": 1800
+              }
+            }
+          }
+        },
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": true,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 4.39141,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 4.36839,
+                "calls": 823954
+              },
+              "cpu_run": {
+                "seconds": 3.98951,
+                "calls": 821967
+              },
+              "timers": {
+                "seconds": 0.0465196,
+                "calls": 823954
+              },
+              "scheduler": {
+                "seconds": 0.243607,
+                "calls": 823954
+              },
+              "graphics_dispatch": {
+                "seconds": 0.170549,
+                "calls": 1352
+              },
+              "graphics_wait": {
+                "seconds": 0.167343,
+                "calls": 1352
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0.00525688,
+                "calls": 1800
+              }
+            }
+          }
+        }
+      ]
+    },
+    "native_sample": {
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true,
+      "binary_sha256": "12bab5d63faa565ff6ebef3ef6ec86664fde2b35124842f7d9aebd43bee03945",
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "backends": [
+        "dynarmic",
+        "dynarmic"
+      ],
+      "detail": false,
+      "sample": true,
+      "method": "Serial configured backends; virtual clock, 78-96 guest seconds, rendering on, no capture/audio retention, no host pacing. JIT exits need not match exact interpreter budgets.",
+      "glxinfo": "name of display: :1\ndisplay: :1  screen: 0\ndirect rendering: Yes\nMemory info (GL_NVX_gpu_memory_info):\n    Dedicated video memory: 4096 MB\n    Total available memory: 4096 MB\n    Currently available dedicated video memory: 3709 MB\nOpenGL vendor string: NVIDIA Corporation\nOpenGL renderer string: Quadro T1000 with Max-Q Design/PCIe/SSE2\nOpenGL core profile version string: 4.6.0 NVIDIA 610.43.03\nOpenGL core profile shading language version string: 4.60 NVIDIA\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.6.0 NVIDIA 610.43.03\nOpenGL shading language version string: 4.60 NVIDIA\nOpenGL context flags: (none)\nOpenGL profile mask: (none)\n\nOpenGL ES profile version string: OpenGL ES 3.2 NVIDIA 610.43.03\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+      "runs": [
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 4.80133,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 15.6179,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "native_5ms_before": {
+      "git_head": "756061e7f51cba14cdbf4a60464f15b0bb496834",
+      "dirty_worktree": false,
+      "binary_sha256": "76649cdfc47a67106aa02619003e0e7e7d279e9e2b9f612bc0753c6c3932a854",
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "backends": [
+        "dynarmic",
+        "dynarmic"
+      ],
+      "detail": false,
+      "sample": false,
+      "method": "Serial configured backends; virtual clock, 78-96 guest seconds, rendering on, no capture/audio retention, no host pacing. JIT exits need not match exact interpreter budgets.",
+      "glxinfo": "name of display: :1\ndisplay: :1  screen: 0\ndirect rendering: Yes\nMemory info (GL_NVX_gpu_memory_info):\n    Dedicated video memory: 4096 MB\n    Total available memory: 4096 MB\n    Currently available dedicated video memory: 3709 MB\nOpenGL vendor string: NVIDIA Corporation\nOpenGL renderer string: Quadro T1000 with Max-Q Design/PCIe/SSE2\nOpenGL core profile version string: 4.6.0 NVIDIA 610.43.03\nOpenGL core profile shading language version string: 4.60 NVIDIA\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.6.0 NVIDIA 610.43.03\nOpenGL shading language version string: 4.60 NVIDIA\nOpenGL context flags: (none)\nOpenGL profile mask: (none)\n\nOpenGL ES profile version string: OpenGL ES 3.2 NVIDIA 610.43.03\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+      "runs": [
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 4.23252,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 4.17843,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "native_5ms_sample": {
+      "git_head": "756061e7f51cba14cdbf4a60464f15b0bb496834",
+      "dirty_worktree": false,
+      "binary_sha256": "76649cdfc47a67106aa02619003e0e7e7d279e9e2b9f612bc0753c6c3932a854",
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "backends": [
+        "dynarmic",
+        "dynarmic"
+      ],
+      "detail": false,
+      "sample": true,
+      "method": "Serial configured backends; virtual clock, 78-96 guest seconds, rendering on, no capture/audio retention, no host pacing. JIT exits need not match exact interpreter budgets.",
+      "glxinfo": "name of display: :1\ndisplay: :1  screen: 0\ndirect rendering: Yes\nMemory info (GL_NVX_gpu_memory_info):\n    Dedicated video memory: 4096 MB\n    Total available memory: 4096 MB\n    Currently available dedicated video memory: 3709 MB\nOpenGL vendor string: NVIDIA Corporation\nOpenGL renderer string: Quadro T1000 with Max-Q Design/PCIe/SSE2\nOpenGL core profile version string: 4.6.0 NVIDIA 610.43.03\nOpenGL core profile shading language version string: 4.60 NVIDIA\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.6.0 NVIDIA 610.43.03\nOpenGL shading language version string: 4.60 NVIDIA\nOpenGL context flags: (none)\nOpenGL profile mask: (none)\n\nOpenGL ES profile version string: OpenGL ES 3.2 NVIDIA 610.43.03\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+      "runs": [
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 4.25221,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 5.51186,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "native_5ms_after": {
+      "git_head": "756061e7f51cba14cdbf4a60464f15b0bb496834",
+      "dirty_worktree": false,
+      "binary_sha256": "76649cdfc47a67106aa02619003e0e7e7d279e9e2b9f612bc0753c6c3932a854",
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "backends": [
+        "dynarmic",
+        "dynarmic"
+      ],
+      "detail": false,
+      "sample": false,
+      "method": "Serial configured backends; virtual clock, 78-96 guest seconds, rendering on, no capture/audio retention, no host pacing. JIT exits need not match exact interpreter budgets.",
+      "glxinfo": "name of display: :1\ndisplay: :1  screen: 0\ndirect rendering: Yes\nMemory info (GL_NVX_gpu_memory_info):\n    Dedicated video memory: 4096 MB\n    Total available memory: 4096 MB\n    Currently available dedicated video memory: 3709 MB\nOpenGL vendor string: NVIDIA Corporation\nOpenGL renderer string: Quadro T1000 with Max-Q Design/PCIe/SSE2\nOpenGL core profile version string: 4.6.0 NVIDIA 610.43.03\nOpenGL core profile shading language version string: 4.60 NVIDIA\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.6.0 NVIDIA 610.43.03\nOpenGL shading language version string: 4.60 NVIDIA\nOpenGL context flags: (none)\nOpenGL profile mask: (none)\n\nOpenGL ES profile version string: OpenGL ES 3.2 NVIDIA 610.43.03\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+      "runs": [
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 5.34578,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "backend": "dynarmic",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 78000000,
+            "last_virtual_us": 96000008,
+            "first_instructions": 11246825821,
+            "last_instructions": 15228436955,
+            "wall_seconds": 5.51927,
+            "presentations": 676,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "wasm_sample": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 20.4461,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 76.624399567,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": true,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "f1d6a1757af08c4589db04a2e0e05ef86cb796de0160c7f27d37007fd69e96f3",
+      "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "wasm_detail": {
+      "measurement": {
+        "detailed": true,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 24.4541,
+        "presentations": 676,
+        "aot_dispatches": 179039935,
+        "aot_instructions": 3974112278,
+        "compiled_runner_calls": 1013214,
+        "ram_aot_dispatches": 154207391,
+        "ram_blocks_compiled": 348,
+        "decoded_instructions": 6094,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 830301,
+        "code_version_hits": 154174588,
+        "code_byte_checks": 63690,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 23.9225,
+            "calls": 832274
+          },
+          "cpu_run": {
+            "seconds": 20.4165,
+            "calls": 830302
+          },
+          "timers": {
+            "seconds": 0.608127,
+            "calls": 832274
+          },
+          "scheduler": {
+            "seconds": 0.681748,
+            "calls": 832274
+          },
+          "graphics_dispatch": {
+            "seconds": 1.02982,
+            "calls": 1352
+          },
+          "graphics_wait": {
+            "seconds": 1.02886,
+            "calls": 1352
+          },
+          "display_hook": {
+            "seconds": 0.00143718,
+            "calls": 676
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0.0184266,
+            "calls": 1800
+          }
+        }
+      },
+      "warmup_seconds": 75.101174398,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "f1d6a1757af08c4589db04a2e0e05ef86cb796de0160c7f27d37007fd69e96f3",
+      "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "wasm_baseline-sample": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 24.708,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 75.859376569,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": true,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "validity-cost-default.json": {
+      "method": "Disjoint self samples. WASM time deltas include attach/stop boundaries; native seconds distribute observed sampling-run wall time by sample count. These are diagnostic times, not predicted savings. Guest-page grouping assigns WASM inlined callees to the region entry; native blocks have finer boundaries. Do not equate individual entries as identical workloads.",
+      "wasm": {
+        "directory": "/home/claude/.scratch/eka-benchmark/validity-wasm-baseline-sample",
+        "isolate": "worker-14.cpuprofile",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 24.708,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "groups_seconds": {
+          "waiting or profiler boundary": 1.0503519999999964,
+          "other runtime self": 1.1172799999999974,
+          "outer CPU loop self (includes compiled dispatch)": 2.9155690000000227,
+          "generated guest code self": 14.391427999998776,
+          "compiled lookup and validity self": 5.49611000000007
+        },
+        "generated_inclusive": {
+          "seconds": 14.503294,
+          "percent_all_samples": 58.081156508824186,
+          "modules": 310
+        },
+        "entry_pages": [
+          {
+            "guest_page": "0x70013000",
+            "seconds": 2.8073790000000054
+          },
+          {
+            "guest_page": "0x70014000",
+            "seconds": 1.880244999999994
+          },
+          {
+            "guest_page": "0x70063000",
+            "seconds": 1.7489859999999937
+          },
+          {
+            "guest_page": "0x70065000",
+            "seconds": 1.2158180000000005
+          },
+          {
+            "guest_page": "0x70004000",
+            "seconds": 0.9081730000000005
+          },
+          {
+            "guest_page": "0x80191000",
+            "seconds": 0.8824969999999964
+          },
+          {
+            "guest_page": "0x70064000",
+            "seconds": 0.5506370000000002
+          },
+          {
+            "guest_page": "0x7001e000",
+            "seconds": 0.42794900000000036
+          },
+          {
+            "guest_page": "0x70030000",
+            "seconds": 0.38055500000000003
+          },
+          {
+            "guest_page": "0x70000000",
+            "seconds": 0.3400120000000002
+          },
+          {
+            "guest_page": "0x70006000",
+            "seconds": 0.33409100000000014
+          },
+          {
+            "guest_page": "0x7002c000",
+            "seconds": 0.32668700000000006
+          },
+          {
+            "guest_page": "0x70062000",
+            "seconds": 0.30012000000000005
+          },
+          {
+            "guest_page": "0x70003000",
+            "seconds": 0.2685620000000002
+          },
+          {
+            "guest_page": "0x7000b000",
+            "seconds": 0.23129700000000009
+          },
+          {
+            "guest_page": "0x70005000",
+            "seconds": 0.18259100000000003
+          },
+          {
+            "guest_page": "0x801a0000",
+            "seconds": 0.1701760000000001
+          },
+          {
+            "guest_page": "0x7000c000",
+            "seconds": 0.141369
+          },
+          {
+            "guest_page": "0x80464000",
+            "seconds": 0.12365700000000002
+          },
+          {
+            "guest_page": "0x7001d000",
+            "seconds": 0.10885600000000002
+          }
+        ]
+      },
+      "native": {
+        "source": "/home/claude/.scratch/eka-benchmark/validity-native-lowrate-sample/0-dynarmic/native-pcs.summary.json",
+        "metadata": {
+          "period_us": 5000,
+          "samples": 850,
+          "capacity": 131072,
+          "wall_seconds": 4.25221,
+          "thread_cpu_seconds": 4.07586
+        },
+        "coverage": 0.9994802702594651,
+        "groups_seconds": {
+          "unresolved generated code or dispatch": 0.19009879999999998,
+          "synchronization self (may spin)": 0.1550806,
+          "generated guest blocks self": 3.4167758000000186,
+          "other runtime self": 0.4902548000000004
+        },
+        "entry_pages": [
+          {
+            "guest_page": "0x80191000",
+            "seconds": 0.6453354
+          },
+          {
+            "guest_page": "0x70065000",
+            "seconds": 0.49525739999999996
+          },
+          {
+            "guest_page": "0x70064000",
+            "seconds": 0.3601872
+          },
+          {
+            "guest_page": "0x70013000",
+            "seconds": 0.2901508
+          },
+          {
+            "guest_page": "0x70063000",
+            "seconds": 0.28514819999999996
+          },
+          {
+            "guest_page": "0x70004000",
+            "seconds": 0.23512219999999998
+          },
+          {
+            "guest_page": "0x70014000",
+            "seconds": 0.19009879999999998
+          },
+          {
+            "guest_page": "0x7000b000",
+            "seconds": 0.12006239999999999
+          },
+          {
+            "guest_page": "0x80195000",
+            "seconds": 0.075039
+          },
+          {
+            "guest_page": "0x70030000",
+            "seconds": 0.06503379999999999
+          },
+          {
+            "guest_page": "0x7001d000",
+            "seconds": 0.06003119999999999
+          },
+          {
+            "guest_page": "0x70006000",
+            "seconds": 0.06003119999999999
+          },
+          {
+            "guest_page": "0x7002c000",
+            "seconds": 0.0550286
+          },
+          {
+            "guest_page": "0x7001e000",
+            "seconds": 0.0550286
+          },
+          {
+            "guest_page": "0x70003000",
+            "seconds": 0.04502339999999999
+          },
+          {
+            "guest_page": "0x70062000",
+            "seconds": 0.04502339999999999
+          },
+          {
+            "guest_page": "0x70000000",
+            "seconds": 0.04502339999999999
+          },
+          {
+            "guest_page": "0x801a0000",
+            "seconds": 0.04502339999999999
+          },
+          {
+            "guest_page": "0x70005000",
+            "seconds": 0.0350182
+          },
+          {
+            "guest_page": "0x7000c000",
+            "seconds": 0.0350182
+          }
+        ]
+      }
+    },
+    "validity-cost-tracked.json": {
+      "method": "Disjoint self samples. WASM time deltas include attach/stop boundaries; native seconds distribute observed sampling-run wall time by sample count. These are diagnostic times, not predicted savings. Guest-page grouping assigns WASM inlined callees to the region entry; native blocks have finer boundaries. Do not equate individual entries as identical workloads.",
+      "wasm": {
+        "directory": "/home/claude/.scratch/eka-benchmark/validity-wasm-sample",
+        "isolate": "worker-13.cpuprofile",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 20.4461,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "groups_seconds": {
+          "waiting or profiler boundary": 0.920074999999997,
+          "outer CPU loop self (includes compiled dispatch)": 2.3717350000000135,
+          "generated guest code self": 12.388372999999131,
+          "other runtime self": 1.1522589999999961,
+          "compiled lookup and validity self": 3.8743220000000558
+        },
+        "generated_inclusive": {
+          "seconds": 12.663713,
+          "percent_all_samples": 61.157373503653204,
+          "modules": 302
+        },
+        "entry_pages": [
+          {
+            "guest_page": "0x70013000",
+            "seconds": 2.3412250000000023
+          },
+          {
+            "guest_page": "0x70014000",
+            "seconds": 1.5180389999999966
+          },
+          {
+            "guest_page": "0x70063000",
+            "seconds": 1.4746449999999962
+          },
+          {
+            "guest_page": "0x70065000",
+            "seconds": 1.0071160000000003
+          },
+          {
+            "guest_page": "0x70004000",
+            "seconds": 0.7471520000000003
+          },
+          {
+            "guest_page": "0x80191000",
+            "seconds": 0.7343659999999974
+          },
+          {
+            "guest_page": "0x70064000",
+            "seconds": 0.5458120000000002
+          },
+          {
+            "guest_page": "0x70030000",
+            "seconds": 0.37185
+          },
+          {
+            "guest_page": "0x70000000",
+            "seconds": 0.33661400000000014
+          },
+          {
+            "guest_page": "0x7001e000",
+            "seconds": 0.3240060000000002
+          },
+          {
+            "guest_page": "0x70006000",
+            "seconds": 0.31981300000000007
+          },
+          {
+            "guest_page": "0x7002c000",
+            "seconds": 0.3156360000000001
+          },
+          {
+            "guest_page": "0x70062000",
+            "seconds": 0.30357200000000006
+          },
+          {
+            "guest_page": "0x70003000",
+            "seconds": 0.27841800000000017
+          },
+          {
+            "guest_page": "0x70005000",
+            "seconds": 0.220645
+          },
+          {
+            "guest_page": "0x7000b000",
+            "seconds": 0.21725100000000006
+          },
+          {
+            "guest_page": "0x801a0000",
+            "seconds": 0.16443300000000005
+          },
+          {
+            "guest_page": "0x7000c000",
+            "seconds": 0.144579
+          },
+          {
+            "guest_page": "0x80464000",
+            "seconds": 0.13200700000000004
+          },
+          {
+            "guest_page": "0x70016000",
+            "seconds": 0.08765700000000003
+          }
+        ]
+      },
+      "native": {
+        "source": "/home/claude/.scratch/eka-benchmark/validity-native-lowrate-sample/0-dynarmic/native-pcs.summary.json",
+        "metadata": {
+          "period_us": 5000,
+          "samples": 850,
+          "capacity": 131072,
+          "wall_seconds": 4.25221,
+          "thread_cpu_seconds": 4.07586
+        },
+        "coverage": 0.9994802702594651,
+        "groups_seconds": {
+          "unresolved generated code or dispatch": 0.19009879999999998,
+          "synchronization self (may spin)": 0.1550806,
+          "generated guest blocks self": 3.4167758000000186,
+          "other runtime self": 0.4902548000000004
+        },
+        "entry_pages": [
+          {
+            "guest_page": "0x80191000",
+            "seconds": 0.6453354
+          },
+          {
+            "guest_page": "0x70065000",
+            "seconds": 0.49525739999999996
+          },
+          {
+            "guest_page": "0x70064000",
+            "seconds": 0.3601872
+          },
+          {
+            "guest_page": "0x70013000",
+            "seconds": 0.2901508
+          },
+          {
+            "guest_page": "0x70063000",
+            "seconds": 0.28514819999999996
+          },
+          {
+            "guest_page": "0x70004000",
+            "seconds": 0.23512219999999998
+          },
+          {
+            "guest_page": "0x70014000",
+            "seconds": 0.19009879999999998
+          },
+          {
+            "guest_page": "0x7000b000",
+            "seconds": 0.12006239999999999
+          },
+          {
+            "guest_page": "0x80195000",
+            "seconds": 0.075039
+          },
+          {
+            "guest_page": "0x70030000",
+            "seconds": 0.06503379999999999
+          },
+          {
+            "guest_page": "0x7001d000",
+            "seconds": 0.06003119999999999
+          },
+          {
+            "guest_page": "0x70006000",
+            "seconds": 0.06003119999999999
+          },
+          {
+            "guest_page": "0x7002c000",
+            "seconds": 0.0550286
+          },
+          {
+            "guest_page": "0x7001e000",
+            "seconds": 0.0550286
+          },
+          {
+            "guest_page": "0x70003000",
+            "seconds": 0.04502339999999999
+          },
+          {
+            "guest_page": "0x70062000",
+            "seconds": 0.04502339999999999
+          },
+          {
+            "guest_page": "0x70000000",
+            "seconds": 0.04502339999999999
+          },
+          {
+            "guest_page": "0x801a0000",
+            "seconds": 0.04502339999999999
+          },
+          {
+            "guest_page": "0x70005000",
+            "seconds": 0.0350182
+          },
+          {
+            "guest_page": "0x7000c000",
+            "seconds": 0.0350182
+          }
+        ]
+      }
+    },
+    "validity-cost-default-repeat.json": {
+      "method": "Disjoint self samples. WASM time deltas include attach/stop boundaries; native seconds distribute observed sampling-run wall time by sample count. These are diagnostic times, not predicted savings. Guest-page grouping assigns WASM inlined callees to the region entry; native blocks have finer boundaries. Do not equate individual entries as identical workloads.",
+      "wasm": {
+        "directory": "/home/claude/.scratch/eka-benchmark/validity-wasm-baseline-sample",
+        "isolate": "worker-14.cpuprofile",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 24.708,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "groups_seconds": {
+          "waiting or profiler boundary": 1.0503519999999964,
+          "other runtime self": 1.1172799999999974,
+          "outer CPU loop self (includes compiled dispatch)": 2.9155690000000227,
+          "generated guest code self": 14.391427999998776,
+          "compiled lookup and validity self": 5.49611000000007
+        },
+        "generated_inclusive": {
+          "seconds": 14.503294,
+          "percent_all_samples": 58.081156508824186,
+          "modules": 310
+        },
+        "entry_pages": [
+          {
+            "guest_page": "0x70013000",
+            "seconds": 2.8073790000000054
+          },
+          {
+            "guest_page": "0x70014000",
+            "seconds": 1.880244999999994
+          },
+          {
+            "guest_page": "0x70063000",
+            "seconds": 1.7489859999999937
+          },
+          {
+            "guest_page": "0x70065000",
+            "seconds": 1.2158180000000005
+          },
+          {
+            "guest_page": "0x70004000",
+            "seconds": 0.9081730000000005
+          },
+          {
+            "guest_page": "0x80191000",
+            "seconds": 0.8824969999999964
+          },
+          {
+            "guest_page": "0x70064000",
+            "seconds": 0.5506370000000002
+          },
+          {
+            "guest_page": "0x7001e000",
+            "seconds": 0.42794900000000036
+          },
+          {
+            "guest_page": "0x70030000",
+            "seconds": 0.38055500000000003
+          },
+          {
+            "guest_page": "0x70000000",
+            "seconds": 0.3400120000000002
+          },
+          {
+            "guest_page": "0x70006000",
+            "seconds": 0.33409100000000014
+          },
+          {
+            "guest_page": "0x7002c000",
+            "seconds": 0.32668700000000006
+          },
+          {
+            "guest_page": "0x70062000",
+            "seconds": 0.30012000000000005
+          },
+          {
+            "guest_page": "0x70003000",
+            "seconds": 0.2685620000000002
+          },
+          {
+            "guest_page": "0x7000b000",
+            "seconds": 0.23129700000000009
+          },
+          {
+            "guest_page": "0x70005000",
+            "seconds": 0.18259100000000003
+          },
+          {
+            "guest_page": "0x801a0000",
+            "seconds": 0.1701760000000001
+          },
+          {
+            "guest_page": "0x7000c000",
+            "seconds": 0.141369
+          },
+          {
+            "guest_page": "0x80464000",
+            "seconds": 0.12365700000000002
+          },
+          {
+            "guest_page": "0x7001d000",
+            "seconds": 0.10885600000000002
+          }
+        ]
+      },
+      "native": {
+        "source": "/home/claude/.scratch/eka-benchmark/validity-native-lowrate-sample/1-dynarmic/native-pcs.summary.json",
+        "metadata": {
+          "period_us": 5000,
+          "samples": 1102,
+          "capacity": 131072,
+          "wall_seconds": 5.51186,
+          "thread_cpu_seconds": 5.30156
+        },
+        "coverage": 0.9996625458556638,
+        "groups_seconds": {
+          "synchronization self (may spin)": 0.26008776769509984,
+          "unresolved generated code or dispatch": 0.22507595281306716,
+          "generated guest blocks self": 4.421492050816721,
+          "other runtime self": 0.6052042286751368
+        },
+        "entry_pages": [
+          {
+            "guest_page": "0x80191000",
+            "seconds": 0.800270054446461
+          },
+          {
+            "guest_page": "0x70065000",
+            "seconds": 0.65522110707804
+          },
+          {
+            "guest_page": "0x70064000",
+            "seconds": 0.48016203266787666
+          },
+          {
+            "guest_page": "0x70013000",
+            "seconds": 0.3601215245009075
+          },
+          {
+            "guest_page": "0x70063000",
+            "seconds": 0.33511308529945555
+          },
+          {
+            "guest_page": "0x70004000",
+            "seconds": 0.3051029582577133
+          },
+          {
+            "guest_page": "0x70014000",
+            "seconds": 0.23507932849364793
+          },
+          {
+            "guest_page": "0x70062000",
+            "seconds": 0.11503882032667878
+          },
+          {
+            "guest_page": "0x70005000",
+            "seconds": 0.11503882032667878
+          },
+          {
+            "guest_page": "0x801a0000",
+            "seconds": 0.10503544464609801
+          },
+          {
+            "guest_page": "0x70006000",
+            "seconds": 0.0850286932849365
+          },
+          {
+            "guest_page": "0x7000b000",
+            "seconds": 0.0850286932849365
+          },
+          {
+            "guest_page": "0x7001d000",
+            "seconds": 0.08502869328493648
+          },
+          {
+            "guest_page": "0x70030000",
+            "seconds": 0.07502531760435573
+          },
+          {
+            "guest_page": "0x80195000",
+            "seconds": 0.07502531760435573
+          },
+          {
+            "guest_page": "0x7001e000",
+            "seconds": 0.07502531760435573
+          },
+          {
+            "guest_page": "0x70003000",
+            "seconds": 0.07002362976406534
+          },
+          {
+            "guest_page": "0x70000000",
+            "seconds": 0.06002025408348458
+          },
+          {
+            "guest_page": "0x7002c000",
+            "seconds": 0.06002025408348458
+          },
+          {
+            "guest_page": "0x7000c000",
+            "seconds": 0.0550185662431942
+          }
+        ]
+      }
+    }
+  },
+  "correctness": {
+    "full-checked": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+        "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+        "writes": 2029,
+        "callbacks": 2029,
+        "gameplay_nonzero_samples": 6907266,
+        "gameplay_peak": 8191
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16261337499
+    },
+    "full-checked_run": {
+      "frames": 1600,
+      "start_us": 21000000,
+      "unique": true,
+      "wall_seconds": 162.350170647,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "f1d6a1757af08c4589db04a2e0e05ef86cb796de0160c7f27d37007fd69e96f3",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 1024,
+      "git_head": "1049eb5d034f3a9213172f01833a322e5e5debaa",
+      "dirty_worktree": true
+    },
+    "full-repeat": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+        "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+        "writes": 2029,
+        "callbacks": 2029,
+        "gameplay_nonzero_samples": 6907266,
+        "gameplay_peak": 8191
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16261337499
+    },
+    "full-repeat_run": {
+      "frames": 1600,
+      "start_us": 21000000,
+      "unique": true,
+      "wall_seconds": 146.314389753,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "f1d6a1757af08c4589db04a2e0e05ef86cb796de0160c7f27d37007fd69e96f3",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true
+    },
+    "default-full": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+        "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+        "writes": 2029,
+        "callbacks": 2029,
+        "gameplay_nonzero_samples": 6907266,
+        "gameplay_peak": 8191
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16261337499
+    },
+    "default-full_run": {
+      "frames": 1600,
+      "start_us": 21000000,
+      "unique": true,
+      "wall_seconds": 126.99763307100002,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "950d7a5395795f24ab87472a88ff31a145774ee598a1c8d2f6ecc7622bee77a9",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "ef72fcc2826ebe0d093c76b97e3ac854332dbc5c",
+      "dirty_worktree": true
+    }
+  },
+  "artifacts": [
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-timings2/0-before/report.json",
+      "sha256": "81b9fcdc2d10fb5a3f2703dce970bd3e00509f397aa686936634490d76931516"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-timings2/1-versions/report.json",
+      "sha256": "75e32651d9091d000ca9becf2b8f58dd599ba45650c443610ed7e7cc04c6ec92"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-timings2/2-versions/report.json",
+      "sha256": "55c985d260ec4f046c9bdf2c9c50b28cdeb5682e83eb8225d10160a8fb428ce1"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-timings2/3-before/report.json",
+      "sha256": "a3ca848c7c9c1c96050798472a6fe34d83148e38552f6444e06ce08bda48fcc8"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-native-plain/report.json",
+      "sha256": "524000b1651554e7cc6c4594e226993d0561034a89ed59423209ca59f5355124"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-native-detail/report.json",
+      "sha256": "32afd06b8bd85b927c3700ad9d19a220eabf3b55268df969541f3416d89c845b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-native-sample/report.json",
+      "sha256": "251d816eb6671a2a8f0bda206153ef20200dba2031dd1f33f25c49c693bb09a4"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-native-lowrate-before/report.json",
+      "sha256": "5685fa47649129cce0c33a86bfd74df0eb4f085402a51429475f2660b622a1e5"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-native-lowrate-sample/report.json",
+      "sha256": "fe84f6fbf7f58ddf2697a2693d88a1881d4ab0be63f8d227ebd200e4194942c2"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-native-lowrate-after/report.json",
+      "sha256": "6dc9aa4cb5a17e7b052d353975965e22e7e8354754b41708e3c917899a467194"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-wasm-sample/report.json",
+      "sha256": "a114be3e0bae19c4733006a4f19c7397a7b22c2ff893275b3f5f34c94bc0e534"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-wasm-detail/report.json",
+      "sha256": "03dd667907cb4e749ee41d7490686e05a80df69cbe044beaf190dbd8703afa2f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-wasm-baseline-sample/report.json",
+      "sha256": "bdd78e99d31e54f1c1b41db7aeeba0360fda422ad1e380d0ca1780fec8f99fd7"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-cost-default.json",
+      "sha256": "933a55f9d30b87ef1b868dd15154d4da768ffce032f735bd35784bc637de66c2"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-cost-tracked.json",
+      "sha256": "1267aa0be4ba6ca060449c76249b1f1bb97c6a8782eb959f798a1dcaeaf34478"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-cost-default-repeat.json",
+      "sha256": "1be60afc84bb6bc1cac972e7fb36dc682cc7ebe23e07409c46343a77845bb24b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-full-checked-comparison.json",
+      "sha256": "8d92457779aca5c0f1b6aed46d90a2257ac16faf39f04678712c2a00dd658dec"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-full-checked/report.json",
+      "sha256": "3103af2c686b8613c156f21825eada19057787eb7d9407bf5499513f62316a85"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-full-repeat-comparison.json",
+      "sha256": "8d92457779aca5c0f1b6aed46d90a2257ac16faf39f04678712c2a00dd658dec"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-full-repeat/report.json",
+      "sha256": "b6f2ea4ac0dcc47ff50ef918f7e11ade3813c5abd05f4d6b80e7e07badd7417d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-default-full-comparison.json",
+      "sha256": "8d92457779aca5c0f1b6aed46d90a2257ac16faf39f04678712c2a00dd658dec"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-default-full/report.json",
+      "sha256": "5da25ef6918fa697559d77ce3130a6bcb958c9f6aca708f4c8c910b9091268ad"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-optin-tests.log",
+      "sha256": "09b5b04aa1ea1abe7e707a31cf1365eae036119ae85d73521def13e889892c46"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-default-tests.log",
+      "sha256": "834c620ebe6f8ee8ca81641b08ae725bc2691c4e3f63d4e83c3b98d04e55190b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-sampler2-native-tests.log",
+      "sha256": "87f1d47771fd506d73885ba073133a4f923eb2d8c573508881fd4dc4960cfd69"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/validity-default-frontend-tests.log",
+      "sha256": "302eaa73a71cfdeebc30c89eb1c25b0033a38f8da271df67770b64b0342477c7"
+    }
+  ],
+  "binary_hashes": {
+    "/home/claude/.scratch/eka-benchmark/validity-baseline-build/eka2l1.wasm": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+    "/home/claude/.scratch/eka-benchmark/validity-candidate-build/eka2l1.wasm": "f1d6a1757af08c4589db04a2e0e05ef86cb796de0160c7f27d37007fd69e96f3",
+    "/home/claude/code/EKA2L1/build-wasm/src/emu/wasm/eka2l1.wasm": "950d7a5395795f24ab87472a88ff31a145774ee598a1c8d2f6ecc7622bee77a9",
+    "/home/claude/code/EKA2L1/build/bin/eka2l1_qt": "76649cdfc47a67106aa02619003e0e7e7d279e9e2b9f612bc0753c6c3932a854"
+  },
+  "limitations": [
+    "Two unprofiled trials per browser variant; substantial shared-host variation, no reliable safe speedup.",
+    "1ms native sample run 1 was severely perturbed (15.62s) and is not representative of unprofiled execution; all data retained.",
+    "Self-sample categories are disjoint; common phase timings and generated inclusive samples overlap and cannot be summed.",
+    "WASM region entry aggregates inlined callees, unlike fine-grained native JIT blocks.",
+    "Native PC signal sampling and CDP browser sampling have different overhead/bias; exact cross-backend per-function ratios are not established.",
+    "Browser changed from 150 to 153 during system updates. Fresh controls all use 153; older batches are not causal controls.",
+    "No second game, mobile hardware, or audio-quality validation."
+  ]
+}
