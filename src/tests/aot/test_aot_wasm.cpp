@@ -2443,6 +2443,46 @@ static bool test_repeated_read_guards() {
     printf("  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n");return true;
 }
 
+// Cached displacements must work for high virtual addresses, page changes,
+// separate read/write caches and two virtual pages sharing one backing page.
+static bool test_memory_displacements() {
+#ifdef __EMSCRIPTEN__
+    const unsigned words[]={0xe5910000u,0xe5912004u,0xe5830008u,0xe583200cu,
+        0xe5934008u,0xe593500cu,0xe5814010u,0xe5916010u};
+    auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+    auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    unsigned checks=0;
+    for(unsigned page:{0x1000u,0x70000000u,0x80000000u,0xfffff000u})
+    for(bool alias:{false,true})for(unsigned budget=0;budget<=8;++budget) {
+        test_mem memory;const unsigned other=page^0x1000u;
+        // The lowest test page uses 0x3000 for its second page (zero is denied).
+        const unsigned next=other?other:0x3000u;
+        auto *first=memory.data.data()+0x8000;
+        auto *second=memory.data.data()+(alias?0x8000:0x9000);
+        std::uint32_t a=0x87654321u,b=0xabcdef01u;
+        std::memcpy(first+0xfe0,&a,4);std::memcpy(first+0xfe4,&b,4);
+        r12l1::tlb tlb(12);tlb.add(page,first,3);tlb.add(next,second,3);
+        alignas(8) unsigned state[256]{};state[1]=page+0xfe0;state[3]=next+0xfe0;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=16;state[state_offsets::AOT_BUDGET/4]=budget;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        auto expected=memory.data;unsigned regs[16]{};regs[1]=state[1];regs[3]=state[3];regs[15]=0x1000+4*budget;
+        for(unsigned i=0;i<budget;++i) {
+            const unsigned op=words[i],r=(op>>12)&15,base=((op>>16)&15)==1?0x8000:(alias?0x8000:0x9000),offset=base+0xfe0+(op&4095);
+            if(op&(1u<<20))std::memcpy(&regs[r],expected.data()+offset,4);
+            else std::memcpy(expected.data()+offset,&regs[r],4);
+        }
+        g_test_mem=&memory;g_count_memory_helpers=true;g_memory_helper_calls=0;
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        g_test_mem=nullptr;g_count_memory_helpers=false;
+        if(count!=budget||g_memory_helper_calls||memory.data!=expected||std::memcmp(state,regs,sizeof(regs))) {
+            printf("  FAIL memory_displacements page=%x alias=%d budget=%u count=%d\n",page,alias,budget,count);return false;
+        }++checks;
+    }
+    printf("  PASS memory_displacements (%u exact state/memory/budget checks)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_block_transfer_callback_pc() {
 #ifdef __EMSCRIPTEN__
     const std::uint32_t words[] = {0xe3a02007,0xe8918009}; // MOV; LDM r1,{r0,r3,pc}
@@ -3376,6 +3416,7 @@ int main() {
     if (test_region_cpsr_callback()) passed++; else failed++;
     if (test_block_transfer_callback_pc()) passed++; else failed++;
     if (test_repeated_read_guards()) passed++; else failed++;
+    if (test_memory_displacements()) passed++; else failed++;
     if (test_deferred_memory_exits()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;

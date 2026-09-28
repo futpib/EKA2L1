@@ -195,19 +195,20 @@ void invalidate_ram_code(std::uint32_t address, std::size_t size) {
     ram_cache.invalidate(address, size);
 }
 
-aot_func lookup_compiled(ARMul_State *cpu) {
+template<bool Profile>
+static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     if (validation_running) return nullptr;
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
     if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
         cpu->aot_code_begin = cpu->aot_code_end = 0; // ROM is immutable.
         auto function = global_registry().lookup(pc_mode);
-        if ((common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
+        if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
         return function;
     }
     // The normal path avoids the resolver callback on a generation/space hit,
     // while comparing the exact compiled bytes on every entry.
-    if (!(common::guest_profile::enabled && common::performance::counting())) {
+    if (!Profile || !(common::guest_profile::enabled && common::performance::counting())) {
         auto *entry = ram_cache.find(pc_mode, *cpu->parent());
         if (!entry) return nullptr;
         cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
@@ -218,7 +219,7 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     if (!cpu->parent()->resolve_code) return nullptr;
     const bool mapped = cpu->parent()->resolve_code(pc, view);
     auto *entry = ram_cache.find(pc_mode, *cpu->parent());
-    if ((common::guest_profile::enabled && common::performance::counting()) && (!mapped || !entry || !entry->function)) {
+    if (Profile && (common::guest_profile::enabled && common::performance::counting()) && (!mapped || !entry || !entry->function)) {
         std::uint32_t opcode = 0;
         if (mapped && view.bytes && view.size >= (cpu->TFlag ? 2u : 4u)) std::memcpy(&opcode,view.bytes,cpu->TFlag ? 2 : 4);
         common::guest_profile::state.event(!mapped ? "ram_unmapped" : !entry ? "ram_missing" : entry->rejected ? "ram_rejected" : "ram_pending",pc_mode,view.address_space,opcode);
@@ -229,20 +230,30 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     return entry->function;
 }
 
-template<bool Verify>
+aot_func lookup_compiled(ARMul_State *cpu) {
+    return common::guest_profile::enabled && common::performance::enabled && common::performance::detailed
+        ? lookup_compiled_impl<true>(cpu) : lookup_compiled_impl<false>(cpu);
+}
+
+template<bool Verify, bool Profile>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     const auto budget = cpu->aot_budget;
     compiled_run result;
+    // The owning core and its embedded TLB storage outlive this chain. Entries
+    // still change on remaps; only the address of their fixed array is reused.
+    auto *tlb = static_cast<dyncom_core *>(cpu->parent())->mem_cache();
+    const auto tlb_address = tlb->page_bits == 12
+        ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
+
     while (function && result.instructions < budget && result.blocks < 512) {
         cpu->aot_budget = budget - result.instructions;
-        count_ram_dispatch(cpu);
+        if constexpr (Profile) count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);
-        auto *tlb = static_cast<dyncom_core *>(cpu->parent())->mem_cache();
-        cpu->aot_tlb = !validating && tlb->page_bits == 12 ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
+        cpu->aot_tlb = Verify && validating ? 0 : tlb_address;
         cpu->aot_exit = 0;
         const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
         const auto count = function(cpu);
-        if (common::guest_profile::enabled && common::performance::counting()) {
+        if (Profile && common::guest_profile::enabled && common::performance::counting()) {
             auto &profile = common::guest_profile::state;
             ++profile.block_lengths[count];
             if (++profile.compiled_blocks % profile.stride == 0) {
@@ -257,21 +268,26 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         }
         if constexpr (Verify) validation_end(cpu, count);
         if (count > cpu->aot_budget) std::abort(); // generated-code contract
-        if ((common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
+        if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
         ++result.blocks;
         result.instructions += count;
         if (!count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
         cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
         // This stays inside the compiled runner. Every RAM successor is validated;
         // no stale function pointer is linked across a mapping/code change.
-        function = lookup_compiled(cpu);
+        function = lookup_compiled_impl<Profile>(cpu);
     }
     return result;
 }
 
 compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
-    return verification_stride() ? execute_chain_impl<true>(cpu, function)
-                                 : execute_chain_impl<false>(cpu, function);
+    // Diagnostic configuration is fixed before guest threads start. Preserve
+    // phase-dependent counting in the diagnostic runner, but omit its branches
+    // entirely in normal play and counter-free timing runs.
+    if (verification_stride()) return execute_chain_impl<true, true>(cpu, function);
+    if (common::performance::enabled && common::performance::detailed)
+        return execute_chain_impl<false, true>(cpu, function);
+    return execute_chain_impl<false, false>(cpu, function);
 }
 
 std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
