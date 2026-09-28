@@ -17,6 +17,7 @@ if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_
 const guestProfile = Number(process.env.EKA2L1_GUEST_PROFILE || "0");
 if (!Number.isSafeInteger(guestProfile) || guestProfile < 0 || guestProfile > 2147483647)
   throw new Error('EKA2L1_GUEST_PROFILE must be a nonnegative sample stride');
+const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
 const monitor = process.env.EKA2L1_LONG_MONITOR === "1";
 const monitorCpuStart = Number(process.env.EKA2L1_MONITOR_CPU_START_US || '0');
 if (!Number.isSafeInteger(monitorCpuStart) || monitorCpuStart < 0 || monitorCpuStart >= endUs || (monitorCpuStart && (!monitor || sampling)))
@@ -85,7 +86,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile, monitor}) => {
+  await page.evaluate(async ({count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -95,6 +96,7 @@ try {
     if (!detailedProfile) call('eka2l1_profile_detail_configure', ['number'], [0]);
     call('eka2l1_profile_configure', ['number', 'number', 'number'], [startUs, endUs, captureMode]);
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
+    if (sharedAudio) call('eka2l1_audio_configure', [], []);
     call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot, aotDiagnostics ? 1 : 0]);
     call('eka2l1_guest_profile_configure', ['number'], [guestProfile]);
     if (typeof g.Module._eka2l1_graphics_diagnostics_configure === 'function')
@@ -121,7 +123,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile, monitor});
+  }, {count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, glDiagnostics, detailedProfile, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -225,7 +227,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({measurement: measured, warmup_seconds: warmupSeconds,
-    guest_profile_stride: guestProfile, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
+    shared_audio: sharedAudio, guest_profile_stride: guestProfile, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     aot, aot_diagnostics: aotDiagnostics, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     user_agent: await page.evaluate(() => navigator.userAgent),

@@ -1,0 +1,264 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2669aa17b..4f8879103 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -16,6 +16,7 @@ endif()
+ 
+ set(EKA2L1_IOS_DEPLOYMENT_TARGET "16.0" CACHE STRING "Minimum iOS version to target")
+ 
++option(EKA2L1_WASM_LAZY_FLAGS "Experimental lazy ARM carry/overflow recipes" OFF)
+ option(EKA2L1_WASM_DEFER_MEMORY "Restart eligible AOT memory misses in DynCom with precise state" ON)
+ option(EKA2L1_WASM_CODE_VERSIONS "Experimental WASM code-page versions and guest write barriers" OFF)
+ option(EKA2L1_WASM_CODE_LIFECYCLE "Experimental mutation-driven compiled-code validity" OFF)
+diff --git a/src/emu/cpu/CMakeLists.txt b/src/emu/cpu/CMakeLists.txt
+index 26c5df372..d6f494838 100644
+--- a/src/emu/cpu/CMakeLists.txt
++++ b/src/emu/cpu/CMakeLists.txt
+@@ -182,3 +182,7 @@ endif()
+ if(EKA2L1_WASM_DEFER_MEMORY)
+     target_compile_definitions(cpu PUBLIC EKA2L1_WASM_DEFER_MEMORY=1)
+ endif()
++
++if(EKA2L1_WASM_LAZY_FLAGS)
++    target_compile_definitions(cpu PRIVATE EKA2L1_WASM_LAZY_FLAGS=1)
++endif()
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index cadb45ae2..b7a427582 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -62,6 +62,48 @@ namespace eka2l1::arm::aot {
+         static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13, READ_PAGE=14, READ_BASE=15, WRITE_PAGE=16, WRITE_BASE=17;
+         bool memory_write = false;
+         bool instruction_may_exit = true;
++        bool lazy_flags = false, unconditional = false;
++        unsigned pending_flags = 0;
++        bool pending_add = false;
++        static constexpr unsigned FLAG_LHS=18, FLAG_RHS=19, FLAG_RESULT=20;
++
++        // Recipes are materialized on flag reads and all observable exits.
++        // Cold return paths must not consume the compiler's fallthrough recipe.
++        void materialize_flags(unsigned mask = 3, bool consume = true) {
++            mask &= pending_flags;
++            if (mask & 1) {
++                if (pending_add) { get_local(FLAG_RESULT); get_local(FLAG_LHS); op(op_i32_lt_u); }
++                else { get_local(FLAG_LHS); get_local(FLAG_RHS); op(op_i32_ge_u); }
++                set_local(cache.local(S::CFLAG));
++            }
++            if (mask & 2) {
++                get_local(FLAG_LHS); get_local(FLAG_RHS); op(op_i32_xor);
++                if (pending_add) { i32_const(-1); op(op_i32_xor); }
++                get_local(FLAG_LHS); get_local(FLAG_RESULT); op(op_i32_xor);
++                op(op_i32_and); i32_const(31); op(op_i32_shr_u);
++                set_local(cache.local(S::VFLAG));
++            }
++            if (consume) pending_flags &= ~mask;
++        }
++        void arithmetic_flags(unsigned lhs, unsigned rhs, unsigned result, unsigned tmp, bool add) {
++            if (lazy_flags && unconditional) {
++                get_local(lhs); set_local(FLAG_LHS);
++                get_local(rhs); set_local(FLAG_RHS);
++                get_local(result); set_local(FLAG_RESULT);
++                pending_flags = 3; pending_add = add;
++                cache.local(S::CFLAG); cache.local(S::VFLAG);
++                cache.written.insert(S::CFLAG); cache.written.insert(S::VFLAG);
++                return;
++            }
++            if (add) { get_local(result); get_local(lhs); op(op_i32_lt_u); }
++            else { get_local(lhs); get_local(rhs); op(op_i32_ge_u); }
++            set_local(tmp); store_i32(S::CFLAG,tmp);
++            get_local(lhs); get_local(rhs); op(op_i32_xor);
++            if (add) { i32_const(-1); op(op_i32_xor); }
++            get_local(lhs); get_local(result); op(op_i32_xor);
++            op(op_i32_and); i32_const(31); op(op_i32_shr_u);
++            set_local(tmp); store_i32(S::VFLAG,tmp);
++        }
+         bool entry_supported = true;
+         bool unsupported = false;
+         std::uint32_t bail_count = 0;
+@@ -74,11 +116,15 @@ namespace eka2l1::arm::aot {
+         void i32_const(std::int32_t v) { op(op_i32_const); sleb(b, v); }
+ 
+         void load_i32(std::uint32_t offset) {
++            if (offset == S::CFLAG) materialize_flags(1);
++            if (offset == S::VFLAG) materialize_flags(2);
+             if (cache.accepts(offset)) { get_local(cache.local(offset)); return; }
+             state_ptr();
+             op(op_i32_load); leb(b, 2); leb(b, offset);
+         }
+         void store_i32(std::uint32_t offset, std::uint32_t local) {
++            if (offset == S::CFLAG) pending_flags &= ~1u;
++            if (offset == S::VFLAG) pending_flags &= ~2u;
+             if (cache.accepts(offset)) {
+                 get_local(local); set_local(cache.local(offset)); cache.written.insert(offset); return;
+             }
+@@ -87,6 +133,8 @@ namespace eka2l1::arm::aot {
+             op(op_i32_store); leb(b, 2); leb(b, offset);
+         }
+         void store_i32_const(std::uint32_t offset, std::int32_t val) {
++            if (offset == S::CFLAG) pending_flags &= ~1u;
++            if (offset == S::VFLAG) pending_flags &= ~2u;
+             if (cache.accepts(offset)) {
+                 i32_const(val); set_local(cache.local(offset)); cache.written.insert(offset); return;
+             }
+@@ -228,7 +276,7 @@ namespace eka2l1::arm::aot {
+             op(op_end);
+ #endif
+         }
+-        void ret() { cache.barrier_at(b.size()); op(op_return); }
++        void ret() { materialize_flags(3, false); cache.barrier_at(b.size()); op(op_return); }
+ 
+         void bail(std::uint32_t pc, std::uint32_t instr_count) {
+             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
+@@ -624,6 +672,9 @@ namespace eka2l1::arm::aot {
+         // A fixed i64 prefix keeps its index independent of lazily allocated i32 register locals.
+         // Locals: 0=state_ptr(param), 1=wide result, 2..8=i32 scratch.
+         result.num_locals = region ? 16 : 7;
++#ifdef EKA2L1_WASM_LAZY_FLAGS
++        if (region && bounded && cache_registers) result.num_locals += 3;
++#endif
+         result.num_prefix_i64_locals = 1;
+         result.num_f32_locals = 0;
+         result.num_f64_locals = 0;
+@@ -635,6 +686,9 @@ namespace eka2l1::arm::aot {
+         arm_emit w{result.body};
+         w.region = region && bounded;
+         w.defer_memory = w.region && defer_memory;
++#ifdef EKA2L1_WASM_LAZY_FLAGS
++        w.lazy_flags = w.region && cache_registers;
++#endif
+         w.cache.enabled = bounded && cache_registers;
+         w.cache.runtime_fields = region;
+         w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
+@@ -763,6 +817,10 @@ namespace eka2l1::arm::aot {
+             w.instruction_may_exit = false;
+             w.current_pc = insn_addr; w.pc_written = false; w.restartable_access = false;
+ 
++            // Materialize the fallthrough recipe before a control-flow join.
++            // Taken edges materialize theirs before branching to the join.
++            if (!instruction.leaf && forward_targets_set.count(insn_addr)) w.materialize_flags();
++
+             // Close forward-target blocks
+             while (!instruction.leaf && closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
+                 w.op(op_end);
+@@ -810,8 +868,19 @@ namespace eka2l1::arm::aot {
+             }
+ 
+             std::uint32_t cond = (inst >> 28) & 0xF;
++            w.unconditional = cond == 14;
+             bool handled = true;
+ 
++            const auto dp_opcode = (inst >> 21) & 15;
++            const bool plain_dp = (inst & 0x0c000000) == 0
++                && ((inst & 0x02000000) || (inst & 0x90) != 0x90)
++                && ((inst >> 12) & 15) != 15
++                && (dp_opcode < 8 || dp_opcode > 11 || (inst & 0x100000));
++            const bool branch = ((inst >> 25) & 7) == 5;
++            // Conditional writes and helpers merge runtime paths. Keep their
++            // incoming flags concrete; defer only unconditional ALU producers.
++            if (!branch && (cond != 14 || !plain_dp)) w.materialize_flags();
++
+             // Emit condition check
+             bool cond_opened = emit_cond_check(w, cond, TMP1, TMP2);
+ 
+@@ -854,6 +923,11 @@ namespace eka2l1::arm::aot {
+                     continue;
+                 }
+ 
++                // Internal successors expect concrete flags at their entry.
++                // This is inside the taken conditional path; preserve the
++                // recipe for the not-taken fallthrough.
++                if (target >= start_address && target < start_address + code_size)
++                    w.materialize_flags(3, false);
+                 // B (not link)
+                 // Check if target is a forward branch within the block
+                 auto fit = fwd_idx.find(target);
+@@ -1385,7 +1459,11 @@ namespace eka2l1::arm::aot {
+                 w.set_local(TMP1); // Rn value
+ 
+                 // Get shifter operand
+-                w.load_i32(S::CFLAG); w.set_local(TMP_CARRY);
++                const bool logical_flags = set_flags && (opcode == 0 || opcode == 1 || opcode == 8 || opcode == 9 || opcode >= 12);
++                const bool rrx = !(inst & (1u << 25)) && !(inst & 16) && ((inst >> 5) & 3) == 3 && ((inst >> 7) & 31) == 0;
++                if (!w.lazy_flags || logical_flags || rrx) w.load_i32(S::CFLAG);
++                else w.i32_const(0);
++                w.set_local(TMP_CARRY);
+                 emit_shifter_operand(w, inst, TMP2, TMP3, TMP_CARRY, insn_addr);
+                 w.set_local(TMP2); // operand 2
+ 
+@@ -1414,15 +1492,7 @@ namespace eka2l1::arm::aot {
+                     if (rd != 15) w.store_reg(rd, TMP3);
+                     if (set_flags) {
+                         emit_nz_flags(w, TMP3, TMP4);
+-                        // C = Rn >= op2 (unsigned)
+-                        w.get_local(TMP1); w.get_local(TMP2);
+-                        w.op(op_i32_ge_u); w.set_local(TMP4);
+-                        w.store_i32(S::CFLAG, TMP4);
+-                        // V = (Rn ^ op2) & (Rn ^ result) >> 31
+-                        w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
+-                        w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
+-                        w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
+-                        w.set_local(TMP4); w.store_i32(S::VFLAG, TMP4);
++                        w.arithmetic_flags(TMP1, TMP2, TMP3, TMP4, false);
+                     }
+                     break;
+                 case 0x3: // RSB
+@@ -1450,16 +1520,7 @@ namespace eka2l1::arm::aot {
+                     if (rd != 15) w.store_reg(rd, TMP3);
+                     if (set_flags) {
+                         emit_nz_flags(w, TMP3, TMP4);
+-                        // C = result < Rn (unsigned overflow)
+-                        w.get_local(TMP3); w.get_local(TMP1);
+-                        w.op(op_i32_lt_u); w.set_local(TMP4);
+-                        w.store_i32(S::CFLAG, TMP4);
+-                        // V = ~(Rn ^ op2) & (Rn ^ result) >> 31
+-                        w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
+-                        w.i32_const(-1); w.op(op_i32_xor);
+-                        w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
+-                        w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
+-                        w.set_local(TMP4); w.store_i32(S::VFLAG, TMP4);
++                        w.arithmetic_flags(TMP1, TMP2, TMP3, TMP4, true);
+                     }
+                     break;
+                 case 0x5: // ADC
+@@ -1536,31 +1597,14 @@ namespace eka2l1::arm::aot {
+                     w.op(op_i32_sub);
+                     w.set_local(TMP3);
+                     emit_nz_flags(w, TMP3, TMP4);
+-                    // C = Rn >= op2
+-                    w.get_local(TMP1); w.get_local(TMP2);
+-                    w.op(op_i32_ge_u); w.set_local(TMP4);
+-                    w.store_i32(S::CFLAG, TMP4);
+-                    // V
+-                    w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
+-                    w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
+-                    w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
+-                    w.set_local(TMP4); w.store_i32(S::VFLAG, TMP4);
++                    w.arithmetic_flags(TMP1, TMP2, TMP3, TMP4, false);
+                     break;
+                 case 0xB: // CMN (ADD without write)
+                     w.get_local(TMP1); w.get_local(TMP2);
+                     w.op(op_i32_add);
+                     w.set_local(TMP3);
+                     emit_nz_flags(w, TMP3, TMP4);
+-                    // C = result < Rn
+-                    w.get_local(TMP3); w.get_local(TMP1);
+-                    w.op(op_i32_lt_u); w.set_local(TMP4);
+-                    w.store_i32(S::CFLAG, TMP4);
+-                    // V = ~(Rn ^ op2) & (Rn ^ result) >> 31
+-                    w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
+-                    w.i32_const(-1); w.op(op_i32_xor);
+-                    w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
+-                    w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
+-                    w.set_local(TMP4); w.store_i32(S::VFLAG, TMP4);
++                    w.arithmetic_flags(TMP1, TMP2, TMP3, TMP4, true);
+                     break;
+                 case 0xC: // ORR
+                     w.get_local(TMP1); w.get_local(TMP2);
+@@ -1804,6 +1848,7 @@ namespace eka2l1::arm::aot {
+             // be reachable via forward branches.
+         }
+ 
++        w.materialize_flags();
+         // Close remaining forward blocks
+         while (closed_count < N_fwd) {
+             w.op(op_end);

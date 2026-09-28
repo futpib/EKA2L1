@@ -2108,6 +2108,19 @@ static bool test_bounded_execution() {
         thumb({0xbd00}), // POP PC mode switch
         thumb({0x3001, 0xf000, 0xf800}), // return before long call halfwords
     };
+    // Lazy arithmetic flag recipes must survive exact short budgets, reads,
+    // conditional writes, forward joins, loop backedges and helper callbacks.
+    for (unsigned cond = 0; cond < 15; ++cond) {
+        programs.push_back(arm({0xe3500001, (cond<<28)|0x03a02005, 0xe0a03000}));
+        programs.push_back(arm({0xe3500001, (cond<<28)|0x0a000000, 0xe2902001, 0xe0a03000}));
+        programs.push_back(arm({0xe3500001, (cond<<28)|0x02902001, 0xe0a03000}));
+        programs.push_back(arm({0xe3500001, (cond<<28)|0x0a000400, 0xe3700001, 0xe0a03000}));
+    }
+    programs.push_back(arm({0xe3500001,0xe3700001,0xe3a02000}));
+    programs.push_back(arm({0xe3500001,0xe1b02060,0xe0a03000})); // RRX consumes C
+    programs.push_back(arm({0xe3500001,0xe5912000,0xe0a03000})); // memory/helper boundary
+    programs.push_back(arm({0xe3500001,0xe5810000,0xe0a03000}));
+    programs.push_back(arm({0xe3a02003,0xe2522001,0x1afffffd,0xe0a03000}));
     // Exercise whole ALU families against the independent interpreter, not
     // just the operand values that happened to expose a live replay failure.
     for (unsigned opcode = 0; opcode < 16; ++opcode) {
@@ -2837,7 +2850,33 @@ static bool test_code_lifecycle() {
     return true;
 }
 
-int main() {
+#ifdef __EMSCRIPTEN__
+EM_JS(void, js_export_flag_probe, (const std::uint8_t *bytes, unsigned size), {
+    console.log('FLAG_MODULE ' + Buffer.from(HEAPU8.subarray(bytes, bytes + size)).toString('base64'));
+});
+#endif
+
+int main(int argc, char **argv) {
+#ifdef __EMSCRIPTEN__
+    if (argc == 2 && std::string(argv[1]) == "--emit-flags") {
+        // Generic flag-overwrite/consumer fixtures, unrelated to game PCs.
+        std::vector<wasm_func_def> funcs;
+        for (const auto &ops : std::vector<std::vector<std::uint32_t>>{
+            {0xe3500001,0xe3700001,0xe2522001,0x1afffffb},
+            {0xe3500001,0xe0a03000,0xe2522001,0x1afffffb}}) {
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(ops.data()),
+                ops.size()*4,0x1000,nullptr,nullptr,true,true,true,true);
+            tr.func.export_name="probe"+std::to_string(funcs.size());
+            funcs.push_back(std::move(tr.func));
+        }
+        auto bytes=build_wasm_module(funcs,{{"env","tlb_read32",2,true},
+            {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},
+            {"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        js_export_flag_probe(bytes.data(),bytes.size());
+        return 0;
+    }
+#endif
+
     std::array<std::uint32_t, 16> zero_regs = {};
     zero_regs[13] = 0x10000; // SP
 

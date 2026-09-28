@@ -1,0 +1,116 @@
+diff --git a/src/emu/cpu/include/cpu/aot/state_locals.h b/src/emu/cpu/include/cpu/aot/state_locals.h
+index 1b3f5ac85..5014aba74 100644
+--- a/src/emu/cpu/include/cpu/aot/state_locals.h
++++ b/src/emu/cpu/include/cpu/aot/state_locals.h
+@@ -10,6 +10,16 @@ namespace eka2l1::arm::aot {
+     struct state_local_cache {
+         bool enabled = false;
+         bool runtime_fields = false;
++        bool entry_prefix = false;
++        std::set<std::uint32_t> initial_reads;
++        std::map<std::uint32_t, std::size_t> initial_definitions;
++        void read(std::uint32_t offset) {
++            if (offset < state_offsets::PC && !initial_definitions.count(offset)) initial_reads.insert(offset);
++        }
++        void define(std::uint32_t offset, std::size_t position) {
++            if (entry_prefix && offset < state_offsets::PC && !initial_reads.count(offset))
++                initial_definitions.emplace(offset, position);
++        }
+         std::uint32_t first_local = 0;
+         std::map<std::uint32_t, std::uint32_t> locals;
+         std::set<std::uint32_t> written;
+@@ -41,8 +51,12 @@ namespace eka2l1::arm::aot {
+                 out.push_back(byte | (value ? 128 : 0));
+             } while (value);
+         }
+-        void transfer(std::vector<std::uint8_t> &out, bool reload) const {
++        void transfer(std::vector<std::uint8_t> &out, bool reload,
++            bool entry = false, std::size_t position = static_cast<std::size_t>(-1)) const {
+             for (const auto &[offset, slot] : locals) {
++                const auto definition = initial_definitions.find(offset);
++                if (definition != initial_definitions.end()
++                    && (entry || (!reload && position < definition->second))) continue;
+                 if (!reload && !written.count(offset)) continue;
+                 out.push_back(op_local_get); leb(out, 0);
+                 if (reload) {
+@@ -57,12 +71,12 @@ namespace eka2l1::arm::aot {
+         void finish(wasm_func_def &function) {
+             if (!enabled) return;
+             std::vector<std::uint8_t> body;
+-            transfer(body, true);
++            transfer(body, true, true);
+             std::size_t previous = 0;
+             for (const auto &point : barriers) {
+                 body.insert(body.end(), function.body.begin() + previous,
+                     function.body.begin() + point.position);
+-                transfer(body, point.reload);
++                transfer(body, point.reload, false, point.position);
+                 previous = point.position;
+             }
+             body.insert(body.end(), function.body.begin() + previous, function.body.end());
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index cadb45ae2..f09bfb9dd 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -74,13 +74,13 @@ namespace eka2l1::arm::aot {
+         void i32_const(std::int32_t v) { op(op_i32_const); sleb(b, v); }
+ 
+         void load_i32(std::uint32_t offset) {
+-            if (cache.accepts(offset)) { get_local(cache.local(offset)); return; }
++            if (cache.accepts(offset)) { cache.read(offset); get_local(cache.local(offset)); return; }
+             state_ptr();
+             op(op_i32_load); leb(b, 2); leb(b, offset);
+         }
+         void store_i32(std::uint32_t offset, std::uint32_t local) {
+             if (cache.accepts(offset)) {
+-                get_local(local); set_local(cache.local(offset)); cache.written.insert(offset); return;
++                get_local(local); set_local(cache.local(offset)); cache.written.insert(offset); cache.define(offset, b.size()); return;
+             }
+             state_ptr();
+             get_local(local);
+@@ -88,7 +88,7 @@ namespace eka2l1::arm::aot {
+         }
+         void store_i32_const(std::uint32_t offset, std::int32_t val) {
+             if (cache.accepts(offset)) {
+-                i32_const(val); set_local(cache.local(offset)); cache.written.insert(offset); return;
++                i32_const(val); set_local(cache.local(offset)); cache.written.insert(offset); cache.define(offset, b.size()); return;
+             }
+             state_ptr();
+             i32_const(val);
+@@ -638,6 +638,7 @@ namespace eka2l1::arm::aot {
+         w.cache.enabled = bounded && cache_registers;
+         w.cache.runtime_fields = region;
+         w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
++        w.cache.entry_prefix = w.region && w.cache.enabled;
+ 
+         // Build instruction address → index map
+         std::uint32_t num_insns = 0;
+@@ -755,6 +756,16 @@ namespace eka2l1::arm::aot {
+             const auto inst = instruction.opcode;
+             const auto insn_addr = instruction.address;
+ 
++            // Only unconditional ordinary ALU definitions in the entry prefix
++            // dominate every later use. Stop at control flow, memory or special
++            // encodings; exact earlier exits leave the original memory alone.
++            const auto entry_op = (inst >> 21) & 15;
++            const bool entry_alu = (inst >> 28) == 14 && (inst & 0x0c000000) == 0
++                && ((inst & 0x02000000) || (inst & 0x90) != 0x90)
++                && ((inst >> 12) & 15) != 15
++                && (entry_op < 8 || entry_op > 11 || (inst & 0x100000));
++            w.cache.entry_prefix = w.cache.entry_prefix && entry_alu;
++
+             // Only memory/helper paths can raise AOT_EXIT. Straight-line ALU
+             // successors need just their budget guard; join/loop entries retain
+             // the exit check independently of their lexical predecessor.
+@@ -1377,7 +1388,10 @@ namespace eka2l1::arm::aot {
+                 bool rn_is_pc = (rn == 15);
+ 
+                 // Get Rn value
+-                if (rn_is_pc) {
++                if (opcode == 13 || opcode == 15) {
++                    // MOV/MVN do not read Rn, including its otherwise encoded R0.
++                    w.i32_const(0);
++                } else if (rn_is_pc) {
+                     w.i32_const(static_cast<std::int32_t>(insn_addr + 8));
+                 } else {
+                     w.load_reg(rn);
