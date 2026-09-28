@@ -160,3 +160,30 @@ runs old/new/new/old browsers one at a time, including warmup, over guest second
 78–96 with rendering on, no capture, no profiling and the physical GPU. Set the
 same process-local GPU environment for both builds. `benchmark.ts` and `live.ts`
 retain their existing replay/live acceptance roles.
+
+## Real Snakes repeat, 2026-09-28 16:31 UTC
+
+At the user's request, repeated the actual Snakes benchmark, using the exact
+same archived baseline and prototype binaries (hashes above/in evidence), not
+an extracted kernel. The earlier whole-game timings also used real Snakes.
+One browser ran at a time, including warmup; rendering stayed enabled on the
+physical NVIDIA GPU, with capture/readback, profiling and diagnostic counters
+disabled. No concurrent owned build or benchmark ran. Order: old/new/new/old.
+
+| Build | Host seconds for guest seconds 78–96 | Mean |
+| --- | ---: | ---: |
+| Baseline | 18.6526 / 17.9644 | 18.3085 |
+| Deferred-memory prototype | 17.2244 / 16.0909 | 16.65765 |
+
+Both pairs favor the prototype. The mean throughput improvement is **9.91%**,
+and the prototype reaches **1.0806x realtime** in this heavy window. All four
+runs execute **3,975,200,506 guest instructions** and **676 presentations**.
+
+This is a positive whole-game repeat, not just the earlier 21% kernel result.
+It still has only two trials per build on a shared host, and does not erase the
+previous contradictory batch. The 1.25x headroom target remains unmet. The
+prototype remains opt-in/OFF by default; the public launcher is unchanged.
+No compiler changes were needed, so prior 133-test, 672-fault-case, checked
+1,600-image and live-workflow validation applies to these identical binaries;
+those gates were not rerun in this repeat. Detailed reports, GPU information,
+execution totals and binary hashes are in `MATCHED_SNAKES_REPEAT_EVIDENCE.json`.
