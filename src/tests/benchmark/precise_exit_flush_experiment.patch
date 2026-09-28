@@ -1,0 +1,71 @@
+diff --git a/src/emu/cpu/include/cpu/aot/state_locals.h b/src/emu/cpu/include/cpu/aot/state_locals.h
+index 1b3f5ac85..daf9aac67 100644
+--- a/src/emu/cpu/include/cpu/aot/state_locals.h
++++ b/src/emu/cpu/include/cpu/aot/state_locals.h
+@@ -10,10 +10,11 @@ namespace eka2l1::arm::aot {
+     struct state_local_cache {
+         bool enabled = false;
+         bool runtime_fields = false;
++        bool precise_flushes = false;
+         std::uint32_t first_local = 0;
+         std::map<std::uint32_t, std::uint32_t> locals;
+         std::set<std::uint32_t> written;
+-        struct barrier { std::size_t position; bool reload; };
++        struct barrier { std::size_t position; bool reload; std::set<std::uint32_t> dirty; };
+         std::vector<barrier> barriers;
+ 
+         bool accepts(std::uint32_t offset) const {
+@@ -32,7 +33,7 @@ namespace eka2l1::arm::aot {
+             return slot;
+         }
+         void barrier_at(std::size_t position, bool reload = false) {
+-            if (enabled) barriers.push_back({position, reload});
++            if (enabled) barriers.push_back({position, reload, precise_flushes ? written : std::set<std::uint32_t>{}});
+         }
+         static void leb(std::vector<std::uint8_t> &out, std::uint32_t value) {
+             do {
+@@ -41,9 +42,9 @@ namespace eka2l1::arm::aot {
+                 out.push_back(byte | (value ? 128 : 0));
+             } while (value);
+         }
+-        void transfer(std::vector<std::uint8_t> &out, bool reload) const {
++        void transfer(std::vector<std::uint8_t> &out, bool reload, const std::set<std::uint32_t> *dirty = nullptr) const {
+             for (const auto &[offset, slot] : locals) {
+-                if (!reload && !written.count(offset)) continue;
++                if (!reload && !(dirty ? *dirty : written).count(offset)) continue;
+                 out.push_back(op_local_get); leb(out, 0);
+                 if (reload) {
+                     out.push_back(op_i32_load); leb(out, 2); leb(out, offset);
+@@ -62,7 +63,7 @@ namespace eka2l1::arm::aot {
+             for (const auto &point : barriers) {
+                 body.insert(body.end(), function.body.begin() + previous,
+                     function.body.begin() + point.position);
+-                transfer(body, point.reload);
++                transfer(body, point.reload, precise_flushes ? &point.dirty : nullptr);
+                 previous = point.position;
+             }
+             body.insert(body.end(), function.body.begin() + previous, function.body.end());
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index c7d7950f0..6a0dc17c6 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -671,6 +671,19 @@ namespace eka2l1::arm::aot {
+             }
+         }
+ 
++        // Without a backward edge, an exit only needs state written before
++        // that lexical point. Callback reloads still include the final local
++        // set, since a callback can change registers used later in the region.
++        w.cache.precise_flushes = region;
++        for (const auto &instruction : instructions) {
++            const auto inst = instruction.opcode;
++            if (((inst >> 25) & 7) == 5 && !((inst >> 24) & 1)) {
++                auto displacement = static_cast<std::int32_t>(inst << 8) >> 6;
++                const auto target = instruction.address + 8 + displacement;
++                if (target <= instruction.address) w.cache.precise_flushes = false;
++            }
++        }
++
+         // Populate branch_targets for extra-entry discovery
+         for (std::size_t i : reachable) {
+             if (i + 3 >= code_size) continue;

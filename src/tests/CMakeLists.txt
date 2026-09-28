@@ -92,3 +92,8 @@ if (TARGET dynarmic AND NOT EMSCRIPTEN)
     add_executable(eka_compiler_probe EXCLUDE_FROM_ALL benchmark/compiler_probe.cpp)
     target_link_libraries(eka_compiler_probe PRIVATE cpu dynarmic merry::mcl)
 endif()
+
+if (TARGET dynarmic AND NOT EMSCRIPTEN)
+    add_executable(eka_cpu_kernel_native EXCLUDE_FROM_ALL benchmark/cpu_kernel_native.cpp)
+    target_link_libraries(eka_cpu_kernel_native PRIVATE dynarmic merry::mcl)
+endif()

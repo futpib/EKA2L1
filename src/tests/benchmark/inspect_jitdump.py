@@ -11,7 +11,7 @@ while pos+16<=len(b):
   print(f'Ignoring incomplete trailing record at {pos}',file=__import__('sys').stderr);break
  if kind==0:
   end=b.index(0,pos+56);name=b[pos+56:end].decode();code_size=struct.unpack_from('<Q',b,pos+40)[0]
-  if name.startswith(('JS:run-','JS:wasm-function[')):
+  if name.startswith(('JS:run-','JS:wasm-function[','JS:kernel_')):
    code=b[end+1:end+1+code_size];assert len(code)==code_size
    fn=a.output/f'{len(rows):02}.bin';fn.write_bytes(code)
    dis=subprocess.check_output(['objdump','-D','-b','binary','-m','i386:x86-64','-Mintel',str(fn)],text=True);fn.with_suffix('.asm').write_text(dis)
