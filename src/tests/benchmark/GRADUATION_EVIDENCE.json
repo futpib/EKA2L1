@@ -3454,5 +3454,54 @@
     "compact_memory": "graduated after two positive fresh mean comparisons and correctness/live gates",
     "successor_cache": "removed after negative fresh mean and wide range",
     "others": "see inventory in GRADUATION_RESULTS.md"
+  },
+  "deployment": {
+    "compact_source_commit": "8c1249982",
+    "url": "https://claude-laptop.lan:8188/",
+    "archive": "/home/claude/.scratch/eka-benchmark/graduation-compact-build",
+    "wasm_sha256": "1c7084a27bd5df643f75787b5ce18e8ab7bae0c4359830ae4ac290be84c9683a",
+    "lan_check": {
+      "security": {
+        "secure": true,
+        "isolated": true
+      },
+      "first": {
+        "guest": 23021108,
+        "inputs": 20,
+        "frames": 908
+      },
+      "second": {
+        "guest": 23590976,
+        "inputs": 22,
+        "frames": 930
+      },
+      "last": {
+        "guest": 23973511,
+        "inputs": 24,
+        "frames": 946
+      },
+      "canvasSamples": [
+        284,
+        250,
+        261,
+        245,
+        246,
+        246,
+        228,
+        225,
+        216,
+        223,
+        236,
+        234
+      ],
+      "errors": [],
+      "browser": "Chrome/153.0.8010.52"
+    },
+    "capture_harness_failure": "/home/claude/code/EKA2L1/src/tests/wasm/node_modules/pngjs/lib/parser.js:57\n  let length = data.readUInt32BE(0);\n                    ^\n\nTypeError: data.readUInt32BE is not a function\n    at Parser._parseChunkBegin (/home/claude/code/EKA2L1/src/tests/wasm/node_modules/pngjs/lib/parser.js:57:21)\n    at SyncReader.process (/home/claude/code/EKA2L1/src/tests/wasm/node_modules/pngjs/lib/sync-reader.js:32:17)\n    at module.exports (/home/claude/code/EKA2L1/src/tests/wasm/node_modules/pngjs/lib/parser-sync.js:68:10)\n    at exports.read (/home/claude/code/EKA2L1/src/tests/wasm/node_modules/pngjs/lib/png-sync.js:7:10)\n    at file:///home/claude/.scratch/eka-benchmark/graduation-kept-lan.mjs:18:129\n\nNode.js v26.8.1\n",
+    "remote_lan_device_tested": false
+  },
+  "native_candidate_checks": {
+    "": "Test project /home/claude/code/EKA2L1/build\n    Start 1: ekatests\n1/3 Test #1: ekatests .........................   Passed    0.34 sec\n    Start 2: eka_cpu_tests\n2/3 Test #2: eka_cpu_tests ....................   Passed    0.01 sec\n    Start 3: bluetooth_netplay\n3/3 Test #3: bluetooth_netplay ................   Passed    0.05 sec\n\n100% tests passed out of 3\n\nTotal Test time (real) =   0.41 sec\n",
+    "successor-": "Test project /home/claude/code/EKA2L1/build\n    Start 1: ekatests\n1/3 Test #1: ekatests .........................   Passed    0.30 sec\n    Start 2: eka_cpu_tests\n2/3 Test #2: eka_cpu_tests ....................   Passed    0.01 sec\n    Start 3: bluetooth_netplay\n3/3 Test #3: bluetooth_netplay ................   Passed    0.05 sec\n\n100% tests passed out of 3\n\nTotal Test time (real) =   0.36 sec\n"
   }
 }

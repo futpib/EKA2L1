@@ -8,7 +8,7 @@ regression risk, additional complexity and repeatability still matter.
 ## Graduated baseline
 
 `5cfea9efa` makes `EKA2L1_WASM_DEFER_MEMORY` default ON. OFF remains available for
-comparison/rollback. The LAN launcher now points to the previously verified
+comparison/rollback. The LAN launcher initially switched to the previously verified
 `matched-game-final` archive: WASM SHA-256
 `451090fe4a659127c4d5c4b96fd3f87a880f361c70c0e37c42e95d1c4a7f6c45`.
 No guest clock, instruction budget or byte-validation policy changed.
@@ -22,8 +22,8 @@ cross-game or mobile validation. Sound remains off.
 
 | Experiment | Earlier evidence | Reassessment action |
 | --- | --- | --- |
-| Compact memory control flow | Two isolated batches gained 7–8.6%; confirmation had large outliers | First retest, integrated with deferred exits and all current fault fixes |
-| Guarded successor cache | About 1.7% mean gain, overlapping ranges | Second retest against graduated baseline; preserve every byte/mapping guard |
+| Compact memory control flow | Two isolated batches gained 7–8.6%; confirmation had large outliers | Retested; graduated after two fresh positive mean comparisons and live checks |
+| Guarded successor cache | About 1.7% mean gain, overlapping ranges | Retested; not graduated because the fresh mean was worse |
 | Cached write-page guards | Small apparent gain over original, little incremental gain over retained simplification | No promotion from existing evidence; extra mutable compiler state without repeated incremental gain |
 | Long-multiply accumulator reuse | Roughly 1% mean change, no clear additional gain | No promotion from existing evidence; value-lifetime complexity and no repeated incremental gain |
 | Read-span reuse | Mixed/overlapping timings | Remains removed; no repeatable improvement shown |
@@ -124,7 +124,7 @@ results remain documented, and the limited shared-host evidence is not a
 universal performance guarantee.
 
 The final rebuild is byte-identical to the tested compact game, unit-test and
-fault-probe WASM binaries. All three native targets pass after restoring the
+fault-probe WASM binaries. All three native targets pass after removing the
 successor-cache experiment, and all seven frontend checks pass with installed
 Chromium 153. The first frontend launch failed only because Puppeteer's expected
 Chrome 146 was absent; rerunning with the actual installed executable passed.
@@ -138,3 +138,22 @@ GPU identities, gate outputs and hashes are retained in `GRADUATION_EVIDENCE.jso
 The new compact diff is the adaptation retained in the source; successor caching
 remains reproducible with `guarded_successor_experiment.patch`.
 
+
+## Final deployment
+
+The final combined build is served at `https://claude-laptop.lan:8188/` from
+`~/.scratch/eka-benchmark/graduation-compact-build`. Its served WASM hash matches
+the hash above and the exact tested archive. Reload an existing browser session
+to load it. `build-wasm` contains the same game binary, with deferred exits ON
+and code versions/lifecycle OFF. The original `wasm-port` branch remains the
+single checkout; nothing was pushed.
+
+The actual HTTPS launcher passes secure-context/cross-origin isolation, automatic
+startup, keyboard/touch delivery, narrow layout and shutdown. All 12 additional
+canvas samples have nontrivial visible content (216–284 unique colors), with no
+page/request/HTTP errors. This follow-up does not explain the single black
+intermediate screenshot in the two-minute run; no flicker-free guarantee is made.
+An initial added capture check failed in the test script because pngjs needs a
+Buffer, not Puppeteer's Uint8Array; converting the buffer and rerunning passed.
+No emulator change was needed for that harness fix. A separate remote LAN device
+was not tested. Audio quality remains deferred.
