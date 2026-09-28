@@ -383,26 +383,27 @@ extern "C" {
     }
 
     EMSCRIPTEN_KEEPALIVE
-    void aot_tlb_write16(ARMul_State *state, std::uint32_t arm_addr, std::uint16_t value) {
+    void aot_tlb_write16(ARMul_State *state, std::uint32_t arm_addr, std::uint32_t value) {
         validation_access(state, arm_addr, 2);
         state->WriteMemory16(arm_addr, value);
     }
 
     EMSCRIPTEN_KEEPALIVE
-    void aot_tlb_write8(ARMul_State *state, std::uint32_t arm_addr, std::uint8_t value) {
+    void aot_tlb_write8(ARMul_State *state, std::uint32_t arm_addr, std::uint32_t value) {
         validation_access(state, arm_addr, 1);
         state->WriteMemory8(arm_addr, value);
     }
 }
 
+// WASM imports use full i32 parameters; narrow inside C++, never in the caller ABI.
 // Uninstrumented internal imports. The checked variants above are selected only
 // for verifier runs; ordinary memory accesses contain no validation hook.
 static std::uint32_t raw_read32(ARMul_State *s, std::uint32_t a) { return s->ReadMemory32(a); }
 static std::uint32_t raw_read16(ARMul_State *s, std::uint32_t a) { return s->ReadMemory16(a); }
 static std::uint32_t raw_read8(ARMul_State *s, std::uint32_t a) { return s->ReadMemory8(a); }
 static void raw_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { s->WriteMemory32(a, v); }
-static void raw_write16(ARMul_State *s, std::uint32_t a, std::uint16_t v) { s->WriteMemory16(a, v); }
-static void raw_write8(ARMul_State *s, std::uint32_t a, std::uint8_t v) { s->WriteMemory8(a, v); }
+static void raw_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { s->WriteMemory16(a, v); }
+static void raw_write8(ARMul_State *s, std::uint32_t a, std::uint32_t v) { s->WriteMemory8(a, v); }
 
 template<unsigned Index> static void count_memory() {
     if (common::performance::counting()) ++common::guest_profile::state.memory_calls[Index];
@@ -410,9 +411,9 @@ template<unsigned Index> static void count_memory() {
 static std::uint32_t prof_read32(ARMul_State *s, std::uint32_t a) { count_memory<0>(); return raw_read32(s,a); }
 static void prof_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<1>(); raw_write32(s,a,v); }
 static std::uint32_t prof_read8(ARMul_State *s, std::uint32_t a) { count_memory<2>(); return raw_read8(s,a); }
-static void prof_write8(ARMul_State *s, std::uint32_t a, std::uint8_t v) { count_memory<3>(); raw_write8(s,a,v); }
+static void prof_write8(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<3>(); raw_write8(s,a,v); }
 static std::uint32_t prof_read16(ARMul_State *s, std::uint32_t a) { count_memory<4>(); return raw_read16(s,a); }
-static void prof_write16(ARMul_State *s, std::uint32_t a, std::uint16_t v) { count_memory<5>(); raw_write16(s,a,v); }
+static void prof_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<5>(); raw_write16(s,a,v); }
 
 // JS function that instantiates a WASM module and returns exported function
 // addresses as a comma-separated string of "name:table_idx" pairs.

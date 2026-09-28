@@ -164,32 +164,40 @@ public:
     // load/store handlers pay no call overhead; a miss falls through to the
     // out-of-line slow path (page-table walk, fault handling, big-endian,
     // logging). mem_cache_ is the same TLB as core->mem_cache(), cached so this
-    // header needn't see the full dyncom_core. Read fast paths return the raw
-    // little-endian value (matching the previous TLB-hit behaviour); writes swap
-    // first so the stored bytes match.
+    // header needn't see the full dyncom_core. Permission-specific lookup and
+    // endian conversion are identical on fast and callback paths.
     std::uint8_t ReadMemory8(std::uint32_t address) const {
-        if (std::uint8_t *ptr = mem_cache_->lookup(address))
+        if (std::uint8_t *ptr = mem_cache_->lookup_access<prot_read>(address))
             return *ptr;
         return ReadMemory8Slow(address);
     }
     std::uint16_t ReadMemory16(std::uint32_t address) const {
-        if (std::uint16_t *ptr = reinterpret_cast<std::uint16_t *>(mem_cache_->lookup(address)))
-            return *ptr;
+        if (auto *ptr = mem_cache_->lookup_access<prot_read>(address)) {
+            std::uint16_t value;
+            std::memcpy(&value, ptr, sizeof(value));
+            return InBigEndianMode() ? eka2l1::common::byte_swap(value) : value;
+        }
         return ReadMemory16Slow(address);
     }
     std::uint32_t ReadMemory32(std::uint32_t address) const {
-        if (std::uint32_t *ptr = reinterpret_cast<std::uint32_t *>(mem_cache_->lookup(address)))
-            return *ptr;
+        if (auto *ptr = mem_cache_->lookup_access<prot_read>(address)) {
+            std::uint32_t value;
+            std::memcpy(&value, ptr, sizeof(value));
+            return InBigEndianMode() ? eka2l1::common::byte_swap(value) : value;
+        }
         return ReadMemory32Slow(address);
     }
     std::uint64_t ReadMemory64(std::uint32_t address) const {
-        if (std::uint64_t *ptr = reinterpret_cast<std::uint64_t *>(mem_cache_->lookup(address)))
-            return *ptr;
+        if (auto *ptr = mem_cache_->lookup_access<prot_read>(address)) {
+            std::uint64_t value;
+            std::memcpy(&value, ptr, sizeof(value));
+            return InBigEndianMode() ? eka2l1::common::byte_swap(value) : value;
+        }
         return ReadMemory64Slow(address);
     }
     std::uint32_t ReadCode(std::uint32_t address) const;
     void WriteMemory8(std::uint32_t address, std::uint8_t data) {
-        if (std::uint8_t *ptr = mem_cache_->lookup(address)) {
+        if (std::uint8_t *ptr = mem_cache_->lookup_access<prot_write>(address)) {
             *ptr = data;
             eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
@@ -199,7 +207,7 @@ public:
     void WriteMemory16(std::uint32_t address, std::uint16_t data) {
         if (InBigEndianMode())
             data = eka2l1::common::byte_swap(data);
-        if (std::uint16_t *ptr = reinterpret_cast<std::uint16_t *>(mem_cache_->lookup(address))) {
+        if (std::uint16_t *ptr = reinterpret_cast<std::uint16_t *>(mem_cache_->lookup_access<prot_write>(address))) {
             *ptr = data;
             eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
@@ -209,7 +217,7 @@ public:
     void WriteMemory32(std::uint32_t address, std::uint32_t data) {
         if (InBigEndianMode())
             data = eka2l1::common::byte_swap(data);
-        if (std::uint32_t *ptr = reinterpret_cast<std::uint32_t *>(mem_cache_->lookup(address))) {
+        if (std::uint32_t *ptr = reinterpret_cast<std::uint32_t *>(mem_cache_->lookup_access<prot_write>(address))) {
             *ptr = data;
             eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
@@ -219,7 +227,7 @@ public:
     void WriteMemory64(std::uint32_t address, std::uint64_t data) {
         if (InBigEndianMode())
             data = eka2l1::common::byte_swap(data);
-        if (std::uint64_t *ptr = reinterpret_cast<std::uint64_t *>(mem_cache_->lookup(address))) {
+        if (std::uint64_t *ptr = reinterpret_cast<std::uint64_t *>(mem_cache_->lookup_access<prot_write>(address))) {
             *ptr = data;
             eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
@@ -232,8 +240,8 @@ public:
     // the naive loop pays a full TLB lookup per word. The cursor caches the resolved
     // host page so a same-page run costs one lookup instead of one per word, and it
     // re-resolves automatically when the run crosses a page boundary. Semantics are
-    // identical to ReadMemory32/WriteMemory32 (raw little-endian on a TLB hit, the
-    // out-of-line slow path on a miss, and the same big-endian write swap), so it is
+    // identical to ReadMemory32/WriteMemory32 (permission checks and endian
+    // conversion on hits, the out-of-line callback on a miss), so it is
     // a drop-in replacement inside a single instruction's transfer loop.
     struct block_cursor {
         std::uint8_t *page_host = nullptr;
@@ -242,12 +250,17 @@ public:
 
     std::uint32_t ReadMemory32Block(std::uint32_t address, block_cursor &c) const {
         const std::uint32_t page_off = address & static_cast<std::uint32_t>(mem_cache_->page_mask);
-        if (c.page_host && (address - page_off) == c.page_base)
-            return *reinterpret_cast<std::uint32_t *>(c.page_host + page_off);
-        if (std::uint8_t *ptr = mem_cache_->lookup(address)) {
+        if (c.page_host && (address - page_off) == c.page_base) {
+            std::uint32_t value;
+            std::memcpy(&value, c.page_host + page_off, sizeof(value));
+            return InBigEndianMode() ? eka2l1::common::byte_swap(value) : value;
+        }
+        if (std::uint8_t *ptr = mem_cache_->lookup_access<prot_read>(address)) {
             c.page_host = ptr - page_off;
             c.page_base = address - page_off;
-            return *reinterpret_cast<std::uint32_t *>(ptr);
+            std::uint32_t value;
+            std::memcpy(&value, ptr, sizeof(value));
+            return InBigEndianMode() ? eka2l1::common::byte_swap(value) : value;
         }
         c.page_host = nullptr;
         return ReadMemory32Slow(address);
@@ -262,7 +275,7 @@ public:
             eka2l1::common::code_tracking::guest_write(c.page_host + page_off, 4);
             return;
         }
-        if (std::uint8_t *ptr = mem_cache_->lookup(address)) {
+        if (std::uint8_t *ptr = mem_cache_->lookup_access<prot_write>(address)) {
             c.page_host = ptr - page_off;
             c.page_base = address - page_off;
             *reinterpret_cast<std::uint32_t *>(ptr) = data;

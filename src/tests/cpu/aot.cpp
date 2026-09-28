@@ -1218,3 +1218,38 @@ TEST_CASE("Colliding recent entries retain generation guards but never skip byte
     cache.invalidate(0x3000, 4);
     REQUIRE_FALSE(cache.find(0x3000, *cpu));
 }
+
+TEST_CASE("DynCom TLB accesses preserve permissions and endian conversion", "[cpu][memory]") {
+    eka2l1::arm::r12l1::exclusive_monitor monitor(1);
+    eka2l1::arm::dyncom_core core(&monitor, 12);
+    auto state_owner = std::make_unique<ARMul_State>(&core, USER32MODE);
+    auto &state = *state_owner;
+    state.mem_cache_ = core.mem_cache();
+    std::array<std::uint8_t, 4096> bytes{};
+    auto &tlb = *state.mem_cache_;
+    tlb.add(0x8000, bytes.data(), prot_read);
+    REQUIRE(tlb.lookup_access<prot_read>(0x8000) == bytes.data());
+    REQUIRE(tlb.lookup_access<prot_write>(0x8000) == nullptr);
+    REQUIRE(tlb.lookup_access<prot_exec>(0x8000) == nullptr);
+    tlb.add(0, bytes.data(), prot_read);
+    REQUIRE(tlb.lookup_access<prot_write>(0) == nullptr);
+    tlb.add(0x8000, bytes.data(), prot_read);
+    bytes[0]=0x12; bytes[1]=0x34; bytes[2]=0x56; bytes[3]=0x78;
+    state.Cpsr = 0x210;
+    REQUIRE(state.ReadMemory16(0x8000) == 0x1234);
+    REQUIRE(state.ReadMemory32(0x8000) == 0x12345678);
+    ARMul_State::block_cursor cursor;
+    REQUIRE(state.ReadMemory32Block(0x8000, cursor) == 0x12345678);
+    REQUIRE(state.ReadMemory32Block(0x8000, cursor) == 0x12345678);
+    unsigned denied = 0;
+    core.write_32bit = [](std::uint32_t, std::uint32_t*) { return false; };
+    core.exception_handler = [&](eka2l1::arm::exception_type type, std::uint32_t address) {
+        REQUIRE(type == eka2l1::arm::exception_type_access_violation_write);
+        REQUIRE(address == 0x8000); ++denied; return false;
+    };
+    state.WriteMemory32(0x8000, 0x87654321);
+    cursor = {};
+    state.WriteMemory32Block(0x8000, 0x87654321, cursor);
+    REQUIRE(denied == 2);
+    REQUIRE(bytes[0] == 0x12);
+}

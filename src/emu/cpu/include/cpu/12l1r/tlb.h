@@ -104,6 +104,19 @@ namespace eka2l1::arm::r12l1 {
             }
         }
 
+        // Permission-specific lookup. Zero tags mean absent, so page zero must
+        // use callbacks rather than accidentally matching an absent permission.
+        template<std::uint32_t Permission>
+        std::uint8_t *lookup_access(const vaddress addr) {
+            static_assert(Permission == prot_read || Permission == prot_write || Permission == prot_exec);
+            const vaddress page = addr & ~page_mask;
+            const auto &entry = entries[(addr >> page_bits) & TLB_ENTRY_MASK];
+            const vaddress tag = Permission == prot_read ? entry.read_addr
+                : Permission == prot_write ? entry.write_addr : entry.execute_addr;
+            return page && entry.host_base && tag == page
+                ? entry.host_base + (addr & page_mask) : nullptr;
+        }
+
         std::uint8_t *lookup(const vaddress addr) {
             const std::size_t page_index = addr >> page_bits;
             const std::size_t tlb_index = page_index & (TLB_ENTRY_COUNT - 1);
