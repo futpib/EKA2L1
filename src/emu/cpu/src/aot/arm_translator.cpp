@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/code_tracking.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/state_locals.h>
 
@@ -165,6 +166,7 @@ namespace eka2l1::arm::aot {
                      : (size==4 ? op_i32_load : size==2 ? op_i32_load16_u : op_i32_load8_u));
             leb(b, size==4 ? 2 : size==2 ? 1 : 0); leb(b,0);
             if (write) {
+                track_write();
                 // Backing-address guard catches writes through guest aliases.
                 get_local(HOST); load_i32(S::AOT_CODE_END); op(op_i32_lt_u);
                 get_local(HOST); i32_const(size); op(op_i32_add); load_i32(S::AOT_CODE_BEGIN); op(op_i32_gt_u);
@@ -198,6 +200,20 @@ namespace eka2l1::arm::aot {
             get_local(HOST); op(op_if); op(type_void);
             get_local(HOST); get_local(address_local); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
             op(op_end); op(op_end); op(op_end); op(op_end);
+        }
+        // All direct stores are aligned and confined to one physical page.
+        // Helpers/interpreter writes use the same backing-indexed versions.
+        void track_write() {
+#ifdef __EMSCRIPTEN__
+            get_local(HOST); i32_const(12); op(op_i32_shr_u);
+            i32_const(3); op(op_i32_shl);
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(common::code_tracking::pages)));
+            op(op_i32_add); set_local(ENTRY);
+            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,0); set_local(VALUE);
+            get_local(VALUE); op(op_if); op(type_void);
+            get_local(ENTRY); get_local(VALUE); i32_const(1); op(op_i32_add);
+            op(op_i32_store); leb(b,2); leb(b,0); op(op_end);
+#endif
         }
         void ret() { cache.barrier_at(b.size()); op(op_return); }
 
@@ -987,6 +1003,7 @@ namespace eka2l1::arm::aot {
                         offset += 4;
                     }
                     if (!load) {
+                        w.track_write();
                         w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
                         w.get_local(arm_emit::HOST); w.i32_const(count * 4); w.op(op_i32_add);
                         w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and);

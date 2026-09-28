@@ -32,6 +32,7 @@ namespace eka2l1::common::performance {
     inline std::uint64_t ram_aot_dispatches = 0, ram_blocks_compiled = 0, compiled_runner_calls = 0;
     inline std::uint64_t decoded_instructions = 0, cache_hits = 0, cache_misses = 0;
     inline std::uint64_t cache_clears = 0, context_loads = 0, imb_calls = 0;
+    inline std::uint64_t code_version_hits = 0, code_byte_checks = 0;
     inline bool counting() { return enabled && detailed && phase.load(std::memory_order_relaxed) == 2; }
     inline std::chrono::steady_clock::time_point begin;
     inline double wall_seconds = 0;
@@ -93,6 +94,8 @@ namespace eka2l1::common::performance {
             << ",\"decoded_instructions\":" << decoded_instructions
             << ",\"cache_hits\":" << cache_hits << ",\"cache_misses\":" << cache_misses
             << ",\"cache_clears\":" << cache_clears << ",\"context_loads\":" << context_loads
+            << ",\"code_version_hits\":" << code_version_hits
+            << ",\"code_byte_checks\":" << code_byte_checks
             << ",\"imb_calls\":" << imb_calls << ",\"scopes\":{";
         for (int i = 0; i < category_count; ++i) {
             if (i) out << ',';

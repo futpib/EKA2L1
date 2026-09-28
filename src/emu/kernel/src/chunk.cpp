@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/code_tracking.h>
 #include <common/algorithm.h>
 #include <common/chunkyseri.h>
 #include <common/cvt.h>
@@ -154,6 +155,12 @@ namespace eka2l1 {
                     std::fill(base_ptr + bottom, base_ptr + top, clear_byte);
                 }
 
+                if (chnk_access == chunk_access::code && !force_host_map
+                    && mem->get_model_type() == mem::mem_model_type::multiple) {
+                    tracked_code_base_ = mmc_impl_->host_base(false);
+                    common::code_tracking::register_allocation(tracked_code_base_, mmc_impl_->max());
+                }
+
                 LOG_INFO(KERNEL, "Chunk created: {}, base (in parent): 0x{:x}, max size: 0x{:x} type: {}, access: {}{}", obj_name,
                     mmc_impl_->base(mmp), max_size, (type == chunk_type::normal ? "normal" : (type == chunk_type::disconnected ? "disconnected" : "double ended")),
                     (chnk_access == chunk_access::local ? "local" : (chnk_access == chunk_access::code ? "code " : "global")),
@@ -162,6 +169,10 @@ namespace eka2l1 {
         }
 
         int chunk::destroy() {
+            if (tracked_code_base_) {
+                common::code_tracking::retire_allocation(tracked_code_base_);
+                tracked_code_base_ = nullptr;
+            }
             kernel::process *own = get_own_process();
 
             if (!mmc_impl_unq_) {
@@ -271,6 +282,10 @@ namespace eka2l1 {
             }
 
             return mmc_impl_->allocate(size);
+        }
+
+        void *chunk::host_base_for_loading() {
+            return mmc_impl_ ? mmc_impl_->host_base(false) : nullptr;
         }
 
         void *chunk::host_base() {

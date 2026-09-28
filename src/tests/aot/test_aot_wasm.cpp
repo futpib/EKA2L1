@@ -2591,6 +2591,90 @@ static bool test_cached_callback_state() {
     return true;
 }
 
+static bool test_generated_write_versions() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking = eka2l1::common::code_tracking;
+    alignas(4096) static std::uint8_t backing[8192]{};
+    tracking::register_allocation(backing,sizeof(backing));
+    for (auto store : {0xe5c10000u,0xe1c100b0u,0xe5810000u,0xe8a10009u}) {
+        for (auto alias : {0x4000u,0x8000u}) {
+            const std::uint32_t words[]={store,0xe2822001,0xe12fff1e};
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
+            auto module=build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+            r12l1::tlb tlb(12);tlb.add(alias,backing,7);
+            alignas(8) std::uint32_t state[256]{};
+            state[0]=0x12345678;state[3]=0x11223344;state[1]=alias;state[14]=0x2000;
+            state[state_offsets::AOT_BUDGET/4]=3;state[state_offsets::NIRQ/4]=1;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            auto before=tracking::snapshot(backing,8);
+            if(before.empty())return false;
+            auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            if(count!=3 || state[2]!=1 || before[0].valid() || backing[0]!=0x78) return false;
+        }
+    }
+    tracking::retire_allocation(backing);
+#endif
+    printf("  PASS generated_write_versions (STRB/STRH/STR/STM through physical aliases)\n");
+    return true;
+}
+
+static bool test_code_validity_versions() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking = eka2l1::common::code_tracking;
+    alignas(4096) static std::uint8_t backing[16384]{};
+    tracking::register_allocation(backing, 8192);
+    test_mem memory;
+    r12l1::exclusive_monitor monitor(1);
+    auto cpu = make_cpu(memory, monitor);
+    std::atomic<std::uint64_t> mapping{1};
+    cpu->code_mapping_generation = &mapping; cpu->code_address_space = 1;
+    core::code_mapping view{1,backing,4096};
+    cpu->resolve_code = [&](std::uint32_t addr, core::code_mapping &out) {
+        out = view; if (addr == 0x2000) out.bytes = backing+4096; return true;
+    };
+    validated_code_cache cache;
+    auto install = [&]() {
+        auto &b = cache.insert(0x1000,view,8);
+        validated_code_cache::add_dependency(b,0x2000,backing+4096,{backing+4096,backing+4104});
+        return cache.find(0x1000,*cpu);
+    };
+    auto *entry = install();
+    if (!entry || entry->stamps.size()!=2 || !cache.find(0x1000,*cpu)) return false;
+    // Aliases use the host backing, and a changed dependency invalidates caller.
+    backing[4096]=1;tracking::guest_write(backing+4096,1);
+    if (cache.find(0x1000,*cpu)) return false;
+    entry=install();if(!entry) return false;
+    const auto version=entry->stamps[0].version;
+    tracking::guest_write(backing,4); // Same bytes still refresh their generation.
+    if (!cache.find(0x1000,*cpu) || entry->stamps[0].version==version) return false;
+    // A retained host pointer poisons the WHOLE allocation, including a later
+    // write through that pointer, after intervening successful lookups.
+    tracking::escape_pointer(backing+6000);
+    if(!cache.find(0x1000,*cpu) || !entry->stamps.empty()) return false;
+    backing[0]=2;
+    if(cache.find(0x1000,*cpu)) return false;
+    if(!install())return false;
+    view.bytes=backing+8192;++mapping;
+    if(cache.find(0x1000,*cpu))return false;
+    tracking::retire_allocation(backing);
+    tracking::register_allocation(backing,8192);
+    if(!tracking::snapshot(backing,8).empty()) return false; // no reuse resurrection
+    tracking::retire_allocation(backing);
+    tracking::register_allocation(backing+8192,8192);
+    auto stamps=tracking::snapshot(backing+8192,8);if(stamps.empty())return false;
+    tracking::pages[reinterpret_cast<std::uintptr_t>(backing+8192)>>12].version=UINT32_MAX;
+    tracking::guest_write(backing+8192,4);
+    if(!tracking::snapshot(backing+8192,8).empty())return false;
+    auto last=tracking::snapshot(backing+12288,8);
+    if(last.empty())return false;
+    tracking::retire_allocation(backing+8192);
+    if(last[0].valid())return false;
+#endif
+    printf("  PASS code_validity_versions (dependencies, aliases, escapes, remap, reuse, overflow)\n");
+    return true;
+}
+
 int main() {
     std::array<std::uint32_t, 16> zero_regs = {};
     zero_regs[13] = 0x10000; // SP
@@ -3186,6 +3270,8 @@ int main() {
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
+    if (test_generated_write_versions()) passed++; else {printf("  FAIL generated_write_versions\n");failed++;}
+    if (test_code_validity_versions()) passed++; else {printf("  FAIL code_validity_versions\n");failed++;}
     if (test_arm_mov_imm()) passed++; else failed++;
     if (test_arm_add_sub_imm()) passed++; else failed++;
     if (test_arm_cmp_beq()) passed++; else failed++;

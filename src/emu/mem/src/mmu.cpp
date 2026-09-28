@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/code_tracking.h>
 #include <common/log.h>
 #include <config/config.h>
 #include <cpu/arm_interface.h>
@@ -178,6 +179,7 @@ namespace eka2l1::mem {
         std::uint8_t *ptr = reinterpret_cast<std::uint8_t *>(inf->host_addr) + (addr & manager_->offset_mask_);
 
         *ptr = *data;
+        common::code_tracking::guest_write(ptr, sizeof(*ptr));
 
         if (conf_->log_write) {
             LOG_TRACE(MEMORY, "Write 1 byte to address 0x{:X}", addr);
@@ -198,6 +200,7 @@ namespace eka2l1::mem {
         std::uint16_t *ptr = reinterpret_cast<std::uint16_t *>(reinterpret_cast<std::uint8_t *>(inf->host_addr) + (addr & manager_->offset_mask_));
 
         *ptr = *data;
+        common::code_tracking::guest_write(ptr, sizeof(*ptr));
 
         if (conf_->log_write) {
             LOG_TRACE(MEMORY, "Write 2 bytes to address 0x{:X}", addr);
@@ -218,6 +221,7 @@ namespace eka2l1::mem {
         std::uint32_t *ptr = reinterpret_cast<std::uint32_t *>(reinterpret_cast<std::uint8_t *>(inf->host_addr) + (addr & manager_->offset_mask_));
 
         *ptr = *data;
+        common::code_tracking::guest_write(ptr, sizeof(*ptr));
 
         if (conf_->log_write) {
             LOG_TRACE(MEMORY, "Write 4 bytes to address 0x{:X}", addr);
@@ -238,6 +242,7 @@ namespace eka2l1::mem {
         std::uint64_t *ptr = reinterpret_cast<std::uint64_t *>(reinterpret_cast<std::uint8_t *>(inf->host_addr) + (addr & manager_->offset_mask_));
 
         *ptr = *data;
+        common::code_tracking::guest_write(ptr, sizeof(*ptr));
 
         if (conf_->log_write) {
             LOG_TRACE(MEMORY, "Write 8 bytes to address 0x{:X}", addr);

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cpu/aot/aot_registry.h>
+#include <common/code_tracking.h>
+#include <common/performance.h>
 #include <cpu/arm_interface.h>
 #include <cstring>
 #include <array>
@@ -11,8 +13,8 @@
 namespace eka2l1::arm::aot {
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size);
 
-    // RAM code may be patched through host pointers as well as guest stores.
-    // Validate bytes on every entry; mapping notifications alone are insufficient.
+    // Known allocations use backing-page write versions. Raw host-pointer
+    // escapes permanently restore exact validation for their whole allocation.
     class validated_code_cache {
     public:
         validated_code_cache() = default;
@@ -38,6 +40,8 @@ namespace eka2l1::arm::aot {
             bool rejected = false;
             std::uint64_t mapping_generation = 0;
             const std::atomic<std::uint64_t> *mapping_source = nullptr;
+            bool tracking_attempted = false;
+            std::vector<common::code_tracking::stamp> stamps;
         };
 
         static std::uint64_t key(std::uint32_t space, std::uint32_t pc_mode) {
@@ -64,11 +68,10 @@ namespace eka2l1::arm::aot {
                     || mapped.size < d.code.size()) { dependencies_mapped = false; break; }
             }
             // A recent hit only skips the container search. Resolve the mapping
-            // at the caller and check the backing, extent and exact bytes every
-            // time, including after aliased/host writes and address-space reuse.
+            // at the caller and check backing, extent and exact bytes after
+            // mapping changes, including address-space reuse.
             if (!dependencies_mapped || !view.bytes || view.bytes != entry->backing || view.size < entry->code.size()
-                || !equal_code_bytes(view.bytes, entry->code.data(), entry->code.size())
-                || !dependencies_equal(*entry)) {
+                || !bytes_match(*entry, true)) {
                 entry->live = false;
                 current_.erase(k);
                 recent = nullptr;
@@ -93,8 +96,7 @@ namespace eka2l1::arm::aot {
             }
             if (generation && recent->mapping_source == cpu.code_mapping_generation
                 && recent->mapping_generation == generation) {
-                if (equal_code_bytes(recent->backing, recent->code.data(), recent->code.size())
-                    && dependencies_equal(*recent)) return recent;
+                if (bytes_match(*recent, false)) return recent;
                 recent->live = false;
                 current_.erase(k);
                 recent = nullptr;
@@ -160,6 +162,36 @@ namespace eka2l1::arm::aot {
         std::uint64_t invalidations = 0;
 
     private:
+        static bool bytes_match(block &entry, bool force) {
+            if (!force && !entry.stamps.empty()
+                && std::all_of(entry.stamps.begin(), entry.stamps.end(), [](const auto &s) { return s.valid(); })) {
+                if (common::performance::counting()) ++common::performance::code_version_hits;
+                return true;
+            }
+            if (common::performance::counting()) ++common::performance::code_byte_checks;
+            if (!equal_code_bytes(entry.backing, entry.code.data(), entry.code.size()) || !dependencies_equal(entry))
+                return false;
+            if (!entry.tracking_attempted) {
+                entry.tracking_attempted = true;
+                entry.stamps = common::code_tracking::snapshot(entry.backing, entry.code.size());
+                for (const auto &dep : entry.dependencies) {
+                    if (entry.stamps.empty()) break;
+                    auto stamps = common::code_tracking::snapshot(dep.backing, dep.code.size());
+                    if (stamps.empty()) { entry.stamps.clear(); break; }
+                    entry.stamps.insert(entry.stamps.end(), stamps.begin(), stamps.end());
+                }
+                std::sort(entry.stamps.begin(), entry.stamps.end(), [](const auto &a, const auto &b) { return a.page < b.page; });
+                entry.stamps.erase(std::unique(entry.stamps.begin(), entry.stamps.end(),
+                    [](const auto &a, const auto &b) { return a.page == b.page; }), entry.stamps.end());
+            } else {
+                // A write may leave bytes unchanged. Refresh versions only
+                // after the complete exact comparison, never after a mismatch.
+                for (auto &s : entry.stamps) s.version = s.page->version;
+            }
+            if (std::any_of(entry.stamps.begin(), entry.stamps.end(), [](const auto &s) { return !s.valid(); }))
+                entry.stamps.clear(); // Escaped pointers/overflow never recover.
+            return true;
+        }
         static bool dependencies_equal(const block &entry) {
             for (const auto &d : entry.dependencies)
                 if (!equal_code_bytes(d.backing, d.code.data(), d.code.size())) return false;

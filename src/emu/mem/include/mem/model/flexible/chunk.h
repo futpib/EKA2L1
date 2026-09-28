@@ -65,7 +65,7 @@ namespace eka2l1::mem::flexible {
 
         const vm_address base(mem_model_process *process) override;
 
-        void *host_base() override;
+        void *host_base(bool expose = true) override;
 
         const std::size_t committed() const override {
             return committed_;

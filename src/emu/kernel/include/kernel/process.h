@@ -280,6 +280,9 @@ namespace eka2l1::kernel {
 
         void *get_ptr_on_addr_space(address addr);
 
+        // Copy without exposing a writable host pointer.
+        bool read_memory(address addr, void *destination, std::size_t size);
+
         std::optional<std::uint32_t> read_dword_data_from(process *from_process, address addr);
         bool write_dword_data_to(process *to_process, address addr, const std::uint32_t target_data);
 

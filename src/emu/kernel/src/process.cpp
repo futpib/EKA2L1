@@ -473,6 +473,21 @@ namespace eka2l1::kernel {
         return mem->get_control()->get_host_pointer(mm_impl_->address_space_id(), addr);
     }
 
+    bool process::read_memory(address addr, void *destination, std::size_t size) {
+        if (!mm_impl_ || std::uint64_t(addr) + size > (std::uint64_t(1) << 32)) return false;
+        auto *control = mem->get_control();
+        auto *out = static_cast<std::uint8_t *>(destination);
+        while (size) {
+            const auto *page = control->get_page_info(mm_impl_->address_space_id(), addr);
+            if (!page || !page->host_addr) return false;
+            const auto offset = addr & control->offset_mask_;
+            const auto count = std::min<std::size_t>(size, control->offset_mask_ + 1 - offset);
+            std::memcpy(out, static_cast<const std::uint8_t *>(page->host_addr) + offset, count);
+            out += count; addr += count; size -= count;
+        }
+        return true;
+    }
+
     // EKA2L1 doesn't use multicore yet, so rendezvous and logon
     // are just simple.
     void process::logon(eka2l1::ptr<epoc::request_status> logon_request, bool rendezvous) {

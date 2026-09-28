@@ -13,6 +13,9 @@ else ()
 endif ()
 
 add_library(common
+        src/native_profile.cpp
+        src/code_tracking.cpp
+        include/common/code_tracking.h
         include/common/applauncher.h
         include/common/archive.h
         include/common/arghandler.h

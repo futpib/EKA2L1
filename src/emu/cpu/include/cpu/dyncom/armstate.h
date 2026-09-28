@@ -16,6 +16,7 @@
     Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
 #pragma once
+#include <common/code_tracking.h>
 
 #include <array>
 #include <common/bytes.h>
@@ -190,6 +191,7 @@ public:
     void WriteMemory8(std::uint32_t address, std::uint8_t data) {
         if (std::uint8_t *ptr = mem_cache_->lookup(address)) {
             *ptr = data;
+            eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
         }
         WriteMemory8Slow(address, data);
@@ -199,6 +201,7 @@ public:
             data = eka2l1::common::byte_swap(data);
         if (std::uint16_t *ptr = reinterpret_cast<std::uint16_t *>(mem_cache_->lookup(address))) {
             *ptr = data;
+            eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
         }
         WriteMemory16Slow(address, data);
@@ -208,6 +211,7 @@ public:
             data = eka2l1::common::byte_swap(data);
         if (std::uint32_t *ptr = reinterpret_cast<std::uint32_t *>(mem_cache_->lookup(address))) {
             *ptr = data;
+            eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
         }
         WriteMemory32Slow(address, data);
@@ -217,6 +221,7 @@ public:
             data = eka2l1::common::byte_swap(data);
         if (std::uint64_t *ptr = reinterpret_cast<std::uint64_t *>(mem_cache_->lookup(address))) {
             *ptr = data;
+            eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
         }
         WriteMemory64Slow(address, data);
@@ -254,12 +259,14 @@ public:
         const std::uint32_t page_off = address & static_cast<std::uint32_t>(mem_cache_->page_mask);
         if (c.page_host && (address - page_off) == c.page_base) {
             *reinterpret_cast<std::uint32_t *>(c.page_host + page_off) = data;
+            eka2l1::common::code_tracking::guest_write(c.page_host + page_off, 4);
             return;
         }
         if (std::uint8_t *ptr = mem_cache_->lookup(address)) {
             c.page_host = ptr - page_off;
             c.page_base = address - page_off;
             *reinterpret_cast<std::uint32_t *>(ptr) = data;
+            eka2l1::common::code_tracking::guest_write(ptr, 4);
             return;
         }
         c.page_host = nullptr;

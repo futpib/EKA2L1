@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     if (eka2l1::common::benchmark::enabled() && std::getenv("EKA2L1_QT_PROFILE_OUTPUT")) {
         namespace common = eka2l1::common;
         common::performance::enabled = true;
-        common::performance::detailed = false;
+        common::performance::detailed = (std::getenv("EKA2L1_QT_PROFILE_DETAIL") && std::getenv("EKA2L1_QT_PROFILE_DETAIL")[0] == '1');
         common::performance::capture_mode = 2;
         common::performance::start_us = 78000000;
         common::performance::end_us = 96000000;

@@ -1,3 +1,4 @@
+#include <common/native_profile.h>
 /*
  * Copyright (c) 2019 EKA2L1 Team.
  * Copyright 2015 Dolphin Emulator Project.
@@ -395,8 +396,10 @@ namespace eka2l1::desktop {
                         common::performance::first_instructions = instructions;
                         common::performance::begin = std::chrono::steady_clock::now();
                         common::performance::phase = 2;
+                        common::native_profile::start();
                     }
                     if (common::performance::checkpoint(us, instructions)) {
+                        common::native_profile::stop();
                         std::ofstream out(profile_output);
                         out << common::performance::report() << '\n';
                         out.close();

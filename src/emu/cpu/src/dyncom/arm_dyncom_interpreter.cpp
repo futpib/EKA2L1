@@ -1018,6 +1018,7 @@ static std::uint32_t run_accel_bulk(ARMul_State *cpu, const loop_accel_inst *d, 
                     std::memcpy(p, &v, 4);
                     break;
                 }
+                eka2l1::common::code_tracking::guest_write(p, st.width);
             }
             hd += d->dst_step;
         }

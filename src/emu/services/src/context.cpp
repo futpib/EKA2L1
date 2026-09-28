@@ -25,6 +25,7 @@
 
 #include <services/context.h>
 #include <utils/des.h>
+#include <utils/descriptor_copy.h>
 #include <utils/err.h>
 #include <utils/sec.h>
 
@@ -102,13 +103,7 @@ namespace eka2l1 {
 
             if (sys->get_kernel_system()->is_eka1() || (is_descriptor && is_16_bit)) {
                 kernel::process *own_pr = msg->own_thr->owning_process();
-                eka2l1::epoc::desc16 *des = ptr<epoc::desc16>(msg->args.args[idx]).get(own_pr);
-
-                if (!des) {
-                    return std::nullopt;
-                }
-
-                return des->to_std_string(own_pr);
+                return epoc::copy_descriptor<char16_t>([&](address addr, void *out, std::size_t size) { return own_pr->read_memory(addr, out, size); }, msg->args.args[idx]);
             }
 
             return std::nullopt;
@@ -127,13 +122,7 @@ namespace eka2l1 {
             // If it has descriptor flag and it doesn't have an 16-bit flag, it should be 8-bit one.
             if (sys->get_kernel_system()->is_eka1() || (is_descriptor && !is_16_bit)) {
                 kernel::process *own_process = msg->own_thr->owning_process();
-                eka2l1::epoc::desc8 *des = ptr<epoc::desc8>(msg->args.args[idx]).get(own_process);
-
-                if (!des) {
-                    return std::nullopt;
-                }
-
-                return des->to_std_string(msg->own_thr->owning_process());
+                return epoc::copy_descriptor<char>([&](address addr, void *out, std::size_t size) { return own_process->read_memory(addr, out, size); }, msg->args.args[idx]);
             }
 
             return std::nullopt;
