@@ -189,6 +189,8 @@ namespace eka2l1::arm::aot {
             get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,write ? 4 : 0);
             get_local(address_local); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
+            // Zero tags mean no permission, including a colliding page-zero access.
+            get_local(address_local); i32_const(4096); op(op_i32_ge_u); op(op_i32_and);
             op(op_if); op(type_void);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
             get_local(HOST); op(op_if); op(type_void);

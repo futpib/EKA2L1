@@ -2354,9 +2354,9 @@ static bool test_block_transfer_guards() {
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
-            for (unsigned address : {0x8000u,0x8001u,0x8ffcu}) {
+            for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0u}) {
                 test_mem memory;
-                r12l1::tlb direct(12); direct.add(0x8000,memory.data.data()+0x8000,permission);
+                r12l1::tlb direct(12); direct.add(address == 0 ? 0x200000 : 0x8000,memory.data.data()+0x8000,permission);
                 alignas(8) std::uint32_t state[256]{};
                 state[0]=17; state[1]=address; state[2]=19; state[3]=23; state[15]=0x1000;
                 state[state_offsets::CPSR/4]=0x10|endian;
@@ -2372,7 +2372,7 @@ static bool test_block_transfer_guards() {
             }
     }
 #endif
-    printf("  PASS block_transfer_guards (48 permission/endian/alignment/page cases)\n");return true;
+    printf("  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n");return true;
 }
 
 static bool test_repeated_read_guards() {
@@ -2382,12 +2382,12 @@ static bool test_repeated_read_guards() {
     auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
     for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
-        for (unsigned address : {0x8000u,0x8001u,0x8ffcu}) {
+        for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0u}) {
             test_mem memory;
             std::vector<std::uint8_t> code(sizeof(words)); std::memcpy(code.data(),words,sizeof(words));
             memory.write_code(0x1000,code);
             for (unsigned a=0x8000;a<0xa000;a+=4) { memory.write32(a,a*37); }
-            r12l1::tlb direct(12); direct.add(0x8000,memory.data.data()+0x8000,permission);
+            r12l1::tlb direct(12); direct.add(address == 0 ? 0x200000 : 0x8000,memory.data.data()+0x8000,permission);
             alignas(8) std::uint32_t state[256]{};
             state[1]=address; state[15]=0x1000;
             state[state_offsets::CPSR/4]=0x10|endian;
@@ -2406,7 +2406,7 @@ static bool test_repeated_read_guards() {
                 ||state[3]!=memory.read32(address+8)||state[15]!=0x100c)) return false;
         }
 #endif
-    printf("  PASS repeated_read_guards (24 permission/endian/alignment/page cases)\n");return true;
+    printf("  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n");return true;
 }
 
 static bool test_block_transfer_callback_pc() {
