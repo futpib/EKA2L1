@@ -271,3 +271,9 @@ installed into normal gameplay. The native submodule source is restored too;
 diagnostic binaries, patches and raw measurements are archived separately.
 Research remains locally committed on `wasm-port`; nothing is pushed.
 
+
+## Follow-up
+
+The three fault mechanisms are fixed and the 480-case gate passes in
+[Memory semantics and connected-path experiments](MEMORY_AND_CONNECTED_RESULTS.md).
+The failing totals above describe the historical diagnostic build.

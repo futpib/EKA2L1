@@ -1,0 +1,181 @@
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index 931356a3f..d97373470 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -304,7 +304,7 @@ void observe_hot_pc(ARMul_State *cpu) {
+             core::code_mapping leaf;
+             if (!cpu->parent()->resolve_code(target, leaf) || leaf.address_space != view.address_space)
+                 return std::vector<std::uint8_t>{};
+-            const auto bytes = std::min(std::size_t(64), leaf.size);
++            const auto bytes = std::min(std::size_t(256), leaf.size);
+             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
+         };
+         auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index efbb52102..5a06ac5e3 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -463,14 +463,27 @@ namespace eka2l1::arm::aot {
+         w.store_i32(S::ZFLAG, tmp);
+     }
+ 
+-    // Only short straight-line leaves with an unchanged LR can be inlined.
++    // Restricted callees keep LR unchanged and end in BX LR. Internal branches
++    // and loops are connected to the caller using per-call-site labels.
+     // Memory instructions retain the normal region guards and helper exits.
+     static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address) {
+         auto bytes = resolve(address);
+-        for (std::size_t n = 0; n < 64 && n + 4 <= bytes.size(); n += 4) {
++        std::vector<std::int64_t> targets;
++        for (std::size_t n = 0; n < 256 && n + 4 <= bytes.size(); n += 4) {
+             std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
+-            if (op == 0xe12fff1e) { bytes.resize(n + 4); return bytes; }
+-            if ((op >> 28) != 14) return {};
++            if (op == 0xe12fff1e) {
++                for (auto target : targets) if (target < 0 || target > static_cast<std::int64_t>(n)) return {};
++                bytes.resize(n + 4); return bytes;
++            }
++            // Internal conditional/unconditional branches stay in the caller's
++            // function. LR and PC are otherwise untouched until the final BX.
++            if ((op >> 28) == 15) return {};
++            if (((op >> 25) & 7) == 5) {
++                if (op & (1u << 24)) return {}; // no nested calls
++                const auto displacement = static_cast<std::int32_t>(op << 8) >> 6;
++                targets.push_back(static_cast<std::int64_t>(n) + 8 + displacement);
++                continue;
++            }
+             const auto group = (op >> 26) & 3;
+             if (group > 1 || ((op >> 16) & 15) >= 13 || ((op >> 12) & 15) >= 13) return {};
+             if (group == 1) {
+@@ -644,23 +657,42 @@ namespace eka2l1::arm::aot {
+             }
+         }
+ 
+-        // Collect forward branch targets
++        // Labels are flattened positions for regions, guest addresses for the
++        // legacy non-region translator. Each inlined call has its own namespace.
++        std::map<std::pair<std::size_t, std::uint32_t>, std::uint32_t> positions;
++        for (std::uint32_t n=0; n<instructions.size(); ++n) {
++            const auto &ins=instructions[n];
++            positions[{ins.leaf ? ins.offset + 1 : 0, ins.address}] = n;
++        }
++        auto label_for = [&](const instruction &ins, std::uint32_t address) {
++            auto it=positions.find({ins.leaf ? ins.offset + 1 : 0, address});
++            return it==positions.end() ? UINT32_MAX : it->second;
++        };
+         std::set<std::uint32_t> forward_targets_set;
+-        for (std::size_t i : reachable) {
+-            if (i + 3 >= code_size) continue;
+-            std::uint32_t inst;
+-            std::memcpy(&inst, code + i, 4);
+-            std::uint32_t src = start_address + static_cast<std::uint32_t>(i);
++        if (region) {
++            for (const auto &ins : instructions) {
++                if (((ins.opcode >> 25) & 7) != 5 || (ins.opcode & (1u<<24))) continue;
++                const auto delta=static_cast<std::int32_t>(ins.opcode << 8) >> 6;
++                const auto target=label_for(ins, ins.address + 8 + delta);
++                if (target != UINT32_MAX && target != 0) forward_targets_set.insert(target);
++            }
++        } else {
++            for (std::size_t i : reachable) {
++                if (i + 3 >= code_size) continue;
++                std::uint32_t inst;
++                std::memcpy(&inst, code + i, 4);
++                std::uint32_t src = start_address + static_cast<std::uint32_t>(i);
+ 
+-            // B (not BL): bits [27:25] = 101, bit 24 = 0
+-            if (((inst >> 25) & 7) == 5 && !((inst >> 24) & 1)) {
+-                std::int32_t offset = inst & 0x00FFFFFF;
+-                if (offset & 0x00800000) offset |= 0xFF000000;
+-                offset = (offset << 2) + 8;
+-                std::uint32_t target = src + static_cast<std::uint32_t>(offset);
+-                if ((target > src || (region && target != start_address)) && target >= start_address &&
+-                    target < start_address + code_size) {
+-                    forward_targets_set.insert(target);
++                // B (not BL): bits [27:25] = 101, bit 24 = 0
++                if (((inst >> 25) & 7) == 5 && !((inst >> 24) & 1)) {
++                    std::int32_t offset = inst & 0x00FFFFFF;
++                    if (offset & 0x00800000) offset |= 0xFF000000;
++                    offset = (offset << 2) + 8;
++                    std::uint32_t target = src + static_cast<std::uint32_t>(offset);
++                    if ((target > src || (region && target != start_address)) && target >= start_address &&
++                        target < start_address + code_size) {
++                        forward_targets_set.insert(target);
++                    }
+                 }
+             }
+         }
+@@ -728,8 +760,10 @@ namespace eka2l1::arm::aot {
+         std::uint32_t insn_idx = 0;
+         std::uint32_t decoded_end_offset = 0;
+ 
+-        for (const auto &instruction : instructions) {
++        for (std::uint32_t position=0; position<instructions.size(); ++position) {
++            const auto &instruction = instructions[position];
+             const auto i = instruction.offset;
++            const auto current_label = region ? position : instruction.address;
+             if (!region) insn_idx = static_cast<std::uint32_t>(i / 4);
+             if (bounded && !region && stop_after_store && w.memory_write) break;
+             const auto inst = instruction.opcode;
+@@ -739,12 +773,12 @@ namespace eka2l1::arm::aot {
+             // successors need just their budget guard; join/loop entries retain
+             // the exit check independently of their lexical predecessor.
+             const bool check_exit = w.instruction_may_exit || insn_addr == start_address
+-                || (!instruction.leaf && forward_targets_set.count(insn_addr));
++                || forward_targets_set.count(current_label);
+             w.instruction_may_exit = false;
+             w.current_pc = insn_addr; w.pc_written = false;
+ 
+             // Close forward-target blocks
+-            while (!instruction.leaf && closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
++            while (closed_count < N_fwd && fwd_sorted[closed_count] == current_label) {
+                 w.op(op_end);
+                 closed_count++;
+             }
+@@ -836,16 +870,17 @@ namespace eka2l1::arm::aot {
+ 
+                 // B (not link)
+                 // Check if target is a forward branch within the block
+-                auto fit = fwd_idx.find(target);
+-                if (fit != fwd_idx.end() && target > insn_addr) {
++                const auto target_label = region ? label_for(instruction, target) : target;
++                auto fit = fwd_idx.find(target_label);
++                if (fit != fwd_idx.end() && target_label > current_label) {
+                     // Forward branch: br to the appropriate block depth
+                     std::uint32_t depth = fit->second - closed_count + (cond_opened ? 1 : 0);
+                     w.op(op_br);
+                     leb(result.body, depth);
+                     if (cond_opened) w.op(op_end);
+-                } else if ((!bounded && target >= start_address && target < start_address + code_size) || (region && target >= start_address && target < start_address + code_size && (target == start_address || fit != fwd_idx.end()))) {
++                } else if ((!bounded && target >= start_address && target < start_address + code_size) || (region && target_label != UINT32_MAX && (target_label == 0 || fit != fwd_idx.end()))) {
+                     if (region) {
+-                        w.i32_const(target == start_address ? 0 : fit->second+1); w.set_local(PC_IDX);
++                        w.i32_const(target_label == 0 ? 0 : fit->second+1); w.set_local(PC_IDX);
+                         w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                         w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
+                         w.op(op_i32_and);
+@@ -1774,7 +1809,7 @@ namespace eka2l1::arm::aot {
+         // Close remaining forward blocks
+         while (closed_count < N_fwd) {
+             w.op(op_end);
+-            w.bail(fwd_sorted[closed_count], insn_idx);
++            w.bail(region ? instructions[fwd_sorted[closed_count]].address : fwd_sorted[closed_count], insn_idx);
+             closed_count++;
+         }
+ 
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+index f366bc13b..c23bf01d1 100644
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -2270,6 +2270,11 @@ static bool test_inlined_leaves() {
+     const std::uint32_t caller[] = {0xeb0003fe,0xeb0003fd,0xe2566001,0x1afffffb};
+     const std::vector<std::vector<std::uint32_t>> leaves = {
+         {0xe2800001,0xe12fff1e},
++        {0xe3a03003,0xe2800001,0xe2533001,0x1afffffc,0xe12fff1e}, // interior loop
++        {0xe3530000,0x0a000000,0xe2800001,0xe12fff1e}, // forward branch
++        {0xea000000,0xe2800001,0xe2833001,0xe3530002,0x1afffffc,0xe12fff1e}, // shared forward/back label
++        {0xe3a03002,0xe5803000,0xe2533001,0x1afffffc,0xe12fff1e}, // loop with store/alias exit
++
+         {0xe3a03000,0xe5803000,0xe5911000,0xe5922000,0xe0411002,0xe5801000,0xe12fff1e},
+         {0xe3a03000,0xe5803000,0xe5803004,0xe5803008,0xe12fff1e},
+         {0xe12fff1e}
