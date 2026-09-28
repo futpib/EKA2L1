@@ -98,6 +98,7 @@ add_library(drivers
         src/audio/audio.cpp
         src/audio/dsp.cpp
         src/audio/deterministic.cpp
+        src/audio/clocked.cpp
         src/audio/player.cpp
         src/audio/stream.cpp
         src/audio/backend/minibae/player_minibae.cpp
@@ -308,3 +309,5 @@ target_include_directories(drivers PUBLIC include ${MINIBAE_PUBLIC_INCLUDE_DIRS}
 if (BUILD_WITH_VULKAN)
     target_link_libraries(drivers PRIVATE Vulkan)
 endif ()
+
+target_include_directories(drivers PRIVATE ${PROJECT_SOURCE_DIR}/src/external/cubeb/src)

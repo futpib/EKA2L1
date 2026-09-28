@@ -14,11 +14,12 @@ const profileEnd = Number(process.env.EKA2L1_LIVE_PROFILE_END_US || 0);
 if (profileStart && (!Number.isSafeInteger(profileStart) || !Number.isSafeInteger(profileEnd) || profileEnd <= profileStart)) throw new Error('Invalid live profile window');
 const assets = path.resolve(assetArg), output = path.resolve(outputArg);
 fs.mkdirSync(output);
+const audioEnabled = process.env.EKA2L1_LIVE_AUDIO === '1';
 const autoStart = process.env.EKA2L1_LIVE_AUTOSTART === '1';
 const preloads: Record<string,string> = autoStart ? {'/preload/rom':path.join(assets,'SYM.ROM'),
   '/preload/rpkg':path.join(assets,'SYM.RPKG'),'/preload/sis':path.join(assets,'Snakes.sis')} : {};
 const {server, port} = await startServer(0, preloads, autoStart ? 'Snakes' : undefined);
-const browser = await puppeteer.launch({executablePath: '/usr/bin/chromium', headless: true,
+const browser = await puppeteer.launch({executablePath: '/usr/bin/chromium', headless: true, ignoreDefaultArgs: audioEnabled ? ['--mute-audio'] : [],
   args: ['--no-sandbox', '--disable-dev-shm-usage', '--use-gl=angle', '--use-angle=vulkan',
     '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist', '--disable-background-timer-throttling']});
 const system = await browser.target().createCDPSession();
@@ -32,6 +33,11 @@ page.on('pageerror', e => errors.push(String(e)));
 page.on('requestfailed', r => errors.push(`${r.url()}: ${r.failure()?.errorText}`));
 page.on('response', r => {if (r.status() >= 400) errors.push(`HTTP ${r.status()} ${r.url()}`);});
 const pause = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const audioState = () => page.evaluate(() => {
+  const g=window as any, a=g.EkaAudio;
+  return {context_time:a.context?.currentTime, state:a.context?.state, worklet:a.stats,
+    received:a.received, sink:JSON.parse(g.Module.ccall('eka2l1_audio_stats','string',[],[]))};
+});
 const state = () => page.evaluate(() => ({guest: (window as any).Module._eka2l1_guest_time_us(),
   inputs: (window as any).Module._eka2l1_input_consumed(), frames: (window as any).Module._eka2l1_presentations()}));
 async function resources() {
@@ -89,6 +95,11 @@ try {
     await page.click('#btn-start');
   }
   await page.waitForFunction(() => (window as any)._gameRunning, {timeout:120000});
+  if (audioEnabled) {
+    await page.click('#btn-sound');
+    await page.waitForFunction(() => (window as any).EkaAudio.context?.state === 'running' && !(window as any).EkaAudio.muted);
+    if (!await page.evaluate(() => document.activeElement?.id === 'canvas')) throw Error('Audio control trapped game keyboard focus');
+  }
   const startupResources = await resources();
   if (process.env.EKA2L1_EXPECT_UPLOAD_RELEASE === '1' &&
       (startupResources.selected_files.some(n => n !== 0) ||
@@ -109,6 +120,7 @@ try {
   if ((await state()).inputs < previous + 2) throw new Error('Touch press/release not consumed');
   await page.setViewport({width:900,height:760,hasTouch:true});
   await page.focus('#canvas');
+  const audioStart = audioEnabled ? await audioState() : null;
   const start = await state(), hostStart = performance.now(), samples = [];
   let profileClients: {name:string, client:any}[] = [], profileBegin:any = null, profileFinish:any = null;
   const stopProfile = async (current:any) => {
@@ -130,7 +142,7 @@ try {
       profileBegin = {host_seconds:(performance.now()-hostStart)/1000,...current};
     }
     if (profileBegin && !profileFinish && current.guest >= profileEnd) await stopProfile(current);
-    samples.push({host_seconds:(performance.now()-hostStart)/1000, ...current});
+    samples.push({host_seconds:(performance.now()-hostStart)/1000, ...current, ...(audioEnabled ? {audio:await audioState()} : {})});
     // Retain scene evidence throughout long trials so a fast menu cannot be
     // mistaken for sustained gameplay. Screenshot cost stays in elapsed time.
     if (samples.length % 20 === 0) await visible(`gameplay-${samples.length}`, false);
@@ -146,15 +158,37 @@ try {
   await pause(100);
   if ((await state()).inputs < consumedBefore+2) throw new Error('Blur failed to release held input');
   await page.keyboard.up('ArrowLeft');
+  const audio = audioEnabled ? await page.evaluate(() => {
+    const g = window as any, a = g.EkaAudio;
+    return {state:a.context.state,rate:a.context.sampleRate,muted:a.muted,received:a.received,worklet:a.stats,
+      sink:JSON.parse(g.Module.ccall('eka2l1_audio_stats','string',[],[]))};
+  }) : null;
+  if (audioEnabled) {
+    if (!audio.worklet.nonzero || audio.worklet.played < duration*40000 || audio.state !== 'running') throw Error('Audio did not play');
+    await page.click('#btn-sound');
+    await pause(20);
+    if (!await page.evaluate(() => (window as any).EkaAudio.muted && (window as any).EkaAudio.gain.gain.value === 0)) throw Error('Mute failed');
+    await page.click('#btn-sound');
+    await pause(20);
+    if (!await page.evaluate(() => !(window as any).EkaAudio.muted && (window as any).EkaAudio.gain.gain.value === 1)) throw Error('Unmute failed');
+  }
+  const audioContinuity = audioEnabled ? {
+    added_underruns:audio.worklet.underruns-audioStart.worklet.underruns,
+    added_drops:audio.worklet.dropped-audioStart.worklet.dropped,
+    max_sampled_queue:Math.max(...samples.map(s=>s.audio.worklet.queued)),
+    device_seconds:(await audioState()).context_time-audioStart.context_time
+  } : null;
   const finalResources = await resources();
   await page.evaluate(() => { (window as any)._gameRunning = false; (window as any).Module._eka2l1_shutdown(); });
+  if (audioEnabled && !await page.evaluate(() => !(window as any).EkaAudio.context && !(window as any).EkaAudio.timer)) throw Error('Audio shutdown failed');
   if (errors.length) throw new Error(errors.join('\n'));
-  fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({start,end,host_seconds:elapsed,
+  fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({start,end,host_seconds:elapsed,audio,audio_continuity:audioContinuity,audio_start:audioStart,
     resources:{startup:startupResources,final:finalResources}, auto_start:autoStart, sampling:!!profileStart, profile_window:{begin:profileBegin,end:profileFinish},
     measurement:profileBegin ? {first_virtual_us:profileBegin.guest,last_virtual_us:profileFinish.guest,wall_seconds:profileFinish.host_seconds-profileBegin.host_seconds} : null,
     renderer:'See gpu.json for physical GPU details',
     realtime_ratio:(end.guest-start.guest)/1e6/elapsed, input_delivery_ms:latencies, samples,
     browser:await browser.version(), wasm_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(buildDir,'eka2l1.wasm'))).digest('hex'),
     note:'Input latency measures DOM keydown to guest queue consumption, not display response.'},null,2));
+  if (audioEnabled && (audioContinuity.added_underruns || audioContinuity.added_drops)) throw Error('Audio interrupted during measured gameplay; see report.json');
   console.log('PASS: live UI, keyboard/touch, pacing measurement and shutdown');
 } finally { await browser.close(); server.close(); log.end(); }

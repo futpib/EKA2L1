@@ -104,3 +104,5 @@ if (TARGET dynarmic AND NOT EMSCRIPTEN)
 endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/benchmark/matched_kernel.cmake)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/benchmark/audio_probe.cmake)

@@ -1,4 +1,5 @@
 #include <drivers/audio/deterministic.h>
+#include <drivers/audio/clocked.h>
 #include <common/deterministic.h>
 #include <common/log.h>
 
@@ -200,6 +201,7 @@ namespace eka2l1::drivers {
     }
 
     void pump_benchmark_audio(std::uint64_t us) {
+        if (clocked_audio_active()) { pump_clocked_audio(us); return; }
         render_until(us);
         const auto snapshot = streams;
         for (auto *stream : snapshot)
@@ -207,6 +209,7 @@ namespace eka2l1::drivers {
     }
 
     void export_benchmark_audio(const std::string &directory, std::uint64_t us) {
+        if (clocked_audio_active()) { export_clocked_audio(directory,us); return; }
         render_until(us); // Final partial block, without delivering new guest callbacks.
         std::ofstream wav(directory + "/audio.wav", std::ios::binary);
         auto le = [&wav](std::uint32_t value, int bytes) {

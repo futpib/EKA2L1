@@ -315,7 +315,7 @@ namespace eka2l1::drivers {
     }
 
     bool dsp_output_stream_ffmpeg::internal_decode_running_out() {
-        return ((format_ != drivers::PCM16_FOUR_CC_CODE) && (queued_data_.size() <= CUSTOM_IO_BUFFER_SIZE * 2)) ||
+        return ((format_ != drivers::PCM16_FOUR_CC_CODE && format_ != drivers::PCM8_FOUR_CC_CODE) && (queued_data_.size() <= CUSTOM_IO_BUFFER_SIZE * 2)) ||
             dsp_output_stream_shared::internal_decode_running_out();
     }
 }

@@ -1,6 +1,6 @@
 # Realtime Snakes gameplay in the browser
 
-Verified on 2026-09-27 with Chrome 150.0.7871.186, Intel Core i7-10875H and physical NVIDIA Quadro T1000 Max-Q. This establishes playable realtime for the tested Snakes route on this desktop. It does not establish uniform frame timing, all-game coverage or mobile-device performance. Sound remains off; audio-quality work is deferred.
+Verified on 2026-09-27 with Chrome 150.0.7871.186, Intel Core i7-10875H and physical NVIDIA Quadro T1000 Max-Q. This establishes playable realtime for the tested Snakes route on this desktop. It does not establish uniform frame timing, all-game coverage or mobile-device performance. Sound was off in these historical measurements. For the current browser audio implementation, Qt parity checks and sound-enabled live results, see [AUDIO_PARITY_RESULTS.md](AUDIO_PARITY_RESULTS.md). After the game loads, click **Enable sound**; click **Mute** to silence playback.
 
 ## Sustained live checks
 

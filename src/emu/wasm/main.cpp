@@ -23,6 +23,7 @@
 #include <common/guest_profile.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
 #include <drivers/audio/deterministic.h>
+#include <drivers/audio/clocked.h>
 #include <common/deterministic.h>
 #include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
@@ -184,6 +185,23 @@ int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_audio_configure() {
+    if (g_state) return -1;
+    setenv("EKA2L1_SHARED_AUDIO", "1", 1);
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_audio_read(std::int16_t *out, int frames) {
+    return out && frames > 0 && frames <= 4096 ? drivers::read_clocked_audio(out, frames) : 0;
+}
+EMSCRIPTEN_KEEPALIVE
+const char *eka2l1_audio_stats() {
+    static std::string stats;
+    stats = drivers::clocked_audio_stats();
+    return stats.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_live_configure() {
     if (g_state) return -1;
     common::benchmark::interactive = true;
@@ -321,7 +339,10 @@ int eka2l1_init(const char *data_path) {
     g_state->app_settings = std::make_unique<config::app_settings>(&g_state->conf);
 
     system_create_components comp;
-    comp.audio_ = nullptr;
+    if (common::benchmark::interactive || (std::getenv("EKA2L1_SHARED_AUDIO") &&
+        std::string(std::getenv("EKA2L1_SHARED_AUDIO")) == "1"))
+        g_state->audio_driver = drivers::make_clocked_audio_driver(!common::benchmark::interactive, common::benchmark::interactive);
+    comp.audio_ = g_state->audio_driver.get();
     comp.graphics_ = nullptr;
     comp.conf_ = &g_state->conf;
     comp.settings_ = g_state->app_settings.get();
@@ -520,8 +541,7 @@ EMSCRIPTEN_KEEPALIVE
 int eka2l1_run(const char *app_name) {
     if (!g_state || g_state->gfx_ready.load() != 1) return -1;
 
-    // Audio driver not available in WASM (Cubeb requires native audio APIs)
-    LOG_INFO(FRONTEND_CMDLINE, "Skipping audio driver (not available in WASM)");
+    LOG_INFO(FRONTEND_CMDLINE, "Audio: {}", drivers::clocked_audio_active() ? "shared DSP / browser output" : "deterministic capture");
 
     // Launch the app via applist server (same as Qt frontend)
     LOG_INFO(FRONTEND_CMDLINE, "Launching: {}", app_name);
@@ -800,6 +820,7 @@ int eka2l1_frame_dump_captured() {
 
 EMSCRIPTEN_KEEPALIVE
 void eka2l1_shutdown() {
+    MAIN_THREAD_EM_ASM({ if(typeof window !== "undefined" && window.EkaAudio) window.EkaAudio.stop(); });
     if (g_state) {
         g_state->running = false;
         if (g_state->emu_thread && g_state->emu_thread->joinable()) {

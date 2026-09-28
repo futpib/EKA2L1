@@ -19,6 +19,7 @@
 
 #include <common/deterministic.h>
 #include <drivers/audio/deterministic.h>
+#include <drivers/audio/clocked.h>
 #include <drivers/audio/backend/dsp_shared.h>
 #include <drivers/audio/dsp.h>
 
@@ -30,7 +31,7 @@
 #endif
 
 namespace eka2l1::drivers {
-#if EKA2L1_PLATFORM(IOS) && !EKA2L1_HAS_FFMPEG
+#if (EKA2L1_PLATFORM(IOS) && !EKA2L1_HAS_FFMPEG) || EKA2L1_PLATFORM(EMSCRIPTEN)
     struct dsp_output_stream_pcm final : public dsp_output_stream_shared {
         explicit dsp_output_stream_pcm(drivers::audio_driver *aud)
             : dsp_output_stream_shared(aud) {
@@ -49,22 +50,12 @@ namespace eka2l1::drivers {
         }
 
         void queue_data_decode(const std::uint8_t *original, const std::size_t original_size) override {
-            if (format_ == PCM8_FOUR_CC_CODE) {
-                std::vector<std::int16_t> converted(original_size);
-                for (std::size_t i = 0; i < original_size; ++i) {
-                    converted[i] = static_cast<std::int16_t>(
-                        static_cast<std::int8_t>(original[i])) << 8;
-                }
-                buffer_.push(reinterpret_cast<const std::uint16_t *>(converted.data()), converted.size());
-                return;
-            }
-
-            buffer_.push(reinterpret_cast<const std::uint16_t *>(original), (original_size + 1) / 2);
+            // PCM16/PCM8 are handled by the shared DSP; other formats are rejected.
         }
 
         bool format(const four_cc fmt) override {
             if ((fmt != PCM16_FOUR_CC_CODE) && (fmt != PCM8_FOUR_CC_CODE)) {
-                LOG_WARN(DRIVER_AUD, "iOS DSP output only supports PCM formats for now");
+                LOG_WARN(DRIVER_AUD, "PCM DSP output only supports PCM formats for now");
                 return false;
             }
 
@@ -170,7 +161,10 @@ namespace eka2l1::drivers {
     };
 
     std::unique_ptr<dsp_stream> new_dsp_out_stream(drivers::audio_driver *aud, const dsp_stream_backend dsp_backend) {
-        if (common::benchmark::enabled()) return new_benchmark_dsp_out_stream();
+        if (common::benchmark::enabled() && !clocked_audio_active()) return new_benchmark_dsp_out_stream();
+#if EKA2L1_PLATFORM(EMSCRIPTEN)
+        if (aud) return std::make_unique<dsp_output_stream_pcm>(aud);
+#endif
 #if !EKA2L1_PLATFORM(EMSCRIPTEN)
         switch (dsp_backend) {
         case dsp_stream_backend_ffmpeg:

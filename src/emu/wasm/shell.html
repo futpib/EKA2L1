@@ -23,6 +23,7 @@
     </style>
 </head>
 <body>
+    <script src="audio.js"></script>
     <div id="controls">
         <label>ROM: <input type="file" id="rom-file"></label>
         <label>RPKG: <input type="file" id="rpkg-file"></label>
@@ -34,6 +35,7 @@
         <canvas id="canvas" tabindex="0" aria-label="Game display" width="360" height="640" oncontextmenu="event.preventDefault()"></canvas>
     </div>
     <div id="game-controls" hidden aria-label="Game controls">
+        <button id="btn-sound" type="button" disabled aria-pressed="false" onclick="EkaAudio.toggle()">Enable sound</button>
         <button data-scan="180">Left softkey</button>
         <button data-scan="14" aria-label="Left">←</button>
         <button data-scan="16" aria-label="Up">↑</button>
@@ -157,7 +159,7 @@
             for (var source of Array.from(_inputSources.keys())) _releaseSource(source);
         }
         window.addEventListener('keydown', function(event) {
-            if (!_gameRunning || event.target instanceof HTMLInputElement || !(_keyScans[event.code])) return;
+            if (!_gameRunning || event.target instanceof HTMLInputElement || event.target.id === 'btn-sound' || !(_keyScans[event.code])) return;
             event.preventDefault();
             _pressSource('key:' + event.code, _keyScans[event.code]);
         });
@@ -167,7 +169,7 @@
         });
         window.addEventListener('blur', _releaseInputs);
         document.addEventListener('visibilitychange', function() { if (document.hidden) _releaseInputs(); });
-        for (var button of document.querySelectorAll('#game-controls button')) {
+        for (var button of document.querySelectorAll('#game-controls button[data-scan]')) {
             button.addEventListener('pointerdown', function(event) {
                 event.preventDefault();
                 this.setPointerCapture(event.pointerId);
@@ -252,9 +254,10 @@
                         throw new Error('eka2l1_run failed: ' + runRet);
                     }
                     _gameRunning = true;
+                    EkaAudio.attach(Module);
                     document.getElementById('game-controls').hidden = false;
                     Module.canvas.focus();
-                    Module.setStatus('Running: ' + appName + ' · Arrows/WASD to move, Enter to select · Sound off');
+                    Module.setStatus('Running: ' + appName + ' · Arrows/WASD to move, Enter to select · Use Enable sound for audio');
                 }
             } catch(e) {
                 Module.setStatus('Error: ' + e.message);

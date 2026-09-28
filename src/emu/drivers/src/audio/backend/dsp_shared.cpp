@@ -146,13 +146,18 @@ namespace eka2l1::drivers {
 
     bool dsp_output_stream_shared::write(const std::uint8_t *data, const std::uint32_t data_size) {
         // Copy buffer to queue
-        if (format_ != PCM16_FOUR_CC_CODE) {
+        if (format_ == PCM8_FOUR_CC_CODE) {
+            std::vector<std::int16_t> converted(data_size);
+            for (std::size_t i = 0; i < data_size; ++i)
+                converted[i] = static_cast<std::int16_t>(static_cast<std::int8_t>(data[i])) * 256;
+            buffer_.push(converted.data(), converted.size());
+        } else if (format_ != PCM16_FOUR_CC_CODE) {
             queue_data_decode(data, data_size);
         } else {
             buffer_.push(data, (data_size + 1) / 2);
         }
 
-        last_write_samples_.store((data_size + 1) / 2, std::memory_order_relaxed);
+        last_write_samples_.store(format_ == PCM8_FOUR_CC_CODE ? data_size : (data_size + 1) / 2, std::memory_order_relaxed);
 
         more_requested = false;
         return true;
@@ -177,7 +182,7 @@ namespace eka2l1::drivers {
     }
 
     bool dsp_output_stream_shared::internal_decode_running_out() {
-        if (format_ == PCM16_FOUR_CC_CODE) {
+        if (format_ == PCM16_FOUR_CC_CODE || format_ == PCM8_FOUR_CC_CODE) {
             return (buffer_.size() <= low_water_mark_samples());
         }
 
@@ -193,7 +198,7 @@ namespace eka2l1::drivers {
             avg_frame_count_ = (avg_frame_count_ + frame_count) / 2;
         }
 
-        if (format_ != PCM16_FOUR_CC_CODE) {
+        if (format_ != PCM16_FOUR_CC_CODE && format_ != PCM8_FOUR_CC_CODE) {
             // Running on low
             if (buffer_.size() <= (avg_frame_count_ * channels_ * 4)) {
                 std::vector<std::uint8_t> target_buffer;

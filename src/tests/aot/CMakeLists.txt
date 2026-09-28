@@ -26,3 +26,5 @@ if(EMSCRIPTEN)
 endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../benchmark/matched_kernel.cmake)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/../benchmark/audio_probe.cmake)

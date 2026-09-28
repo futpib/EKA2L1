@@ -9,6 +9,7 @@ import {startServer, buildDir} from './server.ts';
 
 const [assetArg, outputArg, frameArg = '1000', inputArg = '../benchmark/snakes.input', startArg = '21000000'] = process.argv.slice(2);
 if (!assetArg || !outputArg) throw new Error('Usage: node benchmark.ts ASSETS NEW_OUTPUT [FRAMES] [INPUT] [START_US]');
+const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
 const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
 const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
@@ -56,7 +57,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics}) => {
+  await page.evaluate(async ({count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -67,6 +68,7 @@ try {
     if (typeof g.Module._eka2l1_graphics_diagnostics_configure === 'function')
       call('eka2l1_graphics_diagnostics_configure', ['number'], [glDiagnostics ? 1 : 0]);
     else if (glDiagnostics) throw new Error('Build does not support graphics diagnostic configuration');
+    if (sharedAudio) call('eka2l1_audio_configure', [], []);
     call('eka2l1_init', ['string'], ['/data']);
     for (const name of ['SYM.ROM', 'SYM.RPKG', 'Snakes.sis', 'input']) {
       const response = await fetch(`/preload/${name}`);
@@ -88,7 +90,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics});
+  }, {count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -139,7 +141,7 @@ try {
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    aot, aot_diagnostics: aotDiagnostics, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
+    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');
 } finally {
   await browser?.close();
