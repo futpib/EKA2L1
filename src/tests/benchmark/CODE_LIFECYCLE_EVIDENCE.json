@@ -1,0 +1,2771 @@
+{
+  "baseline_commit": "c2c3ef970",
+  "implementation_commit": "8c1be4595",
+  "method": {
+    "window_us": [
+      78000000,
+      96000000
+    ],
+    "capture": false,
+    "sampling": false,
+    "diagnostic_counters": false,
+    "order": [
+      "before-1",
+      "after-1",
+      "after-2",
+      "before-2"
+    ],
+    "host": "shared i7-10875H / Quadro T1000; process-local NVIDIA libraries",
+    "note": "Unpaced physical-GPU timing; correctness replays use SwiftShader. Different initial and final candidate artifacts are explicitly distinguished."
+  },
+  "lifecycle-base": {
+    "path": "/home/claude/.scratch/eka-benchmark/lifecycle-base",
+    "hashes": {
+      "eka2l1.js": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+      "eka2l1.html": "c1e8b898ddc5ace4f92ec3f1b45209e9aeb84e50ec0431631be400199f3ea8f1",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "eka2l1.wasm": "e0c7bbd367e32fa6a6cf61983ea2bba2ec080fabe5a000e67c1df234e4118c62"
+    }
+  },
+  "lifecycle-build": {
+    "path": "/home/claude/.scratch/eka-benchmark/lifecycle-build",
+    "hashes": {
+      "eka2l1.js": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+      "eka2l1.html": "c1e8b898ddc5ace4f92ec3f1b45209e9aeb84e50ec0431631be400199f3ea8f1",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "eka2l1.wasm": "4eb22f5f9c557f3f53db3051cc441250aa3acf9c47ac3cd7ae74d36a3f0052a6"
+    }
+  },
+  "lifecycle-replay1600": {
+    "frames": 1600,
+    "start_us": 21000000,
+    "unique": true,
+    "wall_seconds": 215.749614148,
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "wasm_sha256": "dce9d0d2c18dca6590588f2c96ba9abec50669d49aee5854fd8cdfd92d286c89",
+    "gl_diagnostics": false,
+    "gl_diagnostics_configurable": true,
+    "aot": 5,
+    "aot_diagnostics": false,
+    "verify_aot": 1024,
+    "git_head": "c2c3ef9707281d0c2f8f3e6f8767ac326e0313ae",
+    "dirty_worktree": true
+  },
+  "lifecycle-replay1600-final": {
+    "frames": 1600,
+    "start_us": 21000000,
+    "unique": true,
+    "wall_seconds": 194.90932936500002,
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "wasm_sha256": "4eb22f5f9c557f3f53db3051cc441250aa3acf9c47ac3cd7ae74d36a3f0052a6",
+    "gl_diagnostics": false,
+    "gl_diagnostics_configurable": true,
+    "aot": 5,
+    "aot_diagnostics": false,
+    "verify_aot": 1024,
+    "git_head": "c2c3ef9707281d0c2f8f3e6f8767ac326e0313ae",
+    "dirty_worktree": true
+  },
+  "lifecycle-counters": {
+    "measurement": {
+      "detailed": true,
+      "capture_mode": 2,
+      "first_virtual_us": 21000000,
+      "last_virtual_us": 25000000,
+      "first_instructions": 2370479891,
+      "last_instructions": 2987665712,
+      "wall_seconds": 5.59522,
+      "presentations": 160,
+      "aot_dispatches": 40621841,
+      "aot_instructions": 615631808,
+      "compiled_runner_calls": 188861,
+      "ram_aot_dispatches": 35399406,
+      "ram_blocks_compiled": 285,
+      "decoded_instructions": 2655,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "cache_clears": 0,
+      "context_loads": 129584,
+      "code_version_hits": 35395161,
+      "code_byte_checks": 8499,
+      "code_epoch_hits": 35395161,
+      "imb_calls": 0,
+      "scopes": {
+        "cpu_loop": {
+          "seconds": 5.50124,
+          "calls": 130080
+        },
+        "cpu_run": {
+          "seconds": 4.88263,
+          "calls": 129584
+        },
+        "timers": {
+          "seconds": 0.108789,
+          "calls": 130080
+        },
+        "scheduler": {
+          "seconds": 0.123877,
+          "calls": 130080
+        },
+        "graphics_dispatch": {
+          "seconds": 0.237022,
+          "calls": 320
+        },
+        "graphics_wait": {
+          "seconds": 0.235034,
+          "calls": 320
+        },
+        "display_hook": {
+          "seconds": 0.000403712,
+          "calls": 160
+        },
+        "readback": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "frame_capture": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "png_encode": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "audio": {
+          "seconds": 0.00692659,
+          "calls": 400
+        }
+      }
+    },
+    "warmup_seconds": 21.599006878,
+    "guest_profile_stride": 0,
+    "monitor": false,
+    "monitor_cpu_start_us": 0,
+    "sampling": false,
+    "sample_interval_us": 1000,
+    "isolates": 33,
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "wasm_sha256": "4eb22f5f9c557f3f53db3051cc441250aa3acf9c47ac3cd7ae74d36a3f0052a6",
+    "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+    "gl_diagnostics": false,
+    "gl_diagnostics_configurable": true,
+    "aot": 5,
+    "aot_diagnostics": false,
+    "verify_aot": 0,
+    "git_head": "c2c3ef9707281d0c2f8f3e6f8767ac326e0313ae",
+    "dirty_worktree": true,
+    "browser": "Chrome/153.0.8010.52",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+  },
+  "lifecycle-fault2.json": {
+    "cases": 480,
+    "all_fields_match": 480,
+    "final_state_and_exact_memory_match": 480,
+    "mismatched_fields": {},
+    "categories": {},
+    "little_endian_unmapped_cases": 120,
+    "little_endian_unmapped_differences": 0,
+    "inputs": {
+      "/home/claude/.scratch/eka-benchmark/cpu-fault-native-final.log": "d459f72671a0688b407077943e341f9af113541f0de956c4dd594cf1a443d4db",
+      "/home/claude/.scratch/eka-benchmark/lifecycle-fault2.log": "d459f72671a0688b407077943e341f9af113541f0de956c4dd594cf1a443d4db"
+    },
+    "differences": []
+  },
+  "lifecycle-replay-comparison.json": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+      "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+      "writes": 2029,
+      "callbacks": 2029,
+      "gameplay_nonzero_samples": 6907266,
+      "gameplay_peak": 8191
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16261337499
+  },
+  "lifecycle-replay-comparison-final.json": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+      "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+      "writes": 2029,
+      "callbacks": 2029,
+      "gameplay_nonzero_samples": 6907266,
+      "gameplay_peak": 8191
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16261337499
+  },
+  "timing_batches": {
+    "lifecycle-timing": {
+      "before-1": {
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 18.7418,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "warmup_seconds": 156.798479321,
+        "guest_profile_stride": 0,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "e0c7bbd367e32fa6a6cf61983ea2bba2ec080fabe5a000e67c1df234e4118c62",
+        "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "c2c3ef9707281d0c2f8f3e6f8767ac326e0313ae",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      },
+      "after-1": {
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 18.904,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "warmup_seconds": 154.200031569,
+        "guest_profile_stride": 0,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "4eb22f5f9c557f3f53db3051cc441250aa3acf9c47ac3cd7ae74d36a3f0052a6",
+        "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "c2c3ef9707281d0c2f8f3e6f8767ac326e0313ae",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      },
+      "before-2": {
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 18.6904,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "warmup_seconds": 158.93411611500002,
+        "guest_profile_stride": 0,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "e0c7bbd367e32fa6a6cf61983ea2bba2ec080fabe5a000e67c1df234e4118c62",
+        "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "c2c3ef9707281d0c2f8f3e6f8767ac326e0313ae",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      },
+      "after-2": {
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 18.2562,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "warmup_seconds": 155.693367818,
+        "guest_profile_stride": 0,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "4eb22f5f9c557f3f53db3051cc441250aa3acf9c47ac3cd7ae74d36a3f0052a6",
+        "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "c2c3ef9707281d0c2f8f3e6f8767ac326e0313ae",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      }
+    },
+    "lifecycle-timing2": {
+      "before-1": {
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 32.8247,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "warmup_seconds": 121.8722629,
+        "guest_profile_stride": 0,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "e0c7bbd367e32fa6a6cf61983ea2bba2ec080fabe5a000e67c1df234e4118c62",
+        "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "8c1be4595a66c0c1184b9311e5d09c84fad27618",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      },
+      "after-1": {
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 18.4681,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "warmup_seconds": 121.09508975899999,
+        "guest_profile_stride": 0,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "4eb22f5f9c557f3f53db3051cc441250aa3acf9c47ac3cd7ae74d36a3f0052a6",
+        "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "8c1be4595a66c0c1184b9311e5d09c84fad27618",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      },
+      "before-2": {
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 18.2064,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "warmup_seconds": 124.39190941300001,
+        "guest_profile_stride": 0,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "e0c7bbd367e32fa6a6cf61983ea2bba2ec080fabe5a000e67c1df234e4118c62",
+        "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "8c1be4595a66c0c1184b9311e5d09c84fad27618",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      },
+      "after-2": {
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11262071158,
+          "last_instructions": 15237271664,
+          "wall_seconds": 21.2598,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        },
+        "warmup_seconds": 121.80694019900001,
+        "guest_profile_stride": 0,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "4eb22f5f9c557f3f53db3051cc441250aa3acf9c47ac3cd7ae74d36a3f0052a6",
+        "loader_sha256": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "verify_aot": 0,
+        "git_head": "8c1be4595a66c0c1184b9311e5d09c84fad27618",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      }
+    }
+  },
+  "lifecycle-tests2.log": {
+    "path": "/home/claude/.scratch/eka-benchmark/lifecycle-tests2.log",
+    "sha256": "54ac47d35f2d296885affd7d9acb1a9b80f4c4ff533b54b6e0fe700be39d35c5",
+    "tail": [
+      "  PASS arm_conditional_exec",
+      "  PASS arm_bl_resume_point",
+      "  PASS arm_ldrh_strh",
+      "  PASS arm_mvn",
+      "  PASS arm_rsb",
+      "  PASS arm_clz",
+      "",
+      "135 passed, 0 failed"
+    ]
+  },
+  "lifecycle-native-tests.log": {
+    "path": "/home/claude/.scratch/eka-benchmark/lifecycle-native-tests.log",
+    "sha256": "137188d9580fd373da5f3ea5976311cb68aca496391302f92d57761cc4975efc",
+    "tail": [
+      "    Start 2: eka_cpu_tests",
+      "2/3 Test #2: eka_cpu_tests ....................   Passed    0.01 sec",
+      "    Start 3: bluetooth_netplay",
+      "3/3 Test #3: bluetooth_netplay ................   Passed    0.06 sec",
+      "",
+      "100% tests passed out of 3",
+      "",
+      "Total Test time (real) =   0.54 sec"
+    ]
+  },
+  "lifecycle-frontend.log": {
+    "path": "/home/claude/.scratch/eka-benchmark/lifecycle-frontend.log",
+    "sha256": "f1dde25f91a93194f186337e45518aa523e4b5bab2a23620f745bfda8b41a4b4",
+    "tail": [
+      "TEST 5: eka2l1_init...",
+      "  PASS",
+      "TEST 6: eka2l1_shutdown...",
+      "  PASS",
+      "TEST 7: No fatal page errors...",
+      "  PASS",
+      "",
+      "All tests passed!"
+    ]
+  },
+  "lifecycle-live": {
+    "start": {
+      "guest": 23429053,
+      "inputs": 26,
+      "frames": 924
+    },
+    "end": {
+      "guest": 126906137,
+      "inputs": 26,
+      "frames": 5024
+    },
+    "host_seconds": 120.66184384,
+    "resources": {
+      "startup": {
+        "tmp": [],
+        "worker_pool": {
+          "running": 19,
+          "unused": 13
+        },
+        "selected_files": [
+          0,
+          0,
+          0
+        ],
+        "linear_bytes": 386662400,
+        "allocator": {
+          "guest_us": 10000,
+          "instructions": 0,
+          "compiled_functions": 0,
+          "allocated_bytes": 290299872,
+          "free_bytes": 17143536
+        },
+        "pss_kib": 1232634
+      },
+      "final": {
+        "tmp": [],
+        "worker_pool": {
+          "running": 19,
+          "unused": 13
+        },
+        "selected_files": [
+          0,
+          0,
+          0
+        ],
+        "linear_bytes": 694878208,
+        "allocator": {
+          "guest_us": 127083062,
+          "instructions": 20105449299,
+          "compiled_functions": 15199,
+          "allocated_bytes": 572291072,
+          "free_bytes": 18546384
+        },
+        "pss_kib": 1655078
+      }
+    },
+    "auto_start": false,
+    "sampling": false,
+    "profile_window": {
+      "begin": null,
+      "end": null
+    },
+    "measurement": null,
+    "renderer": "See gpu.json for physical GPU details",
+    "realtime_ratio": 0.8575791709035432,
+    "input_delivery_ms": [
+      1.868467000000237,
+      1.3089990000007674,
+      1.9315799999985757,
+      1.5170760000000882,
+      4.231754000000365,
+      1.460295999999289,
+      1.0784639999983483,
+      1.3281090000018594,
+      1.2030230000018491,
+      1.1809830000020156,
+      1.0253830000001471,
+      1.083795000002283
+    ],
+    "samples": [
+      {
+        "host_seconds": 1.0010040750000007,
+        "guest": 24429683,
+        "inputs": 26,
+        "frames": 964
+      },
+      {
+        "host_seconds": 2.002482304000001,
+        "guest": 25433365,
+        "inputs": 26,
+        "frames": 1004
+      },
+      {
+        "host_seconds": 3.003832467,
+        "guest": 26430932,
+        "inputs": 26,
+        "frames": 1044
+      },
+      {
+        "host_seconds": 4.005780504000002,
+        "guest": 27453200,
+        "inputs": 26,
+        "frames": 1086
+      },
+      {
+        "host_seconds": 5.006670288000001,
+        "guest": 28453604,
+        "inputs": 26,
+        "frames": 1126
+      },
+      {
+        "host_seconds": 6.008738296000003,
+        "guest": 29417775,
+        "inputs": 26,
+        "frames": 1164
+      },
+      {
+        "host_seconds": 7.010687753999998,
+        "guest": 30455125,
+        "inputs": 26,
+        "frames": 1206
+      },
+      {
+        "host_seconds": 8.012515248000003,
+        "guest": 31453272,
+        "inputs": 26,
+        "frames": 1246
+      },
+      {
+        "host_seconds": 9.014461424,
+        "guest": 32420609,
+        "inputs": 26,
+        "frames": 1284
+      },
+      {
+        "host_seconds": 10.015579364000004,
+        "guest": 33454073,
+        "inputs": 26,
+        "frames": 1326
+      },
+      {
+        "host_seconds": 11.016527525999997,
+        "guest": 34455414,
+        "inputs": 26,
+        "frames": 1366
+      },
+      {
+        "host_seconds": 12.017547778,
+        "guest": 35456285,
+        "inputs": 26,
+        "frames": 1406
+      },
+      {
+        "host_seconds": 13.019189995000001,
+        "guest": 36455901,
+        "inputs": 26,
+        "frames": 1446
+      },
+      {
+        "host_seconds": 14.021235626000001,
+        "guest": 37457091,
+        "inputs": 26,
+        "frames": 1486
+      },
+      {
+        "host_seconds": 15.023296227,
+        "guest": 38456152,
+        "inputs": 26,
+        "frames": 1526
+      },
+      {
+        "host_seconds": 16.024386105999998,
+        "guest": 39458993,
+        "inputs": 26,
+        "frames": 1566
+      },
+      {
+        "host_seconds": 17.026253790000002,
+        "guest": 40460742,
+        "inputs": 26,
+        "frames": 1606
+      },
+      {
+        "host_seconds": 18.027661247000005,
+        "guest": 41457475,
+        "inputs": 26,
+        "frames": 1646
+      },
+      {
+        "host_seconds": 19.029809599,
+        "guest": 42460016,
+        "inputs": 26,
+        "frames": 1686
+      },
+      {
+        "host_seconds": 20.030830553,
+        "guest": 43455062,
+        "inputs": 26,
+        "frames": 1726
+      },
+      {
+        "host_seconds": 21.077556333,
+        "guest": 44510333,
+        "inputs": 26,
+        "frames": 1768
+      },
+      {
+        "host_seconds": 22.078225971,
+        "guest": 45507684,
+        "inputs": 26,
+        "frames": 1808
+      },
+      {
+        "host_seconds": 23.080095106,
+        "guest": 46468167,
+        "inputs": 26,
+        "frames": 1846
+      },
+      {
+        "host_seconds": 24.082060697,
+        "guest": 47512599,
+        "inputs": 26,
+        "frames": 1888
+      },
+      {
+        "host_seconds": 25.083691065,
+        "guest": 48507216,
+        "inputs": 26,
+        "frames": 1928
+      },
+      {
+        "host_seconds": 26.085754155000004,
+        "guest": 49514243,
+        "inputs": 26,
+        "frames": 1968
+      },
+      {
+        "host_seconds": 27.086929208,
+        "guest": 50514778,
+        "inputs": 26,
+        "frames": 2008
+      },
+      {
+        "host_seconds": 28.089126383000004,
+        "guest": 51515698,
+        "inputs": 26,
+        "frames": 2048
+      },
+      {
+        "host_seconds": 29.090167156000003,
+        "guest": 52514281,
+        "inputs": 26,
+        "frames": 2088
+      },
+      {
+        "host_seconds": 30.092502413000002,
+        "guest": 53510269,
+        "inputs": 26,
+        "frames": 2128
+      },
+      {
+        "host_seconds": 31.094601705000002,
+        "guest": 54515529,
+        "inputs": 26,
+        "frames": 2168
+      },
+      {
+        "host_seconds": 32.096526375,
+        "guest": 55460212,
+        "inputs": 26,
+        "frames": 2206
+      },
+      {
+        "host_seconds": 33.10011059200001,
+        "guest": 55765555,
+        "inputs": 26,
+        "frames": 2218
+      },
+      {
+        "host_seconds": 34.101974086,
+        "guest": 56161468,
+        "inputs": 26,
+        "frames": 2234
+      },
+      {
+        "host_seconds": 35.108364063,
+        "guest": 56549877,
+        "inputs": 26,
+        "frames": 2250
+      },
+      {
+        "host_seconds": 36.117795018,
+        "guest": 56911680,
+        "inputs": 26,
+        "frames": 2264
+      },
+      {
+        "host_seconds": 37.120905534,
+        "guest": 57115694,
+        "inputs": 26,
+        "frames": 2272
+      },
+      {
+        "host_seconds": 38.12392727499999,
+        "guest": 57366134,
+        "inputs": 26,
+        "frames": 2282
+      },
+      {
+        "host_seconds": 39.12686345800001,
+        "guest": 57659251,
+        "inputs": 26,
+        "frames": 2294
+      },
+      {
+        "host_seconds": 40.12865005700001,
+        "guest": 57958664,
+        "inputs": 26,
+        "frames": 2306
+      },
+      {
+        "host_seconds": 41.267341566000006,
+        "guest": 58266193,
+        "inputs": 26,
+        "frames": 2318
+      },
+      {
+        "host_seconds": 42.27010438600001,
+        "guest": 58554799,
+        "inputs": 26,
+        "frames": 2330
+      },
+      {
+        "host_seconds": 43.271807868,
+        "guest": 58861969,
+        "inputs": 26,
+        "frames": 2342
+      },
+      {
+        "host_seconds": 44.278116496,
+        "guest": 59157746,
+        "inputs": 26,
+        "frames": 2354
+      },
+      {
+        "host_seconds": 45.281409585999995,
+        "guest": 59453806,
+        "inputs": 26,
+        "frames": 2366
+      },
+      {
+        "host_seconds": 46.284428524999996,
+        "guest": 59752662,
+        "inputs": 26,
+        "frames": 2378
+      },
+      {
+        "host_seconds": 47.287794454,
+        "guest": 60052558,
+        "inputs": 26,
+        "frames": 2390
+      },
+      {
+        "host_seconds": 48.288911207,
+        "guest": 60361439,
+        "inputs": 26,
+        "frames": 2402
+      },
+      {
+        "host_seconds": 49.291769722,
+        "guest": 60612936,
+        "inputs": 26,
+        "frames": 2412
+      },
+      {
+        "host_seconds": 50.292989602999995,
+        "guest": 60953463,
+        "inputs": 26,
+        "frames": 2426
+      },
+      {
+        "host_seconds": 51.294916603000004,
+        "guest": 61670271,
+        "inputs": 26,
+        "frames": 2454
+      },
+      {
+        "host_seconds": 52.296726754000005,
+        "guest": 62208770,
+        "inputs": 26,
+        "frames": 2476
+      },
+      {
+        "host_seconds": 53.2979575,
+        "guest": 62872062,
+        "inputs": 26,
+        "frames": 2502
+      },
+      {
+        "host_seconds": 54.304924585,
+        "guest": 63250055,
+        "inputs": 26,
+        "frames": 2518
+      },
+      {
+        "host_seconds": 55.30722792800001,
+        "guest": 63669226,
+        "inputs": 26,
+        "frames": 2534
+      },
+      {
+        "host_seconds": 56.309429380000005,
+        "guest": 64617472,
+        "inputs": 26,
+        "frames": 2572
+      },
+      {
+        "host_seconds": 57.314355192,
+        "guest": 65373127,
+        "inputs": 26,
+        "frames": 2602
+      },
+      {
+        "host_seconds": 58.315355131000004,
+        "guest": 66048140,
+        "inputs": 26,
+        "frames": 2630
+      },
+      {
+        "host_seconds": 59.324620337,
+        "guest": 66468392,
+        "inputs": 26,
+        "frames": 2646
+      },
+      {
+        "host_seconds": 60.327172452,
+        "guest": 66800937,
+        "inputs": 26,
+        "frames": 2660
+      },
+      {
+        "host_seconds": 61.389666885,
+        "guest": 67419795,
+        "inputs": 26,
+        "frames": 2684
+      },
+      {
+        "host_seconds": 62.391081525000004,
+        "guest": 68430596,
+        "inputs": 26,
+        "frames": 2724
+      },
+      {
+        "host_seconds": 63.40462813900001,
+        "guest": 69121700,
+        "inputs": 26,
+        "frames": 2752
+      },
+      {
+        "host_seconds": 64.406932299,
+        "guest": 69507817,
+        "inputs": 26,
+        "frames": 2768
+      },
+      {
+        "host_seconds": 65.41122135799999,
+        "guest": 70164045,
+        "inputs": 26,
+        "frames": 2794
+      },
+      {
+        "host_seconds": 66.415198725,
+        "guest": 70422253,
+        "inputs": 26,
+        "frames": 2804
+      },
+      {
+        "host_seconds": 67.417761699,
+        "guest": 70871493,
+        "inputs": 26,
+        "frames": 2822
+      },
+      {
+        "host_seconds": 68.419768815,
+        "guest": 71713122,
+        "inputs": 26,
+        "frames": 2856
+      },
+      {
+        "host_seconds": 69.420940184,
+        "guest": 72806775,
+        "inputs": 26,
+        "frames": 2900
+      },
+      {
+        "host_seconds": 70.422503761,
+        "guest": 74000396,
+        "inputs": 26,
+        "frames": 2948
+      },
+      {
+        "host_seconds": 71.424005047,
+        "guest": 75110621,
+        "inputs": 26,
+        "frames": 2992
+      },
+      {
+        "host_seconds": 72.42532973300001,
+        "guest": 76203484,
+        "inputs": 26,
+        "frames": 3036
+      },
+      {
+        "host_seconds": 73.427382506,
+        "guest": 77431802,
+        "inputs": 26,
+        "frames": 3086
+      },
+      {
+        "host_seconds": 74.429075231,
+        "guest": 78709547,
+        "inputs": 26,
+        "frames": 3138
+      },
+      {
+        "host_seconds": 75.430174158,
+        "guest": 79677493,
+        "inputs": 26,
+        "frames": 3178
+      },
+      {
+        "host_seconds": 76.43216068100001,
+        "guest": 80632529,
+        "inputs": 26,
+        "frames": 3214
+      },
+      {
+        "host_seconds": 77.434232231,
+        "guest": 81680066,
+        "inputs": 26,
+        "frames": 3252
+      },
+      {
+        "host_seconds": 78.43637256800001,
+        "guest": 82678726,
+        "inputs": 26,
+        "frames": 3290
+      },
+      {
+        "host_seconds": 79.43722673799999,
+        "guest": 83687012,
+        "inputs": 26,
+        "frames": 3328
+      },
+      {
+        "host_seconds": 80.438993807,
+        "guest": 84884717,
+        "inputs": 26,
+        "frames": 3372
+      },
+      {
+        "host_seconds": 81.488532487,
+        "guest": 85904553,
+        "inputs": 26,
+        "frames": 3408
+      },
+      {
+        "host_seconds": 82.49035049300001,
+        "guest": 86896552,
+        "inputs": 26,
+        "frames": 3443
+      },
+      {
+        "host_seconds": 83.491796147,
+        "guest": 87890692,
+        "inputs": 26,
+        "frames": 3480
+      },
+      {
+        "host_seconds": 84.49290370199999,
+        "guest": 88854320,
+        "inputs": 26,
+        "frames": 3516
+      },
+      {
+        "host_seconds": 85.49426591299999,
+        "guest": 89816089,
+        "inputs": 26,
+        "frames": 3552
+      },
+      {
+        "host_seconds": 86.496282328,
+        "guest": 90778708,
+        "inputs": 26,
+        "frames": 3584
+      },
+      {
+        "host_seconds": 87.497644744,
+        "guest": 91809584,
+        "inputs": 26,
+        "frames": 3620
+      },
+      {
+        "host_seconds": 88.49918220500001,
+        "guest": 93036596,
+        "inputs": 26,
+        "frames": 3670
+      },
+      {
+        "host_seconds": 89.500819752,
+        "guest": 94335599,
+        "inputs": 26,
+        "frames": 3722
+      },
+      {
+        "host_seconds": 90.502551718,
+        "guest": 95589443,
+        "inputs": 26,
+        "frames": 3772
+      },
+      {
+        "host_seconds": 91.504005967,
+        "guest": 96792675,
+        "inputs": 26,
+        "frames": 3820
+      },
+      {
+        "host_seconds": 92.50450603099999,
+        "guest": 97994967,
+        "inputs": 26,
+        "frames": 3868
+      },
+      {
+        "host_seconds": 93.50535133800001,
+        "guest": 99200003,
+        "inputs": 26,
+        "frames": 3916
+      },
+      {
+        "host_seconds": 94.50738125000001,
+        "guest": 100350000,
+        "inputs": 26,
+        "frames": 3963
+      },
+      {
+        "host_seconds": 95.509015971,
+        "guest": 101594304,
+        "inputs": 26,
+        "frames": 4012
+      },
+      {
+        "host_seconds": 96.511029604,
+        "guest": 102839004,
+        "inputs": 26,
+        "frames": 4062
+      },
+      {
+        "host_seconds": 97.511535507,
+        "guest": 104079274,
+        "inputs": 26,
+        "frames": 4112
+      },
+      {
+        "host_seconds": 98.51339779,
+        "guest": 105247441,
+        "inputs": 26,
+        "frames": 4158
+      },
+      {
+        "host_seconds": 99.515561401,
+        "guest": 106412410,
+        "inputs": 26,
+        "frames": 4204
+      },
+      {
+        "host_seconds": 100.51779542300001,
+        "guest": 107594448,
+        "inputs": 26,
+        "frames": 4252
+      },
+      {
+        "host_seconds": 101.57120102,
+        "guest": 108535646,
+        "inputs": 26,
+        "frames": 4290
+      },
+      {
+        "host_seconds": 102.57308254600001,
+        "guest": 109400039,
+        "inputs": 26,
+        "frames": 4324
+      },
+      {
+        "host_seconds": 103.575366675,
+        "guest": 110283865,
+        "inputs": 26,
+        "frames": 4360
+      },
+      {
+        "host_seconds": 104.577744174,
+        "guest": 111095834,
+        "inputs": 26,
+        "frames": 4392
+      },
+      {
+        "host_seconds": 105.57976312299999,
+        "guest": 111899976,
+        "inputs": 26,
+        "frames": 4424
+      },
+      {
+        "host_seconds": 106.581246119,
+        "guest": 112750548,
+        "inputs": 26,
+        "frames": 4458
+      },
+      {
+        "host_seconds": 107.583420937,
+        "guest": 113654176,
+        "inputs": 26,
+        "frames": 4494
+      },
+      {
+        "host_seconds": 108.585092629,
+        "guest": 114493262,
+        "inputs": 26,
+        "frames": 4528
+      },
+      {
+        "host_seconds": 109.586415249,
+        "guest": 115340339,
+        "inputs": 26,
+        "frames": 4562
+      },
+      {
+        "host_seconds": 110.58769481,
+        "guest": 116337329,
+        "inputs": 26,
+        "frames": 4602
+      },
+      {
+        "host_seconds": 111.58914392300001,
+        "guest": 117579145,
+        "inputs": 26,
+        "frames": 4652
+      },
+      {
+        "host_seconds": 112.59096053299999,
+        "guest": 118536833,
+        "inputs": 26,
+        "frames": 4690
+      },
+      {
+        "host_seconds": 113.59262271899999,
+        "guest": 119580048,
+        "inputs": 26,
+        "frames": 4732
+      },
+      {
+        "host_seconds": 114.59447505299998,
+        "guest": 120546157,
+        "inputs": 26,
+        "frames": 4770
+      },
+      {
+        "host_seconds": 115.59624310800001,
+        "guest": 121699409,
+        "inputs": 26,
+        "frames": 4816
+      },
+      {
+        "host_seconds": 116.59792511200001,
+        "guest": 122836939,
+        "inputs": 26,
+        "frames": 4862
+      },
+      {
+        "host_seconds": 117.59918678900002,
+        "guest": 123702855,
+        "inputs": 26,
+        "frames": 4896
+      },
+      {
+        "host_seconds": 118.60089223300001,
+        "guest": 124661680,
+        "inputs": 26,
+        "frames": 4934
+      },
+      {
+        "host_seconds": 119.603071935,
+        "guest": 125788690,
+        "inputs": 26,
+        "frames": 4980
+      },
+      {
+        "host_seconds": 120.603823009,
+        "guest": 126839236,
+        "inputs": 26,
+        "frames": 5022
+      }
+    ],
+    "browser": "Chrome/153.0.8010.52",
+    "wasm_sha256": "4eb22f5f9c557f3f53db3051cc441250aa3acf9c47ac3cd7ae74d36a3f0052a6",
+    "note": "Input latency measures DOM keydown to guest queue consumption, not display response.",
+    "derived_summary": {
+      "guest_seconds": 103.477084,
+      "max_sampled_lag_seconds": 20.135699814999995,
+      "input_queue_delivery_range_ms": [
+        1.0253830000001471,
+        4.231754000000365
+      ]
+    },
+    "screenshots": {
+      "gameplay-120.png": "0f54e6107030c960376904abf224097ac085604911b7570f647c31d628b2ccb3",
+      "gameplay-20.png": "8b2b994d827b0f8d0b2d380db5a1883df310333168a54da29ebb58f9966d0306",
+      "gameplay-80.png": "9bac1426dd52f4a76cc8d5cbc370aad86796843c18adb6ea5d362fca0b2d51ec",
+      "desktop-end.png": "cbb54ff5a0752b353970e977568600c552b103fe630300877f984b80dec11f00",
+      "gameplay-60.png": "5fac5bf5a629fee9f0591a79580b12b4f5182cd5f4d8365f8e6b732b2ed90b91",
+      "gameplay-40.png": "7cbc5d1c6082bbc8d6d171a0051cb0bc013bc08a9dc6b5fdb63a9c25c2ac2186",
+      "gameplay-100.png": "e3e8471d1e990bd7304b69ca0ead7223e22aa8546daa3292fe4435b61e22b259",
+      "mobile.png": "c9235d3eefe9fd5b1e717945f792088d7a5923e9dbde9554fa977282e4d57c82",
+      "desktop-gameplay.png": "e67da6039f2836f75694eefe3bdc76242920f43e7636f1066a97222d79501937"
+    }
+  },
+  "lifecycle-live-base": {
+    "start": {
+      "guest": 23472954,
+      "inputs": 26,
+      "frames": 926
+    },
+    "end": {
+      "guest": 144058805,
+      "inputs": 26,
+      "frames": 5712
+    },
+    "host_seconds": 120.46677677599999,
+    "resources": {
+      "startup": {
+        "tmp": [],
+        "worker_pool": {
+          "running": 19,
+          "unused": 13
+        },
+        "selected_files": [
+          0,
+          0,
+          0
+        ],
+        "linear_bytes": 322174976,
+        "allocator": {
+          "guest_us": 10000,
+          "instructions": 0,
+          "compiled_functions": 0,
+          "allocated_bytes": 290299728,
+          "free_bytes": 17143680
+        },
+        "pss_kib": 1578519
+      },
+      "final": {
+        "tmp": [],
+        "worker_pool": {
+          "running": 19,
+          "unused": 13
+        },
+        "selected_files": [
+          0,
+          0,
+          0
+        ],
+        "linear_bytes": 598278144,
+        "allocator": {
+          "guest_us": 144229237,
+          "instructions": 22811191392,
+          "compiled_functions": 15271,
+          "allocated_bytes": 572170552,
+          "free_bytes": 18666904
+        },
+        "pss_kib": 1617692
+      }
+    },
+    "auto_start": false,
+    "sampling": false,
+    "profile_window": {
+      "begin": null,
+      "end": null
+    },
+    "measurement": null,
+    "renderer": "See gpu.json for physical GPU details",
+    "realtime_ratio": 1.0009884403583025,
+    "input_delivery_ms": [
+      1.2006190000010974,
+      0.9791320000003907,
+      1.1508410000005824,
+      1.240196000000651,
+      3.6967789999998786,
+      1.2455790000003617,
+      1.1220199999988836,
+      1.0330580000008922,
+      0.9993820000017877,
+      3.6582350000026054,
+      1.1140099999975064,
+      0.8471349999999802
+    ],
+    "samples": [
+      {
+        "host_seconds": 1.002067020999999,
+        "guest": 24589535,
+        "inputs": 26,
+        "frames": 970
+      },
+      {
+        "host_seconds": 2.003259189999997,
+        "guest": 25585182,
+        "inputs": 26,
+        "frames": 1010
+      },
+      {
+        "host_seconds": 3.0045057609999968,
+        "guest": 26590703,
+        "inputs": 26,
+        "frames": 1050
+      },
+      {
+        "host_seconds": 4.004782866999998,
+        "guest": 27612133,
+        "inputs": 26,
+        "frames": 1092
+      },
+      {
+        "host_seconds": 5.006087944999999,
+        "guest": 28555634,
+        "inputs": 26,
+        "frames": 1130
+      },
+      {
+        "host_seconds": 6.007873190999995,
+        "guest": 29609573,
+        "inputs": 26,
+        "frames": 1172
+      },
+      {
+        "host_seconds": 7.009453659999996,
+        "guest": 30611404,
+        "inputs": 26,
+        "frames": 1212
+      },
+      {
+        "host_seconds": 8.011405497999997,
+        "guest": 31564414,
+        "inputs": 26,
+        "frames": 1250
+      },
+      {
+        "host_seconds": 9.012911784,
+        "guest": 32613742,
+        "inputs": 26,
+        "frames": 1292
+      },
+      {
+        "host_seconds": 10.014547304999997,
+        "guest": 33563699,
+        "inputs": 26,
+        "frames": 1330
+      },
+      {
+        "host_seconds": 11.015762448999999,
+        "guest": 34612426,
+        "inputs": 26,
+        "frames": 1372
+      },
+      {
+        "host_seconds": 12.016542004,
+        "guest": 35612551,
+        "inputs": 26,
+        "frames": 1412
+      },
+      {
+        "host_seconds": 13.018071180999996,
+        "guest": 36611545,
+        "inputs": 26,
+        "frames": 1452
+      },
+      {
+        "host_seconds": 14.020038342999996,
+        "guest": 37618475,
+        "inputs": 26,
+        "frames": 1492
+      },
+      {
+        "host_seconds": 15.021335407999995,
+        "guest": 38617517,
+        "inputs": 26,
+        "frames": 1532
+      },
+      {
+        "host_seconds": 16.023145488999997,
+        "guest": 39619343,
+        "inputs": 26,
+        "frames": 1572
+      },
+      {
+        "host_seconds": 17.024276592,
+        "guest": 40618283,
+        "inputs": 26,
+        "frames": 1612
+      },
+      {
+        "host_seconds": 18.026088621,
+        "guest": 41618892,
+        "inputs": 26,
+        "frames": 1652
+      },
+      {
+        "host_seconds": 19.026970360999997,
+        "guest": 42616487,
+        "inputs": 26,
+        "frames": 1692
+      },
+      {
+        "host_seconds": 20.028773285,
+        "guest": 43615248,
+        "inputs": 26,
+        "frames": 1732
+      },
+      {
+        "host_seconds": 21.076546753,
+        "guest": 44668708,
+        "inputs": 26,
+        "frames": 1774
+      },
+      {
+        "host_seconds": 22.078134157999997,
+        "guest": 45665520,
+        "inputs": 26,
+        "frames": 1814
+      },
+      {
+        "host_seconds": 23.080088822999993,
+        "guest": 46666335,
+        "inputs": 26,
+        "frames": 1854
+      },
+      {
+        "host_seconds": 24.082098687999995,
+        "guest": 47670420,
+        "inputs": 26,
+        "frames": 1894
+      },
+      {
+        "host_seconds": 25.083934280999998,
+        "guest": 48668958,
+        "inputs": 26,
+        "frames": 1934
+      },
+      {
+        "host_seconds": 26.085930742000002,
+        "guest": 49665018,
+        "inputs": 26,
+        "frames": 1974
+      },
+      {
+        "host_seconds": 27.087485533999995,
+        "guest": 50666460,
+        "inputs": 26,
+        "frames": 2014
+      },
+      {
+        "host_seconds": 28.089346581999994,
+        "guest": 51703139,
+        "inputs": 26,
+        "frames": 2056
+      },
+      {
+        "host_seconds": 29.091468732,
+        "guest": 52667579,
+        "inputs": 26,
+        "frames": 2094
+      },
+      {
+        "host_seconds": 30.092891566999995,
+        "guest": 53703411,
+        "inputs": 26,
+        "frames": 2136
+      },
+      {
+        "host_seconds": 31.094628446999998,
+        "guest": 54668651,
+        "inputs": 26,
+        "frames": 2174
+      },
+      {
+        "host_seconds": 32.095238467,
+        "guest": 55668774,
+        "inputs": 26,
+        "frames": 2214
+      },
+      {
+        "host_seconds": 33.097171585000005,
+        "guest": 56665999,
+        "inputs": 26,
+        "frames": 2254
+      },
+      {
+        "host_seconds": 34.099080506,
+        "guest": 57706046,
+        "inputs": 26,
+        "frames": 2296
+      },
+      {
+        "host_seconds": 35.100700736,
+        "guest": 58703223,
+        "inputs": 26,
+        "frames": 2336
+      },
+      {
+        "host_seconds": 36.10266533600001,
+        "guest": 59704098,
+        "inputs": 26,
+        "frames": 2376
+      },
+      {
+        "host_seconds": 37.10323711099999,
+        "guest": 60707584,
+        "inputs": 26,
+        "frames": 2416
+      },
+      {
+        "host_seconds": 38.104556979,
+        "guest": 61705271,
+        "inputs": 26,
+        "frames": 2456
+      },
+      {
+        "host_seconds": 39.106630758,
+        "guest": 62704800,
+        "inputs": 26,
+        "frames": 2496
+      },
+      {
+        "host_seconds": 40.10844309399999,
+        "guest": 63704631,
+        "inputs": 26,
+        "frames": 2536
+      },
+      {
+        "host_seconds": 41.154734346,
+        "guest": 64756686,
+        "inputs": 26,
+        "frames": 2578
+      },
+      {
+        "host_seconds": 42.15566214599999,
+        "guest": 65730704,
+        "inputs": 26,
+        "frames": 2617
+      },
+      {
+        "host_seconds": 43.156469711,
+        "guest": 66757336,
+        "inputs": 26,
+        "frames": 2658
+      },
+      {
+        "host_seconds": 44.157924595999994,
+        "guest": 67750082,
+        "inputs": 26,
+        "frames": 2698
+      },
+      {
+        "host_seconds": 45.159512315,
+        "guest": 68752298,
+        "inputs": 26,
+        "frames": 2738
+      },
+      {
+        "host_seconds": 46.161411326,
+        "guest": 69759261,
+        "inputs": 26,
+        "frames": 2778
+      },
+      {
+        "host_seconds": 47.163152063,
+        "guest": 70752505,
+        "inputs": 26,
+        "frames": 2818
+      },
+      {
+        "host_seconds": 48.164519524999996,
+        "guest": 71760562,
+        "inputs": 26,
+        "frames": 2858
+      },
+      {
+        "host_seconds": 49.16642760499999,
+        "guest": 72760940,
+        "inputs": 26,
+        "frames": 2898
+      },
+      {
+        "host_seconds": 50.167791341999994,
+        "guest": 73754851,
+        "inputs": 26,
+        "frames": 2938
+      },
+      {
+        "host_seconds": 51.16976126699999,
+        "guest": 74753650,
+        "inputs": 26,
+        "frames": 2978
+      },
+      {
+        "host_seconds": 52.170071274,
+        "guest": 75762386,
+        "inputs": 26,
+        "frames": 3018
+      },
+      {
+        "host_seconds": 53.171378765,
+        "guest": 76763462,
+        "inputs": 26,
+        "frames": 3058
+      },
+      {
+        "host_seconds": 54.173454673,
+        "guest": 77769048,
+        "inputs": 26,
+        "frames": 3100
+      },
+      {
+        "host_seconds": 55.17468424399999,
+        "guest": 78764813,
+        "inputs": 26,
+        "frames": 3140
+      },
+      {
+        "host_seconds": 56.175443906,
+        "guest": 79769510,
+        "inputs": 26,
+        "frames": 3182
+      },
+      {
+        "host_seconds": 57.17619818599999,
+        "guest": 80686412,
+        "inputs": 26,
+        "frames": 3216
+      },
+      {
+        "host_seconds": 58.178007238999996,
+        "guest": 81705379,
+        "inputs": 26,
+        "frames": 3254
+      },
+      {
+        "host_seconds": 59.179961283,
+        "guest": 82673816,
+        "inputs": 26,
+        "frames": 3290
+      },
+      {
+        "host_seconds": 60.18195568,
+        "guest": 83633520,
+        "inputs": 26,
+        "frames": 3326
+      },
+      {
+        "host_seconds": 61.22160204499999,
+        "guest": 84763709,
+        "inputs": 26,
+        "frames": 3368
+      },
+      {
+        "host_seconds": 62.22355146199999,
+        "guest": 85713238,
+        "inputs": 26,
+        "frames": 3400
+      },
+      {
+        "host_seconds": 63.225197151,
+        "guest": 86635752,
+        "inputs": 26,
+        "frames": 3434
+      },
+      {
+        "host_seconds": 64.22672827599999,
+        "guest": 87542920,
+        "inputs": 26,
+        "frames": 3466
+      },
+      {
+        "host_seconds": 65.22828432899999,
+        "guest": 88498274,
+        "inputs": 26,
+        "frames": 3502
+      },
+      {
+        "host_seconds": 66.230510792,
+        "guest": 89408575,
+        "inputs": 26,
+        "frames": 3536
+      },
+      {
+        "host_seconds": 67.232486086,
+        "guest": 90311855,
+        "inputs": 26,
+        "frames": 3568
+      },
+      {
+        "host_seconds": 68.234601171,
+        "guest": 91273603,
+        "inputs": 26,
+        "frames": 3602
+      },
+      {
+        "host_seconds": 69.23613598899999,
+        "guest": 92330560,
+        "inputs": 26,
+        "frames": 3642
+      },
+      {
+        "host_seconds": 70.237988847,
+        "guest": 93492472,
+        "inputs": 26,
+        "frames": 3688
+      },
+      {
+        "host_seconds": 71.239861414,
+        "guest": 94687619,
+        "inputs": 26,
+        "frames": 3736
+      },
+      {
+        "host_seconds": 72.241289823,
+        "guest": 95830767,
+        "inputs": 26,
+        "frames": 3782
+      },
+      {
+        "host_seconds": 73.242204164,
+        "guest": 96839375,
+        "inputs": 26,
+        "frames": 3822
+      },
+      {
+        "host_seconds": 74.244070141,
+        "guest": 97836673,
+        "inputs": 26,
+        "frames": 3862
+      },
+      {
+        "host_seconds": 75.24604013,
+        "guest": 98839423,
+        "inputs": 26,
+        "frames": 3902
+      },
+      {
+        "host_seconds": 76.24752712499999,
+        "guest": 99830263,
+        "inputs": 26,
+        "frames": 3942
+      },
+      {
+        "host_seconds": 77.24954317,
+        "guest": 100842108,
+        "inputs": 26,
+        "frames": 3982
+      },
+      {
+        "host_seconds": 78.25090415599999,
+        "guest": 101837652,
+        "inputs": 26,
+        "frames": 4022
+      },
+      {
+        "host_seconds": 79.25261466799999,
+        "guest": 102837504,
+        "inputs": 26,
+        "frames": 4062
+      },
+      {
+        "host_seconds": 80.254713185,
+        "guest": 103839158,
+        "inputs": 26,
+        "frames": 4102
+      },
+      {
+        "host_seconds": 81.318572246,
+        "guest": 104900079,
+        "inputs": 26,
+        "frames": 4144
+      },
+      {
+        "host_seconds": 82.32066111399999,
+        "guest": 105906938,
+        "inputs": 26,
+        "frames": 4184
+      },
+      {
+        "host_seconds": 83.32215099899999,
+        "guest": 106937500,
+        "inputs": 26,
+        "frames": 4226
+      },
+      {
+        "host_seconds": 84.32360548899999,
+        "guest": 107906355,
+        "inputs": 26,
+        "frames": 4264
+      },
+      {
+        "host_seconds": 85.324719198,
+        "guest": 108901217,
+        "inputs": 26,
+        "frames": 4304
+      },
+      {
+        "host_seconds": 86.326820669,
+        "guest": 109900143,
+        "inputs": 26,
+        "frames": 4344
+      },
+      {
+        "host_seconds": 87.327584003,
+        "guest": 110912230,
+        "inputs": 26,
+        "frames": 4384
+      },
+      {
+        "host_seconds": 88.328165218,
+        "guest": 111902400,
+        "inputs": 26,
+        "frames": 4424
+      },
+      {
+        "host_seconds": 89.32971242299999,
+        "guest": 112939169,
+        "inputs": 26,
+        "frames": 4466
+      },
+      {
+        "host_seconds": 90.331316953,
+        "guest": 113937966,
+        "inputs": 26,
+        "frames": 4506
+      },
+      {
+        "host_seconds": 91.333227319,
+        "guest": 114938842,
+        "inputs": 26,
+        "frames": 4546
+      },
+      {
+        "host_seconds": 92.33466494299999,
+        "guest": 115937752,
+        "inputs": 26,
+        "frames": 4586
+      },
+      {
+        "host_seconds": 93.335437855,
+        "guest": 116939302,
+        "inputs": 26,
+        "frames": 4626
+      },
+      {
+        "host_seconds": 94.33741701299999,
+        "guest": 117941864,
+        "inputs": 26,
+        "frames": 4666
+      },
+      {
+        "host_seconds": 95.339421676,
+        "guest": 118942977,
+        "inputs": 26,
+        "frames": 4706
+      },
+      {
+        "host_seconds": 96.34104805099999,
+        "guest": 119941622,
+        "inputs": 26,
+        "frames": 4746
+      },
+      {
+        "host_seconds": 97.343041628,
+        "guest": 120940050,
+        "inputs": 26,
+        "frames": 4786
+      },
+      {
+        "host_seconds": 98.34520948,
+        "guest": 121945260,
+        "inputs": 26,
+        "frames": 4826
+      },
+      {
+        "host_seconds": 99.34709907199999,
+        "guest": 122940491,
+        "inputs": 26,
+        "frames": 4866
+      },
+      {
+        "host_seconds": 100.34923511199999,
+        "guest": 123947228,
+        "inputs": 26,
+        "frames": 4906
+      },
+      {
+        "host_seconds": 101.401133397,
+        "guest": 124988103,
+        "inputs": 26,
+        "frames": 4948
+      },
+      {
+        "host_seconds": 102.40322159200001,
+        "guest": 125995032,
+        "inputs": 26,
+        "frames": 4988
+      },
+      {
+        "host_seconds": 103.405120218,
+        "guest": 126996614,
+        "inputs": 26,
+        "frames": 5028
+      },
+      {
+        "host_seconds": 104.407049734,
+        "guest": 127994733,
+        "inputs": 26,
+        "frames": 5068
+      },
+      {
+        "host_seconds": 105.40830100400001,
+        "guest": 128998404,
+        "inputs": 26,
+        "frames": 5108
+      },
+      {
+        "host_seconds": 106.410384945,
+        "guest": 129999218,
+        "inputs": 26,
+        "frames": 5148
+      },
+      {
+        "host_seconds": 107.412413014,
+        "guest": 131000595,
+        "inputs": 26,
+        "frames": 5188
+      },
+      {
+        "host_seconds": 108.413642514,
+        "guest": 132009882,
+        "inputs": 26,
+        "frames": 5230
+      },
+      {
+        "host_seconds": 109.415725958,
+        "guest": 133010455,
+        "inputs": 26,
+        "frames": 5270
+      },
+      {
+        "host_seconds": 110.416142285,
+        "guest": 134004997,
+        "inputs": 26,
+        "frames": 5310
+      },
+      {
+        "host_seconds": 111.41811152199999,
+        "guest": 135003134,
+        "inputs": 26,
+        "frames": 5350
+      },
+      {
+        "host_seconds": 112.42018638899998,
+        "guest": 136012934,
+        "inputs": 26,
+        "frames": 5390
+      },
+      {
+        "host_seconds": 113.421325232,
+        "guest": 137012829,
+        "inputs": 26,
+        "frames": 5430
+      },
+      {
+        "host_seconds": 114.42336949799999,
+        "guest": 138013950,
+        "inputs": 26,
+        "frames": 5470
+      },
+      {
+        "host_seconds": 115.423953569,
+        "guest": 139010064,
+        "inputs": 26,
+        "frames": 5510
+      },
+      {
+        "host_seconds": 116.42602681799998,
+        "guest": 140015331,
+        "inputs": 26,
+        "frames": 5550
+      },
+      {
+        "host_seconds": 117.42795146899999,
+        "guest": 141012390,
+        "inputs": 26,
+        "frames": 5590
+      },
+      {
+        "host_seconds": 118.42978151999999,
+        "guest": 142027652,
+        "inputs": 26,
+        "frames": 5630
+      },
+      {
+        "host_seconds": 119.43190825899998,
+        "guest": 143027612,
+        "inputs": 26,
+        "frames": 5670
+      },
+      {
+        "host_seconds": 120.43313983599998,
+        "guest": 144046875,
+        "inputs": 26,
+        "frames": 5712
+      }
+    ],
+    "browser": "Chrome/153.0.8010.52",
+    "wasm_sha256": "e0c7bbd367e32fa6a6cf61983ea2bba2ec080fabe5a000e67c1df234e4118c62",
+    "note": "Input latency measures DOM keydown to guest queue consumption, not display response.",
+    "derived_summary": {
+      "guest_seconds": 120.585851,
+      "max_sampled_lag_seconds": 0.4339521709999872,
+      "input_queue_delivery_range_ms": [
+        0.8471349999999802,
+        3.6967789999998786
+      ]
+    },
+    "screenshots": {
+      "gameplay-120.png": "3e602a92681fe262ddece03ccf4424fde4083a5b6456ae14ebafd188c9e1e91c",
+      "gameplay-20.png": "bc156ed1d9864aad2a7b2e25b2435f5057e7aec0f50d70dd63740b7baf41ea8d",
+      "gameplay-80.png": "eeb67f21cdfc46ebfa8efddeb71c10a87fc3d69480b25528bdb635dda4f0e6fa",
+      "desktop-end.png": "49c43f5dd14596f5e6211bae963cc295e280aaa68358e7e79f764d067974b0dd",
+      "gameplay-60.png": "1970148861008c95d541e8a2276f2ecc0c2b98c331bd19a4524ca9cb139f7536",
+      "gameplay-40.png": "85d3acb19a75f6c956a2872c8d5ddd80e92ee6c07c0da7798cceea0766b82a97",
+      "gameplay-100.png": "f79c48e428b3df42ab440c2ada421b0a88cd132a1a57449575dbb1dc07b96701",
+      "mobile.png": "c9235d3eefe9fd5b1e717945f792088d7a5923e9dbde9554fa977282e4d57c82",
+      "desktop-gameplay.png": "e67da6039f2836f75694eefe3bdc76242920f43e7636f1066a97222d79501937"
+    }
+  },
+  "lifecycle-default-tests.log": {
+    "path": "/home/claude/.scratch/eka-benchmark/lifecycle-default-tests.log",
+    "sha256": "cdb58e00c18b264d6aee18a34f90874077cd823874cb556d85f183407936ae49",
+    "tail": [
+      "  PASS arm_conditional_exec",
+      "  PASS arm_bl_resume_point",
+      "  PASS arm_ldrh_strh",
+      "  PASS arm_mvn",
+      "  PASS arm_rsb",
+      "  PASS arm_clz",
+      "",
+      "132 passed, 0 failed"
+    ]
+  },
+  "lifecycle-default-fault.json": {
+    "cases": 480,
+    "all_fields_match": 480,
+    "final_state_and_exact_memory_match": 480,
+    "mismatched_fields": {},
+    "categories": {},
+    "little_endian_unmapped_cases": 120,
+    "little_endian_unmapped_differences": 0,
+    "inputs": {
+      "/home/claude/.scratch/eka-benchmark/cpu-fault-native-final.log": "d459f72671a0688b407077943e341f9af113541f0de956c4dd594cf1a443d4db",
+      "/home/claude/.scratch/eka-benchmark/lifecycle-default-fault.log": "d459f72671a0688b407077943e341f9af113541f0de956c4dd594cf1a443d4db"
+    },
+    "differences": []
+  },
+  "restored_default_build": {
+    "wasm_sha256": "9d2914ec702aed86379940bdb5c7f1d308581fe3aebe9d24084018c3b8ecc232",
+    "configuration": "#pragma once\n/* #undef EKA2L1_WASM_CODE_VERSIONS */\n\n/* #undef EKA2L1_WASM_CODE_LIFECYCLE */\n"
+  },
+  "deployment": {
+    "url": "https://claude-laptop.lan:8188/",
+    "served_wasm_sha256": "e0c7bbd367e32fa6a6cf61983ea2bba2ec080fabe5a000e67c1df234e4118c62",
+    "verified_by": "HTTPS fetch using trusted LAN CA; matches baseline archive",
+    "candidate_enabled": false
+  },
+  "conclusion": "No dependable net speedup established; keep lifecycle opt-in and off, preserve every timing including the baseline outlier. Candidate live run failed to sustain realtime.",
+  "restored_default_replay": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+      "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+      "writes": 2029,
+      "callbacks": 2029,
+      "gameplay_nonzero_samples": 6907266,
+      "gameplay_peak": 8191
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16261337499
+  },
+  "restored_default_replay_report": {
+    "frames": 1600,
+    "start_us": 21000000,
+    "unique": true,
+    "wall_seconds": 149.516856549,
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "wasm_sha256": "9d2914ec702aed86379940bdb5c7f1d308581fe3aebe9d24084018c3b8ecc232",
+    "gl_diagnostics": false,
+    "gl_diagnostics_configurable": true,
+    "aot": 5,
+    "aot_diagnostics": false,
+    "verify_aot": 1024,
+    "git_head": "8c1be4595a66c0c1184b9311e5d09c84fad27618",
+    "dirty_worktree": true
+  }
+}

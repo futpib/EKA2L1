@@ -11,3 +11,5 @@ A mutable host-pointer exposure permanently disables version-only validation for
 The tracking table uses 8 MiB of stable storage for the 32-bit WASM address space. Cached stamps cannot dangle after unload. Versions have one writer, the guest CPU; host pointer exposure changes atomic flags. Native builds retain their existing implementation and do not allocate the table.
 
 Validation includes aliases, changed inline dependencies, same-byte writes, host-pointer escapes and retained writes, mapping changes, retirement/reuse, overflow, and actual generated STRB/STRH/STR/STM writes. The exact native-interpreter replay remains the end-to-end correctness reference. Native Dynarmic performance is a separate workload comparison because its budget exits do not exactly match the interpreter.
+
+A separate `EKA2L1_WASM_CODE_LIFECYCLE` experiment adds lazy page watching and mutation-epoch reuse to avoid repeated stamp walks. See [CODE_LIFECYCLE.md](CODE_LIFECYCLE.md); it does not silently change this original version-only control.
