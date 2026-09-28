@@ -2346,6 +2346,40 @@ static bool test_region_cpsr_callback() {
     printf("  PASS region_cpsr_callback\n"); return true;
 }
 
+static bool test_deferred_memory_exits() {
+#ifdef __EMSCRIPTEN__
+    unsigned checks=0;
+    // Pure pre-indexed scalar accesses and spans without writeback/PC.
+    for (unsigned op : {0xe5910000u,0xe5810000u,0xe5d10000u,0xe5c10000u,
+                        0xe891000du,0xe881000du,0xe5910004u}) {
+        const bool load=op&(1u<<20), multi=((op>>25)&7)==4, byte=(op&(1u<<22))&&!multi;
+        const unsigned words[]={0xe3a05007u,op};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0x8000u,0x8001u,0x8ffcu,0u})for(unsigned budget:{0u,1u,2u}) {
+            test_mem memory;const auto before=memory.data;
+            r12l1::tlb tlb(12);tlb.add(address==0?0x200000:0x8000,memory.data.data()+0x8000,permission);
+            alignas(8) unsigned state[256]{};state[0]=17;state[1]=address;state[2]=19;state[3]=23;state[15]=0x1000;
+            state[state_offsets::CPSR/4]=16|endian;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            const unsigned effective=address+(op==0xe5910004u?4:0);
+            const bool fast=(permission&(load?1:2))&&!endian&&effective>=4096&&(byte||!(effective&3))&&((effective&~4095u)==0x8000)&&(!multi||(effective&4095)<=4084);
+            g_test_mem=&memory;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            const unsigned expected=budget<2?budget:fast?2:1;
+            if(count!=expected||g_memory_helper_calls||state[5]!=(budget?7u:0u)||
+               (expected<2&&(state[1]!=address||state[0]!=17||state[2]!=19||state[3]!=23||state[15]!=0x1000+expected*4||memory.data!=before))) {
+                printf("  FAIL deferred_memory op=%x perm=%u endian=%x address=%x budget=%u count=%d expected=%u\n",op,permission,endian,address,budget,count,expected);return false;
+            }++checks;
+        }
+    }
+    printf("  PASS deferred_memory_exits (%u exact pre-instruction exits)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_block_transfer_guards() {
 #ifdef __EMSCRIPTEN__
     for (bool load : {false,true}) {
@@ -3342,6 +3376,7 @@ int main() {
     if (test_region_cpsr_callback()) passed++; else failed++;
     if (test_block_transfer_callback_pc()) passed++; else failed++;
     if (test_repeated_read_guards()) passed++; else failed++;
+    if (test_deferred_memory_exits()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;

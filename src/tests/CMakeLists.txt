@@ -102,3 +102,5 @@ if (TARGET dynarmic AND NOT EMSCRIPTEN)
     add_executable(eka_cpu_fault_native EXCLUDE_FROM_ALL benchmark/cpu_fault_probe.cpp)
     target_link_libraries(eka_cpu_fault_native PRIVATE cpu dynarmic merry::mcl)
 endif()
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/benchmark/matched_kernel.cmake)

@@ -24,3 +24,5 @@ if(EMSCRIPTEN)
         "SHELL:-s ALLOW_TABLE_GROWTH=1" "SHELL:-s EXIT_RUNTIME=1" "SHELL:-s USE_PTHREADS=1")
     set_target_properties(eka_cpu_fault_wasm PROPERTIES SUFFIX ".js")
 endif()
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/../benchmark/matched_kernel.cmake)

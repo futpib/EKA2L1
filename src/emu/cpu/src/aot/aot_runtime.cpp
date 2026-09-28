@@ -154,6 +154,11 @@ bool hot_compilation_enabled = false;
 bool ram_compilation_enabled = false;
 bool chaining_enabled = false;
 static bool region_enabled = false;
+#ifdef EKA2L1_WASM_DEFER_MEMORY
+static constexpr bool defer_memory_enabled = true;
+#else
+static constexpr bool defer_memory_enabled = false;
+#endif
 static validated_code_cache ram_cache;
 static std::unordered_map<std::uint64_t, unsigned> ram_counts;
 static const std::uint8_t *hot_rom = nullptr;
@@ -308,7 +313,7 @@ void observe_hot_pc(ARMul_State *cpu) {
             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
         };
         auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
-                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled, &leaves);
+                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled, &leaves, defer_memory_enabled);
         if (tr.func.body.empty() || !tr.entry_supported) {
             // Cache rejection against these exact bytes; retry only after mutation.
             ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4))).rejected = true;
@@ -344,7 +349,7 @@ void observe_hot_pc(ARMul_State *cpu) {
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(chaining_enabled ? 512u : 128u, hot_rom_size - offset);
     auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
-                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled);
+                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, nullptr, defer_memory_enabled);
     if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
     hot_pending.push_back(std::move(tr.func));

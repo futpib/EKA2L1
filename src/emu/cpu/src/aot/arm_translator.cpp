@@ -55,6 +55,7 @@ namespace eka2l1::arm::aot {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
         bool region = false;
+        bool defer_memory = false, restartable_access = false;
         std::uint32_t current_pc = 0;
         bool pc_written = false;
         // Reserved i32 locals for region instruction count and memory fast path.
@@ -176,8 +177,15 @@ namespace eka2l1::arm::aot {
                 store_i32_const(S::AOT_EXIT,1); op(op_end);
             }
             op(op_else);
-            state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
-            slow_call(func_idx);
+            if (defer_memory && restartable_access) {
+                // No guest-visible effects have occurred in this instruction.
+                // Reconstruct its entry state and let DynCom handle the miss.
+                get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT);
+                bail(current_pc, 0);
+            } else {
+                state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
+                slow_call(func_idx);
+            }
             op(op_end);
         }
         // Validate a whole block-transfer span once. It must be aligned and
@@ -612,7 +620,7 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory)
     {
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
@@ -636,6 +644,7 @@ namespace eka2l1::arm::aot {
 
         arm_emit w{result.body};
         w.region = region && bounded;
+        w.defer_memory = w.region && defer_memory;
         w.cache.enabled = bounded && cache_registers;
         w.cache.runtime_fields = region;
         w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
@@ -758,7 +767,7 @@ namespace eka2l1::arm::aot {
             const bool check_exit = w.instruction_may_exit || insn_addr == start_address
                 || (!instruction.leaf && forward_targets_set.count(insn_addr));
             w.instruction_may_exit = false;
-            w.current_pc = insn_addr; w.pc_written = false;
+            w.current_pc = insn_addr; w.pc_written = false; w.restartable_access = false;
 
             // Close forward-target blocks
             while (!instruction.leaf && closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
@@ -1028,6 +1037,15 @@ namespace eka2l1::arm::aot {
                     // Code generation visits both arms; a fast LDM PC store
                     // must not suppress PC publication before fallback helpers.
                     w.pc_written = pc_written_before_span;
+                    if (w.defer_memory && !writeback && !has_pc) {
+                        // DynCom publishes block-transfer writeback before its
+                        // callbacks, unlike this compiled/native contract. Keep
+                        // writeback forms on the existing helper path.
+                        // Whole-span validation precedes every transfer. Restart
+                        // only here, never after a partially completed LDM/STM.
+                        w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT);
+                        w.bail(insn_addr, insn_idx);
+                    }
                 }
                 int off = 0;
                 for (int r = 0; r < 16; r++) {
@@ -1714,6 +1732,10 @@ namespace eka2l1::arm::aot {
                 }
                 w.set_local(ADDR_TMP);
                 if (!preindex) w.store_reg(rn, TMP4);
+                // Post-indexed forms have already published base writeback.
+                // Keep all writeback and PC-result forms on the original helper
+                // path. The remaining forms have changed only temporaries.
+                w.restartable_access = preindex && !writeback && rd != 15;
 
                 if (load) {
                     if (byte) {

@@ -5,7 +5,10 @@
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/wasm_emitter.h>
-#ifndef __EMSCRIPTEN__
+#ifdef EKA_MATCHED_REFERENCE
+#include "matched_kernel_reference.h"
+#endif
+#if !defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
 #include <cpu/arm_dynarmic.h>
 #endif
 #include <common/log.h>
@@ -56,11 +59,15 @@ int main(int argc, char **argv){
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
-    unsigned cases=0;
-    const unsigned instructions[]={0xe5910000,0xe5810000,0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,0xe8b1000d,0xe8a1000d};
+    const bool deferred=argc==2 && std::string(argv[1])=="--deferred";
+    unsigned cases=0,deferred_cases=0;
+    std::vector<unsigned> instructions={0xe5910000,0xe5810000,0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,0xe8b1000d,0xe8a1000d};
+    if(deferred || (argc==2 && std::string(argv[1])=="--extended")) {
+        instructions.push_back(0xe891000d);instructions.push_back(0xe881000d);
+    }
     for(unsigned op:instructions)for(unsigned policy=0;policy<4;++policy)
     for(unsigned address:{0x8000u,0x8ffdu,0x8ffcu})for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u})for(unsigned partial=0;partial<((op&0x0e000000u)==0x08000000u?2u:1u);++partial){
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) || defined(EKA_MATCHED_REFERENCE)
         r12l1::exclusive_monitor monitor(1); dyncom_core cpu(&monitor,12);
 #else
         dynarmic_exclusive_monitor monitor(1); dynarmic_core cpu(&monitor);
@@ -76,12 +83,12 @@ int main(int argc, char **argv){
         // the first transferred word before failing subsequent accesses.
         if(permission)cpu.set_tlb_page(address&~4095u,f.memory.data()+(address&~4095u),
             prot_read);
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         if(!interpreter) {
-        auto tr=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program),8,0x1000,nullptr,nullptr,true,false,true,true);
+        auto tr=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program),8,0x1000,nullptr,nullptr,true,false,true,true,nullptr,deferred);
         auto bytes=aot::build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         // A second entry is needed because each exact Step dispatches at its PC.
-        auto tail=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+1),4,0x1004,nullptr,nullptr,true,false,true,true);
+        auto tail=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+1),4,0x1004,nullptr,nullptr,true,false,true,true,nullptr,deferred);
         bytes=aot::build_wasm_module({tr.func,tail.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         aot::stage_aot_module(std::move(bytes),"hot-rom");aot::instantiate_staged_modules();aot::chaining_enabled=true;
         }
@@ -89,19 +96,41 @@ int main(int argc, char **argv){
         const auto initial_memory=f.memory;
         const auto prior_compiled=eka2l1::common::performance::aot_instructions;
         cpu.step();
-#ifndef __EMSCRIPTEN__
+#if !defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         auto prior_count=cpu.get_num_instruction_executed();
 #else
         unsigned prior_count=0; // DynCom resets this counter at each Step.
 #endif
+#ifdef EKA_MATCHED_REFERENCE
+        auto *s=matched_kernel_access::state(cpu);s->aot_budget=1;s->aot_exit=0;
+        s->NFlag=s->Cpsr>>31;s->ZFlag=(s->Cpsr>>30)&1;s->CFlag=(s->Cpsr>>29)&1;s->VFlag=(s->Cpsr>>28)&1;
+        matched::Frame frame(s,0,0);
+        switch(op) {
+#define REF_CASE(opcode) case opcode: frame.instruction<opcode>();break;
+        REF_CASE(0xe5910000) REF_CASE(0xe5810000) REF_CASE(0xe5d10000) REF_CASE(0xe5c10000)
+        REF_CASE(0xe1d100b0) REF_CASE(0xe1c100b0) REF_CASE(0xe8b1000d) REF_CASE(0xe8a1000d)
+        REF_CASE(0xe891000d) REF_CASE(0xe881000d)
+#undef REF_CASE
+        }
+        frame.flush();const auto reference_count=frame.count;
+#else
         cpu.step();
-#ifdef __EMSCRIPTEN__
-        if(!interpreter && eka2l1::common::performance::aot_instructions-prior_compiled!=2){
+#endif
+#if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
+        const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
+        if(deferred && compiled==1)++deferred_cases;
+        if(!interpreter && compiled!=2 && !(deferred && compiled==1)){
             std::cerr<<"Expected two generated instructions at case "<<cases<<'\n';return 2;
         }
 #endif
         unsigned hash=2166136261u;for(auto b:f.memory){hash^=b;hash*=16777619u;}
-        std::cout<<"FAULT {\"id\":"<<cases++<<",\"opcode\":"<<op<<",\"policy\":"<<policy<<",\"address\":"<<address<<",\"endian\":"<<endian<<",\"tlb_readonly\":"<<permission<<",\"partial\":"<<partial<<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()<<",\"count\":"<<(cpu.get_num_instruction_executed()-prior_count)<<",\"memory_hash\":"<<hash<<",\"calls\":"<<f.calls<<",\"faults\":"<<f.faults<<",\"events\":[";
+        std::cout<<"FAULT {\"id\":"<<cases++<<",\"opcode\":"<<op<<",\"policy\":"<<policy<<",\"address\":"<<address<<",\"endian\":"<<endian<<",\"tlb_readonly\":"<<permission<<",\"partial\":"<<partial<<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()<<",\"count\":"<<(
+#ifdef EKA_MATCHED_REFERENCE
+        reference_count
+#else
+        cpu.get_num_instruction_executed()-prior_count
+#endif
+        )<<",\"memory_hash\":"<<hash<<",\"calls\":"<<f.calls<<",\"faults\":"<<f.faults<<",\"events\":[";
         for(unsigned i=0;i<f.events.size();++i){if(i)std::cout<<',';std::cout<<f.events[i];}std::cout<<"],\"memory_changes\":[";
         bool comma=false;
         for(unsigned i=0;i<f.memory.size();++i)if(f.memory[i]!=initial_memory[i]){
@@ -109,4 +138,7 @@ int main(int argc, char **argv){
         }
         std::cout<<"]}\n";
     }
+#if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
+    if(deferred){std::cerr<<"Deferred cases: "<<deferred_cases<<'\n';if(!deferred_cases)return 3;}
+#endif
 }

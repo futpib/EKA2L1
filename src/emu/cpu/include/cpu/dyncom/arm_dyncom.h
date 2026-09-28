@@ -22,6 +22,7 @@ namespace eka2l1::arm {
 #endif
 
     class dyncom_core final : public core {
+        friend struct matched_kernel_access; // Offline benchmark state adapter; no runtime path.
     private:
         arm::exclusive_monitor *monitor_;
         std::unique_ptr<ARMul_State> state_;

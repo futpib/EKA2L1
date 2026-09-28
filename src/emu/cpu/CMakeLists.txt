@@ -178,3 +178,7 @@ endif()
 if (EMSCRIPTEN)
     set_source_files_properties(src/aot/code_compare.cpp PROPERTIES COMPILE_OPTIONS "-msimd128")
 endif()
+
+if(EKA2L1_WASM_DEFER_MEMORY)
+    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_DEFER_MEMORY=1)
+endif()
