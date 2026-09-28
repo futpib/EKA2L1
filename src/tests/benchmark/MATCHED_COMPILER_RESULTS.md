@@ -187,3 +187,12 @@ No compiler changes were needed, so prior 133-test, 672-fault-case, checked
 1,600-image and live-workflow validation applies to these identical binaries;
 those gates were not rerun in this repeat. Detailed reports, GPU information,
 execution totals and binary hashes are in `MATCHED_SNAKES_REPEAT_EVIDENCE.json`.
+
+## Graduation, 2026-09-28
+
+Following the positive real-Snakes repeat, the user authorized graduation.
+`EKA2L1_WASM_DEFER_MEMORY` now defaults to ON; OFF remains an explicit comparison
+and rollback option. Earlier OFF/default decisions above describe their original
+measurement stage. The graduated binary is the same hash-verified candidate
+used by the fault, replay and live checks, not a new untested implementation.
+Marginal experiments are reassessed separately in `GRADUATION_RESULTS.md`.
