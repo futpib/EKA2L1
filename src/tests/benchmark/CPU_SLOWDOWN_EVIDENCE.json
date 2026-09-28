@@ -1,0 +1,2490 @@
+{
+  "baseline_commit": "9f7938e34",
+  "method": "Offline ordinary-memory kernels extracted from profiled guest code. Native Step exact-state oracle; native Run full-budget check. Browser 500k warmup then 8 alternating-order trials of 5M calls; no JS call per kernel. No whole-game speedup claim.",
+  "browser_runs": {
+    "cpu-kernels-browser": {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "all": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "comparisons": 3744,
+          "calls": 5000000,
+          "timings": [
+            {
+              "round": 0,
+              "name": "current",
+              "ms": 603.8699998855591
+            },
+            {
+              "round": 0,
+              "name": "opt",
+              "ms": 584.2250003814697
+            },
+            {
+              "round": 0,
+              "name": "budget",
+              "ms": 462.57500076293945
+            },
+            {
+              "round": 0,
+              "name": "flat",
+              "ms": 269.1599998474121
+            },
+            {
+              "round": 0,
+              "name": "both",
+              "ms": 202.61999988555908
+            },
+            {
+              "round": 0,
+              "name": "same",
+              "ms": 574.7849998474121
+            },
+            {
+              "round": 1,
+              "name": "same",
+              "ms": 572.335000038147
+            },
+            {
+              "round": 1,
+              "name": "both",
+              "ms": 202.42000007629395
+            },
+            {
+              "round": 1,
+              "name": "flat",
+              "ms": 269.2799997329712
+            },
+            {
+              "round": 1,
+              "name": "budget",
+              "ms": 462.3999996185303
+            },
+            {
+              "round": 1,
+              "name": "opt",
+              "ms": 584.8699998855591
+            },
+            {
+              "round": 1,
+              "name": "current",
+              "ms": 583.2200002670288
+            },
+            {
+              "round": 2,
+              "name": "current",
+              "ms": 592.2050008773804
+            },
+            {
+              "round": 2,
+              "name": "opt",
+              "ms": 583.9099998474121
+            },
+            {
+              "round": 2,
+              "name": "budget",
+              "ms": 458.89000034332275
+            },
+            {
+              "round": 2,
+              "name": "flat",
+              "ms": 267.5349998474121
+            },
+            {
+              "round": 2,
+              "name": "both",
+              "ms": 201.38500022888184
+            },
+            {
+              "round": 2,
+              "name": "same",
+              "ms": 577.0650005340576
+            },
+            {
+              "round": 3,
+              "name": "same",
+              "ms": 574.6849994659424
+            },
+            {
+              "round": 3,
+              "name": "both",
+              "ms": 198.05500030517578
+            },
+            {
+              "round": 3,
+              "name": "flat",
+              "ms": 270.0950002670288
+            },
+            {
+              "round": 3,
+              "name": "budget",
+              "ms": 462.9700002670288
+            },
+            {
+              "round": 3,
+              "name": "opt",
+              "ms": 585.0849990844727
+            },
+            {
+              "round": 3,
+              "name": "current",
+              "ms": 584.1150007247925
+            },
+            {
+              "round": 4,
+              "name": "current",
+              "ms": 582.8450002670288
+            },
+            {
+              "round": 4,
+              "name": "opt",
+              "ms": 586.5600004196167
+            },
+            {
+              "round": 4,
+              "name": "budget",
+              "ms": 459.0650005340576
+            },
+            {
+              "round": 4,
+              "name": "flat",
+              "ms": 270.51499938964844
+            },
+            {
+              "round": 4,
+              "name": "both",
+              "ms": 198.23499965667725
+            },
+            {
+              "round": 4,
+              "name": "same",
+              "ms": 572.2799997329712
+            },
+            {
+              "round": 5,
+              "name": "same",
+              "ms": 577.3250007629395
+            },
+            {
+              "round": 5,
+              "name": "both",
+              "ms": 198.0049991607666
+            },
+            {
+              "round": 5,
+              "name": "flat",
+              "ms": 267.6550006866455
+            },
+            {
+              "round": 5,
+              "name": "budget",
+              "ms": 459.04500007629395
+            },
+            {
+              "round": 5,
+              "name": "opt",
+              "ms": 586.4899997711182
+            },
+            {
+              "round": 5,
+              "name": "current",
+              "ms": 586.6449995040894
+            },
+            {
+              "round": 6,
+              "name": "current",
+              "ms": 583.4099998474121
+            },
+            {
+              "round": 6,
+              "name": "opt",
+              "ms": 584.6850004196167
+            },
+            {
+              "round": 6,
+              "name": "budget",
+              "ms": 464.20499992370605
+            },
+            {
+              "round": 6,
+              "name": "flat",
+              "ms": 267.664999961853
+            },
+            {
+              "round": 6,
+              "name": "both",
+              "ms": 198.21000003814697
+            },
+            {
+              "round": 6,
+              "name": "same",
+              "ms": 573.2650003433228
+            },
+            {
+              "round": 7,
+              "name": "same",
+              "ms": 574.8850002288818
+            },
+            {
+              "round": 7,
+              "name": "both",
+              "ms": 201.14999961853027
+            },
+            {
+              "round": 7,
+              "name": "flat",
+              "ms": 268.6800003051758
+            },
+            {
+              "round": 7,
+              "name": "budget",
+              "ms": 458.5250005722046
+            },
+            {
+              "round": 7,
+              "name": "opt",
+              "ms": 585.4049997329712
+            },
+            {
+              "round": 7,
+              "name": "current",
+              "ms": 582.6999998092651
+            }
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "comparisons": 544,
+          "calls": 5000000,
+          "timings": [
+            {
+              "round": 0,
+              "name": "current",
+              "ms": 132.05000019073486
+            },
+            {
+              "round": 0,
+              "name": "opt",
+              "ms": 131.57999992370605
+            },
+            {
+              "round": 0,
+              "name": "budget",
+              "ms": 114.15999984741211
+            },
+            {
+              "round": 0,
+              "name": "flat",
+              "ms": 64.19499969482422
+            },
+            {
+              "round": 0,
+              "name": "both",
+              "ms": 64.59999942779541
+            },
+            {
+              "round": 0,
+              "name": "same",
+              "ms": 112.09999942779541
+            },
+            {
+              "round": 1,
+              "name": "same",
+              "ms": 112.28000068664551
+            },
+            {
+              "round": 1,
+              "name": "both",
+              "ms": 64.61999988555908
+            },
+            {
+              "round": 1,
+              "name": "flat",
+              "ms": 64.44999980926514
+            },
+            {
+              "round": 1,
+              "name": "budget",
+              "ms": 114.20499992370605
+            },
+            {
+              "round": 1,
+              "name": "opt",
+              "ms": 131.41499996185303
+            },
+            {
+              "round": 1,
+              "name": "current",
+              "ms": 118.02499961853027
+            },
+            {
+              "round": 2,
+              "name": "current",
+              "ms": 117.82999992370605
+            },
+            {
+              "round": 2,
+              "name": "opt",
+              "ms": 131.11499977111816
+            },
+            {
+              "round": 2,
+              "name": "budget",
+              "ms": 114.41499996185303
+            },
+            {
+              "round": 2,
+              "name": "flat",
+              "ms": 64.30499935150146
+            },
+            {
+              "round": 2,
+              "name": "both",
+              "ms": 65.11499977111816
+            },
+            {
+              "round": 2,
+              "name": "same",
+              "ms": 112.77499961853027
+            },
+            {
+              "round": 3,
+              "name": "same",
+              "ms": 112.13499927520752
+            },
+            {
+              "round": 3,
+              "name": "both",
+              "ms": 66.69499969482422
+            },
+            {
+              "round": 3,
+              "name": "flat",
+              "ms": 65.51499938964844
+            },
+            {
+              "round": 3,
+              "name": "budget",
+              "ms": 114.15999984741211
+            },
+            {
+              "round": 3,
+              "name": "opt",
+              "ms": 130.45499992370605
+            },
+            {
+              "round": 3,
+              "name": "current",
+              "ms": 117.74499988555908
+            },
+            {
+              "round": 4,
+              "name": "current",
+              "ms": 117.60000038146973
+            },
+            {
+              "round": 4,
+              "name": "opt",
+              "ms": 129.97999954223633
+            },
+            {
+              "round": 4,
+              "name": "budget",
+              "ms": 114.21999931335449
+            },
+            {
+              "round": 4,
+              "name": "flat",
+              "ms": 64.14999961853027
+            },
+            {
+              "round": 4,
+              "name": "both",
+              "ms": 64.58500003814697
+            },
+            {
+              "round": 4,
+              "name": "same",
+              "ms": 112.08500003814697
+            },
+            {
+              "round": 5,
+              "name": "same",
+              "ms": 112.05000019073486
+            },
+            {
+              "round": 5,
+              "name": "both",
+              "ms": 64.59000015258789
+            },
+            {
+              "round": 5,
+              "name": "flat",
+              "ms": 64.13500022888184
+            },
+            {
+              "round": 5,
+              "name": "budget",
+              "ms": 115.46000003814697
+            },
+            {
+              "round": 5,
+              "name": "opt",
+              "ms": 130.53999996185303
+            },
+            {
+              "round": 5,
+              "name": "current",
+              "ms": 117.49499988555908
+            },
+            {
+              "round": 6,
+              "name": "current",
+              "ms": 117.625
+            },
+            {
+              "round": 6,
+              "name": "opt",
+              "ms": 129.89500045776367
+            },
+            {
+              "round": 6,
+              "name": "budget",
+              "ms": 118.29999923706055
+            },
+            {
+              "round": 6,
+              "name": "flat",
+              "ms": 64.36999988555908
+            },
+            {
+              "round": 6,
+              "name": "both",
+              "ms": 64.69000053405762
+            },
+            {
+              "round": 6,
+              "name": "same",
+              "ms": 112.22999954223633
+            },
+            {
+              "round": 7,
+              "name": "same",
+              "ms": 112.14000034332275
+            },
+            {
+              "round": 7,
+              "name": "both",
+              "ms": 64.72000026702881
+            },
+            {
+              "round": 7,
+              "name": "flat",
+              "ms": 64.38500022888184
+            },
+            {
+              "round": 7,
+              "name": "budget",
+              "ms": 114.51500034332275
+            },
+            {
+              "round": 7,
+              "name": "opt",
+              "ms": 131.82499980926514
+            },
+            {
+              "round": 7,
+              "name": "current",
+              "ms": 118.78999996185303
+            }
+          ]
+        }
+      ]
+    },
+    "cpu-kernels-browser2": {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "all": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "comparisons": 4672,
+          "calls": 5000000,
+          "timings": [
+            {
+              "round": 0,
+              "name": "current",
+              "ms": 595.5999994277954
+            },
+            {
+              "round": 0,
+              "name": "opt",
+              "ms": 584.8200006484985
+            },
+            {
+              "round": 0,
+              "name": "budget",
+              "ms": 463.0349998474121
+            },
+            {
+              "round": 0,
+              "name": "flat",
+              "ms": 273.57999992370605
+            },
+            {
+              "round": 0,
+              "name": "both",
+              "ms": 198.24499988555908
+            },
+            {
+              "round": 0,
+              "name": "same",
+              "ms": 572.329999923706
+            },
+            {
+              "round": 0,
+              "name": "precise",
+              "ms": 578.5950002670288
+            },
+            {
+              "round": 1,
+              "name": "precise",
+              "ms": 581.9850006103516
+            },
+            {
+              "round": 1,
+              "name": "same",
+              "ms": 577.0849990844727
+            },
+            {
+              "round": 1,
+              "name": "both",
+              "ms": 198.26000022888184
+            },
+            {
+              "round": 1,
+              "name": "flat",
+              "ms": 273.73999977111816
+            },
+            {
+              "round": 1,
+              "name": "budget",
+              "ms": 458.6499996185303
+            },
+            {
+              "round": 1,
+              "name": "opt",
+              "ms": 591.5199995040894
+            },
+            {
+              "round": 1,
+              "name": "current",
+              "ms": 587.6850004196167
+            },
+            {
+              "round": 2,
+              "name": "current",
+              "ms": 578.8999996185303
+            },
+            {
+              "round": 2,
+              "name": "opt",
+              "ms": 587.4850006103516
+            },
+            {
+              "round": 2,
+              "name": "budget",
+              "ms": 461.4699993133545
+            },
+            {
+              "round": 2,
+              "name": "flat",
+              "ms": 273.6850004196167
+            },
+            {
+              "round": 2,
+              "name": "both",
+              "ms": 198.46499919891357
+            },
+            {
+              "round": 2,
+              "name": "same",
+              "ms": 572.5300006866455
+            },
+            {
+              "round": 2,
+              "name": "precise",
+              "ms": 582.8600006103516
+            },
+            {
+              "round": 3,
+              "name": "precise",
+              "ms": 577.3899993896484
+            },
+            {
+              "round": 3,
+              "name": "same",
+              "ms": 573.6400003433228
+            },
+            {
+              "round": 3,
+              "name": "both",
+              "ms": 199.5900001525879
+            },
+            {
+              "round": 3,
+              "name": "flat",
+              "ms": 273.8699998855591
+            },
+            {
+              "round": 3,
+              "name": "budget",
+              "ms": 464.1499996185303
+            },
+            {
+              "round": 3,
+              "name": "opt",
+              "ms": 583.164999961853
+            },
+            {
+              "round": 3,
+              "name": "current",
+              "ms": 581.2249994277954
+            },
+            {
+              "round": 4,
+              "name": "current",
+              "ms": 582.8500003814697
+            },
+            {
+              "round": 4,
+              "name": "opt",
+              "ms": 584.2199993133545
+            },
+            {
+              "round": 4,
+              "name": "budget",
+              "ms": 461.85500049591064
+            },
+            {
+              "round": 4,
+              "name": "flat",
+              "ms": 273.585000038147
+            },
+            {
+              "round": 4,
+              "name": "both",
+              "ms": 198.0250005722046
+            },
+            {
+              "round": 4,
+              "name": "same",
+              "ms": 576.7550001144409
+            },
+            {
+              "round": 4,
+              "name": "precise",
+              "ms": 578.2550001144409
+            },
+            {
+              "round": 5,
+              "name": "precise",
+              "ms": 576.2600002288818
+            },
+            {
+              "round": 5,
+              "name": "same",
+              "ms": 572.375
+            },
+            {
+              "round": 5,
+              "name": "both",
+              "ms": 203.05499935150146
+            },
+            {
+              "round": 5,
+              "name": "flat",
+              "ms": 275.335000038147
+            },
+            {
+              "round": 5,
+              "name": "budget",
+              "ms": 459.7550001144409
+            },
+            {
+              "round": 5,
+              "name": "opt",
+              "ms": 583.2699995040894
+            },
+            {
+              "round": 5,
+              "name": "current",
+              "ms": 583.8100004196167
+            },
+            {
+              "round": 6,
+              "name": "current",
+              "ms": 580.6999998092651
+            },
+            {
+              "round": 6,
+              "name": "opt",
+              "ms": 585.7399997711182
+            },
+            {
+              "round": 6,
+              "name": "budget",
+              "ms": 460.9700002670288
+            },
+            {
+              "round": 6,
+              "name": "flat",
+              "ms": 273.5050001144409
+            },
+            {
+              "round": 6,
+              "name": "both",
+              "ms": 202.11000061035156
+            },
+            {
+              "round": 6,
+              "name": "same",
+              "ms": 573.8699998855591
+            },
+            {
+              "round": 6,
+              "name": "precise",
+              "ms": 576.8949995040894
+            },
+            {
+              "round": 7,
+              "name": "precise",
+              "ms": 580.5249996185303
+            },
+            {
+              "round": 7,
+              "name": "same",
+              "ms": 579.2449998855591
+            },
+            {
+              "round": 7,
+              "name": "both",
+              "ms": 198.18000030517578
+            },
+            {
+              "round": 7,
+              "name": "flat",
+              "ms": 276.1199998855591
+            },
+            {
+              "round": 7,
+              "name": "budget",
+              "ms": 459.3199996948242
+            },
+            {
+              "round": 7,
+              "name": "opt",
+              "ms": 591.4849996566772
+            },
+            {
+              "round": 7,
+              "name": "current",
+              "ms": 586.0700006484985
+            }
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "comparisons": 672,
+          "calls": 5000000,
+          "timings": [
+            {
+              "round": 0,
+              "name": "current",
+              "ms": 132.2150001525879
+            },
+            {
+              "round": 0,
+              "name": "opt",
+              "ms": 124.11999988555908
+            },
+            {
+              "round": 0,
+              "name": "budget",
+              "ms": 114.35999965667725
+            },
+            {
+              "round": 0,
+              "name": "flat",
+              "ms": 64.17000007629395
+            },
+            {
+              "round": 0,
+              "name": "both",
+              "ms": 65.05000019073486
+            },
+            {
+              "round": 0,
+              "name": "same",
+              "ms": 110.48000049591064
+            },
+            {
+              "round": 0,
+              "name": "precise",
+              "ms": 117.09499931335449
+            },
+            {
+              "round": 1,
+              "name": "precise",
+              "ms": 119.83000087738037
+            },
+            {
+              "round": 1,
+              "name": "same",
+              "ms": 112.40499973297119
+            },
+            {
+              "round": 1,
+              "name": "both",
+              "ms": 64.57499980926514
+            },
+            {
+              "round": 1,
+              "name": "flat",
+              "ms": 64.42000007629395
+            },
+            {
+              "round": 1,
+              "name": "budget",
+              "ms": 114.88999938964844
+            },
+            {
+              "round": 1,
+              "name": "opt",
+              "ms": 122.78999996185303
+            },
+            {
+              "round": 1,
+              "name": "current",
+              "ms": 118.05499935150146
+            },
+            {
+              "round": 2,
+              "name": "current",
+              "ms": 117.86000061035156
+            },
+            {
+              "round": 2,
+              "name": "opt",
+              "ms": 122.65999984741211
+            },
+            {
+              "round": 2,
+              "name": "budget",
+              "ms": 115.75
+            },
+            {
+              "round": 2,
+              "name": "flat",
+              "ms": 64.26499938964844
+            },
+            {
+              "round": 2,
+              "name": "both",
+              "ms": 64.58999919891357
+            },
+            {
+              "round": 2,
+              "name": "same",
+              "ms": 110.38000011444092
+            },
+            {
+              "round": 2,
+              "name": "precise",
+              "ms": 118.24499988555908
+            },
+            {
+              "round": 3,
+              "name": "precise",
+              "ms": 116.67500019073486
+            },
+            {
+              "round": 3,
+              "name": "same",
+              "ms": 110.14999961853027
+            },
+            {
+              "round": 3,
+              "name": "both",
+              "ms": 65.27000045776367
+            },
+            {
+              "round": 3,
+              "name": "flat",
+              "ms": 64.875
+            },
+            {
+              "round": 3,
+              "name": "budget",
+              "ms": 114.84000015258789
+            },
+            {
+              "round": 3,
+              "name": "opt",
+              "ms": 124.82499980926514
+            },
+            {
+              "round": 3,
+              "name": "current",
+              "ms": 122.8149995803833
+            },
+            {
+              "round": 4,
+              "name": "current",
+              "ms": 119.14499950408936
+            },
+            {
+              "round": 4,
+              "name": "opt",
+              "ms": 123.11499977111816
+            },
+            {
+              "round": 4,
+              "name": "budget",
+              "ms": 114.17000007629395
+            },
+            {
+              "round": 4,
+              "name": "flat",
+              "ms": 64.27499961853027
+            },
+            {
+              "round": 4,
+              "name": "both",
+              "ms": 64.95499992370605
+            },
+            {
+              "round": 4,
+              "name": "same",
+              "ms": 113.11499977111816
+            },
+            {
+              "round": 4,
+              "name": "precise",
+              "ms": 116.67500019073486
+            },
+            {
+              "round": 5,
+              "name": "precise",
+              "ms": 116.83500003814697
+            },
+            {
+              "round": 5,
+              "name": "same",
+              "ms": 110.26500034332275
+            },
+            {
+              "round": 5,
+              "name": "both",
+              "ms": 64.57499980926514
+            },
+            {
+              "round": 5,
+              "name": "flat",
+              "ms": 64.17500019073486
+            },
+            {
+              "round": 5,
+              "name": "budget",
+              "ms": 114.09500026702881
+            },
+            {
+              "round": 5,
+              "name": "opt",
+              "ms": 122.10999965667725
+            },
+            {
+              "round": 5,
+              "name": "current",
+              "ms": 117.82000064849854
+            },
+            {
+              "round": 6,
+              "name": "current",
+              "ms": 117.70499992370605
+            },
+            {
+              "round": 6,
+              "name": "opt",
+              "ms": 122.25500011444092
+            },
+            {
+              "round": 6,
+              "name": "budget",
+              "ms": 115.22999954223633
+            },
+            {
+              "round": 6,
+              "name": "flat",
+              "ms": 65.96499919891357
+            },
+            {
+              "round": 6,
+              "name": "both",
+              "ms": 66.17000007629395
+            },
+            {
+              "round": 6,
+              "name": "same",
+              "ms": 111.14500045776367
+            },
+            {
+              "round": 6,
+              "name": "precise",
+              "ms": 119.08999919891357
+            },
+            {
+              "round": 7,
+              "name": "precise",
+              "ms": 116.67500019073486
+            },
+            {
+              "round": 7,
+              "name": "same",
+              "ms": 110.10500049591064
+            },
+            {
+              "round": 7,
+              "name": "both",
+              "ms": 65.17500019073486
+            },
+            {
+              "round": 7,
+              "name": "flat",
+              "ms": 65.77000045776367
+            },
+            {
+              "round": 7,
+              "name": "budget",
+              "ms": 117.5049991607666
+            },
+            {
+              "round": 7,
+              "name": "opt",
+              "ms": 124.09999942779541
+            },
+            {
+              "round": 7,
+              "name": "current",
+              "ms": 117.90000057220459
+            }
+          ]
+        }
+      ]
+    },
+    "cpu-kernels-browser-final": {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "all": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "comparisons": 4672,
+          "calls": 5000000,
+          "timings": [
+            {
+              "round": 0,
+              "name": "empty",
+              "ms": 49.33500003814697
+            },
+            {
+              "round": 0,
+              "name": "current",
+              "ms": 580.1300001144409
+            },
+            {
+              "round": 0,
+              "name": "opt",
+              "ms": 589.0549993515015
+            },
+            {
+              "round": 0,
+              "name": "budget",
+              "ms": 458.1599998474121
+            },
+            {
+              "round": 0,
+              "name": "flat",
+              "ms": 267.789999961853
+            },
+            {
+              "round": 0,
+              "name": "both",
+              "ms": 197.39499950408936
+            },
+            {
+              "round": 0,
+              "name": "same",
+              "ms": 576.1050004959106
+            },
+            {
+              "round": 0,
+              "name": "precise",
+              "ms": 579.6599998474121
+            },
+            {
+              "round": 1,
+              "name": "precise",
+              "ms": 576.789999961853
+            },
+            {
+              "round": 1,
+              "name": "same",
+              "ms": 574.4499998092651
+            },
+            {
+              "round": 1,
+              "name": "both",
+              "ms": 198.32000064849854
+            },
+            {
+              "round": 1,
+              "name": "flat",
+              "ms": 267.6599998474121
+            },
+            {
+              "round": 1,
+              "name": "budget",
+              "ms": 463.2199993133545
+            },
+            {
+              "round": 1,
+              "name": "opt",
+              "ms": 584.5300006866455
+            },
+            {
+              "round": 1,
+              "name": "current",
+              "ms": 579.8650007247925
+            },
+            {
+              "round": 1,
+              "name": "empty",
+              "ms": 38.8149995803833
+            },
+            {
+              "round": 2,
+              "name": "empty",
+              "ms": 38.35000038146973
+            },
+            {
+              "round": 2,
+              "name": "current",
+              "ms": 582.2300004959106
+            },
+            {
+              "round": 2,
+              "name": "opt",
+              "ms": 584.4349994659424
+            },
+            {
+              "round": 2,
+              "name": "budget",
+              "ms": 470.11000061035156
+            },
+            {
+              "round": 2,
+              "name": "flat",
+              "ms": 270.0299997329712
+            },
+            {
+              "round": 2,
+              "name": "both",
+              "ms": 198.2199993133545
+            },
+            {
+              "round": 2,
+              "name": "same",
+              "ms": 580.3450002670288
+            },
+            {
+              "round": 2,
+              "name": "precise",
+              "ms": 581.3199996948242
+            },
+            {
+              "round": 3,
+              "name": "precise",
+              "ms": 614
+            },
+            {
+              "round": 3,
+              "name": "same",
+              "ms": 632.3249998092651
+            },
+            {
+              "round": 3,
+              "name": "both",
+              "ms": 212.31999969482422
+            },
+            {
+              "round": 3,
+              "name": "flat",
+              "ms": 279.210000038147
+            },
+            {
+              "round": 3,
+              "name": "budget",
+              "ms": 481
+            },
+            {
+              "round": 3,
+              "name": "opt",
+              "ms": 589.7799997329712
+            },
+            {
+              "round": 3,
+              "name": "current",
+              "ms": 595.7050008773804
+            },
+            {
+              "round": 3,
+              "name": "empty",
+              "ms": 38.96500015258789
+            },
+            {
+              "round": 4,
+              "name": "empty",
+              "ms": 39.170000076293945
+            },
+            {
+              "round": 4,
+              "name": "current",
+              "ms": 588.0400009155273
+            },
+            {
+              "round": 4,
+              "name": "opt",
+              "ms": 591.1449995040894
+            },
+            {
+              "round": 4,
+              "name": "budget",
+              "ms": 465.4099998474121
+            },
+            {
+              "round": 4,
+              "name": "flat",
+              "ms": 275.2800006866455
+            },
+            {
+              "round": 4,
+              "name": "both",
+              "ms": 203.23500061035156
+            },
+            {
+              "round": 4,
+              "name": "same",
+              "ms": 583.6800003051758
+            },
+            {
+              "round": 4,
+              "name": "precise",
+              "ms": 590.5200004577637
+            },
+            {
+              "round": 5,
+              "name": "precise",
+              "ms": 593.3649997711182
+            },
+            {
+              "round": 5,
+              "name": "same",
+              "ms": 591.795000076294
+            },
+            {
+              "round": 5,
+              "name": "both",
+              "ms": 204.13500022888184
+            },
+            {
+              "round": 5,
+              "name": "flat",
+              "ms": 275.1000003814697
+            },
+            {
+              "round": 5,
+              "name": "budget",
+              "ms": 472.875
+            },
+            {
+              "round": 5,
+              "name": "opt",
+              "ms": 600.954999923706
+            },
+            {
+              "round": 5,
+              "name": "current",
+              "ms": 595.6800003051758
+            },
+            {
+              "round": 5,
+              "name": "empty",
+              "ms": 40.329999923706055
+            },
+            {
+              "round": 6,
+              "name": "empty",
+              "ms": 39.83500003814697
+            },
+            {
+              "round": 6,
+              "name": "current",
+              "ms": 600.1050004959106
+            },
+            {
+              "round": 6,
+              "name": "opt",
+              "ms": 602.1999998092651
+            },
+            {
+              "round": 6,
+              "name": "budget",
+              "ms": 465.75
+            },
+            {
+              "round": 6,
+              "name": "flat",
+              "ms": 270.6899995803833
+            },
+            {
+              "round": 6,
+              "name": "both",
+              "ms": 204.8149995803833
+            },
+            {
+              "round": 6,
+              "name": "same",
+              "ms": 599.5349998474121
+            },
+            {
+              "round": 6,
+              "name": "precise",
+              "ms": 606.585000038147
+            },
+            {
+              "round": 7,
+              "name": "precise",
+              "ms": 597.4099998474121
+            },
+            {
+              "round": 7,
+              "name": "same",
+              "ms": 580.5599994659424
+            },
+            {
+              "round": 7,
+              "name": "both",
+              "ms": 198.17000007629395
+            },
+            {
+              "round": 7,
+              "name": "flat",
+              "ms": 269.3050003051758
+            },
+            {
+              "round": 7,
+              "name": "budget",
+              "ms": 463.13500022888184
+            },
+            {
+              "round": 7,
+              "name": "opt",
+              "ms": 588.9400005340576
+            },
+            {
+              "round": 7,
+              "name": "current",
+              "ms": 580.710000038147
+            },
+            {
+              "round": 7,
+              "name": "empty",
+              "ms": 38.67500019073486
+            }
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "comparisons": 672,
+          "calls": 5000000,
+          "timings": [
+            {
+              "round": 0,
+              "name": "empty",
+              "ms": 51.875
+            },
+            {
+              "round": 0,
+              "name": "current",
+              "ms": 121.07999992370605
+            },
+            {
+              "round": 0,
+              "name": "opt",
+              "ms": 122.01000022888184
+            },
+            {
+              "round": 0,
+              "name": "budget",
+              "ms": 115.25
+            },
+            {
+              "round": 0,
+              "name": "flat",
+              "ms": 65.625
+            },
+            {
+              "round": 0,
+              "name": "both",
+              "ms": 66.13000011444092
+            },
+            {
+              "round": 0,
+              "name": "same",
+              "ms": 111.03500080108643
+            },
+            {
+              "round": 0,
+              "name": "precise",
+              "ms": 124.42999935150146
+            },
+            {
+              "round": 1,
+              "name": "precise",
+              "ms": 124.40999984741211
+            },
+            {
+              "round": 1,
+              "name": "same",
+              "ms": 110.89000034332275
+            },
+            {
+              "round": 1,
+              "name": "both",
+              "ms": 65.34000015258789
+            },
+            {
+              "round": 1,
+              "name": "flat",
+              "ms": 65.55500030517578
+            },
+            {
+              "round": 1,
+              "name": "budget",
+              "ms": 114.17000007629395
+            },
+            {
+              "round": 1,
+              "name": "opt",
+              "ms": 121.73999977111816
+            },
+            {
+              "round": 1,
+              "name": "current",
+              "ms": 117.60999965667725
+            },
+            {
+              "round": 1,
+              "name": "empty",
+              "ms": 38.484999656677246
+            },
+            {
+              "round": 2,
+              "name": "empty",
+              "ms": 38.84000015258789
+            },
+            {
+              "round": 2,
+              "name": "current",
+              "ms": 119.32499980926514
+            },
+            {
+              "round": 2,
+              "name": "opt",
+              "ms": 124.90500068664551
+            },
+            {
+              "round": 2,
+              "name": "budget",
+              "ms": 114.36499977111816
+            },
+            {
+              "round": 2,
+              "name": "flat",
+              "ms": 64.61499977111816
+            },
+            {
+              "round": 2,
+              "name": "both",
+              "ms": 65.48999977111816
+            },
+            {
+              "round": 2,
+              "name": "same",
+              "ms": 110.45499992370605
+            },
+            {
+              "round": 2,
+              "name": "precise",
+              "ms": 122.90999984741211
+            },
+            {
+              "round": 3,
+              "name": "precise",
+              "ms": 123.05499935150146
+            },
+            {
+              "round": 3,
+              "name": "same",
+              "ms": 112.27500057220459
+            },
+            {
+              "round": 3,
+              "name": "both",
+              "ms": 65.94499969482422
+            },
+            {
+              "round": 3,
+              "name": "flat",
+              "ms": 64.16000080108643
+            },
+            {
+              "round": 3,
+              "name": "budget",
+              "ms": 114.40999984741211
+            },
+            {
+              "round": 3,
+              "name": "opt",
+              "ms": 122.67000007629395
+            },
+            {
+              "round": 3,
+              "name": "current",
+              "ms": 117.77999973297119
+            },
+            {
+              "round": 3,
+              "name": "empty",
+              "ms": 38.63000011444092
+            },
+            {
+              "round": 4,
+              "name": "empty",
+              "ms": 38.84000015258789
+            },
+            {
+              "round": 4,
+              "name": "current",
+              "ms": 119.59499931335449
+            },
+            {
+              "round": 4,
+              "name": "opt",
+              "ms": 126.5
+            },
+            {
+              "round": 4,
+              "name": "budget",
+              "ms": 116.04999923706055
+            },
+            {
+              "round": 4,
+              "name": "flat",
+              "ms": 64.16499996185303
+            },
+            {
+              "round": 4,
+              "name": "both",
+              "ms": 65.03999996185303
+            },
+            {
+              "round": 4,
+              "name": "same",
+              "ms": 113.33999919891357
+            },
+            {
+              "round": 4,
+              "name": "precise",
+              "ms": 123.80000019073486
+            },
+            {
+              "round": 5,
+              "name": "precise",
+              "ms": 123.57999992370605
+            },
+            {
+              "round": 5,
+              "name": "same",
+              "ms": 111.56500053405762
+            },
+            {
+              "round": 5,
+              "name": "both",
+              "ms": 64.57999992370605
+            },
+            {
+              "round": 5,
+              "name": "flat",
+              "ms": 64.15999984741211
+            },
+            {
+              "round": 5,
+              "name": "budget",
+              "ms": 115.63000011444092
+            },
+            {
+              "round": 5,
+              "name": "opt",
+              "ms": 122.36000061035156
+            },
+            {
+              "round": 5,
+              "name": "current",
+              "ms": 117.82999992370605
+            },
+            {
+              "round": 5,
+              "name": "empty",
+              "ms": 38.739999771118164
+            },
+            {
+              "round": 6,
+              "name": "empty",
+              "ms": 38.53999996185303
+            },
+            {
+              "round": 6,
+              "name": "current",
+              "ms": 117.35999965667725
+            },
+            {
+              "round": 6,
+              "name": "opt",
+              "ms": 124.27000045776367
+            },
+            {
+              "round": 6,
+              "name": "budget",
+              "ms": 114.19999980926514
+            },
+            {
+              "round": 6,
+              "name": "flat",
+              "ms": 64.19499969482422
+            },
+            {
+              "round": 6,
+              "name": "both",
+              "ms": 64.64000034332275
+            },
+            {
+              "round": 6,
+              "name": "same",
+              "ms": 111.52000045776367
+            },
+            {
+              "round": 6,
+              "name": "precise",
+              "ms": 123.01999950408936
+            },
+            {
+              "round": 7,
+              "name": "precise",
+              "ms": 122.77999973297119
+            },
+            {
+              "round": 7,
+              "name": "same",
+              "ms": 111.94999980926514
+            },
+            {
+              "round": 7,
+              "name": "both",
+              "ms": 66.32000064849854
+            },
+            {
+              "round": 7,
+              "name": "flat",
+              "ms": 64.52000045776367
+            },
+            {
+              "round": 7,
+              "name": "budget",
+              "ms": 116.55999946594238
+            },
+            {
+              "round": 7,
+              "name": "opt",
+              "ms": 124.70499992370605
+            },
+            {
+              "round": 7,
+              "name": "current",
+              "ms": 118.46500015258789
+            },
+            {
+              "round": 7,
+              "name": "empty",
+              "ms": 39.15500068664551
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "native_runs": {
+    "cpu-kernels-native4": {
+      "kernels": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "calls": 5000000,
+          "ms": [
+            309.174,
+            309.15,
+            309.636,
+            311.48,
+            319.478,
+            309.867
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "calls": 5000000,
+          "ms": [
+            333.818,
+            331.637,
+            333.226,
+            335.6,
+            334.721,
+            333.601
+          ]
+        }
+      ]
+    },
+    "cpu-kernels-native-tlb": {
+      "kernels": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "calls": 5000000,
+          "ms": [
+            309.676,
+            311.32,
+            308.66,
+            309.524,
+            312.565,
+            310.089
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "calls": 5000000,
+          "ms": [
+            324.751,
+            330.238,
+            328.597,
+            327.7,
+            330.124,
+            330.862
+          ]
+        }
+      ]
+    },
+    "cpu-kernels-native-fastmem": {
+      "kernels": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "calls": 5000000,
+          "ms": [
+            329.234,
+            326.5,
+            326.421,
+            326.587,
+            331.091,
+            326.395
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "calls": 5000000,
+          "ms": [
+            326.054,
+            323.977,
+            323.597,
+            322.446,
+            328.82,
+            330.114
+          ]
+        }
+      ]
+    },
+    "cpu-kernels-native-control": {
+      "kernels": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "calls": 5000000,
+          "ms": [
+            324.578,
+            321.213,
+            322.378,
+            323.784,
+            323.253,
+            321.508
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "calls": 5000000,
+          "ms": [
+            334.279,
+            328.161,
+            332.228,
+            331.138,
+            329.957,
+            327.44
+          ]
+        },
+        {
+          "pc": 1879048192,
+          "cycles": 1,
+          "calls": 5000000,
+          "ms": [
+            300.592,
+            298.904,
+            296.958,
+            297.378,
+            296.875,
+            298.707
+          ]
+        }
+      ]
+    }
+  },
+  "artifacts": [
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-browser/report.json",
+      "sha256": "02db9daf5e43762194174fa3def83728b7c5830bdc94f219db8f0f92f1eb9489",
+      "bytes": 10394
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-browser2/report.json",
+      "sha256": "64d58a8e580ebd7fdef40d3e9420642158e4cf1304f63fe6701eb280898e42b5",
+      "bytes": 12068
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-browser-final/report.json",
+      "sha256": "74075edc92fe076c56fb3d6600f9a3ee49156d1b821923092eff220edad64d4a",
+      "bytes": 13671
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native4/native.json",
+      "sha256": "b0cb995179f0e0f379333823dbd76e766e07a80b8c7777c3f6b4921be306cefc",
+      "bytes": 211
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native-tlb/native.json",
+      "sha256": "bf6ced7dd76f278abaf48993abfeb1a8e847ba7b0ec5bfc16ca6408002a3ab0e",
+      "bytes": 211
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native-fastmem/native.json",
+      "sha256": "79bcdcfbc30be862854e412e59bb0a5c0e19984c356ce9a871d5db93e63c668d",
+      "bytes": 212
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native-control/native.json",
+      "sha256": "27f7c63c64b061ba561990f2e0d16ae72eee44ee84889fe099d3b1f65d5d7b7c",
+      "bytes": 314
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879455500.flat.wasm",
+      "sha256": "75998d38500d1d687136a7d4785f6545943a5958b56ca05c2fef766346c8c912",
+      "bytes": 16075
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879129820.both.wasm",
+      "sha256": "94124e9da736dd2dbdf8bd28b9ac149977e1e5961bca72e0a1cb66efc789498d",
+      "bytes": 2062
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879455500.precise.wasm",
+      "sha256": "b69f3c26da320db08c06b6528b1f9ca799b3a6fb2b83c7924283a6d460b98867",
+      "bytes": 21220
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879455500.same.wasm",
+      "sha256": "48b9b599f6d7ee5883a1cf14569c0019b8132d569e572fe101e0ab9b49749e0c",
+      "bytes": 24107
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879129820.arm",
+      "sha256": "c5d8bec3274e641ab8652fa40d84ae246bcbb6c4240a0ff0a31a777b4c94ca4c",
+      "bytes": 28
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879455500.empty.wasm",
+      "sha256": "ddf1f865c3769f9359b36f1a639277015f6540369454d2dc5da5dd4ed3125a72",
+      "bytes": 37
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/native-fixtures.json",
+      "sha256": "ede080d99d73caee16e717534964b7c2d50987aaa960e71070273d714946ac89",
+      "bytes": 538398
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879455500.both.wasm",
+      "sha256": "fb81fad87faac311bd98a68e828c8118592ce3ed4063388f007e903f46c539fe",
+      "bytes": 12240
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879455500.budget.wasm",
+      "sha256": "5d405fccaeec338d99b14d433aea1f965556b0b942440895d2bc77b4106bcb18",
+      "bytes": 16834
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879129820.empty.wasm",
+      "sha256": "a9bf4565f4548996c880531993c0f57f31977e60dfa6ba5623d521bfc5144958",
+      "bytes": 37
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879129820.flat.wasm",
+      "sha256": "de1471937a59af493049667f25dde6d3353d32441fe9cda11e5f0134cb3b9fab",
+      "bytes": 2287
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/driver.wasm",
+      "sha256": "09c66dbba3b5e03bc84c2a45cac731825d7f8fc42ee8700d4e64d8d385da9cde",
+      "bytes": 289
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/variants.json",
+      "sha256": "ca3285af295b6c694745d7dcdd7c43777b4ebc9be327feeb45aaeec6259e9156",
+      "bytes": 1471
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879455500.opt.wasm",
+      "sha256": "a3edd2abc4e1b7a5c9c25989775bb7a32e0a3621d5bec09410c34f7f6f198088",
+      "bytes": 20669
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879129820.budget.wasm",
+      "sha256": "dcefd52dbc8e7d92de75d15e9244d14118cf4d4777c7d4d38a9135f6f3485aa4",
+      "bytes": 3261
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879129820.same.wasm",
+      "sha256": "253e7546257ead338b96c64756a2888ec593dd8c109d546909b99335243b5206",
+      "bytes": 4467
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879455500.wasm",
+      "sha256": "d108415f5e42a42b073202d700412260c52c2e1574acb5f814d0944aac5385b9",
+      "bytes": 23237
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879129820.precise.wasm",
+      "sha256": "54a60796f3403aa9b1cac235c6e4f7b6abd5d7d5867392ddd8ba088d68e9ecf9",
+      "bytes": 3908
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879129820.opt.wasm",
+      "sha256": "e1dbc24c47a2c42627c3f8428103a380d0070b225074636cab25134633f3b9cd",
+      "bytes": 3482
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879129820.wasm",
+      "sha256": "d10d9648a6ecb4e691a4be7015fceeb0466fb93627eaa1d1886c4f7ca6905d02",
+      "bytes": 4141
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879455500.arm",
+      "sha256": "4f07578284a154b6562d72905be3a81f8f9afc09f5392b685e81fa2bcde2ef2c",
+      "bytes": 240
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native-control/1879455500-native-0.bin",
+      "sha256": "cd8ecfcd6def7bb084e44dffbf50be5ba3ebc0feb6ed341886cccf64aa43f7ad",
+      "bytes": 418
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native-control/1879129820-native-1.bin",
+      "sha256": "298f1556f2fde059b86b32063d797e41b873e5cbab53ca08601c82130bec55d9",
+      "bytes": 649
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native-control/1879048192-native-1.bin",
+      "sha256": "e63ef963b914d6b21001d89170a1312f2ce13d880c42acff1bf2f21567fa2c26",
+      "bytes": 26
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native-control/1879455500-native-1.bin",
+      "sha256": "98e297a332d48621be0c5a7cc78388db60ae59174031fade0981a3e9dd857cb7",
+      "bytes": 3153
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native-control/1879048192-native-0.bin",
+      "sha256": "12f33f05dd8507b28d2a4dc5738e3f2a1b90bc70ea895efa8490f5f3ed075db0",
+      "bytes": 26
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native-control/1879129820-native-0.bin",
+      "sha256": "a18bdae83c52a68230cd59615b93750b0659663cea096e75f7c8c8e0c173d624",
+      "bytes": 100
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-code/07.bin",
+      "sha256": "947296aadff843acbf876ea393a53245418470e29f248cb77112bda61fec6afa",
+      "bytes": 9472
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-code/05.bin",
+      "sha256": "96a6982cb6aa8663002bd7f54bc110c1eba0dd10bf2eb9546578713f57623d99",
+      "bytes": 33280
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-code/03.bin",
+      "sha256": "9a5c20b2be6a6f7a52fac5a9126b3e34a4d5f2651bb7759c3bb4d473e78bbf3b",
+      "bytes": 37696
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-code/01.bin",
+      "sha256": "d7497221921d11318e6d9140206e1cf912d057f87bee9e1b8e4114ca5081f271",
+      "bytes": 448
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-code/09.bin",
+      "sha256": "5c5c850118676bdda7f1b94a07758b00642e0d006d016dc5e52972ce727ed8f6",
+      "bytes": 8960
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-code/08.bin",
+      "sha256": "f35e12e8ab225953d6cbae78d9d7a0735742523e3d6beb667eddafc5186b6cd4",
+      "bytes": 6144
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-code/04.bin",
+      "sha256": "f8baaf2946feb986338cd8fa7ea773ae0b00b87e1feb741626d03e07634c062e",
+      "bytes": 48320
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-code/00.bin",
+      "sha256": "7bfefef58afd6202df30bdd9c1c820c852dd02a0213f77270f32fa3e5f11165b",
+      "bytes": 448
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-code/06.bin",
+      "sha256": "d7497221921d11318e6d9140206e1cf912d057f87bee9e1b8e4114ca5081f271",
+      "bytes": 448
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-code/02.bin",
+      "sha256": "66e2f088bb3e5de7d760eff2dc134c7d2fe5bdb800eeabfeaf02de6bb2486f37",
+      "bytes": 52352
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-breakdown-native-tests.log",
+      "sha256": "7db508caeea0d9ee04bd1d6f542ac36609ca5d5d79fcaebc15d41854469cf071",
+      "bytes": 396
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-breakdown-wasm-tests.log",
+      "sha256": "834c620ebe6f8ee8ca81641b08ae725bc2691c4e3f63d4e83c3b98d04e55190b",
+      "bytes": 3893
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-inspection.log",
+      "sha256": "6f7192b34fd41d3238bfe8cbf0615e15848a49633a366b04c7e0f5bcacc5c56f",
+      "bytes": 6115
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-reproduction-check.json",
+      "sha256": "ba529f376bc6a06fc42d5834c850f292cc46294ae2313b7d7eb6b25952a31d11",
+      "bytes": 2458
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-v8-dumps/jit-3110050.dump",
+      "sha256": "3c92f11f711f232f2c2dbd37bac5556783633c51486edfd302684753bd29e95e",
+      "bytes": 3366912
+    },
+    {
+      "path": "/home/claude/code/EKA2L1/src/tests/benchmark/precise_exit_flush_experiment.patch",
+      "sha256": "7400639c7f3bafcfd2a2ef1b49ef73ae1239932227d5a79dc248e39f37819cde",
+      "bytes": 3680
+    },
+    {
+      "path": "/home/claude/code/EKA2L1/build-wasm/src/emu/wasm/eka2l1.wasm",
+      "sha256": "950d7a5395795f24ab87472a88ff31a145774ee598a1c8d2f6ecc7622bee77a9",
+      "bytes": 10515586
+    },
+    {
+      "path": "/home/claude/code/EKA2L1/build/src/tests/eka_cpu_kernel_native",
+      "sha256": "f6772ea5850c2ba23977078cfeb4f5baecf1371f2ea22a19f634fa911ef1d6ab",
+      "bytes": 83516352
+    }
+  ],
+  "median_ms": {
+    "cpu-kernels-browser/1879455500": {
+      "both": 199.69249963760376,
+      "budget": 460.73250007629395,
+      "current": 583.7625002861023,
+      "flat": 268.92000007629395,
+      "opt": 584.9774994850159,
+      "same": 574.7349996566772
+    },
+    "cpu-kernels-browser/1879129820": {
+      "both": 64.65500020980835,
+      "budget": 114.31749963760376,
+      "current": 117.78749990463257,
+      "flat": 64.33749961853027,
+      "opt": 130.8274998664856,
+      "same": 112.13749980926514
+    },
+    "cpu-kernels-browser2/1879455500": {
+      "both": 198.3624997138977,
+      "budget": 461.21999979019165,
+      "current": 583.3300004005432,
+      "flat": 273.71250009536743,
+      "opt": 585.2800002098083,
+      "precise": 578.4250001907349,
+      "same": 573.7550001144409
+    },
+    "cpu-kernels-browser2/1879129820": {
+      "both": 65.00250005722046,
+      "budget": 114.86499977111816,
+      "current": 117.97749996185303,
+      "flat": 64.34749984741211,
+      "opt": 122.9524998664856,
+      "precise": 116.96499967575073,
+      "same": 110.43000030517578
+    },
+    "cpu-kernels-browser-final/1879455500": {
+      "both": 200.77750062942505,
+      "budget": 465.57999992370605,
+      "current": 585.135000705719,
+      "empty": 39.06750011444092,
+      "flat": 270.35999965667725,
+      "opt": 589.4174995422363,
+      "precise": 591.9425001144409,
+      "same": 582.1199998855591
+    },
+    "cpu-kernels-browser-final/1879129820": {
+      "both": 65.41499996185303,
+      "budget": 114.82999992370605,
+      "current": 118.14750003814697,
+      "empty": 38.78999996185303,
+      "flat": 64.35750007629395,
+      "opt": 123.47000026702881,
+      "precise": 123.31749963760376,
+      "same": 111.54250049591064
+    },
+    "cpu-kernels-native4/1879455500": 309.7515,
+    "cpu-kernels-native4/1879129820": 333.7095,
+    "cpu-kernels-native-tlb/1879455500": 309.8825,
+    "cpu-kernels-native-tlb/1879129820": 329.3605,
+    "cpu-kernels-native-fastmem/1879455500": 326.5435,
+    "cpu-kernels-native-fastmem/1879129820": 325.0155,
+    "cpu-kernels-native-control/1879455500": 322.8155,
+    "cpu-kernels-native-control/1879129820": 330.5475,
+    "cpu-kernels-native-control/1879048192": 298.0425
+  },
+  "variants": {
+    "1879129820": {
+      "opt": {
+        "budgets": 0,
+        "page_guards": 0,
+        "span_guards": 0,
+        "code_write_guards": 0
+      },
+      "budget": {
+        "budgets": 7,
+        "page_guards": 0,
+        "span_guards": 0,
+        "code_write_guards": 0
+      },
+      "flat": {
+        "budgets": 0,
+        "page_guards": 8,
+        "span_guards": 2,
+        "code_write_guards": 5
+      },
+      "both": {
+        "budgets": 7,
+        "page_guards": 8,
+        "span_guards": 2,
+        "code_write_guards": 5
+      },
+      "sizes": {
+        "1879129820.both.wasm": 2062,
+        "1879129820.flat.wasm": 2287,
+        "1879129820.budget.wasm": 3261,
+        "1879129820.same.wasm": 4467,
+        "1879129820.opt.wasm": 3482,
+        "1879129820.wasm": 4141
+      }
+    },
+    "1879455500": {
+      "opt": {
+        "budgets": 0,
+        "page_guards": 0,
+        "span_guards": 0,
+        "code_write_guards": 0
+      },
+      "budget": {
+        "budgets": 57,
+        "page_guards": 0,
+        "span_guards": 0,
+        "code_write_guards": 0
+      },
+      "flat": {
+        "budgets": 0,
+        "page_guards": 34,
+        "span_guards": 3,
+        "code_write_guards": 10
+      },
+      "both": {
+        "budgets": 57,
+        "page_guards": 34,
+        "span_guards": 3,
+        "code_write_guards": 10
+      },
+      "sizes": {
+        "1879455500.flat.wasm": 16075,
+        "1879455500.same.wasm": 24107,
+        "1879455500.both.wasm": 12240,
+        "1879455500.budget.wasm": 16834,
+        "1879455500.opt.wasm": 20669,
+        "1879455500.wasm": 23237
+      }
+    }
+  },
+  "v8_native_code": [
+    {
+      "name": "JS:wasm-function[1]-1-liftoff",
+      "code_bytes": 448,
+      "assembly": "00.asm",
+      "instructions": 105,
+      "stack_operands": 12,
+      "conditional_branches": 5,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[1]-1-turbofan",
+      "code_bytes": 448,
+      "assembly": "01.asm",
+      "instructions": 98,
+      "stack_operands": 13,
+      "conditional_branches": 4,
+      "calls": 3
+    },
+    {
+      "name": "JS:kernel_1879455500-6-liftoff",
+      "code_bytes": 52352,
+      "assembly": "02.asm",
+      "instructions": 12198,
+      "stack_operands": 6210,
+      "conditional_branches": 289,
+      "calls": 37
+    },
+    {
+      "name": "JS:kernel_1879455500-6-turbofan",
+      "code_bytes": 37696,
+      "assembly": "03.asm",
+      "instructions": 8199,
+      "stack_operands": 2492,
+      "conditional_branches": 318,
+      "calls": 36
+    },
+    {
+      "name": "JS:kernel_1879455500_precise-6-liftoff",
+      "code_bytes": 48320,
+      "assembly": "04.asm",
+      "instructions": 11374,
+      "stack_operands": 5660,
+      "conditional_branches": 289,
+      "calls": 37
+    },
+    {
+      "name": "JS:kernel_1879455500_precise-6-turbofan",
+      "code_bytes": 33280,
+      "assembly": "05.asm",
+      "instructions": 7511,
+      "stack_operands": 2124,
+      "conditional_branches": 318,
+      "calls": 36
+    },
+    {
+      "name": "JS:wasm-function[1]-1-turbofan",
+      "code_bytes": 448,
+      "assembly": "06.asm",
+      "instructions": 98,
+      "stack_operands": 13,
+      "conditional_branches": 4,
+      "calls": 3
+    },
+    {
+      "name": "JS:kernel_1879129820-6-liftoff",
+      "code_bytes": 9472,
+      "assembly": "07.asm",
+      "instructions": 2281,
+      "stack_operands": 1012,
+      "conditional_branches": 73,
+      "calls": 11
+    },
+    {
+      "name": "JS:kernel_1879129820-6-turbofan",
+      "code_bytes": 6144,
+      "assembly": "08.asm",
+      "instructions": 1438,
+      "stack_operands": 312,
+      "conditional_branches": 76,
+      "calls": 10
+    },
+    {
+      "name": "JS:kernel_1879129820_precise-6-liftoff",
+      "code_bytes": 8960,
+      "assembly": "09.asm",
+      "instructions": 2182,
+      "stack_operands": 946,
+      "conditional_branches": 73,
+      "calls": 11
+    }
+  ],
+  "reproduction": [
+    {
+      "file": "1879455500.flat.wasm",
+      "match": true,
+      "sha256": "75998d38500d1d687136a7d4785f6545943a5958b56ca05c2fef766346c8c912"
+    },
+    {
+      "file": "1879129820.both.wasm",
+      "match": true,
+      "sha256": "94124e9da736dd2dbdf8bd28b9ac149977e1e5961bca72e0a1cb66efc789498d"
+    },
+    {
+      "file": "1879455500.precise.wasm",
+      "match": true,
+      "sha256": "b69f3c26da320db08c06b6528b1f9ca799b3a6fb2b83c7924283a6d460b98867"
+    },
+    {
+      "file": "1879455500.same.wasm",
+      "match": true,
+      "sha256": "48b9b599f6d7ee5883a1cf14569c0019b8132d569e572fe101e0ab9b49749e0c"
+    },
+    {
+      "file": "1879455500.empty.wasm",
+      "match": true,
+      "sha256": "ddf1f865c3769f9359b36f1a639277015f6540369454d2dc5da5dd4ed3125a72"
+    },
+    {
+      "file": "1879455500.both.wasm",
+      "match": true,
+      "sha256": "fb81fad87faac311bd98a68e828c8118592ce3ed4063388f007e903f46c539fe"
+    },
+    {
+      "file": "1879455500.budget.wasm",
+      "match": true,
+      "sha256": "5d405fccaeec338d99b14d433aea1f965556b0b942440895d2bc77b4106bcb18"
+    },
+    {
+      "file": "1879129820.empty.wasm",
+      "match": true,
+      "sha256": "a9bf4565f4548996c880531993c0f57f31977e60dfa6ba5623d521bfc5144958"
+    },
+    {
+      "file": "1879129820.flat.wasm",
+      "match": true,
+      "sha256": "de1471937a59af493049667f25dde6d3353d32441fe9cda11e5f0134cb3b9fab"
+    },
+    {
+      "file": "driver.wasm",
+      "match": true,
+      "sha256": "09c66dbba3b5e03bc84c2a45cac731825d7f8fc42ee8700d4e64d8d385da9cde"
+    },
+    {
+      "file": "1879455500.opt.wasm",
+      "match": true,
+      "sha256": "a3edd2abc4e1b7a5c9c25989775bb7a32e0a3621d5bec09410c34f7f6f198088"
+    },
+    {
+      "file": "1879129820.budget.wasm",
+      "match": true,
+      "sha256": "dcefd52dbc8e7d92de75d15e9244d14118cf4d4777c7d4d38a9135f6f3485aa4"
+    },
+    {
+      "file": "1879129820.same.wasm",
+      "match": true,
+      "sha256": "253e7546257ead338b96c64756a2888ec593dd8c109d546909b99335243b5206"
+    },
+    {
+      "file": "1879455500.wasm",
+      "match": true,
+      "sha256": "d108415f5e42a42b073202d700412260c52c2e1574acb5f814d0944aac5385b9"
+    },
+    {
+      "file": "1879129820.precise.wasm",
+      "match": true,
+      "sha256": "54a60796f3403aa9b1cac235c6e4f7b6abd5d7d5867392ddd8ba088d68e9ecf9"
+    },
+    {
+      "file": "1879129820.opt.wasm",
+      "match": true,
+      "sha256": "e1dbc24c47a2c42627c3f8428103a380d0070b225074636cab25134633f3b9cd"
+    },
+    {
+      "file": "1879129820.wasm",
+      "match": true,
+      "sha256": "d10d9648a6ecb4e691a4be7015fceeb0466fb93627eaa1d1886c4f7ca6905d02"
+    }
+  ],
+  "limitations": [
+    "Only two kernels, one a seven-instruction prefix, from Snakes. Synthetic seeded memory, not recorded live register states.",
+    "Aligned permitted ordinary-memory path only; faults/aliases/code writes not exercised by kernel timing. Flat and budget variants deliberately weaken semantics and are never deployed.",
+    "No-op native terminal differs from math return. Do not subtract minimal-call time as a constant or extrapolate per-Run throughput to Qt block linking.",
+    "Check-removal effects interact and change compiler lowering. Cannot add individual savings or assign them as whole-game fractions.",
+    "Static code size, branches and stack operands include cold code, not executed counts.",
+    "Native fastmem experiment is fixture-only with accesses confined to allocated memory.",
+    "Inspection timings are excluded. A truncated final jitdump record was ignored.",
+    "Precise exit-flush prototype rejected after kernel timings, not endorsed by a full-game or fault/alias regression test."
+  ],
+  "tests": {
+    "kernel_comparisons_final": 5344,
+    "native_step_states_per_shared_set": 1056,
+    "wasm_default_passes": 132,
+    "native_targets_passed": 3,
+    "production_source_change": false,
+    "served_wasm_changed": false
+  },
+  "failed_diagnostics": [
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native3.log",
+      "reason": "Run executed 58 instructions rather than 57; replaced artificial outside-kernel B loop with zero-instruction terminal before accepted timings."
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-native-final.log",
+      "reason": "Zero-budget Run is not an empty-entry benchmark: it executes code. This diagnostic was rejected and a real one-NOP fixture used instead."
+    }
+  ],
+  "tools_commit": "76cedd622",
+  "prior_whole_game_profile": "VALIDITY_AND_COST_EVIDENCE.json (reused context, not a new whole-game timing run)"
+}
