@@ -4,6 +4,13 @@ Source baseline: `9f7938e34`; research tools: `76cedd622`, `wasm-port`. Research
 change is deployed. The tested exit-flush prototype is preserved as
 `precise_exit_flush_experiment.patch` and removed from production.
 
+## Follow-up: actual dispatcher and fault paths
+
+See `CPU_DISPATCH_AND_FAULT_RESULTS.md` for the completed real-runner breakdown
+and independent production-callback fault probe. That probe finds native/WASM
+permission and endian differences. The ordinary-memory results below remain
+scoped to their fixture; they must not be read as general fault equivalence.
+
 ## Finding
 
 The strongest measured kernel cost is **our emitted memory machinery**, followed

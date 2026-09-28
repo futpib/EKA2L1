@@ -10,6 +10,7 @@ p = argparse.ArgumentParser()
 p.add_argument('native', type=Path)
 p.add_argument('wasm', type=Path)
 p.add_argument('output', type=Path)
+p.add_argument('--require-equal', action='store_true', help='Exit nonzero on any semantic mismatch')
 a = p.parse_args()
 
 def load(path):
@@ -47,3 +48,6 @@ result = {'cases': len(native), 'all_fields_match': len(native) - len(difference
           'differences': differences}
 a.output.write_text(json.dumps(result, indent=2) + '\n')
 print(json.dumps({k:v for k,v in result.items() if k != 'differences'}, indent=2))
+
+if a.require_equal and differences:
+    raise SystemExit(1)

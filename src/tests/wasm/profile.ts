@@ -9,6 +9,9 @@ import {startServer, buildDir} from './server.ts';
 const [assetArg, outputArg, modeArg = '0', samplingArg = '1', endArg = '25000000'] = process.argv.slice(2);
 const frameArg = '100000', inputArg = process.env.EKA2L1_PROFILE_INPUT || fileURLToPath(new URL('../benchmark/snakes.input', import.meta.url)), startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
 const captureMode = Number(modeArg), sampling = samplingArg === '1', endUs = Number(endArg);
+const sampleInterval = Number(process.env.EKA2L1_PROFILE_INTERVAL_US || '1000');
+if (!Number.isSafeInteger(sampleInterval) || sampleInterval < 100 || sampleInterval > 1000000)
+  throw new Error('Profile sample interval must be between 100 and 1000000 microseconds');
 if (![0,1,2].includes(captureMode) || !Number.isInteger(endUs) || endUs <= Number(startArg) || endUs > 1800000000) throw new Error('Invalid profile settings');
 if (!assetArg || !outputArg) throw new Error('Usage: node profile.ts ASSETS NEW_OUTPUT [CAPTURE_MODE:0/1/2] [SAMPLING:0/1] [END_US]');
 const guestProfile = Number(process.env.EKA2L1_GUEST_PROFILE || "0");
@@ -144,7 +147,7 @@ try {
   console.log(`Warmup ${warmupSeconds.toFixed(3)}s; profiling ${clients.length} isolates; mode ${captureMode}`);
   if (sampling) await Promise.all(clients.map(async ({client}) => {
     await client.send('Profiler.enable');
-    await client.send('Profiler.setSamplingInterval', {interval: 1000});
+    await client.send('Profiler.setSamplingInterval', {interval: sampleInterval});
     await client.send('Profiler.start');
   }));
   await page.evaluate(() => (window as any).Module._eka2l1_profile_resume());
@@ -165,7 +168,7 @@ try {
       if (monitorCpuStart && !monitorCpuStarted && sample.guest_us >= monitorCpuStart && sample.phase !== 3) {
         await Promise.all(clients.map(async ({client}) => {
           await client.send('Profiler.enable');
-          await client.send('Profiler.setSamplingInterval', {interval: 1000});
+          await client.send('Profiler.setSamplingInterval', {interval: sampleInterval});
           await client.send('Profiler.start');
         }));
         monitorCpuStarted = true;
@@ -222,7 +225,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({measurement: measured, warmup_seconds: warmupSeconds,
-    guest_profile_stride: guestProfile, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
+    guest_profile_stride: guestProfile, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     aot, aot_diagnostics: aotDiagnostics, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     user_agent: await page.evaluate(() => navigator.userAgent),

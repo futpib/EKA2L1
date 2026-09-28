@@ -15,10 +15,12 @@ a=p.parse_args()
 profiles=[]
 for f in a.directory.glob('worker*.cpuprofile'):
     j=json.loads(f.read_text())
-    if any('execute_chain_impl' in n['callFrame']['functionName'] for n in j['nodes']):
-        profiles.append((f,j))
-if len(profiles)!=1:raise ValueError(f'Expected one guest-worker profile, found {len(profiles)}')
-f,j=profiles[0]
+    functions={n['id']:n['callFrame']['functionName'] for n in j['nodes']}
+    weight=sum(delta for node,delta in zip(j.get('samples',[]),j.get('timeDeltas',[]))
+               if re.match(r'^[rf]_\d',functions[node]))
+    if weight: profiles.append((weight,f,j))
+if not profiles:raise ValueError('No generated guest-region samples found')
+_,f,j=max(profiles,key=lambda item:item[0])
 nodes={n['id']:n for n in j['nodes']}
 parents={c:n['id'] for n in j['nodes'] for c in n.get('children',[])}
 groups=collections.Counter();names=collections.Counter();samples=collections.Counter()
@@ -42,6 +44,8 @@ for node,delta in zip(j['samples'],j['timeDeltas']):
     groups[category]+=delta/1e6;samples[category]+=1;names[name]+=delta/1e6
 report=json.loads((a.directory/'report.json').read_text())
 result={'profile':f.name,'measurement':report['measurement'],
+        'stage_boundaries_present':{name:any(name in n['callFrame']['functionName'] for n in j['nodes'])
+          for name in ['primary_bytes_equal','dependencies_equal','bytes_match','execute_chain_impl']},
         'method':'Disjoint nearest-stage stack buckets, generated region and callees first. Timer instrumentation disabled. Diagnostic no-inline build and V8 flag perturb code: compare surrounding controls, do not extrapolate exact savings.',
         'sampled_seconds':sum(groups.values()),'groups_seconds':dict(groups),'sample_counts':dict(samples),
         'top_self':[{'name':k,'seconds':v} for k,v in names.most_common(40)]}
