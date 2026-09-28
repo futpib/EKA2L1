@@ -111,8 +111,8 @@ namespace eka2l1::arm::aot {
             cache.barrier_at(b.size(), true);
             if (region) {
                 store_i32_const(S::AOT_EXIT, 1);
-                i32_const(0); set_local(READ_BASE);
-                i32_const(0); set_local(WRITE_BASE);
+                i32_const(-1); set_local(READ_PAGE);
+                i32_const(-1); set_local(WRITE_PAGE);
             }
         }
         void call(std::uint32_t func_idx) {
@@ -124,42 +124,39 @@ namespace eka2l1::arm::aot {
             if (write) set_local(VALUE);
             set_local(ADDRESS);
             set_local(HOST); // consume state_ptr; HOST is overwritten below
-            // Only aligned, within-page, little-endian accesses with the exact
-            // required TLB permission may bypass the existing memory helpers.
             const auto page_local = write ? WRITE_PAGE : READ_PAGE;
             const auto base_local = write ? WRITE_BASE : READ_BASE;
-            // The cached base was obtained with little-endian and permission
-            // checks. Helpers clear both bases; supported MSR only changes
-            // flags, so those properties cannot change while this base lives.
-            // Combining the page and alignment masks also rejects unaligned
-            // accesses without a second comparison.
-            get_local(ADDRESS); i32_const(-4096 | (size-1)); op(op_i32_and); get_local(page_local); op(op_i32_eq);
-            get_local(base_local); op(op_i32_eqz); op(op_i32_eqz); op(op_i32_and);
+            // Invalid keys are -1, which no aligned page/alignment mask can
+            // produce. A key match therefore proves base, permission and endian
+            // validity without a second base test or a final HOST branch.
+            op(op_block); op(write ? type_void : type_i32);
+            get_local(ADDRESS); i32_const(-4096 | (size-1)); op(op_i32_and);
+            get_local(page_local); op(op_i32_ne);
             op(op_if); op(type_void);
-            get_local(base_local); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
-            op(op_else);
-            load_i32(S::AOT_TLB); set_local(ENTRY);
-            get_local(ENTRY); op(op_i32_eqz); op(op_if); op(type_void);
             i32_const(0); set_local(HOST);
-            op(op_else);
+            load_i32(S::AOT_TLB); tee_local(ENTRY);
+            op(op_if); op(type_void);
             get_local(ADDRESS); i32_const(12); op(op_i32_shr_u);
             i32_const(511); op(op_i32_and); i32_const(4); op(op_i32_shl);
             get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,write ? 4 : 0);
             get_local(ADDRESS); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
+            get_local(ADDRESS); i32_const(4096); op(op_i32_ge_u); op(op_i32_and);
             get_local(ADDRESS); i32_const(size-1); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
             load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
             op(op_if); op(type_void);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
-            get_local(HOST); op(op_if); op(type_void);
+            op(op_end); op(op_end);
+            get_local(HOST); op(op_i32_eqz); op(op_if); op(type_void);
+            state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
+            slow_call(func_idx);
+            op(op_br); leb(b,2); // leave result block, preserving helper result
+            op(op_end);
             get_local(HOST); set_local(base_local);
             get_local(ADDRESS); i32_const(-4096); op(op_i32_and); set_local(page_local);
-            get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
-            op(op_end);
-            op(op_else); i32_const(0); set_local(HOST); op(op_end);
-            op(op_end);
-            op(op_end); // cached-page miss
-            get_local(HOST); op(op_if); op(write ? type_void : type_i32);
+            op(op_end); // key miss
+            get_local(base_local); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+            op(op_i32_add); set_local(HOST);
             get_local(HOST);
             if (write) get_local(VALUE);
             op(write ? (size==4 ? op_i32_store : size==2 ? op_i32_store16 : op_i32_store8)
@@ -173,10 +170,7 @@ namespace eka2l1::arm::aot {
                 op(op_i32_and); op(op_if); op(type_void);
                 store_i32_const(S::AOT_EXIT,1); op(op_end);
             }
-            op(op_else);
-            state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
-            slow_call(func_idx);
-            op(op_end);
+            op(op_end); // result block
         }
         // Validate a whole block-transfer span once. It must be aligned and
         // contained in one permitted TLB page; otherwise use the existing
@@ -705,7 +699,11 @@ namespace eka2l1::arm::aot {
         w.i32_const(0);
         w.set_local(PC_IDX);
 
-        if (region) { w.i32_const(0); w.set_local(arm_emit::COUNT); }
+        if (region) {
+            w.i32_const(0); w.set_local(arm_emit::COUNT);
+            w.i32_const(-1); w.set_local(arm_emit::READ_PAGE);
+            w.i32_const(-1); w.set_local(arm_emit::WRITE_PAGE);
+        }
 
         // block $exit
         w.op(op_block); w.op(type_void);
