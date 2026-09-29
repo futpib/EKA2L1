@@ -213,6 +213,18 @@ try {
       delete mod.base64;fs.writeFileSync(path.join(output,base+'.json'),JSON.stringify(mod));
     }
   }
+  if (process.env.EKA2L1_COMPILE_CENSUS === '1') {
+    const modules = await page.evaluate(() => (window as any).FS.readdir('/tmp').filter((n: string) => /^census-module-.*\.wasm$/.test(n)));
+    fs.mkdirSync(path.join(output, 'modules'));
+    for (const name of modules) {
+      const data = await page.evaluate((n) => {
+        const bytes = (window as any).FS.readFile('/tmp/' + n);
+        let text = ''; for(let i=0;i<bytes.length;i+=8192) text += String.fromCharCode(...bytes.subarray(i,i+8192));
+        return btoa(text);
+      }, name);
+      fs.writeFileSync(path.join(output, 'modules', name), Buffer.from(data, 'base64'));
+    }
+  }
   const names = await page.evaluate(() => (window as any).FS.readdir('/frames').filter((name: string) => name !== '.' && name !== '..')) as string[];
   for (let i = 0; i < names.length; i += 25) {
     const data = await page.evaluate((batch) => batch.map(name => {
