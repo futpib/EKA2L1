@@ -2865,6 +2865,9 @@ DISPATCH : {
             num_instrs += instrs;
             if (num_instrs >= cpu->NumInstrsToExecute)
                 goto END;
+            // A deferred compiled access may next execute in the interpreter.
+            // Its exception callback reads packed CPSR through the core API.
+            SAVE_NZCVT;
             if (instrs) goto DISPATCH;
         }
     }

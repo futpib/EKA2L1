@@ -59,10 +59,14 @@ int main(int argc, char **argv){
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
-    const bool deferred=argc==2 && std::string(argv[1])=="--deferred";
+    const bool deferred=argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred");
+    const bool entry_budget = argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-deferred");
+#ifdef EKA_MATCHED_REFERENCE
+    if(entry_budget) { std::cerr << "--entry-budget requires the production runner\n"; return 1; }
+#endif
     unsigned cases=0,deferred_cases=0;
     std::vector<unsigned> instructions={0xe5910000,0xe5810000,0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,0xe8b1000d,0xe8a1000d};
-    if(deferred || (argc==2 && std::string(argv[1])=="--extended")) {
+    if(entry_budget || deferred || (argc==2 && std::string(argv[1])=="--extended")) {
         instructions.push_back(0xe891000d);instructions.push_back(0xe881000d);
     }
     for(unsigned op:instructions)for(unsigned policy=0;policy<4;++policy)
@@ -95,11 +99,13 @@ int main(int argc, char **argv){
 #endif
         const auto initial_memory=f.memory;
         const auto prior_compiled=eka2l1::common::performance::aot_instructions;
-        cpu.step();
 #if !defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         auto prior_count=cpu.get_num_instruction_executed();
+        cpu.step();
+        if(!entry_budget) prior_count=cpu.get_num_instruction_executed();
 #else
-        unsigned prior_count=0; // DynCom resets this counter at each Step.
+        unsigned prior_count=0; // DynCom resets this counter at each run.
+        if(!entry_budget) cpu.step();
 #endif
 #ifdef EKA_MATCHED_REFERENCE
         auto *s=matched_kernel_access::state(cpu);s->aot_budget=1;s->aot_exit=0;
@@ -114,7 +120,11 @@ int main(int argc, char **argv){
         }
         frame.flush();const auto reference_count=frame.count;
 #else
+#if defined(__EMSCRIPTEN__)
+        if(entry_budget) cpu.run(2); else cpu.step();
+#else
         cpu.step();
+#endif
 #endif
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;

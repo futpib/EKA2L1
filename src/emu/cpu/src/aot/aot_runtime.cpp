@@ -376,41 +376,56 @@ void observe_hot_pc(ARMul_State *cpu) {
 
 #ifdef __EMSCRIPTEN__
 
+// Generated arithmetic keeps NZCVT separate from the packed CPSR. Publish them
+// after the emitter's state barrier and before a memory/exception callback reads
+// the owning core's CPSR. Direct mapped accesses do not call these trampolines.
+static void publish_callback_cpsr(ARMul_State *state) {
+    state->Cpsr = (state->Cpsr & 0x0fffffdfu) | (state->NFlag << 31)
+        | (state->ZFlag << 30) | (state->CFlag << 29) | (state->VFlag << 28)
+        | (state->TFlag << 5);
+}
+
 // C functions exported for the AOT WASM module to call back into.
 // These are the memory access trampolines.
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t aot_tlb_read32(ARMul_State *state, std::uint32_t arm_addr) {
+        publish_callback_cpsr(state);
         validation_access(state, arm_addr, 4);
         return state->ReadMemory32(arm_addr);
     }
 
     EMSCRIPTEN_KEEPALIVE
     void aot_tlb_write32(ARMul_State *state, std::uint32_t arm_addr, std::uint32_t value) {
+        publish_callback_cpsr(state);
         validation_access(state, arm_addr, 4);
         state->WriteMemory32(arm_addr, value);
     }
 
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t aot_tlb_read8(ARMul_State *state, std::uint32_t arm_addr) {
+        publish_callback_cpsr(state);
         validation_access(state, arm_addr, 1);
         return state->ReadMemory8(arm_addr);
     }
 
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t aot_tlb_read16(ARMul_State *state, std::uint32_t arm_addr) {
+        publish_callback_cpsr(state);
         validation_access(state, arm_addr, 2);
         return state->ReadMemory16(arm_addr);
     }
 
     EMSCRIPTEN_KEEPALIVE
     void aot_tlb_write16(ARMul_State *state, std::uint32_t arm_addr, std::uint32_t value) {
+        publish_callback_cpsr(state);
         validation_access(state, arm_addr, 2);
         state->WriteMemory16(arm_addr, value);
     }
 
     EMSCRIPTEN_KEEPALIVE
     void aot_tlb_write8(ARMul_State *state, std::uint32_t arm_addr, std::uint32_t value) {
+        publish_callback_cpsr(state);
         validation_access(state, arm_addr, 1);
         state->WriteMemory8(arm_addr, value);
     }
@@ -419,12 +434,12 @@ extern "C" {
 // WASM imports use full i32 parameters; narrow inside C++, never in the caller ABI.
 // Uninstrumented internal imports. The checked variants above are selected only
 // for verifier runs; ordinary memory accesses contain no validation hook.
-static std::uint32_t raw_read32(ARMul_State *s, std::uint32_t a) { return s->ReadMemory32(a); }
-static std::uint32_t raw_read16(ARMul_State *s, std::uint32_t a) { return s->ReadMemory16(a); }
-static std::uint32_t raw_read8(ARMul_State *s, std::uint32_t a) { return s->ReadMemory8(a); }
-static void raw_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { s->WriteMemory32(a, v); }
-static void raw_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { s->WriteMemory16(a, v); }
-static void raw_write8(ARMul_State *s, std::uint32_t a, std::uint32_t v) { s->WriteMemory8(a, v); }
+static std::uint32_t raw_read32(ARMul_State *s, std::uint32_t a) { publish_callback_cpsr(s); return s->ReadMemory32(a); }
+static std::uint32_t raw_read16(ARMul_State *s, std::uint32_t a) { publish_callback_cpsr(s); return s->ReadMemory16(a); }
+static std::uint32_t raw_read8(ARMul_State *s, std::uint32_t a) { publish_callback_cpsr(s); return s->ReadMemory8(a); }
+static void raw_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { publish_callback_cpsr(s); s->WriteMemory32(a, v); }
+static void raw_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { publish_callback_cpsr(s); s->WriteMemory16(a, v); }
+static void raw_write8(ARMul_State *s, std::uint32_t a, std::uint32_t v) { publish_callback_cpsr(s); s->WriteMemory8(a, v); }
 
 template<unsigned Index> static void count_memory() {
     if (common::performance::counting()) ++common::guest_profile::state.memory_calls[Index];
