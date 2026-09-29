@@ -11,7 +11,7 @@ p.add_argument('native', type=Path)
 p.add_argument('wasm', type=Path)
 p.add_argument('output', type=Path)
 p.add_argument('--require-equal', action='store_true', help='Exit nonzero on any semantic mismatch')
-p.add_argument('--cases', type=int, choices=(48,480,672), default=480, help='Expected complete fixture count; read spans has 48, extended has 672')
+p.add_argument('--cases', type=int, choices=(48,96,480,672), default=480, help='Expected complete fixture count; read spans has 48, block spans has 96, extended has 672')
 a = p.parse_args()
 
 def load(path):

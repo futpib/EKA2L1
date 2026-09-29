@@ -1,0 +1,268 @@
+{
+  "base": "b0237a6876ac58ad60bf19d8e507e3ca7ddb13c1",
+  "baseline": {
+    "git_head": "b0237a6876ac58ad60bf19d8e507e3ca7ddb13c1",
+    "hashes": {
+      "eka2l1.js": "74e1c652fd857325d5d41a63a048881ec1deebc70fc9ddf53638a3ab766a2df1",
+      "source.patch": "88adafbd8502b1ab84c96192dec7af5b64c9677d7bd4480d23c53b453ac5cdbb",
+      "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "785bcd210102da32d7416ce45b8af735a540dd0bc3281b9767eee859b758bd6b",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_fault_native": "d664d3e849c2acfe3fa3fe894eace1bcdd55d984b4e139100922a1541646481e",
+      "tests/test_aot_wasm.wasm": "ac8476423ce6f0931f48dc94f48402c13036616b22392a0886a6fff1acf15401",
+      "tests/eka_cpu_fault_wasm.wasm": "43c763e9df705e56dfc2867fa72bcf88b8d22ae5210d0e13d0e07e4d4171af49",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+    },
+    "sources": {
+      "src/emu/cpu/src/aot/arm_translator.cpp": "60c61aeedc0c7a6775ebfee19517045a0beb8d76b920c2c3ad4cee9168a72bab",
+      "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "76f87cda16f82a8c9dfd45f10ff52ae16f493181835aaa5000710817728c5e0a",
+      "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "454608c5808f09248f219919d17ee0e80d0adcc8294d065a3aca5e179b9aca9c",
+      "src/emu/cpu/src/aot/wasm_emitter.cpp": "206222416c0da9fa095bf8f40fae7bcece7cce8a25d0ee39a45ec1c3b5c58ebe",
+      "src/emu/cpu/include/cpu/dyncom/armstate.h": "e3125ce68715bcb2e46998738280c18c339fffdc46e83827e7c20e6d012adfff",
+      "src/emu/cpu/src/dyncom/armstate.cpp": "86693e9ce40170887bb6d556c797b6c87f66f7df3531426cfadbb191ac0a6a7a",
+      "src/tests/aot/test_aot_wasm.cpp": "51f04094abf44ce8246607bdf58d0748bc9dca8d19e66705a46ecec254fb21bf",
+      "src/tests/benchmark/cpu_fault_probe.cpp": "b810c6ebdfc14fb1ecc90fba8aca62eceb5361489af14ab8706c54e19d47c04e",
+      "src/tests/cpu/aot.cpp": "53a11703ba12cb1b0dc168e91d479f9a0fb0f148d1fa3ba1841e6fcac42027e8"
+    }
+  },
+  "fault_comparisons": [
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-extended-native.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143",
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-extended-wasm.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-deferred-native.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143",
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-deferred-wasm.log": "462d9d799fe24e29653e35ab417de9febc4d0c1e69938bcba6ff686b42a4c1e7"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-entry-budget-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-entry-budget-wasm.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-entry-budget-deferred-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-entry-budget-deferred-wasm.log": "c81f0a45d01cfc2c05a31b482713187c68a3f985362dbeb34c1c403a8062efd3"
+      },
+      "differences": []
+    },
+    {
+      "cases": 48,
+      "all_fields_match": 48,
+      "final_state_and_exact_memory_match": 48,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 12,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-read-spans-native.log": "c5ae8fc01c7dc2a882d240b229a855cdd33e679f0935b7526531e25f90aa55d7",
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-read-spans-wasm.log": "0a2375c22647e2b666c404dec204a02a2efce3dea4266d42c46b0738d4dd23e3"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-wide-snapshots-native.log": "c8ac8f9493b24d7291ae1e65c71f33a1bad0af60cf3a80f1263e1d377b5814f5",
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-wide-snapshots-wasm.log": "1b78c36fd5bde8100bc6ac58902123f423709d9833e4f0c9c7feb8a981750722"
+      },
+      "differences": []
+    },
+    {
+      "cases": 48,
+      "all_fields_match": 48,
+      "final_state_and_exact_memory_match": 48,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 12,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-region-spans-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-region-spans-wasm.log": "630da5ffb62fdf6f2abfb173719016f1748e22d12192e7ae9b6ccf46161acba8"
+      },
+      "differences": []
+    },
+    {
+      "cases": 48,
+      "all_fields_match": 48,
+      "final_state_and_exact_memory_match": 48,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 12,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-region-spans-interpreter-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-region-spans-interpreter-wasm.log": "ced007453ce149421354aa00405e7954ec1ffaec9c82a4308c7716b2b4a18bf9"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-entry-budget-interpreter-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-entry-budget-interpreter-wasm.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92"
+      },
+      "differences": []
+    },
+    {
+      "cases": 96,
+      "all_fields_match": 96,
+      "final_state_and_exact_memory_match": 96,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 24,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-region-block-spans-native.log": "8bddfabf1b8c45f86a1adf80da88502e4ff739e56bed90f9ad6de7252d98ea8a",
+        "/home/claude/.scratch/eka-benchmark/block-writeback-fault-region-block-spans-wasm.log": "6ded304e58ed80eb524fb9d210cd23b5794adec5daa1030f97d9125033e4d0b1"
+      },
+      "differences": []
+    }
+  ],
+  "native_comparison": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+      "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+      "writes": 0,
+      "callbacks": 10190,
+      "backend": "shared-dsp-cubeb-resampler",
+      "render_callbacks": 10190,
+      "gameplay_nonzero_samples": 7223662,
+      "gameplay_peak": 8449
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16263331210
+  },
+  "gameplay": {
+    "frames": 1600,
+    "unique_images": 1600,
+    "unique_viewports": 1600,
+    "first_virtual_us": 21031559,
+    "last_virtual_us": 102484363,
+    "virtual_seconds": 81.452804,
+    "game_images_per_virtual_second": 19.631000057407476,
+    "median_interval_us": 47034,
+    "max_interval_us": 408561,
+    "min_viewport_changed_fraction": 0.002483333333333282,
+    "median_viewport_changed_fraction": 0.29761666666666664,
+    "pass": false
+  },
+  "logs": {
+    "block-writeback-tests.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/block-writeback-tests.log",
+      "sha256": "c66978c93435b3015edec4e8eb2cb5e95ec81cea7876c56d78b9268e2c25ce9a",
+      "tail": [
+        "  PASS arm_add_sub_imm",
+        "  PASS arm_cmp_beq",
+        "  PASS arm_ldr_str_imm",
+        "  PASS arm_ldm_stm",
+        "  PASS arm_mul",
+        "  PASS arm_bic_orr_eor",
+        "  PASS arm_shifted_reg",
+        "  PASS arm_conditional_exec",
+        "  PASS arm_bl_resume_point",
+        "  PASS arm_ldrh_strh",
+        "  PASS arm_mvn",
+        "  PASS arm_rsb",
+        "  PASS arm_clz",
+        "",
+        "138 passed, 0 failed"
+      ]
+    },
+    "block-writeback-native.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/block-writeback-native.log",
+      "sha256": "d3cf33c8b318837b880b3c53a9fffa5ecd3a7c5e3c7a2d76d689c572fe3fb3d5",
+      "tail": [
+        "Test project /home/claude/code/EKA2L1/build",
+        "    Start 1: ekatests",
+        "1/3 Test #1: ekatests .........................   Passed    0.38 sec",
+        "    Start 2: eka_cpu_tests",
+        "2/3 Test #2: eka_cpu_tests ....................   Passed    0.01 sec",
+        "    Start 3: bluetooth_netplay",
+        "3/3 Test #3: bluetooth_netplay ................   Passed    0.05 sec",
+        "",
+        "100% tests passed out of 3",
+        "",
+        "Total Test time (real) =   0.44 sec"
+      ]
+    },
+    "block-writeback-frontend.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/block-writeback-frontend.log",
+      "sha256": "edf50875d85a6331a111467d5e0afe7bc79fdca743c356925d31ef698af803e0",
+      "tail": [
+        "  PASS",
+        "TEST 2: WASM Module object...",
+        "  PASS",
+        "TEST 3: Canvas element...",
+        "  PASS",
+        "TEST 4: Exported C functions...",
+        "  PASS",
+        "TEST 5: eka2l1_init...",
+        "  PASS",
+        "TEST 6: eka2l1_shutdown...",
+        "  PASS",
+        "TEST 7: No fatal page errors...",
+        "  PASS",
+        "",
+        "All tests passed!"
+      ]
+    }
+  }
+}

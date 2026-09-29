@@ -1281,3 +1281,29 @@ TEST_CASE("DynCom memory callbacks observe flags within an interpreter block", "
         CHECK(cpu->get_num_instruction_executed() == 2);
     }
 }
+
+TEST_CASE("DynCom block writeback follows memory callbacks", "[cpu][memory]") {
+    for (const auto instruction : {0xe8b1000du,0xe8a1000du,0xe931000du,0xe921000du,
+            0xe831000du,0xe821000du,0xe9b1000du,0xe9a1000du}) {
+        aot_test_env env;
+        auto cpu = env.make_cpu();
+        const std::uint32_t code[] = {0xe3b02007u,instruction,0xeafffffeu};
+        std::memcpy(env.memory.data()+0x1000,code,sizeof(code));
+        cpu->set_pc(0x1000);cpu->set_reg(1,0x8000);cpu->set_cpsr(0xa0000010);
+        unsigned calls=0,faults=0;
+        auto observe = [&](std::uint32_t, auto *) {
+            CHECK(cpu->get_reg(1)==0x8000);
+            CHECK(cpu->get_cpsr()==0x20000010);
+            ++calls;return false;
+        };
+        cpu->read_32bit=observe;cpu->write_32bit=observe;
+        cpu->exception_handler = [&](eka2l1::arm::exception_type,std::uint32_t) {
+            CHECK(cpu->get_reg(1)==0x8000);
+            ++faults;return false;
+        };
+        cpu->run(2);
+        CHECK(calls==3);CHECK(faults==3);
+        CHECK(cpu->get_reg(1)==((instruction&(1u<<23))?0x800cu:0x7ff4u));
+        CHECK(cpu->get_num_instruction_executed()==2);
+    }
+}

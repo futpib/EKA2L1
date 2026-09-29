@@ -3400,13 +3400,22 @@ LDC_INST : {
 LDM_INST : {
     if (inst_base->cond == ConditionCode::AL || CondPassed(cpu, inst_base->cond)) {
         ldst_inst *inst_cream = (ldst_inst *)inst_base->component;
-        inst_cream->get_addr(cpu, inst_cream->inst, addr);
+        const auto inst = inst_cream->inst;
+        const unsigned rn = BITS(inst, 16, 19);
+        const auto old_base = cpu->Reg[rn];
+        const bool late_writeback = BIT(inst, 21) && !BIT(inst, 22)
+            && rn != 15 && (inst & 0xffff) && !BIT(inst, rn);
+        inst_cream->get_addr(cpu, inst, addr);
+        const auto updated_base = cpu->Reg[rn];
+        // Ordinary transfers expose the original base during memory callbacks,
+        // matching native execution. Banking/base-in-list cases retain their
+        // existing semantics.
+        if (late_writeback) cpu->Reg[rn] = old_base;
 
         // The register list maps to contiguous, ascending addresses -- resolve the
         // host page once and reuse it for the whole run (see block_cursor).
         ARMul_State::block_cursor ldm_cur;
 
-        unsigned int inst = inst_cream->inst;
         if (BIT(inst, 22) && !BIT(inst, 15)) {
             for (int i = 0; i < 13; i++) {
                 if (BIT(inst, i)) {
@@ -3462,6 +3471,7 @@ LDM_INST : {
             cpu->Reg[15] = cpu->ReadMemory32Block(addr, ldm_cur);
         }
 
+        if (late_writeback) cpu->Reg[rn] = updated_base;
         if (BIT(inst, 15)) {
             INC_PC(sizeof(ldst_inst));
             goto DISPATCH;
@@ -4916,7 +4926,11 @@ STM_INST : {
         unsigned int Rn = BITS(inst, 16, 19);
         unsigned int old_RN = cpu->Reg[Rn];
 
+        const bool late_writeback = BIT(inst, 21) && !BIT(inst, 22)
+            && Rn != 15 && (inst & 0xffff) && !BIT(inst, Rn);
         inst_cream->get_addr(cpu, inst_cream->inst, addr);
+        const auto updated_base = cpu->Reg[Rn];
+        if (late_writeback) cpu->Reg[Rn] = old_RN;
 
         // Contiguous, ascending stores -- resolve the host page once (see block_cursor).
         ARMul_State::block_cursor stm_cur;
@@ -4964,6 +4978,7 @@ STM_INST : {
                 cpu->WriteMemory32Block(addr, cpu->Reg[15] + 8, stm_cur);
             }
         }
+        if (late_writeback) cpu->Reg[Rn] = updated_base;
     }
     cpu->Reg[15] += cpu->GetInstructionSize();
     INC_PC(sizeof(ldst_inst));
