@@ -92,6 +92,14 @@ namespace eka2l1::arm::aot {
             get_local(local);
             op(op_i32_store); leb(b, 2); leb(b, offset);
         }
+        void store_i32_from_stack(std::uint32_t offset, std::uint32_t scratch) {
+            if (cache.accepts(offset)) {
+                set_local(cache.local(offset)); cache.written.insert(offset); return;
+            }
+            set_local(scratch);
+            state_ptr(); get_local(scratch);
+            op(op_i32_store); leb(b, 2); leb(b, offset);
+        }
         void store_i32_const(std::uint32_t offset, std::int32_t val) {
             if (cache.accepts(offset)) {
                 i32_const(val); set_local(cache.local(offset)); cache.written.insert(offset); return;
@@ -485,12 +493,10 @@ namespace eka2l1::arm::aot {
         w.get_local(res);
         w.i32_const(31);
         w.op(op_i32_shr_u);
-        w.set_local(tmp);
-        w.store_i32(S::NFLAG, tmp);
+        w.store_i32_from_stack(S::NFLAG, tmp);
         w.get_local(res);
         w.op(op_i32_eqz);
-        w.set_local(tmp);
-        w.store_i32(S::ZFLAG, tmp);
+        w.store_i32_from_stack(S::ZFLAG, tmp);
     }
 
     // Only short straight-line leaves with an unchanged LR can be inlined.
@@ -1428,13 +1434,12 @@ namespace eka2l1::arm::aot {
                         emit_nz_flags(w, TMP3, TMP4);
                         // C = Rn >= op2 (unsigned)
                         w.get_local(TMP1); w.get_local(TMP2);
-                        w.op(op_i32_ge_u); w.set_local(TMP4);
-                        w.store_i32(S::CFLAG, TMP4);
+                        w.op(op_i32_ge_u); w.store_i32_from_stack(S::CFLAG, TMP4);
                         // V = (Rn ^ op2) & (Rn ^ result) >> 31
                         w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
                         w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
                         w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
-                        w.set_local(TMP4); w.store_i32(S::VFLAG, TMP4);
+                        w.store_i32_from_stack(S::VFLAG, TMP4);
                     }
                     break;
                 case 0x3: // RSB
@@ -1446,13 +1451,12 @@ namespace eka2l1::arm::aot {
                         emit_nz_flags(w, TMP3, TMP4);
                         // C = op2 >= Rn
                         w.get_local(TMP2); w.get_local(TMP1);
-                        w.op(op_i32_ge_u); w.set_local(TMP4);
-                        w.store_i32(S::CFLAG, TMP4);
+                        w.op(op_i32_ge_u); w.store_i32_from_stack(S::CFLAG, TMP4);
                         // V = (op2 ^ Rn) & (op2 ^ result) >> 31
                         w.get_local(TMP2); w.get_local(TMP1); w.op(op_i32_xor);
                         w.get_local(TMP2); w.get_local(TMP3); w.op(op_i32_xor);
                         w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
-                        w.set_local(TMP4); w.store_i32(S::VFLAG, TMP4);
+                        w.store_i32_from_stack(S::VFLAG, TMP4);
                     }
                     break;
                 case 0x4: // ADD
@@ -1464,13 +1468,12 @@ namespace eka2l1::arm::aot {
                         emit_nz_flags(w, TMP3, TMP4);
                         // C = result < Rn (unsigned overflow)
                         w.get_local(TMP3); w.get_local(TMP1);
-                        w.op(op_i32_lt_u); w.set_local(TMP4);
-                        w.store_i32(S::CFLAG, TMP4);
+                        w.op(op_i32_lt_u); w.store_i32_from_stack(S::CFLAG, TMP4);
                         // V = (Rn ^ result) & (op2 ^ result) >> 31
                         w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
                         w.get_local(TMP2); w.get_local(TMP3); w.op(op_i32_xor);
                         w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
-                        w.set_local(TMP4); w.store_i32(S::VFLAG, TMP4);
+                        w.store_i32_from_stack(S::VFLAG, TMP4);
                     }
                     break;
                 case 0x5: // ADC
@@ -1485,10 +1488,10 @@ namespace eka2l1::arm::aot {
                         w.get_local(TMP3); w.get_local(TMP1); w.op(op_i32_lt_u);
                         w.get_local(TMP3); w.get_local(TMP1); w.op(op_i32_eq);
                         w.load_i32(S::CFLAG); w.op(op_i32_and); w.op(op_i32_or);
-                        w.set_local(TMP4); w.store_i32(S::CFLAG,TMP4);
+                        w.store_i32_from_stack(S::CFLAG, TMP4);
                         w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
                         w.get_local(TMP2); w.get_local(TMP3); w.op(op_i32_xor); w.op(op_i32_and);
-                        w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4); w.store_i32(S::VFLAG,TMP4);
+                        w.i32_const(31); w.op(op_i32_shr_u); w.store_i32_from_stack(S::VFLAG, TMP4);
                     }
                     break;
                 case 0x6: // SBC
@@ -1504,10 +1507,10 @@ namespace eka2l1::arm::aot {
                         w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_gt_u);
                         w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_eq);
                         w.load_i32(S::CFLAG); w.op(op_i32_and); w.op(op_i32_or);
-                        w.set_local(TMP4); w.store_i32(S::CFLAG,TMP4);
+                        w.store_i32_from_stack(S::CFLAG, TMP4);
                         w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
                         w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor); w.op(op_i32_and);
-                        w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4); w.store_i32(S::VFLAG,TMP4);
+                        w.i32_const(31); w.op(op_i32_shr_u); w.store_i32_from_stack(S::VFLAG, TMP4);
                     }
                     break;
                 case 0x7: // RSC
@@ -1523,10 +1526,10 @@ namespace eka2l1::arm::aot {
                         w.get_local(TMP2); w.get_local(TMP1); w.op(op_i32_gt_u);
                         w.get_local(TMP2); w.get_local(TMP1); w.op(op_i32_eq);
                         w.load_i32(S::CFLAG); w.op(op_i32_and); w.op(op_i32_or);
-                        w.set_local(TMP4); w.store_i32(S::CFLAG,TMP4);
+                        w.store_i32_from_stack(S::CFLAG, TMP4);
                         w.get_local(TMP2); w.get_local(TMP1); w.op(op_i32_xor);
                         w.get_local(TMP2); w.get_local(TMP3); w.op(op_i32_xor); w.op(op_i32_and);
-                        w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4); w.store_i32(S::VFLAG,TMP4);
+                        w.i32_const(31); w.op(op_i32_shr_u); w.store_i32_from_stack(S::VFLAG, TMP4);
                     }
                     break;
                 case 0x8: // TST (always sets flags, no Rd write)
@@ -1548,13 +1551,12 @@ namespace eka2l1::arm::aot {
                     emit_nz_flags(w, TMP3, TMP4);
                     // C = Rn >= op2
                     w.get_local(TMP1); w.get_local(TMP2);
-                    w.op(op_i32_ge_u); w.set_local(TMP4);
-                    w.store_i32(S::CFLAG, TMP4);
+                    w.op(op_i32_ge_u); w.store_i32_from_stack(S::CFLAG, TMP4);
                     // V
                     w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
                     w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
                     w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
-                    w.set_local(TMP4); w.store_i32(S::VFLAG, TMP4);
+                    w.store_i32_from_stack(S::VFLAG, TMP4);
                     break;
                 case 0xB: // CMN (ADD without write)
                     w.get_local(TMP1); w.get_local(TMP2);
@@ -1563,14 +1565,13 @@ namespace eka2l1::arm::aot {
                     emit_nz_flags(w, TMP3, TMP4);
                     // C = result < Rn
                     w.get_local(TMP3); w.get_local(TMP1);
-                    w.op(op_i32_lt_u); w.set_local(TMP4);
-                    w.store_i32(S::CFLAG, TMP4);
+                    w.op(op_i32_lt_u); w.store_i32_from_stack(S::CFLAG, TMP4);
                     // V = ~(Rn ^ op2) & (Rn ^ result) >> 31
                     w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
                     w.i32_const(-1); w.op(op_i32_xor);
                     w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
                     w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
-                    w.set_local(TMP4); w.store_i32(S::VFLAG, TMP4);
+                    w.store_i32_from_stack(S::VFLAG, TMP4);
                     break;
                 case 0xC: // ORR
                     w.get_local(TMP1); w.get_local(TMP2);
