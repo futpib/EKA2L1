@@ -29,7 +29,7 @@ behavior are unchanged.
 
 Serial A/B/B/A batches cover the same heavy 78–96 guest-second window, with
 rendering and shared audio processing enabled, capture/profiling disabled and
-one browser at a time. Every run executed 3,975,200,506 guest instructions and
+one browser at a time. Every run executed 3,975,618,624 guest instructions and
 676 presentations.
 
 | Batch | Baseline (s) | Candidate (s) | Mean throughput change |

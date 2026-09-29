@@ -10,7 +10,7 @@
     {"batch":"C","baseline_seconds":[13.6138,15.6583],"candidate_seconds":[13.8154,14.5064]},
     {"batch":"D-reversed","baseline_seconds":[13.5787,14.9038],"candidate_seconds":[13.6077,13.8137]}
   ],
-  "same_work_each_run": {"guest_instructions":3975200506,"presentations":676},
+  "same_work_each_run": {"guest_instructions":3975618624,"presentations":676},
   "aggregate_mean_seconds": {"baseline":15.2374,"candidate":13.89085},
   "aggregate_throughput_change_percent": 9.7,
   "correctness": {
