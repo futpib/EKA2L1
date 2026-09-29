@@ -1,5 +1,7 @@
 # Conditional ALU selection: rejected
 
+**Fault-check provenance corrected:** see [explicit rebuild audit](FAULT_PROBE_REBUILD_AUDIT.md). The original post-reboot probe runs were stale; rebuilt candidate probes now pass all 672 cases.
+
 The broader conditional-MOV experiment uses WASM select for cheap non-flag-setting
 ARM arithmetic and logical instructions with immediate or unshifted operands.
 PC destinations, shifted operands, memory and helpers retain their original paths.

@@ -1,0 +1,112 @@
+[
+  {
+    "variant": "committed",
+    "head": "2ed5c6383cff9728a6199a001a77814f947c7a14",
+    "source_sha256": "96d98e1e153670975870906885684cf018c1155e66e82552a2358e3710615948",
+    "header_sha256": "454608c5808f09248f219919d17ee0e80d0adcc8294d065a3aca5e179b9aca9c",
+    "probe_wasm_sha256": "b99b88ea6e5d1ecc6268dfa58b1dda027ea405d4174db69a9de63c789c436064",
+    "native_probe_sha256": "9faf00035cbee5fd2a70fefaf49e8894d83e9a938da5f5debdd1d91900820b7b",
+    "comparison": {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+        "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/committed.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+      },
+      "differences": []
+    }
+  },
+  {
+    "variant": "register-store",
+    "head": "2ed5c6383cff9728a6199a001a77814f947c7a14",
+    "source_sha256": "0ccf115983836009bbf49494be73cd4592b9d081709bda81f4df02d31c943720",
+    "header_sha256": "454608c5808f09248f219919d17ee0e80d0adcc8294d065a3aca5e179b9aca9c",
+    "probe_wasm_sha256": "67aed29c1e53ce24019c87ecde8b8537a21a947338511dc288e2deca7428c9bb",
+    "native_probe_sha256": "9faf00035cbee5fd2a70fefaf49e8894d83e9a938da5f5debdd1d91900820b7b",
+    "comparison": {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+        "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/register-store.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+      },
+      "differences": []
+    }
+  },
+  {
+    "variant": "conditional-mov",
+    "head": "2ed5c6383cff9728a6199a001a77814f947c7a14",
+    "source_sha256": "c9c1f00923527f5bf1b5313063565a077de8432eea0e52c08ee316fde528777e",
+    "header_sha256": "27b7b548680220104b2f24f4f96dd3f5a8e4c65185b37c9fb912d2cd18cfbb0c",
+    "probe_wasm_sha256": "3561ef687c1c16a38528b0664dc55a006d63147200c94979f29ae1e407c2df10",
+    "native_probe_sha256": "9faf00035cbee5fd2a70fefaf49e8894d83e9a938da5f5debdd1d91900820b7b",
+    "comparison": {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+        "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/conditional-mov.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+      },
+      "differences": []
+    }
+  },
+  {
+    "variant": "conditional-alu",
+    "head": "2ed5c6383cff9728a6199a001a77814f947c7a14",
+    "source_sha256": "5ef36e4137945689f03c8018e3282e22eb55d4cd710696726f3d2c7f0523a36d",
+    "header_sha256": "27b7b548680220104b2f24f4f96dd3f5a8e4c65185b37c9fb912d2cd18cfbb0c",
+    "probe_wasm_sha256": "5da3425519f64859e4408154d694f1246ef3124bb08e39f687c51d8c74dd10e6",
+    "native_probe_sha256": "9faf00035cbee5fd2a70fefaf49e8894d83e9a938da5f5debdd1d91900820b7b",
+    "comparison": {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+        "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/conditional-alu.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+      },
+      "differences": []
+    }
+  },
+  {
+    "variant": "wide-reuse",
+    "head": "2ed5c6383cff9728a6199a001a77814f947c7a14",
+    "source_sha256": "b0c2253b13dadd9ee0efbf35de2e49cedaaaf80f3eec5f69a75fcb0409998b8a",
+    "header_sha256": "454608c5808f09248f219919d17ee0e80d0adcc8294d065a3aca5e179b9aca9c",
+    "probe_wasm_sha256": "1288cbbe10bc6ae3b17a46665eb137aa82c2955ba371c70d29731b3d75d8f284",
+    "native_probe_sha256": "9faf00035cbee5fd2a70fefaf49e8894d83e9a938da5f5debdd1d91900820b7b",
+    "comparison": {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+        "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/wide-reuse.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+      },
+      "differences": []
+    }
+  }
+]

@@ -60,5 +60,32 @@
     }
   },
   "patch": "/home/claude/.scratch/eka-benchmark/conditional-alu-candidate.patch",
-  "next_experiment": "reuse full-width result between consecutive long multiplies"
+  "next_experiment": "reuse full-width result between consecutive long multiplies",
+  "fault_probe_rebuild_correction": {
+    "reason": "original post-reboot probe was not rebuilt by default target; superseded by explicit candidate rebuild",
+    "audit": "FAULT_PROBE_REBUILD_AUDIT.json",
+    "variant": "conditional-alu",
+    "result": {
+      "variant": "conditional-alu",
+      "head": "2ed5c6383cff9728a6199a001a77814f947c7a14",
+      "source_sha256": "5ef36e4137945689f03c8018e3282e22eb55d4cd710696726f3d2c7f0523a36d",
+      "header_sha256": "27b7b548680220104b2f24f4f96dd3f5a8e4c65185b37c9fb912d2cd18cfbb0c",
+      "probe_wasm_sha256": "5da3425519f64859e4408154d694f1246ef3124bb08e39f687c51d8c74dd10e6",
+      "native_probe_sha256": "9faf00035cbee5fd2a70fefaf49e8894d83e9a938da5f5debdd1d91900820b7b",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+          "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/conditional-alu.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+        },
+        "differences": []
+      }
+    }
+  }
 }

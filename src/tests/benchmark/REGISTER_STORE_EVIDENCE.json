@@ -647,5 +647,32 @@
     "native_targets": 3,
     "frontend": 7
   },
-  "environment_note": "Post-reboot NVIDIA 610.57.04; do not pool with pre-reboot timing. Other workloads active on shared host."
+  "environment_note": "Post-reboot NVIDIA 610.57.04; do not pool with pre-reboot timing. Other workloads active on shared host.",
+  "fault_probe_rebuild_correction": {
+    "reason": "original post-reboot probe was not rebuilt by default target; superseded by explicit candidate rebuild",
+    "audit": "FAULT_PROBE_REBUILD_AUDIT.json",
+    "variant": "register-store",
+    "result": {
+      "variant": "register-store",
+      "head": "2ed5c6383cff9728a6199a001a77814f947c7a14",
+      "source_sha256": "0ccf115983836009bbf49494be73cd4592b9d081709bda81f4df02d31c943720",
+      "header_sha256": "454608c5808f09248f219919d17ee0e80d0adcc8294d065a3aca5e179b9aca9c",
+      "probe_wasm_sha256": "67aed29c1e53ce24019c87ecde8b8537a21a947338511dc288e2deca7428c9bb",
+      "native_probe_sha256": "9faf00035cbee5fd2a70fefaf49e8894d83e9a938da5f5debdd1d91900820b7b",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+          "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/register-store.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+        },
+        "differences": []
+      }
+    }
+  }
 }

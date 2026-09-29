@@ -103,3 +103,11 @@ The benchmark runs without host pacing and exports audio for playback afterwards
 it does not turn on real-time speaker playback in either frontend. The existing
 interactive audio paths are unchanged. This is a deterministic PCM reference,
 not a hardware DSP/filter or codec-fidelity claim.
+
+## Rebuilding the fault probes
+
+Both fault-probe executables are excluded from the default CMake build. Explicitly
+build `eka_cpu_fault_native` in `build` and `eka_cpu_fault_wasm` in `build-wasm`
+after compiler/runtime changes. Record the source state and executable hashes
+before claiming candidate-specific results. See
+[the rebuild commands and provenance audit](FAULT_PROBE_REBUILD_AUDIT.md).

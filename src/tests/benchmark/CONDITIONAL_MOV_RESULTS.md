@@ -1,5 +1,7 @@
 # Conditional MOV selection: no confirmed speedup
 
+**Fault-check provenance corrected:** see [explicit rebuild audit](FAULT_PROBE_REBUILD_AUDIT.md). The original post-reboot probe runs were stale; rebuilt candidate probes now pass all 672 cases.
+
 The experiment replaces conditional non-flag-setting MOV with WASM `select`
 for immediate values and unshifted registers. PC destinations and flag-setting
 forms retain their original paths. Budgets, faults and source-code validation

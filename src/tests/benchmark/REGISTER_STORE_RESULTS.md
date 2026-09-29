@@ -1,5 +1,7 @@
 # Direct register-result stores: rejected experiment
 
+**Fault-check provenance corrected:** see [explicit rebuild audit](FAULT_PROBE_REBUILD_AUDIT.md). The original post-reboot probe runs were stale; rebuilt candidate probes now pass all 672 cases.
+
 Recovered on 2026-09-29 after the host reboot. The unfinished generic ARM
 experiment stored non-flag-setting ALU results directly into cached guest
 register locals, avoiding a temporary-local set/get. Flag and PC consumers
