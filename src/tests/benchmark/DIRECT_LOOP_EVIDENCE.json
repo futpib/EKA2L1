@@ -1,0 +1,251 @@
+{
+  "candidate": "direct structured WASM loop for a single-header guest loop",
+  "decision": "retained locally: both batches improve versus fixed compiler; no convincing incremental LAN gain or deployment",
+  "tested_head": "c94acb1ca4618f4116ee7d639c290956a80fcf21",
+  "source": {
+    "head": "c94acb1ca4618f4116ee7d639c290956a80fcf21",
+    "patch": "/home/claude/.scratch/eka-benchmark/direct-loop-candidate.patch",
+    "hashes": {
+      "eka2l1.js": "74e1c652fd857325d5d41a63a048881ec1deebc70fc9ddf53638a3ab766a2df1",
+      "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "d0009a1e5d763cb0a8b55754ac0995c0da4c5360dbe0fa4c5f69a207785b5cdc",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/test_aot_wasm.wasm": "1bd11a7fb81fc588ebb90ba49530d90bcca99086ad2e7767fbbeb6fcd04e53ed",
+      "tests/eka_cpu_fault_wasm.wasm": "be1492e8d01af64f22e39bd2c6be76d47fee4170966c6a372a2719d3fc6df919",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934",
+      "tests/eka_cpu_fault_native": "c78b974bbb4a223fbc0ff85773dfdf1f2260427857327a26040d42f87f9267c8"
+    },
+    "runtime_patch_after_test_commit": "/home/claude/.scratch/eka-benchmark/direct-loop-runtime.patch",
+    "test_commit": "b9cfb7752"
+  },
+  "runs": [
+    {
+      "batch": "a",
+      "run": "fixed-1",
+      "build": "/home/claude/.scratch/eka-benchmark/callback-cpsr-baseline",
+      "host_seconds": 13.6125,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "direct-1",
+      "build": "/home/claude/.scratch/eka-benchmark/direct-loop-candidate",
+      "host_seconds": 13.569,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "served-1",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "host_seconds": 15.1183,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "served-2",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "host_seconds": 13.4711,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "direct-2",
+      "build": "/home/claude/.scratch/eka-benchmark/direct-loop-candidate",
+      "host_seconds": 13.8428,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "fixed-2",
+      "build": "/home/claude/.scratch/eka-benchmark/callback-cpsr-baseline",
+      "host_seconds": 14.1119,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "served-1",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "host_seconds": 13.5147,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "direct-1",
+      "build": "/home/claude/.scratch/eka-benchmark/direct-loop-candidate",
+      "host_seconds": 13.4875,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "fixed-1",
+      "build": "/home/claude/.scratch/eka-benchmark/callback-cpsr-baseline",
+      "host_seconds": 15.1658,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "fixed-2",
+      "build": "/home/claude/.scratch/eka-benchmark/callback-cpsr-baseline",
+      "host_seconds": 14.855,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "direct-2",
+      "build": "/home/claude/.scratch/eka-benchmark/direct-loop-candidate",
+      "host_seconds": 13.5197,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "served-2",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "host_seconds": 13.5321,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    }
+  ],
+  "means": {
+    "a": {
+      "fixed": 13.862200000000001,
+      "direct": 13.7059,
+      "served": 14.294699999999999
+    },
+    "b": {
+      "served": 13.523399999999999,
+      "direct": 13.5036,
+      "fixed": 15.0104
+    }
+  },
+  "native_comparison": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+      "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+      "writes": 0,
+      "callbacks": 10190,
+      "backend": "shared-dsp-cubeb-resampler",
+      "render_callbacks": 10190,
+      "gameplay_nonzero_samples": 7223662,
+      "gameplay_peak": 8449
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16263331210
+  },
+  "gameplay_heuristic": {
+    "frames": 1600,
+    "unique_images": 1600,
+    "unique_viewports": 1600,
+    "first_virtual_us": 21031559,
+    "last_virtual_us": 102484363,
+    "virtual_seconds": 81.452804,
+    "game_images_per_virtual_second": 19.631000057407476,
+    "median_interval_us": 47034,
+    "max_interval_us": 408561,
+    "min_viewport_changed_fraction": 0.002483333333333282,
+    "median_viewport_changed_fraction": 0.29761666666666664,
+    "pass": false
+  },
+  "fault_modes": [
+    {
+      "mode": "extended",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/direct-loop-extended-native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+          "/home/claude/.scratch/eka-benchmark/direct-loop-extended-wasm.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+        },
+        "differences": []
+      }
+    },
+    {
+      "mode": "deferred",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/direct-loop-deferred-native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+          "/home/claude/.scratch/eka-benchmark/direct-loop-deferred-wasm.log": "e316ccb0c8c581a3921c100340f41340240a0622df989902f475f32974a7dde9"
+        },
+        "differences": []
+      }
+    },
+    {
+      "mode": "entry-budget",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/direct-loop-entry-budget-native.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a",
+          "/home/claude/.scratch/eka-benchmark/direct-loop-entry-budget-wasm.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a"
+        },
+        "differences": []
+      }
+    },
+    {
+      "mode": "entry-budget-deferred",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/direct-loop-entry-budget-deferred-native.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a",
+          "/home/claude/.scratch/eka-benchmark/direct-loop-entry-budget-deferred-wasm.log": "b2b06484fa7651168c6cd1663dd3c6694891d4cdc7b3f92211e8c060cc6be32d"
+        },
+        "differences": []
+      }
+    }
+  ],
+  "checks": {
+    "wasm_tests": 136,
+    "bounded_comparisons": 461776,
+    "interrupt_checks": 42,
+    "native_targets": 3,
+    "frontend_checks": 7
+  },
+  "log_sha256": {
+    "/home/claude/.scratch/eka-benchmark/direct-loop-tests.log": "d0bc797f119f1a04eef82245ebcb2cde43b77e9d538a5dbab42cc03c8c50a213",
+    "/home/claude/.scratch/eka-benchmark/direct-loop-native-tests.log": "b43b442d9f3e5aab36a0b95300f20e3a43c96d3f8f6dad88785ff246d52f0041",
+    "/home/claude/.scratch/eka-benchmark/direct-loop-frontend.log": "5f61b5b9c6839f49cc03594c626e226d12b3a2b6f56519a145a7ec8e3e387487",
+    "/home/claude/.scratch/eka-benchmark/direct-loop-build.log": "3c1f81567957873cba0bbfffc4d85173c388131f1b76e02502f40d6265eb5626"
+  }
+}

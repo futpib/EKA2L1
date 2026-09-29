@@ -703,6 +703,32 @@ namespace eka2l1::arm::aot {
             }
         }
 
+        // A region with one natural loop needs no entry-selector dispatch.
+        // Restrict the shape to a single backedge target and no labels inside
+        // the loop body; forward exits remain ordinary enclosing blocks.
+        bool direct_loop = region
+            && code_size <= 0xffffffffu - start_address;
+        std::uint32_t loop_start = 0, loop_last = 0;
+        bool has_backedge = false;
+        for (const auto &instruction : instructions) {
+            if (instruction.leaf) continue; // Inlined leaves are straight-line.
+            const auto inst = instruction.opcode;
+            if (((inst >> 25) & 7) != 5 || ((inst >> 24) & 1)) continue;
+            const auto displacement = static_cast<std::int32_t>(inst << 8) >> 6;
+            const auto target = instruction.address + 8 + static_cast<std::uint32_t>(displacement);
+            if (target > instruction.address || target < start_address
+                || target >= start_address + code_size) continue;
+            if (has_backedge && target != loop_start) direct_loop = false;
+            if (!has_backedge) loop_start = target;
+            has_backedge = true;
+            loop_last = std::max(loop_last, instruction.address);
+        }
+        direct_loop = direct_loop && has_backedge;
+        for (const auto target : forward_targets_set)
+            if (target > loop_start && target <= loop_last) direct_loop = false;
+        bool inner_loop_open = false;
+        unsigned direct_loop_depth = 0;
+
         // Populate branch_targets for extra-entry discovery
         for (std::size_t i : reachable) {
             if (i + 3 >= code_size) continue;
@@ -747,11 +773,12 @@ namespace eka2l1::arm::aot {
         w.op(op_block); w.op(type_void);
         // loop $loop
         w.op(op_loop); w.op(type_void);
+        if (direct_loop && loop_start == start_address) direct_loop_depth = w.scope_depth;
         // Forward target blocks
         for (std::size_t k = 0; k < fwd_sorted.size(); k++) {
             w.op(op_block); w.op(type_void);
         }
-        if (region) {
+        if (region && !direct_loop) {
             // Entry zero starts at the first instruction. Backedges select an
             // interior entry in the same loop without flushing register locals.
             w.op(op_block); w.op(type_void);
@@ -781,10 +808,21 @@ namespace eka2l1::arm::aot {
             w.instruction_may_exit = false;
             w.current_pc = insn_addr; w.pc_written = false; w.restartable_access = false;
 
+            if (inner_loop_open && !instruction.leaf && insn_addr > loop_last) {
+                w.op(op_end);
+                inner_loop_open = false;
+            }
+
             // Close forward-target blocks
             while (!instruction.leaf && closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
                 w.op(op_end);
                 closed_count++;
+            }
+
+            if (direct_loop && !instruction.leaf && loop_start != start_address && insn_addr == loop_start) {
+                w.op(op_loop); w.op(type_void);
+                direct_loop_depth = w.scope_depth;
+                inner_loop_open = true;
             }
 
             if (bounded) {
@@ -877,20 +915,23 @@ namespace eka2l1::arm::aot {
                 auto fit = fwd_idx.find(target);
                 if (fit != fwd_idx.end() && target > insn_addr) {
                     // Forward branch: br to the appropriate block depth
-                    std::uint32_t depth = fit->second - closed_count + (cond_opened ? 1 : 0);
+                    std::uint32_t depth = fit->second - closed_count + (cond_opened ? 1 : 0) + (inner_loop_open ? 1 : 0);
                     w.op(op_br);
                     leb(result.body, depth);
                     if (cond_opened) w.op(op_end);
                 } else if ((!bounded && target >= start_address && target < start_address + code_size) || (region && target >= start_address && target < start_address + code_size && (target == start_address || fit != fwd_idx.end()))) {
                     if (region) {
-                        w.i32_const(target == start_address ? 0 : fit->second+1); w.set_local(PC_IDX);
+                        if (!direct_loop) {
+                            w.i32_const(target == start_address ? 0 : fit->second+1); w.set_local(PC_IDX);
+                        }
                         w.load_i32(S::NIRQ); w.op(op_i32_eqz);
                         w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
                         w.op(op_i32_and);
                         w.op(op_if); w.op(type_void); w.bail(target,insn_idx+1); w.op(op_end);
                     }
                     // Backward branch within block: br to loop
-                    std::uint32_t loop_depth = N_fwd - closed_count + (cond_opened ? 1 : 0); // loop is right after blocks
+                    std::uint32_t loop_depth = direct_loop ? w.scope_depth - direct_loop_depth
+                        : N_fwd - closed_count + (cond_opened ? 1 : 0); // loop is right after blocks
                     w.op(op_br);
                     leb(result.body, loop_depth);
                     if (cond_opened) w.op(op_end);
@@ -1814,6 +1855,8 @@ namespace eka2l1::arm::aot {
             // Don't break — continue for subsequent instructions that might
             // be reachable via forward branches.
         }
+
+        if (inner_loop_open) w.op(op_end);
 
         // Close remaining forward blocks
         while (closed_count < N_fwd) {
