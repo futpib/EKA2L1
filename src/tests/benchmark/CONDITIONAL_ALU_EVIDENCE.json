@@ -1,0 +1,64 @@
+{
+  "candidate": "cheap non-flag-setting conditional ARM ALU via WASM select",
+  "decision": "rejected: balanced batch does not support throughput gain",
+  "runs": [
+    {
+      "run": "before-1",
+      "build": "addv-candidate",
+      "host_seconds": 13.6317,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "run": "after-1",
+      "build": "conditional-alu-candidate",
+      "host_seconds": 13.5919,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "run": "after-2",
+      "build": "conditional-alu-candidate",
+      "host_seconds": 14.2571,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "run": "before-2",
+      "build": "addv-candidate",
+      "host_seconds": 13.5741,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    }
+  ],
+  "wasm_sha256": "570afcc7786e606cb1ddb3c03d729b669a45bc778c3017f63cf7f4c0325b0d62",
+  "correctness": {
+    "wasm_tests": 135,
+    "new_condition_budget_comparisons": 229376,
+    "fault_cases": 672,
+    "native_targets": 3,
+    "frontend_checks": 7,
+    "fresh_checked_replay": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+        "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+        "writes": 0,
+        "callbacks": 10190,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 10190,
+        "gameplay_nonzero_samples": 7223662,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16263331210
+    }
+  },
+  "patch": "/home/claude/.scratch/eka-benchmark/conditional-alu-candidate.patch",
+  "next_experiment": "reuse full-width result between consecutive long multiplies"
+}

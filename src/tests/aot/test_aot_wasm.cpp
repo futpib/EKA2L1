@@ -2542,10 +2542,15 @@ static bool test_exact_code_compare() {
 
 // Check every condition/flag combination against DynCom, including false moves,
 // source/destination overlap, PC reads, rotated immediates and unchanged flags.
-static bool test_conditional_mov_select() {
+static bool test_conditional_alu_select() {
 #ifdef __EMSCRIPTEN__
-    const unsigned forms[] = {0x01a02000u, 0x01a00000u, 0x01af2000u,
+    std::vector<unsigned> forms = {0x01a02000u, 0x01a00000u, 0x01af2000u,
         0x01a0200fu, 0x03a02001u, 0x03a02480u, 0x01b02000u, 0x01a02080u};
+    for (unsigned opcode = 0; opcode < 16; ++opcode) {
+        if (opcode >= 8 && opcode <= 11) continue; // Test/misc encodings require S.
+        forms.push_back((opcode << 21) | 0x00000001u); // Rd overlaps Rn.
+        forms.push_back((opcode << 21) | 0x02002180u); // Rotated immediate.
+    }
     unsigned comparisons = 0;
     for (unsigned variant = 0; variant < 4; ++variant)
     for (unsigned cond = 0; cond < 14; ++cond) for (unsigned form : forms) {
@@ -2596,7 +2601,7 @@ static bool test_conditional_mov_select() {
             ++comparisons;
         }
     }
-    printf("  PASS conditional_mov_select (%u exact budget/state comparisons)\n", comparisons);
+    printf("  PASS conditional_alu_select (%u exact budget/state comparisons)\n", comparisons);
 #endif
     return true;
 }
@@ -3531,7 +3536,7 @@ int main(int argc, char **argv) {
     if (test_deferred_memory_exits()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
-    if (test_conditional_mov_select()) passed++; else failed++;
+    if (test_conditional_alu_select()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
