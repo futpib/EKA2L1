@@ -1,0 +1,106 @@
+{
+  "scope": "Revalidate recovered MOV/MVN and direct flag-store commits together versus last delivered ADD/ADC build",
+  "environment": {
+    "date": "2026-09-29T16:20:20+00:00",
+    "kernel": "6.12.108-1-MANJARO",
+    "chromium": "Chromium 153.0.8010.52 Arch Linux",
+    "gpu": "Quadro T1000 with Max-Q Design, 610.57.04",
+    "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+    "ld_library_path": "not overridden",
+    "serial_owned_browsers": true,
+    "other_host_workloads": "active; no exclusivity claimed"
+  },
+  "batches": [
+    {
+      "batch": "a",
+      "runs": [
+        {
+          "run": "before-1",
+          "build": "addv-candidate",
+          "wasm_sha256": "e29d57a538766b7ad3440075150b67ed1a7d4831918595c3e23951f632b0d9e0",
+          "host_seconds": 13.3992,
+          "guest_instructions": 3975618624,
+          "presentations": 676,
+          "shared_audio": true,
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        },
+        {
+          "run": "after-1",
+          "build": "flag-stack-candidate",
+          "wasm_sha256": "33c9af6d1bb1a2ea0389c7245e5e27291d2f59784d04c8078942faba6d922787",
+          "host_seconds": 15.2711,
+          "guest_instructions": 3975618624,
+          "presentations": 676,
+          "shared_audio": true,
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        },
+        {
+          "run": "after-2",
+          "build": "flag-stack-candidate",
+          "wasm_sha256": "33c9af6d1bb1a2ea0389c7245e5e27291d2f59784d04c8078942faba6d922787",
+          "host_seconds": 15.343,
+          "guest_instructions": 3975618624,
+          "presentations": 676,
+          "shared_audio": true,
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        },
+        {
+          "run": "before-2",
+          "build": "addv-candidate",
+          "wasm_sha256": "e29d57a538766b7ad3440075150b67ed1a7d4831918595c3e23951f632b0d9e0",
+          "host_seconds": 13.5369,
+          "guest_instructions": 3975618624,
+          "presentations": 676,
+          "shared_audio": true,
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      ]
+    },
+    {
+      "batch": "b",
+      "runs": [
+        {
+          "run": "before-1",
+          "build": "flag-stack-candidate",
+          "wasm_sha256": "33c9af6d1bb1a2ea0389c7245e5e27291d2f59784d04c8078942faba6d922787",
+          "host_seconds": 13.4319,
+          "guest_instructions": 3975618624,
+          "presentations": 676,
+          "shared_audio": true,
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        },
+        {
+          "run": "after-1",
+          "build": "addv-candidate",
+          "wasm_sha256": "e29d57a538766b7ad3440075150b67ed1a7d4831918595c3e23951f632b0d9e0",
+          "host_seconds": 14.5924,
+          "guest_instructions": 3975618624,
+          "presentations": 676,
+          "shared_audio": true,
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        },
+        {
+          "run": "after-2",
+          "build": "addv-candidate",
+          "wasm_sha256": "e29d57a538766b7ad3440075150b67ed1a7d4831918595c3e23951f632b0d9e0",
+          "host_seconds": 13.8116,
+          "guest_instructions": 3975618624,
+          "presentations": 676,
+          "shared_audio": true,
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        },
+        {
+          "run": "before-2",
+          "build": "flag-stack-candidate",
+          "wasm_sha256": "33c9af6d1bb1a2ea0389c7245e5e27291d2f59784d04c8078942faba6d922787",
+          "host_seconds": 13.555,
+          "guest_instructions": 3975618624,
+          "presentations": 676,
+          "shared_audio": true,
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      ]
+    }
+  ],
+  "decision": "Mixed directions; no confirmed post-reboot combined speedup. LAN retains last delivered ADD/ADC build. Do not pool with pre-reboot timings."
+}

@@ -1,5 +1,7 @@
 # Direct flag-stack stores
 
+**Follow-up:** [post-reboot combined controls](POST_REBOOT_RESULTS.md) are mixed and do not confirm a current combined speedup. The measurements below describe the earlier environment.
+
 The ARM AOT translator now writes computed flags directly from the WASM operand
 stack into cached guest-state locals when available. This avoids an intermediate
 temporary-local set/get for N/Z and arithmetic C/V flag results. If a state field

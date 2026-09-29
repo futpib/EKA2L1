@@ -1,5 +1,7 @@
 # MOV/MVN unused source-register elimination
 
+**Follow-up:** [post-reboot combined controls](POST_REBOOT_RESULTS.md) are mixed and do not confirm a current combined speedup. The measurements below describe the earlier environment.
+
 On 2026-09-29, the ARM AOT translator was changed not to load or cache `Rn` for data-processing MOV and MVN, where the architecture ignores that field. The candidate is generic; it has no game/address specialization. The change is small and does not alter flags, budgets, memory handling or exit behavior.
 
 ## Correctness
