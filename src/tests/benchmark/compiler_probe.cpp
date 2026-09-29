@@ -23,7 +23,8 @@ struct Source : Dynarmic::A32::TranslateCallbacks {
  std::uint64_t GetTicksForCode(bool,unsigned,unsigned) override {return 1;}
 };
 int main(int argc,char**argv) {
- if(argc!=3) {std::cerr<<"compiler_probe GAME_EXE NEW_DIRECTORY\n";return 1;}
+ if(argc!=3 && !(argc==4 && std::string(argv[3])=="--defer-memory")) {std::cerr<<"compiler_probe GAME_EXE NEW_DIRECTORY [--defer-memory]\n";return 1;}
+ const bool defer_memory=argc==4;
  if(!std::filesystem::create_directory(argv[2]))return 2;
  std::ifstream input(argv[1],std::ios::binary);std::vector<unsigned char> compressed((std::istreambuf_iterator<char>(input)),{});
  if(compressed.size()<0x9c)return 3;
@@ -55,7 +56,7 @@ int main(int argc,char**argv) {
   std::sort(samples.begin(),samples.end());
   std::cout<<pc<<" native_translate_optimize_us_median "<<samples[50]<<" min "<<samples.front()<<" max "<<samples.back()<<" samples 100 (excludes IO and WASM emission)\n";
   using namespace eka2l1::arm::aot;
-  auto t=translate_arm_block(src.bytes.data()+pc-0x70000000,size,pc,nullptr,nullptr,true,true,true,true);
+  auto t=translate_arm_block(src.bytes.data()+pc-0x70000000,size,pc,nullptr,nullptr,true,true,true,true,nullptr,defer_memory);
   t.func.export_name="run";
   auto wasm=build_wasm_module({t.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
   std::ofstream(prefix+".wasm",std::ios::binary).write((char*)wasm.data(),wasm.size());
