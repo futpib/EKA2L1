@@ -65,6 +65,21 @@ namespace eka2l1::arm::aot {
         bool entry_supported = true;
         bool unsupported = false;
         std::uint32_t bail_count = 0;
+        // A straight-line long-multiply value can represent two guest registers.
+        // Exits reconstruct their exact halves; control/helper boundaries end
+        // the representation. Local 1 is the reserved i64 multiply result.
+        int wide_lo = -1, wide_hi = -1;
+
+        void materialize_wide() {
+            if (wide_lo < 0) return;
+            get_local(1); op(op_i32_wrap_i64);
+            store_i32_from_stack(S::reg(wide_lo), 2);
+            get_local(1); op(op_i64_const); b.push_back(32); op(op_i64_shr_u);
+            op(op_i32_wrap_i64); store_i32_from_stack(S::reg(wide_hi), 2);
+        }
+        void end_wide() {
+            materialize_wide(); wide_lo = wide_hi = -1;
+        }
 
         // Depth inside the result block added by state_local_cache::finish.
         unsigned scope_depth = 0;
@@ -110,7 +125,11 @@ namespace eka2l1::arm::aot {
         }
 
         void load_reg(int r) {
-            if (region && r == 15 && !pc_written) i32_const(current_pc);
+            if (r == wide_lo || r == wide_hi) {
+                get_local(1);
+                if (r == wide_hi) { op(op_i64_const); b.push_back(32); op(op_i64_shr_u); }
+                op(op_i32_wrap_i64);
+            } else if (region && r == 15 && !pc_written) i32_const(current_pc);
             else load_i32(S::reg(r));
         }
         void store_reg(int r, std::uint32_t local) {
@@ -243,6 +262,9 @@ namespace eka2l1::arm::aot {
 #endif
         }
         void ret() {
+            // Emitting an exit snapshot must not forget the representation on
+            // the other path of the guard being emitted.
+            materialize_wide();
             // The return count is already on the stack. Branching carries it
             // to the shared exit and discards any enclosing temporary stack.
             if (cache.shared_return) { op(op_br); leb(b, scope_depth); }
@@ -800,6 +822,36 @@ namespace eka2l1::arm::aot {
             const auto inst = instruction.opcode;
             const auto insn_addr = instruction.address;
 
+            const unsigned wide_hi = (inst >> 16) & 15, wide_lo = (inst >> 12) & 15;
+            const bool lazy_multiply = region && cache_registers && !instruction.leaf
+                && (inst >> 28) == 14 && ((inst >> 23) & 31) == 1
+                && ((inst >> 4) & 15) == 9 && !(inst & (1u << 20))
+                && wide_hi != 15 && wide_lo != 15 && wide_hi != wide_lo
+                && (inst & 15) != 15 && ((inst >> 8) & 15) != 15;
+            bool preserve_wide = lazy_multiply
+                && (w.wide_lo < 0 || (w.wide_lo == int(wide_lo) && w.wide_hi == int(wide_hi)));
+            if (!instruction.leaf && (inst >> 28) == 14) {
+                // These restartable deferred loads either finish directly or
+                // exit before effects. No callback can invalidate the value.
+                if (w.defer_memory && (inst & 0x0f700000u) == 0x05100000u
+                    && wide_hi != 15 && wide_lo != 15
+                    && int(wide_lo) != w.wide_lo && int(wide_lo) != w.wide_hi)
+                    preserve_wide = true;
+                // Ordinary ALU operations do not touch the reserved i64 local.
+                if (((inst >> 26) & 3) == 0
+                    && ((inst & (1u << 25)) || (inst & 0x90) != 0x90)) {
+                    const unsigned alu = (inst >> 21) & 15;
+                    const bool compare = alu >= 8 && alu <= 11;
+                    if ((compare && (inst & (1u << 20))) || (!compare && wide_lo != 15
+                        && int(wide_lo) != w.wide_lo && int(wide_lo) != w.wide_hi))
+                        preserve_wide = true;
+                }
+            }
+            // Fallthrough must publish before a label closes; taken edges have
+            // already published before their branch. No entry bypasses a value.
+            if (!preserve_wide || (!instruction.leaf && forward_targets_set.count(insn_addr)))
+                w.end_wide();
+
             // Only memory/helper paths can raise AOT_EXIT. Straight-line ALU
             // successors need just their budget guard; join/loop entries retain
             // the exit check independently of their lexical predecessor.
@@ -1227,11 +1279,17 @@ namespace eka2l1::arm::aot {
                         w.load_reg(rs); w.op(signed_product ? op_i64_extend_i32_s : op_i64_extend_i32_u);
                         w.op(op_i64_mul);
                         if (accumulate) {
-                            w.load_reg(hi); w.op(op_i64_extend_i32_u);
-                            w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shl);
-                            w.load_reg(lo); w.op(op_i64_extend_i32_u); w.op(op_i64_or);
+                            if (w.wide_lo == int(lo) && w.wide_hi == int(hi)) w.get_local(WIDE);
+                            else {
+                                w.load_reg(hi); w.op(op_i64_extend_i32_u);
+                                w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shl);
+                                w.load_reg(lo); w.op(op_i64_extend_i32_u); w.op(op_i64_or);
+                            }
                             w.op(op_i64_add); // WASM wraps modulo 2^64, including signed overflow.
                         }
+                        if (lazy_multiply) {
+                            w.set_local(WIDE); w.wide_lo = lo; w.wide_hi = hi;
+                        } else {
                         w.tee_local(WIDE); w.op(op_i32_wrap_i64); w.set_local(TMP1);
                         w.get_local(WIDE); w.op(op_i64_const); w.b.push_back(32);
                         w.op(op_i64_shr_u); w.op(op_i32_wrap_i64); w.set_local(TMP2);
@@ -1242,6 +1300,7 @@ namespace eka2l1::arm::aot {
                             w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_or); w.op(op_i32_eqz);
                             w.set_local(TMP3); w.store_i32(state_offsets::ZFLAG, TMP3);
                             // C and V are unchanged.
+                        }
                         }
                     }
                     if (cond_opened) w.op(op_end);
