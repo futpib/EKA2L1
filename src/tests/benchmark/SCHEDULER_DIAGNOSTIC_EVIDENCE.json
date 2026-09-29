@@ -1,0 +1,374 @@
+{
+  "scope": "Own-browser before/after snapshots; not promotion timings",
+  "script_sha256": "b979ecd324105379a00de2ebb8035ccd8466a46d3bffd86ae4f35222308ea377",
+  "rows": [
+    {
+      "label": "served-1",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "wasm_sha256": "e29d57a538766b7ad3440075150b67ed1a7d4831918595c3e23951f632b0d9e0",
+      "raw": "/home/claude/.scratch/eka-benchmark/scheduler-served-1/scheduler.json",
+      "raw_sha256": "285f4ffcca5d1ee3805af82ade6eb22b181cfb151a6defed0856d2cdb267cb42",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 18.9624,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "busiest": {
+        "pid": 1243954,
+        "tid": 1244067,
+        "name": "DedicatedWorker",
+        "runtime_ns": 17852406423,
+        "runnable_wait_ns": null,
+        "timeslices": 1963,
+        "user_ticks": 1783,
+        "system_ticks": 2,
+        "voluntary_switches": 1039,
+        "involuntary_switches": 924
+      },
+      "clock_ticks_per_second": 100,
+      "snapshot_interval_seconds": 19.322395878,
+      "schedstats_available": false
+    },
+    {
+      "label": "wide-1",
+      "build": "/home/claude/.scratch/eka-benchmark/lazy-wide-candidate",
+      "wasm_sha256": "a13eaca4292c360fbecf6785018924dfc18eedec0a077b54673ea0fb1e8cdc23",
+      "raw": "/home/claude/.scratch/eka-benchmark/scheduler-wide-1/scheduler.json",
+      "raw_sha256": "66b5050efe1e555714ff1db25ca385718381cb5043283792cf3686f2f10d7fda",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 13.489,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "busiest": {
+        "pid": 1261927,
+        "tid": 1261972,
+        "name": "DedicatedWorker",
+        "runtime_ns": 12567467104,
+        "runnable_wait_ns": null,
+        "timeslices": 1208,
+        "user_ticks": 1255,
+        "system_ticks": 2,
+        "voluntary_switches": 1036,
+        "involuntary_switches": 172
+      },
+      "clock_ticks_per_second": 100,
+      "snapshot_interval_seconds": 13.811099968,
+      "schedstats_available": false
+    },
+    {
+      "label": "wide-2",
+      "build": "/home/claude/.scratch/eka-benchmark/lazy-wide-candidate",
+      "wasm_sha256": "a13eaca4292c360fbecf6785018924dfc18eedec0a077b54673ea0fb1e8cdc23",
+      "raw": "/home/claude/.scratch/eka-benchmark/scheduler-wide-2/scheduler.json",
+      "raw_sha256": "15e25e56a9b768d395450c6be94bb47e05f17c4aa8dd5e15fc28b565baca76ba",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 15.6722,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "busiest": {
+        "pid": 1270562,
+        "tid": 1270607,
+        "name": "DedicatedWorker",
+        "runtime_ns": 14704536866,
+        "runnable_wait_ns": null,
+        "timeslices": 1208,
+        "user_ticks": 1470,
+        "system_ticks": 0,
+        "voluntary_switches": 1040,
+        "involuntary_switches": 168
+      },
+      "clock_ticks_per_second": 100,
+      "snapshot_interval_seconds": 16.136535251,
+      "schedstats_available": false
+    },
+    {
+      "label": "served-2",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "wasm_sha256": "e29d57a538766b7ad3440075150b67ed1a7d4831918595c3e23951f632b0d9e0",
+      "raw": "/home/claude/.scratch/eka-benchmark/scheduler-served-2/scheduler.json",
+      "raw_sha256": "81deb30669dd8e678a13de0e4ee1356031ae4ba7eca652171b6a4841141529b7",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 15.8931,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "busiest": {
+        "pid": 1279686,
+        "tid": 1279732,
+        "name": "DedicatedWorker",
+        "runtime_ns": 14983312742,
+        "runnable_wait_ns": null,
+        "timeslices": 1681,
+        "user_ticks": 1497,
+        "system_ticks": 0,
+        "voluntary_switches": 1036,
+        "involuntary_switches": 645
+      },
+      "clock_ticks_per_second": 100,
+      "snapshot_interval_seconds": 16.286362705,
+      "schedstats_available": false
+    }
+  ]
+}
