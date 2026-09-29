@@ -1,0 +1,3788 @@
+{
+  "status": "Experimental: no repeated whole-game gain; isolated kernel improvement repeats; opt-in integration pending final build checks",
+  "source": {
+    "git_head": "9aeaf98b78b55edac5451d53e2b99051ff769a8f",
+    "hashes": {
+      "eka2l1.js": "ce2813b962dc5378a9753991807184198910ef14bb4efb0955d9a655bc301599",
+      "source.patch": "f4c18f4bdeed6e86ba5b5e8ad35a6afdbe4254047bf563e3c42bafc042d30376",
+      "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "12cd2a590da55632b57e86e299ebecc9681aa92cdf3474e0bf1f51a060da5005",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_fault_native": "39c20716d48c9c7337bcc4f552e470b1e4282238c1d55af35db33b972b9767db",
+      "tests/test_aot_wasm.wasm": "5cb03c4a123b3ed90fb581bc838c57104719b9c5ed64d302a457f2b6e5f8f15b",
+      "tests/eka_cpu_fault_wasm.wasm": "6a3284edd7e84eed1e5de47c6f52413c73a57c7ac107361ff60c41b94c999caf",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+    },
+    "sources": {
+      "src/emu/cpu/src/aot/arm_translator.cpp": "fb92128e4a796254b59bb60272a3be28447560e2fb67fb30e6a1f4891d130a0c",
+      "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "76f87cda16f82a8c9dfd45f10ff52ae16f493181835aaa5000710817728c5e0a",
+      "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "cf0a244589da5ca5d84da4590791ac763fd6fe63a78c9da1c9b5bc0e358f0a90",
+      "src/emu/cpu/src/aot/wasm_emitter.cpp": "ebb1f6c641a00d7f6766edce87f63d606ba9642babb462a6ecae5b0aadffd922",
+      "src/emu/cpu/include/cpu/dyncom/armstate.h": "e3125ce68715bcb2e46998738280c18c339fffdc46e83827e7c20e6d012adfff",
+      "src/emu/cpu/src/dyncom/armstate.cpp": "86693e9ce40170887bb6d556c797b6c87f66f7df3531426cfadbb191ac0a6a7a",
+      "src/tests/aot/test_aot_wasm.cpp": "587768bdb30d130098e927ccdd5ce6c69e0a122bd028032a1d0204d8080b8cb6",
+      "src/tests/benchmark/cpu_fault_probe.cpp": "ae4b3003904e65c12b2ea5f58a9d342935be1c3220217b3d10de8accc4e1e215",
+      "src/tests/cpu/aot.cpp": "53a11703ba12cb1b0dc168e91d479f9a0fb0f148d1fa3ba1841e6fcac42027e8",
+      "src/emu/cpu/include/cpu/aot/region_ir.h": "4bb5c916496998ffbbc0f157fa416c06e76541d7a14a002f6b5a42a220b23dae"
+    }
+  },
+  "compiler_tests": {
+    "passed": 140,
+    "failed": 0,
+    "new_ir_comparisons": 19392,
+    "log": "/home/claude/.scratch/eka-benchmark/region-ir-tests.log"
+  },
+  "native_tests": 3,
+  "frontend_tests": 7,
+  "faults": [
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-extended-native.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-extended-wasm.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-deferred-native.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-deferred-wasm.log": "462d9d799fe24e29653e35ab417de9febc4d0c1e69938bcba6ff686b42a4c1e7"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-entry-budget-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-entry-budget-wasm.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-entry-budget-deferred-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-entry-budget-deferred-wasm.log": "c81f0a45d01cfc2c05a31b482713187c68a3f985362dbeb34c1c403a8062efd3"
+      },
+      "differences": []
+    },
+    {
+      "cases": 48,
+      "all_fields_match": 48,
+      "final_state_and_exact_memory_match": 48,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 12,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-read-spans-native.log": "c5ae8fc01c7dc2a882d240b229a855cdd33e679f0935b7526531e25f90aa55d7",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-read-spans-wasm.log": "0a2375c22647e2b666c404dec204a02a2efce3dea4266d42c46b0738d4dd23e3"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-wide-snapshots-native.log": "c8ac8f9493b24d7291ae1e65c71f33a1bad0af60cf3a80f1263e1d377b5814f5",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-wide-snapshots-wasm.log": "1b78c36fd5bde8100bc6ac58902123f423709d9833e4f0c9c7feb8a981750722"
+      },
+      "differences": []
+    },
+    {
+      "cases": 48,
+      "all_fields_match": 48,
+      "final_state_and_exact_memory_match": 48,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 12,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-region-spans-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-region-spans-wasm.log": "630da5ffb62fdf6f2abfb173719016f1748e22d12192e7ae9b6ccf46161acba8"
+      },
+      "differences": []
+    },
+    {
+      "cases": 48,
+      "all_fields_match": 48,
+      "final_state_and_exact_memory_match": 48,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 12,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-region-spans-interpreter-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-region-spans-interpreter-wasm.log": "ced007453ce149421354aa00405e7954ec1ffaec9c82a4308c7716b2b4a18bf9"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-entry-budget-interpreter-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-entry-budget-interpreter-wasm.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92"
+      },
+      "differences": []
+    },
+    {
+      "cases": 96,
+      "all_fields_match": 96,
+      "final_state_and_exact_memory_match": 96,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 24,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-region-block-spans-native.log": "8bddfabf1b8c45f86a1adf80da88502e4ff739e56bed90f9ad6de7252d98ea8a",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-region-block-spans-wasm.log": "6ded304e58ed80eb524fb9d210cd23b5794adec5daa1030f97d9125033e4d0b1"
+      },
+      "differences": []
+    },
+    {
+      "cases": 96,
+      "all_fields_match": 96,
+      "final_state_and_exact_memory_match": 96,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 24,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-ir-native.log": "5a4d756c73cf573972c4c02ed5dd3871912baba356ac7d5ec4b6a83241ac9756",
+        "/home/claude/.scratch/eka-benchmark/region-ir-fault-ir-wasm.log": "92907433acb0ad53e36d65589562ffd12523e6b41fa622d9e7b42750d38ed299"
+      },
+      "differences": []
+    }
+  ],
+  "replay": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+      "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+      "writes": 0,
+      "callbacks": 10190,
+      "backend": "shared-dsp-cubeb-resampler",
+      "render_callbacks": 10190,
+      "gameplay_nonzero_samples": 7223662,
+      "gameplay_peak": 8449
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16263331210
+  },
+  "gameplay_heuristic": {
+    "frames": 1600,
+    "unique_images": 1600,
+    "unique_viewports": 1600,
+    "first_virtual_us": 21031559,
+    "last_virtual_us": 102484363,
+    "virtual_seconds": 81.452804,
+    "game_images_per_virtual_second": 19.631000057407476,
+    "median_interval_us": 47034,
+    "max_interval_us": 408561,
+    "min_viewport_changed_fraction": 0.002483333333333282,
+    "median_viewport_changed_fraction": 0.29761666666666664,
+    "pass": false
+  },
+  "static_sizes": [
+    {
+      "kernel": "1879455500",
+      "module_bytes": 14497,
+      "code_body_bytes": [
+        1674,
+        12584
+      ],
+      "sha256": "311efde8c52bad574c2c278643e1d4f7e616f7cd88c8425f3d95c3bad3748d6c"
+    },
+    {
+      "kernel": "1879129820",
+      "module_bytes": 4158,
+      "code_body_bytes": [
+        697,
+        3222
+      ],
+      "sha256": "286e7ce84999c9589d139f37f6491d1f368903cf796166a321211882b5c2e5ed"
+    }
+  ],
+  "batches": {
+    "a": [
+      {
+        "name": "fixed-1",
+        "build": "/home/claude/.scratch/eka-benchmark/block-writeback-baseline",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 13.47,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "ir-1",
+        "build": "/home/claude/.scratch/eka-benchmark/region-ir-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 14.2827,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "served-1",
+        "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 15.5688,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "served-2",
+        "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 14.3276,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "ir-2",
+        "build": "/home/claude/.scratch/eka-benchmark/region-ir-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 14.9662,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "fixed-2",
+        "build": "/home/claude/.scratch/eka-benchmark/block-writeback-baseline",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 14.9394,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      }
+    ],
+    "b": [
+      {
+        "name": "ir-1",
+        "build": "/home/claude/.scratch/eka-benchmark/region-ir-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 14.3508,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "served-1",
+        "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 13.942,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "fixed-1",
+        "build": "/home/claude/.scratch/eka-benchmark/block-writeback-baseline",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 13.4375,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "fixed-2",
+        "build": "/home/claude/.scratch/eka-benchmark/block-writeback-baseline",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 14.1166,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "served-2",
+        "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 14.678,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "ir-2",
+        "build": "/home/claude/.scratch/eka-benchmark/region-ir-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 14.6735,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      }
+    ]
+  },
+  "means": {
+    "a": {
+      "fixed": 14.204699999999999,
+      "ir": 14.62445,
+      "served": 14.9482
+    },
+    "b": {
+      "fixed": 13.77705,
+      "ir": 14.51215,
+      "served": 14.31
+    }
+  },
+  "kernel_runs": {
+    "a": {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "inspection": false,
+      "all": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "comparisons": 1856,
+          "calls": 5000000,
+          "timings": [
+            {
+              "round": 0,
+              "name": "empty",
+              "ms": 61.355000000447035
+            },
+            {
+              "round": 0,
+              "name": "baseline",
+              "ms": 322.16999999806285
+            },
+            {
+              "round": 0,
+              "name": "ir",
+              "ms": 159
+            },
+            {
+              "round": 1,
+              "name": "ir",
+              "ms": 159.16999999806285
+            },
+            {
+              "round": 1,
+              "name": "baseline",
+              "ms": 320.95500000193715
+            },
+            {
+              "round": 1,
+              "name": "empty",
+              "ms": 39.00500000268221
+            },
+            {
+              "round": 2,
+              "name": "empty",
+              "ms": 38.98499999940395
+            },
+            {
+              "round": 2,
+              "name": "baseline",
+              "ms": 323.57499999925494
+            },
+            {
+              "round": 2,
+              "name": "ir",
+              "ms": 158.589999999851
+            },
+            {
+              "round": 3,
+              "name": "ir",
+              "ms": 160.2449999973178
+            },
+            {
+              "round": 3,
+              "name": "baseline",
+              "ms": 320.4950000010431
+            },
+            {
+              "round": 3,
+              "name": "empty",
+              "ms": 38.375
+            },
+            {
+              "round": 4,
+              "name": "empty",
+              "ms": 38.24000000208616
+            },
+            {
+              "round": 4,
+              "name": "baseline",
+              "ms": 319.945000000298
+            },
+            {
+              "round": 4,
+              "name": "ir",
+              "ms": 158.20500000193715
+            },
+            {
+              "round": 5,
+              "name": "ir",
+              "ms": 158.2800000011921
+            },
+            {
+              "round": 5,
+              "name": "baseline",
+              "ms": 322.8799999989569
+            },
+            {
+              "round": 5,
+              "name": "empty",
+              "ms": 38.685000002384186
+            },
+            {
+              "round": 6,
+              "name": "empty",
+              "ms": 38.58999999985099
+            },
+            {
+              "round": 6,
+              "name": "baseline",
+              "ms": 320.410000000149
+            },
+            {
+              "round": 6,
+              "name": "ir",
+              "ms": 160.10500000044703
+            },
+            {
+              "round": 7,
+              "name": "ir",
+              "ms": 161.21000000089407
+            },
+            {
+              "round": 7,
+              "name": "baseline",
+              "ms": 323.7399999983609
+            },
+            {
+              "round": 7,
+              "name": "empty",
+              "ms": 38.67000000178814
+            }
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "comparisons": 256,
+          "calls": 5000000,
+          "timings": [
+            {
+              "round": 0,
+              "name": "empty",
+              "ms": 50.70499999821186
+            },
+            {
+              "round": 0,
+              "name": "baseline",
+              "ms": 120.26999999955297
+            },
+            {
+              "round": 0,
+              "name": "ir",
+              "ms": 103.89499999955297
+            },
+            {
+              "round": 1,
+              "name": "ir",
+              "ms": 102.08999999985099
+            },
+            {
+              "round": 1,
+              "name": "baseline",
+              "ms": 112.7199999988079
+            },
+            {
+              "round": 1,
+              "name": "empty",
+              "ms": 38.69500000029802
+            },
+            {
+              "round": 2,
+              "name": "empty",
+              "ms": 38.54499999806285
+            },
+            {
+              "round": 2,
+              "name": "baseline",
+              "ms": 113.21499999985099
+            },
+            {
+              "round": 2,
+              "name": "ir",
+              "ms": 104.29999999701977
+            },
+            {
+              "round": 3,
+              "name": "ir",
+              "ms": 102.84999999776483
+            },
+            {
+              "round": 3,
+              "name": "baseline",
+              "ms": 112.55499999970198
+            },
+            {
+              "round": 3,
+              "name": "empty",
+              "ms": 38.78500000014901
+            },
+            {
+              "round": 4,
+              "name": "empty",
+              "ms": 39.03000000119209
+            },
+            {
+              "round": 4,
+              "name": "baseline",
+              "ms": 112.70000000298023
+            },
+            {
+              "round": 4,
+              "name": "ir",
+              "ms": 102.03999999910593
+            },
+            {
+              "round": 5,
+              "name": "ir",
+              "ms": 102.22500000149012
+            },
+            {
+              "round": 5,
+              "name": "baseline",
+              "ms": 112.48000000044703
+            },
+            {
+              "round": 5,
+              "name": "empty",
+              "ms": 38.60999999940395
+            },
+            {
+              "round": 6,
+              "name": "empty",
+              "ms": 38.67500000074506
+            },
+            {
+              "round": 6,
+              "name": "baseline",
+              "ms": 114.69999999925494
+            },
+            {
+              "round": 6,
+              "name": "ir",
+              "ms": 102.96499999985099
+            },
+            {
+              "round": 7,
+              "name": "ir",
+              "ms": 103.83000000193715
+            },
+            {
+              "round": 7,
+              "name": "baseline",
+              "ms": 114.66000000014901
+            },
+            {
+              "round": 7,
+              "name": "empty",
+              "ms": 38.53000000119209
+            }
+          ]
+        }
+      ]
+    },
+    "b": {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "inspection": false,
+      "all": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "comparisons": 1856,
+          "calls": 5000000,
+          "timings": [
+            {
+              "round": 0,
+              "name": "empty",
+              "ms": 49.51500000059605
+            },
+            {
+              "round": 0,
+              "name": "baseline",
+              "ms": 322.2600000016391
+            },
+            {
+              "round": 0,
+              "name": "ir",
+              "ms": 159.5
+            },
+            {
+              "round": 1,
+              "name": "ir",
+              "ms": 161.85500000044703
+            },
+            {
+              "round": 1,
+              "name": "baseline",
+              "ms": 322.1350000016391
+            },
+            {
+              "round": 1,
+              "name": "empty",
+              "ms": 39.01000000163913
+            },
+            {
+              "round": 2,
+              "name": "empty",
+              "ms": 38.850000001490116
+            },
+            {
+              "round": 2,
+              "name": "baseline",
+              "ms": 323.820000000298
+            },
+            {
+              "round": 2,
+              "name": "ir",
+              "ms": 161.07000000029802
+            },
+            {
+              "round": 3,
+              "name": "ir",
+              "ms": 161.04500000178814
+            },
+            {
+              "round": 3,
+              "name": "baseline",
+              "ms": 324.0599999986589
+            },
+            {
+              "round": 3,
+              "name": "empty",
+              "ms": 38.64000000059605
+            },
+            {
+              "round": 4,
+              "name": "empty",
+              "ms": 39
+            },
+            {
+              "round": 4,
+              "name": "baseline",
+              "ms": 320.89500000327826
+            },
+            {
+              "round": 4,
+              "name": "ir",
+              "ms": 160.67500000074506
+            },
+            {
+              "round": 5,
+              "name": "ir",
+              "ms": 159.3800000026822
+            },
+            {
+              "round": 5,
+              "name": "baseline",
+              "ms": 321.89499999955297
+            },
+            {
+              "round": 5,
+              "name": "empty",
+              "ms": 38.475000001490116
+            },
+            {
+              "round": 6,
+              "name": "empty",
+              "ms": 38.65500000119209
+            },
+            {
+              "round": 6,
+              "name": "baseline",
+              "ms": 322.0299999974668
+            },
+            {
+              "round": 6,
+              "name": "ir",
+              "ms": 160.46000000089407
+            },
+            {
+              "round": 7,
+              "name": "ir",
+              "ms": 159.26999999955297
+            },
+            {
+              "round": 7,
+              "name": "baseline",
+              "ms": 324.5650000013411
+            },
+            {
+              "round": 7,
+              "name": "empty",
+              "ms": 38.649999998509884
+            }
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "comparisons": 256,
+          "calls": 5000000,
+          "timings": [
+            {
+              "round": 0,
+              "name": "empty",
+              "ms": 47.394999999552965
+            },
+            {
+              "round": 0,
+              "name": "baseline",
+              "ms": 115.32999999821186
+            },
+            {
+              "round": 0,
+              "name": "ir",
+              "ms": 102.24500000104308
+            },
+            {
+              "round": 1,
+              "name": "ir",
+              "ms": 102.76999999955297
+            },
+            {
+              "round": 1,
+              "name": "baseline",
+              "ms": 114.44499999657273
+            },
+            {
+              "round": 1,
+              "name": "empty",
+              "ms": 38.45500000193715
+            },
+            {
+              "round": 2,
+              "name": "empty",
+              "ms": 38.87000000104308
+            },
+            {
+              "round": 2,
+              "name": "baseline",
+              "ms": 114.79000000283122
+            },
+            {
+              "round": 2,
+              "name": "ir",
+              "ms": 104.33500000089407
+            },
+            {
+              "round": 3,
+              "name": "ir",
+              "ms": 104.11000000312924
+            },
+            {
+              "round": 3,
+              "name": "baseline",
+              "ms": 115.00499999895692
+            },
+            {
+              "round": 3,
+              "name": "empty",
+              "ms": 38.70500000193715
+            },
+            {
+              "round": 4,
+              "name": "empty",
+              "ms": 38.690000001341105
+            },
+            {
+              "round": 4,
+              "name": "baseline",
+              "ms": 114.67999999970198
+            },
+            {
+              "round": 4,
+              "name": "ir",
+              "ms": 102.4349999986589
+            },
+            {
+              "round": 5,
+              "name": "ir",
+              "ms": 102.27500000223517
+            },
+            {
+              "round": 5,
+              "name": "baseline",
+              "ms": 114.33999999985099
+            },
+            {
+              "round": 5,
+              "name": "empty",
+              "ms": 38.38500000163913
+            },
+            {
+              "round": 6,
+              "name": "empty",
+              "ms": 38.66999999806285
+            },
+            {
+              "round": 6,
+              "name": "baseline",
+              "ms": 117.0650000013411
+            },
+            {
+              "round": 6,
+              "name": "ir",
+              "ms": 102.2800000011921
+            },
+            {
+              "round": 7,
+              "name": "ir",
+              "ms": 102.35999999940395
+            },
+            {
+              "round": 7,
+              "name": "baseline",
+              "ms": 114.53499999642372
+            },
+            {
+              "round": 7,
+              "name": "empty",
+              "ms": 38.78000000119209
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "kernel_sources": [
+    {
+      "pc": 1879455500,
+      "candidate_sha256": "311efde8c52bad574c2c278643e1d4f7e616f7cd88c8425f3d95c3bad3748d6c",
+      "baseline_sha256": "8ae37921ad2537e8df35698b8bba30447798fa45181b97646ee2bb0cb1c4eda5",
+      "baseline_derivation": "Candidate private original-compiler fallback extracted as single exported function; no instruction rewriting"
+    },
+    {
+      "pc": 1879129820,
+      "candidate_sha256": "286e7ce84999c9589d139f37f6491d1f368903cf796166a321211882b5c2e5ed",
+      "baseline_sha256": "735d1b852a78eeaa44e94d6dfc1277ea120616153731c8a2d615eba30ea55cc4",
+      "baseline_derivation": "Candidate private original-compiler fallback extracted as single exported function; no instruction rewriting"
+    }
+  ],
+  "census": {
+    "fields": [
+      "attempts",
+      "guard_fallbacks",
+      "fast_entries",
+      "fast_guest_instructions"
+    ],
+    "start": [
+      41716014,
+      646300,
+      41069714,
+      2115765067
+    ],
+    "end": [
+      52955259,
+      776004,
+      52179255,
+      2632024870
+    ],
+    "delta": [
+      11239245,
+      129704,
+      11109541,
+      516259803
+    ],
+    "note": "u32 modular deltas; window total guest instructions must be below 2^32; instrumented timing is not production performance",
+    "window_instructions": 3975618624,
+    "fast_instruction_fraction": 0.12985647060898767,
+    "fallback_fraction": 0.011540276949207888,
+    "average_fast_region_instructions": 46.4699489384845
+  },
+  "census_source": {
+    "git_head": "9aeaf98b78b55edac5451d53e2b99051ff769a8f",
+    "hashes": {
+      "eka2l1.js": "e247a6ddbf76d7582ca888cceddf30e6e06fafd5a43b94b57fc1e7fbd7313c87",
+      "source.patch": "78cff6e8c3c65cac0a114b0924a4a33bde0d20c81568f83d02a34f25bef38463",
+      "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "04ee0cf10bd3dd249ab34dabd59701714940cdf5e2f3360789cb7bc34a5b19de",
+      "tests/eka_cpu_fault_wasm.js": "54a4a24e815ca13d9a37b9b71f3308e6a9a6406e1a9f6b26b467199761deb1d2",
+      "tests/eka_cpu_fault_native": "39c20716d48c9c7337bcc4f552e470b1e4282238c1d55af35db33b972b9767db",
+      "tests/test_aot_wasm.wasm": "e87de0f68d2ce3254cdf470f5aa7aa2c2ef80d78c74540753c942b806fa2272c",
+      "tests/eka_cpu_fault_wasm.wasm": "d73b5b8b5104ef33d70eedb4d90d00d6cb55ccceef71758901e62be205e77431",
+      "tests/test_aot_wasm.js": "58ace5564a02603966ac5da52b0b58f2624dbfd5e3a25c2ffdebd0008eb9ac56"
+    },
+    "sources": {
+      "src/emu/cpu/include/cpu/aot/region_ir.h": "4bb5c916496998ffbbc0f157fa416c06e76541d7a14a002f6b5a42a220b23dae",
+      "src/emu/cpu/src/aot/arm_translator.cpp": "1c56fa09b84699a74bb23a662e7412369a5235e0d77399db5b377db22d731474",
+      "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "76f87cda16f82a8c9dfd45f10ff52ae16f493181835aaa5000710817728c5e0a",
+      "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "cf0a244589da5ca5d84da4590791ac763fd6fe63a78c9da1c9b5bc0e358f0a90",
+      "src/emu/cpu/src/aot/wasm_emitter.cpp": "ebb1f6c641a00d7f6766edce87f63d606ba9642babb462a6ecae5b0aadffd922",
+      "src/emu/cpu/include/cpu/dyncom/armstate.h": "e3125ce68715bcb2e46998738280c18c339fffdc46e83827e7c20e6d012adfff",
+      "src/emu/cpu/src/dyncom/armstate.cpp": "86693e9ce40170887bb6d556c797b6c87f66f7df3531426cfadbb191ac0a6a7a",
+      "src/tests/aot/test_aot_wasm.cpp": "587768bdb30d130098e927ccdd5ce6c69e0a122bd028032a1d0204d8080b8cb6",
+      "src/tests/benchmark/cpu_fault_probe.cpp": "ae4b3003904e65c12b2ea5f58a9d342935be1c3220217b3d10de8accc4e1e215",
+      "src/tests/cpu/aot.cpp": "53a11703ba12cb1b0dc168e91d479f9a0fb0f148d1fa3ba1841e6fcac42027e8"
+    }
+  },
+  "census_replay": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+      "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+      "writes": 0,
+      "callbacks": 10190,
+      "backend": "shared-dsp-cubeb-resampler",
+      "render_callbacks": 10190,
+      "gameplay_nonzero_samples": 7223662,
+      "gameplay_peak": 8449
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16263331210
+  },
+  "census_tests": {
+    "passed": 140,
+    "failed": 0,
+    "log": "/home/claude/.scratch/eka-benchmark/region-ir-census-tests.log"
+  },
+  "cpu_profiles": {
+    "region-ir-cpu-profile": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 12.7567,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "isolates": [
+        {
+          "file": "worker-16.cpuprofile",
+          "sampled_seconds": 12.913057,
+          "nonidle_seconds": 12.188882,
+          "generated_code_inclusive": {
+            "seconds": 6.439651,
+            "percent_all_samples": 49.86929895841085,
+            "modules": 271
+          },
+          "top_self": [
+            {
+              "function": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+              "seconds": 2.16506,
+              "percent_all_samples": 16.766440355680302
+            },
+            {
+              "function": "eka2l1::arm::aot::validated_code_cache::find(unsigned int, eka2l1::arm::core&)",
+              "seconds": 1.560583,
+              "percent_all_samples": 12.085310240634731
+            },
+            {
+              "function": "eka2l1::arm::aot::equal_code_bytes(unsigned char const*, unsigned char const*, unsigned long)",
+              "seconds": 1.21871,
+              "percent_all_samples": 9.437811666129871
+            },
+            {
+              "function": "__timedwait_cp",
+              "seconds": 0.694638,
+              "percent_all_samples": 5.379345882233773
+            },
+            {
+              "function": "r_937_pc_1879129820",
+              "seconds": 0.65206,
+              "percent_all_samples": 5.049617607976175
+            },
+            {
+              "function": "f_2149128552",
+              "seconds": 0.478133,
+              "percent_all_samples": 3.702709590765378
+            },
+            {
+              "function": "r_1589_pc_1879130660",
+              "seconds": 0.400936,
+              "percent_all_samples": 3.104888331244879
+            },
+            {
+              "function": "r_246_pc_1879068004",
+              "seconds": 0.167738,
+              "percent_all_samples": 1.29897978456999
+            },
+            {
+              "function": "r_740_pc_1879048720",
+              "seconds": 0.142412,
+              "percent_all_samples": 1.1028527172148315
+            },
+            {
+              "function": "r_1546_pc_1879130336",
+              "seconds": 0.137248,
+              "percent_all_samples": 1.062862186699865
+            },
+            {
+              "function": "r_236_pc_1879464696",
+              "seconds": 0.123476,
+              "percent_all_samples": 0.9562104465271082
+            },
+            {
+              "function": "std::__2::__hash_iterator<std::__2::__hash_node<std::__2::__hash_value_type<unsigned long long, unsigned long>, void*>*> std::__2::__hash_table<std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::__unordered_map_hasher<unsigned long long, std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::hash<unsigned long long>, std::__2::equal_to<unsigned long long>, true>, std::__2::__unordered_map_equal<unsigned long long, std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::equal_to<unsigned long long>, std::__2::hash<unsigned long long>, true>, std::__2::allocator<std::__2::__hash_value_type<unsigned long long, unsigned long>>>::find<unsigned long long>(unsigned long long const&)",
+              "seconds": 0.117025,
+              "percent_all_samples": 0.90625325978194
+            },
+            {
+              "function": "eka2l1::arm::aot::raw_read32(ARMul_State*, unsigned int)",
+              "seconds": 0.117008,
+              "percent_all_samples": 0.9061216100881456
+            },
+            {
+              "function": "r_259_pc_1879455500",
+              "seconds": 0.115072,
+              "percent_all_samples": 0.8911290331948508
+            },
+            {
+              "function": "r_766_pc_1879129864",
+              "seconds": 0.113007,
+              "percent_all_samples": 0.8751374674486452
+            },
+            {
+              "function": "r_1587_pc_1879130672",
+              "seconds": 0.110815,
+              "percent_all_samples": 0.8581624010487989
+            },
+            {
+              "function": "r_240_pc_1879464540",
+              "seconds": 0.10243,
+              "percent_all_samples": 0.7932281256096059
+            },
+            {
+              "function": "r_144_pc_1879171072",
+              "seconds": 0.099055,
+              "percent_all_samples": 0.7670917893415943
+            },
+            {
+              "function": "r_255_pc_1879068332",
+              "seconds": 0.098148,
+              "percent_all_samples": 0.7600678909726798
+            },
+            {
+              "function": "js-to-wasm:ii:",
+              "seconds": 0.093891,
+              "percent_all_samples": 0.727101258826628
+            },
+            {
+              "function": "f_2149189520",
+              "seconds": 0.085468,
+              "percent_all_samples": 0.6618727076013062
+            },
+            {
+              "function": "f_2149128728",
+              "seconds": 0.080189,
+              "percent_all_samples": 0.6209916056283187
+            },
+            {
+              "function": "resampler_basic_direct_single",
+              "seconds": 0.073742,
+              "percent_all_samples": 0.5710653952816904
+            },
+            {
+              "function": "ARMul_State::ReadMemory32Slow(unsigned int) const",
+              "seconds": 0.066483,
+              "percent_all_samples": 0.5148509760314696
+            },
+            {
+              "function": "r_813_pc_1879130348",
+              "seconds": 0.064372,
+              "percent_all_samples": 0.49850318170205554
+            }
+          ]
+        },
+        {
+          "file": "worker-17.cpuprofile",
+          "sampled_seconds": 12.910733,
+          "nonidle_seconds": 0.582484,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.256464,
+              "percent_all_samples": 94.93236363884219
+            },
+            {
+              "function": "getParameter",
+              "seconds": 0.412576,
+              "percent_all_samples": 3.1956047731759303
+            },
+            {
+              "function": "eka2l1::drivers::shared_graphics_driver::update_bitmap(unsigned long long, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, void const*, unsigned long)",
+              "seconds": 0.088636,
+              "percent_all_samples": 0.68652957194607
+            },
+            {
+              "function": "(idle)",
+              "seconds": 0.071785,
+              "percent_all_samples": 0.5560102590612013
+            },
+            {
+              "function": "texSubImage2D",
+              "seconds": 0.020048,
+              "percent_all_samples": 0.15528165596794544
+            },
+            {
+              "function": "postMessage",
+              "seconds": 0.007355,
+              "percent_all_samples": 0.05696810552894247
+            },
+            {
+              "function": "emscriptenWebGLGet",
+              "seconds": 0.005278,
+              "percent_all_samples": 0.04088071529323703
+            },
+            {
+              "function": "clear",
+              "seconds": 0.005277,
+              "percent_all_samples": 0.04087296979962331
+            },
+            {
+              "function": "eka2l1::drivers::ogl_graphics_driver::dispatch(eka2l1::drivers::command&)",
+              "seconds": 0.004223,
+              "percent_all_samples": 0.03270921953075786
+            },
+            {
+              "function": "bufferData",
+              "seconds": 0.004204,
+              "percent_all_samples": 0.0325620551520971
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.002117,
+              "percent_all_samples": 0.016397209980254412
+            },
+            {
+              "function": "drawElements",
+              "seconds": 0.002114,
+              "percent_all_samples": 0.01637397349941324
+            },
+            {
+              "function": "(program)",
+              "seconds": 0.002113,
+              "percent_all_samples": 0.016366228005799517
+            },
+            {
+              "function": "bindFramebuffer",
+              "seconds": 0.002112,
+              "percent_all_samples": 0.01635848251218579
+            },
+            {
+              "function": "bindVertexArray",
+              "seconds": 0.002111,
+              "percent_all_samples": 0.016350737018572068
+            },
+            {
+              "function": "bindTexture",
+              "seconds": 0.002111,
+              "percent_all_samples": 0.016350737018572068
+            },
+            {
+              "function": "flush",
+              "seconds": 0.00211,
+              "percent_all_samples": 0.016342991524958342
+            },
+            {
+              "function": "wasm-to-js",
+              "seconds": 0.00211,
+              "percent_all_samples": 0.016342991524958342
+            },
+            {
+              "function": "_glGetIntegerv",
+              "seconds": 0.00211,
+              "percent_all_samples": 0.016342991524958342
+            },
+            {
+              "function": "bindBuffer",
+              "seconds": 0.002105,
+              "percent_all_samples": 0.01630426405688972
+            },
+            {
+              "function": "glad_debug_impl_glUniformMatrix4fv",
+              "seconds": 0.002102,
+              "percent_all_samples": 0.01628102757604855
+            },
+            {
+              "function": "glBindVertexArray",
+              "seconds": 0.001057,
+              "percent_all_samples": 0.00818698674970662
+            },
+            {
+              "function": "_glClear",
+              "seconds": 0.001056,
+              "percent_all_samples": 0.008179241256092895
+            },
+            {
+              "function": "eka2l1::drivers::ogl_texture::update_data(eka2l1::drivers::graphics_driver*, int, eka2l1::vec3 const&, eka2l1::vec3 const&, unsigned long, eka2l1::drivers::texture_format, eka2l1::drivers::texture_data_type, void const*, unsigned long, unsigned int)",
+              "seconds": 0.001056,
+              "percent_all_samples": 0.008179241256092895
+            },
+            {
+              "function": "uniformMatrix4fv",
+              "seconds": 0.001056,
+              "percent_all_samples": 0.008179241256092895
+            }
+          ]
+        },
+        {
+          "file": "page.cpuprofile",
+          "sampled_seconds": 12.914412,
+          "nonidle_seconds": 0.101555,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.812857,
+              "percent_all_samples": 99.21363047733028
+            },
+            {
+              "function": "(program)",
+              "seconds": 0.093135,
+              "percent_all_samples": 0.7211710451857971
+            },
+            {
+              "function": "(anonymous)",
+              "seconds": 0.00317,
+              "percent_all_samples": 0.024546220145369373
+            },
+            {
+              "function": "normalize",
+              "seconds": 0.001059,
+              "percent_all_samples": 0.008200141051718034
+            },
+            {
+              "function": "stat",
+              "seconds": 0.001056,
+              "percent_all_samples": 0.008176911190381723
+            },
+            {
+              "function": "_flushLog",
+              "seconds": 0.001054,
+              "percent_all_samples": 0.008161424616157514
+            },
+            {
+              "function": "__emscripten_thread_mailbox_await",
+              "seconds": 0.001053,
+              "percent_all_samples": 0.00815368132904541
+            },
+            {
+              "function": "js-to-wasm::i",
+              "seconds": 0.001028,
+              "percent_all_samples": 0.007960099151242813
+            }
+          ]
+        },
+        {
+          "file": "worker-28.cpuprofile",
+          "sampled_seconds": 12.903836,
+          "nonidle_seconds": 0.003163,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.900673,
+              "percent_all_samples": 99.97548790917678
+            },
+            {
+              "function": "wasm-to-js",
+              "seconds": 0.002108,
+              "percent_all_samples": 0.016336227459803426
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001055,
+              "percent_all_samples": 0.008175863363421543
+            }
+          ]
+        },
+        {
+          "file": "worker-23.cpuprofile",
+          "sampled_seconds": 12.906744,
+          "nonidle_seconds": 0.003162,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.903582,
+              "percent_all_samples": 99.97550117984831
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.003162,
+              "percent_all_samples": 0.024498820151697437
+            }
+          ]
+        },
+        {
+          "file": "worker-18.cpuprofile",
+          "sampled_seconds": 12.912059,
+          "nonidle_seconds": 0.002111,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.909948,
+              "percent_all_samples": 99.98365094211543
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.002111,
+              "percent_all_samples": 0.016349057884571316
+            }
+          ]
+        },
+        {
+          "file": "worker-4.cpuprofile",
+          "sampled_seconds": 12.915076,
+          "nonidle_seconds": 0.002111,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.912965,
+              "percent_all_samples": 99.98365476130377
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.002111,
+              "percent_all_samples": 0.016345238696233767
+            }
+          ]
+        },
+        {
+          "file": "worker-27.cpuprofile",
+          "sampled_seconds": 12.904984,
+          "nonidle_seconds": 0.00211,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.902874,
+              "percent_all_samples": 99.98364972788808
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001056,
+              "percent_all_samples": 0.008182885000089887
+            },
+            {
+              "function": "set_status_conditional",
+              "seconds": 0.001054,
+              "percent_all_samples": 0.008167387111832142
+            }
+          ]
+        },
+        {
+          "file": "worker-22.cpuprofile",
+          "sampled_seconds": 12.905516,
+          "nonidle_seconds": 0.002109,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.903407,
+              "percent_all_samples": 99.98365815051487
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.002109,
+              "percent_all_samples": 0.016341849485134882
+            }
+          ]
+        },
+        {
+          "file": "worker-29.cpuprofile",
+          "sampled_seconds": 12.903246,
+          "nonidle_seconds": 0.002108,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.901138,
+              "percent_all_samples": 99.98366302556737
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.002108,
+              "percent_all_samples": 0.016336974432635012
+            }
+          ]
+        },
+        {
+          "file": "worker-3.cpuprofile",
+          "sampled_seconds": 12.915152,
+          "nonidle_seconds": 0.001054,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.914098,
+              "percent_all_samples": 99.99183904300932
+            },
+            {
+              "function": "wasm-to-js",
+              "seconds": 0.001054,
+              "percent_all_samples": 0.00816095699067266
+            }
+          ]
+        },
+        {
+          "file": "worker-19.cpuprofile",
+          "sampled_seconds": 12.911624,
+          "nonidle_seconds": 0.001053,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.910571,
+              "percent_all_samples": 99.99184455805094
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001053,
+              "percent_all_samples": 0.008155441949053039
+            }
+          ]
+        },
+        {
+          "file": "worker-21.cpuprofile",
+          "sampled_seconds": 12.907114,
+          "nonidle_seconds": 0.001053,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.906061,
+              "percent_all_samples": 99.9918417083788
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001053,
+              "percent_all_samples": 0.008158291621194327
+            }
+          ]
+        },
+        {
+          "file": "worker-24.cpuprofile",
+          "sampled_seconds": 12.906967,
+          "nonidle_seconds": 0.001053,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.905914,
+              "percent_all_samples": 99.9918416154624
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001053,
+              "percent_all_samples": 0.008158384537591209
+            }
+          ]
+        },
+        {
+          "file": "worker-25.cpuprofile",
+          "sampled_seconds": 12.904569,
+          "nonidle_seconds": 0.001053,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.903516,
+              "percent_all_samples": 99.99184009942525
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001053,
+              "percent_all_samples": 0.00815990057474992
+            }
+          ]
+        },
+        {
+          "file": "worker-0.cpuprofile",
+          "sampled_seconds": 12.914756,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.914756,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-1.cpuprofile",
+          "sampled_seconds": 12.914439,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.914439,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-10.cpuprofile",
+          "sampled_seconds": 12.914647,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.914647,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-11.cpuprofile",
+          "sampled_seconds": 12.914541,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.914541,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-12.cpuprofile",
+          "sampled_seconds": 12.914446,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.914446,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-13.cpuprofile",
+          "sampled_seconds": 12.913005,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.913005,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-14.cpuprofile",
+          "sampled_seconds": 12.911958,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.911958,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-15.cpuprofile",
+          "sampled_seconds": 12.910949,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.910949,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-2.cpuprofile",
+          "sampled_seconds": 12.914302,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.914302,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-20.cpuprofile",
+          "sampled_seconds": 12.908423,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.908423,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-26.cpuprofile",
+          "sampled_seconds": 12.905324,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.905324,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-30.cpuprofile",
+          "sampled_seconds": 12.90186,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.90186,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-31.cpuprofile",
+          "sampled_seconds": 12.909622,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.909622,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-5.cpuprofile",
+          "sampled_seconds": 12.914074,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 12.914074,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-6.cpuprofile",
+          "sampled_seconds": 12.914108,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.914108,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-7.cpuprofile",
+          "sampled_seconds": 12.913958,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.913958,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-8.cpuprofile",
+          "sampled_seconds": 12.914738,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.914738,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-9.cpuprofile",
+          "sampled_seconds": 12.913692,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 12.913692,
+              "percent_all_samples": 100.0
+            }
+          ]
+        }
+      ]
+    },
+    "region-ir-fixed-cpu-profile": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 15.9035,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "isolates": [
+        {
+          "file": "worker-14.cpuprofile",
+          "sampled_seconds": 16.174228,
+          "nonidle_seconds": 15.240663,
+          "generated_code_inclusive": {
+            "seconds": 8.129023,
+            "percent_all_samples": 50.259109739271636,
+            "modules": 284
+          },
+          "top_self": [
+            {
+              "function": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+              "seconds": 2.628776,
+              "percent_all_samples": 16.25286845220681
+            },
+            {
+              "function": "eka2l1::arm::aot::validated_code_cache::find(unsigned int, eka2l1::arm::core&)",
+              "seconds": 1.99348,
+              "percent_all_samples": 12.325039562939264
+            },
+            {
+              "function": "eka2l1::arm::aot::equal_code_bytes(unsigned char const*, unsigned char const*, unsigned long)",
+              "seconds": 1.599753,
+              "percent_all_samples": 9.890753363931806
+            },
+            {
+              "function": "__timedwait_cp",
+              "seconds": 0.792975,
+              "percent_all_samples": 4.902706948362543
+            },
+            {
+              "function": "r_937_pc_1879129820",
+              "seconds": 0.729338,
+              "percent_all_samples": 4.509260040108251
+            },
+            {
+              "function": "f_2149128552",
+              "seconds": 0.591574,
+              "percent_all_samples": 3.6575099596716454
+            },
+            {
+              "function": "r_1589_pc_1879130660",
+              "seconds": 0.42522,
+              "percent_all_samples": 2.6289971923234914
+            },
+            {
+              "function": "r_259_pc_1879455500",
+              "seconds": 0.37497,
+              "percent_all_samples": 2.3183177583498886
+            },
+            {
+              "function": "r_1165_pc_1879454612",
+              "seconds": 0.185923,
+              "percent_all_samples": 1.149501540351725
+            },
+            {
+              "function": "r_246_pc_1879068004",
+              "seconds": 0.185499,
+              "percent_all_samples": 1.146880086023271
+            },
+            {
+              "function": "r_740_pc_1879048720",
+              "seconds": 0.175575,
+              "percent_all_samples": 1.0855232163167232
+            },
+            {
+              "function": "r_1546_pc_1879130336",
+              "seconds": 0.175064,
+              "percent_all_samples": 1.082363869236912
+            },
+            {
+              "function": "r_1163_pc_1879063876",
+              "seconds": 0.15514,
+              "percent_all_samples": 0.9591802465007913
+            },
+            {
+              "function": "r_236_pc_1879464696",
+              "seconds": 0.154237,
+              "percent_all_samples": 0.9535972907022209
+            },
+            {
+              "function": "(idle)",
+              "seconds": 0.14059,
+              "percent_all_samples": 0.869222320842763
+            },
+            {
+              "function": "r_240_pc_1879464540",
+              "seconds": 0.138382,
+              "percent_all_samples": 0.8555709737738333
+            },
+            {
+              "function": "std::__2::__hash_iterator<std::__2::__hash_node<std::__2::__hash_value_type<unsigned long long, unsigned long>, void*>*> std::__2::__hash_table<std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::__unordered_map_hasher<unsigned long long, std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::hash<unsigned long long>, std::__2::equal_to<unsigned long long>, true>, std::__2::__unordered_map_equal<unsigned long long, std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::equal_to<unsigned long long>, std::__2::hash<unsigned long long>, true>, std::__2::allocator<std::__2::__hash_value_type<unsigned long long, unsigned long>>>::find<unsigned long long>(unsigned long long const&)",
+              "seconds": 0.134062,
+              "percent_all_samples": 0.8288618164650579
+            },
+            {
+              "function": "f_2149189520",
+              "seconds": 0.125818,
+              "percent_all_samples": 0.7778918412674781
+            },
+            {
+              "function": "r_1223_pc_1879455124",
+              "seconds": 0.122577,
+              "percent_all_samples": 0.7578537906105935
+            },
+            {
+              "function": "r_766_pc_1879129864",
+              "seconds": 0.120289,
+              "percent_all_samples": 0.7437078295174273
+            },
+            {
+              "function": "eka2l1::arm::aot::raw_read32(ARMul_State*, unsigned int)",
+              "seconds": 0.109771,
+              "percent_all_samples": 0.6786784506809228
+            },
+            {
+              "function": "r_799_pc_1879094644",
+              "seconds": 0.10479,
+              "percent_all_samples": 0.6478825449968926
+            },
+            {
+              "function": "r_144_pc_1879171072",
+              "seconds": 0.096938,
+              "percent_all_samples": 0.5993361785180721
+            },
+            {
+              "function": "r_255_pc_1879068332",
+              "seconds": 0.094899,
+              "percent_all_samples": 0.5867297035753422
+            },
+            {
+              "function": "r_798_pc_1879095064",
+              "seconds": 0.085704,
+              "percent_all_samples": 0.5298800041646501
+            }
+          ]
+        },
+        {
+          "file": "worker-15.cpuprofile",
+          "sampled_seconds": 16.175685,
+          "nonidle_seconds": 0.714007,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 15.389702,
+              "percent_all_samples": 95.14096002734969
+            },
+            {
+              "function": "getParameter",
+              "seconds": 0.508108,
+              "percent_all_samples": 3.1411838200360602
+            },
+            {
+              "function": "eka2l1::drivers::shared_graphics_driver::update_bitmap(unsigned long long, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, void const*, unsigned long)",
+              "seconds": 0.119669,
+              "percent_all_samples": 0.7398079277631828
+            },
+            {
+              "function": "(idle)",
+              "seconds": 0.071976,
+              "percent_all_samples": 0.444964154531941
+            },
+            {
+              "function": "texSubImage2D",
+              "seconds": 0.016895,
+              "percent_all_samples": 0.10444689050262787
+            },
+            {
+              "function": "postMessage",
+              "seconds": 0.011662,
+              "percent_all_samples": 0.07209586487372868
+            },
+            {
+              "function": "eka2l1::drivers::ogl_graphics_driver::dispatch(eka2l1::drivers::command&)",
+              "seconds": 0.004217,
+              "percent_all_samples": 0.02606999332640318
+            },
+            {
+              "function": "bindVertexArray",
+              "seconds": 0.004211,
+              "percent_all_samples": 0.026032900615955368
+            },
+            {
+              "function": "emscriptenWebGLGet",
+              "seconds": 0.003188,
+              "percent_all_samples": 0.01970859348460359
+            },
+            {
+              "function": "clear",
+              "seconds": 0.003175,
+              "percent_all_samples": 0.019628225945299997
+            },
+            {
+              "function": "flush",
+              "seconds": 0.003174,
+              "percent_all_samples": 0.01962204382689203
+            },
+            {
+              "function": "wasm-to-js",
+              "seconds": 0.003172,
+              "percent_all_samples": 0.019609679590076094
+            },
+            {
+              "function": "eka2l1::drivers::ogl_graphics_driver::run()::$_0::__invoke(void*)",
+              "seconds": 0.00317,
+              "percent_all_samples": 0.019597315353260154
+            },
+            {
+              "function": "bindFramebuffer",
+              "seconds": 0.003166,
+              "percent_all_samples": 0.019572586879628283
+            },
+            {
+              "function": "(program)",
+              "seconds": 0.003165,
+              "percent_all_samples": 0.01956640476122031
+            },
+            {
+              "function": "bindBuffer",
+              "seconds": 0.002111,
+              "percent_all_samples": 0.01305045195922151
+            },
+            {
+              "function": "eka2l1::drivers::shared_graphics_driver::dispatch(eka2l1::drivers::command&)",
+              "seconds": 0.002108,
+              "percent_all_samples": 0.013031905603997605
+            },
+            {
+              "function": "disable",
+              "seconds": 0.001068,
+              "percent_all_samples": 0.0066025024597103615
+            },
+            {
+              "function": "webglGetUniformLocation",
+              "seconds": 0.001061,
+              "percent_all_samples": 0.006559227630854582
+            },
+            {
+              "function": "_glGetIntegerv",
+              "seconds": 0.001061,
+              "percent_all_samples": 0.006559227630854582
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.00106,
+              "percent_all_samples": 0.006553045512446613
+            },
+            {
+              "function": "_glBindVertexArray",
+              "seconds": 0.00106,
+              "percent_all_samples": 0.006553045512446613
+            },
+            {
+              "function": "isEnabled",
+              "seconds": 0.00106,
+              "percent_all_samples": 0.006553045512446613
+            },
+            {
+              "function": "js-to-wasm:i:i",
+              "seconds": 0.001058,
+              "percent_all_samples": 0.006540681275630677
+            },
+            {
+              "function": "glad_debug_impl_glPixelStorei",
+              "seconds": 0.001057,
+              "percent_all_samples": 0.006534499157222708
+            }
+          ]
+        },
+        {
+          "file": "page.cpuprofile",
+          "sampled_seconds": 16.176805,
+          "nonidle_seconds": 0.096355,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.08045,
+              "percent_all_samples": 99.40436322252756
+            },
+            {
+              "function": "(program)",
+              "seconds": 0.084801,
+              "percent_all_samples": 0.5242135267130932
+            },
+            {
+              "function": "_flushLog",
+              "seconds": 0.002115,
+              "percent_all_samples": 0.013074275173620501
+            },
+            {
+              "function": "UTF8ArrayToString",
+              "seconds": 0.002068,
+              "percent_all_samples": 0.012783735725317824
+            },
+            {
+              "function": "js-to-wasm:i:i",
+              "seconds": 0.00106,
+              "percent_all_samples": 0.006552591812783798
+            },
+            {
+              "function": "js-to-wasm::",
+              "seconds": 0.001059,
+              "percent_all_samples": 0.006546410122394379
+            },
+            {
+              "function": "(anonymous)",
+              "seconds": 0.001057,
+              "percent_all_samples": 0.0065340467416155415
+            },
+            {
+              "function": "emscripten_futex_wake",
+              "seconds": 0.001057,
+              "percent_all_samples": 0.0065340467416155415
+            },
+            {
+              "function": "ErrnoError",
+              "seconds": 0.001056,
+              "percent_all_samples": 0.006527865051226123
+            },
+            {
+              "function": "setTimeout",
+              "seconds": 0.001056,
+              "percent_all_samples": 0.006527865051226123
+            },
+            {
+              "function": "__emscripten_thread_mailbox_await",
+              "seconds": 0.001026,
+              "percent_all_samples": 0.006342414339543563
+            }
+          ]
+        },
+        {
+          "file": "worker-19.cpuprofile",
+          "sampled_seconds": 16.17553,
+          "nonidle_seconds": 0.003161,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.172369,
+              "percent_all_samples": 99.98045813645673
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.002107,
+              "percent_all_samples": 0.013025848302961326
+            },
+            {
+              "function": "__pthread_cond_timedwait",
+              "seconds": 0.001054,
+              "percent_all_samples": 0.006516015240304336
+            }
+          ]
+        },
+        {
+          "file": "worker-17.cpuprofile",
+          "sampled_seconds": 16.175686,
+          "nonidle_seconds": 0.00316,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.172526,
+              "percent_all_samples": 99.98046450703853
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.00316,
+              "percent_all_samples": 0.019535492961473163
+            }
+          ]
+        },
+        {
+          "file": "worker-31.cpuprofile",
+          "sampled_seconds": 16.166071,
+          "nonidle_seconds": 0.002119,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "emscripten_futex_wait",
+              "seconds": 16.163952,
+              "percent_all_samples": 99.98689230054724
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001061,
+              "percent_all_samples": 0.006563128418772873
+            },
+            {
+              "function": "__pthread_cond_timedwait",
+              "seconds": 0.001058,
+              "percent_all_samples": 0.006544571033988407
+            }
+          ]
+        },
+        {
+          "file": "worker-20.cpuprofile",
+          "sampled_seconds": 16.170439,
+          "nonidle_seconds": 0.002107,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "emscripten_futex_wait",
+              "seconds": 16.168332,
+              "percent_all_samples": 99.98697005072033
+            },
+            {
+              "function": "__pthread_cond_timedwait",
+              "seconds": 0.001054,
+              "percent_all_samples": 0.006518066701837842
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001053,
+              "percent_all_samples": 0.006511882577832303
+            }
+          ]
+        },
+        {
+          "file": "worker-30.cpuprofile",
+          "sampled_seconds": 16.167523,
+          "nonidle_seconds": 0.002101,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "emscripten_futex_wait",
+              "seconds": 16.165422,
+              "percent_all_samples": 99.9870048120544
+            },
+            {
+              "function": "wasm-to-js",
+              "seconds": 0.001052,
+              "percent_all_samples": 0.00650687183188173
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001049,
+              "percent_all_samples": 0.006488316113729976
+            }
+          ]
+        },
+        {
+          "file": "worker-23.cpuprofile",
+          "sampled_seconds": 16.168291,
+          "nonidle_seconds": 0.002052,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.166239,
+              "percent_all_samples": 99.98730849166434
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001028,
+              "percent_all_samples": 0.0063581240589991855
+            },
+            {
+              "function": "wasm-to-js",
+              "seconds": 0.001024,
+              "percent_all_samples": 0.0063333842766684495
+            }
+          ]
+        },
+        {
+          "file": "worker-22.cpuprofile",
+          "sampled_seconds": 16.169817,
+          "nonidle_seconds": 0.001067,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.16875,
+              "percent_all_samples": 99.99340128586489
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001067,
+              "percent_all_samples": 0.006598714135107404
+            }
+          ]
+        },
+        {
+          "file": "worker-26.cpuprofile",
+          "sampled_seconds": 16.166695,
+          "nonidle_seconds": 0.001058,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.165637,
+              "percent_all_samples": 99.99345568157251
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001058,
+              "percent_all_samples": 0.006544318427483168
+            }
+          ]
+        },
+        {
+          "file": "worker-18.cpuprofile",
+          "sampled_seconds": 16.175998,
+          "nonidle_seconds": 0.001056,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.174942,
+              "percent_all_samples": 99.99347180928187
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001056,
+              "percent_all_samples": 0.00652819071812447
+            }
+          ]
+        },
+        {
+          "file": "worker-16.cpuprofile",
+          "sampled_seconds": 16.174723,
+          "nonidle_seconds": 0.001054,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.173669,
+              "percent_all_samples": 99.99348365965834
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001054,
+              "percent_all_samples": 0.00651634034165531
+            }
+          ]
+        },
+        {
+          "file": "worker-28.cpuprofile",
+          "sampled_seconds": 16.169339,
+          "nonidle_seconds": 0.001053,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.168286,
+              "percent_all_samples": 99.99348767441884
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001053,
+              "percent_all_samples": 0.006512325581150844
+            }
+          ]
+        },
+        {
+          "file": "worker-21.cpuprofile",
+          "sampled_seconds": 16.170694,
+          "nonidle_seconds": 0.001052,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.169642,
+              "percent_all_samples": 99.99349440413627
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.001052,
+              "percent_all_samples": 0.006505595863727308
+            }
+          ]
+        },
+        {
+          "file": "worker-27.cpuprofile",
+          "sampled_seconds": 16.16932,
+          "nonidle_seconds": 0.00105,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.16827,
+              "percent_all_samples": 99.99350622042238
+            },
+            {
+              "function": "_emscripten_get_now",
+              "seconds": 0.00105,
+              "percent_all_samples": 0.006493779577619838
+            }
+          ]
+        },
+        {
+          "file": "worker-25.cpuprofile",
+          "sampled_seconds": 16.168703,
+          "nonidle_seconds": 0.001014,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.167689,
+              "percent_all_samples": 99.99372862498619
+            },
+            {
+              "function": "wasm-to-js",
+              "seconds": 0.001014,
+              "percent_all_samples": 0.00627137501381527
+            }
+          ]
+        },
+        {
+          "file": "worker-0.cpuprofile",
+          "sampled_seconds": 16.176887,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.176887,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-1.cpuprofile",
+          "sampled_seconds": 16.176625,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.176625,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-10.cpuprofile",
+          "sampled_seconds": 16.17764,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.17764,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-11.cpuprofile",
+          "sampled_seconds": 16.174698,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.174698,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-12.cpuprofile",
+          "sampled_seconds": 16.177285,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.177285,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-13.cpuprofile",
+          "sampled_seconds": 16.176684,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.176684,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-2.cpuprofile",
+          "sampled_seconds": 16.176317,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.176317,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-24.cpuprofile",
+          "sampled_seconds": 16.169527,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.169527,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-29.cpuprofile",
+          "sampled_seconds": 16.168731,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "__timedwait_cp",
+              "seconds": 16.168731,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-3.cpuprofile",
+          "sampled_seconds": 16.175752,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.175752,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-4.cpuprofile",
+          "sampled_seconds": 16.175743,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.175743,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-5.cpuprofile",
+          "sampled_seconds": 16.17682,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.17682,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-6.cpuprofile",
+          "sampled_seconds": 16.176614,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.176614,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-7.cpuprofile",
+          "sampled_seconds": 16.17667,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.17667,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-8.cpuprofile",
+          "sampled_seconds": 16.175863,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.175863,
+              "percent_all_samples": 100.0
+            }
+          ]
+        },
+        {
+          "file": "worker-9.cpuprofile",
+          "sampled_seconds": 16.176535,
+          "nonidle_seconds": 0.0,
+          "generated_code_inclusive": {
+            "seconds": 0.0,
+            "percent_all_samples": 0.0,
+            "modules": 0
+          },
+          "top_self": [
+            {
+              "function": "(idle)",
+              "seconds": 16.176535,
+              "percent_all_samples": 100.0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "diagnostic_caveat": "Counter run overlapped independent acceptance jobs; CPU-sampled runs were serial. Neither is production timing evidence. Do not pool, normalize, subtract or extrapolate their elapsed times."
+}

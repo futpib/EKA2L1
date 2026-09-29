@@ -1,0 +1,80 @@
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -21,6 +21,11 @@
+ #include <cpu/aot/arm_translator.h>
+ #include <cpu/aot/state_locals.h>
+ #include <cpu/aot/region_ir.h>
++#ifdef __EMSCRIPTEN__
++#include <emscripten.h>
++static std::uint32_t ir_census[4]{};
++extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t *eka2l1_ir_census() { return ir_census; }
++#endif
+ 
+ #include <cstring>
+ #include <algorithm>
+@@ -959,8 +964,19 @@
+             w.i32_const(-1); w.set_local(arm_emit::WRITE_PAGE);
+         }
+ 
++        auto count_ir = [&](unsigned slot, unsigned amount) {
++#ifdef __EMSCRIPTEN__
++            // One guest CPU worker writes; the harness reads only while paused.
++            const auto address = reinterpret_cast<std::uintptr_t>(&ir_census[slot]);
++            w.i32_const(address); w.i32_const(address);
++            w.op(op_i32_load); leb(result.body, 2); leb(result.body, 0);
++            w.i32_const(amount); w.op(op_i32_add);
++            w.op(op_i32_store); leb(result.body, 2); leb(result.body, 0);
++#endif
++        };
+         std::uint32_t proof_call_offset = 0;
+         if (prove_memory) {
++            count_ir(0, 1);
+             // The successful IR path cannot call helpers, raise a memory exit,
+             // or cross the scheduler budget. All other cases use the precise
+             // original function, before any guest memory/state effect.
+@@ -984,6 +1000,7 @@
+                 w.get_local(arm_emit::HOST); w.set_local(span.host);
+             }
+             w.get_local(TMP4); w.op(op_if); w.op(type_void);
++            count_ir(1, 1);
+             w.state_ptr(); w.op(op_call);
+             proof_call_offset = static_cast<std::uint32_t>(result.body.size());
+             result.body.insert(result.body.end(), {0x80,0x80,0x80,0x80,0});
+@@ -993,6 +1010,7 @@
+         }
+ 
+         if (ir) {
++            count_ir(2, 1); count_ir(3, instructions.size());
+             auto push = [&](unsigned v) {
+                 const auto &node = ir->nodes[v];
+                 if (node.op == region_ir::constant) {
+--- a/src/tests/wasm/profile.ts
++++ b/src/tests/wasm/profile.ts
+@@ -152,6 +152,11 @@
+     await client.send('Profiler.setSamplingInterval', {interval: sampleInterval});
+     await client.send('Profiler.start');
+   }));
++  const readIrCensus = () => page.evaluate(() => {
++    const g = window as any, p = g.Module._eka2l1_ir_census();
++    return Array.from(new Uint32Array((g.HEAPU8 || g.Module.HEAPU8).buffer, p, 4));
++  });
++  const irCensusStart = await readIrCensus();
+   await page.evaluate(() => (window as any).Module._eka2l1_profile_resume());
+   const timeline: unknown[] = [];
+   let monitorCpuStarted = false;
+@@ -195,7 +200,15 @@
+       await new Promise(resolve => setTimeout(resolve, 2000));
+     }
+   } else await waitPhase(3);
++  const irCensusEnd = await readIrCensus();
++  fs.writeFileSync(path.join(output, 'ir-census.json'), JSON.stringify({
++    fields: ['attempts','guard_fallbacks','fast_entries','fast_guest_instructions'],
++    start: irCensusStart, end: irCensusEnd,
++    delta: irCensusEnd.map((n,i) => (Number(n)-Number(irCensusStart[i])) >>> 0),
++    note: 'u32 modular deltas; window total guest instructions must be below 2^32; instrumented timing is not production performance'
++  }, null, 2));
+   const measured = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_profile_report', 'string', [], [])));
++  if (measured.last_instructions - measured.first_instructions >= 4294967296) throw new Error('IR u32 census window is too large');
+   console.log(JSON.stringify(measured));
+   if (guestProfile) {
+     const guest = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_guest_profile_report', 'string', [], [])));
