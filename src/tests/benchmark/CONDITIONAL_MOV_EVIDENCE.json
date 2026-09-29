@@ -1,0 +1,116 @@
+{
+  "candidate": "simple conditional MOV via WASM select",
+  "decision": "not promoted: first batch improves, reversed confirmation regresses; aggregate too small and directions inconsistent",
+  "runs": [
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "flag-1",
+      "build": "flag-stack-candidate",
+      "host_seconds": 13.5347,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "select-1",
+      "build": "conditional-select-candidate",
+      "host_seconds": 13.3266,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "served-1",
+      "build": "addv-candidate",
+      "host_seconds": 13.6628,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "served-2",
+      "build": "addv-candidate",
+      "host_seconds": 13.4935,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "select-2",
+      "build": "conditional-select-candidate",
+      "host_seconds": 13.3756,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "flag-2",
+      "build": "flag-stack-candidate",
+      "host_seconds": 13.5148,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-b",
+      "run": "before-1",
+      "build": "conditional-select-candidate",
+      "host_seconds": 13.491,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-b",
+      "run": "after-1",
+      "build": "addv-candidate",
+      "host_seconds": 13.3945,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-b",
+      "run": "after-2",
+      "build": "addv-candidate",
+      "host_seconds": 13.3881,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-b",
+      "run": "before-2",
+      "build": "conditional-select-candidate",
+      "host_seconds": 13.5609,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    }
+  ],
+  "wasm_sha256": "6c62082ce0953e17d978a02c4d9c5dcdb6fcd0f7d324760975825e8f5e83434c",
+  "correctness": {
+    "wasm_tests": 135,
+    "new_condition_budget_comparisons": 57344,
+    "fault_cases": 672,
+    "native_targets": 3,
+    "frontend_checks": 7,
+    "fresh_checked_replay": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+        "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+        "writes": 0,
+        "callbacks": 10190,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 10190,
+        "gameplay_nonzero_samples": 7223662,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16263331210
+    }
+  },
+  "patch": "/home/claude/.scratch/eka-benchmark/conditional-select-runtime.patch",
+  "next_experiment": "extend branchless selection to cheap non-flag-setting data operations"
+}
