@@ -1,0 +1,42 @@
+{
+  "date": "2026-09-29",
+  "change": "Do not load/cache ARM Rn for MOV/MVN data-processing instructions, which ignore it.",
+  "baseline_wasm_sha256": "e29d57a538766b7ad3440075150b67ed1a7d4831918595c3e23951f632b0d9e0",
+  "candidate_wasm_sha256": "119aaebfd17d28f6a9707ca0ccbf9d2a2d6a325f3e5d276efb65d290adb152dc",
+  "timing": {
+    "guest_seconds": 18,
+    "instructions_per_trial": 3975618624,
+    "presentations_per_trial": 676,
+    "baseline_seconds": [16.6588, 15.0358, 13.8315, 15.1573, 15.6193, 13.7100, 15.3027, 13.8200],
+    "candidate_seconds": [14.2377, 13.9069, 15.6026, 14.8550, 15.1585, 13.6291, 13.7933, 13.8319],
+    "baseline_mean_seconds": 14.8919,
+    "candidate_mean_seconds": 14.3769,
+    "throughput_gain_percent": 3.58,
+    "batch_means_candidate_faster": 3,
+    "batch_count": 4,
+    "capture": false,
+    "profiling": false,
+    "rendering": true,
+    "shared_audio_processing": true
+  },
+  "live_runs": [
+    {"guest_seconds": 120.55674, "host_seconds": 120.577596, "realtime_ratio": 0.99983, "added_gameplay_underruns": 0, "added_gameplay_drops": 0, "max_sampled_queue_samples": 8128},
+    {"guest_seconds": 120.556, "host_seconds": 120.517767, "realtime_ratio": 0.99982, "added_gameplay_underruns": 3, "added_gameplay_drops": 11776, "max_sampled_queue_samples": 6976}
+  ],
+  "correctness": {
+    "wasm_aot_tests_passed": 134,
+    "native_ctest_targets_passed": 3,
+    "native_wasm_fault_cases_matching": 672,
+    "checked_replay_images": 1600,
+    "replay_guest_seconds": 102.484363,
+    "replay_guest_instructions": 16263331210,
+    "stereo_pcm_frames": 4919249,
+    "frontend_checks_passed": 7
+  },
+  "artifacts": "/home/claude/.scratch/eka-benchmark/mov-unused-rn-*",
+  "limitations": [
+    "One shared host; timing ranges overlap and one of four batches regressed.",
+    "One live run had three additional worklet underruns and 11776 dropped samples during continuity.",
+    "No second game or device was tested."
+  ]
+}

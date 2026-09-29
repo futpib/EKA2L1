@@ -1384,17 +1384,17 @@ namespace eka2l1::arm::aot {
                     continue;
                 }
 
-                // For Rn==15, the value is PC+8 in ARM mode
-                // We need to handle this specially for immediate ops
-                bool rn_is_pc = (rn == 15);
-
-                // Get Rn value
-                if (rn_is_pc) {
-                    w.i32_const(static_cast<std::int32_t>(insn_addr + 8));
-                } else {
-                    w.load_reg(rn);
+                // MOV/MVN ignore Rn. Avoid introducing a guest-state load and
+                // cached local for that architecturally unused field.
+                if (opcode != 0xD && opcode != 0xF) {
+                    // For Rn==15, ARM reads PC+8.
+                    if (rn == 15) {
+                        w.i32_const(static_cast<std::int32_t>(insn_addr + 8));
+                    } else {
+                        w.load_reg(rn);
+                    }
+                    w.set_local(TMP1); // Rn value
                 }
-                w.set_local(TMP1); // Rn value
 
                 // Get shifter operand
                 w.load_i32(S::CFLAG); w.set_local(TMP_CARRY);
