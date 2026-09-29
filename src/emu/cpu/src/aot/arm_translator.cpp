@@ -1466,10 +1466,9 @@ namespace eka2l1::arm::aot {
                         w.get_local(TMP3); w.get_local(TMP1);
                         w.op(op_i32_lt_u); w.set_local(TMP4);
                         w.store_i32(S::CFLAG, TMP4);
-                        // V = ~(Rn ^ op2) & (Rn ^ result) >> 31
-                        w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
-                        w.i32_const(-1); w.op(op_i32_xor);
+                        // V = (Rn ^ result) & (op2 ^ result) >> 31
                         w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
+                        w.get_local(TMP2); w.get_local(TMP3); w.op(op_i32_xor);
                         w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
                         w.set_local(TMP4); w.store_i32(S::VFLAG, TMP4);
                     }
@@ -1487,9 +1486,8 @@ namespace eka2l1::arm::aot {
                         w.get_local(TMP3); w.get_local(TMP1); w.op(op_i32_eq);
                         w.load_i32(S::CFLAG); w.op(op_i32_and); w.op(op_i32_or);
                         w.set_local(TMP4); w.store_i32(S::CFLAG,TMP4);
-                        w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_xor);
-                        w.i32_const(-1); w.op(op_i32_xor);
-                        w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor); w.op(op_i32_and);
+                        w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
+                        w.get_local(TMP2); w.get_local(TMP3); w.op(op_i32_xor); w.op(op_i32_and);
                         w.i32_const(31); w.op(op_i32_shr_u); w.set_local(TMP4); w.store_i32(S::VFLAG,TMP4);
                     }
                     break;

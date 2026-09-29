@@ -1,0 +1,239 @@
+{
+  "baseline_commit": "8e40b5f9d",
+  "candidate_change": "For flag-setting ARM ADD and ADC, emit V=((Rn xor result) and (operand2 xor result)) >> 31, removing one XOR from the previous expression.",
+  "candidate_wasm_sha256": "e29d57a538766b7ad3440075150b67ed1a7d4831918595c3e23951f632b0d9e0",
+  "baseline_wasm_sha256": "a98b82e1b4d25482d1adc72e7d9bed7819c121872beb7941ed91f86b83977a8b",
+  "environment": {
+    "browser": "Chromium 153.0.8010.52",
+    "window_guest_seconds": [
+      78,
+      96
+    ],
+    "gpu": "physical NVIDIA; process-local pinned libraries",
+    "rendering": true,
+    "shared_audio_processing": true,
+    "capture": false,
+    "profiling": false,
+    "serial_one_browser_at_a_time": true
+  },
+  "batches": [
+    {
+      "batch": "A",
+      "order": "baseline-candidate",
+      "runs": [
+        {
+          "run": "before-1",
+          "build": "baseline",
+          "host_seconds": 15.837,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "after-1",
+          "build": "candidate",
+          "host_seconds": 13.7663,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "after-2",
+          "build": "candidate",
+          "host_seconds": 13.6365,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "before-2",
+          "build": "baseline",
+          "host_seconds": 13.4367,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        }
+      ]
+    },
+    {
+      "batch": "B",
+      "order": "candidate-baseline",
+      "runs": [
+        {
+          "run": "before-1",
+          "build": "candidate",
+          "host_seconds": 13.7216,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "after-1",
+          "build": "baseline",
+          "host_seconds": 13.5548,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "after-2",
+          "build": "baseline",
+          "host_seconds": 13.564,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "before-2",
+          "build": "candidate",
+          "host_seconds": 13.9512,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        }
+      ]
+    },
+    {
+      "batch": "C",
+      "order": "baseline-candidate",
+      "runs": [
+        {
+          "run": "before-1",
+          "build": "baseline",
+          "host_seconds": 14.5997,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "after-1",
+          "build": "candidate",
+          "host_seconds": 13.7383,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "after-2",
+          "build": "candidate",
+          "host_seconds": 13.7457,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "before-2",
+          "build": "baseline",
+          "host_seconds": 13.5544,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        }
+      ]
+    },
+    {
+      "batch": "D",
+      "order": "candidate-baseline",
+      "runs": [
+        {
+          "run": "before-1",
+          "build": "candidate",
+          "host_seconds": 13.6874,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "after-1",
+          "build": "baseline",
+          "host_seconds": 13.5889,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "after-2",
+          "build": "baseline",
+          "host_seconds": 14.2771,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        },
+        {
+          "run": "before-2",
+          "build": "candidate",
+          "host_seconds": 13.4885,
+          "guest_start_us": 78000000,
+          "guest_end_us": 96000000,
+          "instruction_start": 11263760836,
+          "instruction_end": 15239379460,
+          "presentations": 676
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "baseline_mean_host_seconds": 14.051575,
+    "candidate_mean_host_seconds": 13.7169375,
+    "throughput_change_percent": 2.439593385914307,
+    "batch_means_favor_candidate": 3,
+    "batch_count": 4,
+    "instructions_per_trial": 3975618624,
+    "presentations_per_trial": 676
+  },
+  "correctness": {
+    "wasm_aot_tests": "134 passed, 0 failed",
+    "native_fault_cases": 672,
+    "fault_cases_equal": 672,
+    "checked_replay": {
+      "native_match": true,
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16263331210,
+      "audio_sample_frames": 4919249,
+      "audio_pcm_sha256": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+      "audio_events_sha256": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca1ad56b6fa3e7fd25eda9d712"
+    },
+    "native_ctest": "3/3 passed",
+    "frontend_smoke": "7/7 passed",
+    "live_play": {
+      "guest_seconds": 120.565705,
+      "host_seconds": 120.565893,
+      "realtime_ratio": 0.9999984416737145,
+      "additional_audio_underruns": 0,
+      "additional_audio_drops": 0,
+      "controls_and_shutdown": "passed"
+    }
+  }
+}
