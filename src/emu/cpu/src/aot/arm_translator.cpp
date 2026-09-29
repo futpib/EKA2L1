@@ -66,7 +66,13 @@ namespace eka2l1::arm::aot {
         bool unsupported = false;
         std::uint32_t bail_count = 0;
 
-        void op(std::uint8_t o) { b.push_back(o); }
+        // Depth inside the result block added by state_local_cache::finish.
+        unsigned scope_depth = 0;
+        void op(std::uint8_t o) {
+            if (o == op_block || o == op_loop || o == op_if) ++scope_depth;
+            else if (o == op_end) --scope_depth;
+            b.push_back(o);
+        }
         void state_ptr() { op(op_local_get); leb(b, 0); }
         void get_local(std::uint32_t i) { op(op_local_get); leb(b, i); }
         void set_local(std::uint32_t i) { op(op_local_set); leb(b, i); }
@@ -228,7 +234,12 @@ namespace eka2l1::arm::aot {
             op(op_end);
 #endif
         }
-        void ret() { cache.barrier_at(b.size()); op(op_return); }
+        void ret() {
+            // The return count is already on the stack. Branching carries it
+            // to the shared exit and discards any enclosing temporary stack.
+            if (cache.shared_return) { op(op_br); leb(b, scope_depth); }
+            else { cache.barrier_at(b.size()); op(op_return); }
+        }
 
         void bail(std::uint32_t pc, std::uint32_t instr_count) {
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
@@ -637,6 +648,7 @@ namespace eka2l1::arm::aot {
         w.defer_memory = w.region && defer_memory;
         w.cache.enabled = bounded && cache_registers;
         w.cache.runtime_fields = region;
+        w.cache.shared_return = w.cache.enabled;
         w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
 
         // Build instruction address → index map

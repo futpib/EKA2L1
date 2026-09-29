@@ -10,6 +10,9 @@ namespace eka2l1::arm::aot {
     struct state_local_cache {
         bool enabled = false;
         bool runtime_fields = false;
+        // A result block carries the instruction count to one final writeback.
+        // Helper barriers still flush/reload at their original positions.
+        bool shared_return = false;
         std::uint32_t first_local = 0;
         std::map<std::uint32_t, std::uint32_t> locals;
         std::set<std::uint32_t> written;
@@ -58,6 +61,7 @@ namespace eka2l1::arm::aot {
             if (!enabled) return;
             std::vector<std::uint8_t> body;
             transfer(body, true);
+            if (shared_return) { body.push_back(op_block); body.push_back(type_i32); }
             std::size_t previous = 0;
             for (const auto &point : barriers) {
                 body.insert(body.end(), function.body.begin() + previous,
@@ -66,6 +70,11 @@ namespace eka2l1::arm::aot {
                 previous = point.position;
             }
             body.insert(body.end(), function.body.begin() + previous, function.body.end());
+            if (shared_return) {
+                body.push_back(op_end);
+                transfer(body, false);
+                body.push_back(op_return);
+            }
             function.body = std::move(body);
             function.num_locals += static_cast<std::uint32_t>(locals.size());
         }
