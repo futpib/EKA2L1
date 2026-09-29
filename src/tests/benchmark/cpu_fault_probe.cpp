@@ -59,8 +59,9 @@ int main(int argc, char **argv){
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
-    const bool deferred=argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred");
-    const bool entry_budget = argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-deferred");
+    const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
+    const bool deferred=read_spans || (argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred"));
+    const bool entry_budget = read_spans || (argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-deferred"));
 #ifdef EKA_MATCHED_REFERENCE
     if(entry_budget) { std::cerr << "--entry-budget requires the production runner\n"; return 1; }
 #endif
@@ -69,17 +70,23 @@ int main(int argc, char **argv){
     if(entry_budget || deferred || (argc==2 && std::string(argv[1])=="--extended")) {
         instructions.push_back(0xe891000d);instructions.push_back(0xe881000d);
     }
+    if(read_spans) instructions={0xe5910000};
+    const std::vector<unsigned> addresses=read_spans
+        ? std::vector<unsigned>{0x8000u,0x8ff8u,0x8ffcu}
+        : std::vector<unsigned>{0x8000u,0x8ffdu,0x8ffcu};
     for(unsigned op:instructions)for(unsigned policy=0;policy<4;++policy)
-    for(unsigned address:{0x8000u,0x8ffdu,0x8ffcu})for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u})for(unsigned partial=0;partial<((op&0x0e000000u)==0x08000000u?2u:1u);++partial){
+    for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u})for(unsigned partial=0;partial<((op&0x0e000000u)==0x08000000u?2u:1u);++partial){
 #if defined(__EMSCRIPTEN__) || defined(EKA_MATCHED_REFERENCE)
         r12l1::exclusive_monitor monitor(1); dyncom_core cpu(&monitor,12);
 #else
         dynarmic_exclusive_monitor monitor(1); dynarmic_core cpu(&monitor);
 #endif
-        Fixture f{cpu, std::vector<unsigned char>(65536),address,policy,partial};f.install();
+        // Span fixtures allow the first load, then fault the second unless its
+        // page is mapped. The 0x8ffc case crosses into an unmapped next page.
+        Fixture f{cpu, std::vector<unsigned char>(65536),address,policy,read_spans?1u:partial};f.install();
         for(unsigned i=0x8000;i<0xa000;++i)f.memory[i]=(i*37+11)&255;
         // MOVS precedes the access, so exception observers see live flags/registers.
-        unsigned program[]={0xe3b02007,op,0xeafffffe};std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
+        unsigned program[]={0xe3b02007,op,read_spans?0xe5913004u:0xeafffffeu};std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
         for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
         cpu.set_reg(0,0x87654321);cpu.set_reg(1,address);cpu.set_pc(0x1000);cpu.set_cpsr(0xa0000010|endian);
         // Read-only TLB: permitted control for loads, denied mapping for stores.
@@ -89,11 +96,13 @@ int main(int argc, char **argv){
             prot_read);
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         if(!interpreter) {
-        auto tr=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program),8,0x1000,nullptr,nullptr,true,false,true,true,nullptr,deferred);
+        auto tr=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program),read_spans?12:8,0x1000,nullptr,nullptr,true,false,true,true,nullptr,deferred);
         auto bytes=aot::build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         // A second entry is needed because each exact Step dispatches at its PC.
-        auto tail=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+1),4,0x1004,nullptr,nullptr,true,false,true,true,nullptr,deferred);
-        bytes=aot::build_wasm_module({tr.func,tail.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        auto tail=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+1),read_spans?8:4,0x1004,nullptr,nullptr,true,false,true,true,nullptr,deferred);
+        std::vector<aot::wasm_func_def> functions={tr.func,tail.func};
+        if(read_spans) functions.push_back(aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+2),4,0x1008,nullptr,nullptr,true,false,true,true,nullptr,deferred).func);
+        bytes=aot::build_wasm_module(functions,{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         aot::stage_aot_module(std::move(bytes),"hot-rom");aot::instantiate_staged_modules();aot::chaining_enabled=true;
         }
 #endif
@@ -121,15 +130,16 @@ int main(int argc, char **argv){
         frame.flush();const auto reference_count=frame.count;
 #else
 #if defined(__EMSCRIPTEN__)
-        if(entry_budget) cpu.run(2); else cpu.step();
+        if(entry_budget) cpu.run(read_spans?3:2); else cpu.step();
 #else
         cpu.step();
+        if(read_spans) cpu.step();
 #endif
 #endif
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
-        if(deferred && compiled==1)++deferred_cases;
-        if(!interpreter && compiled!=2 && !(deferred && compiled==1)){
+        if(deferred && compiled<(read_spans?3u:2u))++deferred_cases;
+        if(!interpreter && (read_spans ? (compiled<1 || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Expected two generated instructions at case "<<cases<<'\n';return 2;
         }
 #endif
