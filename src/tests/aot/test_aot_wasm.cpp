@@ -2540,6 +2540,67 @@ static bool test_exact_code_compare() {
     printf("  PASS exact_code_compare (unaligned/tails/mutations)\n"); return true;
 }
 
+// Check every condition/flag combination against DynCom, including false moves,
+// source/destination overlap, PC reads, rotated immediates and unchanged flags.
+static bool test_conditional_mov_select() {
+#ifdef __EMSCRIPTEN__
+    const unsigned forms[] = {0x01a02000u, 0x01a00000u, 0x01af2000u,
+        0x01a0200fu, 0x03a02001u, 0x03a02480u, 0x01b02000u, 0x01a02080u};
+    unsigned comparisons = 0;
+    for (unsigned variant = 0; variant < 4; ++variant)
+    for (unsigned cond = 0; cond < 14; ++cond) for (unsigned form : forms) {
+        const std::uint32_t code[] = {(cond << 28) | form, 0xe2a33000u}; // ADC consumes preserved C.
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code);
+        auto tr = translate_arm_block(bytes, sizeof(code), 0x1000, nullptr, nullptr,
+            true, true, variant & 1, variant >= 2);
+        if (!tr.entry_supported || !tr.complete) return false;
+        auto module = build_wasm_module({tr.func});
+        for (unsigned flags = 0; flags < 16; ++flags)
+        for (unsigned budget : {0u, 1u, 2u, 3u}) for (unsigned seed : {0u, 1u}) {
+            test_mem memory;
+            memory.write_code(0x1000, {bytes, bytes + sizeof(code)});
+            r12l1::exclusive_monitor monitor(1);
+            auto cpu = make_cpu(memory, monitor);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned reg = 0; reg < 16; ++reg) {
+                unsigned value = reg == 15 ? 0x1000 : (seed ? 0x80000000u : 0x7fffffffu) + reg;
+                state[state_offsets::reg(reg) / 4] = value;
+                cpu->set_reg(reg, value);
+            }
+            cpu->set_cpsr(0x10 | (flags << 28));
+            state[state_offsets::CPSR / 4] = cpu->get_cpsr();
+            state[state_offsets::MODE / 4] = 16;
+            state[state_offsets::NIRQ / 4] = 1;
+            for (auto pair : {std::pair<unsigned, unsigned>{state_offsets::NFLAG, 3},
+                    {state_offsets::ZFLAG, 2}, {state_offsets::CFLAG, 1}, {state_offsets::VFLAG, 0}})
+                state[pair.first / 4] = (flags >> pair.second) & 1;
+            state[state_offsets::AOT_BUDGET / 4] = budget;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            if (count != static_cast<int>(std::min(budget, 2u))) {
+                printf("  FAIL conditional MOV budget %u count %d\n", budget, count); return false;
+            }
+            if (count) cpu->run(count);
+            for (unsigned reg = 0; reg < 16; ++reg)
+                if (state[state_offsets::reg(reg) / 4] != cpu->get_reg(reg)) {
+                    printf("  FAIL conditional MOV %08X variant=%u flags=%u budget=%u R%u\n",
+                        code[0], variant, flags, budget, reg); return false;
+                }
+            for (auto pair : {std::pair<unsigned, unsigned>{state_offsets::NFLAG, 31},
+                    {state_offsets::ZFLAG, 30}, {state_offsets::CFLAG, 29},
+                    {state_offsets::VFLAG, 28}, {state_offsets::TFLAG, 5}})
+                if (state[pair.first / 4] != ((cpu->get_cpsr() >> pair.second) & 1)) {
+                    printf("  FAIL conditional MOV flags %08X variant=%u flags=%u budget=%u\n",
+                        code[0], variant, flags, budget); return false;
+                }
+            ++comparisons;
+        }
+    }
+    printf("  PASS conditional_mov_select (%u exact budget/state comparisons)\n", comparisons);
+#endif
+    return true;
+}
+
 // Exercise long products, modulo-64 accumulation, aliasing and conditional flags
 // against DynCom with zero, partial, exact and oversized instruction budgets.
 static bool test_arm_long_multiply() {
@@ -3470,6 +3531,7 @@ int main(int argc, char **argv) {
     if (test_deferred_memory_exits()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
+    if (test_conditional_mov_select()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
