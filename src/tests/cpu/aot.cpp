@@ -1253,3 +1253,31 @@ TEST_CASE("DynCom TLB accesses preserve permissions and endian conversion", "[cp
     REQUIRE(denied == 2);
     REQUIRE(bytes[0] == 0x12);
 }
+
+TEST_CASE("DynCom memory callbacks observe flags within an interpreter block", "[cpu][memory]") {
+    for (const auto instruction : {0xe5910000u, 0xe5810000u, 0xe5d10000u,
+            0xe5c10000u, 0xe1d100b0u, 0xe1c100b0u}) {
+        aot_test_env env;
+        auto cpu = env.make_cpu();
+        const std::uint32_t code[] = {0xe3b02007u, instruction, 0xeafffffeu};
+        std::memcpy(env.memory.data() + 0x1000, code, sizeof(code));
+        cpu->set_pc(0x1000); cpu->set_reg(1, 0x8000); cpu->set_cpsr(0xa0000010);
+        unsigned calls = 0, faults = 0;
+        auto observe = [&](std::uint32_t address, auto *) {
+            CHECK(address == 0x8000);
+            CHECK(cpu->get_cpsr() == 0x20000010);
+            CHECK(cpu->get_reg(2) == 7);
+            CHECK(cpu->get_pc() == 0x1004);
+            ++calls; return false;
+        };
+        cpu->read_8bit = observe; cpu->read_16bit = observe; cpu->read_32bit = observe;
+        cpu->write_8bit = observe; cpu->write_16bit = observe; cpu->write_32bit = observe;
+        cpu->exception_handler = [&](eka2l1::arm::exception_type, std::uint32_t) {
+            CHECK(cpu->get_cpsr() == 0x20000010);
+            ++faults; return false;
+        };
+        cpu->run(2);
+        CHECK(calls == 1); CHECK(faults == 1);
+        CHECK(cpu->get_num_instruction_executed() == 2);
+    }
+}

@@ -297,6 +297,7 @@ public:
     void WriteMemory32Slow(std::uint32_t address, std::uint32_t data);
     void WriteMemory64Slow(std::uint32_t address, std::uint64_t data);
 
+    void PublishMemoryCallbackCpsr() const;
     void RaiseException(const int type, const std::uint32_t data);
     void RaiseSystemCall(std::uint32_t val);
 
@@ -344,7 +345,7 @@ public:
     std::array<std::uint32_t, 64> ExtReg{};
 
     std::uint32_t Emulate; // To start and stop emulation
-    std::uint32_t Cpsr; // The current PSR
+    mutable std::uint32_t Cpsr; // Packed PSR; NZCVT are synchronized by const slow reads.
     std::uint32_t Spsr_copy;
     std::uint32_t phys_pc;
 
