@@ -182,3 +182,7 @@ endif()
 if(EKA2L1_WASM_DEFER_MEMORY)
     target_compile_definitions(cpu PUBLIC EKA2L1_WASM_DEFER_MEMORY=1)
 endif()
+
+if(EKA2L1_WASM_REGION_IR)
+    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_REGION_IR=1)
+endif()

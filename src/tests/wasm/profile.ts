@@ -205,7 +205,20 @@ try {
     const {profile} = await client.send('Profiler.stop');
     fs.writeFileSync(path.join(output, `${name}.cpuprofile`), JSON.stringify(profile));
   }));
-  for (const {client,name} of clients.filter(c => c.name === process.env.EKA2L1_CAPTURE_MODULES)) {
+  let captureWorker = process.env.EKA2L1_CAPTURE_MODULES;
+  if (captureWorker === 'auto') {
+    if (!sampling) throw new Error('Automatic module capture requires CPU sampling');
+    const ranked = clients.map(({name}) => {
+      const profile = JSON.parse(fs.readFileSync(path.join(output, `${name}.cpuprofile`), 'utf8'));
+      const generated = new Set(profile.nodes.filter((n: any) => n.callFrame.url.startsWith('wasm://')).map((n: any) => n.id));
+      const weight = profile.samples.reduce((sum: number, id: number, i: number) => sum + (generated.has(id) ? profile.timeDeltas[i] : 0), 0);
+      return {name, weight};
+    }).sort((a,b) => b.weight - a.weight);
+    if (!ranked[0]?.weight) throw new Error('No sampled generated-code worker for module capture');
+    captureWorker = ranked[0].name;
+    fs.writeFileSync(path.join(output, 'capture-worker.json'), JSON.stringify({selected: captureWorker, ranked}));
+  }
+  for (const {client,name} of clients.filter(c => c.name === captureWorker)) {
     const captured = await client.send('Runtime.evaluate', {expression:'JSON.stringify(globalThis.ekaProbeModules || [])',returnByValue:true}, {timeout:10000});
     for (const mod of JSON.parse(captured.result.value || '[]')) {
       const base = `${name}-module-${mod.index}`;

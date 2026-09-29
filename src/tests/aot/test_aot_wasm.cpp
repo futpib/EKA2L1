@@ -19,6 +19,7 @@
 #include <cpu/12l1r/tlb.h>
 #include <cpu/dyncom/armstate.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/region_ir.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
@@ -2329,8 +2330,42 @@ static bool test_region_code_alias() {
         }
     }
     }
+    // Four accesses qualify for the entry proof. Distinct guest pages alias
+    // the same physical bytes; stores must remain visible to later loads.
+    const std::uint32_t alias_words[] = {0xe5810000,0xe5952000,0xe5812004,0xe5953004};
+    auto alias_tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(alias_words),
+        sizeof(alias_words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+    auto alias_module = build_wasm_module({alias_tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    for (bool code_alias : {false,true}) for (unsigned budget=0;budget<=5;++budget) {
+        test_mem memory;
+        memory.write_code(0x1000,{reinterpret_cast<const std::uint8_t *>(alias_words),
+            reinterpret_cast<const std::uint8_t *>(alias_words)+sizeof(alias_words)});
+        const auto prior = memory.data;
+        const unsigned backing = code_alias ? 0x1000 : 0x8000;
+        r12l1::tlb tlb(12);
+        tlb.add(0x8000,memory.data.data()+backing,prot_write);
+        tlb.add(0x9000,memory.data.data()+backing,prot_read);
+        alignas(8) std::uint32_t state[256]{};
+        state[0]=0xe3a04001;state[1]=0x8000;state[5]=0x9000;state[15]=0x1000;
+        state[state_offsets::AOT_BUDGET/4]=budget;
+        state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
+        state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(alias_words);
+        const int count=js_run_aot_wasm(alias_module.data(),alias_module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        const unsigned expected=std::min(budget,4u);
+        if(count<0 || unsigned(count)>expected || (code_alias ? count>1 : unsigned(count)!=expected)
+            || state[15]!=0x1000+4*count || (count==0 && memory.data!=prior)
+            || (count>=1 && memory.read32(backing)!=state[0])
+            || (count>=2 && state[2]!=state[0])
+            || (count>=3 && memory.read32(backing+4)!=state[0])
+            || (count>=4 && state[3]!=state[0])) {
+            printf("  FAIL proved physical alias code=%u budget=%u count=%d\n",code_alias,budget,count);return false;
+        }
+    }
 #endif
-    printf("  PASS region_code_alias (single and multiple stores)\n");
+    printf("  PASS region_code_alias (single, multiple and entry-proved alias stores)\n");
     return true;
 }
 
@@ -2479,6 +2514,45 @@ static bool test_block_transfer_guards() {
     printf("  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n");return true;
 }
 
+// Private callee relocation must not shift public sibling-call indices, even
+// when imports and enough public functions require a multi-byte callee index.
+static bool test_outlined_callee_indices() {
+    for (unsigned import_count : {0u, 6u}) for (unsigned public_count : {2u, 128u}) {
+        std::vector<wasm_func_def> functions(public_count);
+        for (unsigned i = 0; i < public_count; ++i) {
+            functions[i].export_name = "f_" + std::to_string(i);
+            functions[i].num_locals = 0;
+            functions[i].body = {op_i32_const, 13};
+        }
+        auto &caller = functions[0];
+        caller.body = {op_local_get, 0, op_call, static_cast<std::uint8_t>(import_count + 1),
+            op_local_get, 0, op_call, 0x80, 0x80, 0x80, 0x80, 0, op_i32_add};
+        caller.outlined_call_offset = 7;
+        caller.outlined_callee = std::make_shared<wasm_func_def>();
+        caller.outlined_callee->export_name = "private_seven";
+        caller.outlined_callee->num_locals = 0;
+        caller.outlined_callee->body = {op_i32_const, 7};
+        std::vector<wasm_import_func> imports;
+        if (import_count) imports = {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+        const auto module = build_wasm_module(functions, imports);
+        if (module.empty()) return false;
+#ifdef __EMSCRIPTEN__
+        alignas(8) std::uint32_t state[256]{};
+        if (js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state)) != 20) {
+            printf("  FAIL outlined callee imports=%u public=%u\n", import_count, public_count);
+            return false;
+        }
+#endif
+        caller.outlined_call_offset = static_cast<std::uint32_t>(caller.body.size());
+        if (!build_wasm_module(functions, imports).empty()) return false;
+    }
+    printf("  PASS outlined_callee_indices\n");
+    return true;
+}
+
 static bool test_proved_read_spans() {
 #ifdef __EMSCRIPTEN__
     const std::vector<std::vector<std::uint32_t>> programs = {
@@ -2507,6 +2581,24 @@ static bool test_proved_read_spans() {
         {0xe0c32796,0xe89500c0,0xe0e32796,0xe5910000},
         {0xe0c32796,0xe5912000,0xe0e32796,0xe5910004},
         {0xe0c32796,0xe0e32392,0xe5910000},
+        // Whole-region affine proofs: scalar, block, writeback and aliases.
+        {0xe5910000,0xe5912004,0xe5913008,0xe591400c},
+        {0xe5910000,0xe2817004,0xe5972000,0xe5973004,0xe591400c},
+        {0xe5910000,0xe1a07001,0xe5972004,0xe5973008,0xe591400c},
+        {0xe5810000,0xe5912000,0xe5812004,0xe5913004},
+        {0xe4810004,0xe4912004,0xe5213004,0xe5914004},
+        {0xe5a10004,0xe5b12004,0xe5213004,0xe5114004},
+        {0xe881000d,0xe5914000,0xe89500c0,0xe5854000},
+        {0xe921000d,0xe5914000,0xe99500c0,0xe5854000},
+        {0xe801000d,0xe5914000,0xe81500c0,0xe5854000},
+        {0xe981000d,0xe5914000,0xe91500c0,0xe5854000},
+        {0xe92d000d,0xe5910000,0xe5912004,0xe8bd000d},
+        {0xe5910000,0xe5912004,0xe5913008,0xe8918010},
+        {0xe5910000,0xe0c32796,0xe5918004,0xe0e32796,0xe5919008,0xe591a00c},
+        // Pointer loss, conditional accesses and joins must retain generic code.
+        {0xe5910000,0xe5911004,0xe5912000,0xe5913004},
+        {0xe5910000,0x15912004,0xe5913008,0xe591400c},
+        {0xe5910000,0xe3560000,0x0a000000,0xe5912004,0xe5913008,0xe591400c},
     };
     unsigned checks = 0;
     for (const auto &code : programs) {
@@ -2516,12 +2608,19 @@ static bool test_proved_read_spans() {
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
             {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        for (unsigned address : {0x8000u,0x8004u,0x8001u,0x8ff4u,0x8ff8u,0x8ffcu,0u,0xfffffffcu,0x1000u})
+        for (unsigned address : {0x8000u,0x8004u,0x8080u,0x8001u,0x8ff4u,0x8ff8u,0x8ffcu,0u,0xfffffffcu,0x1000u})
         for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
         for (unsigned selector : {0u,2u})
         for (unsigned budget : {0u,1u,2u,3u,4u,5u,8u,17u}) {
+            // New writeback/PC forms require production callbacks on proof
+            // failure; the separate native fault probe checks that route.
+            // These simple test imports are deliberately not that callback API.
+            if (&code - programs.data() >= 24 && (address != 0x8080 || permission != 3 || endian)) continue;
             test_mem actual;
             for (unsigned a = 0x8000; a < 0x9000; a += 4) actual.write32(a, a ^ 0x12345678u);
+            // Keep the loaded return PC inside this fixture's code mapping.
+            if (code.back() == 0xe8918010 && address < test_mem::SIZE - 8)
+                actual.write32(address + 4, 0x1000);
             actual.write_code(0x1000, {bytes, bytes + code.size() * 4});
             test_mem reference_memory = actual;
             r12l1::exclusive_monitor monitor(1);
@@ -2531,7 +2630,7 @@ static bool test_proved_read_spans() {
             tlb.add(0x1000, actual.data.data() + 0x1000, permission);
             alignas(8) std::uint32_t state[256]{};
             for (unsigned r = 0; r < 16; ++r) {
-                const auto value = r == 15 ? 0x1000u : r == 1 ? address : r == 5 ? address + 64
+                const auto value = r == 15 ? 0x1000u : r == 1 ? address : r == 5 ? address + 64 : r == 13 ? address + 128
                     : r == 6 ? selector : 0x120u + r;
                 state[r] = value; reference->set_reg(r, value);
             }
@@ -2548,11 +2647,15 @@ static bool test_proved_read_spans() {
                 reinterpret_cast<std::uint8_t *>(state), sizeof(state));
             g_test_mem = nullptr; g_count_memory_helpers = false;
             if (count < 0 || count > static_cast<int>(budget) || g_memory_helper_calls
-                || (budget && address == 0x8004 && permission == 3 && !endian && !count)) {
-                printf("  FAIL proved span progress/address=%x budget=%u count=%d\n", address, budget, count);
+                || (budget && address == 0x8080 && permission == 3 && !endian && !count)) {
+                printf("  FAIL proved span progress/op=%08x address=%x budget=%u count=%d\n", code.front(), address, budget, count);
                 return false;
             }
-            if (count) reference->run(count);
+            try { if (count) reference->run(count); }
+            catch (...) {
+                printf("  FAIL proved span reference exception program=%u address=%x budget=%u count=%d PC=%x\n",
+                    unsigned(&code-programs.data()),address,budget,count,reference->get_pc()); return false;
+            }
             for (unsigned r = 0; r < 16; ++r) if (state[r] != reference->get_reg(r)) {
                 printf("  FAIL proved span R%u address=%x permission=%u endian=%u budget=%u count=%d\n",
                     r,address,permission,endian,budget,count); return false;
@@ -2567,6 +2670,105 @@ static bool test_proved_read_spans() {
         }
     }
     printf("  PASS proved_read_spans (%u exact state/memory/budget comparisons)\n", checks);
+#endif
+    return true;
+}
+
+
+static bool test_region_ir() {
+    region_ir graph(0x1000);
+    const auto input = graph.snapshots[0].regs[0];
+    const auto sum = graph.binary(op_i32_add, input, graph.imm(7));
+    if (sum != graph.binary(op_i32_add, input, graph.imm(7))) return false;
+    auto middle = graph.snapshots.back(); middle.regs[2] = sum; middle.count = 1;
+    graph.snapshots.push_back(middle);
+    auto final = middle; final.regs[2] = graph.imm(42); final.count = 2;
+    graph.snapshots.push_back(final);
+    if (!graph.live_for({1,2})[sum] || graph.live_for({2})[sum]) return false;
+    const auto wide = graph.binary(region_ir::pack, graph.imm(0xffffffff), graph.imm(0x80000000));
+    if (graph.nodes[wide].immediate != 0x80000000ffffffffull) return false;
+    auto sx = graph.unary(op_i64_extend_i32_s, input);
+    if (graph.binary(region_ir::pack, graph.unary(region_ir::low,sx), graph.unary(region_ir::high,sx)) != sx) return false;
+    if (!graph.valid()) return false;
+    graph.nodes[sum].type = type_i64;
+    if (graph.valid()) return false;
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_REGION_IR)
+    std::vector<std::vector<std::uint32_t>> bodies;
+    for (unsigned opcode : {0u,1u,2u,3u,4u,5u,12u,13u,14u,15u}) {
+        bodies.push_back({0xe0002001u | (opcode << 21)});
+        bodies.push_back({0xe20020ffu | (opcode << 21) | (4u << 8)});
+        bodies.push_back({0xe3a00102u,0xe3e01000u,0xe0002001u | (opcode << 21)});
+    }
+    for (unsigned shift : {0u,1u,2u,3u}) for (unsigned amount : {0u,1u,31u})
+        bodies.push_back({0xe1a02001u | (shift << 5) | (amount << 7)});
+    for (unsigned form : {0u,2u,4u,6u}) for (bool overlap : {false,true}) {
+        const auto op = 0xe0800090u | (form << 20) | (3u << 16) | ((overlap ? 0u : 2u) << 12) | (1u << 8);
+        bodies.push_back({op, op | (1u << 21), 0xe1a02622u, 0xe1822a03u});
+    }
+    bodies.push_back({0xe0000190u,0xe0223190u}); // MUL then MLA
+    bodies.push_back({0xe3a02000u,0xe3a03000u,0xe0e32190u,0xe0e32190u});
+    bodies.push_back({0xe3a00102u,0xe3e01000u,0xe0c32190u,0xe0e32190u});
+    bodies.push_back({0xe0802001u,0xe0803001u,0xe3a02001u}); // CSE and overwritten value
+    bodies.push_back({0xe58a0000u,0xe59a2000u,0xe58a1000u,0xe59a3000u}); // ordered alias effects
+    // Snapshot assignment is parallel: entry values must survive writes to
+    // their architectural destinations, including the return-address input.
+    bodies.push_back({0xe1a08004u,0xe1a04005u,0xe1a05008u}); // swap untouched entry R4/R5
+    bodies.push_back({0xe1a04005u,0xe1a05008u,0xe1a08009u}); // forward chain
+    bodies.push_back({0xe1a09008u,0xe1a08005u,0xe1a05004u}); // reverse chain
+    bodies.push_back({0xe1a0800eu,0xe1a0e004u,0xe1a04008u,0xe1a0e004u}); // LR round trip
+    const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
+    unsigned comparisons = 0;
+    for (unsigned program = 0; program < bodies.size(); ++program) {
+        std::vector<std::uint32_t> code{0xe59a0000u,0xe59a1004u,0xe59a6008u,0xe59a700cu};
+        code.insert(code.end(),bodies[program].begin(),bodies[program].end());
+        code.insert(code.end(),{0xe58a2010u,0xe58a3014u,0xe12fff1eu});
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr = translate_arm_block(bytes,code.size()*4,0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+        if (!tr.func.outlined_callee || !tr.complete) {
+            printf("  FAIL IR program %u not selected\n",program); return false;
+        }
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned seed = 0; seed < 8; ++seed) for (unsigned flags : {0u,3u,12u,15u})
+        for (unsigned budget = 0; budget <= code.size()+1; ++budget) {
+            test_mem actual;
+            actual.write_code(0x1000,{bytes,bytes+code.size()*4});
+            for (unsigned a=0x8000;a<0x8040;a+=4) actual.write32(a,values[(seed+(a-0x8000)/4)%8]);
+            test_mem reference_memory = actual;
+            r12l1::exclusive_monitor monitor(1); auto reference = make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12); tlb.add(0x8000,actual.data.data()+0x8000,3);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned r=0;r<16;++r) {
+                auto value = r==15 || r==14 ? 0x1000u : r==10 ? 0x8000u : values[(seed+r*3)%8];
+                state[r]=value; reference->set_reg(r,value);
+            }
+            reference->set_cpsr(16|(flags<<28));
+            state[state_offsets::CPSR/4]=16|(flags<<28); state[state_offsets::MODE/4]=16;
+            state[state_offsets::NIRQ/4]=1; state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+code.size()*4;
+            for (unsigned f=0;f<4;++f) state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual; g_count_memory_helpers=true; g_memory_helper_calls=0;
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr; g_count_memory_helpers=false;
+            if (count != int(std::min<std::size_t>(budget,code.size())) || g_memory_helper_calls) {
+                printf("  FAIL IR progress p=%u budget=%u count=%d\n",program,budget,count); return false;
+            }
+            if (count) reference->run(count);
+            for (unsigned r=0;r<16;++r) if(state[r]!=reference->get_reg(r)) {
+                printf("  FAIL IR p=%u seed=%u flags=%u budget=%u R%u %08x vs %08x\n",program,seed,flags,budget,r,state[r],reference->get_reg(r));return false;
+            }
+            for (unsigned f=0;f<5;++f) if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1)) {
+                printf("  FAIL IR flags p=%u budget=%u\n",program,budget);return false;
+            }
+            if(actual.data!=reference_memory.data) {printf("  FAIL IR memory p=%u budget=%u\n",program,budget);return false;}
+            ++comparisons;
+        }
+    }
+    printf("  PASS region_ir (%u exact state/memory/budget comparisons, snapshot liveness/type checks)\n",comparisons);
+#else
+    printf("  PASS region_ir (snapshot liveness/type checks; backend disabled)\n");
 #endif
     return true;
 }
@@ -3745,7 +3947,9 @@ int main(int argc, char **argv) {
     if (test_region_cpsr_callback()) passed++; else failed++;
     if (test_block_transfer_callback_pc()) passed++; else failed++;
     if (test_repeated_read_guards()) passed++; else failed++;
+    if (test_outlined_callee_indices()) passed++; else failed++;
     if (test_proved_read_spans()) passed++; else failed++;
+    if (test_region_ir()) passed++; else failed++;
     if (test_memory_displacements()) passed++; else failed++;
     if (test_deferred_memory_exits()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;

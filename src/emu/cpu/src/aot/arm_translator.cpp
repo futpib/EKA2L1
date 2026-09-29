@@ -20,6 +20,7 @@
 #include <common/code_tracking.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/state_locals.h>
+#include <cpu/aot/region_ir.h>
 
 #include <cstring>
 #include <algorithm>
@@ -69,6 +70,16 @@ namespace eka2l1::arm::aot {
         // Exits reconstruct their exact halves; control/helper boundaries end
         // the representation. Local 1 is the reserved i64 multiply result.
         int wide_lo = -1, wide_hi = -1;
+        // Entry-proved host spans, indexed by the lexical memory instruction.
+        struct proved_access { unsigned host; std::uint32_t offset; };
+        std::map<std::uint32_t, proved_access> proved_accesses;
+        bool has_proved_access() const { return proved_accesses.count(current_pc); }
+        void proved_host() {
+            const auto &access = proved_accesses.at(current_pc);
+            get_local(access.host);
+            if (access.offset) { i32_const(access.offset); op(op_i32_add); }
+            set_local(HOST);
+        }
 
         void materialize_wide() {
             if (wide_lo < 0) return;
@@ -158,6 +169,16 @@ namespace eka2l1::arm::aot {
             if (write) set_local(VALUE);
             set_local(ADDRESS);
             set_local(HOST); // consume state_ptr; HOST is overwritten below
+            if (has_proved_access()) {
+                instruction_may_exit = false;
+                // The entry pass accepted only word accesses and proved both
+                // their permissions and physical non-alias with current code.
+                proved_host(); get_local(HOST);
+                if (write) get_local(VALUE);
+                op(write ? op_i32_store : op_i32_load); leb(b, 2); leb(b, 0);
+                if (write) track_write();
+                return;
+            }
             const auto page_local = write ? WRITE_PAGE : READ_PAGE;
             const auto base_local = write ? WRITE_BASE : READ_BASE;
             // Invalid keys are -1, which no aligned page/alignment mask can
@@ -644,12 +665,12 @@ namespace eka2l1::arm::aot {
         return reachable;
     }
 
-    translate_result translate_arm_block(
+    static translate_result translate_arm_block_impl(
         const std::uint8_t *code,
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof)
     {
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
@@ -702,6 +723,153 @@ namespace eka2l1::arm::aot {
                 std::memcpy(&op, leaf.bytes.data() + n, 4);
                 instructions.push_back({i, leaf.address + static_cast<std::uint32_t>(n), op, true});
             }
+        }
+
+        // A conservative affine pass can prove every ordinary memory span at
+        // entry. No successful instruction in this version can call a helper,
+        // remap memory, or write current compiled code. Failed proofs exit with
+        // zero guest effects into the original compiled function. In particular,
+        // writeback/fault ordering must not change to interpreter-block behavior.
+        struct affine { int root = -1; std::int64_t offset = 0; };
+        struct proof_group { unsigned root; bool write; std::int64_t low, high; unsigned host; };
+        struct proof_access { std::uint32_t pc; unsigned group; std::int64_t offset; };
+        std::vector<proof_group> proof_groups;
+        std::vector<proof_access> proof_accesses;
+        bool prove_memory = allow_memory_proof && w.region && w.defer_memory && cache_registers && !instructions.empty();
+#if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
+        // The guarded IR is an opt-in research path. Version tracking also
+        // keeps its existing compiler until separately validated.
+        prove_memory = false;
+#endif
+        affine values[16];
+        for (int r = 0; r < 15; ++r) values[r] = {r, 0};
+        auto add_access = [&](std::uint32_t pc, affine address, unsigned bytes, bool write) {
+            if (address.root < 0 || address.offset < INT32_MIN
+                || address.offset + bytes > INT32_MAX) return false;
+            unsigned group = 0;
+            while (group < proof_groups.size()
+                && (proof_groups[group].root != unsigned(address.root) || proof_groups[group].write != write)) ++group;
+            if (group == proof_groups.size())
+                proof_groups.push_back({unsigned(address.root), write, address.offset, address.offset + bytes, 0});
+            auto &span = proof_groups[group];
+            span.low = std::min(span.low, address.offset);
+            span.high = std::max(span.high, address.offset + bytes);
+            if (span.high - span.low > 4096) return false;
+            proof_accesses.push_back({pc, group, address.offset});
+            return true;
+        };
+        for (std::size_t n = 0; prove_memory && n < instructions.size(); ++n) {
+            const auto &ins = instructions[n];
+            const auto op = ins.opcode;
+            const bool last = n + 1 == instructions.size();
+            if (ins.leaf || ins.offset != n * 4 || (op >> 28) != 14) { prove_memory = false; break; }
+            const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
+            if ((op & 0x0ffffff0u) == 0x012fff10u) { prove_memory = last; continue; }
+            if (((op >> 26) & 3) == 1) {
+                const bool pre = op & (1u << 24), up = op & (1u << 23);
+                const bool writeback = !pre || (op & (1u << 21)), load = op & (1u << 20);
+                if ((op & ((1u << 25) | (1u << 22))) || rn == 15 || rd == 15
+                    || (!pre && (op & (1u << 21))) || (writeback && rn == rd)) { prove_memory = false; break; }
+                const auto delta = (up ? 1 : -1) * std::int64_t(op & 4095);
+                auto address = values[rn]; if (pre) address.offset += delta;
+                prove_memory = add_access(ins.address, address, 4, !load);
+                if (writeback) values[rn].offset += delta;
+                if (load) values[rd] = {};
+            } else if (((op >> 25) & 7) == 4) {
+                const bool load = op & (1u << 20), writeback = op & (1u << 21);
+                const bool up = op & (1u << 23), pre = op & (1u << 24);
+                const auto list = op & 65535;
+                if (!list || rn == 15 || (op & (1u << 22))
+                    || (writeback && (list & (1u << rn)))
+                    || (load && (list & 32768) && !last)) { prove_memory = false; break; }
+                unsigned count = 0; for (unsigned r = 0; r < 16; ++r) count += (list >> r) & 1;
+                auto address = values[rn];
+                address.offset += up ? (pre ? 4 : 0) : -std::int64_t(count * 4) + (pre ? 0 : 4);
+                prove_memory = add_access(ins.address, address, count * 4, !load);
+                if (writeback) values[rn].offset += (up ? 1 : -1) * std::int64_t(count * 4);
+                if (load) for (unsigned r = 0; r < 16; ++r) if (list & (1u << r)) values[r] = {};
+            } else if ((op & 0x0f8000f0u) == 0x00800090u) {
+                // Long multiply; both halves cease to be entry-relative pointers.
+                if (rn == 15 || rd == 15 || rn == rd) { prove_memory = false; break; }
+                values[rn] = {}; values[rd] = {};
+            } else if ((op & 0x0fc000f0u) == 0x00000090u) {
+                if (rn == 15) { prove_memory = false; break; }
+                values[rn] = {};
+            } else if (((op >> 26) & 3) == 0 && ((op & (1u << 25)) || (op & 0x90) != 0x90)) {
+                const unsigned alu = (op >> 21) & 15;
+                const bool flags = op & (1u << 20);
+                if (alu >= 8 && alu <= 11) { if (!flags) prove_memory = false; continue; }
+                if (rd == 15) { prove_memory = last && !flags && alu == 13; continue; }
+                affine value;
+                if (alu == 13 && !(op & (1u << 25)) && !(op & 0xff0)) value = values[op & 15];
+                if ((alu == 2 || alu == 4) && (op & (1u << 25))) {
+                    const unsigned rotation = ((op >> 8) & 15) * 2;
+                    const std::uint32_t imm = op & 255;
+                    const auto immediate = rotation ? (imm >> rotation) | (imm << (32 - rotation)) : imm;
+                    value = values[rn]; value.offset += (alu == 4 ? 1 : -1) * std::int64_t(immediate);
+                    if (value.offset < INT32_MIN || value.offset > INT32_MAX) value = {};
+                }
+                values[rd] = value;
+            } else prove_memory = false;
+        }
+        prove_memory = prove_memory && proof_accesses.size() >= 4;
+        if (prove_memory) {
+            for (auto &span : proof_groups) span.host = w.cache.first_local++;
+            result.num_locals += static_cast<unsigned>(proof_groups.size());
+            for (const auto &access : proof_accesses) {
+                const auto &span = proof_groups[access.group];
+                w.proved_accesses.emplace(access.pc, arm_emit::proved_access{
+                    span.host, static_cast<std::uint32_t>(access.offset - span.low)});
+            }
+        }
+
+        std::unique_ptr<region_ir> ir;
+        std::vector<bool> ir_live;
+        std::vector<unsigned> ir_locals;
+        if (prove_memory) {
+            ir = std::make_unique<region_ir>(start_address);
+            for (unsigned n = 0; n < instructions.size(); ++n) {
+                if (!ir->append(instructions[n].opcode, instructions[n].address,
+                        n + 1 == instructions.size(), w.proved_accesses)) {
+                    ir.reset(); break;
+                }
+            }
+            if (ir && !ir->valid()) ir.reset();
+            // Do not retain the rejected memory-only optimization for regions
+            // outside the IR's conservative semantic subset.
+            if (!ir) { prove_memory = false; w.proved_accesses.clear(); }
+        }
+        if (ir) {
+            ir_live = ir->live_for({static_cast<unsigned>(ir->snapshots.size() - 1)});
+            ir_locals.resize(ir->nodes.size());
+            unsigned i32_count = 0, i64_count = 0;
+            for (unsigned v = 1; v < ir->nodes.size(); ++v) {
+                const auto &node = ir->nodes[v];
+                if (!ir_live[v] || node.op == region_ir::constant || node.op == region_ir::host
+                    || node.op == region_ir::state || node.type == type_void) continue;
+                if (node.type == type_i32) ir_locals[v] = w.cache.first_local + i32_count++;
+                else ir_locals[v] = i64_count++;
+            }
+            w.cache.first_local += i32_count;
+            result.num_locals += i32_count;
+            result.num_suffix_i64_locals = i64_count;
+            // Cache slots precede the i64 suffix. Reserve every state slot that
+            // proof/lowering/writeback can use before assigning suffix indices.
+            for (unsigned offset = S::AOT_BUDGET; offset <= S::AOT_EXIT; offset += 4) w.cache.local(offset);
+            w.cache.local(S::CPSR);
+            for (const auto &span : proof_groups) w.cache.local(S::reg(span.root));
+            for (unsigned v = 1; v < ir->nodes.size(); ++v)
+                if (ir_live[v] && ir->nodes[v].op == region_ir::state)
+                    w.cache.local(static_cast<unsigned>(ir->nodes[v].immediate));
+            const auto &entry = ir->snapshots.front(); const auto &exit = ir->snapshots.back();
+            for (unsigned r = 0; r < 15; ++r)
+                if (entry.regs[r] != exit.regs[r]) w.cache.local(S::reg(r));
+            for (unsigned f = 0; f < 5; ++f)
+                if (entry.flags[f] != exit.flags[f]) w.cache.local(region_ir::flag_offsets[f]);
+            const auto suffix = w.cache.first_local + static_cast<unsigned>(w.cache.locals.size());
+            for (unsigned v = 1; v < ir->nodes.size(); ++v)
+                if (ir_live[v] && ir->nodes[v].type == type_i64 && ir->nodes[v].op != region_ir::constant)
+                    ir_locals[v] += suffix;
         }
 
         // Collect forward branch targets
@@ -789,6 +957,108 @@ namespace eka2l1::arm::aot {
             w.i32_const(0); w.set_local(arm_emit::COUNT);
             w.i32_const(-1); w.set_local(arm_emit::READ_PAGE);
             w.i32_const(-1); w.set_local(arm_emit::WRITE_PAGE);
+        }
+
+        std::uint32_t proof_call_offset = 0;
+        if (prove_memory) {
+            // The successful IR path cannot call helpers, raise a memory exit,
+            // or cross the scheduler budget. All other cases use the precise
+            // original function, before any guest memory/state effect.
+            w.load_i32(S::AOT_BUDGET); w.i32_const(static_cast<unsigned>(instructions.size()));
+            w.op(op_i32_lt_u); w.load_i32(S::AOT_EXIT); w.op(op_i32_or); w.set_local(TMP4);
+            for (const auto &span : proof_groups) {
+                w.load_reg(span.root); w.i32_const(static_cast<std::int32_t>(span.low));
+                w.op(op_i32_add); w.set_local(arm_emit::ADDRESS);
+                w.block_transfer_host(arm_emit::ADDRESS, static_cast<unsigned>(span.high - span.low), span.write);
+                w.get_local(arm_emit::HOST); w.op(op_i32_eqz);
+                if (span.write) {
+                    // A wrapping physical exclusive end cannot prove non-alias.
+                    w.get_local(arm_emit::HOST);
+                    w.i32_const(static_cast<std::int32_t>(0xffffffffu - unsigned(span.high - span.low)));
+                    w.op(op_i32_gt_u); w.op(op_i32_or);
+                    w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
+                    w.get_local(arm_emit::HOST); w.i32_const(static_cast<std::int32_t>(span.high - span.low)); w.op(op_i32_add);
+                    w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and); w.op(op_i32_or);
+                }
+                w.get_local(TMP4); w.op(op_i32_or); w.set_local(TMP4);
+                w.get_local(arm_emit::HOST); w.set_local(span.host);
+            }
+            w.get_local(TMP4); w.op(op_if); w.op(type_void);
+            w.state_ptr(); w.op(op_call);
+            proof_call_offset = static_cast<std::uint32_t>(result.body.size());
+            result.body.insert(result.body.end(), {0x80,0x80,0x80,0x80,0});
+            // No guest effects preceded this call. Return directly, bypassing
+            // this function's cached-state writeback after the callee updates it.
+            w.op(op_return); w.op(op_end);
+        }
+
+        if (ir) {
+            auto push = [&](unsigned v) {
+                const auto &node = ir->nodes[v];
+                if (node.op == region_ir::constant) {
+                    if (node.type == type_i32) w.i32_const(static_cast<std::int32_t>(node.immediate));
+                    else {
+                        w.op(op_i64_const);
+                        auto n = static_cast<std::int64_t>(node.immediate);
+                        bool more = true;
+                        while (more) {
+                            auto byte = static_cast<std::uint8_t>(n & 127); n >>= 7;
+                            more = !((n == 0 && !(byte & 64)) || (n == -1 && (byte & 64)));
+                            result.body.push_back(byte | (more ? 128 : 0));
+                        }
+                    }
+                } else if (node.op == region_ir::host) w.get_local(static_cast<unsigned>(node.immediate));
+                else if (node.op == region_ir::state) w.load_i32(static_cast<unsigned>(node.immediate));
+                else w.get_local(ir_locals[v]);
+            };
+            for (unsigned v = 1; v < ir->nodes.size(); ++v) {
+                if (!ir_live[v]) continue;
+                const auto &node = ir->nodes[v];
+                if (node.op == region_ir::constant || node.op == region_ir::state || node.op == region_ir::host) continue;
+                push(node.a);
+                switch (node.op) {
+                case region_ir::pack:
+                    w.op(op_i64_extend_i32_u); push(node.b); w.op(op_i64_extend_i32_u);
+                    w.op(op_i64_const); result.body.push_back(32); w.op(op_i64_shl); w.op(op_i64_or); break;
+                case region_ir::low: w.op(op_i32_wrap_i64); break;
+                case region_ir::high:
+                    w.op(op_i64_const); result.body.push_back(32); w.op(op_i64_shr_u); w.op(op_i32_wrap_i64); break;
+                case region_ir::read32:
+                    w.op(op_i32_load); leb(result.body, 2); leb(result.body, static_cast<unsigned>(node.immediate)); break;
+                case region_ir::write32:
+                    push(node.b); w.op(op_i32_store); leb(result.body, 2); leb(result.body, static_cast<unsigned>(node.immediate)); break;
+                default:
+                    if (node.b) push(node.b);
+                    w.op(static_cast<std::uint8_t>(node.op)); break;
+                }
+                if (node.type != type_void) w.set_local(ir_locals[v]);
+            }
+            const auto &entry = ir->snapshots.front(); const auto &exit = ir->snapshots.back();
+            // Snapshot reconstruction is a parallel assignment. State inputs
+            // still refer to the entry cache locals; consume every source
+            // before overwriting any destination (swaps and copy cycles).
+            std::vector<unsigned> destinations;
+            for (unsigned r = 0; r < 16; ++r) if (r == 15 || entry.regs[r] != exit.regs[r]) {
+                push(exit.regs[r]); destinations.push_back(S::reg(r));
+            }
+            for (unsigned f = 0; f < 5; ++f) if (entry.flags[f] != exit.flags[f]) {
+                push(exit.flags[f]); destinations.push_back(region_ir::flag_offsets[f]);
+            }
+            for (auto it = destinations.rbegin(); it != destinations.rend(); ++it)
+                w.store_i32_from_stack(*it, TMP1);
+            w.i32_const(exit.count); w.ret();
+            std::vector<std::uint8_t> prefix; w.cache.transfer(prefix, true);
+            result.outlined_call_offset = proof_call_offset + static_cast<unsigned>(prefix.size()) + 2;
+            auto fallback = translate_arm_block_impl(code, code_size, start_address,
+                siblings, dll_code, bounded, stop_after_store, cache_registers,
+                region, leaves, defer_memory, false);
+            fallback.func.export_name += "_ir_fallback";
+            result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));
+            w.cache.finish(result);
+            tr.entry_supported = tr.complete = true;
+            tr.end_address = start_address + static_cast<unsigned>(instructions.size() * 4);
+            tr.bail_count = 1;
+            return tr;
         }
 
         // block $exit
@@ -1112,11 +1382,15 @@ namespace eka2l1::arm::aot {
                 }
                 w.set_local(TMP1); // base address
 
-                const bool span_fast_path = w.region && count >= 2;
+                const bool proved_span = w.has_proved_access();
+                const bool span_fast_path = w.region && (count >= 2 || proved_span);
                 const bool pc_written_before_span = w.pc_written;
                 if (span_fast_path) {
-                    w.block_transfer_host(TMP1, count * 4, !load);
-                    w.get_local(arm_emit::HOST); w.op(op_if); w.op(type_void);
+                    if (proved_span) w.proved_host();
+                    else {
+                        w.block_transfer_host(TMP1, count * 4, !load);
+                        w.get_local(arm_emit::HOST); w.op(op_if); w.op(type_void);
+                    }
                     unsigned offset = 0;
                     for (int r = 0; r < 16; ++r) {
                         if (!(reglist & (1u << r))) continue;
@@ -1131,18 +1405,18 @@ namespace eka2l1::arm::aot {
                         }
                         offset += 4;
                     }
-                    if (!load) {
+                    if (!load && !proved_span) {
                         w.track_write();
                         w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
                         w.get_local(arm_emit::HOST); w.i32_const(count * 4); w.op(op_i32_add);
                         w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and);
                         w.op(op_if); w.op(type_void); w.store_i32_const(S::AOT_EXIT,1); w.op(op_end);
                     }
-                    w.op(op_else);
+                    if (!proved_span) w.op(op_else);
                     // Code generation visits both arms; a fast LDM PC store
                     // must not suppress PC publication before fallback helpers.
-                    w.pc_written = pc_written_before_span;
-                    if (w.defer_memory && !writeback && !has_pc) {
+                    if (!proved_span) w.pc_written = pc_written_before_span;
+                    if (!proved_span && w.defer_memory && !writeback && !has_pc) {
                         // DynCom publishes block-transfer writeback before its
                         // callbacks, unlike this compiled/native contract. Keep
                         // writeback forms on the existing helper path.
@@ -1153,7 +1427,7 @@ namespace eka2l1::arm::aot {
                     }
                 }
                 int off = 0;
-                for (int r = 0; r < 16; r++) {
+                for (int r = 0; !proved_span && r < 16; r++) {
                     if (!(reglist & (1 << r))) continue;
                     if (load) {
                         w.state_ptr();
@@ -1175,7 +1449,7 @@ namespace eka2l1::arm::aot {
                     off += 4;
                 }
 
-                if (span_fast_path) w.op(op_end);
+                if (span_fast_path && !proved_span) w.op(op_end);
 
                 if (writeback) {
                     w.load_reg(rn);
@@ -1932,11 +2206,33 @@ namespace eka2l1::arm::aot {
         if (bounded) w.bail(start_address + decoded_end_offset, insn_idx);
         else { w.i32_const(num_insns); w.ret(); }
 
+        if (prove_memory) {
+            std::vector<std::uint8_t> prefix;
+            w.cache.transfer(prefix, true);
+            result.outlined_call_offset = proof_call_offset + static_cast<std::uint32_t>(prefix.size())
+                + (w.cache.shared_return ? 2 : 0);
+            auto fallback = translate_arm_block_impl(code, code_size, start_address,
+                siblings, dll_code, bounded, stop_after_store, cache_registers,
+                region, leaves, defer_memory, false);
+            fallback.func.export_name += "_memory_fallback";
+            result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));
+        }
         w.cache.finish(result);
         tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;
         tr.end_address = start_address + decoded_end_offset;
         tr.bail_count = w.bail_count;
         return tr;
+    }
+
+    translate_result translate_arm_block(
+        const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
+        const sibling_map *siblings, const code_window *dll_code, bool bounded,
+        bool stop_after_store, bool cache_registers, bool region,
+        const leaf_resolver *leaves, bool defer_memory)
+    {
+        return translate_arm_block_impl(code, code_size, start_address, siblings,
+            dll_code, bounded, stop_after_store, cache_registers, region, leaves,
+            defer_memory, true);
     }
 }

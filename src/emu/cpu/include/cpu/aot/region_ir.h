@@ -1,0 +1,260 @@
+#pragma once
+
+#include <cpu/aot/thumb_translator.h>
+#include <array>
+#include <map>
+#include <tuple>
+
+namespace eka2l1::arm::aot {
+    // An ordered, typed value graph. Memory effects are never numbered or
+    // reordered. Snapshots are architectural consumers, not incidental stores.
+    // The first lowering uses an entry budget/proof guard and the original
+    // compiler for every short budget or failed proof; only the final snapshot
+    // is therefore live on its successful path. Intermediate snapshots retain
+    // the precise contract for a future lowering with internal exits.
+    struct region_ir {
+        using value = unsigned;
+        enum operation : unsigned { constant = 256, state, host, pack, low, high,
+            read32, write32 };
+        struct node {
+            unsigned op, type;
+            value a = 0, b = 0;
+            std::uint64_t immediate = 0;
+        };
+        struct snapshot {
+            std::array<value, 16> regs;
+            std::array<value, 5> flags; // N Z C V T
+            unsigned count;
+        };
+        static constexpr std::array<unsigned, 5> flag_offsets = {
+            state_offsets::NFLAG, state_offsets::ZFLAG, state_offsets::CFLAG,
+            state_offsets::VFLAG, state_offsets::TFLAG};
+        std::vector<node> nodes{{constant, type_i32}}; // zero is invalid
+        std::vector<snapshot> snapshots;
+        std::vector<value> effects;
+        std::map<std::tuple<unsigned,unsigned,value,value,std::uint64_t>, value> numbers;
+        bool optimize = true;
+
+        explicit region_ir(std::uint32_t pc, bool optimize_ = true) : optimize(optimize_) {
+            snapshot entry{};
+            for (unsigned r = 0; r < 15; ++r) entry.regs[r] = make(state, type_i32, 0, 0, state_offsets::reg(r));
+            entry.regs[15] = imm(pc);
+            for (unsigned f = 0; f < 5; ++f) entry.flags[f] = make(state, type_i32, 0, 0, flag_offsets[f]);
+            snapshots.push_back(entry);
+        }
+        value make(unsigned op, unsigned type, value a = 0, value b = 0, std::uint64_t immediate = 0) {
+            const auto key = std::make_tuple(op, type, a, b, immediate);
+            const bool pure = op != read32 && op != write32;
+            if (optimize && pure) {
+                auto it = numbers.find(key);
+                if (it != numbers.end()) return it->second;
+            }
+            auto id = static_cast<value>(nodes.size());
+            nodes.push_back({op, type, a, b, immediate});
+            if (pure) numbers.emplace(key, id); else effects.push_back(id);
+            return id;
+        }
+        value imm(std::uint32_t n) { return make(constant, type_i32, 0, 0, n); }
+        bool is_constant(value v, std::uint64_t n) const {
+            return nodes[v].op == constant && nodes[v].immediate == n;
+        }
+        value unary(unsigned op, value a) {
+            const unsigned type = (op == op_i64_extend_i32_s || op == op_i64_extend_i32_u) ? type_i64 : type_i32;
+            if (optimize && nodes[a].op == constant) {
+                auto n = nodes[a].immediate;
+                if (op == op_i64_extend_i32_s) n = static_cast<std::uint64_t>(static_cast<std::int64_t>(static_cast<std::int32_t>(n)));
+                else if (op == op_i64_extend_i32_u || op == low) n = static_cast<std::uint32_t>(n);
+                else if (op == high) n >>= 32;
+                else return make(op, type, a);
+                return make(constant, type, 0, 0, n);
+            }
+            if (optimize && nodes[a].op == pack) {
+                if (op == low) return nodes[a].a;
+                if (op == high) return nodes[a].b;
+            }
+            return make(op, type, a);
+        }
+        value binary(unsigned op, value a, value b) {
+            const unsigned type = (op == pack || op == op_i64_add || op == op_i64_mul) ? type_i64 : type_i32;
+            if (optimize) {
+                if (op == pack && nodes[a].op == low && nodes[b].op == high && nodes[a].a == nodes[b].a)
+                    return nodes[a].a;
+                if ((op == op_i32_add || op == op_i32_or || op == op_i32_xor || op == op_i64_add) && is_constant(a, 0)) return b;
+                if ((op == op_i32_add || op == op_i32_sub || op == op_i32_or || op == op_i32_xor || op == op_i64_add) && is_constant(b, 0)) return a;
+                if ((op == op_i32_and || op == op_i32_or) && a == b) return a;
+                if ((op == op_i32_xor || op == op_i32_sub) && a == b) return imm(0);
+                if (nodes[a].op == constant && nodes[b].op == constant) {
+                    const auto x = nodes[a].immediate, y = nodes[b].immediate;
+                    std::uint64_t n = 0; bool folded = true;
+                    switch (op) {
+                    case pack: n = std::uint32_t(x) | (std::uint64_t(std::uint32_t(y)) << 32); break;
+                    case op_i32_add: case op_i64_add: n = x + y; break;
+                    case op_i32_sub: n = x - y; break;
+                    case op_i32_mul: case op_i64_mul: n = x * y; break;
+                    case op_i32_and: n = x & y; break;
+                    case op_i32_or: n = x | y; break;
+                    case op_i32_xor: n = x ^ y; break;
+                    case op_i32_shl: n = std::uint32_t(x) << (y & 31); break;
+                    case op_i32_shr_u: n = std::uint32_t(x) >> (y & 31); break;
+                    case op_i32_shr_s: n = std::int32_t(x) >> (y & 31); break;
+                    case op_i32_rotr: { auto s = y & 31; n = s ? (std::uint32_t(x) >> s) | (std::uint32_t(x) << (32 - s)) : std::uint32_t(x); break; }
+                    default: folded = false;
+                    }
+                    if (folded) return make(constant, type, 0, 0, type == type_i32 ? std::uint32_t(n) : n);
+                }
+            }
+            return make(op, type, a, b);
+        }
+
+        // Decode only ordinary AL integer operations. The caller separately
+        // proves all memory spans. A missing proof or unsupported encoding
+        // rejects the entire graph before any generated guest effect.
+        template <typename AccessMap>
+        bool append(std::uint32_t op, std::uint32_t pc, bool last, const AccessMap &accesses) {
+            if ((op >> 28) != 14) return false;
+            auto next = snapshots.back();
+            auto reg = [&](unsigned r) { return r == 15 ? imm(pc + 8) : next.regs[r]; };
+            auto alu = [&](unsigned code, value a, value b) { return binary(code, a, b); };
+            unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15, rm = op & 15, rs = (op >> 8) & 15;
+            bool writes_pc = false;
+            auto memory = [&](bool load, unsigned r, unsigned offset) {
+                const auto it = accesses.find(pc);
+                if (it == accesses.end()) return false;
+                auto address = make(host, type_i32, 0, 0, it->second.host);
+                const unsigned displacement = it->second.offset + offset;
+                if (load) next.regs[r] = make(read32, type_i32, address, 0, displacement);
+                else make(write32, type_void, address, reg(r), displacement);
+                return true;
+            };
+            if ((op & 0x0ffffff0u) == 0x012fff10u) {
+                if (!last || rm == 15) return false;
+                next.regs[15] = reg(rm); next.flags[4] = alu(op_i32_and, next.regs[15], imm(1)); writes_pc = true;
+            } else if (((op >> 26) & 3) == 1) {
+                const bool pre = op & (1u << 24), up = op & (1u << 23), load = op & (1u << 20);
+                const bool wb = !pre || (op & (1u << 21));
+                if ((op & ((1u << 25) | (1u << 22))) || rn == 15 || rd == 15
+                    || (!pre && (op & (1u << 21))) || (wb && rn == rd)) return false;
+                const auto base = reg(rn);
+                if (!memory(load, rd, 0)) return false;
+                if (wb) next.regs[rn] = alu(up ? op_i32_add : op_i32_sub, base, imm(op & 4095));
+            } else if (((op >> 25) & 7) == 4) {
+                const bool load = op & (1u << 20), wb = op & (1u << 21), up = op & (1u << 23);
+                const auto list = op & 65535;
+                if (!list || rn == 15 || (op & (1u << 22)) || (wb && (list & (1u << rn)))
+                    || (load && (list & 32768) && !last)) return false;
+                const auto base = reg(rn); unsigned offset = 0;
+                for (unsigned r = 0; r < 16; ++r) if (list & (1u << r)) {
+                    if (!memory(load, r, offset)) return false;
+                    offset += 4;
+                }
+                if (wb) next.regs[rn] = alu(up ? op_i32_add : op_i32_sub, base, imm(offset));
+                if (load && (list & 32768)) { next.flags[4] = alu(op_i32_and, next.regs[15], imm(1)); writes_pc = true; }
+            } else if ((op & 0x0f8000f0u) == 0x00800090u) {
+                if ((op & (1u << 20)) || rn == 15 || rd == 15 || rn == rd || rm == 15 || rs == 15) return false;
+                const auto extend = op & (1u << 22) ? op_i64_extend_i32_s : op_i64_extend_i32_u;
+                auto product = alu(op_i64_mul, unary(extend, reg(rm)), unary(extend, reg(rs)));
+                if (op & (1u << 21)) product = alu(op_i64_add, product, alu(pack, reg(rd), reg(rn)));
+                next.regs[rd] = unary(low, product); next.regs[rn] = unary(high, product);
+            } else if ((op & 0x0fc000f0u) == 0x00000090u) {
+                if ((op & (1u << 20)) || rn == 15 || rm == 15 || rs == 15 || ((op & (1u << 21)) && rd == 15)) return false;
+                auto product = alu(op_i32_mul, reg(rm), reg(rs));
+                if (op & (1u << 21)) product = alu(op_i32_add, product, reg(rd));
+                next.regs[rn] = product;
+            } else if (((op >> 26) & 3) == 0) {
+                // Exclude miscellaneous, PSR, flag-setting, register-controlled
+                // shift, exclusive and halfword encodings before broad ALU use.
+                const unsigned code = (op >> 21) & 15;
+                if ((op & (1u << 20)) || (code >= 6 && code <= 11)
+                    || (rd == 15 && (!last || code != 13))) return false;
+                value operand;
+                if (op & (1u << 25)) {
+                    unsigned rot = ((op >> 8) & 15) * 2, byte = op & 255;
+                    operand = imm(rot ? (byte >> rot) | (byte << (32 - rot)) : byte);
+                } else {
+                    if (op & (1u << 4)) return false;
+                    operand = reg(rm);
+                    unsigned shift = (op >> 5) & 3, amount = (op >> 7) & 31;
+                    if (shift == 0 && amount) operand = alu(op_i32_shl, operand, imm(amount));
+                    if (shift == 1) operand = amount ? alu(op_i32_shr_u, operand, imm(amount)) : imm(0);
+                    if (shift == 2) operand = alu(op_i32_shr_s, operand, imm(amount ? amount : 31));
+                    if (shift == 3) {
+                        if (amount) operand = alu(op_i32_rotr, operand, imm(amount));
+                        else operand = alu(op_i32_or, alu(op_i32_shr_u, operand, imm(1)), alu(op_i32_shl, next.flags[2], imm(31)));
+                    }
+                }
+                value result;
+                switch (code) {
+                case 0: result = alu(op_i32_and, reg(rn), operand); break;
+                case 1: result = alu(op_i32_xor, reg(rn), operand); break;
+                case 2: result = alu(op_i32_sub, reg(rn), operand); break;
+                case 3: result = alu(op_i32_sub, operand, reg(rn)); break;
+                case 4: result = alu(op_i32_add, reg(rn), operand); break;
+                case 5: result = alu(op_i32_add, alu(op_i32_add, reg(rn), operand), next.flags[2]); break;
+                case 12: result = alu(op_i32_or, reg(rn), operand); break;
+                case 13: result = operand; break;
+                case 14: result = alu(op_i32_and, reg(rn), alu(op_i32_xor, operand, imm(0xffffffff))); break;
+                case 15: result = alu(op_i32_xor, operand, imm(0xffffffff)); break;
+                default: return false;
+                }
+                next.regs[rd] = result; writes_pc = rd == 15;
+            } else return false;
+            if (!writes_pc) next.regs[15] = imm(pc + 4);
+            ++next.count; snapshots.push_back(next); return true;
+        }
+
+        bool valid() const {
+            for (unsigned v = 1; v < nodes.size(); ++v) {
+                const auto &n = nodes[v];
+                if (n.a >= v || n.b >= v) return false;
+                auto unary_type = [&](unsigned input, unsigned output) {
+                    return n.a && !n.b && nodes[n.a].type == input && n.type == output;
+                };
+                auto binary_type = [&](unsigned input, unsigned output) {
+                    return n.a && n.b && nodes[n.a].type == input && nodes[n.b].type == input && n.type == output;
+                };
+                switch (n.op) {
+                case constant: if (n.a || n.b || (n.type != type_i32 && n.type != type_i64)) return false; break;
+                case state: case host: if (n.a || n.b || n.type != type_i32) return false; break;
+                case low: case high: if (!unary_type(type_i64, type_i32)) return false; break;
+                case op_i64_extend_i32_s: case op_i64_extend_i32_u: if (!unary_type(type_i32, type_i64)) return false; break;
+                case pack: if (!binary_type(type_i32, type_i64)) return false; break;
+                case op_i64_add: case op_i64_mul: if (!binary_type(type_i64, type_i64)) return false; break;
+                case read32: if (!unary_type(type_i32, type_i32)) return false; break;
+                case write32: if (!binary_type(type_i32, type_void)) return false; break;
+                case op_i32_add: case op_i32_sub: case op_i32_mul: case op_i32_and:
+                case op_i32_or: case op_i32_xor: case op_i32_shl: case op_i32_shr_s:
+                case op_i32_shr_u: case op_i32_rotr:
+                    if (!binary_type(type_i32, type_i32)) return false; break;
+                default: return false;
+                }
+            }
+            for (const auto &s : snapshots) {
+                for (auto v : s.regs) if (!v || v >= nodes.size() || nodes[v].type != type_i32) return false;
+                for (auto v : s.flags) if (!v || v >= nodes.size() || nodes[v].type != type_i32) return false;
+            }
+            unsigned previous = 0;
+            for (auto v : effects) {
+                if (v <= previous || v >= nodes.size() || (nodes[v].op != read32 && nodes[v].op != write32)) return false;
+                previous = v;
+            }
+            return true;
+        }
+
+        std::vector<bool> live_for(const std::vector<unsigned> &exits) const {
+            std::vector<bool> live(nodes.size());
+            auto mark = [&](auto &&self, value v) -> void {
+                if (!v || live[v]) return;
+                live[v] = true; self(self, nodes[v].a); self(self, nodes[v].b);
+            };
+            for (auto v : effects) mark(mark, v);
+            for (auto e : exits) {
+                const auto &snapshot = snapshots.at(e);
+                for (unsigned r = 0; r < 16; ++r)
+                    if (r == 15 || snapshot.regs[r] != snapshots.front().regs[r]) mark(mark, snapshot.regs[r]);
+                for (unsigned f = 0; f < 5; ++f)
+                    if (snapshot.flags[f] != snapshots.front().flags[f]) mark(mark, snapshot.flags[f]);
+            }
+            return live;
+        }
+    };
+}

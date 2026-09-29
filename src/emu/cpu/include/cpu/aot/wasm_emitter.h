@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -144,6 +145,12 @@ namespace eka2l1::arm::aot {
         std::uint32_t num_f32_locals = 0;     // f32 locals (after i32 locals)
         std::uint32_t num_f64_locals = 0;     // f64 locals (after f32 locals)
         std::uint32_t num_prefix_i64_locals = 0; // before i32 scratch/cache locals
+        std::uint32_t num_suffix_i64_locals = 0; // typed IR values after all existing locals
+        // Optional private cold callee. The call operand at this body offset
+        // reserves five unsigned-LEB bytes; the module builder supplies its
+        // final index after all public functions, preserving sibling indices.
+        std::shared_ptr<wasm_func_def> outlined_callee;
+        std::uint32_t outlined_call_offset = 0;
     };
 
     // Describes an imported function.

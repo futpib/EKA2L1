@@ -90,7 +90,7 @@ add_assets(ekatests "${CMAKE_CURRENT_SOURCE_DIR}/epoc/services/internet/tlsasset
 # Optional offline compiler comparison; never linked into the emulator.
 if (TARGET dynarmic AND NOT EMSCRIPTEN)
     add_executable(eka_compiler_probe EXCLUDE_FROM_ALL benchmark/compiler_probe.cpp)
-    target_link_libraries(eka_compiler_probe PRIVATE cpu dynarmic merry::mcl)
+    target_link_libraries(eka_compiler_probe PRIVATE cpu dynarmic merry::mcl capstone)
 endif()
 
 if (TARGET dynarmic AND NOT EMSCRIPTEN)

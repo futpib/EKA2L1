@@ -1,8 +1,9 @@
 # Guarded value IR: real kernel gain, no whole-game promotion
 
-The first typed-IR prototype passes its correctness gates, but its production
-Snakes timings do not establish a gain. Preserve it as an experimental compiler
-path, disabled by default; do not replace the served build.
+The first typed-IR prototype passed its original correctness matrix, but later
+copy-cycle tests exposed a snapshot reconstruction bug (see below). Its production
+Snakes timings also do not establish a gain. Preserve it as an experimental
+compiler path, disabled by default; do not replace the served build.
 
 | Symmetric serial batch | Corrected baseline | IR | Served |
 | --- | ---: | ---: | ---: |
@@ -69,8 +70,39 @@ the IR run and 0.375s in the fixed run, under 1% and about 2.3% of their sampled
 worker time. Other major costs remain interpreter execution, code-cache lookup,
 exact code-byte comparison and other generated regions. Overall run speeds
 vary, so these profiles do not establish an independent throughput improvement.
-The short-prefix isolated fixture is not assumed to be the entire runtime
-region at that entry; module capture is checking its actual extent and selection.
+Module capture confirms that the short-prefix isolated fixture is not the whole
+runtime region at that entry. The actual function at 0x70013edc has a 19,858-byte
+body and no IR fallback; the other busy region at 0x70014224 has a 12,089-byte
+body and no IR fallback. Both contain control flow, inlined leaves and memory
+forms excluded from this first IR. The math region is selected (1,674-byte body).
+The capture tool now selects the busiest sampled generated-code worker rather
+than assuming a fixed worker number. Offline extraction with a 512-byte window
+and leaf resolution reproduces both complete captured function bodies byte for
+byte, including local declarations and the terminal end byte.
+
+## Snapshot copy-cycle correction
+
+A fresh review found that final register assignments could overwrite an entry
+state local still needed by a later assignment. The new R4/R5 swap regression
+fails on the original prototype: program 55, seed 0, flags 0, budget 10 returns
+R5=0x12345678 instead of 0x80000000. This is a real prototype bug; the earlier
+matrix/replay successes do not establish correctness for untested copy cycles.
+
+The corrected lowering pushes every final source value before writing any
+architectural destination, then consumes those values in reverse order. Tests
+also cover forward/reverse copy chains and an LR round trip. The historical
+timings above describe the original artifact, not this corrected binary.
+The corrected opt-in archive `region-ir-fixed-candidate` passes all 140 tests,
+including 20,960 IR comparisons, all 4,368 rebuilt fault comparisons, three
+native targets, seven frontend checks and exact 1,600-image/guest-record/audio
+replay. Its WASM SHA-256 is
+`9f5f8103859b8cd827eb1d9faf2df54ef52b51e31e67cb55df6a5e818f5cb16d`.
+No performance measurement is attributed to this corrected binary.
+
+The default-disabled build separately passes all 140 tests and the 4,272
+non-IR-specific native fault comparisons. IR-specific selection tests are
+deliberately disabled there; a pass is not claimed for an inactive backend.
+Both configurations and all correction evidence are embedded in the JSON.
 
 ## Artifacts and reproduction
 

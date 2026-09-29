@@ -61,7 +61,8 @@ int main(int argc, char **argv){
     eka2l1::log::filterings->reset_all(spdlog::level::off);
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
-    const bool region_block_spans=argc==2 && std::string(argv[1])=="--region-block-spans";
+    const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
+    const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
     const bool region_spans=region_block_spans || (argc==2 && (std::string(argv[1])=="--region-spans" || std::string(argv[1])=="--region-spans-interpreter"));
     const bool three_instructions=read_spans || wide_snapshots;
     const unsigned instruction_count=region_spans?5:three_instructions?3:2;
@@ -94,7 +95,7 @@ int main(int argc, char **argv){
         Fixture f{cpu, std::vector<unsigned char>(65536),address,policy,region_spans?3u:read_spans?1u:partial};f.install();
         for(unsigned i=0x8000;i<0xa000;++i)f.memory[i]=(i*37+11)&255;
         // MOVS precedes the access, so exception observers see live flags/registers.
-        unsigned program[]={0xe3b02007,wide_snapshots?0xe0c54796u:region_spans?0xe5910000u:op,
+        unsigned program[]={region_ir?0xe3a02007u:0xe3b02007u,wide_snapshots?0xe0c54796u:region_spans?0xe5910000u:op,
             wide_snapshots?op:(read_spans||region_spans)?0xe5913004u:0xeafffffeu,
             0xe5914008u,region_block_spans?op:0xe591500cu};
         std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
@@ -112,6 +113,9 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n)
             functions.push_back(aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,nullptr,deferred).func);
+        if(region_ir && !functions.front().outlined_callee) {
+            std::cerr << "IR fault fixture was not compiled through guarded IR\n"; return 4;
+        }
         auto bytes=aot::build_wasm_module(functions,{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         aot::stage_aot_module(std::move(bytes),"hot-rom");aot::instantiate_staged_modules();aot::chaining_enabled=true;
         }
