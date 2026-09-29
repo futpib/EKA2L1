@@ -2048,6 +2048,16 @@ static bool test_bounded_execution() {
         return program{true, bytes};
     };
     std::vector<program> programs = {
+        // Natural loops: entry/interior headers, forward exits, multiple
+        // backedges, and shapes requiring the general entry dispatcher.
+        arm({0xe2822001,0xe2833001,0xe2500001,0x1afffffc,0xe2844001}),
+        arm({0xe3500002,0x0a000002,0xe2833001,0xe2500001,0x1afffffa,0xe2844001}),
+        arm({0xe2822001,0xe2833001,0xe3500002,0x0a000001,0xe2500001,0x1afffffa,0xe2844001}),
+        arm({0xe2833001,0xe3500002,0x0afffffc,0xe2500001,0x1afffffa,0xe2844001}),
+        arm({0xe3500002,0x0a000000,0xe2833001,0xe2500001,0x1afffffa,0xe2844001}),
+        arm({0xe2822001,0xe2833001,0xe3500002,0x0afffffb,0xe2500001,0x1afffffa,0xe2844001}),
+        arm({0xe3500002,0x0a000000,0xe2822001,0xe2833001,0xe2500001,0x1afffffc,0xe2844001}),
+        arm({0xe2822001,0xe5913000,0xe2500001,0x1afffffc,0xe2844001}),
         // Alternate entries must not reuse a lexical predecessor's wide result.
         arm({0xe3a04007,0xe3500000,0x0a000000,0xe0e54396,0xe0e54c97}),
         arm({0xe3a00003,0xe0e54396,0xe0e54c97,0xe2844001,0xe2500001,0x1afffffb}),
@@ -2246,6 +2256,44 @@ static bool test_bounded_execution() {
     }
     printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*784);
 #endif
+    return true;
+}
+
+// Pending interrupts must exit at a taken loop backedge with precise state.
+static bool test_region_loop_interrupts() {
+#ifdef __EMSCRIPTEN__
+    const std::vector<std::vector<std::uint32_t>> programs = {
+        {0xe2800001,0xeafffffd},
+        {0xe2811001,0xe2800001,0xeafffffd},
+        {0xeafffffe}
+    };
+    for (unsigned kind = 0; kind < programs.size(); ++kind) {
+        const auto &words = programs[kind];
+        auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words.data()),
+            words.size()*4, 0x1000, nullptr, nullptr, true, true, true, true);
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
+            {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned masked : {0u, 0x80u}) for (unsigned budget : {0u,1u,2u,3u,4u,17u,32u}) {
+            alignas(8) std::uint32_t state[256]{};
+            state[15] = 0x1000;
+            state[state_offsets::CPSR/4] = 16 | masked;
+            state[state_offsets::AOT_BUDGET/4] = budget;
+            const unsigned expected = masked ? budget : std::min(budget, unsigned(words.size()));
+            const unsigned r0 = kind == 0 ? (expected+1)/2 : kind == 1 ? expected/2 : 0;
+            const unsigned r1 = kind == 1 && expected ? 1 : 0;
+            const unsigned pc = kind == 0 ? 0x1000 + 4*(expected%2)
+                : kind == 1 && expected ? 0x1004 + 4*((expected-1)%2) : 0x1000;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            if (count != expected || state[0] != r0 || state[1] != r1 || state[15] != pc) {
+                printf("  FAIL region_loop_interrupts kind=%u mask=%u budget=%u count=%d pc=%x\n",
+                    kind,masked,budget,count,state[15]); return false;
+            }
+        }
+    }
+#endif
+    printf("  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n");
     return true;
 }
 
@@ -3541,6 +3589,7 @@ int main(int argc, char **argv) {
     if (test_memory_displacements()) passed++; else failed++;
     if (test_deferred_memory_exits()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;
+    if (test_region_loop_interrupts()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
     if (test_conditional_alu_select()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
