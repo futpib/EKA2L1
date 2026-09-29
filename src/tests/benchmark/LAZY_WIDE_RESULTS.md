@@ -25,7 +25,7 @@ Together these rotate every build through every position. They reduce order
 confounding without eliminating host variation. Warmup and measurement are
 serial, with no owned build/test/profile job overlapping performance. Shared
 audio and physical GPU; no capture, sampling or detailed counters. Each run
-executes 3,975,618,624 instructions and 676 presentations in guest seconds78–96.
+executes 3,975,618,624 instructions and 676 presentations in guest seconds 78–96.
 Every timing, including the slow controls and candidate, is retained in evidence.
 
 ## Representation and exact state
@@ -47,23 +47,23 @@ This is a small value-representation prototype with exact exit snapshots, not a
 complete SSA compiler. Unlike WIDE_REUSE_RESULTS.md, it does not split every
 result immediately. There is no guest-address whitelist.
 
-The extracted long math kernel grows from12,699 to12,794 WASM bytes because cold
-exits contain reconstruction; the short prefix remains3,432 bytes. These are
+The extracted long math kernel grows from 12,699 to 12,794 WASM bytes because cold
+exits contain reconstruction; the short prefix remains 3,432 bytes. These are
 static WASM sizes, not V8 native sizes, coverage percentages or speed evidence.
 
 ## Verification and provenance
 
-All138 WASM tests pass, including92,160 long multiply comparisons and27,648
+All 138 WASM tests pass, including 92,160 long multiply comparisons and 27,648
 expanded memory/dataflow/budget cases. Three native CTest targets and seven
-frontend checks pass. All four original explicitly rebuilt672-case fault modes,
-48 read-span runner cases and672 new wide-snapshot runner cases match native.
+frontend checks pass. All four original explicitly rebuilt 672-case fault modes,
+48 read-span runner cases and 672 new wide-snapshot runner cases match native.
 The new mode executes MOVS/SMULL/access through real runners and compares
 callback-visible registers/flags, event order, exact instruction count and memory.
 
-Checked native replay matches all1,600 images, guest records and4,919,249 stereo
+Checked native replay matches all 1,600 images, guest records and 4,919,249 stereo
 PCM frames. The known native-identical movement-heuristic failure remains and is
 not called a pass. Regression additions are separately committed as d725441ce.
-Archive lazy-wide-candidate was built from3c3cefc8b plus its saved patch; source,
+Archive lazy-wide-candidate was built from 3c3cefc8b plus its saved patch; source,
 loader, WASM, test and explicitly built probe hashes are recorded in evidence.
 WASM SHA-256: a13eaca4292c360fbecf6785018924dfc18eedec0a077b54673ea0fb1e8cdc23.
 Every timing report's hash was checked against its archive when assembling the
