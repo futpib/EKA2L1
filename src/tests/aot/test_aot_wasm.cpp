@@ -2058,6 +2058,12 @@ static bool test_bounded_execution() {
         arm({0xe2822001,0xe2833001,0xe3500002,0x0afffffb,0xe2500001,0x1afffffa,0xe2844001}),
         arm({0xe3500002,0x0a000000,0xe2822001,0xe2833001,0xe2500001,0x1afffffc,0xe2844001}),
         arm({0xe2822001,0xe5913000,0xe2500001,0x1afffffc,0xe2844001}),
+        // A join, intervening instruction, or conditional CMP must invalidate
+        // a lexical compare-operand shortcut.
+        arm({0xe3500000,0x0a000000,0xe1500001,0xa3a02001}),
+        arm({0xe1500001,0xa3a02001,0xe2500001,0x1afffffc}),
+        arm({0x11500001,0xa3a02001,0xe2a33000}),
+        arm({0xe1500001,0xe3a00007,0xc3a02001}),
         // Alternate entries must not reuse a lexical predecessor's wide result.
         arm({0xe3a04007,0xe3500000,0x0a000000,0xe0e54396,0xe0e54c97}),
         arm({0xe3a00003,0xe0e54396,0xe0e54c97,0xe2844001,0xe2500001,0x1afffffb}),
@@ -2653,6 +2659,67 @@ static bool test_conditional_alu_select() {
         }
     }
     printf("  PASS conditional_alu_select (%u exact budget/state comparisons)\n", comparisons);
+#endif
+    return true;
+}
+
+// Preserve flags and exact exits when CMP feeds a subsequent condition.
+static bool test_compare_conditions() {
+#ifdef __EMSCRIPTEN__
+    const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
+    unsigned comparisons = 0;
+    for (unsigned variant = 0; variant < 4; ++variant)
+    for (unsigned cond = 0; cond < 14; ++cond)
+    for (unsigned form : {0x03a02001u, 0x02800001u, 0x0a000000u}) {
+        const std::uint32_t code[] = {0xe1500001u, (cond << 28) | form, 0xe2a33000u, 0xe2844001u};
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code);
+        auto tr = translate_arm_block(bytes, sizeof(code), 0x1000, nullptr, nullptr,
+            true, true, variant & 1, variant >= 2);
+        if (!tr.entry_supported || !tr.complete) return false;
+        auto module = build_wasm_module({tr.func});
+        for (unsigned left : values) for (unsigned right : values)
+        for (unsigned budget : {0u,1u,2u,3u,4u,7u}) {
+            const unsigned flags = 10;
+            test_mem memory;
+            memory.write_code(0x1000, {bytes, bytes + sizeof(code)});
+            r12l1::exclusive_monitor monitor(1);
+            auto cpu = make_cpu(memory, monitor);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned reg = 0; reg < 16; ++reg) {
+                unsigned value = reg == 15 ? 0x1000 : reg == 0 ? left : reg == 1 ? right : 0x12340000u + reg;
+                state[state_offsets::reg(reg) / 4] = value;
+                cpu->set_reg(reg, value);
+            }
+            cpu->set_cpsr(0x10 | (flags << 28));
+            state[state_offsets::CPSR / 4] = cpu->get_cpsr();
+            state[state_offsets::MODE / 4] = 16;
+            state[state_offsets::NIRQ / 4] = 1;
+            for (auto pair : {std::pair<unsigned, unsigned>{state_offsets::NFLAG, 3},
+                    {state_offsets::ZFLAG, 2}, {state_offsets::CFLAG, 1}, {state_offsets::VFLAG, 0}})
+                state[pair.first / 4] = (flags >> pair.second) & 1;
+            state[state_offsets::AOT_BUDGET / 4] = budget;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            if (count < 0 || count > static_cast<int>(budget) || (budget && !count)) {
+                printf("  FAIL compare condition budget %u count %d\n", budget, count); return false;
+            }
+            if (count) cpu->run(count);
+            for (unsigned reg = 0; reg < 16; ++reg)
+                if (state[state_offsets::reg(reg) / 4] != cpu->get_reg(reg)) {
+                    printf("  FAIL compare condition %08X variant=%u flags=%u budget=%u R%u\n",
+                        code[0], variant, flags, budget, reg); return false;
+                }
+            for (auto pair : {std::pair<unsigned, unsigned>{state_offsets::NFLAG, 31},
+                    {state_offsets::ZFLAG, 30}, {state_offsets::CFLAG, 29},
+                    {state_offsets::VFLAG, 28}, {state_offsets::TFLAG, 5}})
+                if (state[pair.first / 4] != ((cpu->get_cpsr() >> pair.second) & 1)) {
+                    printf("  FAIL compare condition flags %08X variant=%u flags=%u budget=%u\n",
+                        code[0], variant, flags, budget); return false;
+                }
+            ++comparisons;
+        }
+    }
+    printf("  PASS compare_conditions (%u exact budget/state comparisons)\n", comparisons);
 #endif
     return true;
 }
@@ -3592,6 +3659,7 @@ int main(int argc, char **argv) {
     if (test_region_loop_interrupts()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
     if (test_conditional_alu_select()) passed++; else failed++;
+    if (test_compare_conditions()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
