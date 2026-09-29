@@ -2048,6 +2048,9 @@ static bool test_bounded_execution() {
         return program{true, bytes};
     };
     std::vector<program> programs = {
+        // Alternate entries must not reuse a lexical predecessor's wide result.
+        arm({0xe3a04007,0xe3500000,0x0a000000,0xe0e54396,0xe0e54c97}),
+        arm({0xe3a00003,0xe0e54396,0xe0e54c97,0xe2844001,0xe2500001,0x1afffffb}),
         arm({0xe5912000,0xe5913004,0xe5914008,0xe591500c}), // unchanged read span
         arm({0xe5912000,0xe5913004,0xe5914008,0xe2811004,0xe591500c}), // clobbered base
         arm({0xe5912000,0xe5913004,0xe5914008,0x02811004,0xe591500c}), // conditional clobber
@@ -2616,13 +2619,16 @@ static bool test_arm_long_multiply() {
     }}; // lo, hi, rm, rs (including both destinations overlapping inputs)
     const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
     unsigned comparisons = 0;
+    for (bool consecutive : {false,true})
     for (bool cached : {false,true}) for (unsigned form = 0; form < 8; ++form)
     for (const auto &r : registers) for (unsigned cond : {0u,1u,14u}) {
         const unsigned instruction = (cond << 28) | 0x00800090u | (form << 20)
             | (r[1]<<16) | (r[0]<<12) | (r[3]<<8) | r[2];
-        const std::uint32_t code[] = {instruction, 0x02866001u, instruction}; // ADDEQ between products
+        const std::uint32_t code[] = {
+            consecutive ? instruction & ~(1u << 21) : instruction,
+            consecutive ? instruction : 0x02866001u, instruction};
         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code);
-        auto tr = translate_arm_block(bytes, sizeof(code), 0x1000, nullptr, nullptr, true, true, cached);
+        auto tr = translate_arm_block(bytes, sizeof(code), 0x1000, nullptr, nullptr, true, true, cached, consecutive);
         if (!tr.entry_supported || !tr.complete) { printf("  FAIL long multiply not compiled %08X\n",instruction); return false; }
         auto module = build_wasm_module({tr.func});
         for (unsigned seed = 0; seed < 8; ++seed) for (unsigned flags : {0u,3u,12u,15u})

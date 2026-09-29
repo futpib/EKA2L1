@@ -1,0 +1,131 @@
+{
+  "candidate": "reuse full i64 result for adjacent long multiply accumulates",
+  "decision": "rejected: first batch favorable, reordered confirmation regresses",
+  "runtime_base": "2ed5c6383",
+  "patch": "/home/claude/.scratch/eka-benchmark/wide-reuse-candidate.patch",
+  "wasm_sha256": "565faa92147d6e9d6ba8392ba71b6f2b9518705596d5f526edbf59a0ca01e745",
+  "runs": [
+    {
+      "batch": "a",
+      "run": "flag-1",
+      "build": "flag-stack-candidate",
+      "host_seconds": 13.4419,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "wide-1",
+      "build": "wide-reuse-candidate",
+      "host_seconds": 13.559,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "served-1",
+      "build": "addv-candidate",
+      "host_seconds": 14.1765,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "served-2",
+      "build": "addv-candidate",
+      "host_seconds": 14.2222,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "wide-2",
+      "build": "wide-reuse-candidate",
+      "host_seconds": 13.5912,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "flag-2",
+      "build": "flag-stack-candidate",
+      "host_seconds": 15.2316,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "served-1",
+      "build": "addv-candidate",
+      "host_seconds": 13.5578,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "flag-1",
+      "build": "flag-stack-candidate",
+      "host_seconds": 13.5096,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "wide-1",
+      "build": "wide-reuse-candidate",
+      "host_seconds": 15.1692,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "wide-2",
+      "build": "wide-reuse-candidate",
+      "host_seconds": 16.4673,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "flag-2",
+      "build": "flag-stack-candidate",
+      "host_seconds": 13.7058,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "served-2",
+      "build": "addv-candidate",
+      "host_seconds": 13.6724,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    }
+  ],
+  "checked_replay": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+      "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+      "writes": 0,
+      "callbacks": 10190,
+      "backend": "shared-dsp-cubeb-resampler",
+      "render_callbacks": 10190,
+      "gameplay_nonzero_samples": 7223662,
+      "gameplay_peak": 8449
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16263331210
+  },
+  "wasm_tests": 135,
+  "long_multiply_comparisons": 92160,
+  "final_test_wasm_sha256": "4f7765cc43a386f97ef8a2bbd61938ac01c38963fdd02e065161190019a33756",
+  "fault_audit": "FAULT_PROBE_REBUILD_AUDIT.json: wide-reuse",
+  "native_targets": 3,
+  "frontend_checks": 7
+}
