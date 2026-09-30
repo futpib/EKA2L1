@@ -67,7 +67,7 @@ int main(int argc, char **argv){
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         const std::string value(mode);
-        if(value!="0" && value!="1" && value!="2" && value!="3" && value!="4" && value!="5" && value!="6" && value!="7" && value!="8") {std::cerr<<"Invalid IR mode\n";return 1;}
+        if(value!="0" && value!="1" && value!="2" && value!="3" && value!="4" && value!="5" && value!="6" && value!="7" && value!="8" && value!="9") {std::cerr<<"Invalid IR mode\n";return 1;}
         ir_policy=static_cast<aot::arm_ir_policy>(value[0]-'0');
     }
     const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts;
@@ -168,9 +168,10 @@ int main(int argc, char **argv){
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,nullptr,deferred,ir_policy);
             if((ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts) && invariant_write_remap && n==0 && translated.proved_writes!=3) {std::cerr<<"Write remap proof was not selected\n";return 4;}
-            if((ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts) && ((!invariant_write_remap && invariant_remap) || (region_spans && !region_block_spans)) && n==0 && !translated.proved_reads) {
+            if((ir_policy==aot::arm_ir_policy::invariant_read_ir || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts) && ((!invariant_write_remap && invariant_remap) || (region_spans && !region_block_spans)) && n==0 && !translated.proved_reads) {
                 std::cerr << "Invariant read fault fixture did not select entry proof\n"; return 4;
             }
+            if(ir_policy==aot::arm_ir_policy::invariant_read_ir && invariant_remap && !invariant_write_remap && n==0 && !translated.ir_proved_reads) {std::cerr<<"IR read remap proof was not used\n";return 4;}
             if(!ir_disabled && ir_segments && n==0 && !translated.ir_segments) {
                 std::cerr << "Integer-segment fault fixture did not select the IR\n"; return 4;
             }

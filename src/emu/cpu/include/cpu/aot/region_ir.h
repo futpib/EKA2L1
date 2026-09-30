@@ -155,7 +155,7 @@ namespace eka2l1::arm::aot {
                     || (!dynamic_memory && (register_offset || bytes != 4 || rn == 15))) return false;
                 const auto base = reg(rn);
                 const auto offset = register_offset ? shifted(reg(rm), (op >> 5) & 3, (op >> 7) & 31) : imm(op & 4095);
-                if (dynamic_memory) {
+                if (dynamic_memory && !accesses.count(pc)) {
                     auto address = pre ? alu(up ? op_i32_add : op_i32_sub, base, offset) : base;
                     dynamic_host = make(guarded_host, type_i32, address, imm(bytes),
                         (snapshots.size() - 1) * 2 + !load);

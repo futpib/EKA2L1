@@ -2696,9 +2696,9 @@ static bool test_proved_read_spans() {
 }
 
 
-static bool test_invariant_reads() {
+static bool test_invariant_reads(arm_ir_policy policy = arm_ir_policy::invariant_reads) {
 #if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_VERSIONS)
-    const std::vector<std::vector<std::uint32_t>> programs = {
+    std::vector<std::vector<std::uint32_t>> programs = {
         {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe2566001,0x1afffff9},
         {0x05910000,0x05912004,0x05913008,0x0591400c},
         {0xe5910000,0xe5817004,0xe5912004,0xe5913008,0xe591400c},
@@ -2706,13 +2706,28 @@ static bool test_invariant_reads() {
         {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0x12811004},
         {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe0010394},
     };
+    if (policy == arm_ir_policy::invariant_read_ir) {
+        // Proved loads feed swaps and shared cold values before an unproved
+        // fault. Stores overwrite earlier source memory; recipes must retain
+        // the loaded value rather than rereading changed memory.
+        programs.push_back({0xe5910000,0xe5912004,0xe5913008,0xe591400c,
+            0xe1a07000,0xe1a00002,0xe1a02007,0xe5998000});
+        programs.push_back({0xe5910000,0xe5912004,0xe5913008,0xe591400c,
+            0xe0807002,0xe5817004,0xe5912004,0xe5998000});
+        programs.push_back({0xe5910000,0xe5912004,0xe5913008,0xe591400c,
+            0xe0807002,0xe0278003,0xe599a000,0xe3a07000,0xe3a08000});
+        programs.push_back({0xe5910000,0xe5912004,0xe5913008,0xe591400c,
+            0xe5810008,0xe0837000,0xe5998000});
+    }
     unsigned checks = 0;
     for (const auto &code : programs) {
         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
         auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
-            nullptr, nullptr, true, true, true, true, nullptr, true, arm_ir_policy::invariant_reads);
-        const bool selected = &code - programs.data() < 3;
-        if (bool(tr.proved_reads) != selected || (selected && !tr.func.outlined_callee) || tr.ir_segments) {
+            nullptr, nullptr, true, true, true, true, nullptr, true, policy);
+        const auto index = &code - programs.data();
+        const bool selected = index < 3 || index >= 6;
+        if (bool(tr.proved_reads) != selected || (selected && !tr.func.outlined_callee) || (policy == arm_ir_policy::invariant_reads && tr.ir_segments)
+            || (policy == arm_ir_policy::invariant_read_ir && selected && index != 1 && !tr.ir_proved_reads)) {
             printf("  FAIL invariant read selection program=%u proved=%u\n", unsigned(&code-programs.data()),tr.proved_reads); return false;
         }
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -2758,15 +2773,19 @@ static bool test_invariant_reads() {
             g_test_mem = &actual; g_count_memory_helpers = true; g_memory_helper_calls = 0;
             const int count = js_run_aot_wasm(module.data(), module.size(),
                 reinterpret_cast<std::uint8_t *>(state), sizeof(state));
-            const auto candidate_memory=actual.data;
-            std::copy(original_memory.begin(),original_memory.end(),actual.data.begin());
-            const int control_count=js_run_aot_wasm(control_module.data(),control_module.size(),
-                reinterpret_cast<std::uint8_t *>(control_state),sizeof(control_state));
-            if(count!=control_count || actual.data!=candidate_memory) {
-                printf("  FAIL invariant read original progress/memory count=%d control=%d\n",count,control_count);return false;
-            }
-            for(unsigned r=0;r<16;++r)if(state[r]!=control_state[r]) {
-                printf("  FAIL invariant read original R%u\n",r);return false;
+            // Mixed IR can exit before a faulting access; the independent
+            // interpreter below validates its exact returned prefix instead.
+            if (policy != arm_ir_policy::invariant_read_ir) {
+                const auto candidate_memory=actual.data;
+                std::copy(original_memory.begin(),original_memory.end(),actual.data.begin());
+                const int control_count=js_run_aot_wasm(control_module.data(),control_module.size(),
+                    reinterpret_cast<std::uint8_t *>(control_state),sizeof(control_state));
+                if(count!=control_count || actual.data!=candidate_memory) {
+                    printf("  FAIL invariant read original progress/memory count=%d control=%d\n",count,control_count);return false;
+                }
+                for(unsigned r=0;r<16;++r)if(state[r]!=control_state[r]) {
+                    printf("  FAIL invariant read original R%u\n",r);return false;
+                }
             }
             g_test_mem = nullptr; g_count_memory_helpers = false;
             if (count < 0 || count > static_cast<int>(budget) || g_memory_helper_calls
@@ -2792,7 +2811,7 @@ static bool test_invariant_reads() {
             ++checks;
         }
     }
-    printf("  PASS invariant_reads (%u exact state/memory/budget comparisons)\n", checks);
+    printf("  PASS invariant_reads policy=%d (%u exact state/memory/budget comparisons)\n", int(policy), checks);
 #endif
     return true;
 }
@@ -4678,6 +4697,7 @@ int main(int argc, char **argv) {
     if (test_outlined_callee_indices()) passed++; else failed++;
     if (test_proved_read_spans()) passed++; else failed++;
     if (test_invariant_reads()) passed++; else failed++;
+    if (test_invariant_reads(arm_ir_policy::invariant_read_ir)) passed++; else failed++;
     if (test_invariant_writes()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;
