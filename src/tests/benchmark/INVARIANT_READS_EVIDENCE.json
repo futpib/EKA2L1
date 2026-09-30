@@ -3163,7 +3163,7 @@
     "plain": 1.8423470002409514,
     "served": 5.106392056862918
   },
-  "decision": "Live/audio routes pass; ready to deploy the exact archive with explicit policy 4 and eager regions off. HTTPS smoke pending.",
+  "decision": "Delivered exact tested archive on LAN with explicit invariant-read policy; general IR remains unselected. Modest measured gain, all outliers retained; no push.",
   "live": {
     "manual": {
       "start": {
@@ -9204,5 +9204,73 @@
     "src/tests/wasm/live.ts": "5f8bbf4e9bf318e548a3b121f95335fc78b33e853f2c2f756828e00e78081d30"
   },
   "latest_total_fault_comparisons": 15296,
-  "fresh_frontend_log_sha256": "5f5eb3dc67bd33971d9fe2eba5c15291b8faca5ef6823d09fc6871b4b1b4db4b"
+  "fresh_frontend_log_sha256": "5f5eb3dc67bd33971d9fe2eba5c15291b8faca5ef6823d09fc6871b4b1b4db4b",
+  "deployment": {
+    "verified_utc": "2026-09-30T05:17:10.440126+00:00",
+    "url": "https://claude-laptop.lan:8188/",
+    "archive": "/home/claude/.scratch/eka-benchmark/invariant-reads-candidate",
+    "ir_mode": 4,
+    "eager_regions": 0,
+    "downloaded_hashes": {
+      "eka2l1.wasm": "426038540c288ed57e721169080b643252629a4891596f0fbd70dc3b30479a52",
+      "eka2l1.js": "d7361195b875116cb6e735d58a011ecb950efd19f631f201f5c5691598c1e3e4"
+    },
+    "launcher_commit": "c54c81c9e33820fce1953c65dca0c3ca965c8564",
+    "https_smoke": {
+      "compilerPolicy": {
+        "requested": {
+          "irMode": 4,
+          "eagerRegions": 0
+        },
+        "applied": true
+      },
+      "security": {
+        "secure": true,
+        "isolated": true
+      },
+      "audio": {
+        "state": "running",
+        "stats": {
+          "queued": 2912,
+          "resyncs": 0,
+          "underruns": 0,
+          "dropped": 0,
+          "played": 245248,
+          "nonzero": 241510
+        },
+        "rate": 48000
+      },
+      "first": {
+        "guest": 23915710,
+        "inputs": 20,
+        "frames": 942
+      },
+      "second": {
+        "guest": 24531250,
+        "inputs": 22,
+        "frames": 968
+      },
+      "last": {
+        "guest": 24837264,
+        "inputs": 24,
+        "frames": 980
+      },
+      "canvasSamples": [
+        223,
+        223,
+        227,
+        243,
+        250,
+        243,
+        223,
+        222,
+        211,
+        215,
+        218,
+        223
+      ],
+      "errors": [],
+      "browser": "Chrome/153.0.8010.52"
+    }
+  }
 }
