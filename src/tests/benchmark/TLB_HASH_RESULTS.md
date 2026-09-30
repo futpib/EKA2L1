@@ -1,79 +1,79 @@
-# Folded data-TLB index: performance and local live acceptance pass
+# Folded data-TLB indexing: delivered
 
-The opt-in hash folds higher virtual-page bits into the existing 512-slot cache.
-It targets the measured conflicts in ZERO_LITERAL_RESULTS.md, without game-address
-special cases. See TLB_HASH_DESIGN.md for the coherence and invalidation contract.
-The binary default remains the original index; delivery selects folded mode explicitly.
+The launcher at https://claude-laptop.lan:8188/ selects the verified
+`tlb-hash-candidate-v2` archive, compiler policy 7, eager regions 0, and TLB hash 1.
+The binary default remains the original hash. Broader IR and deferred instruction
+counts are not selected. Changes and evidence are committed locally; nothing pushed.
 
-Validation completed:
-- 161 compiler tests pass under the original configuration and 161 with the
-  folded mode explicitly selected. The newer full-suite harness changes manual
-  TLB fixtures to use that selection; the original run used the preceding harness
-  with the unchanged default. An additional high-address entry-proof regression
-  passes with the final test source and is archived separately.
-- 27,520 rebuilt native fault comparisons match exactly: 13,760 per explicitly
-  verified TLB mode, original-emitter policy7. A wrong-mode comparator request
-  is rejected. The WASM probe also checks its actual DynCom instance selection.
-- Both modes match native for all 1,600 standard images, guest records, audio
-  events and 4,919,249 stereo PCM frames, with interpreter checking stride1024.
-- The folded longer-snake route separately matches native for 360 images and
-  2,878,534 stereo PCM frames, also with interpreter checking.
-- All 32 native CPU tests (480 assertions) and frontend tests pass, including
-  pre-init mode selection and late-change rejection.
+The new index `(page ^ (page >> 9)) & 511` distributes conflicts across the same
+512-entry mapping cache. It has no game-address special cases. Insertion, lookup,
+invalidation and generated guards use the same scheme; permission tags, code
+validation, callbacks, exact budgets and guest memory effects retain their contracts.
+Native 12l1r JIT instances keep their existing index. See TLB_HASH_DESIGN.md.
 
-Application SHA256: 2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf.
-The application and fault binaries are identical in archives tlb-hash-candidate
-and tlb-hash-candidate-v2; v2 rebuilds only the unit harness to select a whole
-suite mode. The final extra test binary is in tlb-hash-extra-test-artifacts.
-No prior fault result is being relabelled as a new-mode result.
+## Ordinary serial measurements
 
-Next: separate diagnostic block counts, then counter-free serial timing of both
-modes in one application and the exact served archive. Extra hashing can introduce
-new conflicts or cost more than it saves; correctness alone earns no promotion.
+Each row contains a forward/reverse batch of six runs, including serial warmup.
+All 24 observations are retained. Each run measures 18 guest seconds with physical
+GPU rendering, without profiling, counters or interpreter checking. Original and
+folded use one application binary; served is the exact previous LAN archive.
+The longer route measures guest seconds 42-60, the standard route 78-96. Input,
+window, policy, binary hashes, guest instruction totals and presentations are
+verified within each workload.
 
-## Separate diagnostic, before timing
+| Scene / batch | Matching original | Folded | Previous served | Folded throughput vs served |
+| --- | ---: | ---: | ---: | ---: |
+| long-a | 13.30010s | 12.72115s | 13.33740s | +4.84% |
+| long-b | 13.26770s | 12.22000s | 13.29060s | +8.76% |
+| standard-a | 13.17525s | 12.40075s | 12.61030s | +1.69% |
+| standard-b | 12.61310s | 12.37580s | 12.76090s | +3.11% |
 
-The folded profile records 1,121,439 zero-progress calls versus 11,043,032 in
-the earlier served-build profile of the same longer route (89.85% fewer).
-Compiled dispatches fall from 199,922,265 to 184,909,283; interpreter instructions
-from 35,800,043 to 5,202,580. Both execute exactly 2,987,830,398 total guest
-instructions and 720 presentations in guest seconds 42-60. The dominant sampled
-literal site 0x700002b8 disappears from the folded profile's top zero-return sites.
+All eight adjacent same-binary comparisons favor folded indexing. Pooled
+throughput versus served improves 6.76% in the longer-snake scene and 2.40% in the
+standard scene. Against matching original indexing, gains are 6.52% and 4.08%;
+the latter is inflated by a slow original control. The slower closing candidate
+in long batch A also remains. These are host/workload measurements, not a
+universal guarantee. This reduces emulator overhead without removing the extra
+guest work associated with a longer snake.
 
-These are instrumented diagnostic counts from different application archives,
-not promotion timings or a same-binary causal estimate. The subsequent ordinary
-runs hold the new application binary fixed while selecting index 0/1, with the
-exact served archive as a separate control. No timing normalization is applied.
+## Correctness and delivery gates
 
-## Ordinary serial timing
+- Both 161-test compiler suites pass, including explicit folded-mode selection.
+  The newer full-suite harness makes manual TLB fixtures respect that selection;
+  the original default run used its preceding harness. A separately archived final
+  high-address entry-proof regression also passes. Runtime binaries are identical.
+- 27,520 rebuilt native fault comparisons match exactly: 13,760 for each explicitly
+  selected index. The WASM probe checks actual DynCom instance selection, and a
+  wrong-mode comparator request is rejected. Callback remapping is included.
+- Both index modes pass checked native replay for 1600 images, guest records,
+  audio events and 4,919,249 stereo PCM frames. Folded mode separately passes a
+  normal unchecked replay of the same content, plus the longer route's 360-image,
+  2,878,534-stereo-PCM-frame checked replay.
+- All 32 native CPU tests (480 assertions) and frontend controls pass, including
+  invalid and late configuration rejection.
+- Both 120-second live/audio routes sustain realtime without additional gameplay
+  underruns or drops. Maximum sampled lag is 37/46 ms; startup recovery events remain.
+- Local and actual HTTPS launchers pass gesture audio, measured mute/unmute,
+  keyboard/touch, visible softkey pause/resume, layout and shutdown. Actual policy
+  selection is checked, and downloaded JS/WASM hashes match the accepted archive.
 
-All samples retained. Each batch runs the listed variants and then reverses
-that order, including serial warmup. Instrumentation and checking are off.
-Original and folded modes share one identical application binary; served uses
-the exact LAN archive. Times measure 18 guest seconds with physical GPU rendering.
+WASM SHA256: `2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf`
 
-| Scene / batch | Original mean | Folded mean | Served mean | Folded throughput vs original | vs served |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| long / a | 13.30010s | 12.72115s | 13.33740s | +4.55% | +4.84% |
-| long / b | 13.26770s | 12.22000s | 13.29060s | +8.57% | +8.76% |
-| standard / a | 13.17525s | 12.40075s | 12.61030s | +6.25% | +1.69% |
-| standard / b | 12.61310s | 12.37580s | 12.76090s | +1.92% | +3.11% |
+JS SHA256: `5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec`
 
-Both workloads improve in two serial batches. All eight adjacent same-binary
-pairs favor folded indexing. Pooled throughput versus served is +6.76% for the
-longer-snake scene and +2.40% for the standard scene. Against the matching original
-index it is +6.52% and +4.08%; the latter is inflated by a slow original control.
-All 24 observations remain recorded, including the slow candidate in long batch A.
-These are host/workload measurements, not a guaranteed speedup on other devices.
+Application/fault binaries match across `tlb-hash-candidate` and its `v2` archive;
+v2 changes the unit harness. Final extra-test artifacts are separately archived.
+No old fault result is relabelled as a new-policy result.
 
-## Delivery acceptance
+## Separate diagnostic evidence
 
-Normal replay also matches native for 1600 images/guest records and 4,919,249 stereo
-PCM frames. Both 120-second live/audio routes pass at realtime, with zero added
-gameplay underruns or drops and 37/46 ms maximum sampled lag. Startup audio recovery
-events remain. Both pages explicitly apply policy 7, eager 0, TLB hash 1 and use the
-timed application SHA256. Local launcher checks pass visible softkey pause/resume,
-gesture audio, measured mute/unmute, keyboard/touch, layout and shutdown.
+Folded indexing records 1,121,439 zero-progress calls versus 11,043,032 in the prior
+served profile of the same longer route (89.85% fewer). Compiled dispatches fall
+from 199,922,265 to 184,909,283; interpreter instructions from 35,800,043 to 5,202,580.
+Both execute 2,987,830,398 guest instructions and 720 presentations. The dominant
+sampled literal site 0x700002b8 disappears from the folded top-zero-return list.
 
-The exact accepted archive is tlb-hash-candidate-v2. Actual HTTPS verification is
-pending; delivery must retain explicit mode selection and verify downloaded hashes.
+These instrumented counts use different application archives. They support the
+conflict diagnosis, but their wall times are not promotion evidence or a
+same-binary causal estimate. The ordinary timings above provide that control.
+Raw reports, provenance and every timing sample are in TLB_HASH_EVIDENCE.json.

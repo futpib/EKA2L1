@@ -1,5 +1,5 @@
 {
-  "status": "accepted for delivery; actual HTTPS verification pending",
+  "status": "delivered after repeatable per-scene gains, exact correctness and live/HTTPS acceptance",
   "archive": "/home/claude/.scratch/eka-benchmark/tlb-hash-candidate-v2",
   "archive_manifest": {
     "git_head": "e4307f0664372ced30d0ae5c742de76b58de974c",
@@ -9522,5 +9522,142 @@
       "last_virtual_us": 102484363,
       "instructions": 16263331210
     }
+  },
+  "delivery": {
+    "url": "https://claude-laptop.lan:8188/",
+    "verified_at_utc": "2026-09-30T15:24:59.923267+00:00",
+    "archive": "/home/claude/.scratch/eka-benchmark/tlb-hash-candidate-v2",
+    "launcher": {
+      "target": "https://claude-laptop.lan:8188/",
+      "softkeys": [
+        {
+          "name": "f1-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 25648974,
+            "inputs": 26,
+            "frames": 1014
+          }
+        },
+        {
+          "name": "f2-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "\u2014\n",
+          "state": {
+            "guest": 26384362,
+            "inputs": 28,
+            "frames": 1042
+          }
+        },
+        {
+          "name": "escape-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 27180000,
+            "inputs": 30,
+            "frames": 1076
+          }
+        },
+        {
+          "name": "touch-left-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "'\n",
+          "state": {
+            "guest": 27890973,
+            "inputs": 32,
+            "frames": 1104
+          }
+        },
+        {
+          "name": "touch-right-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 28615522,
+            "inputs": 34,
+            "frames": 1136
+          }
+        },
+        {
+          "name": "escape-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": ".\n",
+          "state": {
+            "guest": 29350595,
+            "inputs": 36,
+            "frames": 1164
+          }
+        }
+      ],
+      "compilerPolicy": {
+        "requested": {
+          "irMode": 7,
+          "eagerRegions": 0,
+          "tlbHash": 1
+        },
+        "applied": true
+      },
+      "security": {
+        "secure": true,
+        "isolated": true
+      },
+      "audio": {
+        "state": "running",
+        "stats": {
+          "queued": 3040,
+          "resyncs": 0,
+          "underruns": 0,
+          "dropped": 0,
+          "played": 458240,
+          "nonzero": 455273
+        },
+        "rate": 48000
+      },
+      "first": {
+        "guest": 23932376,
+        "inputs": 20,
+        "frames": 942
+      },
+      "second": {
+        "guest": 24531612,
+        "inputs": 22,
+        "frames": 966
+      },
+      "last": {
+        "guest": 24842756,
+        "inputs": 24,
+        "frames": 978
+      },
+      "canvasSamples": [
+        221,
+        222,
+        227,
+        222,
+        223,
+        222,
+        228,
+        231,
+        230,
+        231,
+        226,
+        245
+      ],
+      "errors": [],
+      "browser": "Chrome/153.0.8010.52"
+    },
+    "downloaded_hashes": {
+      "wasm": "2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf",
+      "js": "5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec"
+    },
+    "certificate_check": "Curl verified against configured lan-ca.crt; browser launch accepted without certificate bypass",
+    "service": "# /run/user/1000/systemd/transient/eka2l1-lan.service\n# This is a transient unit file, created programmatically via the systemd API. Do not edit.\n[Unit]\nDescription=[systemd-run] /usr/bin/node serve.ts 8188 Snakes\nCollectMode=inactive-or-failed\n\n[Service]\nWorkingDirectory=/home/claude/code/EKA2L1/src/tests/wasm\nEnvironment=\"EKA2L1_WASM_BUILD_DIR=/home/claude/.scratch/eka-benchmark/tlb-hash-candidate-v2\" \"EKA2L1_AOT_IR_MODE=7\" \"EKA2L1_AOT_EAGER_REGIONS=0\" \"EKA2L1_TLB_HASH=1\" \"EKA2L1_SERVE_HOST=0.0.0.0\" \"EKA2L1_SERVE_NAME=claude-laptop.lan\" \"EKA2L1_TLS_CERT=/home/claude/.config/eka2l1/tls/server.crt\" \"EKA2L1_TLS_KEY=/home/claude/.config/eka2l1/tls/server.key\"\nExecStart=\nExecStart=\"/usr/bin/node\" \"serve.ts\" \"8188\" \"Snakes\"\n"
   }
 }
