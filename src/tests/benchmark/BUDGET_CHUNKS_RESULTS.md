@@ -1,4 +1,4 @@
-# Budget chunks: first batch favorable, confirmation pending
+# Budget chunks: matching-compiler gain, mixed served comparison
 
 Policy 6 keeps original instruction/value/memory lowering and proves sufficient
 budget once for selected straight-line chunks inside regions. Short budgets use
@@ -24,10 +24,7 @@ and 29,598 bytes because of private fallbacks. The read-only control's complete
 modules remain byte-identical to the delivered fixtures. These are static
 observations, not dynamic coverage or performance gains.
 
-Next: serial unsampled gameplay comparing chunk/read policies within this
-application binary plus the exact served archive, retaining all samples. No
-speedup, new live/audio acceptance or deployment is claimed. Full provenance,
-raw log paths and exact comparisons: BUDGET_CHUNKS_EVIDENCE.json. Nothing pushed.
+Full provenance, raw log paths and exact comparisons are in BUDGET_CHUNKS_EVIDENCE.json. Nothing pushed or deployed.
 
 ## First timing batch
 
@@ -38,4 +35,23 @@ read/chunk pairs favor chunks. Closing samples slow in all three variants, and
 ranges overlap. Every sample is retained; this does not establish a fixed gain.
 Each run executes 3,975,618,624 guest instructions and 676 presentations with
 shared audio and the physical NVIDIA renderer. No owned heavy jobs overlap
-warmup or measurement. Reordered confirmation is underway; no promotion.
+warmup or measurement. Reordered confirmation follows below; no promotion.
+
+## Reordered confirmation
+
+Order: reads 13.3505, chunks 14.0795, served 13.2474, served 13.1591,
+chunks 12.6281, reads 14.4267 seconds. Means are 13.3538s chunks, 13.8886s
+matching reads and 13.20325s served: +4.00% against matching reads, but -1.13%
+against served. One of two adjacent chunk/read pairs favors each policy.
+
+Across both batches, means are 13.32605s chunks, 13.96915s matching reads and
+13.481775s served: +4.83% and +1.17% throughput respectively. Three of four
+adjacent chunk/read pairs favor chunks, but the served comparison changes sign.
+All twelve samples are retained, including slow controls and candidates.
+The candidate's four samples fall near 12.6s or 14.0s; their cause is unproven.
+
+Decision: keep this as an opt-in experiment and do not replace the served build.
+Investigate execution variability with separate hardware-counter diagnostics.
+Those diagnostics will not be pooled with these ordinary timing controls, used
+to subtract noise, or treated as promotion evidence. No new live/audio acceptance
+has been performed for policy 6.
