@@ -7,6 +7,9 @@
 #include <vector>
 
 namespace eka2l1::common::code_tracking {
+    // Research mode is frozen before CPU startup; supported only in the
+    // write-protection build. Interpreted/helper writes retain their barriers.
+    inline bool protect_writes = false;
     // Versions have one writer: the guest CPU. Host pointer escapes only set
     // escaped, permanently, before the pointer is returned to the caller.
     struct page_state {
@@ -25,6 +28,20 @@ namespace eka2l1::common::code_tracking {
     // Indexed by physical WASM backing page, so guest aliases share versions.
     // Stable storage: cached stamp pointers cannot dangle on unload/remapping.
     extern page_state pages[1u << 20];
+#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+    // CPU-thread-only, as snapshot() and page versions already are. Zero is
+    // permanently exhausted: every compiled entry must then rescan its TLB.
+    extern std::uint64_t watch_generation;
+    inline bool write_needs_callback(const void *ptr, std::size_t size) {
+        if (!protect_writes || !ptr || !size) return false;
+        const auto begin = reinterpret_cast<std::uintptr_t>(ptr);
+        const auto end = std::uint64_t(begin) + size;
+        if (end > (std::uint64_t(1) << 32)) return true;
+        for (auto p=begin>>12;p<=(end-1)>>12;++p)
+            if (pages[p].version && pages[p].flags.load(std::memory_order_acquire)==1) return true;
+        return false;
+    }
+#endif
 #if defined(EKA2L1_WASM_CODE_LIFECYCLE)
     // Guest writes and host escapes publish mutations. Only the CPU consumes
     // them; one epoch transition coalesces all writes since its last lookup.

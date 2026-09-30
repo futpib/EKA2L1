@@ -143,6 +143,16 @@ async function runTests(): Promise<void> {
     });
     console.log("  PASS");
 
+    console.log("TEST code write protection: pre-init capability and policy validation...");
+    await page.evaluate((expectEnabled) => {
+      const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_write_protect_configure','number',['number'],[n]);
+      if(configure(-1)!==-1 || configure(2)!==-1) throw Error('Invalid write protection accepted');
+      const enabled=configure(1), disabled=configure(0);
+      if(expectEnabled ? (enabled!==0 || disabled!==0) : !((enabled===0 && disabled===0)||(enabled===-1 && disabled===-1)))
+        throw Error('Write protection capability mismatch');
+    }, process.env.EKA2L1_EXPECT_WRITE_PROTECTION==='1');
+    console.log("  PASS");
+
     console.log("TEST exact scanner: pre-init policy validation...");
     await page.evaluate(() => {
       const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[n]);
@@ -167,6 +177,8 @@ async function runTests(): Promise<void> {
     });
     if (initResult !== 0) throw new Error(`eka2l1_init returned ${initResult}`);
     await page.evaluate(() => {
+      if ((window as any).Module.ccall('eka2l1_code_write_protect_configure','number',['number'],[1]) !== -1)
+        throw Error('Write protection changed after initialization');
       if ((window as any).Module.ccall('eka2l1_code_lookup_configure','number',['number'],[1]) !== -1)
         throw Error('Code lookup policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_tlb_hash_configure','number',['number'],[1]) !== -1)

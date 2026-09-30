@@ -20,6 +20,7 @@
 #pragma once
 
 #include <common/types.h>
+#include <common/code_tracking.h>
 #include <cpu/12l1r/common.h>
 
 #include <algorithm>
@@ -57,6 +58,9 @@ namespace eka2l1::arm::r12l1 {
         std::size_t page_bits;
         std::size_t page_mask;
         const bool folded_index;
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+        std::uint64_t protected_generation = 0;
+#endif
 
         explicit tlb(std::size_t page_bits, bool folded = false)
             : page_bits(page_bits), folded_index(folded) {
@@ -67,6 +71,22 @@ namespace eka2l1::arm::r12l1 {
         std::size_t index(vaddress addr) const {
             const auto page = addr >> page_bits;
             return (folded_index ? page ^ (page >> TLB_LOOKUP_BIT_COUNT) : page) & TLB_ENTRY_MASK;
+        }
+
+        // Called before every generated function, after lookup can start
+        // watching new code. Only this CPU's own TLB is changed. Generated
+        // per-function page/address proofs never survive that call boundary.
+        void sync_write_protection() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+            namespace tracking = eka2l1::common::code_tracking;
+            if (!tracking::protect_writes) return;
+            const auto generation = tracking::watch_generation;
+            if (generation && protected_generation == generation) return;
+            for (auto &entry : entries)
+                if (entry.write_addr && tracking::write_needs_callback(entry.host_base,page_mask+1))
+                    entry.write_addr = 0;
+            protected_generation = generation;
+#endif
         }
 
         void flush() {
@@ -88,7 +108,13 @@ namespace eka2l1::arm::r12l1 {
                 entry.read_addr = 0;
             }
 
-            if (perm & prot_write) {
+            bool allow_write = (perm & prot_write) != 0;
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+            // A refilled alias must not recover direct write access to watched
+            // physical backing. The MMU callback retains the real permission.
+            allow_write = allow_write && !eka2l1::common::code_tracking::write_needs_callback(entry.host_base,page_mask+1);
+#endif
+            if (allow_write) {
                 entry.write_addr = addr_normed;
             } else {
                 entry.write_addr = 0;

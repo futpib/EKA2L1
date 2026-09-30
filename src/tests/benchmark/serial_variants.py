@@ -16,6 +16,7 @@ parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/1/
 parser.add_argument('--eager-regions', action='append', default=[], metavar='NAME=0/1',
                     help='Select eager ROM region compilation within an archived binary')
 parser.add_argument('--tlb-hash', action='append', default=[], metavar='NAME=0/1')
+parser.add_argument('--code-write-protect', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-lookup', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1/2')
 parser.add_argument('--input', action='append', default=[], metavar='NAME=INPUT', help='Optional per-variant guest input route')
@@ -42,6 +43,12 @@ for item in args.eager_regions:
     if not separator or name not in dict(variants) or name in eager_modes or value not in ('0', '1'):
         parser.error('Eager regions requires a unique known NAME=0/1')
     eager_modes[name] = int(value)
+protection_modes = {}
+for item in args.code_write_protect:
+    name, separator, value = item.partition('=')
+    if not separator or name not in dict(variants) or name in protection_modes or value not in ('0', '1'):
+        parser.error('Code write protection requires a unique known NAME=0/1')
+    protection_modes[name] = int(value)
 lookup_modes = {}
 for item in args.code_lookup:
     name, separator, value = item.partition('=')
@@ -87,6 +94,9 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         env.pop('EKA2L1_TLB_HASH', None)
         if name in hash_modes:
             env['EKA2L1_TLB_HASH'] = str(hash_modes[name])
+        env.pop('EKA2L1_CODE_WRITE_PROTECT', None)
+        if name in protection_modes:
+            env['EKA2L1_CODE_WRITE_PROTECT'] = str(protection_modes[name])
         env.pop('EKA2L1_CODE_LOOKUP', None)
         if name in lookup_modes:
             env['EKA2L1_CODE_LOOKUP'] = str(lookup_modes[name])
@@ -107,6 +117,8 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Profile did not record the requested IR policy')
         if report.get('eager_regions', -1) != eager_modes.get(name, -1):
             raise RuntimeError('Profile did not record the requested eager ROM policy')
+        if report.get('code_write_protect', -1) != protection_modes.get(name, -1):
+            raise RuntimeError('Profile did not record requested write protection policy')
         if report.get('code_lookup', -1) != lookup_modes.get(name, -1):
             raise RuntimeError('Profile did not record requested code lookup policy')
         if report.get('code_compare', -1) != compare_modes.get(name, -1):
@@ -117,7 +129,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Profile did not use requested input route')
         if report['measurement']['first_virtual_us'] != args.start_us or report['measurement']['last_virtual_us'] != args.end_us:
             raise RuntimeError('Profile did not use requested guest window')
-        row = dict(code_lookup=report.get('code_lookup', -1), tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
+        row = dict(code_write_protect=report.get('code_write_protect', -1), code_lookup=report.get('code_lookup', -1), tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
                    eager_regions=report.get('eager_regions', -1),
                    wasm_sha256=report['wasm_sha256'], loader_sha256=report['loader_sha256'],
                    measurement=report['measurement'])

@@ -7,6 +7,9 @@
 namespace eka2l1::common::code_tracking {
     static_assert(sizeof(page_state) == 8);
     page_state pages[1u << 20];
+#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+    std::uint64_t watch_generation = 1;
+#endif
 #if defined(EKA2L1_WASM_CODE_LIFECYCLE)
     std::atomic<std::uint32_t> dirty{0};
     std::uint64_t epoch = 1;
@@ -70,7 +73,12 @@ namespace eka2l1::common::code_tracking {
 #if defined(EKA2L1_WASM_CODE_LIFECYCLE)
             if (entry.flags.load(std::memory_order_acquire) != 1) return {};
             // CPU-thread only, after comparing the snapshot's source bytes.
-            if (!entry.version) entry.version = 1;
+            if (!entry.version) {
+                entry.version = 1;
+#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+                if (watch_generation) ++watch_generation;
+#endif
+            }
 #endif
             if (!entry.version || entry.flags.load(std::memory_order_acquire) != 1) {
                 return {};

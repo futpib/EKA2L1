@@ -141,6 +141,7 @@ static unsigned g_expected_callback_pc = 0;
 static bool g_callback_pc_matches = true;
 static bool g_count_memory_helpers = false;
 static unsigned g_memory_helper_calls = 0;
+static std::function<void(std::uint32_t,std::uint32_t,std::uint32_t)> g_write16_observer;
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
@@ -179,7 +180,8 @@ extern "C" {
         return value;
     }
     EMSCRIPTEN_KEEPALIVE
-    void test_tlb_write16(std::uint32_t, std::uint32_t addr, std::uint32_t value) {
+    void test_tlb_write16(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t value) {
+        if (g_write16_observer) { g_write16_observer(state_ptr,addr,value); return; }
         if (g_test_mem) g_test_mem->write16(addr, value);
     }
     EMSCRIPTEN_KEEPALIVE
@@ -4226,6 +4228,82 @@ static bool test_cached_callback_state() {
     return true;
 }
 
+static bool test_code_write_protection() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+    namespace tracking = eka2l1::common::code_tracking;
+    struct restore_mode { bool saved=tracking::protect_writes,folded=r12l1::dyncom_folded_tlb; ~restore_mode(){tracking::protect_writes=saved;r12l1::dyncom_folded_tlb=folded;g_write16_observer={};} } restore;
+    tracking::protect_writes=true;
+    alignas(4096) static std::uint8_t backing[5*4096]{};
+    tracking::register_allocation(backing,sizeof(backing));
+    for(bool folded : {false,true}) {
+        r12l1::dyncom_folded_tlb=folded;
+        r12l1::tlb tlb(12,folded);
+        tlb.add(0x4000,backing,7);tlb.add(0x8000,backing,7);tlb.add(0x5000,backing+4096,7);
+        if(!folded && !tlb.lookup_access<prot_write>(0x4000)){printf("write protection failure line %d\n",__LINE__);return false;}
+        auto stamps=tracking::snapshot(backing,8);if(stamps.empty()){printf("write protection failure line %d\n",__LINE__);return false;}
+        tlb.sync_write_protection();
+        if(tlb.lookup_access<prot_write>(0x4000)||tlb.lookup_access<prot_write>(0x8000)){printf("write protection failure line %d\n",__LINE__);return false;}
+        if(tlb.lookup_access<prot_read>(0x4000)!=backing || tlb.lookup_access<prot_exec>(0x8000)!=backing){printf("write protection failure line %d\n",__LINE__);return false;}
+        if(tlb.lookup_access<prot_write>(0x5000)!=backing+4096){printf("write protection failure line %d\n",__LINE__);return false;}
+        tlb.add(0xc000,backing,7);if(tlb.lookup_access<prot_write>(0xc000)){printf("write protection failure line %d\n",__LINE__);return false;}
+        tlb.add(0xc000,backing+4096,7);if(!tlb.lookup_access<prot_write>(0xc000)){printf("write protection failure line %d\n",__LINE__);return false;}
+        // A partially overlapping host span must be denied too.
+        tlb.add(0x6000,backing+4094,7);if(tlb.lookup_access<prot_write>(0x6000)){printf("write protection failure line %d\n",__LINE__);return false;}
+        for(auto store : {0xe5c10000u,0xe1c100b0u,0xe5810000u,0xe8810009u}) {
+            const std::uint32_t words[]={store,0xe2822001,0xe12fff1e};
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+            auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+            alignas(8) std::uint32_t state[256]{};
+            state[0]=0x12345678;state[1]=0x4000;state[3]=0x11223344;state[14]=0x2000;
+            state[state_offsets::AOT_BUDGET/4]=3;state[state_offsets::NIRQ/4]=1;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            auto before=backing[0];
+            bool helper_seen=false,helper_precise=true;
+            auto write_stamp=tracking::snapshot(backing,8);
+            g_write16_observer=[&](std::uint32_t ptr,std::uint32_t address,std::uint32_t value){
+                auto *observed=reinterpret_cast<std::uint32_t*>(ptr);
+                helper_seen=true;helper_precise=address==0x4000 && value==0x12345678 && observed[1]==0x4000 && observed[2]==0 && observed[15]==0x1000;
+                const std::uint16_t half=value;
+                std::memcpy(backing,&half,2);tracking::guest_write(backing,2);
+            };
+            auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_write16_observer={};
+            if(store==0xe1c100b0u) {
+                // STRH deliberately uses the precise callback path, even when
+                // other direct stores defer after a denied writable TLB tag.
+                if(count!=1 || !helper_seen || !helper_precise || write_stamp.empty() || write_stamp[0].valid() || backing[0]!=0x78 || backing[1]!=0x56 || state[1]!=0x4000 || state[2] || state[15]!=0x1004){printf("write protection halfword callback failure\n");return false;}
+                continue;
+            }
+            if(count || helper_seen || state[1]!=0x4000 || state[2] || backing[0]!=before || state[15]!=0x1000){printf("write protection failure line %d store %x count %u r1 %x r2 %x pc %x mem %u/%u\n",__LINE__,store,count,state[1],state[2],state[15],backing[0],before);return false;}
+        }
+        // The checked write path still updates versions; refill stays protected.
+        backing[0]^=1;tracking::guest_write(backing,1);if(stamps[0].valid()){printf("write protection failure line %d\n",__LINE__);return false;}
+        tlb.add(0x4000,backing,7);if(tlb.lookup_access<prot_write>(0x4000)){printf("write protection failure line %d\n",__LINE__);return false;}
+    }
+    r12l1::tlb tlb(12,true);tlb.add(0x7000,backing+8192,7);tlb.sync_write_protection();
+    if(!tlb.lookup_access<prot_write>(0x7000)){printf("write protection failure line %d\n",__LINE__);return false;}
+    auto later=tracking::snapshot(backing+8192,4);if(later.empty()){printf("write protection failure line %d\n",__LINE__);return false;}
+    tlb.sync_write_protection();if(tlb.lookup_access<prot_write>(0x7000)){printf("write protection failure line %d\n",__LINE__);return false;}
+    const auto saved_generation=tracking::watch_generation;
+    tracking::watch_generation=UINT64_MAX;
+    if(tracking::snapshot(backing+12288,4).empty() || tracking::watch_generation){printf("write protection failure line %d\n",__LINE__);return false;}
+    tlb.add(0x9000,backing+16384,7);tlb.sync_write_protection();
+    if(!tlb.lookup_access<prot_write>(0x9000)){printf("write protection failure line %d\n",__LINE__);return false;}
+    if(tracking::snapshot(backing+16384,4).empty() || tracking::watch_generation){printf("write protection failure line %d\n",__LINE__);return false;}
+    tlb.sync_write_protection();if(tlb.lookup_access<prot_write>(0x9000)){printf("write protection failure line %d\n",__LINE__);return false;}
+    tracking::watch_generation=saved_generation; // No surviving compiled fixture.
+    tracking::escape_pointer(backing);
+    if(later[0].valid()){printf("write protection failure line %d\n",__LINE__);return false;}
+    tlb.flush();tlb.add(0x7000,backing+8192,7);
+    if(!tlb.lookup_access<prot_write>(0x7000)){printf("write protection failure line %d\n",__LINE__);return false;} // escaped code uses exact validation
+    tracking::retire_allocation(backing);
+    printf("  PASS code_write_protection (aliases, refills, remaps, partial spans, deferred stores, escapes, generation exhaustion)\n");
+#else
+    printf("  SKIP code_write_protection (build option off)\n");
+#endif
+    return true;
+}
+
 static bool test_generated_write_versions() {
 #if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
     namespace tracking = eka2l1::common::code_tracking;
@@ -4406,8 +4484,13 @@ static bool test_folded_tlb_guards() {
             nullptr,nullptr,true,true,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        if(proof && (tr.proved_reads!=3 || tr.proved_writes!=3)) {
-            printf("  FAIL folded TLB entry proofs not selected\n");return false;
+        #ifdef EKA2L1_WASM_CODE_VERSIONS
+        const unsigned expected_proofs=0; // Deliberately incompatible research modes.
+#else
+        const unsigned expected_proofs=3;
+#endif
+        if(proof && (tr.proved_reads!=expected_proofs || tr.proved_writes!=expected_proofs)) {
+            printf("  FAIL folded TLB entry proof policy mismatch\n");return false;
         }
         for(unsigned budget=0;budget<=words.size()+1;++budget) {
             std::array<std::uint32_t,1024> input{},output{};input[0]=0x12345678;input[1]=0xabcdef01;input[2]=0x31415926;
@@ -4433,6 +4516,7 @@ static bool test_folded_tlb_guards() {
 }
 
 int main(int argc, char **argv) {
+    if(argc==2 && std::string(argv[1])=="--write-protection-only") return test_code_write_protection()?0:1;
     if(argc==2 && std::string(argv[1])=="--lookup-only") return test_outlined_code_lookup()?0:1;
     if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
     if(argc==2 && std::string(argv[1])=="--folded-tlb-only") return test_folded_tlb_guards()?0:1;
@@ -5090,6 +5174,7 @@ int main(int argc, char **argv) {
     if (test_msr_privilege_guard()) passed++; else failed++;
 #ifdef EKA2L1_WASM_CODE_VERSIONS
 #ifdef EKA2L1_WASM_CODE_LIFECYCLE
+    if (test_code_write_protection()) passed++; else {printf("  FAIL code_write_protection\n");failed++;}
     if (test_code_lifecycle()) passed++; else {printf("  FAIL code_lifecycle\n");failed++;}
 #endif
     if (test_generated_write_versions()) passed++; else {printf("  FAIL generated_write_versions\n");failed++;}

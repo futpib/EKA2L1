@@ -228,6 +228,17 @@ int eka2l1_tlb_hash_configure(int mode) {
 
 // Lookup layout research control, frozen before guest execution.
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_code_write_protect_configure(int mode) {
+#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+    if (g_state || (mode != 0 && mode != 1)) return -1;
+    eka2l1::common::code_tracking::protect_writes = mode != 0;
+    return 0;
+#else
+    return -1;
+#endif
+}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_code_lookup_configure(int mode) {
     if (g_state || mode < 0 || mode > 1) return -1;
     eka2l1::arm::aot::code_lookup_outline = mode != 0;

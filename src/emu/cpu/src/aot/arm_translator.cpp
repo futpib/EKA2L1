@@ -302,6 +302,9 @@ namespace eka2l1::arm::aot {
         // Helpers/interpreter writes use the same backing-indexed versions.
         void track_write() {
 #if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
+#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+            if (common::code_tracking::protect_writes) return;
+#endif
             get_local(HOST); i32_const(12); op(op_i32_shr_u);
             i32_const(3); op(op_i32_shl);
             i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(common::code_tracking::pages)));

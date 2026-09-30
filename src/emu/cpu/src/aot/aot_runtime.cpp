@@ -250,6 +250,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
 
     while (function && result.instructions < budget && result.blocks < 512) {
+        tlb->sync_write_protection();
         cpu->aot_budget = budget - result.instructions;
         if constexpr (Profile) count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);
@@ -295,6 +296,7 @@ compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
 }
 
 std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
+    cpu->mem_cache_->sync_write_protection();
     count_ram_dispatch(cpu);
     if (!verification_stride()) return function(cpu);
     validation_begin(cpu);

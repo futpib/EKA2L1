@@ -86,6 +86,16 @@ int main(int argc, char **argv){
         --argc;
     }
     std::cout << "PROBE_LOOKUP " << aot::code_lookup_outline << "\n";
+    if (argc > 1 && std::strncmp(argv[argc-1],"--code-write-protect=",21) == 0) {
+        const std::string value(argv[argc-1]+21);
+        if(value!="0" && value!="1") {std::cerr<<"Invalid code write protection policy\n";return 1;}
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+        if(value=="1") {std::cerr<<"Write protection build required\n";return 1;}
+#endif
+        eka2l1::common::code_tracking::protect_writes=value=="1";
+        --argc;
+    }
+    std::cout << "PROBE_WRITE_PROTECT " << eka2l1::common::code_tracking::protect_writes << "\n";
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         if(!aot::parse_arm_ir_policy(mode,ir_policy)) {std::cerr<<"Invalid IR mode\n";return 1;}
