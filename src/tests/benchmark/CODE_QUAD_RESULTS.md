@@ -63,3 +63,13 @@ The matching-original pooled leads are 3.712% and 1.372%; the former is inflated
 by a slow original control. These results support a tiny measured gain on this
 host, not a guaranteed percentage or visibly faster gameplay. Live acceptance
 is in progress before any delivery decision.
+
+## Live acceptance before deployment
+
+The unchecked standard replay matches all 1,600 native images, guest records and
+4,919,249 stereo PCM frames. Both 120-second live/audio routes apply scanner mode
+2 explicitly, sustain realtime, and add no gameplay audio underruns or drops.
+Startup recovery events remain in the raw records. The local launcher passes
+gesture audio, measured mute/unmute, keyboard/touch, pause/resume, mobile layout
+and shutdown. Cache and compiler-policy tests pass. Actual HTTPS delivery and
+existing-profile upgrade verification remain pending.
