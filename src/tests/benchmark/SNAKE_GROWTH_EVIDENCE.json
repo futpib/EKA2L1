@@ -1,0 +1,501 @@
+{
+  "status": "Length-dependent slowdown remains unestablished; current route is inadequate for long-snake coverage",
+  "historical_audit": {
+    "status": "Historical route audit, not a fresh length-controlled test",
+    "runs": {
+      "long600-2": {
+        "timeline": "/home/claude/.scratch/eka-benchmark/long600-2/timeline.json",
+        "sha256": "03664bd8aa8787ae936a3a05bd574ba930fdc745a45fdba61c7abaad99eee890",
+        "report": {
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 600000000,
+            "first_instructions": 2370479891,
+            "last_instructions": 57418568672,
+            "wall_seconds": 362.46,
+            "presentations": 23948,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          },
+          "warmup_seconds": 19.579881211,
+          "guest_profile_stride": 0,
+          "monitor": true,
+          "sampling": false,
+          "isolates": 65,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "eeafffcccc1ab4f6ff38166f6ef2782cfdd4c37fc1b0525f968b7d4782fdf962",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "verify_aot": 0,
+          "git_head": "1a64ad39df4e1e78b1814b20144dd0de07868827",
+          "dirty_worktree": true,
+          "browser": "Chrome/150.0.7871.186",
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        },
+        "windows": [
+          {
+            "guest_seconds": [
+              30,
+              45
+            ],
+            "million_guest_instructions_per_guest_second": 156.13532962547666,
+            "presentations_per_guest_second": 40.011545391220444,
+            "realtime_ratio": 1.1262333334043015
+          },
+          {
+            "guest_seconds": [
+              45,
+              60
+            ],
+            "million_guest_instructions_per_guest_second": 156.13076581503753,
+            "presentations_per_guest_second": 39.99258378795472,
+            "realtime_ratio": 1.1485232131028726
+          },
+          {
+            "guest_seconds": [
+              60,
+              78
+            ],
+            "million_guest_instructions_per_guest_second": 155.89033961353434,
+            "presentations_per_guest_second": 40.02159893971586,
+            "realtime_ratio": 1.1541478602741126
+          },
+          {
+            "guest_seconds": [
+              78,
+              96
+            ],
+            "million_guest_instructions_per_guest_second": 220.7212426203586,
+            "presentations_per_guest_second": 37.49723683220673,
+            "realtime_ratio": 1.0423527752441364
+          },
+          {
+            "guest_seconds": [
+              96,
+              114
+            ],
+            "million_guest_instructions_per_guest_second": 157.800133925045,
+            "presentations_per_guest_second": 40.065693861687606,
+            "realtime_ratio": 1.1532266269171847
+          },
+          {
+            "guest_seconds": [
+              120,
+              138
+            ],
+            "million_guest_instructions_per_guest_second": 157.66475298579726,
+            "presentations_per_guest_second": 39.98516268940092,
+            "realtime_ratio": 1.1569462213656294
+          },
+          {
+            "guest_seconds": [
+              150,
+              168
+            ],
+            "million_guest_instructions_per_guest_second": 215.667579627207,
+            "presentations_per_guest_second": 37.64439364197652,
+            "realtime_ratio": 1.0646777116177002
+          },
+          {
+            "guest_seconds": [
+              180,
+              198
+            ],
+            "million_guest_instructions_per_guest_second": 157.81224169908162,
+            "presentations_per_guest_second": 40.08664876835241,
+            "realtime_ratio": 1.168643580524347
+          },
+          {
+            "guest_seconds": [
+              270,
+              285
+            ],
+            "million_guest_instructions_per_guest_second": 51.81170869809723,
+            "presentations_per_guest_second": 42.39866223731454,
+            "realtime_ratio": 2.0477977322014502
+          },
+          {
+            "guest_seconds": [
+              285,
+              300
+            ],
+            "million_guest_instructions_per_guest_second": 51.90524703590902,
+            "presentations_per_guest_second": 42.41667283930146,
+            "realtime_ratio": 2.066840914915778
+          },
+          {
+            "guest_seconds": [
+              300,
+              318
+            ],
+            "million_guest_instructions_per_guest_second": 51.8484730802519,
+            "presentations_per_guest_second": 42.40333117319642,
+            "realtime_ratio": 2.0815494378098793
+          },
+          {
+            "guest_seconds": [
+              318,
+              336
+            ],
+            "million_guest_instructions_per_guest_second": 51.92534313264211,
+            "presentations_per_guest_second": 42.38556546236456,
+            "realtime_ratio": 2.084390733941973
+          }
+        ]
+      },
+      "long600-rounds": {
+        "timeline": "/home/claude/.scratch/eka-benchmark/long600-rounds/timeline.json",
+        "sha256": "4732e770b355d8b43f5937661f198d38e1ee1600d4cdb5d721fd8051adb73229",
+        "report": {
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 600000000,
+            "first_instructions": 2370479891,
+            "last_instructions": 96480979593,
+            "wall_seconds": 503.139,
+            "presentations": 22948,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          },
+          "warmup_seconds": 16.568179372000003,
+          "guest_profile_stride": 0,
+          "monitor": true,
+          "monitor_cpu_start_us": 540000000,
+          "sampling": false,
+          "isolates": 65,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "d674d2e984a806bc760be94be929726470f3d127b6c6700241ccd170c963a4fe",
+          "wasm_sha256": "7287ccf450742b12d2336621c2c278c913e5368162007825d8bf877d9bb27b47",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "verify_aot": 0,
+          "git_head": "213e55a4c7073f79402808249a5fea8ad992415c",
+          "dirty_worktree": true,
+          "browser": "Chrome/150.0.7871.186",
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        },
+        "windows": [
+          {
+            "guest_seconds": [
+              30,
+              45
+            ],
+            "million_guest_instructions_per_guest_second": 156.0922741405419,
+            "presentations_per_guest_second": 40.014020282098016,
+            "realtime_ratio": 1.1255011032989404
+          },
+          {
+            "guest_seconds": [
+              45,
+              60
+            ],
+            "million_guest_instructions_per_guest_second": 156.39479438918877,
+            "presentations_per_guest_second": 39.98812367185895,
+            "realtime_ratio": 1.1487108209646215
+          },
+          {
+            "guest_seconds": [
+              60,
+              78
+            ],
+            "million_guest_instructions_per_guest_second": 155.9492336067528,
+            "presentations_per_guest_second": 40.068656024792844,
+            "realtime_ratio": 1.1858350972895615
+          },
+          {
+            "guest_seconds": [
+              78,
+              96
+            ],
+            "million_guest_instructions_per_guest_second": 220.51870277908645,
+            "presentations_per_guest_second": 37.492088099727226,
+            "realtime_ratio": 1.0371709500689161
+          },
+          {
+            "guest_seconds": [
+              96,
+              114
+            ],
+            "million_guest_instructions_per_guest_second": 157.79830502310836,
+            "presentations_per_guest_second": 40.027563167970456,
+            "realtime_ratio": 1.1527124182343675
+          },
+          {
+            "guest_seconds": [
+              120,
+              138
+            ],
+            "million_guest_instructions_per_guest_second": 157.68624845839352,
+            "presentations_per_guest_second": 39.97817633856377,
+            "realtime_ratio": 1.1531322750609225
+          },
+          {
+            "guest_seconds": [
+              150,
+              168
+            ],
+            "million_guest_instructions_per_guest_second": 215.84198053432445,
+            "presentations_per_guest_second": 37.59774478171195,
+            "realtime_ratio": 1.0634491322656894
+          },
+          {
+            "guest_seconds": [
+              180,
+              198
+            ],
+            "million_guest_instructions_per_guest_second": 157.94584317735672,
+            "presentations_per_guest_second": 40.06801316063002,
+            "realtime_ratio": 1.1577094478579086
+          },
+          {
+            "guest_seconds": [
+              270,
+              285
+            ],
+            "million_guest_instructions_per_guest_second": 158.58932545895794,
+            "presentations_per_guest_second": 40.04554148075234,
+            "realtime_ratio": 1.152855149096467
+          },
+          {
+            "guest_seconds": [
+              285,
+              300
+            ],
+            "million_guest_instructions_per_guest_second": 158.87155943215078,
+            "presentations_per_guest_second": 40.02320508937943,
+            "realtime_ratio": 1.1564150944301528
+          },
+          {
+            "guest_seconds": [
+              300,
+              318
+            ],
+            "million_guest_instructions_per_guest_second": 159.23120842437956,
+            "presentations_per_guest_second": 40.147197981724474,
+            "realtime_ratio": 1.1687471393588167
+          },
+          {
+            "guest_seconds": [
+              318,
+              336
+            ],
+            "million_guest_instructions_per_guest_second": 217.36539414763388,
+            "presentations_per_guest_second": 37.62371422827285,
+            "realtime_ratio": 1.056777063006631
+          }
+        ]
+      }
+    },
+    "scene_review": {
+      "paths": [
+        "/home/claude/.scratch/eka-benchmark/long600-2/scene-1.png",
+        "/home/claude/.scratch/eka-benchmark/long600-2/scene-2.png",
+        "/home/claude/.scratch/eka-benchmark/long600-2/scene-3.png"
+      ],
+      "observation": "All three show score 000200. They do not demonstrate progressive snake growth."
+    },
+    "limitations": [
+      "Old build/browser, diagnostics with probe and screenshot overhead",
+      "Presentation count is not verified count of distinct game simulation steps",
+      "No measured snake segment count; score is not exact length",
+      "Later menu intervals must not be interpreted as gameplay"
+    ]
+  },
+  "live_route": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-explore-3",
+    "hashes": {
+      "steps.jsonl": "f673f7ca6ec361f6982d546806ee4aa0fee14d134c80717fc42c862eb894c44f",
+      "input.jsonl": "ef6ce608e31b1d4505ecfafb877a6c7d6915a5f0774c5709143bbd5d46d0648c",
+      "ready.json": "be705f51983fb1ca02c3cad86f0509d13a43daa952b1b96c10e5d75ac5a0aa54"
+    },
+    "unpaused_run_windows": [
+      {
+        "name": "lane-0-run",
+        "guest_seconds": 4.676785,
+        "host_seconds": 4.648826906000002,
+        "realtime_ratio": 1.0060140105375646,
+        "presentations_per_guest_second": 40.19855520405578
+      },
+      {
+        "name": "lane-1-run",
+        "guest_seconds": 4.64462,
+        "host_seconds": 4.661967583999998,
+        "realtime_ratio": 0.9962789136373371,
+        "presentations_per_guest_second": 40.04633317687992
+      },
+      {
+        "name": "lane-2-run",
+        "guest_seconds": 4.651676,
+        "host_seconds": 4.64531156799999,
+        "realtime_ratio": 1.0013700764538278,
+        "presentations_per_guest_second": 39.985587990221156
+      },
+      {
+        "name": "lane-3-run",
+        "guest_seconds": 4.653671,
+        "host_seconds": 4.670469594000024,
+        "realtime_ratio": 0.9964032323384345,
+        "presentations_per_guest_second": 40.18333053625836
+      },
+      {
+        "name": "lane-4-run",
+        "guest_seconds": 4.661309,
+        "host_seconds": 4.645722234999994,
+        "realtime_ratio": 1.00335507897622,
+        "presentations_per_guest_second": 40.33201832360824
+      },
+      {
+        "name": "lane-5-run",
+        "guest_seconds": 4.663831,
+        "host_seconds": 4.665428297999984,
+        "realtime_ratio": 0.9996576310044956,
+        "presentations_per_guest_second": 39.881376490700454
+      },
+      {
+        "name": "lane-6-run",
+        "guest_seconds": 4.623467,
+        "host_seconds": 4.645755745000002,
+        "realtime_ratio": 0.9952023424770037,
+        "presentations_per_guest_second": 40.01326277445043
+      }
+    ],
+    "observations": [
+      "Score begins at200; visible score205 at lanes2 and7. This does not demonstrate a substantially longer snake.",
+      "Screenshots verify turns after1000ms resume wait and100ms keyholds. Earlier350ms/15ms inputs did not reliably turn.",
+      "No emulator CPU build changed; softkeys HTML fix only. Top-down camera differs from standard benchmark and must be matched for future comparison.",
+      "Pause periods and final lane including pause excluded from these gameplay window calculations.",
+      "Presentation rate is not a count of distinct simulation frames.",
+      "These are exploratory paced runs with screenshot/probe costs, not unpaced optimization timings."
+    ]
+  },
+  "manual_source": "https://allaboutsymbian.com/images/ngage/manuals/User%20Manual%20snakes%20DLC.pdf"
+}
