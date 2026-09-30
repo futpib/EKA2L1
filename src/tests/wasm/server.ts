@@ -71,7 +71,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
   if (ir === undefined && eager === undefined && tlb === undefined && compare === undefined && lookup === undefined) return undefined;
   const policy: CompilerPolicy = {};
   if (ir !== undefined) {
-    if (!/^(?:-1|[0-9]|10|11|12|13|14|15)$/.test(ir)) throw new Error("Invalid compiler policy");
+    if (!/^(?:-1|[0-9]|10|11|12|13|14|15|16)$/.test(ir)) throw new Error("Invalid compiler policy");
     policy.irMode = Number(ir);
   }
   if (eager !== undefined) {
@@ -95,7 +95,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
 
 function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   if (!policy) return "";
-  if ((policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 15))
+  if ((policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 16))
       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions))
       || (policy.tlbHash !== undefined && ![0,1].includes(policy.tlbHash))
       || (policy.codeCompare !== undefined && ![0,1,2,3,4].includes(policy.codeCompare))

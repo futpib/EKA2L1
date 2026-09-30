@@ -30,6 +30,11 @@ try {
     assert.throws(compilerPolicyFromEnv, /Invalid code lookup policy/);
   }
   delete process.env.EKA2L1_CODE_LOOKUP;
+  process.env.EKA2L1_AOT_IR_MODE = '16';
+  assert.deepEqual(compilerPolicyFromEnv(), {irMode:16});
+  process.env.EKA2L1_AOT_IR_MODE = '17';
+  assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);
+  delete process.env.EKA2L1_AOT_IR_MODE;
   const responses: {html:string; etag:string|null}[] = [];
   for (const [mode,lookup] of [[0,undefined],[2,undefined],[2,0],[2,1],[3,0],[4,0]]) {
     const {server,port} = await startServer(0, {}, undefined, {compilerPolicy:{irMode:7,eagerRegions:0,tlbHash:1,codeCompare:mode,...(lookup === undefined ? {} : {codeLookup:lookup})}});

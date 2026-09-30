@@ -200,7 +200,7 @@ int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
 // CPU. This changes translation only, not generated instruction checks.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_ir_configure(int mode) {
-    if (g_state || mode < -1 || mode > 15) return -1;
+    if (g_state || mode < -1 || mode > 16) return -1;
 #ifdef EKA2L1_WASM_CODE_VERSIONS
 #if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
     if (mode >= 4 && !(mode == 7 && eka2l1::common::code_tracking::protect_writes)) return -2;
@@ -209,13 +209,13 @@ int eka2l1_ir_configure(int mode) {
 #endif
 #endif
 #ifndef EKA2L1_WASM_IR_SEGMENTS
-    if ((mode > 0 && mode < 4) || (mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15)) return -2;
+    if ((mode > 0 && mode < 4) || (mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15 || mode == 16)) return -2;
 #endif
 #ifndef EKA2L1_WASM_IR_OUTLINE
-    if ((mode >= 2 && mode < 4) || (mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15)) return -2;
+    if ((mode >= 2 && mode < 4) || (mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15 || mode == 16)) return -2;
 #endif
 #ifndef EKA2L1_WASM_IR_MEMORY
-    if ((mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15)) return -2;
+    if ((mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15 || mode == 16)) return -2;
 #endif
     if (mode < 0) unsetenv("EKA2L1_AOT_IR_MODE");
     else setenv("EKA2L1_AOT_IR_MODE", std::to_string(mode).c_str(), 1);

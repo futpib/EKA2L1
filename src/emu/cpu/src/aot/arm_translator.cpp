@@ -864,7 +864,8 @@ namespace eka2l1::arm::aot {
         // the segment bound or adjacent single-use pure-value lowering.
         const bool long_ir_segments = ir_policy == arm_ir_policy::long_segments_ir;
         const bool stack_ir_values = ir_policy == arm_ir_policy::stack_values_ir;
-        if (long_ir_segments || stack_ir_values) ir_policy = arm_ir_policy::conditional_value_ir;
+        const bool budget_gaps_ir = ir_policy == arm_ir_policy::budget_gaps_ir;
+        if (long_ir_segments || stack_ir_values || budget_gaps_ir) ir_policy = arm_ir_policy::conditional_value_ir;
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -1218,44 +1219,6 @@ namespace eka2l1::arm::aot {
             fwd_idx[fwd_sorted[k]] = k;
         }
 
-        // Budget chunks keep the existing opcode lowering. Each chunk has one
-        // entry and no control transfer. A short budget enters a private precise
-        // compiler before effects; the hot path keeps every count/exit check.
-        std::map<std::size_t, unsigned> budget_chunks;
-        if (allow_memory_proof && (ir_policy == arm_ir_policy::budget_chunks
-                || ir_policy == arm_ir_policy::write_budget_chunks || ir_policy == arm_ir_policy::deferred_chunk_counts)
-            && w.region && cache_registers) {
-            auto straight = [](std::uint32_t op) {
-                if ((op >> 28) == 15) return false;
-                const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
-                if (((op >> 26) & 3) == 1)
-                    return rd != 15 && rn != 15
-                        && !(!(op & (1u << 24)) && (op & (1u << 21)))
-                        && !((op & (1u << 25)) && (op & 16));
-                if (((op >> 25) & 7) == 4)
-                    return rn != 15 && (op & 65535) && !(op & ((1u << 22) | 32768));
-                if ((op & 0x0f8000f0u) == 0x00800090u)
-                    return rn != 15 && rd != 15 && rn != rd;
-                if ((op & 0x0fc000f0u) == 0x00000090u) return rn != 15;
-                if ((op & 0x0e000090u) == 0x00000090u && (op & 0x60))
-                    return rn != 15 && rd != 15 && ((op & (1u << 20)) || (op & 0x60) == 0x20);
-                if (((op >> 26) & 3) != 0 || (!(op & (1u << 25)) && (op & 0x90) == 0x90)) return false;
-                const unsigned alu = (op >> 21) & 15;
-                return alu >= 8 && alu <= 11 ? bool(op & (1u << 20)) : rd != 15;
-            };
-            for (std::size_t first = 0; first < instructions.size();) {
-                std::size_t end = first;
-                for (; end < instructions.size() && end - first < 32; ++end) {
-                    const auto &ins = instructions[end];
-                    if (ins.leaf || !straight(ins.opcode)
-                        || (end != first && (ins.address != instructions[end - 1].address + 4
-                            || forward_targets_set.count(ins.address)))) break;
-                }
-                if (end - first < 4) { ++first; continue; }
-                budget_chunks.emplace(first, static_cast<unsigned>(end - first)); first = end;
-            }
-        }
-
         struct integer_segment {
             region_ir graph;
             std::vector<bool> live, cold, stack_values;
@@ -1357,6 +1320,50 @@ namespace eka2l1::arm::aot {
             result.num_suffix_i64_locals = max_wide_locals;
         }
 #endif
+
+        // Budget chunks keep the existing opcode lowering. Each chunk has one
+        // entry and no control transfer. A short budget enters a private precise
+        // compiler before effects; the hot path keeps every count/exit check.
+        std::map<std::size_t, unsigned> budget_chunks;
+        if (allow_memory_proof && (budget_gaps_ir || ir_policy == arm_ir_policy::budget_chunks
+                || ir_policy == arm_ir_policy::write_budget_chunks || ir_policy == arm_ir_policy::deferred_chunk_counts)
+            && w.region && cache_registers) {
+            auto straight = [](std::uint32_t op) {
+                if ((op >> 28) == 15) return false;
+                const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
+                if (((op >> 26) & 3) == 1)
+                    return rd != 15 && rn != 15
+                        && !(!(op & (1u << 24)) && (op & (1u << 21)))
+                        && !((op & (1u << 25)) && (op & 16));
+                if (((op >> 25) & 7) == 4)
+                    return rn != 15 && (op & 65535) && !(op & ((1u << 22) | 32768));
+                if ((op & 0x0f8000f0u) == 0x00800090u)
+                    return rn != 15 && rd != 15 && rn != rd;
+                if ((op & 0x0fc000f0u) == 0x00000090u) return rn != 15;
+                if ((op & 0x0e000090u) == 0x00000090u && (op & 0x60))
+                    return rn != 15 && rd != 15 && ((op & (1u << 20)) || (op & 0x60) == 0x20);
+                if (((op >> 26) & 3) != 0 || (!(op & (1u << 25)) && (op & 0x90) == 0x90)) return false;
+                const unsigned alu = (op >> 21) & 15;
+                return alu >= 8 && alu <= 11 ? bool(op & (1u << 20)) : rd != 15;
+            };
+            // IR is selected first. A chunk cannot begin within or cross an
+            // IR segment, including when that segment takes its cold fallback.
+            std::vector<bool> ir_covered(instructions.size());
+            for (const auto &part : segments)
+                for (unsigned n = 0; n < part.second.length; ++n)
+                    ir_covered[part.first + n] = true;
+            for (std::size_t first = 0; first < instructions.size();) {
+                std::size_t end = first;
+                for (; end < instructions.size() && end - first < 32; ++end) {
+                    const auto &ins = instructions[end];
+                    if (ir_covered[end] || ins.leaf || !straight(ins.opcode)
+                        || (end != first && (ins.address != instructions[end - 1].address + 4
+                            || forward_targets_set.count(ins.address)))) break;
+                }
+                if (end - first < 4) { ++first; continue; }
+                budget_chunks.emplace(first, static_cast<unsigned>(end - first)); first = end;
+            }
+        }
 
         // Initialize pc_idx = 0
         w.i32_const(0);

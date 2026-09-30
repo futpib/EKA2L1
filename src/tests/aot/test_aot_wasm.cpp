@@ -2851,14 +2851,27 @@ static bool test_budget_chunks(arm_ir_policy policy = arm_ir_policy::budget_chun
                 policy == arm_ir_policy::deferred_chunk_counts ? 0xe581400cu : 0xe2844001u})
             long_program.push_back(op);
     programs.push_back(long_program);
+    if (policy == arm_ir_policy::budget_gaps_ir) {
+        // Three arithmetic instructions form IR; block transfers stay in the
+        // original emitter and form a budget chunk on either side of that IR.
+        const std::vector<std::uint32_t> gap{0xe8910001u,0xe8810004u,0xe8910008u,0xe8810010u};
+        const std::vector<std::uint32_t> arithmetic{0xe2800001u,0xe2922001u,0x00233004u};
+        std::vector<std::uint32_t> mixed=gap;
+        mixed.insert(mixed.end(),arithmetic.begin(),arithmetic.end());
+        mixed.insert(mixed.end(),gap.begin(),gap.end());
+        programs={mixed};
+        // A forward edge skips the IR and enters the following budget chunk.
+        mixed.insert(mixed.begin()+4,{0xe3560000u,0x0a000002u});
+        programs.push_back(mixed);
+    }
     unsigned checks = 0;
     for (const auto &code : programs) {
         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
         auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
             nullptr, nullptr, true, true, true, true, nullptr, true, policy);
-        if (!tr.budget_chunks || tr.func.outlined_calls.empty() || tr.ir_segments
+        if (!tr.budget_chunks || tr.func.outlined_calls.empty() || (policy == arm_ir_policy::budget_gaps_ir ? !tr.ir_segments : tr.ir_segments != 0)
             || (policy == arm_ir_policy::deferred_chunk_counts && !tr.deferred_count_updates)
-            || (&code == &programs.back() && tr.budget_chunks != 3)) {
+            || (policy != arm_ir_policy::budget_gaps_ir && &code == &programs.back() && tr.budget_chunks != 3)) {
             printf("  FAIL budget chunk selection program=%u chunks=%u\n", unsigned(&code-programs.data()),tr.budget_chunks); return false;
         }
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -5185,6 +5198,7 @@ int main(int argc, char **argv) {
     if (test_invariant_reads(arm_ir_policy::invariant_read_ir)) passed++; else failed++;
     if (test_invariant_writes()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
+    if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::deferred_chunk_counts)) passed++; else failed++;
     if (test_invariant_writes(arm_ir_policy::deferred_chunk_counts)) passed++; else failed++;
@@ -5194,6 +5208,7 @@ int main(int argc, char **argv) {
     if (test_ir_conditions()) passed++; else failed++;
     if (test_ir_conditions(arm_ir_policy::long_segments_ir)) passed++; else failed++;
     if (test_ir_conditions(arm_ir_policy::stack_values_ir)) passed++; else failed++;
+    if (test_ir_conditions(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;
     if (test_ir_long_segments()) passed++; else failed++;
     if (test_ir_segments()) passed++; else failed++;
     if (test_ir_memory_exits()) passed++; else failed++;

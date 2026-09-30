@@ -241,7 +241,7 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
-            const auto checked_policy = (ir_policy == aot::arm_ir_policy::long_segments_ir || ir_policy == aot::arm_ir_policy::stack_values_ir)
+            const auto checked_policy = (ir_policy == aot::arm_ir_policy::long_segments_ir || ir_policy == aot::arm_ir_policy::stack_values_ir || ir_policy == aot::arm_ir_policy::budget_gaps_ir)
                 ? aot::arm_ir_policy::conditional_value_ir : ir_policy;
             if(ir_long && n==0 && translated.ir_max_segment_length != (ir_policy==aot::arm_ir_policy::long_segments_ir?128u:32u)) {
                 std::cerr<<"Long fault fixture did not select expected segment cap: policy="<<int(ir_policy)<<" max="<<translated.ir_max_segment_length<<" segments="<<translated.ir_segments<<" selected="<<translated.ir_segment_instructions<<"\n";return 4;
