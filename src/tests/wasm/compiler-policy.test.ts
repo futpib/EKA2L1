@@ -12,11 +12,11 @@ const servers: any[] = [];
 try {
   for (const name of ['EKA2L1_AOT_IR_MODE','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_TLB_HASH','EKA2L1_CODE_COMPARE','EKA2L1_CODE_LOOKUP']) delete process.env[name];
   assert.equal(compilerPolicyFromEnv(), undefined);
-  for (const mode of [0,1,2]) {
+  for (const mode of [0,1,2,3]) {
     process.env.EKA2L1_CODE_COMPARE = String(mode);
     assert.deepEqual(compilerPolicyFromEnv(), {codeCompare:mode});
   }
-  for (const value of ['-1','3','2.0','NaN','']) {
+  for (const value of ['-1','4','2.0','NaN','']) {
     process.env.EKA2L1_CODE_COMPARE = value;
     assert.throws(compilerPolicyFromEnv, /Invalid exact comparison policy/);
   }
@@ -31,7 +31,7 @@ try {
   }
   delete process.env.EKA2L1_CODE_LOOKUP;
   const responses: {html:string; etag:string|null}[] = [];
-  for (const [mode,lookup] of [[0,undefined],[2,undefined],[2,0],[2,1]]) {
+  for (const [mode,lookup] of [[0,undefined],[2,undefined],[2,0],[2,1],[3,0]]) {
     const {server,port} = await startServer(0, {}, undefined, {compilerPolicy:{irMode:7,eagerRegions:0,tlbHash:1,codeCompare:mode,...(lookup === undefined ? {} : {codeLookup:lookup})}});
     servers.push(server);
     const response = await fetch(`http://127.0.0.1:${port}/`);
@@ -63,8 +63,8 @@ try {
       assert.equal(bad.window.ekaCompilerPolicy.applied,false);
     }
   }
-  assert.equal(new Set(responses.map(r=>r.etag)).size,4);
-  for (const invalid of [-1,3,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeCompare:invalid}}),/Invalid compiler policy/);
+  assert.equal(new Set(responses.map(r=>r.etag)).size,responses.length);
+  for (const invalid of [-1,4,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeCompare:invalid}}),/Invalid compiler policy/);
   for (const invalid of [-1,2,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeLookup:invalid}}),/Invalid compiler policy/);
   console.log('PASS scanner and lookup policy validation, applied-mode checks, rejected configuration, and policy-dependent HTML ETags');
 } finally {

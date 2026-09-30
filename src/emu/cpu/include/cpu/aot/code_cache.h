@@ -13,7 +13,7 @@
 namespace eka2l1::arm::aot {
     // Research switch, configured before CPU startup; exact coverage in both modes.
     extern bool code_lookup_outline; // Opt-in layout only; validation remains exact.
-    extern unsigned code_compare_mode; // 0: original, 1: overlapping tail, 2: four-vector loop
+    extern unsigned code_compare_mode; // 0: original, 1: overlapping tail, 2: four-vector loop, 3: fixed short sizes + grouped
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size);
 
     // Known allocations use backing-page write versions. Raw host-pointer

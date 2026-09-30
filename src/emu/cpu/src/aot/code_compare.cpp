@@ -50,9 +50,55 @@ namespace eka2l1::arm::aot {
         return entry;
     }
 
+#ifdef __wasm_simd128__
+    // Fixed-size two-buffer lowering. Keep the real snapshot in memory; unlike
+    // embedded constants this requires neither per-block modules nor recompiling
+    // a validator when a cache entry is replaced. No load crosses the span.
+    template <std::size_t Size>
+    static inline bool equal_short_code(const std::uint8_t *a, const std::uint8_t *b) {
+        if constexpr (Size >= 16) {
+            const bool same = !wasm_v128_any_true(wasm_v128_xor(wasm_v128_load(a), wasm_v128_load(b)));
+            return same && equal_short_code<Size - 16>(a + 16, b + 16);
+        } else if constexpr (Size >= 8) {
+            std::uint64_t x, y; std::memcpy(&x, a, 8); std::memcpy(&y, b, 8);
+            return x == y && equal_short_code<Size - 8>(a + 8, b + 8);
+        } else if constexpr (Size >= 4) {
+            std::uint32_t x, y; std::memcpy(&x, a, 4); std::memcpy(&y, b, 4);
+            return x == y && equal_short_code<Size - 4>(a + 4, b + 4);
+        } else {
+            static_assert(Size == 0);
+            return true;
+        }
+    }
+#endif
+
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size) {
 #ifdef __wasm_simd128__
-        if (code_compare_mode == 2) {
+        if (code_compare_mode == 3) {
+            // Dense, bounded specialization for word-sized code spans. All
+            // other lengths retain the grouped scanner and exact tail path.
+            switch (size) {
+            case 0: return equal_short_code<0>(a, b);
+            case 4: return equal_short_code<4>(a, b);
+            case 8: return equal_short_code<8>(a, b);
+            case 12: return equal_short_code<12>(a, b);
+            case 16: return equal_short_code<16>(a, b);
+            case 20: return equal_short_code<20>(a, b);
+            case 24: return equal_short_code<24>(a, b);
+            case 28: return equal_short_code<28>(a, b);
+            case 32: return equal_short_code<32>(a, b);
+            case 36: return equal_short_code<36>(a, b);
+            case 40: return equal_short_code<40>(a, b);
+            case 44: return equal_short_code<44>(a, b);
+            case 48: return equal_short_code<48>(a, b);
+            case 52: return equal_short_code<52>(a, b);
+            case 56: return equal_short_code<56>(a, b);
+            case 60: return equal_short_code<60>(a, b);
+            case 64: return equal_short_code<64>(a, b);
+            default: break;
+            }
+        }
+        if (code_compare_mode == 2 || code_compare_mode == 3) {
             // All eight loads remain in the original spans. Combine mismatch
             // bits before the branch; unequal bytes can never cancel via OR.
             while (size >= 64) {

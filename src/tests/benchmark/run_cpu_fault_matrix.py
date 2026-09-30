@@ -12,7 +12,7 @@ parser.add_argument('--ir-policy', type=int, choices=range(16), required=True)
 parser.add_argument('--long', action='store_true', help='Include 128-instruction coverage fixture (policies 13/14/15)')
 parser.add_argument('--code-write-protect', type=int, choices=(0,1))
 parser.add_argument('--code-lookup', type=int, choices=(0,1))
-parser.add_argument('--code-compare', type=int, choices=(0,1,2))
+parser.add_argument('--code-compare', type=int, choices=(0,1,2,3))
 parser.add_argument('--tlb-hash', type=int, choices=(0,1))
 a = parser.parse_args()
 if a.long and a.ir_policy not in (13,14,15):

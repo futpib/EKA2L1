@@ -3907,7 +3907,7 @@ static bool test_outlined_code_lookup() {
 }
 
 static bool test_exact_code_compare() {
-    for (unsigned mode : {0u, 1u, 2u}) {
+    for (unsigned mode : {0u, 1u, 2u, 3u}) {
     code_compare_mode = mode;
     std::array<std::uint8_t,577> a{},b{};
     for(unsigned i=0;i<a.size();++i) a[i]=b[i]=i*37;
@@ -3946,7 +3946,7 @@ static bool test_exact_code_compare() {
         }
     }
     code_compare_mode = 0;
-    printf("  PASS exact_code_compare (three modes, unaligned/tails/mutations)\n"); return true;
+    printf("  PASS exact_code_compare (four modes, unaligned/tails/mutations)\n"); return true;
 }
 
 // Check every condition/flag combination against DynCom, including false moves,

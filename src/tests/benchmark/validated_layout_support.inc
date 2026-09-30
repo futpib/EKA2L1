@@ -47,7 +47,7 @@ API unsigned layout_compare(std::uintptr_t a, std::uintptr_t b, unsigned size) {
      reinterpret_cast<const unsigned char *>(b), size);
 }
 API void layout_compare_mode(unsigned mode) {
- if(mode>2)throw std::runtime_error("unknown exact comparison mode");
+ if(mode>3)throw std::runtime_error("unknown exact comparison mode");
  aot::code_compare_mode=mode;
 }
 }
