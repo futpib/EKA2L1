@@ -62,8 +62,9 @@ int main(int argc, char **argv){
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
+    const bool ir_addressing=argc==2 && std::string(argv[1])=="--ir-addressing";
     const bool ir_wide=argc==2 && std::string(argv[1])=="--ir-wide";
-    const bool ir_memory=ir_wide || (argc==2 && std::string(argv[1])=="--ir-memory");
+    const bool ir_memory=ir_addressing || ir_wide || (argc==2 && std::string(argv[1])=="--ir-memory");
     const bool ir_memory_chain=argc==2 && std::string(argv[1])=="--ir-memory-chain";
     const bool ir_segments=ir_memory || (argc==2 && std::string(argv[1])=="--ir-segments");
     const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
@@ -83,6 +84,8 @@ int main(int argc, char **argv){
     if(read_spans || region_spans) instructions={0xe5910000};
     if(region_block_spans) instructions={0xe8b10039,0xe8a10039};
     if(ir_memory) instructions={0xe5910000,0xe5810000,0xe8b1000d,0xe8a1000d,0xe891000d,0xe881000d};
+    if(ir_addressing) instructions={0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,0xe1d100d0,0xe1d100f0,
+        0xe7910106,0xe7810106,0xe7d10106,0xe7c10106,0xe19100b6,0xe18100b6,0xe19100d6,0xe19100f6};
     const std::vector<unsigned> addresses=region_spans
         ? std::vector<unsigned>{0x8000u,0x8ff0u,0x8ff4u}
         : read_spans
@@ -113,6 +116,7 @@ int main(int argc, char **argv){
         std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
         for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
         cpu.set_reg(0,0x87654321);cpu.set_reg(1,address);cpu.set_pc(0x1000);cpu.set_cpsr(0xa0000010|endian);
+        if(ir_addressing)cpu.set_reg(6,1);
         // Read-only TLB: permitted control for loads, denied mapping for stores.
         // Unmapped cases always exercise failure callbacks. Partial cases allow
         // the first transferred word before failing subsequent accesses.

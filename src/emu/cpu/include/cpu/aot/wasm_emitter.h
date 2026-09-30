@@ -46,7 +46,9 @@ namespace eka2l1::arm::aot {
         op_local_tee = 0x22,
 
         op_i32_load = 0x28,
+        op_i32_load16_s = 0x2E,
         op_i32_load16_u = 0x2F,
+        op_i32_load8_s = 0x2C,
         op_i32_load8_u = 0x2D,
         op_i32_store = 0x36,
         op_i32_store16 = 0x3B,

@@ -235,11 +235,11 @@ namespace eka2l1::arm::aot {
         // Validate a whole block-transfer span once. It must be aligned and
         // contained in one permitted TLB page; otherwise use the existing
         // per-access path, including its fault/endian behavior.
-        void block_transfer_host(unsigned address_local, unsigned bytes, bool write) {
+        void block_transfer_host(unsigned address_local, unsigned bytes, bool write, unsigned alignment = 4) {
             i32_const(0); set_local(HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
             op(op_if); op(type_void);
-            get_local(address_local); i32_const(3); op(op_i32_and); op(op_i32_eqz);
+            get_local(address_local); i32_const(alignment - 1); op(op_i32_and); op(op_i32_eqz);
             get_local(address_local); i32_const(4095); op(op_i32_and);
             i32_const(4096 - bytes); op(op_i32_le_u); op(op_i32_and);
             load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
@@ -263,7 +263,7 @@ namespace eka2l1::arm::aot {
         void ir_memory_host(unsigned bytes, bool write) {
             const unsigned page = write ? WRITE_PAGE : READ_PAGE;
             const unsigned base = write ? WRITE_BASE : READ_BASE;
-            get_local(ADDRESS); i32_const(-4096 | 3); op(op_i32_and);
+            get_local(ADDRESS); i32_const(-4096 | (std::min(bytes, 4u) - 1)); op(op_i32_and);
             get_local(page); op(op_i32_eq);
             if (bytes > 4) {
                 get_local(ADDRESS); i32_const(4095); op(op_i32_and);
@@ -273,7 +273,7 @@ namespace eka2l1::arm::aot {
             get_local(base); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
             op(op_i32_add); set_local(HOST);
             op(op_else);
-            block_transfer_host(ADDRESS, bytes, write);
+            block_transfer_host(ADDRESS, bytes, write, std::min(bytes, 4u));
             get_local(HOST); op(op_if); op(type_void);
             get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
             op(op_i32_sub); set_local(base);
@@ -430,10 +430,19 @@ namespace eka2l1::arm::aot {
             case region_ir::low: w.op(op_i32_wrap_i64); break;
             case region_ir::high:
                 w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shr_u); w.op(op_i32_wrap_i64); break;
-            case region_ir::read32:
-                w.op(op_i32_load); leb(w.b, 2); leb(w.b, static_cast<unsigned>(node.immediate)); break;
-            case region_ir::write32:
-                push(node.b); w.op(op_i32_store); leb(w.b, 2); leb(w.b, static_cast<unsigned>(node.immediate)); break;
+            case region_ir::read32: case region_ir::read8u: case region_ir::read8s:
+            case region_ir::read16u: case region_ir::read16s: {
+                const bool word = node.op == region_ir::read32;
+                const bool half = node.op == region_ir::read16u || node.op == region_ir::read16s;
+                w.op(word ? op_i32_load : node.op == region_ir::read8s ? op_i32_load8_s
+                    : node.op == region_ir::read16s ? op_i32_load16_s : half ? op_i32_load16_u : op_i32_load8_u);
+                leb(w.b, word ? 2 : half ? 1 : 0); leb(w.b, static_cast<unsigned>(node.immediate)); break;
+            }
+            case region_ir::write32: case region_ir::write8: case region_ir::write16:
+                push(node.b);
+                w.op(node.op == region_ir::write32 ? op_i32_store : node.op == region_ir::write16 ? op_i32_store16 : op_i32_store8);
+                leb(w.b, node.op == region_ir::write32 ? 2 : node.op == region_ir::write16 ? 1 : 0);
+                leb(w.b, static_cast<unsigned>(node.immediate)); break;
             default:
                 if (node.b) push(node.b);
                 w.op(static_cast<std::uint8_t>(node.op)); break;

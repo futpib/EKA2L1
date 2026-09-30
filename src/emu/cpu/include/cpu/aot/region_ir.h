@@ -16,7 +16,11 @@ namespace eka2l1::arm::aot {
     struct region_ir {
         using value = unsigned;
         enum operation : unsigned { constant = 256, state, host, pack, low, high,
-            read32, write32, guarded_host };
+            read32, read8u, read8s, read16u, read16s,
+            write32, write8, write16, guarded_host };
+        static bool is_read(unsigned op) { return op >= read32 && op <= read16s; }
+        static bool is_write(unsigned op) { return op >= write32 && op <= write16; }
+        static bool is_effect(unsigned op) { return is_read(op) || is_write(op) || op == guarded_host; }
         struct node {
             unsigned op, type;
             value a = 0, b = 0;
@@ -45,7 +49,7 @@ namespace eka2l1::arm::aot {
         }
         value make(unsigned op, unsigned type, value a = 0, value b = 0, std::uint64_t immediate = 0) {
             const auto key = std::make_tuple(op, type, a, b, immediate);
-            const bool pure = op != read32 && op != write32 && op != guarded_host;
+            const bool pure = !is_effect(op);
             if (optimize && pure) {
                 auto it = numbers.find(key);
                 if (it != numbers.end()) return it->second;
@@ -120,13 +124,21 @@ namespace eka2l1::arm::aot {
             unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15, rm = op & 15, rs = (op >> 8) & 15;
             bool writes_pc = false;
             value dynamic_host = 0;
-            auto memory = [&](bool load, unsigned r, unsigned offset) {
+            auto shifted = [&](value operand, unsigned shift, unsigned amount) {
+                if (shift == 0) return amount ? alu(op_i32_shl, operand, imm(amount)) : operand;
+                if (shift == 1) return amount ? alu(op_i32_shr_u, operand, imm(amount)) : imm(0);
+                if (shift == 2) return alu(op_i32_shr_s, operand, imm(amount ? amount : 31));
+                return amount ? alu(op_i32_rotr, operand, imm(amount))
+                    : alu(op_i32_or, alu(op_i32_shr_u, operand, imm(1)), alu(op_i32_shl, next.flags[2], imm(31)));
+            };
+            auto memory = [&](bool load, unsigned r, unsigned offset, unsigned bytes = 4, bool sign = false) {
                 const auto it = accesses.find(pc);
                 if (!dynamic_host && it == accesses.end()) return false;
                 auto address = dynamic_host ? dynamic_host : make(host, type_i32, 0, 0, it->second.host);
                 const unsigned displacement = (dynamic_host ? 0 : it->second.offset) + offset;
-                if (load) next.regs[r] = make(read32, type_i32, address, 0, displacement);
-                else make(write32, type_void, address, reg(r), displacement);
+                if (load) next.regs[r] = make(bytes == 4 ? read32 : bytes == 2 ? (sign ? read16s : read16u)
+                    : (sign ? read8s : read8u), type_i32, address, 0, displacement);
+                else make(bytes == 4 ? write32 : bytes == 2 ? write16 : write8, type_void, address, reg(r), displacement);
                 return true;
             };
             if ((op & 0x0ffffff0u) == 0x012fff10u) {
@@ -135,16 +147,21 @@ namespace eka2l1::arm::aot {
             } else if (((op >> 26) & 3) == 1) {
                 const bool pre = op & (1u << 24), up = op & (1u << 23), load = op & (1u << 20);
                 const bool wb = !pre || (op & (1u << 21));
-                if ((op & ((1u << 25) | (1u << 22))) || rn == 15 || rd == 15
-                    || (!pre && (op & (1u << 21))) || (wb && rn == rd)) return false;
+                const bool register_offset = op & (1u << 25);
+                const unsigned bytes = op & (1u << 22) ? 1 : 4;
+                if (rd == 15 || (!pre && (op & (1u << 21))) || (wb && rn == rd)
+                    || (rn == 15 && (!load || !pre || wb || register_offset))
+                    || (register_offset && ((op & 16) || rm == 15))
+                    || (!dynamic_memory && (register_offset || bytes != 4 || rn == 15))) return false;
                 const auto base = reg(rn);
+                const auto offset = register_offset ? shifted(reg(rm), (op >> 5) & 3, (op >> 7) & 31) : imm(op & 4095);
                 if (dynamic_memory) {
-                    auto address = pre ? alu(up ? op_i32_add : op_i32_sub, base, imm(op & 4095)) : base;
-                    dynamic_host = make(guarded_host, type_i32, address, imm(4),
+                    auto address = pre ? alu(up ? op_i32_add : op_i32_sub, base, offset) : base;
+                    dynamic_host = make(guarded_host, type_i32, address, imm(bytes),
                         (snapshots.size() - 1) * 2 + !load);
                 }
-                if (!memory(load, rd, 0)) return false;
-                if (wb) next.regs[rn] = alu(up ? op_i32_add : op_i32_sub, base, imm(op & 4095));
+                if (!memory(load, rd, 0, bytes)) return false;
+                if (wb) next.regs[rn] = alu(up ? op_i32_add : op_i32_sub, base, offset);
             } else if (((op >> 25) & 7) == 4) {
                 const bool load = op & (1u << 20), wb = op & (1u << 21), up = op & (1u << 23);
                 const auto list = op & 65535;
@@ -175,6 +192,22 @@ namespace eka2l1::arm::aot {
                 auto product = alu(op_i32_mul, reg(rm), reg(rs));
                 if (op & (1u << 21)) product = alu(op_i32_add, product, reg(rd));
                 next.regs[rn] = product;
+            } else if ((op & 0x0e000090u) == 0x00000090u && (op & 0x60)) {
+                const bool pre = op & (1u << 24), up = op & (1u << 23), load = op & (1u << 20);
+                const bool immediate = op & (1u << 22), wb = !pre || (op & (1u << 21));
+                const bool sign = op & (1u << 6);
+                const unsigned bytes = op & (1u << 5) ? 2 : 1;
+                if (!dynamic_memory || rd == 15 || (!load && (sign || bytes != 2))
+                    || (!pre && (op & (1u << 21))) || (wb && rn == rd)
+                    || (rn == 15 && (!load || !pre || wb || !immediate))
+                    || (!immediate && ((op & 0xf00) || rm == 15))) return false;
+                const auto base = reg(rn);
+                const auto offset = immediate ? imm(((op >> 4) & 0xf0) | (op & 15)) : reg(rm);
+                const auto address = pre ? alu(up ? op_i32_add : op_i32_sub, base, offset) : base;
+                dynamic_host = make(guarded_host, type_i32, address, imm(bytes),
+                    (snapshots.size() - 1) * 2 + !load);
+                if (!memory(load, rd, 0, bytes, sign)) return false;
+                if (wb) next.regs[rn] = alu(up ? op_i32_add : op_i32_sub, base, offset);
             } else if (((op >> 26) & 3) == 0) {
                 // Exclude miscellaneous, PSR, flag-setting, register-controlled
                 // shift, exclusive and halfword encodings before broad ALU use.
@@ -187,15 +220,7 @@ namespace eka2l1::arm::aot {
                     operand = imm(rot ? (byte >> rot) | (byte << (32 - rot)) : byte);
                 } else {
                     if (op & (1u << 4)) return false;
-                    operand = reg(rm);
-                    unsigned shift = (op >> 5) & 3, amount = (op >> 7) & 31;
-                    if (shift == 0 && amount) operand = alu(op_i32_shl, operand, imm(amount));
-                    if (shift == 1) operand = amount ? alu(op_i32_shr_u, operand, imm(amount)) : imm(0);
-                    if (shift == 2) operand = alu(op_i32_shr_s, operand, imm(amount ? amount : 31));
-                    if (shift == 3) {
-                        if (amount) operand = alu(op_i32_rotr, operand, imm(amount));
-                        else operand = alu(op_i32_or, alu(op_i32_shr_u, operand, imm(1)), alu(op_i32_shl, next.flags[2], imm(31)));
-                    }
+                    operand = shifted(reg(rm), (op >> 5) & 3, (op >> 7) & 31);
                 }
                 value result;
                 switch (code) {
@@ -234,12 +259,12 @@ namespace eka2l1::arm::aot {
                 case op_i64_extend_i32_s: case op_i64_extend_i32_u: if (!unary_type(type_i32, type_i64)) return false; break;
                 case pack: if (!binary_type(type_i32, type_i64)) return false; break;
                 case op_i64_add: case op_i64_mul: if (!binary_type(type_i64, type_i64)) return false; break;
-                case read32: if (!unary_type(type_i32, type_i32)) return false; break;
-                case write32: if (!binary_type(type_i32, type_void)) return false; break;
+                case read32: case read8u: case read8s: case read16u: case read16s: if (!unary_type(type_i32, type_i32)) return false; break;
+                case write32: case write8: case write16: if (!binary_type(type_i32, type_void)) return false; break;
                 case guarded_host:
                     if (!binary_type(type_i32, type_i32) || nodes[n.b].op != constant
                         || !nodes[n.b].immediate || nodes[n.b].immediate > 64
-                        || (nodes[n.b].immediate & 3) || n.immediate / 2 >= snapshots.size()) return false;
+                        || (nodes[n.b].immediate > 2 && (nodes[n.b].immediate & 3)) || n.immediate / 2 >= snapshots.size()) return false;
                     break;
                 case op_i32_add: case op_i32_sub: case op_i32_mul: case op_i32_and:
                 case op_i32_or: case op_i32_xor: case op_i32_shl: case op_i32_shr_s:
@@ -254,8 +279,7 @@ namespace eka2l1::arm::aot {
             }
             unsigned previous = 0;
             for (auto v : effects) {
-                if (v <= previous || v >= nodes.size() || (nodes[v].op != read32 && nodes[v].op != write32
-                    && nodes[v].op != guarded_host)) return false;
+                if (v <= previous || v >= nodes.size() || !is_effect(nodes[v].op)) return false;
                 previous = v;
             }
             return true;
