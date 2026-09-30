@@ -30,3 +30,17 @@ No prior fault result is being relabelled as a new-mode result.
 Next: separate diagnostic block counts, then counter-free serial timing of both
 modes in one application and the exact served archive. Extra hashing can introduce
 new conflicts or cost more than it saves; correctness alone earns no promotion.
+
+## Separate diagnostic, before timing
+
+The folded profile records 1,121,439 zero-progress calls versus 11,043,032 in
+ the earlier served-build profile of the same longer route (89.85% fewer).
+Compiled dispatches fall from 199,922,265 to 184,909,283; interpreter instructions
+from 35,800,043 to 5,202,580. Both execute exactly 2,987,830,398 total guest
+instructions and 720 presentations in guest seconds42-60. The dominant sampled
+literal site0x700002b8 disappears from the folded profile's top zero-return sites.
+
+These are instrumented diagnostic counts from different application archives,
+not promotion timings or a same-binary causal estimate. The subsequent ordinary
+runs hold the new application binary fixed while selecting index0/1, with the
+exact served archive as a separate control. No timing normalization is applied.

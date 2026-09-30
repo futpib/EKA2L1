@@ -956,5 +956,380 @@
     "passed": true,
     "returncode": 1,
     "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 39, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                   ~~~~^^^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 33, in load\n    raise ValueError(f'{path}: wrong TLB index policy {markers}')\nValueError: /home/claude/.scratch/eka-benchmark/tlb-hash-faults1/extended-native.log: wrong TLB index policy ['PROBE_TLB_HASH 1']\n"
+  },
+  "diagnostic_profiles": {
+    "growth-long-guest-profile": {
+      "report": {
+        "measurement": {
+          "detailed": true,
+          "capture_mode": 2,
+          "first_virtual_us": 42000000,
+          "last_virtual_us": 60000000,
+          "first_instructions": 6116295735,
+          "last_instructions": 9104126133,
+          "wall_seconds": 26.6547,
+          "presentations": 720,
+          "aot_dispatches": 199922265,
+          "aot_instructions": 2952030355,
+          "compiled_runner_calls": 11809709,
+          "ram_aot_dispatches": 169156085,
+          "ram_blocks_compiled": 297,
+          "decoded_instructions": 1272,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 626047,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 26.2718,
+              "calls": 628251
+            },
+            "cpu_run": {
+              "seconds": 23.7055,
+              "calls": 626047
+            },
+            "timers": {
+              "seconds": 0.503169,
+              "calls": 628251
+            },
+            "scheduler": {
+              "seconds": 0.472459,
+              "calls": 628251
+            },
+            "graphics_dispatch": {
+              "seconds": 1.037,
+              "calls": 1440
+            },
+            "graphics_wait": {
+              "seconds": 1.03133,
+              "calls": 1440
+            },
+            "display_hook": {
+              "seconds": 0.00139443,
+              "calls": 720
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0.0915656,
+              "calls": 1800
+            }
+          }
+        },
+        "warmup_seconds": 34.400538125,
+        "shared_audio": true,
+        "guest_profile_stride": 1021,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+        "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "code_compare": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "110db7e16ec332f71a2cbfd70c4385a7ae9abc11",
+        "dirty_worktree": false,
+        "browser": "Chrome/153.0.8010.52",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      },
+      "guest_profile_sha256": "c28ed3027f8199fc9fad99ab380c3ecd5e78f501960d90cf4a2d8c6558cba449",
+      "interpreter_instructions": 35800043,
+      "compiled_blocks": 199922265,
+      "events": {
+        "candidate_threshold": 2464,
+        "compiled_zero": 11043032,
+        "ram_missing": 96732,
+        "ram_pending": 1046,
+        "ram_rejected": 3660,
+        "rom_missing": 261997
+      },
+      "top_zero_samples": [
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879048888,
+          "asid": 0,
+          "opcode": 0,
+          "count": 9848
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879048688,
+          "asid": 0,
+          "opcode": 0,
+          "count": 631
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879249644,
+          "asid": 0,
+          "opcode": 0,
+          "count": 54
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879171288,
+          "asid": 0,
+          "opcode": 0,
+          "count": 48
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879230172,
+          "asid": 0,
+          "opcode": 0,
+          "count": 24
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879248348,
+          "asid": 0,
+          "opcode": 0,
+          "count": 21
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879455516,
+          "asid": 0,
+          "opcode": 0,
+          "count": 21
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879068084,
+          "asid": 0,
+          "opcode": 0,
+          "count": 9
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879125212,
+          "asid": 0,
+          "opcode": 0,
+          "count": 8
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879169956,
+          "asid": 0,
+          "opcode": 0,
+          "count": 8
+        }
+      ]
+    },
+    "tlb-hash-guest1": {
+      "report": {
+        "measurement": {
+          "detailed": true,
+          "capture_mode": 2,
+          "first_virtual_us": 42000000,
+          "last_virtual_us": 60000000,
+          "first_instructions": 6116295735,
+          "last_instructions": 9104126133,
+          "wall_seconds": 23.8399,
+          "presentations": 720,
+          "aot_dispatches": 184909283,
+          "aot_instructions": 2982627818,
+          "compiled_runner_calls": 1895252,
+          "ram_aot_dispatches": 154146156,
+          "ram_blocks_compiled": 298,
+          "decoded_instructions": 1278,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 626047,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 23.4675,
+              "calls": 628251
+            },
+            "cpu_run": {
+              "seconds": 20.9292,
+              "calls": 626047
+            },
+            "timers": {
+              "seconds": 0.491505,
+              "calls": 628251
+            },
+            "scheduler": {
+              "seconds": 0.509606,
+              "calls": 628251
+            },
+            "graphics_dispatch": {
+              "seconds": 1.02864,
+              "calls": 1440
+            },
+            "graphics_wait": {
+              "seconds": 1.0173,
+              "calls": 1440
+            },
+            "display_hook": {
+              "seconds": 0.00137779,
+              "calls": 720
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0.0935388,
+              "calls": 1800
+            }
+          }
+        },
+        "warmup_seconds": 32.644070119000006,
+        "shared_audio": true,
+        "guest_profile_stride": 1021,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "wasm_sha256": "2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf",
+        "loader_sha256": "5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "tlb_hash": 1,
+        "code_compare": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "f025113a881655b8904094d95b4bc1b00c83febb",
+        "dirty_worktree": false,
+        "browser": "Chrome/153.0.8010.52",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      },
+      "guest_profile_sha256": "d0eb1219f0491a6d6daf61d9646ebbcae2315c25744bff586e736900303238b9",
+      "interpreter_instructions": 5202580,
+      "compiled_blocks": 184909283,
+      "events": {
+        "candidate_threshold": 2408,
+        "compiled_zero": 1121439,
+        "ram_missing": 96016,
+        "ram_pending": 1011,
+        "ram_rejected": 3660,
+        "rom_missing": 258399
+      },
+      "top_zero_samples": [
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879070812,
+          "asid": 0,
+          "opcode": 0,
+          "count": 267
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879070700,
+          "asid": 0,
+          "opcode": 0,
+          "count": 235
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879170508,
+          "asid": 0,
+          "opcode": 0,
+          "count": 82
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879249644,
+          "asid": 0,
+          "opcode": 0,
+          "count": 63
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879068732,
+          "asid": 0,
+          "opcode": 0,
+          "count": 38
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879462560,
+          "asid": 0,
+          "opcode": 0,
+          "count": 32
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879070500,
+          "asid": 0,
+          "opcode": 0,
+          "count": 29
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879241596,
+          "asid": 0,
+          "opcode": 0,
+          "count": 26
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879245224,
+          "asid": 0,
+          "opcode": 0,
+          "count": 26
+        },
+        {
+          "reason": "compiled_zero",
+          "pc_mode": 1879455516,
+          "asid": 0,
+          "opcode": 0,
+          "count": 26
+        }
+      ]
+    }
   }
 }
