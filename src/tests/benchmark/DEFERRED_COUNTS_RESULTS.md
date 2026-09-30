@@ -1,4 +1,4 @@
-# Deferred chunk counts: correctness accepted, timing pending
+# Deferred counts: marginal benefit not established
 
 Policy 8 defers counter updates within already-proved straight-line chunks and
 reconstructs exact counts at exits. It extends policy 7 without changing integer
@@ -59,3 +59,29 @@ alongside 7/8 and exact served, to distinguish policy effects from surrounding
 binary changes. Earlier policy-7 archived-build results remain negative and are
 not discarded. This newer archive does not establish a causal explanation for
 that difference. No deployment yet.
+
+## Expanded same-binary control and decision
+
+Batch C order/times: served-1 13.2178, reads-1 13.1304, combined-1 12.5967,
+deferred-1 12.6103, deferred-2 12.5484, combined-2 12.9869,
+reads-2 13.3512, served-2 15.0373 seconds.
+
+Means: deferred 12.57935s, combined 12.79180s, same-binary reads 13.24080s,
+served 14.12755s. The deferred-count change is +1.69% over combined in C,
+but only +0.47% pooled across A/B/C with mixed adjacent pairs. It is not
+selected for delivery. All twenty runs remain in the evidence, especially the
+15.0373s closing served outlier; no noise subtraction is applied.
+
+The exact newer archive with policy 7 has a 3.51% throughput lead over read-only
+policy 4 in the same binary in C. Against exact served, its three batch means
+improve by 4.89%, 8.90%, and 10.44%; pooled means are 12.67907s versus 13.70462s
+(+8.09%). Slow served outliers inflate that pooled percentage. This supports a
+modest repeatable archive-level gain on this host, not an 8% guarantee or proof
+of why earlier archived policy-7 results differed. Earlier negative results
+remain documented in COMBINED_PROOFS_RESULTS.md.
+
+Policy 7 in this exact archive is selected for normal native replay and two
+sustained live/audio routes before any deployment. It uses write-span and budget
+proofs, not deferred counters or general IR. All 151 compiler tests, policy-7/8
+fault comparisons and checked native replays above apply to the archived build.
+Further delivery evidence will be recorded separately in COMBINED_DELIVERY_RESULTS.md.

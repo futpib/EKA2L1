@@ -1,5 +1,5 @@
 {
-  "status": "Correctness passed; deferred counts opt-in, performance unmeasured, not deployed",
+  "status": "Marginal deferred-count benefit not established; exact archive policy7 selected for live acceptance, not yet deployed",
   "base_commit": "a0aaebf372e4dfcb957e469a32e04c512ba46c5c",
   "archive": {
     "git_head": "a0aaebf372e4dfcb957e469a32e04c512ba46c5c",
@@ -1782,17 +1782,660 @@
           }
         ],
         "means": {
-          "deferred": 12.72565,
           "combined": 12.628499999999999,
+          "deferred": 12.72565,
           "served": 13.75225
         },
         "throughput_vs_combined": -0.007634187644639079,
         "throughput_vs_served": 0.08067171421499109
+      },
+      {
+        "label": "c",
+        "path": "/home/claude/.scratch/eka-benchmark/deferred-counts-timing-c/measurements.json",
+        "rows": [
+          {
+            "name": "served-1",
+            "build": "/home/claude/.scratch/eka-benchmark/invariant-reads-candidate",
+            "ir_mode": 4,
+            "eager_regions": 0,
+            "wasm_sha256": "426038540c288ed57e721169080b643252629a4891596f0fbd70dc3b30479a52",
+            "loader_sha256": "d7361195b875116cb6e735d58a011ecb950efd19f631f201f5c5691598c1e3e4",
+            "measurement": {
+              "detailed": false,
+              "capture_mode": 2,
+              "first_virtual_us": 78000000,
+              "last_virtual_us": 96000000,
+              "first_instructions": 11263760836,
+              "last_instructions": 15239379460,
+              "wall_seconds": 13.2178,
+              "presentations": 676,
+              "aot_dispatches": 0,
+              "aot_instructions": 0,
+              "compiled_runner_calls": 0,
+              "ram_aot_dispatches": 0,
+              "ram_blocks_compiled": 0,
+              "decoded_instructions": 0,
+              "cache_hits": 0,
+              "cache_misses": 0,
+              "cache_clears": 0,
+              "context_loads": 0,
+              "code_version_hits": 0,
+              "code_byte_checks": 0,
+              "code_epoch_hits": 0,
+              "imb_calls": 0,
+              "scopes": {
+                "cpu_loop": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "cpu_run": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "timers": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "scheduler": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_dispatch": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_wait": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "display_hook": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "readback": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "frame_capture": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "png_encode": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "audio": {
+                  "seconds": 0,
+                  "calls": 0
+                }
+              }
+            }
+          },
+          {
+            "name": "reads-1",
+            "build": "/home/claude/.scratch/eka-benchmark/deferred-counts-candidate",
+            "ir_mode": 4,
+            "eager_regions": 0,
+            "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+            "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+            "measurement": {
+              "detailed": false,
+              "capture_mode": 2,
+              "first_virtual_us": 78000000,
+              "last_virtual_us": 96000000,
+              "first_instructions": 11263760836,
+              "last_instructions": 15239379460,
+              "wall_seconds": 13.1304,
+              "presentations": 676,
+              "aot_dispatches": 0,
+              "aot_instructions": 0,
+              "compiled_runner_calls": 0,
+              "ram_aot_dispatches": 0,
+              "ram_blocks_compiled": 0,
+              "decoded_instructions": 0,
+              "cache_hits": 0,
+              "cache_misses": 0,
+              "cache_clears": 0,
+              "context_loads": 0,
+              "code_version_hits": 0,
+              "code_byte_checks": 0,
+              "code_epoch_hits": 0,
+              "imb_calls": 0,
+              "scopes": {
+                "cpu_loop": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "cpu_run": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "timers": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "scheduler": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_dispatch": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_wait": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "display_hook": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "readback": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "frame_capture": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "png_encode": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "audio": {
+                  "seconds": 0,
+                  "calls": 0
+                }
+              }
+            }
+          },
+          {
+            "name": "combined-1",
+            "build": "/home/claude/.scratch/eka-benchmark/deferred-counts-candidate",
+            "ir_mode": 7,
+            "eager_regions": 0,
+            "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+            "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+            "measurement": {
+              "detailed": false,
+              "capture_mode": 2,
+              "first_virtual_us": 78000000,
+              "last_virtual_us": 96000000,
+              "first_instructions": 11263760836,
+              "last_instructions": 15239379460,
+              "wall_seconds": 12.5967,
+              "presentations": 676,
+              "aot_dispatches": 0,
+              "aot_instructions": 0,
+              "compiled_runner_calls": 0,
+              "ram_aot_dispatches": 0,
+              "ram_blocks_compiled": 0,
+              "decoded_instructions": 0,
+              "cache_hits": 0,
+              "cache_misses": 0,
+              "cache_clears": 0,
+              "context_loads": 0,
+              "code_version_hits": 0,
+              "code_byte_checks": 0,
+              "code_epoch_hits": 0,
+              "imb_calls": 0,
+              "scopes": {
+                "cpu_loop": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "cpu_run": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "timers": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "scheduler": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_dispatch": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_wait": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "display_hook": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "readback": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "frame_capture": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "png_encode": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "audio": {
+                  "seconds": 0,
+                  "calls": 0
+                }
+              }
+            }
+          },
+          {
+            "name": "deferred-1",
+            "build": "/home/claude/.scratch/eka-benchmark/deferred-counts-candidate",
+            "ir_mode": 8,
+            "eager_regions": 0,
+            "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+            "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+            "measurement": {
+              "detailed": false,
+              "capture_mode": 2,
+              "first_virtual_us": 78000000,
+              "last_virtual_us": 96000000,
+              "first_instructions": 11263760836,
+              "last_instructions": 15239379460,
+              "wall_seconds": 12.6103,
+              "presentations": 676,
+              "aot_dispatches": 0,
+              "aot_instructions": 0,
+              "compiled_runner_calls": 0,
+              "ram_aot_dispatches": 0,
+              "ram_blocks_compiled": 0,
+              "decoded_instructions": 0,
+              "cache_hits": 0,
+              "cache_misses": 0,
+              "cache_clears": 0,
+              "context_loads": 0,
+              "code_version_hits": 0,
+              "code_byte_checks": 0,
+              "code_epoch_hits": 0,
+              "imb_calls": 0,
+              "scopes": {
+                "cpu_loop": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "cpu_run": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "timers": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "scheduler": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_dispatch": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_wait": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "display_hook": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "readback": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "frame_capture": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "png_encode": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "audio": {
+                  "seconds": 0,
+                  "calls": 0
+                }
+              }
+            }
+          },
+          {
+            "name": "deferred-2",
+            "build": "/home/claude/.scratch/eka-benchmark/deferred-counts-candidate",
+            "ir_mode": 8,
+            "eager_regions": 0,
+            "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+            "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+            "measurement": {
+              "detailed": false,
+              "capture_mode": 2,
+              "first_virtual_us": 78000000,
+              "last_virtual_us": 96000000,
+              "first_instructions": 11263760836,
+              "last_instructions": 15239379460,
+              "wall_seconds": 12.5484,
+              "presentations": 676,
+              "aot_dispatches": 0,
+              "aot_instructions": 0,
+              "compiled_runner_calls": 0,
+              "ram_aot_dispatches": 0,
+              "ram_blocks_compiled": 0,
+              "decoded_instructions": 0,
+              "cache_hits": 0,
+              "cache_misses": 0,
+              "cache_clears": 0,
+              "context_loads": 0,
+              "code_version_hits": 0,
+              "code_byte_checks": 0,
+              "code_epoch_hits": 0,
+              "imb_calls": 0,
+              "scopes": {
+                "cpu_loop": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "cpu_run": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "timers": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "scheduler": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_dispatch": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_wait": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "display_hook": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "readback": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "frame_capture": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "png_encode": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "audio": {
+                  "seconds": 0,
+                  "calls": 0
+                }
+              }
+            }
+          },
+          {
+            "name": "combined-2",
+            "build": "/home/claude/.scratch/eka-benchmark/deferred-counts-candidate",
+            "ir_mode": 7,
+            "eager_regions": 0,
+            "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+            "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+            "measurement": {
+              "detailed": false,
+              "capture_mode": 2,
+              "first_virtual_us": 78000000,
+              "last_virtual_us": 96000000,
+              "first_instructions": 11263760836,
+              "last_instructions": 15239379460,
+              "wall_seconds": 12.9869,
+              "presentations": 676,
+              "aot_dispatches": 0,
+              "aot_instructions": 0,
+              "compiled_runner_calls": 0,
+              "ram_aot_dispatches": 0,
+              "ram_blocks_compiled": 0,
+              "decoded_instructions": 0,
+              "cache_hits": 0,
+              "cache_misses": 0,
+              "cache_clears": 0,
+              "context_loads": 0,
+              "code_version_hits": 0,
+              "code_byte_checks": 0,
+              "code_epoch_hits": 0,
+              "imb_calls": 0,
+              "scopes": {
+                "cpu_loop": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "cpu_run": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "timers": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "scheduler": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_dispatch": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_wait": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "display_hook": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "readback": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "frame_capture": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "png_encode": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "audio": {
+                  "seconds": 0,
+                  "calls": 0
+                }
+              }
+            }
+          },
+          {
+            "name": "reads-2",
+            "build": "/home/claude/.scratch/eka-benchmark/deferred-counts-candidate",
+            "ir_mode": 4,
+            "eager_regions": 0,
+            "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+            "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+            "measurement": {
+              "detailed": false,
+              "capture_mode": 2,
+              "first_virtual_us": 78000000,
+              "last_virtual_us": 96000000,
+              "first_instructions": 11263760836,
+              "last_instructions": 15239379460,
+              "wall_seconds": 13.3512,
+              "presentations": 676,
+              "aot_dispatches": 0,
+              "aot_instructions": 0,
+              "compiled_runner_calls": 0,
+              "ram_aot_dispatches": 0,
+              "ram_blocks_compiled": 0,
+              "decoded_instructions": 0,
+              "cache_hits": 0,
+              "cache_misses": 0,
+              "cache_clears": 0,
+              "context_loads": 0,
+              "code_version_hits": 0,
+              "code_byte_checks": 0,
+              "code_epoch_hits": 0,
+              "imb_calls": 0,
+              "scopes": {
+                "cpu_loop": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "cpu_run": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "timers": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "scheduler": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_dispatch": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_wait": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "display_hook": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "readback": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "frame_capture": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "png_encode": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "audio": {
+                  "seconds": 0,
+                  "calls": 0
+                }
+              }
+            }
+          },
+          {
+            "name": "served-2",
+            "build": "/home/claude/.scratch/eka-benchmark/invariant-reads-candidate",
+            "ir_mode": 4,
+            "eager_regions": 0,
+            "wasm_sha256": "426038540c288ed57e721169080b643252629a4891596f0fbd70dc3b30479a52",
+            "loader_sha256": "d7361195b875116cb6e735d58a011ecb950efd19f631f201f5c5691598c1e3e4",
+            "measurement": {
+              "detailed": false,
+              "capture_mode": 2,
+              "first_virtual_us": 78000000,
+              "last_virtual_us": 96000000,
+              "first_instructions": 11263760836,
+              "last_instructions": 15239379460,
+              "wall_seconds": 15.0373,
+              "presentations": 676,
+              "aot_dispatches": 0,
+              "aot_instructions": 0,
+              "compiled_runner_calls": 0,
+              "ram_aot_dispatches": 0,
+              "ram_blocks_compiled": 0,
+              "decoded_instructions": 0,
+              "cache_hits": 0,
+              "cache_misses": 0,
+              "cache_clears": 0,
+              "context_loads": 0,
+              "code_version_hits": 0,
+              "code_byte_checks": 0,
+              "code_epoch_hits": 0,
+              "imb_calls": 0,
+              "scopes": {
+                "cpu_loop": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "cpu_run": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "timers": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "scheduler": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_dispatch": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "graphics_wait": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "display_hook": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "readback": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "frame_capture": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "png_encode": {
+                  "seconds": 0,
+                  "calls": 0
+                },
+                "audio": {
+                  "seconds": 0,
+                  "calls": 0
+                }
+              }
+            }
+          }
+        ],
+        "means": {
+          "served": 14.12755,
+          "reads": 13.2408,
+          "combined": 12.7918,
+          "deferred": 12.579350000000002
+        },
+        "throughput_vs_combined": 0.01688878996132548,
+        "throughput_vs_served": 0.12307472166685862
       }
     ],
     "all_samples_retained": true,
     "owned_heavy_overlap": false,
     "shared_audio": true,
-    "hardware_gpu": true
+    "hardware_gpu": true,
+    "pooled_means": {
+      "deferred": 12.6201,
+      "combined": 12.679066666666667,
+      "served": 13.704616666666666
+    }
   }
 }
