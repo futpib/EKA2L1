@@ -1,0 +1,32 @@
+# Four-vector exact code comparison experiment
+
+The opt-in scanner combines four 16-byte XOR comparisons with OR before testing
+for a mismatch. It advances by 64 bytes only when at least that many remain, and
+retains the original vector/scalar tail path. Every primary/dependency byte still
+participates; mapping, live-entry and address-space checks are unchanged. Equal
+mismatch bits in different vectors cannot cancel. The default remains mode 0;
+mode 1 is the earlier overlapping-tail experiment and mode 2 selects this one.
+
+The code-span census found that spans of at least 64 bytes represent 21.62% of
+calls and 74.02% of requested comparison bytes on the longer route. That motivates
+this hypothesis but does not establish a gain. Larger groups can do extra work
+on an early mismatch and the mode test has a cost on small comparisons.
+
+## Acceptance
+
+The expanded exact-comparison test covers all three modes, independent unaligned
+starts, every-byte mutations through 192 bytes and across 255/256/257 and
+511/512/513 boundaries, plus paired mismatches across separate vectors. All 161 compiler tests, 32 native CPU tests (480 assertions) and frontend mode
+controls pass. Explicit probe
+markers verify original/grouped mode selection in both rebuilt fault matrices,
+13,760 exact native comparisons each (27,520 total). An initial frontend launch
+failed because the wrapper expected an unavailable Puppeteer Chrome version; its
+log is retained. The resumed gate uses the installed Chromium and passes.
+Both scanner modes match native for all 1,600 standard images, guest records and
+4,919,249 stereo PCM frames. The grouped scanner also matches the 360-image
+longer-snake route. These passes establish the tested cases, not general proof.
+
+Raw logs, archive hashes and exact comparisons are in CODE_QUAD_EVIDENCE.json.
+The archive is /home/claude/.scratch/eka-benchmark/code-quad-candidate. No performance
+result or deployment is established yet. Next: original/grouped modes in the same
+binary, plus the exact served folded-TLB archive, in serial gameplay batches.
