@@ -22,6 +22,24 @@ they are not a proof of all emulator behavior.
 
 Implementation: 2fb326960. Archive: lookup-outline-candidate. Its binary and source
 hashes are rechecked before this report. Logs, markers, exact comparisons and
-function-size evidence are in LOOKUP_OUTLINE_EVIDENCE.json. No performance result
-or deployment is claimed. Next: serial original/outlined modes in one binary,
-with the exact delivered grouped-scanner archive as an external control.
+function-size evidence are in LOOKUP_OUTLINE_EVIDENCE.json. Ordinary gameplay measurements follow. The experiment remains opt-in and
+unserved until repeatable gains and delivery checks justify promotion.
+
+## Gameplay measurements
+
+All runs execute serially, including warmup, in fresh browsers. Original and
+outlined lookups share one application binary; served is the exact live archive.
+Each run covers the same 18 guest seconds for its scene, without profiling
+counters. Each batch runs its listed order followed by its reverse. All samples
+and slow outliers are retained. Requested scanner, TLB and compiler modes, guest
+instruction totals and presentations are checked.
+
+| Scene / batch | Original seconds | Outlined seconds | Served seconds | Gain vs original | Gain vs served |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| long-a | 12.20305 | 11.75110 | 12.00495 | +3.85% | +2.16% |
+
+Batch A order: original, outlined, served, served, outlined, original.
+Batch B order: outlined, served, original, original, served, outlined.
+
+No promotion or deployment is implied by this timing record. See the raw rows
+for individual samples and the acceptance section for correctness scope.
