@@ -118,6 +118,8 @@ extern "C" API unsigned check_edges() {
  }}return checks;
 }
 #endif
+#include "validated_layout_support.inc"
+
 int main(int argc,char **argv){
  eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();eka2l1::log::filterings->reset_all(spdlog::level::off);
 #ifndef __EMSCRIPTEN__
