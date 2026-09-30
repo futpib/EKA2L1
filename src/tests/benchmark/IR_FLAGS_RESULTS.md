@@ -3,7 +3,7 @@
 Policy 10 extends the mixed IR with unconditional data-processing flag values.
 Flags participate in liveness and precise snapshots; computations needed only
 by a fault exit use the existing cold reconstruction. This remains opt-in and
-has not changed the LAN delivery. Performance timing is pending.
+has not changed the LAN delivery. The completed serial batch does not support replacing the served archive.
 
 ## Acceptance
 
@@ -58,3 +58,24 @@ as an external control. No owned heavy job may overlap warmup or measurement.
 See IR_FLAGS_DESIGN.md and IR_FLAGS_EVIDENCE.json for implementation scope,
 source/binary hashes, exact raw results and fixture metadata. There is no
 performance or deployment claim from these correctness results.
+
+## Completed serial batch
+
+| Run | Seconds |
+| --- | ---: |
+| flags-1 | 13.5397 |
+| ir-1 | 14.4969 |
+| combined-1 | 14.2704 |
+| served-1 | 12.7176 |
+| served-2 | 12.6482 |
+| combined-2 | 14.3416 |
+| ir-2 | 14.5112 |
+| flags-2 | 13.9286 |
+
+Mean elapsed seconds: flags 13.7341, ir 14.5040, combined 14.3060, served 12.6829.
+Candidate throughput relative to controls: ir +5.61%, combined +4.16%, served -7.65%.
+
+All eight samples are retained. This single batch does not establish a
+repeatable marginal flag-IR benefit or support replacing the exact served
+archive. The selected policy 7 archive remains live. No owned heavy job
+overlapped warmup or measurement. The IR policies stay opt-in.
