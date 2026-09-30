@@ -21,7 +21,7 @@ _start:
  add r3, r3, r5
  subs r1, r1, #1
  bne 1b
-#else
+#elif WORKLOAD == 2
 1: tst r0, #1
  addeq r3, r3, r0
  eorne r3, r3, r0
@@ -30,6 +30,15 @@ _start:
  cmp r0, r3
  addlo r0, r0, #31
  subhs r0, r0, #7
+ subs r1, r1, #1
+ bne 1b
+#else
+1: ldr r4, [r2, r4]
+ add r0, r0, r4
+ eor r3, r3, r0, ror #9
+ ldr r5, [r2, r4]
+ add r0, r0, r5
+ mov r4, r5
  subs r1, r1, #1
  bne 1b
 #endif

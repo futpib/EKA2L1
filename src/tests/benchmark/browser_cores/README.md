@@ -32,13 +32,13 @@ comparison. Voland's previously inspected no-op backend cannot get a CPU score.
 
 ## Workloads and checks
 
-`kernels.S` contains arithmetic/xorshift, indexed RAM read/write, and conditional
-integer workloads. Each runs a fixed number of iterations and sets a completion
+`kernels.S` contains arithmetic/xorshift, indexed RAM read/write, conditional
+integer workloads, and a dependent read chain across 64 KiB. Each runs a fixed number of iterations and sets a completion
 register, followed by a terminal self-loop. The interpreters are polled every
 200 execution steps (SkyEmu pipeline phases are not guest instructions).
 Completed state can therefore include at most a bounded amount of terminal-loop
 work; PC is intentionally excluded from cross-core equality. Registers R0-R14
-and a checksum of all 256 data words are compared against an independent JS
+and a checksum of all data words (256, or 16,384 for the dependent chain) are compared against an independent JS
 reference. This is workload correctness, not a full ISA/callback conformance
 suite. Final flags and PC are not claimed as cross-core comparisons.
 
@@ -46,8 +46,7 @@ suite. Final flags and PC are not claimed as cross-core comparisons.
 uses forward and reverse candidate order, one browser page at a time. Setup and
 checksumming are outside the timed execution interval. Initialization is recorded
 separately. Fresh pages share a browser process, so these are page-cold rather
-than guaranteed disk/browser-cache-cold starts. Larger instruction-cache, random
-memory, and realistic captured workloads remain necessary before broad claims.
+than guaranteed disk/browser-cache-cold starts. Larger instruction-cache, other memory access patterns, and realistic captured workloads remain necessary before broad claims.
 
 ## Reproduce
 
@@ -61,10 +60,33 @@ node src/tests/benchmark/browser_cores/run.mjs SCRATCH/browser-cores REPORT.json
 ```
 
 `CORE_NAMES=skyemu7,skyemu9,rpcemu,cloudpilot` chooses the adapters;
-`CORE_ITERATIONS` changes the fixed work. Puppeteer resolves from the existing
+`CORE_KINDS=4` includes the dependent chain; `CORE_ITERATIONS` changes the fixed work. Puppeteer resolves from the existing
 `src/tests/wasm` installation; Chromium is `/usr/bin/chromium`.
 The EKA generator links the existing native `libcpu.a`; record its build/source
-configuration before using it. Its JS adapter and generated `eka[0-2].wasm`
+configuration before using it. Its JS adapter and generated `eka[0-3].wasm`
 files must be placed in the scratch output directory.
 
 No changes to the live emulator are made by this harness.
+
+## Separate x86 algorithm port
+
+`nonarm_guest.c` implements the same algorithms in C, compiled for x86 and booted
+by v86's multiboot loader, without a BIOS or guest OS. This executes different
+instructions and uses v86's full CPU/memory machinery. It must not be pooled with
+the ARM instruction comparison. UART marker receipt supplies the timestamps;
+the timestamp is captured when the marker prefix arrives, before formatting the
+result or calculating the memory hash. First three repetitions remain warmups.
+
+```
+clang --target=i386-none-elf -m32 -mno-sse -mno-mmx -fno-vectorize \
+  -fno-slp-vectorize -O2 -ffreestanding -fno-builtin -fno-pic -nostdlib \
+  -fuse-ld=lld -Wl,--no-pie -Wl,-T,src/tests/benchmark/browser_cores/v86_link.ld \
+  src/tests/benchmark/browser_cores/v86_start.S \
+  src/tests/benchmark/browser_cores/nonarm_guest.c -o OUTPUT/v86_guest.elf
+node src/tests/benchmark/browser_cores/qemu_run.mjs OUTPUT v86 REPORT.json
+python3 src/tests/benchmark/browser_cores/check_qemu.py REPORT.json ARM_REFERENCE.json CHECKED.json
+```
+
+Place `v86.html`, upstream `libv86.js`, and `v86.wasm` in OUTPUT. The reference
+file must contain the same iteration count and all four workloads. The checker
+compares algorithm outputs and memory, not x86 architectural registers.

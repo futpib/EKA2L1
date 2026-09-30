@@ -3,17 +3,18 @@ import subprocess,struct
 import argparse
 parser=argparse.ArgumentParser()
 parser.add_argument('workspace',type=Path,help='scratch parent containing skyemu, cloudpilot, rpcemu and emsdk clones')
+parser.add_argument('--output',type=Path)
 args=parser.parse_args()
 repo=Path(__file__).resolve().parent
-out=args.workspace/'browser-cores'
+out=args.output or args.workspace/'browser-cores'
 out.mkdir(exist_ok=True)
 arrays=[]
-for i in range(3):
+for i in range(4):
  obj=out/f'kernel{i}.o';binary=out/f'kernel{i}.bin'
  subprocess.run(['clang','--target=armv4t-none-eabi','-c',f'-DWORKLOAD={i}',str(repo/'kernels.S'),'-o',str(obj)],check=True)
  subprocess.run(['ld.lld','-Ttext=0x1000','--image-base=0','--oformat=binary',str(obj),'-o',str(binary)],check=True)
  b=binary.read_bytes(); arrays.append(b)
-(repo/'kernels.h').write_text('// Generated from kernels.S by build.py; ARMv4T little endian.\n'+''.join(f'static const unsigned char kernel{i}[]={{'+','.join(map(str,b))+'};\n' for i,b in enumerate(arrays))+'static const unsigned char* kernels[]={kernel0,kernel1,kernel2};\nstatic const unsigned kernel_sizes[]={'+','.join(str(len(b)) for b in arrays)+'};\n')
+(repo/'kernels.h').write_text('// Generated from kernels.S by build.py; ARMv4T little endian.\n'+''.join(f'static const unsigned char kernel{i}[]={{'+','.join(map(str,b))+'};\n' for i,b in enumerate(arrays))+'static const unsigned char* kernels[]={kernel0,kernel1,kernel2,kernel3};\nstatic const unsigned kernel_sizes[]={'+','.join(str(len(b)) for b in arrays)+'};\n')
 emcc=str(args.workspace/'emsdk/upstream/emscripten/emcc')
 subprocess.run([emcc,str(repo/'skyemu.c'),'-I'+str(args.workspace/'skyemu/src'),'-O3','-sMODULARIZE=1','-sEXPORT_NAME=createCore','-sALLOW_MEMORY_GROWTH=1','-o',str(out/'skyemu.js')],check=True)
 

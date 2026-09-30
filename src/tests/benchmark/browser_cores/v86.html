@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><title>Equivalent algorithm x86 comparison</title>
+<script src="/libv86.js"></script><script>
+window.logs=[];window.failures=[];let line='', markerTime=0;
+try {
+ window.emulator=new V86({wasm_path:'/v86.wasm',memory_size:32*1024*1024,vga_memory_size:2*1024*1024,multiboot:{url:'/v86_guest.elf'},autostart:true,disable_keyboard:true,disable_mouse:true});
+ emulator.add_listener('serial0-output-byte',b=>{if(b===10){logs.push({t:markerTime||performance.now(),text:line});console.log(line);line='';markerTime=0;}else {line+=String.fromCharCode(b);if(line==='CORE_START'||line==='CORE_END')markerTime=performance.now();}});
+}catch(e){failures.push(String(e));}
+</script>
