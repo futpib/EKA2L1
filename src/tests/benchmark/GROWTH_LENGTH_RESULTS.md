@@ -67,3 +67,18 @@ The dedicated length-route names above now hold the exact measured traces, and
 the original multi-minute snakes-long.input is restored byte-for-byte. This was
 a local test-file naming collision; the served launcher and measured input bytes
 were unaffected.
+
+## Native equivalence of the new routes
+
+Each ordinary served capture now matches a fresh native Dynarmic run from the
+same inputs: all 360 images, guest records, PCM and audio events. The short
+route has 2,859,665 stereo PCM frames; the longer route's exact total is recorded
+in GROWTH_LENGTH_EVIDENCE.json. Thus the observed guest frame cadence and extra
+guest work are also present in native emulation. This does not establish how
+original phone hardware or the user's device behaves.
+
+Native validation used the freshly rebuilt Qt binary. A concurrent long-route
+installation launch failed Xvfb cleanup after reporting successful installation;
+the runner rejected it. It remains archived as a failed launcher attempt. The
+complete serial retry used the unchanged binary and passed. Native capture wall
+times are not compared with browser no-capture performance.

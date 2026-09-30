@@ -1,5 +1,5 @@
 {
-  "status": "both routes reproduced; first serial batch shows longer route costs more; native parity pending",
+  "status": "both natural routes exactly match native; initial throughput comparison recorded; reordered confirmation pending",
   "served_wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
   "routes": {
     "short": {
@@ -45,7 +45,51 @@
         "frame-0000.png": "25b165d4675907fd862d4d1f3ac459210cfe0082021d93ebc2a5fef8a0aba465",
         "frame-0359.png": "bd440245b3c1ad3fd0db5faf152e1fcc18bcfd49f8e12fdd20d7dd3b9d690fa5"
       },
-      "input_file": "snakes-length-short.input"
+      "input_file": "snakes-length-short.input",
+      "native": {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-short-native",
+        "report": {
+          "shared_audio": true,
+          "git_head": "0113b52d9bfb4801f72a3b6a6d0c0bc223ff4c76",
+          "dirty_worktree": false,
+          "binary_sha256": "ccf7bae50dd79e7b48a002c4d3410feb6d9b803f9ca9636bc678f3aec298deb5",
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "861cd13b9f18280921e553df87184ff1e5b2d09b82d217209215374914016b24",
+          "frames": 360,
+          "start_us": 42000000,
+          "unique": true,
+          "runs": [
+            {
+              "wall_seconds": 72.15223424699798,
+              "last_virtual_us": 59576373
+            }
+          ]
+        },
+        "comparison": {
+          "match": true,
+          "audio": {
+            "sample_frames": 2859665,
+            "sample_rate": 48000,
+            "channels": 2,
+            "sha256_pcm": "274f07eceea52b7f0f69f69ee637b9727a8e55595042fbe4cdf92288c12f2d6b",
+            "sha256_events": "9aa1a3a9392b1d52dd95a0f5d5aca89c2491dbd18fe13a3d19b978a8ccd67b1d",
+            "writes": 0,
+            "callbacks": 5899,
+            "backend": "shared-dsp-cubeb-resampler",
+            "render_callbacks": 5899,
+            "gameplay_nonzero_samples": 1669896,
+            "gameplay_peak": 554
+          },
+          "frames": 360,
+          "unique_images": 360,
+          "last_virtual_us": 59576373,
+          "instructions": 8270101052
+        }
+      }
     },
     "long": {
       "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
@@ -90,7 +134,51 @@
         "frame-0000.png": "4a752d8ecce3dd2b782f5fd67152ffa4e177626d701150065ede61477375fc93",
         "frame-0359.png": "e2c556e0ec0c28790fb55dc24e05b12ec7e33fe06491916f53646a4fcb87d1cd"
       },
-      "input_file": "snakes-length-long.input"
+      "input_file": "snakes-length-long.input",
+      "native": {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-long-native-v2",
+        "report": {
+          "shared_audio": true,
+          "git_head": "0113b52d9bfb4801f72a3b6a6d0c0bc223ff4c76",
+          "dirty_worktree": false,
+          "binary_sha256": "ccf7bae50dd79e7b48a002c4d3410feb6d9b803f9ca9636bc678f3aec298deb5",
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "frames": 360,
+          "start_us": 42000000,
+          "unique": true,
+          "runs": [
+            {
+              "wall_seconds": 79.91676018800354,
+              "last_virtual_us": 59969476
+            }
+          ]
+        },
+        "comparison": {
+          "match": true,
+          "audio": {
+            "sample_frames": 2878534,
+            "sample_rate": 48000,
+            "channels": 2,
+            "sha256_pcm": "1ea65320279c370ada5e63e4ecfeab4a9cf2f7eb7182ac1c598bbd0b38ca8cdc",
+            "sha256_events": "a075b1e7c093f9347d2059f4b2a2f27f3ff1a1cd62d9899d8f1fdeaf6a8c80d7",
+            "writes": 0,
+            "callbacks": 5938,
+            "backend": "shared-dsp-cubeb-resampler",
+            "render_callbacks": 5938,
+            "gameplay_nonzero_samples": 1707198,
+            "gameplay_peak": 554
+          },
+          "frames": 360,
+          "unique_images": 360,
+          "last_virtual_us": 59969476,
+          "instructions": 9104111697
+        }
+      }
     }
   },
   "timing_a": {
@@ -425,5 +513,9 @@
     "short_realtime_ratio": 1.5003000600120024,
     "long_realtime_ratio": 1.361696977032711,
     "owned_heavy_overlap": false
+  },
+  "native_failed_attempt": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-long-native",
+    "reason": "Concurrent Xvfb install launcher ended with kill: No such process after reporting Device installed. Rejected by runner; no acceptance evidence. Successful complete retry used unchanged binary, serially."
   }
 }
