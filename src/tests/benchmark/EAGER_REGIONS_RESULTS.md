@@ -1,12 +1,12 @@
-# Eager ROM regions: acceptance complete, performance pending
+# Eager ROM regions: no promotion
 
 The opt-in eager ARM path now uses the existing region compiler. Both control
-and candidate select IR policy0 in the same application binary. The default
+and candidate select IR policy 0 in the same application binary. The default
 retains basic blocks. EAGER_REGIONS_DESIGN.md describes scope and controls.
 
 All 144 compiler tests pass freshly, native CTest passes 3 targets, and frontend
 passes 9 checks. Explicit fault targets are up to date and byte-identical to
-IR_RECIPES_EVIDENCE.json's verified policy0 probe (7,584 cases); those fault
+IR_RECIPES_EVIDENCE.json's verified policy 0 probe (7,584 cases); those fault
 results are reused, not reported as a new run. The changed eager boot route
 has fresh off/on checked replays: both exactly match 1,600 native images,
 guest records and 4,919,249 stereo PCM frames. The existing native-identical
@@ -30,4 +30,31 @@ Application WASM SHA256:
 ec29735a9a9b6e051c973ebda88b1e341d04f402540f43775bc2b12b199a6201.
 Source/binary hashes, exact comparisons and counters: EAGER_REGIONS_EVIDENCE.json.
 
-Serial timing is pending. No promotion, push or deployment.
+| Variant | Trial seconds | Mean seconds |
+| --- | --- | ---: |
+| Eager regions on, IR off | 13.4120 / 14.6904 | 14.05120 |
+| Eager regions off, IR off | 13.5226 / 14.6728 | 14.09770 |
+| Served build | 15.2441 / 13.4660 | 14.35505 |
+
+Order: on/off/served/served/off/on. The mean throughput difference against
+same-binary off is only +0.33%; the first adjacent pair favors on and the
+closing pair slightly favors off. The +2.2% pooled comparison with served
+is dominated by overlapping, variable samples. No useful repeated speedup
+has been established, so the larger eager module is not promoted. All six
+observations remain. Nothing pushed or deployed.
+
+Timing is warmed, serial, unsampled, hardware GPU and shared audio enabled,
+guest seconds 78–96, with detailed counters disabled. All runs execute the
+same 3,975,618,624 guest instructions and 676 presentations. No owned compiler,
+test or diagnostic overlaps warmup or timing. Source hashes match the archived
+candidate. On/off use identical app JS/WASM; served uses its separate archive.
+
+Reproduction: EKA2L1_SHARED_AUDIO=1 with serial_variants.py ASSETS NEW_OUTPUT
+on=ARCHIVE off=ARCHIVE served=SERVED --ir-mode on=0 --ir-mode off=0
+--eager-regions on=1 --eager-regions off=0. Use a new output directory. The
+browser control is pre-init only; normal startup retains the old path.
+
+Next candidate: prove fixed read spans through unchanged entry registers
+across existing loops, while keeping all other memory accesses, budgets and
+exits precise. Unlike the old whole-region proof, this would accept a subset
+of accesses in mixed/control-flow regions. This is a design hypothesis only.
