@@ -3,13 +3,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import puppeteer from 'puppeteer';
 import { startServer, compilerPolicyFromEnv } from './server.ts';
-const [assets, output, existingUrl] = process.argv.slice(2);
-if (!output) throw Error('cache-live.ts ASSETS NEW_OUTPUT [EXISTING_URL]');
+const [assets, output, existingUrl, previousProfile] = process.argv.slice(2);
+if (!output) throw Error('cache-live.ts ASSETS NEW_OUTPUT [EXISTING_URL] [PREVIOUS_PROFILE]');
+if (previousProfile && (!existingUrl || !process.env.EKA2L1_EXPECT_WASM_SHA256))
+  throw Error('Upgrade check needs the same origin and expected new WASM hash');
 fs.mkdirSync(output);
+if (previousProfile) fs.cpSync(previousProfile, path.join(output, 'profile'), {recursive:true});
+const expectedPolicy = compilerPolicyFromEnv();
 const local = existingUrl ? null : await startServer(0, {
   '/preload/rom': path.join(assets, 'SYM.ROM'), '/preload/rpkg': path.join(assets, 'SYM.RPKG'),
   '/preload/sis': path.join(assets, 'Snakes.sis'),
-}, 'Snakes', { compilerPolicy: compilerPolicyFromEnv() });
+}, 'Snakes', { compilerPolicy: expectedPolicy });
 const url = existingUrl || `http://127.0.0.1:${local!.port}/`;
 const rows: any[] = [], errors: string[] = [];
 let browser: any;
@@ -19,7 +23,7 @@ const launch = () => puppeteer.launch({ executablePath: '/usr/bin/chromium', hea
 try {
   browser = await launch();
   let page = await browser.newPage();
-  for (const phase of ['cold', 'reload', 'restart']) {
+  for (const phase of [previousProfile ? 'upgrade' : 'cold', 'reload', 'restart']) {
     if (phase === 'restart') {
       await browser.close(); browser = await launch(); page = await browser.newPage();
     }
@@ -50,13 +54,23 @@ try {
         policy: w.ekaCompilerPolicy, guest: w.Module._eka2l1_guest_time_us() };
     });
     if (!state.secure || !state.isolated || !state.policy?.applied) throw Error('Launch/security/policy');
+    if (expectedPolicy && JSON.stringify(state.policy.requested) !== JSON.stringify(expectedPolicy))
+      throw Error('Wrong compiler policy after cached launch');
+    const expectedWasm = process.env.EKA2L1_EXPECT_WASM_SHA256;
+    if (expectedWasm && new URL(state.urls['/eka2l1.wasm'], url).searchParams.get('v') !== expectedWasm)
+      throw Error('Cached launcher selected the wrong WASM version');
     if (state.saved.length !== 3 || state.saved.some(x => x.bytes <= 0)) throw Error('Large files not stored');
     const transfers = [...requests.values()];
     const preloads = transfers.filter(x => new URL(x.url).pathname.startsWith('/preload/'));
     const binary = transfers.filter(x => /\.(?:wasm|js|data)$/.test(new URL(x.url).pathname));
     if (phase === 'cold' && preloads.length !== 3) throw Error('Cold download coverage');
     if (phase !== 'cold' && preloads.length !== 0) throw Error('Repeated preload network fetch');
-    if (phase !== 'cold' && binary.some(x => x.transferred === null || x.transferred > 1024))
+    if (phase === 'upgrade') {
+      const downloaded = binary.filter(x => x.transferred > 1024);
+      if (!downloaded.length || downloaded.some(x => !new URL(x.url).pathname.endsWith('/eka2l1.wasm')))
+        throw Error('Upgrade should fetch only the new WASM runtime');
+    }
+    if (['reload','restart'].includes(phase) && binary.some(x => x.transferred === null || x.transferred > 1024))
       throw Error('Repeated runtime body transfer: ' + JSON.stringify(binary));
     if (transfers.some(x => x.status >= 400)) throw Error('HTTP failure');
     rows.push({ phase, elapsedToLaunchMs: Date.now() - start, state, transfers });

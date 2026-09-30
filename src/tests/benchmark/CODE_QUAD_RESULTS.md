@@ -1,4 +1,4 @@
-# Four-vector exact code comparison experiment
+# Four-vector exact code comparison: delivered
 
 The opt-in scanner combines four 16-byte XOR comparisons with OR before testing
 for a mismatch. It advances by 64 bytes only when at least that many remain, and
@@ -49,8 +49,8 @@ instruction totals and presentations are checked.
 Batch A order: original, grouped, served, served, grouped, original.
 Batch B order: grouped, served, original, original, served, grouped.
 
-No promotion or deployment is implied by this timing record. See the raw rows
-for individual samples and the acceptance section for correctness scope.
+See the raw rows for individual samples and the acceptance section for
+correctness scope. Delivery verification is recorded below.
 
 ## Timing assessment
 
@@ -61,8 +61,7 @@ closing standard-B candidate loses to its served control (12.3794 versus
 12.3444 seconds), despite that batch's positive mean. All 24 observations remain.
 The matching-original pooled leads are 3.712% and 1.372%; the former is inflated
 by a slow original control. These results support a tiny measured gain on this
-host, not a guaranteed percentage or visibly faster gameplay. Live acceptance
-is in progress before any delivery decision.
+host, not a guaranteed percentage or visibly faster gameplay. Live acceptance and actual delivery checks pass as described below.
 
 ## Live acceptance before deployment
 
@@ -71,5 +70,28 @@ The unchecked standard replay matches all 1,600 native images, guest records and
 2 explicitly, sustain realtime, and add no gameplay audio underruns or drops.
 Startup recovery events remain in the raw records. The local launcher passes
 gesture audio, measured mute/unmute, keyboard/touch, pause/resume, mobile layout
-and shutdown. Cache and compiler-policy tests pass. Actual HTTPS delivery and
-existing-profile upgrade verification remain pending.
+and shutdown. Cache and compiler-policy tests pass. Actual HTTPS delivery and existing-profile upgrade verification also pass;
+see below.
+
+## Verified delivery
+
+The live launcher at https://claude-laptop.lan:8188/ selects the archived scanner
+mode 2 with compiler policy 7, eager regions 0 and folded TLB index 1. The broader
+IR paths remain unselected. The binary default remains scanner mode 0.
+
+The actual trusted HTTPS launcher passes gesture audio, measured mute/unmute,
+keyboard/touch, visible pause/resume, mobile layout and shutdown. Downloaded
+versioned JS/WASM hashes match the accepted archive. The existing browser profile
+from the previous asset-cache acceptance was copied and reused: its first launch
+fetches only the new WASM runtime, retaining all 192,004,131 bytes of ROM/RPKG/SIS.
+Reload and browser restart then transfer no runtime bodies or game assets. The
+requested/applied compiler mode and new manifest WASM hash are explicitly checked.
+The original old-build profile is preserved.
+
+WASM SHA256: `bc2af76f19ec38ca8380c9eff84a1766084ba9982f50eec2863e03e7dfbd84aa`
+
+JS SHA256: `5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec`
+
+This remains a tiny host-measured performance gain, not a guarantee of visibly
+faster play or a fix for all length-dependent work. Every original timing sample
+and slow control is retained. Changes and evidence are local; nothing pushed.
