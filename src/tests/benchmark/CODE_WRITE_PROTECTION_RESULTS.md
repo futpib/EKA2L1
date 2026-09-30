@@ -31,3 +31,18 @@ The protected longer route also matches native for all 360 images, guest records
 and audio. Raw evidence and failed setup attempts are retained in
 CODE_WRITE_PROTECTION_EVIDENCE.json. Gameplay measurements are pending; no performance
 gain, promotion or deployment is claimed. The live grouped-scanner build is unchanged.
+
+
+## First serial longer-route batch
+
+All six runs cover the same 18 guest seconds, 2,987,830,398 instructions and
+720 presentations. Order: barriers, protected, served, served, protected, barriers.
+Means: 12.97715 / 12.60110 / 12.73825 seconds, respectively. Protection improves
+throughput by 2.98% against its matching barrier path, but only 1.09% against
+served; those two served comparisons disagree and its slower run is retained.
+This does not yet establish a repeatable live-build gain. Confirmation is running.
+
+The stale pre-reboot GPU environment initially failed before producing any sample.
+The fresh batch uses system NVIDIA 610.57.04 libraries and verifies physical
+NVIDIA Vulkan rendering in Chromium 153. Raw reports and that environment are
+recorded; all variants use the same current setup without timing normalization.
