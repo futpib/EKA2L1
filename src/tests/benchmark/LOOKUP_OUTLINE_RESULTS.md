@@ -37,9 +37,20 @@ instruction totals and presentations are checked.
 | Scene / batch | Original seconds | Outlined seconds | Served seconds | Gain vs original | Gain vs served |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | long-a | 12.20305 | 11.75110 | 12.00495 | +3.85% | +2.16% |
+| long-b | 12.20110 | 12.23280 | 12.18545 | -0.26% | -0.39% |
 
 Batch A order: original, outlined, served, served, outlined, original.
 Batch B order: outlined, served, original, original, served, outlined.
 
 No promotion or deployment is implied by this timing record. See the raw rows
 for individual samples and the acceptance section for correctness scope.
+
+## Decision
+
+Do not promote. The first longer-route batch favors the candidate by 2.16%
+against the exact served archive and 3.85% against matching original lookup.
+The reordered confirmation gives -0.39% and -0.26%, respectively. The closing
+candidate is slower; it remains in the record without normalization or exclusion.
+This does not establish a repeatable gameplay gain. Standard-scene and delivery
+checks were not started. The implementation remains opt-in and the LAN stays
+on the verified grouped-scanner archive.
