@@ -42,11 +42,21 @@ API void layout_mutate(unsigned mode) {
 }
 API unsigned layout_mapping_calls(){return layout_resolutions;}
 API std::uintptr_t layout_state(){return reinterpret_cast<std::uintptr_t>(state);}
+API unsigned layout_compare(std::uintptr_t a, std::uintptr_t b, unsigned size) {
+ return aot::equal_code_bytes(reinterpret_cast<const unsigned char *>(a),
+     reinterpret_cast<const unsigned char *>(b), size);
+}
+API void layout_compare_mode(unsigned mode) {
+ if(mode>2)throw std::runtime_error("unknown exact comparison mode");
+ aot::code_compare_mode=mode;
+}
 }
 #ifdef __EMSCRIPTEN__
-EM_JS(void, layout_expose_js, (std::uintptr_t validator), {
+EM_JS(void, layout_expose_js, (std::uintptr_t validator, std::uintptr_t compare), {
  Module['layoutMemory']=wasmMemory;
  Module['layoutValidate']=WebAssembly.Table.prototype.get.call(wasmTable,validator);
+ Module['layoutCompare']=WebAssembly.Table.prototype.get.call(wasmTable,compare);
 });
-extern "C" API void layout_expose(){layout_expose_js(reinterpret_cast<std::uintptr_t>(layout_prepare));}
+extern "C" API void layout_expose(){layout_expose_js(reinterpret_cast<std::uintptr_t>(layout_prepare),
+ reinterpret_cast<std::uintptr_t>(layout_compare));}
 #endif
