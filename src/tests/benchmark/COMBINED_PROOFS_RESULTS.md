@@ -1,4 +1,4 @@
-# Combined write-span and budget proofs: acceptance passed, timing pending
+# Combined write-span and budget proofs: first batch favorable, confirmation pending
 
 Policy 7 combines existing write-span proofs and budget chunks while retaining
 original instruction lowering. It is opt-in and unserved. See
@@ -29,3 +29,14 @@ Next: serial unsampled comparisons between policies 6/7 in the same application
 binary and the exact delivered read-only archive. No new live/audio acceptance
 or deployment is claimed. Full source/binary hashes, raw logs and exact results
 are in COMBINED_PROOFS_EVIDENCE.json. Nothing pushed.
+
+## First serial timing batch
+
+combined-1 12.5722s, chunks-1 13.9794s, served-1 13.3683s, served-2 14.0063s, chunks-2 13.1006s, combined-2 12.4691s.
+
+Means: combined 12.5206s, same-binary chunks 13.5400s,
+served 13.6873s. Throughput changes: +8.14% matching
+control and +9.32% served. All samples retained.
+Every run executes 3,975,618,624 instructions and 676 presentations with
+shared audio, physical GPU and no sampling or concurrent owned heavy jobs.
+Reversed confirmation is running; this is not a deployment claim.
