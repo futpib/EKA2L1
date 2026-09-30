@@ -103,5 +103,122 @@
     "Not deployed; no performance measurement under stepping.",
     "First exploration reaches score205 then collides; no sustained growth established.",
     "Compiler code and archived compiler/fault probes unchanged from f0e8c2651; not claimed as newly rerun tests."
-  ]
+  ],
+  "second_exploration": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-step-2",
+    "shutdown": {
+      "passed": true,
+      "errors": []
+    },
+    "observed_score_start": 200,
+    "observed_score_end": 235,
+    "letter": "N in NOKIA",
+    "files": {
+      "commands.jsonl": "5e2e72d7e0a3f9bc4f44dce0ef0da631899234af2293a0d44309a31f61a77d90",
+      "input.jsonl": "f508fe96b3a488ff05c586588b8445ac71fe350112b37f71ce3bb0b0c15f3d0e",
+      "steps.jsonl": "52c8e36fd5c5bd8ce547aa3faf63e7079c8799ddddbb67bfc57cd20d5bf43df9",
+      "room-white-cell.png": "670cd355711bea08f048da851757867d0ad0989d1bd3d14a5c410df74d86e030"
+    }
+  },
+  "ordinary_served_replay": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-normal-replay-2",
+    "report": {
+      "frames": 800,
+      "start_us": 21000000,
+      "unique": true,
+      "wall_seconds": 55.642836422,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "8e4183e6a4397f5459fb5c1a3cf6e6dbb959bb3c7b622f0cc3e40da5dbb9a1dd",
+      "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "shared_audio": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "be6ac20fcd4ee20197cdd9d0da323f35b249ae3c",
+      "dirty_worktree": false
+    },
+    "metrics": {
+      "frames": 800,
+      "capture_wall_seconds": 38.2211,
+      "first_virtual_us": 21031559,
+      "duplicate_presentations": 799,
+      "last_virtual_us": 60939113,
+      "instructions": 9016490106
+    },
+    "observed_final_score": 235,
+    "observed_final_letter": "N in NOKIA",
+    "files": {
+      "frames.jsonl": "57d5deb4d8d5f7fe97aa0fdbdaee11e06266a608141665bd31eebd8c3114da77",
+      "report.json": "0c4dd670c0ecf2579319f1fc87d01e7d7e5cfa35f2545c9f8c1ca01e719eb326",
+      "metrics.json": "8ec895a2102379c1610c96b2b3c9c47b97fda29d0438d375d35e1f8d62f88917",
+      "frame-0799.png": "750a45a472b4992dcf65f66cf0a30f2df0031f13e1c9af78e8656cdd2edd0b87"
+    },
+    "windows": [
+      {
+        "guest_start_s": 21,
+        "guest_end_s": 26,
+        "captured_distinct_images_per_guest_second": 20.041942319290005,
+        "presentations_per_guest_second": 40.08388463858001,
+        "million_instructions_per_guest_second": 165.9185554172864
+      },
+      {
+        "guest_start_s": 26,
+        "guest_end_s": 31,
+        "captured_distinct_images_per_guest_second": 20.060647999456943,
+        "presentations_per_guest_second": 40.12129599891389,
+        "million_instructions_per_guest_second": 165.20621920614545
+      },
+      {
+        "guest_start_s": 31,
+        "guest_end_s": 36,
+        "captured_distinct_images_per_guest_second": 20.11494888690913,
+        "presentations_per_guest_second": 40.22989777381826,
+        "million_instructions_per_guest_second": 163.35709425080566
+      },
+      {
+        "guest_start_s": 36,
+        "guest_end_s": 41,
+        "captured_distinct_images_per_guest_second": 19.99115139137404,
+        "presentations_per_guest_second": 39.98230278274808,
+        "million_instructions_per_guest_second": 169.2402259928989
+      },
+      {
+        "guest_start_s": 41,
+        "guest_end_s": 46,
+        "captured_distinct_images_per_guest_second": 19.994296576410928,
+        "presentations_per_guest_second": 39.988593152821856,
+        "million_instructions_per_guest_second": 171.07037103759492
+      },
+      {
+        "guest_start_s": 46,
+        "guest_end_s": 51,
+        "captured_distinct_images_per_guest_second": 19.98782559713629,
+        "presentations_per_guest_second": 39.97565119427258,
+        "million_instructions_per_guest_second": 168.25663641236702
+      },
+      {
+        "guest_start_s": 51,
+        "guest_end_s": 56,
+        "captured_distinct_images_per_guest_second": 19.9907436798961,
+        "presentations_per_guest_second": 39.9814873597922,
+        "million_instructions_per_guest_second": 165.49251538479558
+      },
+      {
+        "guest_start_s": 56,
+        "guest_end_s": 61,
+        "captured_distinct_images_per_guest_second": 19.974318733057498,
+        "presentations_per_guest_second": 39.948637466114995,
+        "million_instructions_per_guest_second": 161.50818009497993
+      }
+    ],
+    "limitation": "Screenshot capture is not an uninstrumented throughput measurement. Snake length was not measured; this does not establish or refute length-dependent slowdown."
+  }
 }
