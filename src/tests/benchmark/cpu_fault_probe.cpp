@@ -62,9 +62,11 @@ int main(int argc, char **argv){
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
-    const bool ir_segments=argc==2 && std::string(argv[1])=="--ir-segments";
+    const bool ir_memory=argc==2 && std::string(argv[1])=="--ir-memory";
+    const bool ir_memory_chain=argc==2 && std::string(argv[1])=="--ir-memory-chain";
+    const bool ir_segments=ir_memory || (argc==2 && std::string(argv[1])=="--ir-segments");
     const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
-    const bool region_spans=region_block_spans || (argc==2 && (std::string(argv[1])=="--region-spans" || std::string(argv[1])=="--region-spans-interpreter"));
+    const bool region_spans=ir_memory_chain || region_block_spans || (argc==2 && (std::string(argv[1])=="--region-spans" || std::string(argv[1])=="--region-spans-interpreter"));
     const bool three_instructions=read_spans || wide_snapshots;
     const unsigned instruction_count=ir_segments||region_spans?5:three_instructions?3:2;
     const bool deferred=ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred"));
@@ -79,6 +81,7 @@ int main(int argc, char **argv){
     }
     if(read_spans || region_spans) instructions={0xe5910000};
     if(region_block_spans) instructions={0xe8b10039,0xe8a10039};
+    if(ir_memory) instructions={0xe5910000,0xe5810000,0xe8b1000d,0xe8a1000d,0xe891000d,0xe881000d};
     const std::vector<unsigned> addresses=region_spans
         ? std::vector<unsigned>{0x8000u,0x8ff0u,0x8ff4u}
         : read_spans
@@ -103,6 +106,7 @@ int main(int argc, char **argv){
             program[0]=0xe3b02007u; // flags visible to the final fault callback
             program[1]=0xe2844001u; program[2]=0xe0245000u; program[3]=0xe1a06005u;
             program[4]=op;
+            if(ir_memory) {program[1]=0xe1a08004u;program[2]=0xe1a04005u;program[3]=0xe1a05008u;}
         }
         std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
         for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
@@ -121,6 +125,9 @@ int main(int argc, char **argv){
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,nullptr,deferred);
             if(ir_segments && n==0 && !translated.ir_segments) {
                 std::cerr << "Integer-segment fault fixture did not select the IR\n"; return 4;
+            }
+            if((ir_memory || ir_memory_chain) && n==0 && !translated.ir_memory_guards) {
+                std::cerr << "Dynamic memory fixture did not select IR guard exits\n"; return 4;
             }
             functions.push_back(std::move(translated.func));
         }

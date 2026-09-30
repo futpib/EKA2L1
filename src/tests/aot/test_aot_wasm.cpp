@@ -2380,11 +2380,16 @@ static bool test_inlined_leaves() {
         {0xe12fff1e}
     };
     unsigned comparisons=0;
-    for (const auto &words : leaves) {
+    for (bool deferred : {false,true}) for (const auto &words : leaves) {
         std::vector<std::uint8_t> leaf(words.size()*4); std::memcpy(leaf.data(),words.data(),leaf.size());
         leaf_resolver resolve = [&](std::uint32_t pc) { return pc == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
-        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,true,true,true,&resolve);
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,true,true,true,&resolve,deferred);
         if (tr.dependencies.size()!=1 || tr.end_address!=0x1010) {printf("  FAIL leaf discovery\n");return false;}
+#if defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+        if (deferred && words.size() >= 5 && !tr.ir_memory_guards) {
+            printf("  FAIL inlined memory leaf did not select IR guards\n"); return false;
+        }
+#endif
         auto module=build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         for(unsigned fast : {0u,1u}) for(unsigned alias : {0u,1u}) for(unsigned budget=0;budget<80;++budget) {
@@ -2847,6 +2852,70 @@ static bool test_ir_segments() {
         }
     }
     printf("  PASS ir_segments (%u exact state/memory/budget comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
+// Failed dynamic guards must expose the pre-instruction snapshot, including
+// values overwritten later and a parallel register swap. Block transfers prove
+// their entire span before any effect, and code aliases exit before writes.
+static bool test_ir_memory_exits() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    const unsigned operations[] = {0xe59b2000u,0xe58b2000u,0xe49b2004u,0xe52b2004u,
+        0xe8bb0005u,0xe8ab0005u,0xe9bb0005u,0xe9ab0005u,
+        0xe83b0005u,0xe82b0005u,0xe93b0005u,0xe92b0005u};
+    unsigned comparisons=0;
+    for(bool dependent:{false,true})for(unsigned operation:operations) {
+        const unsigned code[]={0xe1a08004u,0xe1a04005u,0xe1a05008u,
+            0xe58a4020u,dependent?0xe59ab000u:0xe59a0000u,0xe2800001u,operation,0xe3a04000u,0xe3a05000u};
+        const auto *bytes=reinterpret_cast<const std::uint8_t *>(code);
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+        if(!tr.complete || tr.ir_memory_guards!=3) {printf("  FAIL memory IR not selected %08x guards=%u\n",operation,tr.ir_memory_guards);return false;}
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0u,0x9000u,0x9001u,0x9004u,0x9ffcu,0xb000u})for(unsigned flags:{0u,3u,12u,15u}) {
+            test_mem actual;actual.write_code(0x1000,{bytes,bytes+sizeof(code)});
+            for(unsigned a=0x8000;a<0xc000;a+=4)actual.write32(a,a*37+11);
+            if(dependent)actual.write32(0x8000,address);
+            // Virtual B000 aliases current code for guard testing. Reads use
+            // identical bytes in the independent interpreter backing.
+            std::memcpy(actual.data.data()+0xb000,actual.data.data()+0x1000,4096);
+            test_mem reference_memory=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12);tlb.add(0x8000,actual.data.data()+0x8000,3);
+            tlb.add(address==0xb000?0xb000:0x9000,actual.data.data()+(address==0xb000?0x1000:0x9000),permission);
+            alignas(8) std::uint32_t state[256]{};
+            for(unsigned r=0;r<16;++r) {
+                unsigned value=r==15?0x1000:r==10?0x8000:r==11?(dependent?0xdeadbeefu:address):0x12340000+r;
+                state[r]=value;reference->set_reg(r,value);
+            }
+            reference->set_cpsr(16|endian|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=9;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000+sizeof(code));
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            const bool load=operation&(1u<<20),block=((operation>>25)&7)==4;
+            const bool up=operation&(1u<<23),pre=operation&(1u<<24);
+            const unsigned size=block?8:4;
+            const unsigned start=address+(block?(up?(pre?4:0):(pre?-8:-4)):(pre?(up?int(operation&4095):-int(operation&4095)):0));
+            const unsigned page=address==0xb000?0xb000:0x9000;
+            const bool mapped=(start&~4095u)==0x8000 || ((start&~4095u)==page && (permission&(load?1:2)));
+            const bool safe=mapped && !(start&3) && (start&4095)<=4096-size
+                && (load || address!=0xb000);
+            const unsigned expected=endian?3:safe?9:6;
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            if(count!=int(expected)||g_memory_helper_calls) {printf("  FAIL memory IR exit op=%08x address=%x perm=%u endian=%u count=%d expected=%u\n",operation,address,permission,endian,count,expected);return false;}
+            reference->run(count);
+            for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r)) {printf("  FAIL memory IR R%u op=%08x address=%x got=%x want=%x\n",r,operation,address,state[r],reference->get_reg(r));return false;}
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1))return false;
+            if(actual.data!=reference_memory.data){printf("  FAIL memory IR effects op=%08x\n",operation);return false;}
+            ++comparisons;
+        }
+    }
+    printf("  PASS ir_memory_exits (%u exact intermediate snapshot/effect comparisons)\n",comparisons);
 #endif
     return true;
 }
@@ -4029,6 +4098,7 @@ int main(int argc, char **argv) {
     if (test_proved_read_spans()) passed++; else failed++;
     if (test_region_ir()) passed++; else failed++;
     if (test_ir_segments()) passed++; else failed++;
+    if (test_ir_memory_exits()) passed++; else failed++;
     if (test_memory_displacements()) passed++; else failed++;
     if (test_deferred_memory_exits()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;

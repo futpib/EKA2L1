@@ -76,6 +76,7 @@ namespace eka2l1::arm::aot {
         bool entry_supported = true;
         // Research coverage metadata; never used to select guest addresses.
         unsigned ir_segments = 0;
+        unsigned ir_memory_guards = 0;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call
         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling

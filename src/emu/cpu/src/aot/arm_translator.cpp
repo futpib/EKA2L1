@@ -336,12 +336,53 @@ namespace eka2l1::arm::aot {
             else if (node.op == region_ir::state) w.load_i32(static_cast<unsigned>(node.immediate));
             else w.get_local(locals[v]);
         };
+        auto snapshot = [&](unsigned index, bool pc) {
+            const auto &entry = ir.snapshots.front(); const auto &exit = ir.snapshots.at(index);
+            // Consume every source before changing any architectural local.
+            std::vector<unsigned> destinations;
+            for (unsigned r = 0; r < 16; ++r)
+                if ((r == 15 && pc) || (r != 15 && entry.regs[r] != exit.regs[r])) {
+                    push(exit.regs[r]); destinations.push_back(S::reg(r));
+                }
+            for (unsigned f = 0; f < 5; ++f) if (entry.flags[f] != exit.flags[f]) {
+                push(exit.flags[f]); destinations.push_back(region_ir::flag_offsets[f]);
+            }
+            for (auto it = destinations.rbegin(); it != destinations.rend(); ++it)
+                w.store_i32_from_stack(*it, 2);
+        };
         for (unsigned v = 1; v < ir.nodes.size(); ++v) {
             if (!live[v]) continue;
             const auto &node = ir.nodes[v];
             if (node.op == region_ir::constant || node.op == region_ir::state || node.op == region_ir::host) continue;
             push(node.a);
             switch (node.op) {
+            case region_ir::guarded_host: {
+                const unsigned bytes = static_cast<unsigned>(ir.nodes[node.b].immediate);
+                const bool write = node.immediate & 1;
+                const unsigned exit = static_cast<unsigned>(node.immediate / 2);
+                w.set_local(arm_emit::ADDRESS);
+                w.block_transfer_host(arm_emit::ADDRESS, bytes, write);
+                w.get_local(arm_emit::HOST); w.op(op_i32_eqz);
+                if (write) {
+                    // A store to translated code must return before effects,
+                    // including writes through a different guest alias.
+                    w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
+                    w.get_local(arm_emit::HOST); w.i32_const(bytes); w.op(op_i32_add);
+                    w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and); w.op(op_i32_or);
+                    w.get_local(arm_emit::HOST); w.i32_const(bytes); w.op(op_i32_add);
+                    w.get_local(arm_emit::HOST); w.op(op_i32_lt_u); w.op(op_i32_or);
+                }
+                w.op(op_if); w.op(type_void);
+                snapshot(exit, true);
+                // The enclosing segment charged its first instruction before
+                // entering the graph. A failed access itself is not completed.
+                w.get_local(arm_emit::COUNT); w.i32_const(static_cast<int>(ir.snapshots[exit].count) - 1);
+                w.op(op_i32_add); w.set_local(arm_emit::COUNT);
+                w.bail_preserve_pc(0);
+                w.op(op_end);
+                w.get_local(arm_emit::HOST);
+                break;
+            }
             case region_ir::pack:
                 w.op(op_i64_extend_i32_u); push(node.b); w.op(op_i64_extend_i32_u);
                 w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shl); w.op(op_i64_or); break;
@@ -358,19 +399,7 @@ namespace eka2l1::arm::aot {
             }
             if (node.type != type_void) w.set_local(locals[v]);
         }
-        const auto &entry = ir.snapshots.front(); const auto &exit = ir.snapshots.back();
-        // Snapshot reconstruction is a parallel assignment. State inputs
-        // still refer to the entry cache locals; consume every source
-        // before overwriting any destination (swaps and copy cycles).
-        std::vector<unsigned> destinations;
-        for (unsigned r = 0; r < 16; ++r) if ((r == 15 && publish_pc) || (r != 15 && entry.regs[r] != exit.regs[r])) {
-            push(exit.regs[r]); destinations.push_back(S::reg(r));
-        }
-        for (unsigned f = 0; f < 5; ++f) if (entry.flags[f] != exit.flags[f]) {
-            push(exit.flags[f]); destinations.push_back(region_ir::flag_offsets[f]);
-        }
-        for (auto it = destinations.rbegin(); it != destinations.rend(); ++it)
-            w.store_i32_from_stack(*it, 2);
+        snapshot(static_cast<unsigned>(ir.snapshots.size() - 1), publish_pc);
     }
 
     // Emit condition check. ARM condition code in bits [31:28].
@@ -1019,6 +1048,11 @@ namespace eka2l1::arm::aot {
 #ifdef EKA2L1_WASM_IR_SEGMENTS
         if (w.region && cache_registers && !ir) {
             unsigned max_locals = 0;
+#if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+            const bool dynamic_memory = w.defer_memory;
+#else
+            const bool dynamic_memory = false;
+#endif
             const std::map<std::uint32_t, arm_emit::proved_access> no_memory;
             for (std::size_t first = 0; first < instructions.size();) {
                 region_ir graph(instructions[first].address);
@@ -1029,20 +1063,26 @@ namespace eka2l1::arm::aot {
                     if (end != first && (ins.leaf != instructions[first].leaf
                         || ins.address != instructions[end - 1].address + 4
                         || (!ins.leaf && forward_targets_set.count(ins.address)))) break;
-                    // Pure i32 operations only. Labels, memory, flags, calls,
-                    // PC writes and wide multiplies remain compiler boundaries.
-                    if (((op >> 26) & 3) != 0
-                        || (op & 0x0f8000f0u) == 0x00800090u
-                        || !graph.append(op, ins.address, false, no_memory)) break;
+                    // Memory joins the graph only with precise guard exits.
+                    // Flags, calls, PC writes and wide multiplies remain bounds.
+                    if ((!dynamic_memory && ((op >> 26) & 3) != 0)
+                        || (op & 0x0f8000f0u) == 0x00800090u) break;
+                    auto trial = graph;
+                    if (!trial.append(op, ins.address, false, no_memory, dynamic_memory)) break;
+                    graph = std::move(trial);
                 }
                 if (end - first < 3 || !graph.valid()) { ++first; continue; }
                 integer_segment segment{std::move(graph), {}, {}, static_cast<unsigned>(end - first)};
-                segment.live = segment.graph.live_for({segment.length});
+                std::vector<unsigned> exits{segment.length};
+                for (const auto &node : segment.graph.nodes)
+                    if (node.op == region_ir::guarded_host) exits.push_back(static_cast<unsigned>(node.immediate / 2));
+                segment.live = segment.graph.live_for(exits);
                 segment.locals.resize(segment.graph.nodes.size());
                 unsigned count = 0;
                 for (unsigned v = 1; v < segment.graph.nodes.size(); ++v) {
                     const auto &node = segment.graph.nodes[v];
-                    if (segment.live[v] && node.op != region_ir::state && node.op != region_ir::constant)
+                    if (segment.live[v] && node.op != region_ir::state && node.op != region_ir::constant
+                        && node.type != type_void)
                         segment.locals[v] = w.cache.first_local + count++;
                 }
                 max_locals = std::max(max_locals, count);
@@ -1249,6 +1289,8 @@ namespace eka2l1::arm::aot {
                 w.op(op_else);
                 segment_end = instruction_index + part.length;
                 ++tr.ir_segments;
+                for (const auto &node : part.graph.nodes)
+                    if (node.op == region_ir::guarded_host) ++tr.ir_memory_guards;
             }
 
             if (instruction.leaf && inst == 0xe12fff1e) {

@@ -2,6 +2,7 @@
 
 #include <cpu/aot/thumb_translator.h>
 #include <array>
+#include <bit>
 #include <map>
 #include <tuple>
 
@@ -11,11 +12,11 @@ namespace eka2l1::arm::aot {
     // The first lowering uses an entry budget/proof guard and the original
     // compiler for every short budget or failed proof; only the final snapshot
     // is therefore live on its successful path. Intermediate snapshots retain
-    // the precise contract for a future lowering with internal exits.
+    // the precise contract used by segments with internal memory exits.
     struct region_ir {
         using value = unsigned;
         enum operation : unsigned { constant = 256, state, host, pack, low, high,
-            read32, write32 };
+            read32, write32, guarded_host };
         struct node {
             unsigned op, type;
             value a = 0, b = 0;
@@ -44,7 +45,7 @@ namespace eka2l1::arm::aot {
         }
         value make(unsigned op, unsigned type, value a = 0, value b = 0, std::uint64_t immediate = 0) {
             const auto key = std::make_tuple(op, type, a, b, immediate);
-            const bool pure = op != read32 && op != write32;
+            const bool pure = op != read32 && op != write32 && op != guarded_host;
             if (optimize && pure) {
                 auto it = numbers.find(key);
                 if (it != numbers.end()) return it->second;
@@ -106,22 +107,24 @@ namespace eka2l1::arm::aot {
             return make(op, type, a, b);
         }
 
-        // Decode only ordinary AL integer operations. The caller separately
-        // proves all memory spans. A missing proof or unsupported encoding
+        // Decode ordinary AL integer operations with entry-proved memory spans
+        // or explicit dynamic guards. A missing proof or unsupported encoding
         // rejects the entire graph before any generated guest effect.
         template <typename AccessMap>
-        bool append(std::uint32_t op, std::uint32_t pc, bool last, const AccessMap &accesses) {
+        bool append(std::uint32_t op, std::uint32_t pc, bool last, const AccessMap &accesses,
+            bool dynamic_memory = false) {
             if ((op >> 28) != 14) return false;
             auto next = snapshots.back();
             auto reg = [&](unsigned r) { return r == 15 ? imm(pc + 8) : next.regs[r]; };
             auto alu = [&](unsigned code, value a, value b) { return binary(code, a, b); };
             unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15, rm = op & 15, rs = (op >> 8) & 15;
             bool writes_pc = false;
+            value dynamic_host = 0;
             auto memory = [&](bool load, unsigned r, unsigned offset) {
                 const auto it = accesses.find(pc);
-                if (it == accesses.end()) return false;
-                auto address = make(host, type_i32, 0, 0, it->second.host);
-                const unsigned displacement = it->second.offset + offset;
+                if (!dynamic_host && it == accesses.end()) return false;
+                auto address = dynamic_host ? dynamic_host : make(host, type_i32, 0, 0, it->second.host);
+                const unsigned displacement = (dynamic_host ? 0 : it->second.offset) + offset;
                 if (load) next.regs[r] = make(read32, type_i32, address, 0, displacement);
                 else make(write32, type_void, address, reg(r), displacement);
                 return true;
@@ -135,6 +138,11 @@ namespace eka2l1::arm::aot {
                 if ((op & ((1u << 25) | (1u << 22))) || rn == 15 || rd == 15
                     || (!pre && (op & (1u << 21))) || (wb && rn == rd)) return false;
                 const auto base = reg(rn);
+                if (dynamic_memory) {
+                    auto address = pre ? alu(up ? op_i32_add : op_i32_sub, base, imm(op & 4095)) : base;
+                    dynamic_host = make(guarded_host, type_i32, address, imm(4),
+                        (snapshots.size() - 1) * 2 + !load);
+                }
                 if (!memory(load, rd, 0)) return false;
                 if (wb) next.regs[rn] = alu(up ? op_i32_add : op_i32_sub, base, imm(op & 4095));
             } else if (((op >> 25) & 7) == 4) {
@@ -143,6 +151,13 @@ namespace eka2l1::arm::aot {
                 if (!list || rn == 15 || (op & (1u << 22)) || (wb && (list & (1u << rn)))
                     || (load && (list & 32768) && !last)) return false;
                 const auto base = reg(rn); unsigned offset = 0;
+                if (dynamic_memory) {
+                    const unsigned bytes = std::popcount(list) * 4;
+                    const bool pre = op & (1u << 24);
+                    auto address = alu(op_i32_add, base, imm(up ? (pre ? 4 : 0) : (pre ? -bytes : 4 - bytes)));
+                    dynamic_host = make(guarded_host, type_i32, address, imm(bytes),
+                        (snapshots.size() - 1) * 2 + !load);
+                }
                 for (unsigned r = 0; r < 16; ++r) if (list & (1u << r)) {
                     if (!memory(load, r, offset)) return false;
                     offset += 4;
@@ -221,6 +236,11 @@ namespace eka2l1::arm::aot {
                 case op_i64_add: case op_i64_mul: if (!binary_type(type_i64, type_i64)) return false; break;
                 case read32: if (!unary_type(type_i32, type_i32)) return false; break;
                 case write32: if (!binary_type(type_i32, type_void)) return false; break;
+                case guarded_host:
+                    if (!binary_type(type_i32, type_i32) || nodes[n.b].op != constant
+                        || !nodes[n.b].immediate || nodes[n.b].immediate > 64
+                        || (nodes[n.b].immediate & 3) || n.immediate / 2 >= snapshots.size()) return false;
+                    break;
                 case op_i32_add: case op_i32_sub: case op_i32_mul: case op_i32_and:
                 case op_i32_or: case op_i32_xor: case op_i32_shl: case op_i32_shr_s:
                 case op_i32_shr_u: case op_i32_rotr:
@@ -234,7 +254,8 @@ namespace eka2l1::arm::aot {
             }
             unsigned previous = 0;
             for (auto v : effects) {
-                if (v <= previous || v >= nodes.size() || (nodes[v].op != read32 && nodes[v].op != write32)) return false;
+                if (v <= previous || v >= nodes.size() || (nodes[v].op != read32 && nodes[v].op != write32
+                    && nodes[v].op != guarded_host)) return false;
                 previous = v;
             }
             return true;
