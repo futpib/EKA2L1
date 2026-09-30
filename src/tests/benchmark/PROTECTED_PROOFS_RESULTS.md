@@ -27,3 +27,16 @@ fault fixtures are not all watched-page tests; those are covered separately.
 Timing is pending. Correctness capture jobs overlapped and their wall times are
 not performance evidence. No promotion or deployment is claimed. Raw reports
 and archive/source hashes are in PROTECTED_PROOFS_EVIDENCE.json.
+
+
+## First serial longer-route batch
+
+Same 18 guest seconds, 2,987,830,398 guest instructions and 720 presentations
+in every run. Order: protected, proofs, served, served, proofs, protected.
+Mean seconds: 13.06240 / 12.67100 / 12.92910. The combination gives +3.09%
+throughput against matching protected policy 0 and +2.04% against live. Both
+adjacent comparisons favor the combination, although its closing run is only
+slightly faster than matching policy 0. All six samples, including the slower
+closing runs, remain. Reordered confirmation is required before promotion.
+Physical NVIDIA Vulkan rendering and the current 610.57.04 environment are
+recorded, with counters and capture disabled throughout timing.
