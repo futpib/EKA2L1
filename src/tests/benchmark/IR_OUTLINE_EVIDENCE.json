@@ -1025,5 +1025,11 @@
     "min_viewport_changed_fraction": 0.002483333333333282,
     "median_viewport_changed_fraction": 0.29761666666666664,
     "pass": false
+  },
+  "frontend_archive_followup": {
+    "reason": "test.ts previously ignored EKA2L1_WASM_BUILD_DIR. Local build matched candidate hash; test now honors explicit archive and prints hash.",
+    "log": "/home/claude/.scratch/eka-benchmark/ir-outline-frontend-archive-hash-tests.log",
+    "sha256": "e260e119261161def595d70cef51b4c3c556185bcc800b905a58710eac8925c6",
+    "checks_passed": 7
   }
 }

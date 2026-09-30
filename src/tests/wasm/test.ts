@@ -1,11 +1,12 @@
 import http from "node:http";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import puppeteer, { type Page } from "puppeteer";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const buildDir = path.resolve(__dirname, "../../../build-wasm/src/emu/wasm");
+const buildDir = path.resolve(process.env.EKA2L1_WASM_BUILD_DIR || path.join(__dirname, "../../../build-wasm/src/emu/wasm"));
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html",
@@ -61,6 +62,8 @@ async function runTests(): Promise<void> {
     process.exit(1);
   }
 
+  console.log(`Build: ${buildDir}`);
+  console.log(`WASM SHA-256: ${crypto.createHash("sha256").update(fs.readFileSync(path.join(buildDir, "eka2l1.wasm"))).digest("hex")}`);
   const { server, port } = await startServer();
   const url = `http://127.0.0.1:${port}/`;
   console.log(`Serving WASM build at ${url}`);
