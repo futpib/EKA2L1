@@ -90,3 +90,42 @@ python3 src/tests/benchmark/browser_cores/check_qemu.py REPORT.json ARM_REFERENC
 Place `v86.html`, upstream `libv86.js`, and `v86.wasm` in OUTPUT. The reference
 file must contain the same iteration count and all four workloads. The checker
 compares algorithm outputs and memory, not x86 architectural registers.
+
+## Separate Flycast SH4 adapter
+
+Upstream Flycast `2c48c018` plus nasomers/flycast-wasm `16e9c7b4` supplies the
+actual decoder/SSA, WASM block generator and `c_dispatch_loop`. The original
+SH4 loops implement the same algorithms, not the ARM instruction streams.
+RAM and context are initialized without a BIOS. All reachable blocks are
+compiled during setup. Execution retains the production dispatch checks,
+but omits the console frame scheduler, devices, interrupts and adaptive
+hot-block/chain promotion. It is a CPU adapter, not the release console app.
+
+The published patch does not apply to `shell/libretro/audiostream.cpp` at the
+pinned upstream revision. That frontend-only file was excluded; no audio
+frontend is linked into this adapter. Initialize the libchdr, tinygettext and
+other configured dependency submodules recursively before CMake configuration.
+
+To reproduce from those pinned scratch checkouts:
+
+1. Apply `wasm-jit-phase1-modified.patch` with
+   `git apply --exclude=shell/libretro/audiostream.cpp`.
+2. Copy `rec_wasm.cpp`, `wasm_emit.h`, `wasm_module_builder.h` and
+   `fly_instrument.h` into `flycast-source/core/rec-wasm/`.
+3. Append an absolute `#include` for this folder's `flycast_adapter.inc` to
+   `rec_wasm.cpp`. The checked-in `sh4_kernels.h` contains the original assembled
+   programs; `build_sh4_kernels.py TOOLCHAIN OUTPUT` regenerates them using a
+   privately extracted Debian GNU binutils 2.35.2 SH4 package.
+4. Configure `build-cpu-bench` with emcmake, Release, LIBRETRO=ON, USE_GLES=ON,
+   C and C++ flags `-DJIT_PROD_BUILD=1 -DFLY_RELEASE_BUILD=1`; build the static
+   core archive. The recorded build also sets USE_MODEM/USE_UPNP/
+   USE_RACHIEVEMENTS OFF (verify CMake's actual option support before interpreting
+   those as enabled/disabled features).
+5. `python3 src/tests/benchmark/browser_cores/link_flycast.py SCRATCH`
+6. `node src/tests/benchmark/browser_cores/flycast_run.mjs SCRATCH/browser-cores-nonarm ARM_REFERENCE.json REPORT.json`
+
+The adapter checks the five output variables and complete memory hash against
+the independent algorithm reference; scratch SH4 registers and PC differ by ISA.
+It polls completion between 10,000-cycle dispatch slices, so bounded terminal-loop
+work is included. Setup (decode, SSA, module compilation, initialization) is
+recorded separately from execution. Initial and warmup observations are retained.
