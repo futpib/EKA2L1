@@ -51,3 +51,15 @@ Batch B order: grouped, served, original, original, served, grouped.
 
 No promotion or deployment is implied by this timing record. See the raw rows
 for individual samples and the acceptance section for correctness scope.
+
+## Timing assessment
+
+The pooled lead over the exact served build is 1.285% on the longer route and
+0.725% on the standard scene. All eight paired same-binary comparisons favor
+the grouped scanner; seven of eight comparisons with the served build do. The
+closing standard-B candidate loses to its served control (12.3794 versus
+12.3444 seconds), despite that batch's positive mean. All 24 observations remain.
+The matching-original pooled leads are 3.712% and 1.372%; the former is inflated
+by a slow original control. These results support a tiny measured gain on this
+host, not a guaranteed percentage or visibly faster gameplay. Live acceptance
+is in progress before any delivery decision.
