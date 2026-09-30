@@ -1,0 +1,62 @@
+diff --git a/src/emu/common/include/common/guest_profile.h b/src/emu/common/include/common/guest_profile.h
+index 0f29e07f9..4ad705da0 100644
+--- a/src/emu/common/include/common/guest_profile.h
++++ b/src/emu/common/include/common/guest_profile.h
+@@ -38,6 +38,10 @@ namespace eka2l1::common::guest_profile {
+         std::map<event_key, std::uint64_t> aot_samples;
+         std::uint64_t dropped_aot_samples = 0;
+         std::uint64_t compiled_blocks = 0, memory_calls[6]{};
++        std::uint64_t division_calls = 0, division_instructions = 0, division_dropped = 0;
++        std::array<std::uint64_t,4> division_signs{};
++        std::map<std::tuple<std::uint32_t,std::uint32_t,unsigned>,std::uint64_t> division_samples;
++        std::map<unsigned,std::uint64_t> division_lengths;
+         std::map<unsigned, std::uint64_t> block_lengths;
+         using edge_key = std::tuple<std::uint32_t,std::uint32_t,std::uint32_t,unsigned,std::uint32_t>;
+         std::map<edge_key,std::uint64_t> edges;
+@@ -106,6 +110,17 @@ namespace eka2l1::common::guest_profile {
+             }
+             out << "],\"compiled_blocks\":" << compiled_blocks << ",\"dropped_edges\":" << dropped_edges << ",\"memory_calls\":[";
+             for (unsigned i=0;i<6;++i) { if(i) out << ','; out << memory_calls[i]; }
++            out << "],\"division_calls\":" << division_calls
++                << ",\"division_instructions\":" << division_instructions
++                << ",\"division_dropped\":" << division_dropped << ",\"division_signs\":[";
++            for (unsigned i=0;i<4;++i) {if(i)out << ',';out << division_signs[i];}
++            out << "],\"division_samples\":["; first=true;
++            for (const auto &[k,n] : division_samples) {
++                if(!first)out << ',';first=false;
++                out << '[' << std::get<0>(k) << ',' << std::get<1>(k) << ',' << std::get<2>(k) << ',' << n << ']';
++            }
++            out << "],\"division_lengths\":["; first=true;
++            for (const auto &[k,n] : division_lengths) {if(!first)out << ',';first=false;out << '[' << k << ',' << n << ']';}
+             out << "],\"block_lengths\":["; first=true;
+             for (const auto &[length,count] : block_lengths) {
+                 if(!first) out << ','; first=false;
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index 6f2343184..39b56c8bd 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -256,7 +256,24 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+         cpu->aot_tlb = Verify && validating ? 0 : tlb_address;
+         cpu->aot_exit = 0;
+         const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
++        // Address-selected observation only, never a production dispatch rule.
++        const auto division_a = cpu->Reg[0], division_b = cpu->Reg[1];
+         const auto count = function(cpu);
++        if constexpr (Profile) {
++            if (entry_pc == 0x80191968 && common::guest_profile::enabled && common::performance::counting()) {
++                auto &p = common::guest_profile::state;
++                ++p.division_calls; p.division_instructions += count;
++                ++p.division_signs[((division_a >> 31) << 1) | (division_b >> 31)];
++                ++p.division_lengths[count];
++                if (p.division_calls % 1021 == 0) {
++                    auto key = std::make_tuple(division_a,division_b,count);
++                    auto it = p.division_samples.find(key);
++                    if (it != p.division_samples.end()) ++it->second;
++                    else if(p.division_samples.size()<4096) p.division_samples.emplace(key,1);
++                    else ++p.division_dropped;
++                }
++            }
++        }
+         if (Profile && common::guest_profile::enabled && common::performance::counting()) {
+             auto &profile = common::guest_profile::state;
+             ++profile.block_lengths[count];
