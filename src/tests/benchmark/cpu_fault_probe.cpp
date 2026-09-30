@@ -29,7 +29,7 @@ struct Fixture {
     std::vector<unsigned char> memory=std::vector<unsigned char>(65536);
     unsigned address, policy, partial=0, calls=0, faults=0;
     bool repaired=false, stopped=false;
-    unsigned remap_root=0; bool remapped=false;
+    unsigned remap_root=0; bool remapped=false, remap_writable=false;
     std::vector<std::string> events;
     template<class T> bool access(unsigned a,T *v,bool write) {
         // The data page is inaccessible until the exception handler repairs it.
@@ -52,7 +52,7 @@ struct Fixture {
             ++faults;
             events.push_back("{\"exception\":"+std::to_string(type)+",\"address\":"+std::to_string(a)+",\"regs\":"+regs(cpu)+",\"cpsr\":"+std::to_string(cpu.get_cpsr())+"}");
             if(remap_root) {
-                cpu.set_tlb_page(remap_root,memory.data()+0xa000,prot_read);
+                cpu.set_tlb_page(remap_root,memory.data()+0xa000,remap_writable?prot_read_write:prot_read);
                 remapped=true;
             }
             if(policy==0){repaired=true;return true;}
@@ -67,16 +67,17 @@ int main(int argc, char **argv){
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         const std::string value(mode);
-        if(value!="0" && value!="1" && value!="2" && value!="3" && value!="4") {std::cerr<<"Invalid IR mode\n";return 1;}
+        if(value!="0" && value!="1" && value!="2" && value!="3" && value!="4" && value!="5") {std::cerr<<"Invalid IR mode\n";return 1;}
         ir_policy=static_cast<aot::arm_ir_policy>(value[0]-'0');
     }
-    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads;
+    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes;
     const bool interpreter=argc==2 && (std::string(argv[1])=="--interpreter" || std::string(argv[1])=="--region-spans-interpreter" || std::string(argv[1])=="--entry-budget-interpreter");
     eka2l1::common::performance::enabled=true;
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
-    const bool invariant_remap=argc==2 && std::string(argv[1])=="--invariant-remap";
+    const bool invariant_write_remap=argc==2 && std::string(argv[1])=="--invariant-write-remap";
+    const bool invariant_remap=invariant_write_remap || (argc==2 && std::string(argv[1])=="--invariant-remap");
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
@@ -142,6 +143,10 @@ int main(int argc, char **argv){
         if(invariant_remap) {
             const unsigned words[]={0xe3b03007u,0xe5910000u,op,0xe5914004u,0xe5915008u,0xe591600cu,0xe0847005u};
             std::memcpy(program,words,sizeof(program));
+            if(invariant_write_remap) {
+                program[3]=0xe5814004; program[4]=0xe5815008; program[5]=0xe581600c;
+                f.remap_writable=true;
+            }
             f.remap_root=address&~4095u;
             for(unsigned i=0xa000;i<0xb000;++i) f.memory[i]=(i*13+91)&255;
         }
@@ -162,7 +167,8 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,nullptr,deferred,ir_policy);
-            if(ir_policy==aot::arm_ir_policy::invariant_reads && (invariant_remap || (region_spans && !region_block_spans)) && n==0 && !translated.proved_reads) {
+            if(ir_policy==aot::arm_ir_policy::invariant_writes && invariant_write_remap && n==0 && translated.proved_writes!=3) {std::cerr<<"Write remap proof was not selected\n";return 4;}
+            if((ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes) && ((!invariant_write_remap && invariant_remap) || (region_spans && !region_block_spans)) && n==0 && !translated.proved_reads) {
                 std::cerr << "Invariant read fault fixture did not select entry proof\n"; return 4;
             }
             if(!ir_disabled && ir_segments && n==0 && !translated.ir_segments) {
@@ -242,7 +248,16 @@ int main(int argc, char **argv){
                 std::cerr<<"Remapping fixture did not preserve the first read\n";return 4;
             }
             if(!f.stopped) for(unsigned r=4;r<=6;++r) {
-                if(cpu.get_reg(r)!=expected_word(0xa000+(address&4095u)+(r-3)*4)) {
+                const auto destination=0xa000+(address&4095u)+(r-3)*4;
+                if(invariant_write_remap) {
+                    unsigned stored=0;std::memcpy(&stored,f.memory.data()+destination,4);
+                    unsigned expected=0x12340000+r;
+                    if(endian) expected=((expected&255)<<24)|((expected&65280)<<8)|((expected>>8)&65280)|(expected>>24);
+                    const auto original=address+(r-3)*4;
+                    if(stored!=expected || std::memcmp(f.memory.data()+original,initial_memory.data()+original,4)) {
+                        std::cerr<<"Post-callback store used stale mapping\n";return 4;
+                    }
+                } else if(cpu.get_reg(r)!=expected_word(destination)) {
                     std::cerr<<"Post-callback read used stale mapping\n";return 4;
                 }
             }

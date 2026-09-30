@@ -2798,6 +2798,120 @@ static bool test_invariant_reads() {
 }
 
 
+static bool test_invariant_writes() {
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    const std::vector<std::vector<std::uint32_t>> programs = {
+        {0xe5810000,0xe5812004,0xe5813008,0xe581400c,0xe2566001,0x1afffff9},
+        {0x05810000,0x05812004,0x05813008,0x0581400c},
+        {0xe5810000,0xe5912000,0xe5812004,0xe5913004,0xe5813008,0xe5914008},
+        {0xe5810000,0xe5812004,0xe5813008,0xe581400c,0xe2811004},
+        {0xe5810000,0xe5812004,0xe5813008,0xe581400c,0x12811004},
+        {0xe5810000,0xe5812004,0xe5813008,0xe581400c,0xe0010394},
+    };
+    unsigned checks = 0;
+    for (const auto &code : programs) {
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
+            nullptr, nullptr, true, true, true, true, nullptr, true, arm_ir_policy::invariant_writes);
+        const bool selected = &code - programs.data() < 3;
+        if (bool(tr.proved_writes) != selected || (selected && !tr.func.outlined_callee) || tr.ir_segments) {
+            printf("  FAIL invariant write selection program=%u proved=%u\n", unsigned(&code-programs.data()),tr.proved_writes); return false;
+        }
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        auto control = translate_arm_block(bytes, code.size()*4, 0x1000,
+            nullptr, nullptr, true, true, true, true, nullptr, true, arm_ir_policy::disabled);
+        auto control_module = build_wasm_module({control.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned address : {0x8000u,0x8004u,0x8080u,0x8001u,0x8ff4u,0x8ff8u,0x8ffcu,0u,0xfffffffcu,0x1000u})
+        for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
+        for (unsigned selector : {0u,2u}) for (unsigned pending : {0u,1u})
+        for (unsigned alias : {0u,1u})
+        for (unsigned budget : {0u,1u,2u,3u,4u,5u,8u,17u}) {
+            if (alias && address != 0x8000) continue;
+            test_mem actual;
+            for (unsigned a = 0x8000; a < 0x9000; a += 4) actual.write32(a, a ^ 0x12345678u);
+            // Keep the loaded return PC inside this fixture's code mapping.
+            if (code.back() == 0xe8918010 && address < test_mem::SIZE - 8)
+                actual.write32(address + 4, 0x1000);
+            actual.write_code(0x1000, {bytes, bytes + code.size() * 4});
+            test_mem reference_memory = actual;
+            r12l1::exclusive_monitor monitor(1);
+            auto reference = make_cpu(reference_memory, monitor);
+            r12l1::tlb tlb(12);
+            tlb.add(0x8000, actual.data.data() + (alias ? 0x1000 : 0x8000), permission);
+            tlb.add(0x1000, actual.data.data() + 0x1000, permission);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned r = 0; r < 16; ++r) {
+                const auto value = r == 15 ? 0x1000u : r == 1 ? address : r == 5 ? address + 64 : r == 13 ? address + 128
+                    : r == 6 ? selector : 0x120u + r;
+                state[r] = value; reference->set_reg(r, value);
+            }
+            reference->set_cpsr(16 | endian | (selector ? 0x40000000u : 0));
+            state[state_offsets::CPSR / 4] = 16 | endian | (selector ? 0x40000000u : 0);
+            state[state_offsets::ZFLAG / 4] = selector ? 1 : 0;
+            state[state_offsets::MODE / 4] = 16;
+            state[state_offsets::NIRQ / 4] = pending;
+            state[state_offsets::AOT_BUDGET / 4] = budget;
+            state[state_offsets::AOT_TLB / 4] = reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN / 4] = reinterpret_cast<std::uintptr_t>(actual.data.data() + 0x1000);
+            state[state_offsets::AOT_CODE_END / 4] = state[state_offsets::AOT_CODE_BEGIN / 4] + code.size() * 4;
+            alignas(8) std::uint32_t control_state[256];
+            std::copy(std::begin(state),std::end(state),std::begin(control_state));
+            const auto original_memory=actual.data;
+            g_test_mem = &actual; g_count_memory_helpers = true; g_memory_helper_calls = 0;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            const auto candidate_memory=actual.data;
+            std::copy(original_memory.begin(),original_memory.end(),actual.data.begin());
+            const int control_count=js_run_aot_wasm(control_module.data(),control_module.size(),
+                reinterpret_cast<std::uint8_t *>(control_state),sizeof(control_state));
+            if(count!=control_count || actual.data!=candidate_memory) {
+                printf("  FAIL invariant write original progress/memory count=%d control=%d\n",count,control_count);return false;
+            }
+            for(unsigned r=0;r<16;++r)if(state[r]!=control_state[r]) {
+                printf("  FAIL invariant write original R%u\n",r);return false;
+            }
+            g_test_mem = nullptr; g_count_memory_helpers = false;
+            if (count < 0 || count > static_cast<int>(budget) || g_memory_helper_calls
+                || (budget && address == 0x8080 && permission == 3 && !endian && !alias && !count)) {
+                printf("  FAIL invariant write progress/op=%08x address=%x budget=%u count=%d\n", code.front(), address, budget, count);
+                return false;
+            }
+            // The interpreter fixture uses identity backing. Physical-alias
+            // cases instead compare the original emitter above and require an
+            // immediate code-write exit when the store condition is true.
+            if (alias) {
+                if (((code.front() >> 28) == 14 || selector) && count > 1) {
+                    printf("  FAIL invariant write alias did not exit\n"); return false;
+                }
+                ++checks; continue;
+            }
+            try { if (count) reference->run(count); }
+            catch (...) {
+                printf("  FAIL invariant write reference exception program=%u address=%x budget=%u count=%d PC=%x\n",
+                    unsigned(&code-programs.data()),address,budget,count,reference->get_pc()); return false;
+            }
+            for (unsigned r = 0; r < 16; ++r) if (state[r] != reference->get_reg(r)) {
+                printf("  FAIL invariant write R%u address=%x permission=%u endian=%u budget=%u count=%d\n",
+                    r,address,permission,endian,budget,count); return false;
+            }
+            for (auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},
+                    {state_offsets::ZFLAG,30},{state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if (state[pair.first / 4] != ((reference->get_cpsr() >> pair.second) & 1)) {
+                    printf("  FAIL invariant write flags\n"); return false;
+                }
+            if (actual.data != reference_memory.data) { printf("  FAIL invariant write memory\n"); return false; }
+            ++checks;
+        }
+    }
+    printf("  PASS invariant_writes (%u exact state/memory/budget comparisons)\n", checks);
+#endif
+    return true;
+}
+
+
 static bool test_region_ir() {
     region_ir graph(0x1000);
     const auto input = graph.snapshots[0].regs[0];
@@ -4441,6 +4555,7 @@ int main(int argc, char **argv) {
     if (test_outlined_callee_indices()) passed++; else failed++;
     if (test_proved_read_spans()) passed++; else failed++;
     if (test_invariant_reads()) passed++; else failed++;
+    if (test_invariant_writes()) passed++; else failed++;
     if (test_region_ir()) passed++; else failed++;
     if (test_ir_segments()) passed++; else failed++;
     if (test_ir_memory_exits()) passed++; else failed++;

@@ -188,9 +188,9 @@ int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
 // CPU. This changes translation only, not generated instruction checks.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_ir_configure(int mode) {
-    if (g_state || mode < -1 || mode > 4) return -1;
+    if (g_state || mode < -1 || mode > 5) return -1;
 #ifdef EKA2L1_WASM_CODE_VERSIONS
-    if (mode == 4) return -2;
+    if (mode >= 4) return -2;
 #endif
 #ifndef EKA2L1_WASM_IR_SEGMENTS
     if (mode > 0 && mode < 4) return -2;

@@ -896,7 +896,7 @@ namespace eka2l1::arm::aot {
         std::vector<proof_group> proof_groups;
         std::vector<proof_access> proof_accesses;
         bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && w.region && w.defer_memory && cache_registers && !instructions.empty();
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
         // The guarded IR is an opt-in research path. Version tracking also
         // keeps its existing compiler until separately validated.
@@ -973,11 +973,12 @@ namespace eka2l1::arm::aot {
                 values[rd] = value;
             } else prove_memory = false;
         }
-        // A separate research policy proves only reads through unchanged entry
-        // registers. It admits loops and conditional accesses; stores retain
-        // their original guards. All helper paths end this region before a
-        // later instruction can use a pointer invalidated by a callback.
-        bool invariant_reads = allow_memory_proof && ir_policy == arm_ir_policy::invariant_reads
+        // Separate research policies prove reads, or reads and writes, through
+        // unchanged entry registers. They admit loops and conditional accesses.
+        // Write proofs also exclude physical code aliases. All helper paths end
+        // this region before a later instruction can use a pointer invalidated by a callback.
+        const bool include_writes = ir_policy == arm_ir_policy::invariant_writes;
+        bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || include_writes)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #ifdef EKA2L1_WASM_CODE_VERSIONS
         invariant_reads = false;
@@ -1026,15 +1027,19 @@ namespace eka2l1::arm::aot {
                 if (!known) break;
                 const auto op = ins.opcode;
                 const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
-                // Immediate pre-indexed word loads, no writeback or PC result.
-                if ((op & 0x0f700000u) != 0x05100000u || rn == 15 || rd == 15
+                // Immediate pre-indexed word accesses, no writeback or PC operand.
+                const bool load = op & (1u << 20);
+                if ((op & 0x0f600000u) != 0x05000000u || (!load && !include_writes) || rn == 15 || rd == 15
                     || (written & (1u << rn))) continue;
-                known = add_access(ins.address, {int(rn), (op & (1u << 23) ? 1 : -1) * std::int64_t(op & 4095)}, 4, false);
+                known = add_access(ins.address, {int(rn), (op & (1u << 23) ? 1 : -1) * std::int64_t(op & 4095)}, 4, !load);
             }
             prove_memory = known;
         }
         prove_memory = prove_memory && proof_accesses.size() >= 4;
-        if (prove_memory && invariant_reads) tr.proved_reads = static_cast<unsigned>(proof_accesses.size());
+        if (prove_memory && invariant_reads) for (const auto &access : proof_accesses) {
+            if (proof_groups[access.group].write) ++tr.proved_writes;
+            else ++tr.proved_reads;
+        }
         if (prove_memory) {
             for (auto &span : proof_groups) span.host = w.cache.first_local++;
             result.num_locals += static_cast<unsigned>(proof_groups.size());
@@ -1182,7 +1187,7 @@ namespace eka2l1::arm::aot {
         std::vector<std::pair<std::size_t, unsigned>> wide_fixups;
 #ifdef EKA2L1_WASM_IR_SEGMENTS
         if (allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && w.region && cache_registers && !ir) {
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && w.region && cache_registers && !ir) {
             unsigned max_locals = 0, max_wide_locals = 0;
 #if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
             const bool dynamic_memory = w.defer_memory;
