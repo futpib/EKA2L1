@@ -58,7 +58,7 @@ int main(int argc, char **argv){
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         const std::string value(mode);
-        if(value!="0" && value!="1" && value!="2") {std::cerr<<"Invalid IR mode\n";return 1;}
+        if(value!="0" && value!="1" && value!="2" && value!="3") {std::cerr<<"Invalid IR mode\n";return 1;}
         ir_policy=static_cast<aot::arm_ir_policy>(value[0]-'0');
     }
     const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled;
@@ -70,16 +70,17 @@ int main(int argc, char **argv){
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
+    const bool ir_recipes=argc==2 && std::string(argv[1])=="--ir-recipes";
     const bool ir_short=argc==2 && std::string(argv[1])=="--ir-short";
     const bool ir_addressing=argc==2 && std::string(argv[1])=="--ir-addressing";
     const bool ir_wide=argc==2 && std::string(argv[1])=="--ir-wide";
-    const bool ir_memory=ir_short || ir_addressing || ir_wide || (argc==2 && std::string(argv[1])=="--ir-memory");
+    const bool ir_memory=ir_recipes || ir_short || ir_addressing || ir_wide || (argc==2 && std::string(argv[1])=="--ir-memory");
     const bool ir_memory_chain=argc==2 && std::string(argv[1])=="--ir-memory-chain";
     const bool ir_segments=ir_memory || (argc==2 && std::string(argv[1])=="--ir-segments");
     const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
     const bool region_spans=ir_memory_chain || region_block_spans || (argc==2 && (std::string(argv[1])=="--region-spans" || std::string(argv[1])=="--region-spans-interpreter"));
     const bool three_instructions=read_spans || wide_snapshots;
-    const unsigned instruction_count=ir_segments||region_spans?5:three_instructions?3:2;
+    const unsigned instruction_count=ir_recipes?7:ir_segments||region_spans?5:three_instructions?3:2;
     const unsigned execution_count=ir_short?4:instruction_count;
     const bool deferred=ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred"));
     const bool entry_budget = ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-interpreter" || std::string(argv[1])=="--entry-budget-deferred"));
@@ -113,7 +114,7 @@ int main(int argc, char **argv){
         Fixture f{cpu, std::vector<unsigned char>(65536),address,policy,region_spans?3u:read_spans?1u:partial};f.install();
         for(unsigned i=0x8000;i<0xa000;++i)f.memory[i]=(i*37+11)&255;
         // MOVS precedes the access, so exception observers see live flags/registers.
-        unsigned program[]={region_ir?0xe3a02007u:0xe3b02007u,wide_snapshots?0xe0c54796u:region_spans?0xe5910000u:op,
+        unsigned program[7]={region_ir?0xe3a02007u:0xe3b02007u,wide_snapshots?0xe0c54796u:region_spans?0xe5910000u:op,
             wide_snapshots?op:(read_spans||region_spans)?0xe5913004u:0xeafffffeu,
             0xe5914008u,region_block_spans?op:0xe591500cu};
         if(ir_segments) {
@@ -122,6 +123,7 @@ int main(int argc, char **argv){
             program[4]=op;
             if(ir_memory) {program[1]=0xe1a08004u;program[2]=0xe1a04005u;program[3]=0xe1a05008u;}
             if(ir_wide) {program[1]=0xe0c54796u;program[2]=0xe0e54896u;program[3]=0xe0a54996u;}
+            if(ir_recipes) {program[1]=0xe0c54796u;program[2]=0xe0848005u;program[3]=op;program[4]=0xe3a04000u;program[5]=0xe3a05000u;program[6]=0xe3a08000u;}
             if(ir_short) {program[1]=0xe1a08004u;program[2]=op;program[3]=0xe2844001u;program[4]=0xe1a05008u;}
         }
         std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
@@ -151,6 +153,10 @@ int main(int argc, char **argv){
             }
             if(!ir_disabled && ir_policy!=aot::arm_ir_policy::inline_segments && ir_short && n==0 && !translated.ir_outlined_segments) {
                 std::cerr << "Short-budget fault fixture did not select private IR fallback\n"; return 4;
+            }
+            if(ir_recipes && ir_policy==aot::arm_ir_policy::outlined_recipes && n==0
+                && translated.ir_cold_values<=translated.ir_cold_halves) {
+                std::cerr<<"General exit recipes were not selected\n";return 4;
             }
             if((ir_disabled && (translated.ir_segments || translated.func.outlined_callee))
                 || (ir_policy==aot::arm_ir_policy::inline_segments && translated.ir_outlined_segments)) {
@@ -199,7 +205,7 @@ int main(int argc, char **argv){
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
         if(deferred && compiled<instruction_count)++deferred_cases;
-        if(!interpreter && (ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
+        if(!interpreter && (ir_recipes ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Unexpected generated instruction count at case "<<cases<<'\n';return 2;
         }
 #endif

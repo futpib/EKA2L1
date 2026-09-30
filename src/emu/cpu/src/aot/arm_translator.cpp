@@ -341,7 +341,7 @@ namespace eka2l1::arm::aot {
     static void emit_ir_values(arm_emit &w, const region_ir &ir,
         const std::vector<bool> &live, const std::vector<unsigned> &locals,
         bool publish_pc, const std::vector<bool> &cold = {},
-        std::vector<std::pair<std::size_t, unsigned>> *wide_fixups = nullptr) {
+        std::vector<std::pair<std::size_t, unsigned>> *wide_fixups = nullptr, bool memoize_cold = false) {
         auto local = [&](unsigned opcode, unsigned v) {
             if (wide_fixups && ir.nodes[v].type == type_i64) {
                 w.op(static_cast<std::uint8_t>(opcode));
@@ -352,6 +352,24 @@ namespace eka2l1::arm::aot {
             } else if (opcode == op_local_get) w.get_local(locals[v]);
             else w.set_local(locals[v]);
         };
+        // Share pure expression lowering between hot values and exit recipes.
+        // Memory operations never enter this path: their results can precede
+        // stores that overwrite the original source location.
+        auto emit_pure = [&](auto &&input, const region_ir::node &node) {
+            input(node.a);
+            switch (node.op) {
+            case region_ir::pack:
+                w.op(op_i64_extend_i32_u); input(node.b); w.op(op_i64_extend_i32_u);
+                w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shl); w.op(op_i64_or); break;
+            case region_ir::low: w.op(op_i32_wrap_i64); break;
+            case region_ir::high:
+                w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shr_u); w.op(op_i32_wrap_i64); break;
+            default:
+                if (node.b) input(node.b);
+                w.op(static_cast<std::uint8_t>(node.op)); break;
+            }
+        };
+        std::vector<bool> cold_ready(ir.nodes.size());
         auto push_value = [&](auto &&self, unsigned v) -> void {
             const auto &node = ir.nodes[v];
             if (node.op == region_ir::constant) {
@@ -367,17 +385,24 @@ namespace eka2l1::arm::aot {
                     }
                 }
             } else if (!cold.empty() && cold[v]) {
-                self(self, node.a);
-                if (node.op == region_ir::high) {
-                    w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shr_u);
+                auto input = [&](unsigned operand) { self(self, operand); };
+                if (!memoize_cold) emit_pure(input, node);
+                else {
+                    // A shared DAG must not expand exponentially, e.g. repeated
+                    // squaring. These slots are assigned inside this exit only.
+                    if (!cold_ready[v]) {
+                        emit_pure(input, node); local(op_local_set, v); cold_ready[v] = true;
+                    }
+                    local(op_local_get, v);
                 }
-                w.op(op_i32_wrap_i64);
             } else if (node.op == region_ir::host) w.get_local(static_cast<unsigned>(node.immediate));
             else if (node.op == region_ir::state) w.load_i32(static_cast<unsigned>(node.immediate));
             else local(op_local_get, v);
         };
         auto push = [&](unsigned v) { push_value(push_value, v); };
         auto snapshot = [&](unsigned index, bool pc) {
+            // Separate failure arms cannot rely on another arm's assignments.
+            std::fill(cold_ready.begin(), cold_ready.end(), false);
             const auto &entry = ir.snapshots.front(); const auto &exit = ir.snapshots.at(index);
             // Consume every source before changing any architectural local.
             std::vector<unsigned> destinations;
@@ -395,6 +420,11 @@ namespace eka2l1::arm::aot {
             if (!live[v] || (!cold.empty() && cold[v])) continue;
             const auto &node = ir.nodes[v];
             if (node.op == region_ir::constant || node.op == region_ir::state || node.op == region_ir::host) continue;
+            if (!region_ir::is_effect(node.op)) {
+                emit_pure(push, node);
+                if (node.type != type_void) local(op_local_set, v);
+                continue;
+            }
             push(node.a);
             switch (node.op) {
             case region_ir::guarded_host: {
@@ -424,12 +454,6 @@ namespace eka2l1::arm::aot {
                 w.get_local(arm_emit::HOST);
                 break;
             }
-            case region_ir::pack:
-                w.op(op_i64_extend_i32_u); push(node.b); w.op(op_i64_extend_i32_u);
-                w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shl); w.op(op_i64_or); break;
-            case region_ir::low: w.op(op_i32_wrap_i64); break;
-            case region_ir::high:
-                w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shr_u); w.op(op_i32_wrap_i64); break;
             case region_ir::read32: case region_ir::read8u: case region_ir::read8s:
             case region_ir::read16u: case region_ir::read16s: {
                 const bool word = node.op == region_ir::read32;
@@ -443,9 +467,6 @@ namespace eka2l1::arm::aot {
                 w.op(node.op == region_ir::write32 ? op_i32_store : node.op == region_ir::write16 ? op_i32_store16 : op_i32_store8);
                 leb(w.b, node.op == region_ir::write32 ? 2 : node.op == region_ir::write16 ? 1 : 0);
                 leb(w.b, static_cast<unsigned>(node.immediate)); break;
-            default:
-                if (node.b) push(node.b);
-                w.op(static_cast<std::uint8_t>(node.op)); break;
             }
             if (node.type != type_void) local(op_local_set, v);
         }
@@ -1093,6 +1114,7 @@ namespace eka2l1::arm::aot {
             std::vector<bool> live, cold;
             std::vector<unsigned> locals;
             unsigned length;
+            bool memoize_cold = false;
         };
         std::map<std::size_t, integer_segment> segments;
         std::vector<std::pair<std::size_t, unsigned>> wide_fixups;
@@ -1125,6 +1147,7 @@ namespace eka2l1::arm::aot {
                 }
                 if (end - first < 3 || !graph.valid()) { ++first; continue; }
                 integer_segment segment{std::move(graph), {}, {}, {}, static_cast<unsigned>(end - first)};
+                segment.memoize_cold = ir_policy == arm_ir_policy::outlined_recipes;
                 std::vector<unsigned> exits{segment.length};
                 for (const auto &node : segment.graph.nodes)
                     if (node.op == region_ir::guarded_host) exits.push_back(static_cast<unsigned>(node.immediate / 2));
@@ -1136,8 +1159,10 @@ namespace eka2l1::arm::aot {
                 for (unsigned v = 1; v < segment.graph.nodes.size(); ++v) {
                     const auto &node = segment.graph.nodes[v];
                     segment.cold[v] = segment.live[v] && !ordinary[v]
-                        && (node.op == region_ir::low || node.op == region_ir::high);
-                    if (segment.live[v] && !segment.cold[v] && node.op != region_ir::state
+                        && (node.op == region_ir::low || node.op == region_ir::high
+                            || (segment.memoize_cold && !region_ir::is_effect(node.op)
+                                && node.op != region_ir::constant && node.op != region_ir::state && node.op != region_ir::host));
+                    if (segment.live[v] && (!segment.cold[v] || segment.memoize_cold) && node.op != region_ir::state
                         && node.op != region_ir::constant && node.type != type_void) {
                         segment.locals[v] = node.type == type_i64 ? wide_count++ : w.cache.first_local + count++;
                     }
@@ -1343,14 +1368,18 @@ namespace eka2l1::arm::aot {
                 w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
                 w.i32_const(part.length - 1); w.op(op_i32_ge_u);
                 w.op(op_if); w.op(type_void);
-                emit_ir_values(w, part.graph, part.live, part.locals, false, part.cold, &wide_fixups);
+                emit_ir_values(w, part.graph, part.live, part.locals, false, part.cold, &wide_fixups, part.memoize_cold);
                 w.get_local(arm_emit::COUNT); w.i32_const(part.length - 1);
                 w.op(op_i32_add); w.set_local(arm_emit::COUNT);
                 ++tr.ir_segments;
                 for (unsigned v = 1; v < part.graph.nodes.size(); ++v) {
                     if (part.graph.nodes[v].op == region_ir::guarded_host) ++tr.ir_memory_guards;
                     if (part.live[v] && part.graph.nodes[v].op == op_i64_mul) ++tr.ir_wide_products;
-                    if (part.cold[v]) ++tr.ir_cold_halves;
+                    if (part.cold[v]) {
+                        ++tr.ir_cold_values;
+                        if (part.graph.nodes[v].op == region_ir::low || part.graph.nodes[v].op == region_ir::high)
+                            ++tr.ir_cold_halves;
+                    }
                 }
                 w.op(op_else);
 #ifdef EKA2L1_WASM_IR_OUTLINE

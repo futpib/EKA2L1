@@ -13,7 +13,7 @@ const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
 const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
 const irMode = process.env.EKA2L1_AOT_IR_MODE === undefined ? -1 : Number(process.env.EKA2L1_AOT_IR_MODE);
-if (![-1,0,1,2].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined)');
+if (![-1,0,1,2,3].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes)');
 const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
 if (!Number.isSafeInteger(verifyAot) || verifyAot < 0 || verifyAot > 2147483647)
   throw new Error('EKA2L1_AOT_VERIFY must be a nonnegative integer stride');

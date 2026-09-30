@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('assets', type=Path)
 parser.add_argument('output', type=Path)
 parser.add_argument('builds', nargs='+', help='NAME=ARCHIVED_BUILD')
-parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/1/2',
+parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/1/2/3',
                     help='Select compiler policy within an archived binary')
 args = parser.parse_args()
 variants = []
@@ -22,8 +22,8 @@ for item in args.builds:
 modes = {}
 for item in args.ir_mode:
     name, separator, value = item.partition('=')
-    if not separator or name not in dict(variants) or name in modes or value not in ('0', '1', '2'):
-        parser.error('IR mode requires a unique known NAME=0/1/2')
+    if not separator or name not in dict(variants) or name in modes or value not in ('0', '1', '2', '3'):
+        parser.error('IR mode requires a unique known NAME=0/1/2/3')
     modes[name] = int(value)
 args.output.mkdir()
 root = Path(__file__).resolve().parents[3]

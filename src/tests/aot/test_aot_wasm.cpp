@@ -2823,7 +2823,11 @@ static bool test_ir_segments() {
     leaf_resolver resolve = [&](std::uint32_t address) { return address == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
     const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
     unsigned comparisons = 0;
-    for (auto policy : {arm_ir_policy::disabled, arm_ir_policy::inline_segments, arm_ir_policy::configured})
+    std::vector<arm_ir_policy> policies{arm_ir_policy::disabled, arm_ir_policy::inline_segments, arm_ir_policy::configured};
+#ifdef EKA2L1_WASM_IR_OUTLINE
+    policies.push_back(arm_ir_policy::outlined_recipes);
+#endif
+    for (auto policy : policies)
     for (unsigned p = 0; p < programs.size(); ++p) {
         // A branch to the next instruction excludes the whole-region IR even
         // when both options are enabled, and exercises a real region label.
@@ -2838,7 +2842,7 @@ static bool test_ir_segments() {
             printf("  FAIL IR segment program %u not selected\n",p); return false;
         }
 #ifdef EKA2L1_WASM_IR_OUTLINE
-        const auto expected_private = policy == arm_ir_policy::configured ? tr.ir_segments : 0;
+        const auto expected_private = (policy == arm_ir_policy::configured || policy == arm_ir_policy::outlined_recipes) ? tr.ir_segments : 0;
         if(tr.ir_outlined_segments!=expected_private || tr.func.outlined_calls.size()!=expected_private) {
             printf("  FAIL private IR remainder selection\n");return false;
         }
@@ -2881,7 +2885,7 @@ static bool test_ir_segments() {
             ++comparisons;
         }
     }
-    printf("  PASS ir_segments (%u exact state/memory/budget comparisons across three policies)\n",comparisons);
+    printf("  PASS ir_segments (%u exact state/memory/budget comparisons across enabled policies)\n",comparisons);
 #endif
     return true;
 }
@@ -2895,11 +2899,12 @@ static bool test_ir_memory_exits() {
         0xe8bb0005u,0xe8ab0005u,0xe9bb0005u,0xe9ab0005u,
         0xe83b0005u,0xe82b0005u,0xe93b0005u,0xe92b0005u};
     unsigned comparisons=0;
+    for(auto policy:{arm_ir_policy::configured,arm_ir_policy::outlined_recipes})
     for(bool wide:{false,true})for(bool dependent:{false,true})for(unsigned operation:operations) {
         const unsigned code[]={wide?0xe0c54196u:0xe1a08004u,wide?0xe0e54196u:0xe1a04005u,wide?0xe0a54796u:0xe1a05008u,
             0xe58a4020u,dependent?0xe59ab000u:0xe59a0000u,0xe2800001u,operation,0xe3a04000u,0xe3a05000u};
         const auto *bytes=reinterpret_cast<const std::uint8_t *>(code);
-        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,policy);
         if(!tr.complete || tr.ir_memory_guards!=3) {printf("  FAIL memory IR not selected %08x guards=%u\n",operation,tr.ir_memory_guards);return false;}
         if(wide && (!tr.ir_wide_products || !tr.ir_cold_halves)) {
             printf("  FAIL wide IR snapshot recipes not selected\n");return false;
@@ -2976,6 +2981,71 @@ static bool test_ir_memory_exits() {
         ++comparisons;
     }
     printf("  PASS ir_memory_exits (%u exact intermediate snapshot/effect comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
+// Exit-only arithmetic must use preserved SSA loads, not reload memory after
+// an intervening store. A shared deep DAG also tests bounded recipe emission.
+static bool test_ir_exit_recipes() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    std::vector<std::vector<unsigned>> programs = {
+        {0xe59a2000u,0xe58a3000u,0xe0824005u,0xe59b0000u,0xe3a04000u,0xe3a02000u},
+        {0xe0c54796u,0xe0848005u,0xe59b0000u,0xe3a04000u,0xe3a05000u,0xe3a08000u},
+        {0xe0804001u,0xe1a08004u,0xe59b2000u,0xe3a04000u,0xe3a08000u},
+        std::vector<unsigned>(24,0xe0040494u)
+    };
+    programs.back().insert(programs.back().end(),{0xe59b0000u,0xe3a04000u});
+    const unsigned fault_at[]={3,2,2,24};
+    const unsigned seeds[]={0,1,0xffffffffu,0x80000000u,0x7fffffffu};
+    unsigned comparisons=0;
+    for(unsigned p=0;p<programs.size();++p) {
+        const auto &code=programs[p];const auto *bytes=reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr=translate_arm_block(bytes,code.size()*4,0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,arm_ir_policy::outlined_recipes);
+        if(!tr.complete || !tr.ir_outlined_segments || tr.ir_cold_values<=tr.ir_cold_halves) {
+            printf("  FAIL general exit recipes not selected p=%u\n",p);return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        if(module.empty() || module.size()>131072) {printf("  FAIL exit recipe DAG growth p=%u bytes=%zu\n",p,module.size());return false;}
+        for(auto seed:seeds)for(unsigned scenario=0;scenario<6;++scenario)
+        for(unsigned flags:{0u,3u,12u,15u})for(unsigned budget=0;budget<=code.size()+1;++budget) {
+            test_mem actual;actual.write_code(0x1000,{bytes,bytes+code.size()*4});
+            actual.write32(0x8000,seed^0xabcdef01u);actual.write32(0x9000,0x87654321u);
+            test_mem reference_memory=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12);tlb.add(0x8000,actual.data.data()+0x8000,3);
+            if(scenario!=1)tlb.add(0x9000,actual.data.data()+0x9000,scenario==5?2:3);
+            const unsigned address=scenario==2?0x9001u:scenario==3?0x9ffeu:0x9000u;
+            const unsigned endian=scenario==4?0x200u:0;
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg) {
+                unsigned value=reg==15?0x1000u:reg==10?0x8000u:reg==11?address:seed+reg;
+                state[reg]=value;reference->set_reg(reg,value);
+            }
+            reference->set_cpsr(16|endian|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+code.size()*4;
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            const unsigned stop=scenario==0?code.size():(scenario==4&&p==0?0:fault_at[p]);
+            const auto expected=std::min(budget,stop);
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            if(count!=int(expected)||g_memory_helper_calls||state[state_offsets::AOT_BUDGET/4]!=budget) {
+                printf("  FAIL exit recipe progress p=%u scenario=%u budget=%u count=%d expected=%u\n",p,scenario,budget,count,expected);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf("  FAIL exit recipe R%u p=%u scenario=%u budget=%u got=%x want=%x\n",reg,p,scenario,budget,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1))return false;
+            if(actual.data!=reference_memory.data){printf("  FAIL exit recipe ordered memory\n");return false;}
+            ++comparisons;
+        }
+    }
+    printf("  PASS ir_exit_recipes (%u exact load-history/DAG/width/budget comparisons)\n",comparisons);
 #endif
     return true;
 }
@@ -4271,6 +4341,7 @@ int main(int argc, char **argv) {
     if (test_region_ir()) passed++; else failed++;
     if (test_ir_segments()) passed++; else failed++;
     if (test_ir_memory_exits()) passed++; else failed++;
+    if (test_ir_exit_recipes()) passed++; else failed++;
     if (test_ir_addressing()) passed++; else failed++;
     if (test_memory_displacements()) passed++; else failed++;
     if (test_deferred_memory_exits()) passed++; else failed++;
