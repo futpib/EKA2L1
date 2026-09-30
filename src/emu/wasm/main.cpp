@@ -226,6 +226,14 @@ int eka2l1_tlb_hash_configure(int mode) {
     return 0;
 }
 
+// Lookup layout research control, frozen before guest execution.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_code_lookup_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::code_lookup_outline = mode != 0;
+    return 0;
+}
+
 // Exact byte-scanner research control, frozen before guest execution.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_code_compare_configure(int mode) {

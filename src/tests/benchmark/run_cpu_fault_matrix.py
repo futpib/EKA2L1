@@ -10,6 +10,7 @@ parser.add_argument('archive', type=Path)
 parser.add_argument('output', type=Path)
 parser.add_argument('--ir-policy', type=int, choices=range(16), required=True)
 parser.add_argument('--long', action='store_true', help='Include 128-instruction coverage fixture (policies 13/14/15)')
+parser.add_argument('--code-lookup', type=int, choices=(0,1))
 parser.add_argument('--code-compare', type=int, choices=(0,1,2))
 parser.add_argument('--tlb-hash', type=int, choices=(0,1))
 a = parser.parse_args()
@@ -29,6 +30,9 @@ if a.long:
     cases.insert(0,('ir-long',96))
 probe_compare = [] if a.code_compare is None else [f'--code-compare={a.code_compare}']
 compare_args = [] if a.code_compare is None else ['--code-compare',str(a.code_compare)]
+if a.code_lookup is not None:
+    probe_compare.insert(0,f'--code-lookup={a.code_lookup}')
+    compare_args += ['--code-lookup',str(a.code_lookup)]
 if a.tlb_hash is not None:
     probe_compare += [f'--tlb-hash={a.tlb_hash}']
     compare_args += ['--tlb-hash',str(a.tlb_hash)]
@@ -45,6 +49,6 @@ for name, count in cases:
                     '--cases',str(count),'--ir-policy',str(a.ir_policy),'--require-equal']+compare_args,
                    check=True,stdout=subprocess.DEVNULL)
     results.append(json.loads(result.read_text()))
-    (a.output/'summary.json').write_text(json.dumps(dict(ir_policy=a.ir_policy, tlb_hash=a.tlb_hash, code_compare=a.code_compare,
+    (a.output/'summary.json').write_text(json.dumps(dict(code_lookup=a.code_lookup, ir_policy=a.ir_policy, tlb_hash=a.tlb_hash, code_compare=a.code_compare,
         completed_cases=sum(x['cases'] for x in results),results=results),indent=2)+'\n')
     print(name,'PASS',count,'policy',a.ir_policy,flush=True)

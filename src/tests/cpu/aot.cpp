@@ -31,6 +31,13 @@
 #include <cpu/aot/wasm_emitter.h>
 
 #include <cpu/dyncom/armstate.h>
+namespace {
+struct lookup_mode_scope {
+    bool saved = eka2l1::arm::aot::code_lookup_outline;
+    explicit lookup_mode_scope(bool value) { eka2l1::arm::aot::code_lookup_outline = value; }
+    ~lookup_mode_scope() { eka2l1::arm::aot::code_lookup_outline = saved; }
+};
+}
 #include <array>
 #include <cstring>
 #include <vector>
@@ -1093,6 +1100,7 @@ TEST_CASE("Bounded unconditional calls do not retain unreachable continuation", 
 }
 
 TEST_CASE("Generation guarded RAM lookup still validates host writes and address spaces", "[aot]") {
+    lookup_mode_scope lookup_mode(GENERATE(false, true));
     using namespace eka2l1::arm;
     aot_test_env env;
     auto cpu = env.make_cpu();
@@ -1157,6 +1165,7 @@ TEST_CASE("decoded_cache_separates_arm_thumb_contexts", "[aot][dyncom]") {
 }
 
 TEST_CASE("Inlined code dependencies validate every mapping and exact byte", "[aot]") {
+    lookup_mode_scope lookup_mode(GENERATE(false, true));
     using namespace eka2l1::arm;
     aot_test_env env; auto cpu=env.make_cpu();
     aot::validated_code_cache cache;
@@ -1187,6 +1196,7 @@ TEST_CASE("Inlined code dependencies validate every mapping and exact byte", "[a
 }
 
 TEST_CASE("Colliding recent entries retain generation guards but never skip byte validation", "[aot]") {
+    lookup_mode_scope lookup_mode(GENERATE(false, true));
     using namespace eka2l1::arm;
     aot_test_env env; auto cpu = env.make_cpu();
     aot::validated_code_cache cache;

@@ -79,6 +79,13 @@ int main(int argc, char **argv){
         --argc;
     }
     std::cout << "PROBE_COMPARE " << aot::code_compare_mode << "\n";
+    if (argc > 1 && std::strncmp(argv[argc-1],"--code-lookup=",14) == 0) {
+        const std::string value(argv[argc-1]+14);
+        if(value!="0" && value!="1") {std::cerr<<"Invalid lookup policy\n";return 1;}
+        aot::code_lookup_outline=value=="1";
+        --argc;
+    }
+    std::cout << "PROBE_LOOKUP " << aot::code_lookup_outline << "\n";
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         if(!aot::parse_arm_ir_policy(mode,ir_policy)) {std::cerr<<"Invalid IR mode\n";return 1;}

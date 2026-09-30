@@ -5,6 +5,50 @@
 
 namespace eka2l1::arm::aot {
     unsigned code_compare_mode = 0;
+    bool code_lookup_outline = false;
+
+    void validated_code_cache::reject_recent(std::uint64_t k, block &entry) {
+        entry.live = false;
+        current_.erase(k);
+        recent_[recent_index(k)] = nullptr;
+        ++invalidations;
+    }
+
+    validated_code_cache::block *validated_code_cache::find_original(std::uint32_t pc_mode, core &cpu) {
+        const auto generation = cpu.code_mapping_generation
+            ? cpu.code_mapping_generation->load(std::memory_order_acquire) : 0;
+        const auto k = key(cpu.code_address_space, pc_mode);
+        auto &recent = recent_[recent_index(k)];
+        // A recent-slot collision does not invalidate an entry's mapping.
+        // Recover the stable version first, then use the same generation
+        // guard as a recent hit. Exact bytes are still checked below.
+        if (!recent || !recent->live || recent->key != k) {
+            auto it = current_.find(k);
+            if (it == current_.end()) return nullptr;
+            recent = &versions_[it->second];
+        }
+        if (generation && recent->mapping_source == cpu.code_mapping_generation
+            && recent->mapping_generation == generation) {
+            if (bytes_match(*recent, false)) return recent;
+            recent->live = false;
+            current_.erase(k);
+            recent = nullptr;
+            ++invalidations;
+            return nullptr;
+        }
+        core::code_mapping view;
+        if (!cpu.resolve_code || !cpu.resolve_code(pc_mode & ~1u, view)) {
+            // No cached pointer may survive a failed mapping refresh.
+            if (recent && recent->key == k) recent->mapping_generation = 0;
+            return nullptr;
+        }
+        auto *entry = find(pc_mode, view, &cpu);
+        if (entry) {
+            entry->mapping_generation = generation;
+            entry->mapping_source = cpu.code_mapping_generation;
+        }
+        return entry;
+    }
 
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size) {
 #ifdef __wasm_simd128__

@@ -12,6 +12,7 @@
 
 namespace eka2l1::arm::aot {
     // Research switch, configured before CPU startup; exact coverage in both modes.
+    extern bool code_lookup_outline; // Opt-in layout only; validation remains exact.
     extern unsigned code_compare_mode; // 0: original, 1: overlapping tail, 2: four-vector loop
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size);
 
@@ -86,42 +87,35 @@ namespace eka2l1::arm::aot {
             return entry;
         }
 
+#if defined(_MSC_VER)
+        __forceinline
+#else
+        __attribute__((always_inline))
+#endif
         block *find(std::uint32_t pc_mode, core &cpu) {
+            if (!code_lookup_outline) return find_original(pc_mode, cpu);
             const auto generation = cpu.code_mapping_generation
                 ? cpu.code_mapping_generation->load(std::memory_order_acquire) : 0;
             const auto k = key(cpu.code_address_space, pc_mode);
-            auto &recent = recent_[recent_index(k)];
-            // A recent-slot collision does not invalidate an entry's mapping.
-            // Recover the stable version first, then use the same generation
-            // guard as a recent hit. Exact bytes are still checked below.
-            if (!recent || !recent->live || recent->key != k) {
-                auto it = current_.find(k);
-                if (it == current_.end()) return nullptr;
-                recent = &versions_[it->second];
-            }
-            if (generation && recent->mapping_source == cpu.code_mapping_generation
-                && recent->mapping_generation == generation) {
-                if (bytes_match(*recent, false)) return recent;
-                recent->live = false;
-                current_.erase(k);
-                recent = nullptr;
-                ++invalidations;
-                return nullptr;
-            }
-            core::code_mapping view;
-            if (!cpu.resolve_code || !cpu.resolve_code(pc_mode & ~1u, view)) {
-                // No cached pointer may survive a failed mapping refresh.
-                if (recent && recent->key == k) recent->mapping_generation = 0;
-                return nullptr;
-            }
-            auto *entry = find(pc_mode, view, &cpu);
-            if (entry) {
-                entry->mapping_generation = generation;
-                entry->mapping_source = cpu.code_mapping_generation;
-            }
-            return entry;
+            auto *entry = recent_[recent_index(k)];
+            if (!entry || !entry->live || entry->key != k || !generation
+                || entry->mapping_source != cpu.code_mapping_generation
+                || entry->mapping_generation != generation)
+                return find_original(pc_mode, cpu);
+            if (bytes_match(*entry, false)) return entry;
+            // A byte mismatch is terminal for this version. Calling the old
+            // lookup again could revalidate it after a host write; reject once.
+            reject_recent(k, *entry);
+            return nullptr;
         }
 
+    private:
+        // Container recovery, mapping refresh and invalidation stay outside
+        // the small recent-hit path. Definitions live in code_compare.cpp.
+        block *find_original(std::uint32_t pc_mode, core &cpu);
+        void reject_recent(std::uint64_t k, block &entry);
+
+    public:
         block &insert(std::uint32_t pc_mode, const core::code_mapping &view, std::size_t size) {
             const auto k = key(view.address_space, pc_mode);
             auto old = current_.find(k);

@@ -3812,6 +3812,98 @@ static bool test_block_transfer_callback_pc() {
     printf("  PASS block_transfer_callback_pc\n"); return true;
 }
 
+static bool test_outlined_code_lookup() {
+    struct restore_mode {
+        bool old = code_lookup_outline;
+        ~restore_mode() { code_lookup_outline = old; }
+    } restore;
+    for (const bool outlined : {false, true}) {
+        code_lookup_outline = outlined;
+        test_mem memory;
+        r12l1::exclusive_monitor monitor(1);
+        auto cpu = make_cpu(memory, monitor);
+        std::array<std::uint8_t, 256> primary{}, leaf{}, other{}, remap{};
+        std::atomic<std::uint64_t> generation{1}, replacement{1};
+        cpu->code_mapping_generation = &generation;
+        cpu->code_address_space = 1;
+        bool mapped = true;
+        unsigned resolutions = 0;
+        auto *primary_backing = primary.data();
+        auto *leaf_backing = leaf.data();
+        std::size_t extent = primary.size();
+        cpu->resolve_code = [&](std::uint32_t pc, core::code_mapping &out) {
+            ++resolutions;
+            if (!mapped) return false;
+            out = {cpu->code_address_space,
+                pc == 0x1000 ? primary_backing : pc == 0x2000 ? leaf_backing : other.data(), extent};
+            return true;
+        };
+        validated_code_cache cache;
+        auto install = [&]() -> validated_code_cache::block & {
+            auto &entry = cache.insert(0x1000, {1, primary_backing, extent}, 128);
+            validated_code_cache::add_dependency(entry, 0x2000, leaf_backing,
+                {leaf_backing, leaf_backing + 128});
+            return entry;
+        };
+        install();
+        if (!cache.find(0x1000, *cpu)) return false;
+        const auto first_resolutions = resolutions;
+        for (unsigned i = 0; i < 8; ++i) if (!cache.find(0x1000, *cpu)) return false;
+        if (resolutions != first_resolutions) return false;
+        // Direct host writes invalidate, including dependency bytes. Restoring
+        // bytes after rejection must never revive that compiled version.
+        for (auto *bytes : {primary.data(), leaf.data()}) {
+            for (unsigned offset : {0u, 15u, 16u, 63u, 64u, 127u}) {
+                auto &old = install();
+                if (!cache.find(0x1000, *cpu)) return false;
+                const auto before = cache.invalidations;
+                bytes[offset] ^= 1;
+                if (cache.find(0x1000, *cpu) || old.live || cache.invalidations != before + 1) return false;
+                bytes[offset] ^= 1;
+                if (cache.find(0x1000, *cpu) || cache.invalidations != before + 1) return false;
+            }
+        }
+        install(); if (!cache.find(0x1000, *cpu)) return false;
+        // Same-index collision recovers the existing generation guard.
+        cache.insert(0x3000, {1, other.data(), other.size()}, 8);
+        if (!cache.find(0x3000, *cpu)) return false;
+        const auto before_collision = resolutions;
+        if (!cache.find(0x1000, *cpu) || resolutions != before_collision) return false;
+        // Equal numerical generations from another source force refresh.
+        cpu->code_mapping_generation = &replacement;
+        if (!cache.find(0x1000, *cpu) || resolutions != before_collision + 2) return false;
+        primary_backing = remap.data(); ++replacement;
+        if (cache.find(0x1000, *cpu)) return false;
+        install(); if (!cache.find(0x1000, *cpu)) return false;
+        leaf_backing = other.data(); ++replacement;
+        if (cache.find(0x1000, *cpu)) return false;
+        install(); if (!cache.find(0x1000, *cpu)) return false;
+        mapped = false; ++replacement;
+        if (cache.find(0x1000, *cpu)) return false;
+        mapped = true; ++replacement;
+        if (!cache.find(0x1000, *cpu)) return false;
+        extent = 64; ++replacement;
+        if (cache.find(0x1000, *cpu)) return false;
+        extent = 256; install();
+        cpu->code_address_space = 2;
+        if (cache.find(0x1000, *cpu)) return false;
+        cpu->code_address_space = 1;
+        if (!cache.find(0x1000, *cpu)) return false;
+        cache.invalidate(0x2004, 4);
+        if (cache.find(0x1000, *cpu)) return false;
+        install(); cpu->code_mapping_generation = nullptr;
+        const auto before_legacy = resolutions;
+        if (!cache.find(0x1000, *cpu) || !cache.find(0x1000, *cpu)
+            || resolutions != before_legacy + 4) return false;
+        cpu->code_mapping_generation = &replacement; replacement.store(0);
+        const auto before_zero = resolutions;
+        if (!cache.find(0x1000, *cpu) || !cache.find(0x1000, *cpu)
+            || resolutions != before_zero + 4) return false;
+    }
+    printf("  PASS outlined_code_lookup (both modes, exact bytes, dependencies, mappings, rejection)\n");
+    return true;
+}
+
 static bool test_exact_code_compare() {
     for (unsigned mode : {0u, 1u, 2u}) {
     code_compare_mode = mode;
@@ -4341,6 +4433,7 @@ static bool test_folded_tlb_guards() {
 }
 
 int main(int argc, char **argv) {
+    if(argc==2 && std::string(argv[1])=="--lookup-only") return test_outlined_code_lookup()?0:1;
     if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
     if(argc==2 && std::string(argv[1])=="--folded-tlb-only") return test_folded_tlb_guards()?0:1;
     if (argc == 2 && std::string(argv[1]).rfind("--tlb-hash=",0)==0) {
@@ -4960,6 +5053,7 @@ int main(int argc, char **argv) {
 #endif
     if (test_bounded_execution()) passed++; else failed++;
     if (test_folded_tlb_guards()) passed++; else failed++;
+    if (test_outlined_code_lookup()) passed++; else failed++;
     if (test_exact_code_compare()) passed++; else failed++;
     if (test_region_cpsr_callback()) passed++; else failed++;
     if (test_block_transfer_callback_pc()) passed++; else failed++;
