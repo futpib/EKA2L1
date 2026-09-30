@@ -1,4 +1,4 @@
-# Conditional integer IR: correctness accepted, timing pending
+# Conditional integer IR: no promotion
 
 Policy 13 extends the opt-in mixed IR across pure conditional integer operations.
 Predicates use preceding flags; false conditions still consume an instruction.
@@ -24,6 +24,32 @@ select opcode constant was missing; the successful rebuilt archive includes it.
 The rejected build logs remain in scratch. IR_CONDITIONS_EVIDENCE.json records
 source/probe hashes, exact comparisons and fixture provenance.
 
-Performance is pending. Compare policies 13, 12 and 7 in this same application
-binary plus the exact served policy-7 archive. Retain all observations. Nothing
+The completed serial batch does not support replacing the served archive. The batch compares policies 13, 12 and 7 in this same application
+binary plus the exact served policy-7 archive. All observations are retained. Nothing
 is deployed or pushed; the current HTTPS application remains unchanged.
+
+## Completed serial batch
+
+| Run | Seconds |
+| --- | ---: |
+| conditions-1 | 13.2275 |
+| writes-1 | 15.1736 |
+| combined-1 | 14.3168 |
+| served-1 | 12.6534 |
+| served-2 | 13.2084 |
+| combined-2 | 14.0044 |
+| writes-2 | 13.4586 |
+| conditions-2 | 14.9605 |
+
+Mean elapsed seconds: conditions 14.0940, writes 14.3161, combined 14.1606, served 12.9309.
+Candidate throughput relative to controls: writes +1.58%, combined +0.47%, served -8.25%.
+
+All eight samples are retained. This single batch does not establish a
+repeatable marginal conditional IR benefit or support replacing the exact served
+archive. The selected policy 7 archive remains live. No owned heavy job
+overlapped warmup or measurement. The IR policies stay opt-in.
+
+The two adjacent candidate/preceding-IR pairs disagree: 13.2275s versus15.1736s
+at opening, 14.9605s versus13.4586s at closing. The pooled1.58% marginal lead is
+not repeated pairwise. Candidate loses8.25% throughput against the served archive.
+Fresh diagnostic profiles follow separately; they are not promotion timings.
