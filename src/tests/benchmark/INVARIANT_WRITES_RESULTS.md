@@ -1,5 +1,8 @@
 # Invariant write spans: retained opt-in, no deployment gain established
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 Policy 5 extends delivered policy 4 to selected stable word-store spans. The
 implementation and safety boundaries are in INVARIANT_WRITES_DESIGN.md. It is
 opt-in and has not changed the LAN build. Two serial batches favor writes over matching read emission, but do not establish a meaningful improvement over the currently served archive.

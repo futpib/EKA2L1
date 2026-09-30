@@ -1617,5 +1617,10 @@
     ],
     "path": "/home/claude/.scratch/eka-benchmark/ir-calls-timing-a/measurements.json",
     "sha256": "62561b02969afda16434da4fc3e1fed4677556c59bf9eb1bd8447c551e2ebfea"
+  },
+  "fault_policy_correction": {
+    "report": "FAULT_POLICY_AUDIT_RESULTS.md",
+    "scope": "Standalone host-env-selected WASM fault probes exercised configured policy -1; per-policy attribution withdrawn. Browser and direct-policy compiler observations are separate.",
+    "current_source_revalidation": "IR_LONG_SEGMENTS_EVIDENCE.json"
   }
 }

@@ -1,5 +1,8 @@
 # Combined write-span and budget proofs: exact archive delivered
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 The delivered candidate selects policy 7 in the deferred-counts archive. That
 policy uses original instruction lowering, invariant read/write proofs, and
 precise short-budget private fallbacks. Deferred counts and general IR are not

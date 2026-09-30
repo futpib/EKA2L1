@@ -1,5 +1,8 @@
 # Conditional integer IR: no promotion
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 Policy 13 extends the opt-in mixed IR across pure conditional integer operations.
 Predicates use preceding flags; false conditions still consume an instruction.
 Conditional memory and control transfers remain original-emitter boundaries.

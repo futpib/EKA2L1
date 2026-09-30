@@ -1,5 +1,8 @@
 # CPU time varies along with elapsed time
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 A separate four-run diagnostic followed the rejected combination-removal trial.
 It snapshots only descendants of the spawned benchmark before releasing its
 existing phase-one gate and after receiving the phase-two measurement. Nothing

@@ -1100,5 +1100,10 @@
       "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
     }
   },
-  "decision": "No promotion. Mean throughput changes by only +0.33% against off, with opposing adjacent pairs and substantial variation."
+  "decision": "No promotion. Mean throughput changes by only +0.33% against off, with opposing adjacent pairs and substantial variation.",
+  "fault_policy_correction": {
+    "report": "FAULT_POLICY_AUDIT_RESULTS.md",
+    "scope": "Standalone host-env-selected WASM fault probes exercised configured policy -1; per-policy attribution withdrawn. Browser and direct-policy compiler observations are separate.",
+    "current_source_revalidation": "IR_LONG_SEGMENTS_EVIDENCE.json"
+  }
 }

@@ -845,6 +845,9 @@ namespace eka2l1::arm::aot {
         const sibling_map *siblings,
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::configured)
     {
+        // Same semantic lowering as policy 13; only the bounded segment cap changes.
+        const bool long_ir_segments = ir_policy == arm_ir_policy::long_segments_ir;
+        if (long_ir_segments) ir_policy = arm_ir_policy::conditional_value_ir;
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -1256,7 +1259,7 @@ namespace eka2l1::arm::aot {
             for (std::size_t first = 0; first < instructions.size();) {
                 region_ir graph(instructions[first].address);
                 std::size_t end = first;
-                for (; end < instructions.size() && end - first < 32; ++end) {
+                for (; end < instructions.size() && end - first < (long_ir_segments ? 128u : 32u); ++end) {
                     const auto &ins = instructions[end];
                     const auto op = ins.opcode;
                     if (end != first) {
@@ -1568,6 +1571,8 @@ namespace eka2l1::arm::aot {
                 w.get_local(arm_emit::COUNT); w.i32_const(part.length - 1);
                 w.op(op_i32_add); w.set_local(arm_emit::COUNT);
                 ++tr.ir_segments;
+                tr.ir_max_segment_length = std::max(tr.ir_max_segment_length, part.length);
+                tr.ir_segment_instructions += part.length;
                 tr.ir_flag_instructions += part.graph.flag_instructions;
                 tr.ir_inline_transfers += part.graph.inline_transfers;
                 tr.ir_conditional_instructions += part.graph.conditional_instructions;

@@ -1600,5 +1600,10 @@
     "recipes": 14.6725,
     "served": 14.10035
   },
-  "decision": "No promotion. Recipes are essentially tied with previous outlined IR and slower than original emission in this batch. All eight observations remain."
+  "decision": "No promotion. Recipes are essentially tied with previous outlined IR and slower than original emission in this batch. All eight observations remain.",
+  "fault_policy_correction": {
+    "report": "FAULT_POLICY_AUDIT_RESULTS.md",
+    "scope": "Standalone host-env-selected WASM fault probes exercised configured policy -1; per-policy attribution withdrawn. Browser and direct-policy compiler observations are separate.",
+    "current_source_revalidation": "IR_LONG_SEGMENTS_EVIDENCE.json"
+  }
 }

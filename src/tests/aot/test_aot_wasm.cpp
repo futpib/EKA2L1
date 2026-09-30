@@ -3231,7 +3231,7 @@ static bool test_ir_flags() {
     return true;
 }
 
-static bool test_ir_conditions() {
+static bool test_ir_conditions(arm_ir_policy policy = arm_ir_policy::conditional_value_ir) {
 #if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
     const unsigned operations[] = {0x00902001u,0x01b02081u,0x01500001u,0x00a02001u};
     const unsigned inputs[][2]={{0,0},{0xffffffffu,1},{0x7fffffffu,1},{0x80000000u,0xffffffffu}};
@@ -3240,7 +3240,7 @@ static bool test_ir_conditions() {
         const unsigned code[]={0xe1a08000u,operation|(condition<<28),0x01a04002u|(((condition+1)%14)<<28),
             0xe59a5000u,0xe0956001u,0xe58b4000u,0xe12fff1eu};
         const auto *bytes=reinterpret_cast<const std::uint8_t*>(code);
-        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,arm_ir_policy::conditional_value_ir);
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,policy);
         if(!tr.complete || tr.ir_conditional_instructions!=2 || !tr.ir_memory_guards) {
             printf("  FAIL conditional IR selection cond=%u op=%x selected=%u\n",condition,operation,tr.ir_conditional_instructions);return false;
         }
@@ -3286,7 +3286,66 @@ static bool test_ir_conditions() {
         region_ir trial(0x1000);
         if(trial.append_conditional(opcode,0x1000,no_accesses,true,true))return false;
     }
-    printf("  PASS ir_conditions (%u exact predicate/flags/state/memory/budget comparisons)\n",comparisons);
+    printf("  PASS ir_conditions policy=%d (%u exact predicate/flags/state/memory/budget comparisons)\n",static_cast<int>(policy),comparisons);
+#endif
+    return true;
+}
+
+// A longer graph must retain every intermediate fault snapshot and exact remainder.
+static bool test_ir_long_segments() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    unsigned comparisons=0;
+    for(auto policy:{arm_ir_policy::conditional_value_ir,arm_ir_policy::long_segments_ir})
+    for(unsigned fault_at:{31u,63u,95u,127u}) {
+        std::vector<unsigned> code(133);
+        const unsigned pattern[]={0xe0900001u,0xe0222000u,0x20a33001u,0xe1a08004u};
+        for(unsigned n=0;n<code.size();++n)code[n]=pattern[n%4];
+        code[0]=0xe1a0b00cu; // Written root cannot use an entry invariant proof.
+        code[60]=0xe1a08004u;code[61]=0xe1a04005u;code[62]=0xe1a05008u;
+        code[70]=0xe0c54796u;code[71]=0xe0e54796u;
+        code[72]=0xe5894000u;code[73]=0xe5996000u;
+        code[fault_at]=0xe59ba000u;code.back()=0xe12fff1eu;
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(code.data());
+        const auto size=code.size()*4;
+        auto tr=translate_arm_block(bytes,size,0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,policy);
+        if(!tr.complete || tr.ir_max_segment_length!=(policy==arm_ir_policy::long_segments_ir?128u:32u)
+            || !tr.ir_memory_guards || !tr.ir_conditional_instructions || !tr.ir_wide_products) {
+            printf("  FAIL long IR selection policy=%d max=%u\n",int(policy),tr.ir_max_segment_length);return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned seed:{0u,1u,0x7fffffffu,0xffffffffu})for(unsigned flags:{0u,5u,10u,15u})
+        for(unsigned budget=0;budget<=134;++budget)for(bool mapped:{false,true}) {
+            test_mem actual;actual.write_code(0x1000,{bytes,bytes+size});actual.write32(0x8000,seed);actual.write32(0x8004,~seed);
+            test_mem reference_memory=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12);tlb.add(0x8000,actual.data.data()+0x8000,3);
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg) {
+                unsigned value=reg==15?0x1000u:reg==14?0x2000u:reg==9?0x8000u:reg==12?(mapped?0x8004u:0x9000u):seed+reg;
+                state[reg]=value;reference->set_reg(reg,value);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+size;
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            if(count!=int(std::min(budget,mapped?133u:fault_at)) || g_memory_helper_calls || state[state_offsets::AOT_BUDGET/4]!=budget) {
+                printf("  FAIL long IR count policy=%d fault=%u budget=%u mapped=%u count=%d\n",int(policy),fault_at,budget,mapped,count);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf("  FAIL long IR state policy=%d fault=%u budget=%u R%u\n",int(policy),fault_at,budget,reg);return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1))return false;
+            if(actual.data!=reference_memory.data)return false;
+            ++comparisons;
+        }
+    }
+    printf("  PASS ir_long_segments (%u exact long-graph state/flags/memory/budget comparisons)\n",comparisons);
 #endif
     return true;
 }
@@ -4851,6 +4910,8 @@ int main(int argc, char **argv) {
     if (test_region_ir()) passed++; else failed++;
     if (test_ir_flags()) passed++; else failed++;
     if (test_ir_conditions()) passed++; else failed++;
+    if (test_ir_conditions(arm_ir_policy::long_segments_ir)) passed++; else failed++;
+    if (test_ir_long_segments()) passed++; else failed++;
     if (test_ir_segments()) passed++; else failed++;
     if (test_ir_memory_exits()) passed++; else failed++;
     if (test_ir_exit_recipes()) passed++; else failed++;

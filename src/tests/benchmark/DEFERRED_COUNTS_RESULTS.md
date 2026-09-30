@@ -1,5 +1,8 @@
 # Deferred counts: marginal benefit not established
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 Policy 8 defers counter updates within already-proved straight-line chunks and
 reconstructs exact counts at exits. It extends policy 7 without changing integer
 or memory lowering. See DEFERRED_COUNTS_DESIGN.md. This remains opt-in and unserved.

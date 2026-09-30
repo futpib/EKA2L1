@@ -66,7 +66,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
   if (ir === undefined && eager === undefined) return undefined;
   const policy: CompilerPolicy = {};
   if (ir !== undefined) {
-    if (!/^(?:-1|[0-9]|10|11|12|13)$/.test(ir)) throw new Error("Invalid compiler policy");
+    if (!/^(?:-1|[0-9]|10|11|12|13|14)$/.test(ir)) throw new Error("Invalid compiler policy");
     policy.irMode = Number(ir);
   }
   if (eager !== undefined) {

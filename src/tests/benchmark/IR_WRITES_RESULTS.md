@@ -1,5 +1,8 @@
 # Invariant write proofs inside mixed IR
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 Policy 12 extends the preceding call/flag-aware IR with the original emitter's
 entry-proved write spans. It remains opt-in; gameplay The completed serial batch does not support replacing the served archive.
 The current LAN executable is unchanged. See IR_WRITES_DESIGN.md for contracts.

@@ -1,5 +1,8 @@
 # Fault-only reconstruction: no promotion
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 Policy 3 moves pure values used only by fault snapshots into those exits,
 memoizing shared expressions once per exit. It retains all ordered memory
 effects and saved load values. The implementation is opt-in; configured and

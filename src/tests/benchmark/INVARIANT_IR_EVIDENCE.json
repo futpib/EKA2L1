@@ -1518,5 +1518,10 @@
     ],
     "path": "/home/claude/.scratch/eka-benchmark/invariant-ir-timing-a/measurements.json",
     "sha256": "51e2e26282818c8c462609919bad632d85811a44de0cab7cc53d6681796ac88c"
+  },
+  "fault_policy_correction": {
+    "report": "FAULT_POLICY_AUDIT_RESULTS.md",
+    "scope": "Standalone host-env-selected WASM fault probes exercised configured policy -1; per-policy attribution withdrawn. Browser and direct-policy compiler observations are separate.",
+    "current_source_revalidation": "IR_LONG_SEGMENTS_EVIDENCE.json"
   }
 }

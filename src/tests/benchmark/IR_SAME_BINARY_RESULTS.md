@@ -1,5 +1,8 @@
 # Matched application binary: no IR promotion
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 The compiler now accepts an explicit translation-time policy: configured,
 original emission, inline IR segments, or outlined IR segments. Browser research
 configuration is restricted to before initialization and rejects unavailable

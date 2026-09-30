@@ -1,5 +1,8 @@
 # Budget chunks: matching-compiler gain, mixed served comparison
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 Policy 6 keeps original instruction/value/memory lowering and proves sufficient
 budget once for selected straight-line chunks inside regions. Short budgets use
 private precise compiled fallbacks. Delivered policy 4 supplies the read-span

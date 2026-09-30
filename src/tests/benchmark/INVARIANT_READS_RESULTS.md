@@ -1,5 +1,8 @@
 # Invariant read spans: modest measured gain, delivered on LAN
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 The exact tested archive is served at https://claude-laptop.lan:8188/ with
 explicit policy 4 and eager regions off. Reload to use it. Policy 4 proves
 selected read spans through registers that cannot change in a region, including

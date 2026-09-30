@@ -1,5 +1,8 @@
 # Mixed IR consuming invariant read proofs
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 Policy 9 is not promoted: its completed serial batch averages 13.5747 seconds,
 versus 13.4210 for read-only emission, 13.4352 for combined proofs in the same
 binary, and 12.6498 for the exact served archive.

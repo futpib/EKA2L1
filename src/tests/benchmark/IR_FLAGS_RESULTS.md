@@ -1,5 +1,8 @@
 # Flag-aware mixed IR
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 Policy 10 extends the mixed IR with unconditional data-processing flag values.
 Flags participate in liveness and precise snapshots; computations needed only
 by a fault exit use the existing cold reconstruction. This remains opt-in and

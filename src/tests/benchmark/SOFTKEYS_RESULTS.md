@@ -1,5 +1,8 @@
 # S60 softkey mapping correction
 
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
 The live browser launcher sent Application0/1 (180/181) for its left/right
 softkey buttons and F1/F2/Escape keys. In Snakes these did not open the pause
 menu. Raw Device0/1 (164/165) correctly pause and resume the game. The launcher

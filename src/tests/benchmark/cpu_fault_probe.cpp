@@ -68,6 +68,18 @@ int main(int argc, char **argv){
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         if(!aot::parse_arm_ir_policy(mode,ir_policy)) {std::cerr<<"Invalid IR mode\n";return 1;}
     }
+    // Emscripten does not automatically import the Node process environment.
+    // An explicit argument sets both the probe and production-runner policy.
+    if (argc == 3) {
+        const std::string argument(argv[2]), prefix("--ir-policy=");
+        if (argument.compare(0,prefix.size(),prefix) != 0
+            || !aot::parse_arm_ir_policy(argument.c_str()+prefix.size(),ir_policy)) {
+            std::cerr << "Invalid explicit IR policy\n"; return 1;
+        }
+        setenv("EKA2L1_AOT_IR_MODE",argument.c_str()+prefix.size(),1);
+        --argc;
+    }
+    std::cout << "PROBE_POLICY " << static_cast<int>(ir_policy) << "\n";
     const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts;
     const bool interpreter=argc==2 && (std::string(argv[1])=="--interpreter" || std::string(argv[1])=="--region-spans-interpreter" || std::string(argv[1])=="--entry-budget-interpreter");
     eka2l1::common::performance::enabled=true;
@@ -81,19 +93,20 @@ int main(int argc, char **argv){
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
     const bool ir_call_short=argc==2 && std::string(argv[1])=="--ir-calls-short";
     const bool ir_calls=ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
+    const bool ir_long=argc==2 && std::string(argv[1])=="--ir-long";
     const bool ir_conditions=argc==2 && std::string(argv[1])=="--ir-conditions";
     const bool ir_flags=argc==2 && std::string(argv[1])=="--ir-flags";
     const bool ir_recipes=argc==2 && std::string(argv[1])=="--ir-recipes";
     const bool ir_short=argc==2 && std::string(argv[1])=="--ir-short";
     const bool ir_addressing=argc==2 && std::string(argv[1])=="--ir-addressing";
     const bool ir_wide=argc==2 && std::string(argv[1])=="--ir-wide";
-    const bool ir_memory=ir_conditions || ir_calls || ir_flags || ir_recipes || ir_short || ir_addressing || ir_wide || (argc==2 && std::string(argv[1])=="--ir-memory");
+    const bool ir_memory=ir_long || ir_conditions || ir_calls || ir_flags || ir_recipes || ir_short || ir_addressing || ir_wide || (argc==2 && std::string(argv[1])=="--ir-memory");
     const bool ir_memory_chain=argc==2 && std::string(argv[1])=="--ir-memory-chain";
     const bool ir_segments=ir_memory || (argc==2 && std::string(argv[1])=="--ir-segments");
     const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
     const bool region_spans=ir_memory_chain || region_block_spans || (argc==2 && (std::string(argv[1])=="--region-spans" || std::string(argv[1])=="--region-spans-interpreter"));
     const bool three_instructions=read_spans || wide_snapshots;
-    const unsigned instruction_count=invariant_remap||ir_recipes||ir_flags||ir_conditions?7:ir_segments||region_spans?5:three_instructions?3:2;
+    const unsigned instruction_count=ir_long?135:invariant_remap||ir_recipes||ir_flags||ir_conditions?7:ir_segments||region_spans?5:three_instructions?3:2;
     const unsigned execution_count=ir_calls?9:ir_short?4:instruction_count;
     const bool deferred=invariant_remap || ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred"));
     const bool entry_budget = invariant_remap || ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-interpreter" || std::string(argv[1])=="--entry-budget-deferred"));
@@ -110,7 +123,7 @@ int main(int argc, char **argv){
     if(ir_memory) instructions={0xe5910000,0xe5810000,0xe8b1000d,0xe8a1000d,0xe891000d,0xe881000d};
     if(ir_addressing) instructions={0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,0xe1d100d0,0xe1d100f0,
         0xe7910106,0xe7810106,0xe7d10106,0xe7c10106,0xe19100b6,0xe18100b6,0xe19100d6,0xe19100f6};
-    if(ir_calls || ir_conditions) instructions={0xe5910000,0xe5810000};
+    if(ir_calls || ir_conditions || ir_long) instructions={0xe5910000,0xe5810000};
     if(invariant_remap) instructions={0xe5d28000,0xe8920300}; // LDRB / LDM via an unproved root
     const std::vector<unsigned> addresses=invariant_remap
         ? std::vector<unsigned>{0x8000u,0x8ff0u}
@@ -135,7 +148,7 @@ int main(int argc, char **argv){
         Fixture f{cpu, std::vector<unsigned char>(65536),address,policy,region_spans?3u:read_spans?1u:partial};f.install();
         for(unsigned i=0x8000;i<0xa000;++i)f.memory[i]=(i*37+11)&255;
         // MOVS precedes the access, so exception observers see live flags/registers.
-        unsigned program[7]={region_ir?0xe3a02007u:0xe3b02007u,wide_snapshots?0xe0c54796u:region_spans?0xe5910000u:op,
+        unsigned program[135]={region_ir?0xe3a02007u:0xe3b02007u,wide_snapshots?0xe0c54796u:region_spans?0xe5910000u:op,
             wide_snapshots?op:(read_spans||region_spans)?0xe5913004u:0xeafffffeu,
             0xe5914008u,region_block_spans?op:0xe591500cu};
         if(ir_segments) {
@@ -151,9 +164,15 @@ int main(int argc, char **argv){
                 program[2]=0xe1a06004u;program[3]=op;program[4]=0xe3a04000u;program[5]=0xe3a05000u;program[6]=0xe3a06000u;}
             if(ir_short) {program[1]=0xe1a08004u;program[2]=op;program[3]=0xe2844001u;program[4]=0xe1a05008u;}
         }
+        if(ir_long) {
+            for(unsigned n=0;n<135;++n)program[n]=n%2?0xe0944005u:0x20a66007u;
+            program[0]=0xe1a09001u;program[1]=0xe1a01009u;
+            program[96]=0xe0c54796u;program[97]=0xe0e54896u;
+            program[111]=op;
+        }
         if(invariant_remap) {
             const unsigned words[]={0xe3b03007u,0xe5910000u,op,0xe5914004u,0xe5915008u,0xe591600cu,0xe0847005u};
-            std::memcpy(program,words,sizeof(program));
+            std::memcpy(program,words,sizeof(words));
             if(invariant_write_remap) {
                 program[3]=0xe5814004; program[4]=0xe5815008; program[5]=0xe581600c;
                 f.remap_writable=true;
@@ -167,7 +186,7 @@ int main(int argc, char **argv){
             program[3]=0xe3a04000u;program[4]=0xe3a06000u;
             std::memcpy(f.memory.data()+0x2000,called_words,sizeof(called_words));
         }
-        std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
+        std::memcpy(f.memory.data()+0x1000,program,(ir_long?135u:7u)*sizeof(unsigned));
         for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
         cpu.set_reg(0,0x87654321);cpu.set_reg(1,address);cpu.set_pc(0x1000);cpu.set_cpsr((flags<<28)|0x10|endian);
         if(ir_conditions){cpu.set_reg(4,0x7fffffffu);cpu.set_reg(5,1);}
@@ -189,41 +208,49 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
-            if((ir_policy==aot::arm_ir_policy::invariant_writes || (ir_policy==aot::arm_ir_policy::invariant_write_ir || ir_policy==aot::arm_ir_policy::conditional_value_ir) || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts) && invariant_write_remap && n==0 && translated.proved_writes!=3) {std::cerr<<"Write remap proof was not selected\n";return 4;}
-            if((ir_policy==aot::arm_ir_policy::invariant_write_ir || ir_policy==aot::arm_ir_policy::conditional_value_ir) && invariant_write_remap && n==0 && translated.ir_proved_writes!=3) {std::cerr<<"IR write remap proof was not used\n";return 4;}
-            if(((ir_policy==aot::arm_ir_policy::invariant_read_ir || ir_policy==aot::arm_ir_policy::invariant_read_flag_ir || (ir_policy==aot::arm_ir_policy::inline_call_ir || (ir_policy==aot::arm_ir_policy::invariant_write_ir || ir_policy==aot::arm_ir_policy::conditional_value_ir))) || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || (ir_policy==aot::arm_ir_policy::invariant_write_ir || ir_policy==aot::arm_ir_policy::conditional_value_ir) || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts) && ((!invariant_write_remap && invariant_remap) || (region_spans && !region_block_spans)) && n==0 && !translated.proved_reads) {
+            const auto checked_policy = ir_policy == aot::arm_ir_policy::long_segments_ir
+                ? aot::arm_ir_policy::conditional_value_ir : ir_policy;
+            if(ir_long && n==0 && translated.ir_max_segment_length != (ir_policy==aot::arm_ir_policy::long_segments_ir?128u:32u)) {
+                std::cerr<<"Long fault fixture did not select expected segment cap: policy="<<int(ir_policy)<<" max="<<translated.ir_max_segment_length<<" segments="<<translated.ir_segments<<" selected="<<translated.ir_segment_instructions<<"\n";return 4;
+            }
+            if((checked_policy==aot::arm_ir_policy::invariant_writes || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir) || checked_policy==aot::arm_ir_policy::write_budget_chunks || checked_policy==aot::arm_ir_policy::deferred_chunk_counts) && invariant_write_remap && n==0 && translated.proved_writes!=3) {std::cerr<<"Write remap proof was not selected\n";return 4;}
+            if((checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir) && invariant_write_remap && n==0 && translated.ir_proved_writes!=3) {std::cerr<<"IR write remap proof was not used\n";return 4;}
+            if(((checked_policy==aot::arm_ir_policy::invariant_read_ir || checked_policy==aot::arm_ir_policy::invariant_read_flag_ir || (checked_policy==aot::arm_ir_policy::inline_call_ir || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir))) || checked_policy==aot::arm_ir_policy::invariant_reads || checked_policy==aot::arm_ir_policy::invariant_writes || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir) || checked_policy==aot::arm_ir_policy::budget_chunks || checked_policy==aot::arm_ir_policy::write_budget_chunks || checked_policy==aot::arm_ir_policy::deferred_chunk_counts) && ((!invariant_write_remap && invariant_remap) || (region_spans && !region_block_spans)) && n==0 && !translated.proved_reads) {
                 std::cerr << "Invariant read fault fixture did not select entry proof\n"; return 4;
             }
-            if((ir_policy==aot::arm_ir_policy::invariant_read_ir || ir_policy==aot::arm_ir_policy::invariant_read_flag_ir || (ir_policy==aot::arm_ir_policy::inline_call_ir || (ir_policy==aot::arm_ir_policy::invariant_write_ir || ir_policy==aot::arm_ir_policy::conditional_value_ir))) && invariant_remap && !invariant_write_remap && n==0 && !translated.ir_proved_reads) {std::cerr<<"IR read remap proof was not used\n";return 4;}
-            if(!ir_disabled && !ir_flags && !ir_calls && ir_segments && n==0 && !translated.ir_segments) {
+            if((checked_policy==aot::arm_ir_policy::invariant_read_ir || checked_policy==aot::arm_ir_policy::invariant_read_flag_ir || (checked_policy==aot::arm_ir_policy::inline_call_ir || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir))) && invariant_remap && !invariant_write_remap && n==0 && !translated.ir_proved_reads) {std::cerr<<"IR read remap proof was not used\n";return 4;}
+            if(!ir_disabled && !ir_long && !ir_flags && !ir_calls && ir_segments && n==0 && !translated.ir_segments) {
                 std::cerr << "Integer-segment fault fixture did not select the IR\n"; return 4;
             }
-            if(!ir_disabled && !ir_flags && !ir_calls && (ir_memory || ir_memory_chain) && n==0 && !translated.ir_memory_guards) {
+            // The four-load chain uses entry proofs in invariant-aware policies.
+            // Require all four actual IR proof consumers rather than accepting no coverage.
+            if(!ir_disabled && !ir_flags && !ir_calls && (ir_memory || ir_memory_chain) && n==0
+                && !translated.ir_memory_guards && !(ir_memory_chain && translated.ir_proved_reads==4)) {
                 std::cerr << "Dynamic memory fixture did not select IR guard exits\n"; return 4;
             }
             if(!ir_disabled && ir_wide && n==0 && !translated.ir_wide_products) {
                 std::cerr << "Wide memory fixture did not select IR products\n"; return 4;
             }
-            if(!ir_disabled && ir_policy!=aot::arm_ir_policy::inline_segments && ir_short && n==0 && !translated.ir_outlined_segments) {
+            if(!ir_disabled && checked_policy!=aot::arm_ir_policy::inline_segments && ir_short && n==0 && !translated.ir_outlined_segments) {
                 std::cerr << "Short-budget fault fixture did not select private IR fallback\n"; return 4;
             }
-            if(ir_recipes && ir_policy==aot::arm_ir_policy::outlined_recipes && n==0
+            if(ir_recipes && checked_policy==aot::arm_ir_policy::outlined_recipes && n==0
                 && translated.ir_cold_values<=translated.ir_cold_halves) {
                 std::cerr<<"General exit recipes were not selected\n";return 4;
             }
-            if((ir_policy==aot::arm_ir_policy::disabled && (translated.ir_segments || translated.func.outlined_callee))
-                || (ir_policy==aot::arm_ir_policy::inline_segments && translated.ir_outlined_segments)) {
+            if((checked_policy==aot::arm_ir_policy::disabled && (translated.ir_segments || translated.func.outlined_callee))
+                || (checked_policy==aot::arm_ir_policy::inline_segments && translated.ir_outlined_segments)) {
                 std::cerr<<"IR mode selection was ignored\n";return 4;
             }
-            if(ir_flags && (ir_policy==aot::arm_ir_policy::invariant_read_flag_ir || ir_policy==aot::arm_ir_policy::inline_call_ir || (ir_policy==aot::arm_ir_policy::invariant_write_ir || ir_policy==aot::arm_ir_policy::conditional_value_ir)) && n==0
+            if(ir_flags && (checked_policy==aot::arm_ir_policy::invariant_read_flag_ir || checked_policy==aot::arm_ir_policy::inline_call_ir || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir)) && n==0
                 && (translated.ir_flag_instructions!=4 || !translated.ir_memory_guards)) {
                 std::cerr<<"Flag IR fault snapshot was not selected\n";return 4;
             }
-            if(ir_conditions && ir_policy==aot::arm_ir_policy::conditional_value_ir && n==0
+            if(ir_conditions && checked_policy==aot::arm_ir_policy::conditional_value_ir && n==0
                 && (translated.ir_conditional_instructions!=2 || !translated.ir_memory_guards)) {
                 std::cerr<<"Conditional fault snapshot was not selected\n";return 4;
             }
-            if(ir_calls && (ir_policy==aot::arm_ir_policy::inline_call_ir || (ir_policy==aot::arm_ir_policy::invariant_write_ir || ir_policy==aot::arm_ir_policy::conditional_value_ir)) && n==0
+            if(ir_calls && (checked_policy==aot::arm_ir_policy::inline_call_ir || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir)) && n==0
                 && (translated.ir_inline_transfers!=2 || !translated.ir_memory_guards)) {
                 std::cerr<<"Inline-call fault snapshot was not selected\n";return 4;
             }
@@ -275,7 +302,7 @@ int main(int argc, char **argv){
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
         if(deferred && compiled<(ir_calls?execution_count:instruction_count))++deferred_cases;
-        if(!interpreter && (invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
+        if(!interpreter && (ir_long ? (compiled<111 || compiled>135) : invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Unexpected generated instruction count at case "<<cases<<'\n';return 2;
         }
 #endif

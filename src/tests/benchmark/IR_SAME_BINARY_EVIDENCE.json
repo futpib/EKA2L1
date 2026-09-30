@@ -1553,5 +1553,10 @@
     "ir-modes-0-fault-checks.log": "b9bf676f814bf7ef7b988e585eb19791b210294a2368cd1cf9d15d6d65dce481",
     "ir-modes-1-fault-checks.log": "b9bf676f814bf7ef7b988e585eb19791b210294a2368cd1cf9d15d6d65dce481",
     "ir-modes-2-fault-checks.log": "b9bf676f814bf7ef7b988e585eb19791b210294a2368cd1cf9d15d6d65dce481"
+  },
+  "fault_policy_correction": {
+    "report": "FAULT_POLICY_AUDIT_RESULTS.md",
+    "scope": "Standalone host-env-selected WASM fault probes exercised configured policy -1; per-policy attribution withdrawn. Browser and direct-policy compiler observations are separate.",
+    "current_source_revalidation": "IR_LONG_SEGMENTS_EVIDENCE.json"
   }
 }
