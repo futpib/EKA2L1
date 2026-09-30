@@ -1,7 +1,7 @@
 # Invariant write proofs inside mixed IR
 
 Policy 12 extends the preceding call/flag-aware IR with the original emitter's
-entry-proved write spans. It remains opt-in; gameplay timing is pending.
+entry-proved write spans. It remains opt-in; gameplay The completed serial batch does not support replacing the served archive.
 The current LAN executable is unchanged. See IR_WRITES_DESIGN.md for contracts.
 
 ## Correctness
@@ -50,3 +50,24 @@ serial_variants.py and the exact served archive as a further control, with no
 owned heavy job overlapping warmup or measurement. Retain every sample.
 
 Raw hashes, coverage metadata and comparison outputs: IR_WRITES_EVIDENCE.json.
+
+## Completed serial batch
+
+| Run | Seconds |
+| --- | ---: |
+| writes-1 | 13.4689 |
+| calls-1 | 13.6757 |
+| combined-1 | 12.6106 |
+| served-1 | 12.8204 |
+| served-2 | 12.9544 |
+| combined-2 | 12.6820 |
+| calls-2 | 13.6441 |
+| writes-2 | 13.7310 |
+
+Mean elapsed seconds: writes 13.5999, calls 13.6599, combined 12.6463, served 12.8874.
+Candidate throughput relative to controls: calls +0.44%, combined -7.01%, served -5.24%.
+
+All eight samples are retained. This single batch does not establish a
+repeatable marginal write-proof IR benefit or support replacing the exact served
+archive. The selected policy 7 archive remains live. No owned heavy job
+overlapped warmup or measurement. The IR policies stay opt-in.
