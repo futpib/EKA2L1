@@ -67,10 +67,10 @@ int main(int argc, char **argv){
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         const std::string value(mode);
-        if(value!="0" && value!="1" && value!="2" && value!="3" && value!="4" && value!="5") {std::cerr<<"Invalid IR mode\n";return 1;}
+        if(value!="0" && value!="1" && value!="2" && value!="3" && value!="4" && value!="5" && value!="6") {std::cerr<<"Invalid IR mode\n";return 1;}
         ir_policy=static_cast<aot::arm_ir_policy>(value[0]-'0');
     }
-    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes;
+    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks;
     const bool interpreter=argc==2 && (std::string(argv[1])=="--interpreter" || std::string(argv[1])=="--region-spans-interpreter" || std::string(argv[1])=="--entry-budget-interpreter");
     eka2l1::common::performance::enabled=true;
     eka2l1::common::performance::phase=2;

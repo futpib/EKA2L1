@@ -896,7 +896,7 @@ namespace eka2l1::arm::aot {
         std::vector<proof_group> proof_groups;
         std::vector<proof_access> proof_accesses;
         bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && w.region && w.defer_memory && cache_registers && !instructions.empty();
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
         // The guarded IR is an opt-in research path. Version tracking also
         // keeps its existing compiler until separately validated.
@@ -978,7 +978,7 @@ namespace eka2l1::arm::aot {
         // Write proofs also exclude physical code aliases. All helper paths end
         // this region before a later instruction can use a pointer invalidated by a callback.
         const bool include_writes = ir_policy == arm_ir_policy::invariant_writes;
-        bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || include_writes)
+        bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || include_writes || ir_policy == arm_ir_policy::budget_chunks)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #ifdef EKA2L1_WASM_CODE_VERSIONS
         invariant_reads = false;
@@ -1176,6 +1176,43 @@ namespace eka2l1::arm::aot {
             fwd_idx[fwd_sorted[k]] = k;
         }
 
+        // Budget chunks keep the existing opcode lowering. Each chunk has one
+        // entry and no control transfer. A short budget enters a private precise
+        // compiler before effects; the hot path keeps every count/exit check.
+        std::map<std::size_t, unsigned> budget_chunks;
+        if (allow_memory_proof && ir_policy == arm_ir_policy::budget_chunks
+            && w.region && cache_registers) {
+            auto straight = [](std::uint32_t op) {
+                if ((op >> 28) == 15) return false;
+                const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
+                if (((op >> 26) & 3) == 1)
+                    return rd != 15 && rn != 15
+                        && !(!(op & (1u << 24)) && (op & (1u << 21)))
+                        && !((op & (1u << 25)) && (op & 16));
+                if (((op >> 25) & 7) == 4)
+                    return rn != 15 && (op & 65535) && !(op & ((1u << 22) | 32768));
+                if ((op & 0x0f8000f0u) == 0x00800090u)
+                    return rn != 15 && rd != 15 && rn != rd;
+                if ((op & 0x0fc000f0u) == 0x00000090u) return rn != 15;
+                if ((op & 0x0e000090u) == 0x00000090u && (op & 0x60))
+                    return rn != 15 && rd != 15 && ((op & (1u << 20)) || (op & 0x60) == 0x20);
+                if (((op >> 26) & 3) != 0 || (!(op & (1u << 25)) && (op & 0x90) == 0x90)) return false;
+                const unsigned alu = (op >> 21) & 15;
+                return alu >= 8 && alu <= 11 ? bool(op & (1u << 20)) : rd != 15;
+            };
+            for (std::size_t first = 0; first < instructions.size();) {
+                std::size_t end = first;
+                for (; end < instructions.size() && end - first < 32; ++end) {
+                    const auto &ins = instructions[end];
+                    if (ins.leaf || !straight(ins.opcode)
+                        || (end != first && (ins.address != instructions[end - 1].address + 4
+                            || forward_targets_set.count(ins.address)))) break;
+                }
+                if (end - first < 4) { ++first; continue; }
+                budget_chunks.emplace(first, static_cast<unsigned>(end - first)); first = end;
+            }
+        }
+
         struct integer_segment {
             region_ir graph;
             std::vector<bool> live, cold;
@@ -1187,7 +1224,7 @@ namespace eka2l1::arm::aot {
         std::vector<std::pair<std::size_t, unsigned>> wide_fixups;
 #ifdef EKA2L1_WASM_IR_SEGMENTS
         if (allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && w.region && cache_registers && !ir) {
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && w.region && cache_registers && !ir) {
             unsigned max_locals = 0, max_wide_locals = 0;
 #if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
             const bool dynamic_memory = w.defer_memory;
@@ -1333,7 +1370,7 @@ namespace eka2l1::arm::aot {
 
         std::uint32_t insn_idx = 0;
         std::uint32_t decoded_end_offset = 0;
-        std::size_t segment_end = 0, skip_segment_until = 0;
+        std::size_t segment_end = 0, skip_segment_until = 0, budget_chunk_end = 0;
 
         for (const auto &instruction : instructions) {
             const auto instruction_index = static_cast<std::size_t>(&instruction - instructions.data());
@@ -1379,7 +1416,8 @@ namespace eka2l1::arm::aot {
             // already published before their branch. No entry bypasses a value.
             if (!preserve_wide || (!instruction.leaf && forward_targets_set.count(insn_addr)))
                 w.end_wide();
-            if (segment != segments.end()) w.end_wide();
+            const auto budget_chunk = budget_chunks.find(instruction_index);
+            if (segment != segments.end() || budget_chunk != budget_chunks.end()) w.end_wide();
 
             // Only memory/helper paths can raise AOT_EXIT. Straight-line ALU
             // successors need just their budget guard; join/loop entries retain
@@ -1408,13 +1446,20 @@ namespace eka2l1::arm::aot {
 
             if (bounded) {
                 if (!region) w.store_i32_const(S::PC, insn_addr);
-                w.load_i32(S::AOT_BUDGET);
-                if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
-                w.op(op_i32_le_u);
-                if (region && check_exit) { w.load_i32(S::AOT_EXIT); w.op(op_i32_or); }
-                w.op(op_if); w.op(type_void);
-                w.bail(insn_addr, insn_idx);
-                w.op(op_end);
+                const bool check_budget = instruction_index >= budget_chunk_end;
+                if (check_budget) {
+                    w.load_i32(S::AOT_BUDGET);
+                    if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
+                    w.op(op_i32_le_u);
+                }
+                if (region && check_exit) {
+                    w.load_i32(S::AOT_EXIT); if (check_budget) w.op(op_i32_or);
+                }
+                if (check_budget || (region && check_exit)) {
+                    w.op(op_if); w.op(type_void);
+                    w.bail(insn_addr, insn_idx);
+                    w.op(op_end);
+                }
                 if (region) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(arm_emit::COUNT); }
                 // Match DynCom's PLD decode: an optional prefetch hint has no
                 // architectural effect, but still consumes one guest instruction.
@@ -1430,6 +1475,37 @@ namespace eka2l1::arm::aot {
                     decoded_end_offset = static_cast<std::uint32_t>(i);
                     break;
                 }
+            }
+
+            if (budget_chunk != budget_chunks.end()) {
+                const auto length = budget_chunk->second;
+                // The normal entry check charged the first instruction and
+                // established a non-wrapping remaining-budget subtraction.
+                w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
+                w.i32_const(length - 1); w.op(op_i32_lt_u);
+                w.op(op_if); w.op(type_void);
+                w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT);
+                w.store_i32_const(S::PC, insn_addr);
+                w.cache.barrier_at(w.b.size());
+                w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
+                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
+                w.state_ptr(); w.op(op_call);
+                const auto call_offset = static_cast<std::uint32_t>(w.b.size());
+                w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});
+                w.get_local(arm_emit::COUNT); w.op(op_i32_add);
+                w.state_ptr(); w.load_i32(S::AOT_BUDGET);
+                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
+                w.op(op_return); w.op(op_end);
+                std::vector<std::uint32_t> words;
+                for (unsigned n = 0; n < length; ++n)
+                    words.push_back(instructions[instruction_index + n].opcode);
+                auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),
+                    words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,
+                    true, true, nullptr, defer_memory, false);
+                precise.func.export_name += "_budget_short";
+                result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});
+                budget_chunk_end = instruction_index + length;
+                ++tr.budget_chunks;
             }
 
             if (segment != segments.end()) {
