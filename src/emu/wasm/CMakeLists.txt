@@ -1,5 +1,14 @@
 add_executable(eka2l1_wasm main.cpp)
 
+# Package the patches staged by this build, including newly added upstream
+# patches. Depending on a separate native build can silently embed stale DLLs.
+get_property(EKA2L1_WASM_PATCH_TARGET GLOBAL PROPERTY LAST_SYMBIAN_PROJECT_TARGET)
+add_dependencies(eka2l1_wasm ${EKA2L1_WASM_PATCH_TARGET})
+file(GLOB_RECURSE EKA2L1_WASM_PATCH_FILES CONFIGURE_DEPENDS
+    "${PROJECT_SOURCE_DIR}/src/patch/*/group/*.dll"
+    "${PROJECT_SOURCE_DIR}/src/patch/*/group/*.map")
+set_property(TARGET eka2l1_wasm APPEND PROPERTY LINK_DEPENDS ${EKA2L1_WASM_PATCH_FILES})
+
 set(EKA2L1_WASM_WORKER_POOL_SIZE 32 CACHE STRING "Number of prestarted browser workers")
 if(NOT EKA2L1_WASM_WORKER_POOL_SIZE MATCHES "^[1-9][0-9]*$")
     message(FATAL_ERROR "EKA2L1_WASM_WORKER_POOL_SIZE must be a positive integer")
@@ -61,7 +70,7 @@ target_link_options(eka2l1_wasm PRIVATE
     "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/shell.html"
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/gles/@resources/"
     "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/src/emu/drivers/resources/upscale/@resources/upscale/"
-    "SHELL:--preload-file ${PROJECT_SOURCE_DIR}/build/bin/patch/@patch/")
+    "SHELL:--preload-file ${CMAKE_BINARY_DIR}/bin/patch/@patch/")
 
 set_target_properties(eka2l1_wasm PROPERTIES
     OUTPUT_NAME "eka2l1"

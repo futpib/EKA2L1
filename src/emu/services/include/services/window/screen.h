@@ -20,6 +20,7 @@
 #pragma once
 
 #include <common/container.h>
+#include <common/region.h>
 #include <common/vecx.h>
 
 #include <drivers/graphics/common.h>
@@ -144,6 +145,10 @@ namespace eka2l1::epoc {
             FLAG_IS_SCREENPLAY = 1 << 6
         };
 
+        // Screen area to repaint without clearing it first, the way an NGA EndRedraw schedules one.
+        common::region server_redraw_region_;
+        bool region_redraw_active_ = false;
+
         using focus_change_callback = std::pair<void *, focus_change_callback_handler>;
         using screen_redraw_callback = std::pair<void *, screen_redraw_callback_handler>;
         using screen_mode_change_callback = std::pair<void *, screen_mode_change_callback_handler>;
@@ -241,8 +246,10 @@ namespace eka2l1::epoc {
          */
         void mark_direct_framebuffer_mapped();
 
-        // Caller holds the kernel lock.
-        void present_framebuffer(drivers::graphics_driver *driver, kernel_system *kern);
+        // Caller holds the kernel lock. Rects are Symbian TRects in screen coordinates; with none
+        // the whole buffer is presented.
+        void present_framebuffer(drivers::graphics_driver *driver, kernel_system *kern,
+            const eka2l1::rect *symbian_rects = nullptr, const std::uint32_t rect_count = 0);
 
         /**
          * @brief Snapshot the directly mapped framebuffer. True if the guest wrote to it
@@ -319,6 +326,18 @@ namespace eka2l1::epoc {
 
         void set_server_redraw_pending() {
             flags_ |= FLAG_SERVER_REDRAW_PENDING;
+        }
+
+        bool region_redraw_supported() const {
+            return is_screenplay_architecture() && !auto_clear_enabled();
+        }
+
+        void add_server_redraw_region(const eka2l1::rect &area) {
+            server_redraw_region_.add_rect(area);
+        }
+
+        common::region server_redraw_clip(const common::region &visible) const {
+            return region_redraw_active_ ? visible.intersect(server_redraw_region_) : visible;
         }
         
         void set_is_screenplay_architecture(bool is_screenplay) {

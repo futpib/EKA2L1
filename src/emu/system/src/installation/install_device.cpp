@@ -12,8 +12,6 @@ namespace eka2l1 {
         device_firmware_choose_variant_callback variant_cb, progress_changed_callback progress_cb,
         cancel_requested_callback cancel_cb) {
 
-        const std::string root_c_path = add_path(params.storage, "drives/c/");
-        const std::string root_e_path = add_path(params.storage, "drives/e/");
         const std::string root_z_path = add_path(params.storage, "drives/z/");
         const std::string rom_resident_path = add_path(params.storage, "roms/");
 
@@ -25,7 +23,7 @@ namespace eka2l1 {
         case device_install_method_dump_rpkg: {
             LOG_INFO(eka2l1::SYSTEM, "Installing device from ROM dump: rom={}, rpkg={}, storage={}", params.rom_path, params.rpkg_path, params.storage);
             std::string firmware_code;
-            error = loader::install_rpkg(dvcmngr, params.rpkg_path, root_z_path, firmware_code, progress_cb, cancel_cb);
+            error = loader::install_rpkg(dvcmngr, params.rpkg_path, root_z_path, firmware_code, params.isolate_drives, progress_cb, cancel_cb);
 
             if (error != device_installation_none) {
                 return error;
@@ -39,12 +37,12 @@ namespace eka2l1 {
 
         case device_install_method_dump_rom_only:
             LOG_INFO(eka2l1::SYSTEM, "Installing device from ROM only: rom={}, storage={}", params.rom_path, params.storage);
-            error = loader::install_rom(dvcmngr, params.rom_path, rom_resident_path, root_z_path, progress_cb, cancel_cb);
+            error = loader::install_rom(dvcmngr, params.rom_path, rom_resident_path, root_z_path, params.isolate_drives, progress_cb, cancel_cb);
             break;
 
         case device_install_method_firmware:
             LOG_INFO(eka2l1::SYSTEM, "Installing device from firmware: vpl={}, storage={}", params.vpl_path, params.storage);
-            error = install_firmware(dvcmngr, params.vpl_path, root_c_path, root_e_path, root_z_path, rom_resident_path, variant_cb, progress_cb, cancel_cb);
+            error = install_firmware(dvcmngr, params.vpl_path, params.storage, rom_resident_path, params.isolate_drives, variant_cb, progress_cb, cancel_cb);
             break;
         }
 

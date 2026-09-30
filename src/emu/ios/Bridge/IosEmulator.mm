@@ -29,6 +29,7 @@
 
 #include <common/algorithm.h>
 #include <common/buffer.h>
+#include <common/crypt.h>
 #include <common/cvt.h>
 #include <common/fileutils.h>
 #include <common/language.h>
@@ -63,6 +64,7 @@
 #include <package/manager.h>
 #include <services/applist/applist.h>
 #include <services/bluetooth/btman.h>
+#include <services/etel/etel.h>
 #include <services/fbs/bitmap.h>
 #include <services/fbs/fbs.h>
 #include <services/window/window.h>
@@ -945,7 +947,7 @@ namespace eka2l1::ios {
         }
 
         auto *io = state->symsys->get_io_system();
-        drivers::ui::set_automatic_input_view(state->symsys->get_symbian_version_use() >= epocver::epoc94);
+        drivers::ui::set_automatic_input_view(false);
         // Same folder lib_manager::load_patch_libraries scans, which the
         // frontend redirects into the read-only app bundle at startup.
         const std::string patch_dir = eka2l1::runtime_resource_path("patch");
@@ -1388,6 +1390,22 @@ namespace eka2l1::ios {
     return static_cast<NSInteger>(dvc->get_current_index());
 }
 
+- (NSString *)currentDeviceDriveEPath {
+    if (!_state || !_state->mounted || !_state->symsys) {
+        return nil;
+    }
+    auto *dvc = _state->symsys->get_device_manager();
+    if (!dvc) {
+        return nil;
+    }
+    std::lock_guard<std::mutex> dvc_lock(dvc->lock);
+    const std::string path = _state->symsys->get_device_drive_path(drive_e);
+    if (path.empty()) {
+        return nil;
+    }
+    return [NSString stringWithUTF8String:path.c_str()];
+}
+
 // Shared body of the two install entry points below. `installer` is handed the
 // device manager plus the two storage folders every installer writes into, and
 // does the format-specific work; everything around it (freezing the emulator,
@@ -1473,6 +1491,7 @@ namespace eka2l1::ios {
 
 - (EKA2L1InstallResult)installDeviceWithRomPath:(NSString *)romPath
                                        rpkgPath:(NSString *)rpkgPath
+                                  isolateDrives:(BOOL)isolateDrives
                                        progress:(void (^)(double))progress
                                     cancelCheck:(BOOL (^)(void))cancelCheck {
     if (![NSFileManager.defaultManager fileExistsAtPath:romPath]) {
@@ -1486,11 +1505,12 @@ namespace eka2l1::ios {
                                      const std::string &root_z_path, progress_changed_callback progress_cb,
                                      cancel_requested_callback cancel_cb) {
         return eka2l1::loader::install_rom_with_optional_rpkg(dvc, rom_std, rpkg_std, rom_resident_path,
-            root_z_path, progress_cb, cancel_cb);
+            root_z_path, isolateDrives == YES, progress_cb, cancel_cb);
     } progress:progress cancelCheck:cancelCheck];
 }
 
 - (EKA2L1InstallResult)installDeviceWithArchivePath:(NSString *)archivePath
+                                      isolateDrives:(BOOL)isolateDrives
                                            progress:(void (^)(double))progress
                                         cancelCheck:(BOOL (^)(void))cancelCheck {
     if (![NSFileManager.defaultManager fileExistsAtPath:archivePath]) {
@@ -1502,8 +1522,8 @@ namespace eka2l1::ios {
     return [self runDeviceInstall:^(eka2l1::device_manager *dvc, const std::string &rom_resident_path,
                                      const std::string &root_z_path, progress_changed_callback progress_cb,
                                      cancel_requested_callback cancel_cb) {
-        return eka2l1::loader::install_archive(dvc, archive_std, rom_resident_path, root_z_path, progress_cb,
-            cancel_cb);
+        return eka2l1::loader::install_archive(dvc, archive_std, rom_resident_path, root_z_path,
+            isolateDrives == YES, progress_cb, cancel_cb);
     } progress:progress cancelCheck:cancelCheck];
 }
 
@@ -1606,8 +1626,8 @@ namespace eka2l1::ios {
         eka2l1::ios::mark_boot_attempt(_state.get(), firmware_code);
     }
 
-    sys->mount(drive_c, drive_media::physical, eka2l1::add_path(storage, "/drives/c/"), io_attrib_internal);
-    sys->mount(drive_d, drive_media::physical, eka2l1::add_path(storage, "/drives/d/"), io_attrib_internal);
+    sys->mount_device_drive(drive_c);
+    sys->mount_device_drive(drive_d);
     // Guest relaunches reboot the same device; retain its card, attributes and CID.
     if (!card_path.empty() && card_firmware == firmware_code
         && eka2l1::common::is_dir(card_path)
@@ -1616,7 +1636,7 @@ namespace eka2l1::ios {
         eka2l1::ios::set_mounted_card(_state.get(), card_path, card_attrib);
         _state->conf.current_mmc_id = card_mmc_id;
     } else {
-        sys->mount(drive_e, drive_media::physical, eka2l1::add_path(storage, "/drives/e/"), io_attrib_removeable);
+        sys->mount_device_drive(drive_e);
     }
     sys->mount(drive_z, drive_media::rom, eka2l1::add_path(storage, "/drives/z/"),
         io_attrib_internal | io_attrib_write_protected);
@@ -1705,22 +1725,13 @@ namespace eka2l1::ios {
     // scoped lock above held.
     const bool removed = dvc->delete_device(firmcode);
 
-    // Drop everything on disk that belongs to this device alone: its ROM filesystem
-    // and image, plus the folders the central repository and the message store keep
-    // per device on the shared C, D and E drives. Leaving the latter behind is what
-    // makes "delete the device and install it again" fail to repair anything.
-    const std::string firmcode_low = eka2l1::common::lowercase_string(firmcode);
-    const std::string storage = _state->conf.storage;
-
-    for (const std::string &per_device : eka2l1::per_device_storage_paths(firmcode)) {
-        eka2l1::common::delete_folder(eka2l1::add_path(storage, per_device));
-    }
+    eka2l1::delete_device_storage(_state->conf.storage, firmcode);
 
     // The debinarized-SVG icon cache is keyed by firmware code as well (the same app
     // UID ships different art per device), so it would otherwise feed stale icons to
     // a reinstalled device.
     if (!_state->caches_root.empty()) {
-        eka2l1::common::delete_folder(eka2l1::add_path(_state->caches_root, "icons/" + firmcode_low + "/"));
+        eka2l1::common::delete_folder(eka2l1::add_path(_state->caches_root, "icons/" + eka2l1::common::lowercase_string(firmcode) + "/"));
     }
 
     // Keep conf.device in step with device_manager's adjusted current index so
@@ -2171,8 +2182,7 @@ namespace eka2l1::ios {
     if (report.result != EKA2L1MountResultSuccess) {
         // A failed replacement restores the emulator's own E storage.
         eka2l1::ios::set_mounted_card(_state.get(), {}, 0);
-        io->mount_physical_path(drive_e, drive_media::physical, io_attrib_removeable,
-            eka2l1::common::utf8_to_ucs2(eka2l1::add_path(_state->conf.storage, "/drives/e/")));
+        _state->symsys->mount_device_drive(drive_e);
     }
 
     // Cards without a CID and failed replacements use the configured default.
@@ -2201,10 +2211,7 @@ namespace eka2l1::ios {
     const bool was_mounted = _state->mounted;
     auto loop_lock = eka2l1::ios::pause_loop_and_lock(_state.get());
 
-    eka2l1::io_system *io = _state->symsys->get_io_system();
-    io->unmount(drive_e);
-    io->mount_physical_path(drive_e, drive_media::physical, io_attrib_removeable,
-        eka2l1::common::utf8_to_ucs2(eka2l1::add_path(_state->conf.storage, "/drives/e/")));
+    _state->symsys->mount_device_drive(drive_e);
 
     eka2l1::ios::set_mounted_card(_state.get(), {}, 0);
     _state->conf.current_mmc_id = _state->conf.mmc_id;
@@ -2818,6 +2825,7 @@ static constexpr std::uint8_t k_unlimited_refresh_rate = 240;
         @"jitEnabled": @(_state->conf.ios_use_jit),
         @"performanceMode": [NSString stringWithUTF8String:_state->conf.ios_performance_mode.c_str()],
         @"deviceDisplayName": [NSString stringWithUTF8String:_state->conf.device_display_name.c_str()],
+        @"imei": [NSString stringWithUTF8String:_state->conf.imei.c_str()],
         @"logFilter": [NSString stringWithUTF8String:_state->conf.log_filter.c_str()],
         @"btnetDiscoveryMode": @(_state->conf.btnet_discovery_mode),
         @"btnetListenPort": @(_state->conf.internet_bluetooth_port),
@@ -2906,6 +2914,18 @@ static constexpr std::uint8_t k_unlimited_refresh_rate = 240;
             }
         }
     }
+    NSString *imei = snapshot[@"imei"];
+    if ([imei isKindOfClass:NSString.class] && (imei.length > 0)) {
+        std::lock_guard<std::recursive_mutex> session_lock(_state->session_mutex);
+        std::optional<eka2l1::kernel_lock> kernel_lock;
+        if (_state->symsys && _state->symsys->get_kernel_system()) {
+            kernel_lock.emplace(_state->symsys->get_kernel_system());
+        }
+        _state->conf.imei = imei.UTF8String;
+        if (_state->symsys && _state->mounted) {
+            eka2l1::supply_plpvariant_machine_id(_state->symsys.get());
+        }
+    }
     NSString *logFilter = snapshot[@"logFilter"];
     if ([logFilter isKindOfClass:NSString.class]) {
         _state->conf.log_filter = logFilter.UTF8String;
@@ -2972,6 +2992,10 @@ static constexpr std::uint8_t k_unlimited_refresh_rate = 240;
     }
     _state->conf.serialize();
     return YES;
+}
+
+- (NSInteger)validateIMEI:(NSString *)imei {
+    return eka2l1::crypt::is_imei_valid(imei.UTF8String ? imei.UTF8String : "");
 }
 
 - (NSArray<EKA2L1LanguageEntry *> *)availableLanguages {
