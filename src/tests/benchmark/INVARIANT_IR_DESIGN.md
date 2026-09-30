@@ -34,5 +34,6 @@ policy-4 progress comparisons remain unchanged.
 Full compiler/native/frontend tests, both rebuilt fault matrices, exact native
 image/audio replays and serial same-binary controls are required. Neither size
 nor reduced guard counts establish a speedup. The candidate passes the recorded
-correctness gates; gameplay timing is pending. It remains opt-in and unserved.
+correctness gates, but the completed gameplay batch did not establish a gain.
+It remains opt-in and unserved.
 See INVARIANT_IR_RESULTS.md and INVARIANT_IR_EVIDENCE.json.

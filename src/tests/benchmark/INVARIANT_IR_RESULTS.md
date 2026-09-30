@@ -1,5 +1,9 @@
 # Mixed IR consuming invariant read proofs
 
+Policy 9 is not promoted: its completed serial batch averages 13.5747 seconds,
+versus 13.4210 for read-only emission, 13.4352 for combined proofs in the same
+binary, and 12.6498 for the exact served archive.
+
 Policy 9 combines invariant read proofs with the outlined mixed IR and cold
 exit recipes. Proved scalar loads consume the entry host span directly; loads
 remain ordered effects, and other accesses retain their precise guards. This
@@ -47,13 +51,35 @@ performance evidence.
 
 ## Performance status and reproduction
 
-No gameplay speedup is established yet. Serial timing will compare policies
-9, 4 and 7 within this identical application binary, plus the exact served
+No gameplay speedup is established. Serial timing compared policies
+9, 4 and 7 within the identical application binary, plus the exact served
 policy-7 archive, with shared audio and hardware GPU. Every run includes the
 same warmup and 18-guest-second measurement window; no owned heavy job overlaps
-either. Keep all samples and rotate order before any promotion.
+either. All samples are retained. Both adjacent IR/read-only pairs favor the
+read-only control; no promotion confirmation is warranted for this candidate.
 
 Use the existing compiler/fault/replay tools with EKA2L1_AOT_IR_MODE=9 or 4 and
 EKA2L1_AOT_EAGER_REGIONS=0. `serial_variants.py` accepts `--ir-mode NAME=9`.
 Raw results, fixture metadata, source attribution and hashes are recorded in
 INVARIANT_IR_EVIDENCE.json. This experiment is opt-in; nothing is deployed.
+
+## Completed serial batch
+
+| Run | Seconds |
+| --- | ---: |
+| ir-1 | 13.3751 |
+| reads-1 | 13.2981 |
+| combined-1 | 12.5222 |
+| served-1 | 12.6038 |
+| served-2 | 12.6957 |
+| combined-2 | 14.3481 |
+| reads-2 | 13.5438 |
+| ir-2 | 13.7742 |
+
+Mean elapsed seconds: ir 13.5747, reads 13.4209, combined 13.4352, served 12.6498.
+Candidate throughput relative to controls: reads -1.13%, combined -1.03%, served -6.81%.
+
+All eight samples are retained, including the 14.3481-second combined control.
+This batch does not support delivering policy 9. No claim is made that the
+negative result estimates a precise causal regression. The selected policy 7
+archive remains served. No owned heavy work overlapped warmup or measurement.
