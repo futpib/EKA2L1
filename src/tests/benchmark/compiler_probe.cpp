@@ -89,7 +89,7 @@ int main(int argc,char**argv) {
    return std::vector<std::uint8_t>(begin,begin+64);
   };
   auto t=translate_arm_block(src.bytes.data()+pc-0x70000000,size,pc,nullptr,nullptr,true,true,true,true,inline_leaves?&resolve:nullptr,defer_memory);
-  std::cout<<pc<<" region_end "<<t.end_address<<" body_bytes "<<t.func.body.size()<<" dependencies "<<t.dependencies.size()<<" guarded_ir "<<bool(t.func.outlined_callee)<<"\n";
+  std::cout<<pc<<" region_end "<<t.end_address<<" body_bytes "<<t.func.body.size()<<" dependencies "<<t.dependencies.size()<<" guarded_ir "<<bool(t.func.outlined_callee)<<" ir_segments "<<t.ir_segments<<"\n";
   for(const auto &dependency:t.dependencies) {
    const auto name=prefix+"-leaf-"+std::to_string(dependency.address);
    std::ofstream(name+".arm",std::ios::binary).write((const char*)dependency.bytes.data(),dependency.bytes.size());

@@ -2773,6 +2773,84 @@ static bool test_region_ir() {
     return true;
 }
 
+static bool test_ir_segments() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_SEGMENTS)
+    struct program { std::vector<std::uint32_t> body; unsigned extra = 0; };
+    const std::vector<program> programs = {
+        {{0xe1a08004u,0xe1a04005u,0xe1a05008u}}, // parallel copy cycle
+        {{0xe0802001u,0xe0803001u,0xe3a02001u}}, // CSE and overwritten value
+        {{0xe3a02001u,0xe2823002u,0xe2834003u,0xe0244004u}},
+        {{0xe0000190u,0xe0223190u,0xe0822003u}}, // MUL/MLA
+        {{0xe0e32190u,0xe1a04622u,0xe1844a03u,0xe0244001u}}, // wide entry value
+        {{0xe0822001u,0xe0823001u,0xe0233002u,0xe0e32190u}}, // wide successor
+        {{0xe1a0400fu,0xe0844000u,0xe0244001u}}, // PC pipeline input
+        {{0xe3a04004u,0xe0800001u,0xe0202003u,0xe1a03002u,0xe2544001u,0x1afffffau},15},
+        // Branch into an integer sequence: the target must start a new segment.
+        {{0xe3510000u,0x0a000002u,0xe0802001u,0xe0222003u,0xe2822001u,
+          0xe0823001u,0xe0233000u,0xe2833001u}},
+        {{0xeb0003f9u,0xe0822001u,0xe0222003u,0xe2822001u},4}, // inlined integer leaf
+    };
+    const std::vector<std::uint8_t> leaf{0x01,0x00,0x80,0xe0,0x03,0x20,0x20,0xe0,
+        0x02,0x30,0xa0,0xe1,0x1e,0xff,0x2f,0xe1};
+    leaf_resolver resolve = [&](std::uint32_t address) { return address == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
+    const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
+    unsigned comparisons = 0;
+    for (unsigned p = 0; p < programs.size(); ++p) {
+        // A branch to the next instruction excludes the whole-region IR even
+        // when both options are enabled, and exercises a real region label.
+        std::vector<std::uint32_t> code{0xe59a0000u,0xe59a1004u,0xe59a6008u,0xe59a700cu,0xeaffffffu};
+        code.insert(code.end(),programs[p].body.begin(),programs[p].body.end());
+        // Restore caller LR after the inlined BL before returning from fixture.
+        if (p == programs.size()-1) code.push_back(0xe1a0e00bu);
+        code.insert(code.end(),{0xe58a2010u,0xe58a3014u,0xe12fff1eu});
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr = translate_arm_block(bytes,code.size()*4,0x1000,nullptr,nullptr,true,true,true,true,&resolve,true);
+        if (!tr.complete || !tr.ir_segments || tr.func.outlined_callee) {
+            printf("  FAIL IR segment program %u not selected\n",p); return false;
+        }
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned seed=0;seed<8;++seed) for(unsigned flags:{0u,3u,12u,15u})
+        for(unsigned budget=0;budget<=48;++budget) {
+            test_mem actual; actual.write_code(0x1000,{bytes,bytes+code.size()*4}); actual.write_code(0x2000,leaf);
+            for(unsigned a=0x8000;a<0x8040;a+=4) actual.write32(a,values[(seed+(a-0x8000)/4)%8]);
+            test_mem reference_memory=actual; r12l1::exclusive_monitor monitor(1); auto reference=make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12);tlb.add(0x8000,actual.data.data()+0x8000,3);
+            alignas(8) std::uint32_t state[256]{};
+            for(unsigned r=0;r<16;++r) {
+                const auto value=r==15||r==14||r==11?0x1000u:r==10?0x8000u:values[(seed+r*3)%8];
+                state[r]=value;reference->set_reg(r,value);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);state[state_offsets::MODE/4]=16;
+            state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x2010);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            unsigned total=static_cast<unsigned>(code.size())+programs[p].extra;
+            if(p==8 && values[(seed+1)%8]==0)total-=3;
+            if(count!=int(std::min(budget,total))||g_memory_helper_calls) {
+                printf("  FAIL IR segment count p=%u budget=%u count=%d expected=%u\n",p,budget,count,std::min(budget,total));return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r)) {
+                printf("  FAIL IR segment p=%u seed=%u flags=%u budget=%u R%u %08x vs %08x\n",p,seed,flags,budget,r,state[r],reference->get_reg(r));return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1)) {
+                printf("  FAIL IR segment flags p=%u budget=%u\n",p,budget);return false;
+            }
+            if(actual.data!=reference_memory.data){printf("  FAIL IR segment memory\n");return false;}
+            ++comparisons;
+        }
+    }
+    printf("  PASS ir_segments (%u exact state/memory/budget comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
 static bool test_repeated_read_guards() {
 #ifdef __EMSCRIPTEN__
     const std::uint32_t words[] = {0xe5910000,0xe5912004,0xe5913008};
@@ -3950,6 +4028,7 @@ int main(int argc, char **argv) {
     if (test_outlined_callee_indices()) passed++; else failed++;
     if (test_proved_read_spans()) passed++; else failed++;
     if (test_region_ir()) passed++; else failed++;
+    if (test_ir_segments()) passed++; else failed++;
     if (test_memory_displacements()) passed++; else failed++;
     if (test_deferred_memory_exits()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;

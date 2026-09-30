@@ -62,12 +62,13 @@ int main(int argc, char **argv){
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
+    const bool ir_segments=argc==2 && std::string(argv[1])=="--ir-segments";
     const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
     const bool region_spans=region_block_spans || (argc==2 && (std::string(argv[1])=="--region-spans" || std::string(argv[1])=="--region-spans-interpreter"));
     const bool three_instructions=read_spans || wide_snapshots;
-    const unsigned instruction_count=region_spans?5:three_instructions?3:2;
-    const bool deferred=region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred"));
-    const bool entry_budget = region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-interpreter" || std::string(argv[1])=="--entry-budget-deferred"));
+    const unsigned instruction_count=ir_segments||region_spans?5:three_instructions?3:2;
+    const bool deferred=ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred"));
+    const bool entry_budget = ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-interpreter" || std::string(argv[1])=="--entry-budget-deferred"));
 #ifdef EKA_MATCHED_REFERENCE
     if(entry_budget) { std::cerr << "--entry-budget requires the production runner\n"; return 1; }
 #endif
@@ -98,6 +99,11 @@ int main(int argc, char **argv){
         unsigned program[]={region_ir?0xe3a02007u:0xe3b02007u,wide_snapshots?0xe0c54796u:region_spans?0xe5910000u:op,
             wide_snapshots?op:(read_spans||region_spans)?0xe5913004u:0xeafffffeu,
             0xe5914008u,region_block_spans?op:0xe591500cu};
+        if(ir_segments) {
+            program[0]=0xe3b02007u; // flags visible to the final fault callback
+            program[1]=0xe2844001u; program[2]=0xe0245000u; program[3]=0xe1a06005u;
+            program[4]=op;
+        }
         std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
         for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
         cpu.set_reg(0,0x87654321);cpu.set_reg(1,address);cpu.set_pc(0x1000);cpu.set_cpsr(0xa0000010|endian);
@@ -110,9 +116,14 @@ int main(int argc, char **argv){
         if(!interpreter) {
         // Every suffix is a real runner entry after a deferred access/Step.
         std::vector<aot::wasm_func_def> functions;
-        for(unsigned n=0;n<instruction_count;++n)
-            functions.push_back(aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
-                (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,nullptr,deferred).func);
+        for(unsigned n=0;n<instruction_count;++n) {
+            auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
+                (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,nullptr,deferred);
+            if(ir_segments && n==0 && !translated.ir_segments) {
+                std::cerr << "Integer-segment fault fixture did not select the IR\n"; return 4;
+            }
+            functions.push_back(std::move(translated.func));
+        }
         if(region_ir && !functions.front().outlined_callee) {
             std::cerr << "IR fault fixture was not compiled through guarded IR\n"; return 4;
         }
@@ -152,7 +163,7 @@ int main(int argc, char **argv){
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
         if(deferred && compiled<instruction_count)++deferred_cases;
-        if(!interpreter && (region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
+        if(!interpreter && (ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Unexpected generated instruction count at case "<<cases<<'\n';return 2;
         }
 #endif

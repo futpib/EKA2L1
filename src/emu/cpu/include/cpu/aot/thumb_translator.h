@@ -74,6 +74,8 @@ namespace eka2l1::arm::aot {
         std::vector<code_dependency> dependencies;
         wasm_func_def func;
         bool entry_supported = true;
+        // Research coverage metadata; never used to select guest addresses.
+        unsigned ir_segments = 0;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call
         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling
