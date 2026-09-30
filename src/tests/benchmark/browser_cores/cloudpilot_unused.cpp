@@ -1,0 +1,25 @@
+// Bare-metal adapter: no Palm PACE or framebuffer is installed. Trap if used.
+#include <cstdlib>
+#include "pace.h"
+#include "patch68k.h"
+#include "SoC.h"
+void SoC::SetFramebufferDirty(uint32_t,uint32_t){abort();}
+bool patch68kHandle(uint16_t){abort();}
+void paceInit(ArmMem*,ArmMmu*){}
+void paceInit(ArmMem*,ArmMpu*){}
+void paceSetPriviledged(bool){}
+void paceSetStatePtr(uint32_t){abort();}
+void paceResetFsr(){abort();}
+uint8_t paceGetFsr(){abort();}
+uint16_t paceGetLastOpcode(){abort();}
+bool paceLoad68kState(){abort();}
+bool paceSave68kState(){abort();}
+void paceGetMemeryFault(uint32_t*,bool*,uint_fast8_t*){abort();}
+uint16_t paceReadTrapWord(){abort();}
+uint32_t paceGetPC(){abort();}
+void paceSetPC(uint32_t){abort();}
+uint32_t paceGetDreg(uint8_t){abort();}
+void paceSetDreg(uint8_t,uint32_t){abort();}
+uint32_t paceGetAreg(uint8_t){abort();}
+void paceSetAreg(uint8_t,uint32_t){abort();}
+paceStatus paceExecute(){abort();}
