@@ -2874,7 +2874,7 @@ static bool test_ir_memory_exits() {
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
-        for(unsigned address:{0u,0x9000u,0x9001u,0x9004u,0x9ffcu,0xb000u})for(unsigned flags:{0u,3u,12u,15u}) {
+        for(unsigned address:{0u,0x8001u,0x8ffcu,0x9000u,0x9001u,0x9004u,0x9ffcu,0xb000u})for(unsigned flags:{0u,3u,12u,15u}) {
             test_mem actual;actual.write_code(0x1000,{bytes,bytes+sizeof(code)});
             for(unsigned a=0x8000;a<0xc000;a+=4)actual.write32(a,a*37+11);
             if(dependent)actual.write32(0x8000,address);
@@ -2914,6 +2914,33 @@ static bool test_ir_memory_exits() {
             if(actual.data!=reference_memory.data){printf("  FAIL memory IR effects op=%08x\n",operation);return false;}
             ++comparisons;
         }
+    }
+    // A cached read proof must not authorize a write, or vice versa.
+    for(bool write_first:{false,true})for(unsigned permission:{0u,1u,2u,3u}) {
+        const unsigned code[]={write_first?0xe58a1000u:0xe59a0000u,
+            write_first?0xe59a0000u:0xe58a1000u,0xe59a2000u};
+        const auto *bytes=reinterpret_cast<const std::uint8_t *>(code);
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+        if(tr.ir_memory_guards!=3)return false;
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem actual;actual.write_code(0x1000,{bytes,bytes+sizeof(code)});actual.write32(0x8000,0x12345678u);
+        test_mem reference_memory=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+        r12l1::tlb tlb(12);tlb.add(0x8000,actual.data.data()+0x8000,permission);
+        alignas(8) unsigned state[256]{};
+        for(unsigned reg=0;reg<16;++reg){unsigned value=reg==15?0x1000:reg==10?0x8000:0x100+reg;state[reg]=value;reference->set_reg(reg,value);}
+        reference->set_cpsr(16);state[state_offsets::CPSR/4]=16;state[state_offsets::MODE/4]=16;
+        state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=3;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        const unsigned expected=!(permission&(write_first?2:1))?0:permission==3?3:1;
+        g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        g_test_mem=nullptr;g_count_memory_helpers=false;
+        if(count!=int(expected)||g_memory_helper_calls){printf("  FAIL IR cached permission write_first=%u permission=%u count=%d expected=%u\n",write_first,permission,count,expected);return false;}
+        if(count)reference->run(count);
+        for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg))return false;
+        if(actual.data!=reference_memory.data)return false;
+        ++comparisons;
     }
     printf("  PASS ir_memory_exits (%u exact intermediate snapshot/effect comparisons)\n",comparisons);
 #endif

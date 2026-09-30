@@ -257,6 +257,29 @@ namespace eka2l1::arm::aot {
             get_local(HOST); get_local(address_local); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
             op(op_end); op(op_end); op(op_end); op(op_end);
         }
+        // IR guards share the ordinary emitter's page proofs. Helpers invalidate
+        // these local keys; successful graph memory effects cannot change a TLB
+        // mapping or endian mode. Read and write permission proofs stay separate.
+        void ir_memory_host(unsigned bytes, bool write) {
+            const unsigned page = write ? WRITE_PAGE : READ_PAGE;
+            const unsigned base = write ? WRITE_BASE : READ_BASE;
+            get_local(ADDRESS); i32_const(-4096 | 3); op(op_i32_and);
+            get_local(page); op(op_i32_eq);
+            if (bytes > 4) {
+                get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+                i32_const(4096 - bytes); op(op_i32_le_u); op(op_i32_and);
+            }
+            op(op_if); op(type_void);
+            get_local(base); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+            op(op_i32_add); set_local(HOST);
+            op(op_else);
+            block_transfer_host(ADDRESS, bytes, write);
+            get_local(HOST); op(op_if); op(type_void);
+            get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+            op(op_i32_sub); set_local(base);
+            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); set_local(page);
+            op(op_end); op(op_end);
+        }
         // All direct stores are aligned and confined to one physical page.
         // Helpers/interpreter writes use the same backing-indexed versions.
         void track_write() {
@@ -361,7 +384,7 @@ namespace eka2l1::arm::aot {
                 const bool write = node.immediate & 1;
                 const unsigned exit = static_cast<unsigned>(node.immediate / 2);
                 w.set_local(arm_emit::ADDRESS);
-                w.block_transfer_host(arm_emit::ADDRESS, bytes, write);
+                w.ir_memory_host(bytes, write);
                 w.get_local(arm_emit::HOST); w.op(op_i32_eqz);
                 if (write) {
                     // A store to translated code must return before effects,
