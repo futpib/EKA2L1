@@ -55,5 +55,6 @@ the exact LAN archive. Times measure 18 guest seconds with physical GPU renderin
 | Scene / batch | Original mean | Folded mean | Served mean | Folded throughput vs original | vs served |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | long / a | 13.30010s | 12.72115s | 13.33740s | +4.55% | +4.84% |
+| long / b | 13.26770s | 12.22000s | 13.29060s | +8.57% | +8.76% |
 
 Assessment remains pending confirmation and live acceptance; no deployment.
