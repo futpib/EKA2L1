@@ -11,6 +11,9 @@ if (!assetArg || !outputArg) throw Error('Usage: node route.ts ASSETS NEW_OUTPUT
 const assets = path.resolve(assetArg), output = path.resolve(outputArg);
 fs.mkdirSync(output);
 const compilerPolicy = compilerPolicyFromEnv();
+const initialStopUs = Number(process.env.EKA2L1_ROUTE_START_US || '23000000');
+if (!Number.isSafeInteger(initialStopUs) || initialStopUs < 2050000 || initialStopUs > 30000000)
+  throw Error('Route initial stop must be between 2.05 and 30 guest seconds');
 const {server, port} = await startServer(0, {}, undefined, {compilerPolicy});
 const browser = await puppeteer.launch({executablePath:'/usr/bin/chromium',headless:true,
   args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=vulkan',
@@ -81,9 +84,9 @@ try {
   if(compilerPolicy&&(!appliedPolicy?.applied||JSON.stringify(appliedPolicy.requested)!==JSON.stringify(compilerPolicy)))
     throw Error('Wrong compiler policy');
   // Same startup inputs as the live route, now scheduled in guest time.
-  for(let us=2000000;us<=20000000;us+=2000000){await stepTo(us);await key(167,50);}
-  await stepTo(23000000);await visible('initial');
-  const ready={diagnostic_only:true,policy:appliedPolicy,state:await state(),
+  for(let us=2000000;us<=20000000 && us+50000<=initialStopUs;us+=2000000){await stepTo(us);await key(167,50);}
+  await stepTo(initialStopUs);await visible('initial');
+  const ready={diagnostic_only:true,initial_stop_us:initialStopUs,policy:appliedPolicy,state:await state(),
     wasm_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(buildDir,'eka2l1.wasm'))).digest('hex')};
   fs.writeFileSync(path.join(output,'ready.json'),JSON.stringify(ready,null,2));
   console.log('READY '+JSON.stringify(ready));

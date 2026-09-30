@@ -220,5 +220,34 @@
       }
     ],
     "limitation": "Screenshot capture is not an uninstrumented throughput measurement. Snake length was not measured; this does not establish or refute length-dependent slowdown."
-  }
+  },
+  "early_short_exploration": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-step-5",
+    "initial_stop_us": 12050000,
+    "observations": "Introduction remained until Enter at guest 18.64 seconds. Right turn at 18.69 avoids the star; score remains 0 with visibly short tail at 20.98 seconds. Ordinary replay and length/headroom comparison pending.",
+    "shutdown": {
+      "passed": true,
+      "errors": []
+    },
+    "input": "/home/claude/.scratch/eka-benchmark/growth-short-route.input",
+    "input_sha256": "042edc423ba06a270dc34858ae5eaf79336dd4dcafa0411a0e152410a0245ca3",
+    "files": {
+      "ready.json": "2df9d20303f05132b36c4a62813c38740c39955bd3443aa92f3177f135a3cb73",
+      "commands.jsonl": "9cb9444b2c77f46f0c1eea3894deb23e7741039dfb623c472595f5e1d207c324",
+      "input.jsonl": "60674bce63d7cec4290dd5a5abcfec1751ca7a8f9f9267b81ad9863b98db55e7",
+      "start-play.png": "08f949d618e674b1a5c3132d14060f900b5186e087c0758cc29661caae7d0748",
+      "short-camera3.png": "32d16dda86774024c6d763291940c91c5e39f5bd6da067dd5434eb90e3f7de8f",
+      "short-straight.png": "1ed4c91be8ad16a739958ab113d232004b8dbc18e1b7666af221dac06b2ec537"
+    }
+  },
+  "early_start_attempts": [
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/growth-step-3",
+      "limitation": "Initial script edit used wrong working directory; old script ignored requested earlier stop and parked at23s. Stopped cleanly; no early-start evidence."
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/growth-step-4",
+      "limitation": "20.05s stop worked but already score200. Stopped cleanly."
+    }
+  ]
 }

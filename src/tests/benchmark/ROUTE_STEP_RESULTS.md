@@ -56,3 +56,18 @@ Replay: /home/claude/.scratch/eka-benchmark/growth-normal-replay-2.
 WASM SHA256 dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b.
 The replay has 800 distinct images; it is a route reproduction, not a new
 native correctness baseline. No deployment or push.
+
+## Earlier gameplay exploration
+
+The controller now accepts EKA2L1_ROUTE_START_US (2.05 to 30 guest seconds),
+issuing only startup keys that finish before that deadline. Default remains
+23 seconds. Stopping at 12.05 seconds exposes the level introduction. Sending
+Enter at 18.64 seconds starts play at score zero; turning right at 18.69 avoids
+the star pickup. The screenshot at 20.98 seconds shows score zero and a visibly
+short tail. This gives a prospective shorter-snake route; ordinary replay,
+measured length and comparable headroom measurements are still pending.
+
+Raw session growth-step-5 shuts down cleanly. A first edit attempt used the
+wrong working directory and started the old script (growth-step-3, stopped);
+a 20.05-second stop (growth-step-4) already had score200. Neither is counted as
+evidence of earlier short-snake play. Inputs and screenshots remain archived.
