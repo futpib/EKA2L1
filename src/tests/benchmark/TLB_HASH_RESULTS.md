@@ -34,13 +34,26 @@ new conflicts or cost more than it saves; correctness alone earns no promotion.
 ## Separate diagnostic, before timing
 
 The folded profile records 1,121,439 zero-progress calls versus 11,043,032 in
- the earlier served-build profile of the same longer route (89.85% fewer).
+the earlier served-build profile of the same longer route (89.85% fewer).
 Compiled dispatches fall from 199,922,265 to 184,909,283; interpreter instructions
 from 35,800,043 to 5,202,580. Both execute exactly 2,987,830,398 total guest
-instructions and 720 presentations in guest seconds42-60. The dominant sampled
-literal site0x700002b8 disappears from the folded profile's top zero-return sites.
+instructions and 720 presentations in guest seconds 42-60. The dominant sampled
+literal site 0x700002b8 disappears from the folded profile's top zero-return sites.
 
 These are instrumented diagnostic counts from different application archives,
 not promotion timings or a same-binary causal estimate. The subsequent ordinary
-runs hold the new application binary fixed while selecting index0/1, with the
+runs hold the new application binary fixed while selecting index 0/1, with the
 exact served archive as a separate control. No timing normalization is applied.
+
+## Ordinary serial timing
+
+All samples retained. Each batch runs the listed variants and then reverses
+that order, including serial warmup. Instrumentation and checking are off.
+Original and folded modes share one identical application binary; served uses
+the exact LAN archive. Times measure 18 guest seconds with physical GPU rendering.
+
+| Scene / batch | Original mean | Folded mean | Served mean | Folded throughput vs original | vs served |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| long / a | 13.30010s | 12.72115s | 13.33740s | +4.55% | +4.84% |
+
+Assessment remains pending confirmation and live acceptance; no deployment.
