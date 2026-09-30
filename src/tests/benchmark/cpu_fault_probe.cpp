@@ -29,13 +29,18 @@ struct Fixture {
     std::vector<unsigned char> memory=std::vector<unsigned char>(65536);
     unsigned address, policy, partial=0, calls=0, faults=0;
     bool repaired=false, stopped=false;
+    unsigned remap_root=0; bool remapped=false;
     std::vector<std::string> events;
     template<class T> bool access(unsigned a,T *v,bool write) {
         // The data page is inaccessible until the exception handler repairs it.
         ++calls;
         const bool ok=(repaired || (partial && a>=address && a-address<partial*4)) && a+sizeof(T)<=memory.size();
         events.push_back(std::string("\"")+(write?"write":"read")+":"+std::to_string(sizeof(T))+":"+std::to_string(a)+":"+(ok?"ok":"fail")+"\"");
-        if(ok){if(write)std::memcpy(memory.data()+a,v,sizeof(T));else std::memcpy(v,memory.data()+a,sizeof(T));}
+        if(ok){
+            auto *backing=memory.data()+a;
+            if(remapped && (a&~4095u)==remap_root) backing=memory.data()+0xa000+(a&4095u);
+            if(write)std::memcpy(backing,v,sizeof(T));else std::memcpy(v,backing,sizeof(T));
+        }
         return ok;
     }
     void install() {
@@ -46,6 +51,10 @@ struct Fixture {
         cpu.exception_handler=[&](exception_type type,unsigned a){
             ++faults;
             events.push_back("{\"exception\":"+std::to_string(type)+",\"address\":"+std::to_string(a)+",\"regs\":"+regs(cpu)+",\"cpsr\":"+std::to_string(cpu.get_cpsr())+"}");
+            if(remap_root) {
+                cpu.set_tlb_page(remap_root,memory.data()+0xa000,prot_read);
+                remapped=true;
+            }
             if(policy==0){repaired=true;return true;}
             if(policy==2){stopped=true;cpu.stop();}
             // policy 3 requests a retry but leaves the access unresolved.
@@ -67,6 +76,7 @@ int main(int argc, char **argv){
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
+    const bool invariant_remap=argc==2 && std::string(argv[1])=="--invariant-remap";
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
@@ -80,10 +90,10 @@ int main(int argc, char **argv){
     const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
     const bool region_spans=ir_memory_chain || region_block_spans || (argc==2 && (std::string(argv[1])=="--region-spans" || std::string(argv[1])=="--region-spans-interpreter"));
     const bool three_instructions=read_spans || wide_snapshots;
-    const unsigned instruction_count=ir_recipes?7:ir_segments||region_spans?5:three_instructions?3:2;
+    const unsigned instruction_count=invariant_remap||ir_recipes?7:ir_segments||region_spans?5:three_instructions?3:2;
     const unsigned execution_count=ir_short?4:instruction_count;
-    const bool deferred=ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred"));
-    const bool entry_budget = ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-interpreter" || std::string(argv[1])=="--entry-budget-deferred"));
+    const bool deferred=invariant_remap || ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred"));
+    const bool entry_budget = invariant_remap || ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-interpreter" || std::string(argv[1])=="--entry-budget-deferred"));
 #ifdef EKA_MATCHED_REFERENCE
     if(entry_budget) { std::cerr << "--entry-budget requires the production runner\n"; return 1; }
 #endif
@@ -97,13 +107,16 @@ int main(int argc, char **argv){
     if(ir_memory) instructions={0xe5910000,0xe5810000,0xe8b1000d,0xe8a1000d,0xe891000d,0xe881000d};
     if(ir_addressing) instructions={0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,0xe1d100d0,0xe1d100f0,
         0xe7910106,0xe7810106,0xe7d10106,0xe7c10106,0xe19100b6,0xe18100b6,0xe19100d6,0xe19100f6};
-    const std::vector<unsigned> addresses=region_spans
+    if(invariant_remap) instructions={0xe5d28000,0xe8920300}; // LDRB / LDM via an unproved root
+    const std::vector<unsigned> addresses=invariant_remap
+        ? std::vector<unsigned>{0x8000u,0x8ff0u}
+        : region_spans
         ? std::vector<unsigned>{0x8000u,0x8ff0u,0x8ff4u}
         : read_spans
         ? std::vector<unsigned>{0x8000u,0x8ff8u,0x8ffcu}
         : std::vector<unsigned>{0x8000u,0x8ffdu,0x8ffcu};
     for(unsigned op:instructions)for(unsigned policy=0;policy<4;++policy)
-    for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u})for(unsigned partial=0;partial<(!region_spans && (op&0x0e000000u)==0x08000000u?2u:1u);++partial){
+    for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u})for(unsigned partial=0;partial<(!invariant_remap && !region_spans && (op&0x0e000000u)==0x08000000u?2u:1u);++partial){
 #if defined(__EMSCRIPTEN__) || defined(EKA_MATCHED_REFERENCE)
         r12l1::exclusive_monitor monitor(1); dyncom_core cpu(&monitor,12);
 #else
@@ -126,15 +139,22 @@ int main(int argc, char **argv){
             if(ir_recipes) {program[1]=0xe0c54796u;program[2]=0xe0848005u;program[3]=op;program[4]=0xe3a04000u;program[5]=0xe3a05000u;program[6]=0xe3a08000u;}
             if(ir_short) {program[1]=0xe1a08004u;program[2]=op;program[3]=0xe2844001u;program[4]=0xe1a05008u;}
         }
+        if(invariant_remap) {
+            const unsigned words[]={0xe3b03007u,0xe5910000u,op,0xe5914004u,0xe5915008u,0xe591600cu,0xe0847005u};
+            std::memcpy(program,words,sizeof(program));
+            f.remap_root=address&~4095u;
+            for(unsigned i=0xa000;i<0xb000;++i) f.memory[i]=(i*13+91)&255;
+        }
         std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
         for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
         cpu.set_reg(0,0x87654321);cpu.set_reg(1,address);cpu.set_pc(0x1000);cpu.set_cpsr(0xa0000010|endian);
         if(ir_addressing)cpu.set_reg(6,1);
+        if(invariant_remap)cpu.set_reg(2,0xb000);
         // Read-only TLB: permitted control for loads, denied mapping for stores.
         // Unmapped cases always exercise failure callbacks. Partial cases allow
         // the first transferred word before failing subsequent accesses.
-        if(permission)cpu.set_tlb_page(address&~4095u,f.memory.data()+(address&~4095u),
-            prot_read);
+        if(permission || invariant_remap)cpu.set_tlb_page(address&~4095u,f.memory.data()+(address&~4095u),
+            (invariant_remap && !permission)?prot_read_write:prot_read);
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         if(!interpreter) {
         // Every suffix is a real runner entry after a deferred access/Step.
@@ -142,7 +162,7 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,nullptr,deferred,ir_policy);
-            if(ir_policy==aot::arm_ir_policy::invariant_reads && region_spans && !region_block_spans && n==0 && !translated.proved_reads) {
+            if(ir_policy==aot::arm_ir_policy::invariant_reads && (invariant_remap || (region_spans && !region_block_spans)) && n==0 && !translated.proved_reads) {
                 std::cerr << "Invariant read fault fixture did not select entry proof\n"; return 4;
             }
             if(!ir_disabled && ir_segments && n==0 && !translated.ir_segments) {
@@ -208,10 +228,25 @@ int main(int argc, char **argv){
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
         if(deferred && compiled<instruction_count)++deferred_cases;
-        if(!interpreter && (ir_recipes ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
+        if(!interpreter && (invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_recipes ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Unexpected generated instruction count at case "<<cases<<'\n';return 2;
         }
 #endif
+        if(invariant_remap) {
+            auto expected_word=[&](unsigned a) {
+                unsigned value=0; std::memcpy(&value,initial_memory.data()+a,4);
+                if(endian) value=((value&255)<<24)|((value&65280)<<8)|((value>>8)&65280)|(value>>24);
+                return value;
+            };
+            if(!f.remapped || !f.faults || cpu.get_reg(0)!=expected_word(address)) {
+                std::cerr<<"Remapping fixture did not preserve the first read\n";return 4;
+            }
+            if(!f.stopped) for(unsigned r=4;r<=6;++r) {
+                if(cpu.get_reg(r)!=expected_word(0xa000+(address&4095u)+(r-3)*4)) {
+                    std::cerr<<"Post-callback read used stale mapping\n";return 4;
+                }
+            }
+        }
         unsigned hash=2166136261u;for(auto b:f.memory){hash^=b;hash*=16777619u;}
         std::cout<<"FAULT {\"id\":"<<cases++<<",\"opcode\":"<<op<<",\"policy\":"<<policy<<",\"address\":"<<address<<",\"endian\":"<<endian<<",\"tlb_readonly\":"<<permission<<",\"partial\":"<<(region_spans?f.partial:partial)<<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()<<",\"count\":"<<(
 #ifdef EKA_MATCHED_REFERENCE

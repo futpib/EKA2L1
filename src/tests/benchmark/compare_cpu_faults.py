@@ -11,7 +11,7 @@ p.add_argument('native', type=Path)
 p.add_argument('wasm', type=Path)
 p.add_argument('output', type=Path)
 p.add_argument('--require-equal', action='store_true', help='Exit nonzero on any semantic mismatch')
-p.add_argument('--cases', type=int, choices=(48,96,480,672), default=480, help='Expected complete fixture count; read spans has 48, block spans has 96, extended has 672')
+p.add_argument('--cases', type=int, choices=(48,64,96,480,672), default=480, help='Expected complete fixture count; read spans has 48, invariant remapping has 64, block spans has 96, extended has 672')
 a = p.parse_args()
 
 def load(path):
@@ -47,6 +47,11 @@ result = {'cases': len(native), 'all_fields_match': len(native) - len(difference
           'little_endian_unmapped_differences': sum(not d['native']['endian'] and not d['native']['tlb_readonly'] for d in differences),
           'inputs': {str(f): hashlib.sha256(f.read_bytes()).hexdigest() for f in [a.native,a.wasm]},
           'differences': differences}
+# The 64-case remapping fixture varies read-only versus read/write mappings
+# of a separate root. Its legacy tlb_readonly=0 does not mean unmapped.
+if a.cases == 64:
+    result.pop('little_endian_unmapped_cases')
+    result.pop('little_endian_unmapped_differences')
 a.output.write_text(json.dumps(result, indent=2) + '\n')
 print(json.dumps({k:v for k,v in result.items() if k != 'differences'}, indent=2))
 
