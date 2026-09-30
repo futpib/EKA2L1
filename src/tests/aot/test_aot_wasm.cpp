@@ -2798,7 +2798,7 @@ static bool test_invariant_reads() {
 }
 
 
-static bool test_budget_chunks() {
+static bool test_budget_chunks(arm_ir_policy policy = arm_ir_policy::budget_chunks) {
 #if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_VERSIONS)
     std::vector<std::vector<std::uint32_t>> programs = {
         {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe2566001,0x1afffff9},
@@ -2817,7 +2817,7 @@ static bool test_budget_chunks() {
     for (const auto &code : programs) {
         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
         auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
-            nullptr, nullptr, true, true, true, true, nullptr, true, arm_ir_policy::budget_chunks);
+            nullptr, nullptr, true, true, true, true, nullptr, true, policy);
         if (!tr.budget_chunks || tr.func.outlined_calls.empty() || tr.ir_segments
             || (&code == &programs.back() && tr.budget_chunks != 3)) {
             printf("  FAIL budget chunk selection program=%u chunks=%u\n", unsigned(&code-programs.data()),tr.budget_chunks); return false;
@@ -2900,13 +2900,13 @@ static bool test_budget_chunks() {
             ++checks;
         }
     }
-    printf("  PASS budget_chunks (%u exact state/memory/budget comparisons)\n", checks);
+    printf("  PASS budget_chunks policy=%d (%u exact state/memory/budget comparisons)\n", int(policy), checks);
 #endif
     return true;
 }
 
 
-static bool test_invariant_writes() {
+static bool test_invariant_writes(arm_ir_policy policy = arm_ir_policy::invariant_writes) {
 #if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_VERSIONS)
     const std::vector<std::vector<std::uint32_t>> programs = {
         {0xe5810000,0xe5812004,0xe5813008,0xe581400c,0xe2566001,0x1afffff9},
@@ -2920,7 +2920,10 @@ static bool test_invariant_writes() {
     for (const auto &code : programs) {
         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
         auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
-            nullptr, nullptr, true, true, true, true, nullptr, true, arm_ir_policy::invariant_writes);
+            nullptr, nullptr, true, true, true, true, nullptr, true, policy);
+        if (policy == arm_ir_policy::write_budget_chunks && (!tr.budget_chunks || tr.func.outlined_calls.empty())) {
+            printf("  FAIL combined write/budget chunk selection\n"); return false;
+        }
         const bool selected = &code - programs.data() < 3;
         if (bool(tr.proved_writes) != selected || (selected && !tr.func.outlined_callee) || tr.ir_segments) {
             printf("  FAIL invariant write selection program=%u proved=%u\n", unsigned(&code-programs.data()),tr.proved_writes); return false;
@@ -3014,7 +3017,7 @@ static bool test_invariant_writes() {
             ++checks;
         }
     }
-    printf("  PASS invariant_writes (%u exact state/memory/budget comparisons)\n", checks);
+    printf("  PASS invariant_writes policy=%d (%u exact state/memory/budget comparisons)\n", int(policy), checks);
 #endif
     return true;
 }
@@ -4665,6 +4668,8 @@ int main(int argc, char **argv) {
     if (test_invariant_reads()) passed++; else failed++;
     if (test_invariant_writes()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
+    if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;
+    if (test_invariant_writes(arm_ir_policy::write_budget_chunks)) passed++; else failed++;
     if (test_region_ir()) passed++; else failed++;
     if (test_ir_segments()) passed++; else failed++;
     if (test_ir_memory_exits()) passed++; else failed++;

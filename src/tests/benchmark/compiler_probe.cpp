@@ -35,7 +35,7 @@ int main(int argc,char**argv) {
    else if(arg=="--inline-leaves") inline_leaves=true;
    else if(arg=="--ir-mode" && i+1<argc) {
     const std::string mode=argv[++i];
-    if(mode!="0" && mode!="1" && mode!="2" && mode!="3" && mode!="4" && mode!="5" && mode!="6")throw std::invalid_argument("IR mode must be 0, 1, 2, 3, 4, 5 or 6");
+    if(mode!="0" && mode!="1" && mode!="2" && mode!="3" && mode!="4" && mode!="5" && mode!="6" && mode!="7")throw std::invalid_argument("IR mode must be 0, 1, 2, 3, 4, 5, 6 or 7");
     ir_policy=static_cast<eka2l1::arm::aot::arm_ir_policy>(mode[0]-'0');
    }
    else if(arg=="--region" && i+2<argc) {
@@ -46,7 +46,7 @@ int main(int argc,char**argv) {
   }
   if(argc<3) throw std::invalid_argument("missing arguments");
  } catch(const std::exception &e) {
-  std::cerr<<"compiler_probe GAME_EXE NEW_DIRECTORY [--defer-memory] [--inline-leaves] [--ir-mode 0/1/2/3/4/5/6] [--region PC SIZE]...\n"<<e.what()<<"\n";return 1;
+  std::cerr<<"compiler_probe GAME_EXE NEW_DIRECTORY [--defer-memory] [--inline-leaves] [--ir-mode 0/1/2/3/4/5/6/7] [--region PC SIZE]...\n"<<e.what()<<"\n";return 1;
  }
  if(regions.empty()) regions={{0x7006370cu,0xf0u},{0x70013edcu,0x1cu}};
  if(!std::filesystem::create_directory(argv[2]))return 2;

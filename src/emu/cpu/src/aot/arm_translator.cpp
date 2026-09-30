@@ -896,7 +896,7 @@ namespace eka2l1::arm::aot {
         std::vector<proof_group> proof_groups;
         std::vector<proof_access> proof_accesses;
         bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && w.region && w.defer_memory && cache_registers && !instructions.empty();
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
         // The guarded IR is an opt-in research path. Version tracking also
         // keeps its existing compiler until separately validated.
@@ -977,7 +977,8 @@ namespace eka2l1::arm::aot {
         // unchanged entry registers. They admit loops and conditional accesses.
         // Write proofs also exclude physical code aliases. All helper paths end
         // this region before a later instruction can use a pointer invalidated by a callback.
-        const bool include_writes = ir_policy == arm_ir_policy::invariant_writes;
+        const bool include_writes = ir_policy == arm_ir_policy::invariant_writes
+            || ir_policy == arm_ir_policy::write_budget_chunks;
         bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || include_writes || ir_policy == arm_ir_policy::budget_chunks)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #ifdef EKA2L1_WASM_CODE_VERSIONS
@@ -1180,7 +1181,8 @@ namespace eka2l1::arm::aot {
         // entry and no control transfer. A short budget enters a private precise
         // compiler before effects; the hot path keeps every count/exit check.
         std::map<std::size_t, unsigned> budget_chunks;
-        if (allow_memory_proof && ir_policy == arm_ir_policy::budget_chunks
+        if (allow_memory_proof && (ir_policy == arm_ir_policy::budget_chunks
+                || ir_policy == arm_ir_policy::write_budget_chunks)
             && w.region && cache_registers) {
             auto straight = [](std::uint32_t op) {
                 if ((op >> 28) == 15) return false;
@@ -1224,7 +1226,7 @@ namespace eka2l1::arm::aot {
         std::vector<std::pair<std::size_t, unsigned>> wide_fixups;
 #ifdef EKA2L1_WASM_IR_SEGMENTS
         if (allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && w.region && cache_registers && !ir) {
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && w.region && cache_registers && !ir) {
             unsigned max_locals = 0, max_wide_locals = 0;
 #if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
             const bool dynamic_memory = w.defer_memory;

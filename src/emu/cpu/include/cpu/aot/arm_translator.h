@@ -25,7 +25,7 @@
 namespace eka2l1::arm::aot {
     // Research selection at translation time; compile-time feature gates still
     // apply. configured preserves the build's current behavior.
-    enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2, outlined_recipes = 3, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6 };
+    enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2, outlined_recipes = 3, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6, write_budget_chunks = 7 };
 
     using leaf_resolver = std::function<std::vector<std::uint8_t>(std::uint32_t)>;
 
