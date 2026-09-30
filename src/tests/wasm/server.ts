@@ -78,7 +78,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
 
 function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   if (!policy) return "";
-  if ((policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 13))
+  if ((policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 15))
       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions)))
     throw new Error("Invalid compiler policy");
   return `<script>
