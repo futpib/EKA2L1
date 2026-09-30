@@ -1,4 +1,4 @@
-# Combined write-span and budget proofs: first batch favorable, confirmation pending
+# Combined write-span and budget proofs: gain does not repeat
 
 Policy 7 combines existing write-span proofs and budget chunks while retaining
 original instruction lowering. It is opt-in and unserved. See
@@ -25,7 +25,7 @@ reads and two/four proved writes. Hot bodies change 19,297 to 19,088 and 9,964 t
 archive. These static observations are not performance claims. Native probe
 microtimings overlapped correctness work and are not used as performance evidence.
 
-Next: serial unsampled comparisons between policies 6/7 in the same application
+Serial unsampled comparisons used policies 6/7 in the same application
 binary and the exact delivered read-only archive. No new live/audio acceptance
 or deployment is claimed. Full source/binary hashes, raw logs and exact results
 are in COMBINED_PROOFS_EVIDENCE.json. Nothing pushed.
@@ -39,4 +39,19 @@ served 13.6873s. Throughput changes: +8.14% matching
 control and +9.32% served. All samples retained.
 Every run executes 3,975,618,624 instructions and 676 presentations with
 shared audio, physical GPU and no sampling or concurrent owned heavy jobs.
-Reversed confirmation is running; this is not a deployment claim.
+The reversed confirmation follows below; no deployment.
+
+## Reversed confirmation and decision
+
+chunks-1 12.6891s, combined-1 14.3466s, served-1 13.3575s, served-2 13.3052s, combined-2 13.9597s, chunks-2 14.2896s.
+
+Means: combined 14.15315s, matching chunks 13.48935s,
+served 13.33135s. Throughput changes are -4.69%
+against matching chunks and -5.81% against served.
+Pooled means: combined 13.33690s, chunks 13.51468s, served 13.50933s.
+
+Both first-batch candidate runs are near 12.5s; both confirmation candidates
+are near 14s. All twelve runs are retained. This does not establish a repeatable
+gameplay improvement; keep policy 7 opt-in and do not deploy it. No new live/audio
+acceptance was attempted. The next experiment defers counter updates inside
+proved chunks while retaining exact count reconstruction at every exit.
