@@ -57,5 +57,6 @@ the exact LAN archive. Times measure 18 guest seconds with physical GPU renderin
 | long / a | 13.30010s | 12.72115s | 13.33740s | +4.55% | +4.84% |
 | long / b | 13.26770s | 12.22000s | 13.29060s | +8.57% | +8.76% |
 | standard / a | 13.17525s | 12.40075s | 12.61030s | +6.25% | +1.69% |
+| standard / b | 12.61310s | 12.37580s | 12.76090s | +1.92% | +3.11% |
 
 Assessment remains pending confirmation and live acceptance; no deployment.
