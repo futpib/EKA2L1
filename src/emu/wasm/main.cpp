@@ -112,6 +112,16 @@ namespace {
 
     wasm_state *g_state = nullptr;
 
+    // Diagnostic route exploration only. Park between system-loop iterations;
+    // never rewrite guest time or enter the game's own pause menu.
+    struct route_control {
+        bool enabled = false; // Fixed before the emulation thread starts.
+        std::mutex mutex;
+        std::condition_variable changed;
+        std::atomic<bool> paused{false};
+        std::uint64_t target_us = 0; // Protected by mutex once running.
+    } g_route;
+
     bool ensure_system_started() {
         if (!g_state || !g_state->symsys) return false;
         if (g_state->system_started) return true;
@@ -259,6 +269,33 @@ int eka2l1_input_consumed() { return g_state ? g_state->input_consumed.load() : 
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_presentations() { return g_state ? g_state->presentations.load() : 0; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_route_configure(int stop_us) {
+    if (g_state || stop_us < -1 || stop_us > 1800000000) return -1;
+    g_route.enabled = stop_us >= 0;
+    g_route.target_us = stop_us >= 0 ? stop_us : 0;
+    g_route.paused = false;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_route_phase() {
+    if (!g_route.enabled || !g_state || !g_state->running) return -1;
+    return g_route.paused ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_route_step_to(int stop_us) {
+    const std::lock_guard<std::mutex> lock(g_route.mutex);
+    if (!g_route.enabled || !g_state || !g_state->running || !g_route.paused) return -1;
+    if (stop_us < 0 || stop_us > 1800000000
+        || static_cast<std::uint64_t>(stop_us) <= common::benchmark::virtual_us.load()) return -2;
+    g_route.target_us = stop_us;
+    g_route.paused = false;
+    g_route.changed.notify_one();
+    return 0;
+}
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_guest_profile_configure(int stride) {
@@ -751,6 +788,17 @@ int eka2l1_run(const char *app_name) {
         const auto guest_origin = common::benchmark::virtual_us.load();
         std::uint64_t pacing_check = guest_origin;
         while (g_state && g_state->running) {
+            if (g_route.enabled) {
+                std::unique_lock<std::mutex> lock(g_route.mutex);
+                if (common::benchmark::virtual_us.load() >= g_route.target_us) {
+                    g_route.paused = true;
+                    g_route.changed.wait(lock, [] {
+                        return !g_state->running || common::benchmark::virtual_us.load() < g_route.target_us;
+                    });
+                    g_route.paused = false;
+                }
+                if (!g_state->running) break;
+            }
             if (common::benchmark::interactive) {
                 std::vector<wasm_state::live_key> inputs;
                 {
@@ -766,7 +814,7 @@ int eka2l1_run(const char *app_name) {
                     g_state->input_consumed = key.serial;
                 }
                 const auto guest_now = common::benchmark::virtual_us.load();
-                if (guest_now >= pacing_check) {
+                if (!g_route.enabled && guest_now >= pacing_check) {
                     const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
                         std::chrono::steady_clock::now() - host_origin).count();
                     const auto ahead = static_cast<std::int64_t>(guest_now - guest_origin) - elapsed;
@@ -853,7 +901,11 @@ EMSCRIPTEN_KEEPALIVE
 void eka2l1_shutdown() {
     MAIN_THREAD_EM_ASM({ if(typeof window !== "undefined" && window.EkaAudio) window.EkaAudio.stop(); });
     if (g_state) {
-        g_state->running = false;
+        {
+            const std::lock_guard<std::mutex> lock(g_route.mutex);
+            g_state->running = false;
+            g_route.changed.notify_all();
+        }
         if (g_state->emu_thread && g_state->emu_thread->joinable()) {
             g_state->emu_thread->join();
         }
