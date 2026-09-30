@@ -34,3 +34,9 @@ compare active windows and a new round in the same emulator, and collect the
 user's optional device/browser/level details. Score alone is not exact length.
 The ongoing compiler work remains active while this reproduction is unresolved.
 Raw window calculations and provenance: SNAKE_GROWTH_EVIDENCE.json.
+
+A further twenty-lane exploration (`growth-explore-4`) still shows score205 in
+inspected gameplay images and ends on a level-start screen. It did not establish
+a longer snake. This exploration overlapped compiler correctness jobs; none of
+its elapsed/realtime measurements are performance evidence. Input and screenshots
+remain archived. The required growth-controlled reproduction is still open.

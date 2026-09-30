@@ -497,5 +497,55 @@
       "These are exploratory paced runs with screenshot/probe costs, not unpaced optimization timings."
     ]
   },
-  "manual_source": "https://allaboutsymbian.com/images/ngage/manuals/User%20Manual%20snakes%20DLC.pdf"
+  "manual_source": "https://allaboutsymbian.com/images/ngage/manuals/User%20Manual%20snakes%20DLC.pdf",
+  "further_exploration": {
+    "status": "Still insufficient growth coverage; not performance evidence",
+    "archive": "/home/claude/.scratch/eka-benchmark/softkeys-candidate",
+    "ready": {
+      "state": {
+        "guest": 23453184,
+        "inputs": 22,
+        "frames": 931
+      },
+      "policy": {
+        "requested": {
+          "irMode": 7,
+          "eagerRegions": 0
+        },
+        "applied": true
+      },
+      "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b"
+    },
+    "notes": [
+      "Overlapped compiler correctness jobs, never used as promotion or realtime throughput timing.",
+      "Twenty lane attempts reach score205 in inspected gameplay images, then level-start screen; no long snake established.",
+      "View key presses while paused did not change view; applied after resuming."
+    ],
+    "artifacts": [
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-4/input.jsonl",
+        "sha256": "5a131d32bffb7386594eece436aefea64914ac652b62a96ea85a46dad871187f"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-4/steps.jsonl",
+        "sha256": "936803e2be4e14d3b3c2e96ac85b9183f83bbf60b25634d9ebf931cf2a2cd14d"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-4/timeline.jsonl",
+        "sha256": "d058a763a464b4d2313c4eaf486f41d5f2c15b4a06a15c0f5cb60fd2176ef462"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-4/sweep-3-run-running.png",
+        "sha256": "aedff54afc80b8f3722f35e1e3bb6ec9649db97acfe6a5f8acafd2a34f8168ea"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-4/sweep-11-run.png",
+        "sha256": "e32c30cf7af7ce07447174a64055719fb4df07f861040f56992cbf488073fecf"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-4/sweep-19-run-running.png",
+        "sha256": "f4c549d171bea79e69019b922368817bb10c3347a9cc2081a32bce846a6b8deb"
+      }
+    ]
+  }
 }
