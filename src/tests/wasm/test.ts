@@ -127,6 +127,21 @@ async function runTests(): Promise<void> {
     });
     console.log("  PASS");
 
+    console.log("TEST execution limits: pre-init bounds and readback...");
+    await page.evaluate(() => {
+      const m=(window as any).Module;
+      const set=(v:number[])=>m.ccall('eka2l1_execution_limits_configure','number',['number','number','number','number'],v);
+      const get=()=>m.ccall('eka2l1_execution_limits_report','string',[],[]);
+      for(const v of [[128,1,0,0],[2048,64,16,4096],[512,16,8,512]]) {
+        if(set(v)!==0 || get()!==v.join(','))throw Error('Limits configuration/readback failed');
+      }
+      for(const v of [[-1,16,8,512],[127,16,8,512],[513,16,8,512],[2052,16,8,512],
+        [512,0,8,512],[512,65,8,512],[512,16,17,512],[512,16,8,-1],[512,16,8,4097]]) {
+        if(set(v)!==-1 || get()!=='512,16,8,512')throw Error('Invalid limits accepted or changed state');
+      }
+    });
+    console.log("  PASS");
+
     console.log("TEST eager ROM: pre-init mode validation...");
     await page.evaluate(() => {
       const configure = (n: number) => (window as any).Module.ccall('eka2l1_eager_regions_configure', 'number', ['number'], [n]);
@@ -188,6 +203,8 @@ async function runTests(): Promise<void> {
         throw Error('Code lookup policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_tlb_hash_configure','number',['number'],[1]) !== -1)
         throw Error('TLB index policy changed after initialization');
+      if ((window as any).Module.ccall('eka2l1_execution_limits_configure','number',['number','number','number','number'],[1024,32,16,0]) !== -1)
+        throw Error('Execution limits changed after initialization');
       if ((window as any).Module.ccall('eka2l1_ir_configure', 'number', ['number'], [0]) !== -1)
         throw new Error('IR policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[1]) !== -1)

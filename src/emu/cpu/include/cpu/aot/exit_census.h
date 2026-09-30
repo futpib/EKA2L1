@@ -11,12 +11,19 @@ namespace eka2l1::arm::aot::exit_census {
     inline bool enabled = false;
     enum reason : unsigned { unknown, control, guard, unsupported, memory,
         source_end, interrupt, status, emission_end };
-    inline std::uint32_t last_reason=0, last_pc=0, last_opcode=0, effects=0;
-    inline std::map<std::string,std::uint64_t> exits, runners, compilation, invalidations;
+    inline std::uint32_t last_reason=0, last_pc=0, last_opcode=0, effects=0, last_constraint=0;
+    inline std::map<std::string,std::uint64_t> exits, runners, compilation, invalidations, call_constraints;
     using edge_key=std::tuple<std::string,std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t>;
     inline std::map<edge_key,std::uint64_t> edges;
     using site_key=std::tuple<std::uint32_t,std::uint32_t,std::string>;
     inline std::map<site_key,std::uint64_t> sites;
+    inline std::map<std::pair<std::uint32_t,std::string>,std::uint64_t> probes;
+    inline void probe(std::uint32_t pc,const std::uint8_t *bytes,std::size_t size) {
+        if(!enabled || probes.size()>=8192)return;
+        const char *digits="0123456789abcdef";std::string hex;
+        for(std::size_t n=0;n<size;++n){hex+=digits[bytes[n]>>4];hex+=digits[bytes[n]&15];}
+        ++probes[{pc,hex}];
+    }
     inline std::uint64_t calls=0, dropped_edges=0, dropped_sites=0, zero=0;
     inline bool counting() { return enabled && common::performance::counting(); }
     inline void compile_site(std::uint32_t pc,std::uint32_t op,const char *why) {
@@ -58,6 +65,11 @@ namespace eka2l1::arm::aot::exit_census {
         if(!counting())return;
         ++calls;if(!count)++zero;
         const auto name=classify(entry&1,count,budget,flag);++exits[name];
+        if(std::string(name)=="call") {
+            const char *names[]={"unrecorded","inline_site_limit","leaf_instruction_limit","callee_unsupported",
+                "callee_mapping_extent","callee_unmapped_or_other_space","no_leaf_resolver","conditional_call"};
+            ++call_constraints[names[last_constraint<8?last_constraint:0]];
+        }
         if(calls%common::guest_profile::state.stride)return;
         edge_key k{name,entry,to,asid,last_pc,last_opcode};auto it=edges.find(k);
         if(it!=edges.end())++it->second;else if(edges.size()<131072)edges.emplace(k,1);else ++dropped_edges;
@@ -66,10 +78,11 @@ namespace eka2l1::arm::aot::exit_census {
         std::ostringstream o;o<<"{\"calls\":"<<calls<<",\"zero_progress\":"<<zero<<",\"stride\":"<<common::guest_profile::state.stride
             <<",\"dropped_edges\":"<<dropped_edges<<",\"dropped_compile_sites\":"<<dropped_sites;
         const auto counts=[&](const char *name,const auto &values){o<<",\""<<name<<"\":{";bool first=true;for(const auto &[key,n]:values){if(!first)o<<',';first=false;o<<common::guest_profile::quote(key)<<':'<<n;}o<<'}';};
-        counts("region_exits",exits);counts("runner_returns",runners);counts("invalidations",invalidations);counts("lifetime_compile_events",compilation);
+        counts("region_exits",exits);counts("runner_returns",runners);counts("invalidations",invalidations);counts("call_constraints",call_constraints);counts("lifetime_compile_events",compilation);
         o<<",\"sampled_edges\":[";bool first=true;for(const auto &[k,n]:edges){if(!first)o<<',';first=false;const auto &[why,from,to,asid,site,op]=k;
             o<<"{\"reason\":"<<common::guest_profile::quote(why)<<",\"from\":"<<from<<",\"to\":"<<to<<",\"asid\":"<<asid<<",\"site\":"<<site<<",\"opcode\":"<<op<<",\"samples\":"<<n<<'}';}
         o<<"],\"compile_sites\":[";first=true;for(const auto &[k,n]:sites){if(!first)o<<',';first=false;const auto &[pc,op,why]=k;
-            o<<"{\"pc\":"<<pc<<",\"opcode\":"<<op<<",\"reason\":"<<common::guest_profile::quote(why)<<",\"translations\":"<<n<<'}';}o<<"]}";return o.str();
+            o<<"{\"pc\":"<<pc<<",\"opcode\":"<<op<<",\"reason\":"<<common::guest_profile::quote(why)<<",\"translations\":"<<n<<'}';}o<<"],\"leaf_probes\":[";first=true;for(const auto &[key,n]:probes){if(!first)o<<',';first=false;
+            o<<"{\"address\":"<<key.first<<",\"bytes\":"<<common::guest_profile::quote(key.second)<<",\"probes\":"<<n<<'}';}o<<"]}";return o.str();
     }
 }

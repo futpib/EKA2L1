@@ -21,6 +21,7 @@
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/exit_census.h>
+#include <cpu/aot/execution_limits.h>
 #include <cpu/aot/region_ir.h>
 #include <cpu/12l1r/tlb.h>
 
@@ -327,7 +328,7 @@ namespace eka2l1::arm::aot {
             op(op_end);
 #endif
         }
-        std::uint32_t census_pc=0,census_opcode=0;
+        std::uint32_t census_pc=0,census_opcode=0,census_constraint=0;
         void census_store(std::uint32_t *where,std::uint32_t value) {
             if(!exit_census::enabled)return;
             i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(where)));
@@ -344,6 +345,7 @@ namespace eka2l1::arm::aot {
             census_store(&exit_census::last_reason,reason);
             census_store(&exit_census::last_pc,census_pc);
             census_store(&exit_census::last_opcode,census_opcode);
+            census_store(&exit_census::last_constraint,census_constraint);
         }
         void ret(unsigned why=exit_census::control) {
             census_exit(why);
@@ -755,8 +757,9 @@ namespace eka2l1::arm::aot {
     static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure) {
         failure="callee_unsupported";
         auto bytes = resolve(address);
+        exit_census::probe(address,bytes.data(),bytes.size());
         if(bytes.empty()) {failure="callee_unmapped_or_other_space";return {};}
-        for (std::size_t n = 0; n < 64 && n + 4 <= bytes.size(); n += 4) {
+        for (std::size_t n = 0; n < leaf_instruction_limit*4 && n + 4 <= bytes.size(); n += 4) {
             std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
             if (op == 0xe12fff1e) { bytes.resize(n + 4); return bytes; }
             if ((op >> 28) != 14) return {};
@@ -774,7 +777,7 @@ namespace eka2l1::arm::aot {
                 }
             }
         }
-        failure=bytes.size()>=64?"leaf_instruction_limit":"callee_mapping_extent";
+        failure=bytes.size()>=leaf_instruction_limit*4?"leaf_instruction_limit":"callee_mapping_extent";
         return {};
     }
 
@@ -782,7 +785,7 @@ namespace eka2l1::arm::aot {
     static std::set<std::size_t> find_reachable_offsets_arm(
         const std::uint8_t *code, std::size_t code_size, bool bounded,
         std::uint32_t start_address, const leaf_resolver *leaves,
-        std::map<std::size_t, code_dependency> &inlined)
+        std::map<std::size_t, code_dependency> &inlined, std::map<std::size_t,unsigned> &refusals)
     {
         std::set<std::size_t> reachable;
         if (code_size < 4) return reachable;
@@ -806,21 +809,26 @@ namespace eka2l1::arm::aot {
                     std::int32_t target_off = static_cast<std::int32_t>(i) + offset;
                     bool is_link = (inst >> 24) & 1;
                     if (is_link) {
+                        if(exit_census::enabled)refusals[i]=cond!=14?7:!leaves?6:inlined.size()>=inline_site_limit?1:0;
                         // Bounded BL exits to the runner. Its return address is
                         // a separate entry, not reachable fallthrough in this region.
                         if (bounded && cond >= 0xE) {
-                            if (cond == 14 && leaves && inlined.size() < 8) {
+                            if (cond == 14 && leaves && inlined.size() < inline_site_limit) {
                                 const auto address = start_address + static_cast<std::uint32_t>(target_off);
                                 const char *failure=nullptr;
                                 auto bytes = resolve_leaf(*leaves, address, failure);
                                 exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:"call_inlined");
+                                if(exit_census::enabled && bytes.empty())refusals[i]=
+                                    std::strcmp(failure,"leaf_instruction_limit")==0?2:
+                                    std::strcmp(failure,"callee_unsupported")==0?3:
+                                    std::strcmp(failure,"callee_mapping_extent")==0?4:5;
                                 if (!bytes.empty()) {
                                     inlined.emplace(i, code_dependency{address, std::move(bytes)});
                                     i += 4;
                                     continue;
                                 }
                             }
-                            if(cond==14 && leaves && inlined.size()>=8)
+                            if(cond==14 && leaves && inlined.size()>=inline_site_limit)
                                 exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,"inline_site_limit");
                             break;
                         }
@@ -928,8 +936,9 @@ namespace eka2l1::arm::aot {
         }
 
         std::map<std::size_t, code_dependency> inlined;
+        std::map<std::size_t,unsigned> refusals;
         auto reachable = find_reachable_offsets_arm(code, code_size, bounded,
-            start_address, region ? leaves : nullptr, inlined);
+            start_address, region ? leaves : nullptr, inlined, refusals);
         struct instruction { std::size_t offset; std::uint32_t address, opcode; bool leaf; };
         std::vector<instruction> instructions;
         for (auto i : reachable) {
@@ -1499,6 +1508,7 @@ namespace eka2l1::arm::aot {
             const auto inst = instruction.opcode;
             const auto insn_addr = instruction.address;
             w.census_pc=insn_addr;w.census_opcode=inst;
+            w.census_constraint=exit_census::enabled && !instruction.leaf && refusals.count(i)?refusals.at(i):0;
 
             const unsigned wide_hi = (inst >> 16) & 15, wide_lo = (inst >> 12) & 15;
             const bool lazy_multiply = region && cache_registers && !instruction.leaf

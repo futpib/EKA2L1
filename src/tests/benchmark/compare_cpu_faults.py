@@ -12,6 +12,7 @@ p.add_argument('wasm', type=Path)
 p.add_argument('output', type=Path)
 p.add_argument('--require-equal', action='store_true', help='Exit nonzero on any semantic mismatch')
 p.add_argument('--cases', type=int, choices=(48,64,96,480,672,5376), default=480, help='Expected complete fixture count; read spans has 48, invariant remapping has 64, block spans has 96, extended has 672, conditional IR has 5376')
+p.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
 p.add_argument('--ir-policy', type=int, choices=range(17), help='Require explicit matching probe-policy markers')
 p.add_argument('--code-write-protect', type=int, choices=(0,1))
 p.add_argument('--code-lookup', type=int, choices=(0,1))
@@ -21,6 +22,9 @@ a = p.parse_args()
 
 def load(path):
     lines = path.read_text().splitlines()
+    if a.execution_limits is not None:
+        markers=[line for line in lines if line.startswith('PROBE_LIMITS ')]
+        if markers != [f'PROBE_LIMITS {a.execution_limits}']:raise ValueError(f'{path}: wrong execution limits {markers}')
     if a.ir_policy is not None:
         markers = [line for line in lines if line.startswith('PROBE_POLICY ')]
         if markers != [f'PROBE_POLICY {a.ir_policy}']:
@@ -73,6 +77,8 @@ result = {'cases': len(native), 'all_fields_match': len(native) - len(difference
           'little_endian_unmapped_differences': sum(not d['native']['endian'] and not d['native']['tlb_readonly'] for d in differences),
           'inputs': {str(f): hashlib.sha256(f.read_bytes()).hexdigest() for f in [a.native,a.wasm]},
           'differences': differences}
+if a.execution_limits is not None:
+    result['verified_execution_limits']=a.execution_limits
 if a.tlb_hash is not None:
     result['verified_tlb_hash'] = a.tlb_hash
 if a.code_write_protect is not None:

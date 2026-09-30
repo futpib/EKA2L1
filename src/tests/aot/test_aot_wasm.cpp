@@ -20,6 +20,8 @@
 #include <cpu/dyncom/armstate.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/exit_census.h>
+#include <cpu/aot/execution_limits.h>
+#include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/region_ir.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/thumb_translator.h>
@@ -4566,6 +4568,85 @@ static bool test_folded_tlb_guards() {
     printf("  PASS folded TLB scalar/block/entry guards and exact budgets\n");return true;
 }
 
+
+static unsigned runner_test_action=0,runner_test_calls=0;
+static std::uint32_t runner_test_function(ARMul_State *cpu) {
+    ++runner_test_calls;
+    if(runner_test_action==1)return 0;
+    ++cpu->Reg[0];
+    if(runner_test_action==2)cpu->NumInstrsToExecute=0;
+    if(runner_test_action==3 || runner_test_action==4)cpu->NirqSig=0;
+    if(runner_test_action==5)cpu->Reg[15]=0x54320;
+    return 1;
+}
+static bool test_execution_limits() {
+    struct restore {std::string value=execution_limits_text();bool ram=ram_compilation_enabled;
+        ~restore(){parse_execution_limits(value.c_str());ram_compilation_enabled=ram;global_registry().unregister_function(0x54300);}} saved;
+    if(!parse_execution_limits("512,16,8,512"))return false;
+    for(const char *bad:{"512,16,8,512x","512,16,8","0512,16,8,512","+512,16,8,512",
+        "512,16,8,-1","0,16,8,512","2049,16,8,512","512,0,8,512","512,65,8,512",
+        "512,16,17,512","512,16,8,4097"}) {
+        if(parse_execution_limits(bad)||execution_limits_text()!="512,16,8,512")return false;
+    }
+    test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
+    ram_compilation_enabled=false;global_registry().register_function(0x54300,runner_test_function);
+    auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);
+    unsigned checks=0;
+    for(unsigned cap:{0u,1u,64u,512u,4096u})for(unsigned budget:{0u,1u,63u,64u,65u,511u,512u,513u,4840u})
+    for(unsigned action=0;action<6;++action) {
+        runner_region_limit=cap;runner_test_action=action;runner_test_calls=0;
+        auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54300;cpu.TFlag=0;
+        cpu.NumInstrsToExecute=budget;cpu.aot_budget=budget;cpu.NirqSig=1;cpu.Cpsr=16|(action==4?0x80:0);
+        const auto result=execute_chain(&cpu,runner_test_function);
+        const auto want=!budget?0u:action==1?0u:(action==2||action==3||action==5)?1u:cap?std::min(cap,budget):budget;
+        const auto calls=(!budget)?0u:action==1?1u:want;
+        if(result.instructions!=want || result.blocks!=calls || runner_test_calls!=calls || cpu.Reg[0]!=want) {
+            printf(" FAIL real runner cap=%u budget=%u action=%u instructions=%u/%u blocks=%u/%u\n",cap,budget,action,result.instructions,want,result.blocks,calls);return false;
+        }
+        ++checks;
+    }
+    printf(" PASS execution limits validation and %u real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor checks\n",checks);
+    return true;
+}
+
+static bool test_inline_limits() {
+#ifdef __EMSCRIPTEN__
+    struct restore {std::string value=execution_limits_text();~restore(){parse_execution_limits(value.c_str());}} saved;
+    unsigned checks=0;
+    for(unsigned limit:{8u,16u,32u,64u})for(unsigned sites:{0u,1u,8u,16u})for(unsigned length:{4u,16u,32u,64u,65u}) {
+        configure_execution_limits(512,limit,sites,512);
+        std::vector<unsigned> leaf(length,0xe2800001);leaf.back()=0xe12fff1e;
+        std::vector<unsigned> caller;
+        for(unsigned n=0;n<20;++n)caller.push_back(0xeb000000u|((0x2000u-(0x1000u+n*4+8))/4));
+        leaf_resolver resolver=[&](unsigned pc) {const auto *p=reinterpret_cast<const std::uint8_t*>(leaf.data());
+            return pc==0x2000?std::vector<std::uint8_t>(p,p+leaf.size()*4):std::vector<std::uint8_t>{};};
+        const auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,
+            nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        const unsigned selected=length<=limit?sites:0;
+        if(tr.dependencies.size()!=unsigned(selected!=0)){printf(" FAIL inline selection leaf=%u limit=%u sites=%u dependencies=%zu\n",length,limit,sites,tr.dependencies.size());return false;}
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        const unsigned total=selected*(length+1)+1;
+        for(unsigned budget:{0u,1u,2u,length,length+1,total-1,total,total+1}) {
+            test_mem actual;actual.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(caller.data()),reinterpret_cast<const std::uint8_t*>(caller.data()+caller.size())});
+            actual.write_code(0x2000,{reinterpret_cast<const std::uint8_t*>(leaf.data()),reinterpret_cast<const std::uint8_t*>(leaf.data()+leaf.size())});
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            alignas(8) unsigned state[256]{};state[15]=0x1000;state[14]=0x3000;
+            state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            for(unsigned r=0;r<16;++r)reference->set_reg(r,state[r]);reference->set_cpsr(16);
+            g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+            if(count!=int(std::min(total,budget))){printf(" FAIL inline count limit=%u sites=%u length=%u budget=%u count=%d expected=%u\n",limit,sites,length,budget,count,std::min(total,budget));return false;}
+            if(count)reference->run(count);
+            for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r)){printf(" FAIL inline limits state R%u limit=%u sites=%u length=%u budget=%u got=%x expected=%x\n",r,limit,sites,length,budget,state[r],reference->get_reg(r));return false;}
+            if(actual.data!=expected.data)return false;
+            ++checks;
+        }
+    }
+    printf(" PASS inline leaf/site bounds and %u exact interpreter budget comparisons\n",checks);
+#endif
+    return true;
+}
+
 static bool test_exit_census() {
 #ifdef __EMSCRIPTEN__
     const bool old=exit_census::enabled;exit_census::enabled=true;
@@ -4604,6 +4685,7 @@ static bool test_exit_census() {
 }
 
 int main(int argc, char **argv) {
+    if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census") {exit_census::enabled=true;argc=1;}
     if(argc==2 && std::string(argv[1])=="--write-protection-only") return test_code_write_protection()?0:1;
@@ -5238,6 +5320,8 @@ int main(int argc, char **argv) {
     if (test_invariant_reads(arm_ir_policy::invariant_read_ir)) passed++; else failed++;
     if (test_invariant_writes()) passed++; else failed++;
     if (test_exit_census()) passed++; else failed++;
+    if (test_execution_limits()) passed++; else failed++;
+    if (test_inline_limits()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;

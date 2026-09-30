@@ -20,6 +20,11 @@ const codeLookup = process.env.EKA2L1_CODE_LOOKUP === undefined ? -1 : Number(pr
 if (![-1,0,1].includes(codeLookup)) throw new Error('Invalid code lookup policy');
 const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
 if (![-1,0,1,2,3,4].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
+const limitsText = process.env.EKA2L1_EXECUTION_LIMITS || '512,16,8,512';
+const executionLimits = limitsText.split(',').map(Number);
+if (!/^\d+,\d+,\d+,\d+$/.test(limitsText) || executionLimits.length!==4 || executionLimits.some(n=>!Number.isSafeInteger(n))
+    || executionLimits[0]<128 || executionLimits[0]>2048 || executionLimits[0]%4 || executionLimits[1]<1 || executionLimits[1]>64
+    || executionLimits[2]<0 || executionLimits[2]>16 || executionLimits[3]<0 || executionLimits[3]>4096) throw new Error('Invalid execution limits');
 const irMode = process.env.EKA2L1_AOT_IR_MODE === undefined ? -1 : Number(process.env.EKA2L1_AOT_IR_MODE);
 if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps)');
 const eagerRegions = process.env.EKA2L1_AOT_EAGER_REGIONS === undefined ? -1 : Number(process.env.EKA2L1_AOT_EAGER_REGIONS);
@@ -69,7 +74,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -101,6 +106,11 @@ try {
       if (typeof g.Module._eka2l1_ir_configure !== 'function') throw new Error('Build lacks IR mode selection');
       call('eka2l1_ir_configure', ['number'], [irMode]);
     }
+    if (typeof g.Module._eka2l1_execution_limits_configure === 'function') {
+      call('eka2l1_execution_limits_configure', ['number','number','number','number'], executionLimits);
+      const observed=g.Module.ccall('eka2l1_execution_limits_report','string',[],[]);
+      if(observed!==executionLimits.join(','))throw new Error('Execution limits were not applied');
+    } else if(executionLimits.join(',')!=='512,16,8,512')throw new Error('Execution limits API unavailable');
     if (typeof g.Module._eka2l1_graphics_diagnostics_configure === 'function')
       call('eka2l1_graphics_diagnostics_configure', ['number'], [glDiagnostics ? 1 : 0]);
     else if (glDiagnostics) throw new Error('Build does not support graphics diagnostic configuration');
@@ -126,7 +136,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+  }, {tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -177,7 +187,7 @@ try {
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
+    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');
 } finally {
   await browser?.close();

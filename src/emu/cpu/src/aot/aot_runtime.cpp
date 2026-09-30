@@ -21,6 +21,7 @@
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/exit_census.h>
+#include <cpu/aot/execution_limits.h>
 #include <common/performance.h>
 #include <common/guest_profile.h>
 #include <cpu/dyncom/armstate.h>
@@ -250,7 +251,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     const auto tlb_address = tlb->page_bits == 12 && tlb->folded_index == r12l1::dyncom_folded_tlb
         ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
 
-    while (function && result.instructions < budget && result.blocks < 512) {
+    while (function && result.instructions < budget && (!runner_region_limit || result.blocks < runner_region_limit)) {
         tlb->sync_write_protection();
         cpu->aot_budget = budget - result.instructions;
         if constexpr (Profile) count_ram_dispatch(cpu);
@@ -259,7 +260,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         cpu->aot_exit = 0;
         const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
         if constexpr(Profile) if(exit_census::enabled) {
-            exit_census::last_reason=0;exit_census::effects=0;
+            exit_census::last_reason=0;exit_census::effects=0;exit_census::last_constraint=0;
             exit_census::last_pc=0;exit_census::last_opcode=0;
         }
         const auto count = function(cpu);
@@ -292,7 +293,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     if constexpr(Profile) if(exit_census::counting()) {
         const char *why = !cpu->NumInstrsToExecute ? "stop" : result.instructions==budget ? "budget"
             : (!cpu->NirqSig && !(cpu->Cpsr&0x80)) ? "interrupt"
-            : !function ? "successor_unavailable" : result.blocks==512 ? "region_cap" : "zero_progress";
+            : !function ? "successor_unavailable" : (runner_region_limit && result.blocks==runner_region_limit) ? "region_cap" : "zero_progress";
         ++exit_census::runners[why];
     }
     return result;
@@ -339,12 +340,12 @@ void observe_hot_pc(ARMul_State *cpu) {
             if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("candidate_threshold",key,view.address_space);
             return;
         }
-        const auto size = std::min(std::size_t(chaining_enabled ? 512 : 256), view.size);
+        const auto size = std::min(std::size_t(chaining_enabled ? primary_window_bytes : 256), view.size);
         leaf_resolver leaves = [&](std::uint32_t target) {
             core::code_mapping leaf;
             if (!cpu->parent()->resolve_code(target, leaf) || leaf.address_space != view.address_space)
                 return std::vector<std::uint8_t>{};
-            const auto bytes = std::min(std::size_t(64), leaf.size);
+            const auto bytes = std::min(std::size_t(leaf_instruction_limit*4), leaf.size);
             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
         };
         auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
@@ -387,7 +388,7 @@ void observe_hot_pc(ARMul_State *cpu) {
     auto &count = hot_counts[key];
     if (count >= 8 || ++count != 8) return; // one attempt per immutable entry
     const auto offset = pc - hot_rom_base;
-    const auto size = std::min(chaining_enabled ? 512u : 128u, hot_rom_size - offset);
+    const auto size = std::min(chaining_enabled ? primary_window_bytes : 128u, hot_rom_size - offset);
     auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
                         : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, nullptr, defer_memory_enabled, ir_policy);
     if (tr.func.body.empty() || !tr.entry_supported) return;

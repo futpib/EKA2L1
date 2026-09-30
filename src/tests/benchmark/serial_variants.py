@@ -19,6 +19,7 @@ parser.add_argument('--tlb-hash', action='append', default=[], metavar='NAME=0/1
 parser.add_argument('--code-write-protect', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-lookup', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1/2/3/4')
+parser.add_argument('--execution-limits', action='append', default=[], metavar='NAME=WINDOW,LEAF,SITES,RUNNER')
 parser.add_argument('--input', action='append', default=[], metavar='NAME=INPUT', help='Optional per-variant guest input route')
 parser.add_argument('--start-us', type=int, default=78000000)
 parser.add_argument('--end-us', type=int, default=96000000)
@@ -67,6 +68,18 @@ for item in args.tlb_hash:
     if not separator or name not in dict(variants) or name in hash_modes or value not in ('0', '1'):
         parser.error('TLB hash requires a unique known NAME=0/1')
     hash_modes[name] = int(value)
+limits = {}
+for item in args.execution_limits:
+    name, separator, value = item.partition('=')
+    try:
+        parts = [int(x) for x in value.split(',')]
+        w,l,s,r = parts
+        valid = value == ','.join(map(str,parts)) and 128<=w<=2048 and w%4==0 and 1<=l<=64 and 0<=s<=16 and 0<=r<=4096
+    except ValueError:
+        valid = False
+    if not separator or name not in dict(variants) or name in limits or not valid:
+        parser.error('Execution limits require unique known NAME=WINDOW,LEAF,SITES,RUNNER within supported bounds')
+    limits[name] = parts
 inputs = {}
 for item in args.input:
     name, separator, value = item.partition('=')
@@ -83,7 +96,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
                    EKA2L1_BENCHMARK_AOT='5', EKA2L1_GPU='hardware',
                    EKA2L1_PROFILE_DETAIL='0', EKA2L1_PROFILE_START_US=str(args.start_us))
         for key in ('PROFILE_GATE', 'EKA2L1_AOT_VERIFY', 'EKA2L1_GUEST_PROFILE',
-                    'EKA2L1_AOT_DIAGNOSTICS', 'EKA2L1_V8_FLAGS', 'EKA2L1_V8_DUMP'):
+                    'EKA2L1_AOT_DIAGNOSTICS', 'EKA2L1_EXIT_CENSUS', 'EKA2L1_V8_FLAGS', 'EKA2L1_V8_DUMP'):
             env.pop(key, None)
         env.pop('EKA2L1_AOT_EAGER_REGIONS', None)
         if name in eager_modes:
@@ -106,6 +119,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         env.pop('EKA2L1_AOT_IR_MODE', None)
         if name in modes:
             env['EKA2L1_AOT_IR_MODE'] = str(modes[name])
+        env['EKA2L1_EXECUTION_LIMITS'] = ','.join(map(str,limits.get(name,[512,16,8,512])))
         output = args.output / label
         with (args.output / (label + '.log')).open('w') as log:
             subprocess.run(['node', 'profile.ts', str(args.assets.resolve()),
@@ -113,6 +127,8 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
                            cwd=root / 'src/tests/wasm', env=env, stdout=log,
                            stderr=subprocess.STDOUT, timeout=1800, check=True)
         report = json.loads((output / 'report.json').read_text())
+        if report.get('execution_limits') != limits.get(name,[512,16,8,512]) or report.get('exit_census'):
+            raise RuntimeError('Wrong execution limits or diagnostic census active in timing')
         if report.get('ir_mode', -1) != modes.get(name, -1):
             raise RuntimeError('Profile did not record the requested IR policy')
         if report.get('eager_regions', -1) != eager_modes.get(name, -1):
@@ -129,7 +145,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Profile did not use requested input route')
         if report['measurement']['first_virtual_us'] != args.start_us or report['measurement']['last_virtual_us'] != args.end_us:
             raise RuntimeError('Profile did not use requested guest window')
-        row = dict(code_write_protect=report.get('code_write_protect', -1), code_lookup=report.get('code_lookup', -1), tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
+        row = dict(runtime_footprint=report.get('runtime_footprint'), warmup_seconds=report['warmup_seconds'], execution_limits=report['execution_limits'], code_write_protect=report.get('code_write_protect', -1), code_lookup=report.get('code_lookup', -1), tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
                    eager_regions=report.get('eager_regions', -1),
                    wasm_sha256=report['wasm_sha256'], loader_sha256=report['loader_sha256'],
                    measurement=report['measurement'])

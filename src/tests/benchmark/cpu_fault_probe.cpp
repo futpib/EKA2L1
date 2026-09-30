@@ -5,6 +5,7 @@
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/execution_limits.h>
 #include <cpu/aot/wasm_emitter.h>
 #ifdef EKA_MATCHED_REFERENCE
 #include "matched_kernel_reference.h"
@@ -65,6 +66,11 @@ struct Fixture {
     }
 };
 int main(int argc, char **argv){
+    if(argc>1 && std::strncmp(argv[argc-1],"--execution-limits=",19)==0) {
+        if(!aot::parse_execution_limits(argv[argc-1]+19)){std::cerr<<"Invalid execution limits\n";return 1;}
+        --argc;
+    }
+    std::cout<<"PROBE_LIMITS "<<aot::execution_limits_text()<<"\n";
     if (argc > 1 && std::strncmp(argv[argc-1],"--tlb-hash=",11) == 0) {
         const std::string value(argv[argc-1]+11);
         if(value!="0" && value!="1") {std::cerr<<"Invalid TLB index policy\n";return 1;}

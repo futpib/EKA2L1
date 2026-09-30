@@ -8,6 +8,7 @@ import subprocess
 parser = argparse.ArgumentParser(__doc__)
 parser.add_argument('archive', type=Path)
 parser.add_argument('output', type=Path)
+parser.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
 parser.add_argument('--ir-policy', type=int, choices=range(17), required=True)
 parser.add_argument('--long', action='store_true', help='Include 128-instruction coverage fixture (policies 13/14/15)')
 parser.add_argument('--code-write-protect', type=int, choices=(0,1))
@@ -40,6 +41,9 @@ if a.code_write_protect is not None:
 if a.tlb_hash is not None:
     probe_compare += [f'--tlb-hash={a.tlb_hash}']
     compare_args += ['--tlb-hash',str(a.tlb_hash)]
+if a.execution_limits is not None:
+    probe_compare += [f'--execution-limits={a.execution_limits}']
+    compare_args += ['--execution-limits',a.execution_limits]
 results = []
 for name, count in cases:
     for kind, command in [('native',[str(archive/'tests/eka_cpu_fault_native')]),
@@ -53,6 +57,6 @@ for name, count in cases:
                     '--cases',str(count),'--ir-policy',str(a.ir_policy),'--require-equal']+compare_args,
                    check=True,stdout=subprocess.DEVNULL)
     results.append(json.loads(result.read_text()))
-    (a.output/'summary.json').write_text(json.dumps(dict(code_write_protect=a.code_write_protect,code_lookup=a.code_lookup, ir_policy=a.ir_policy, tlb_hash=a.tlb_hash, code_compare=a.code_compare,
+    (a.output/'summary.json').write_text(json.dumps(dict(execution_limits=a.execution_limits,code_write_protect=a.code_write_protect,code_lookup=a.code_lookup, ir_policy=a.ir_policy, tlb_hash=a.tlb_hash, code_compare=a.code_compare,
         completed_cases=sum(x['cases'] for x in results),results=results),indent=2)+'\n')
     print(name,'PASS',count,'policy',a.ir_policy,flush=True)

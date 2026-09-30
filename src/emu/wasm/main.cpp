@@ -23,6 +23,7 @@
 #include <common/performance.h>
 #include <common/guest_profile.h>
 #include <cpu/aot/exit_census.h>
+#include <cpu/aot/execution_limits.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
 #include <drivers/audio/deterministic.h>
 #include <drivers/audio/clocked.h>
@@ -340,6 +341,16 @@ int eka2l1_route_step_to(int stop_us) {
     g_route.paused = false;
     g_route.changed.notify_one();
     return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_execution_limits_configure(int window,int leaf,int sites,int runner) {
+    if(g_state || window<0 || leaf<0 || sites<0 || runner<0)return -1;
+    return arm::aot::configure_execution_limits(window,leaf,sites,runner)?0:-1;
+}
+EMSCRIPTEN_KEEPALIVE
+const char *eka2l1_execution_limits_report() {
+    static std::string value;value=arm::aot::execution_limits_text();return value.c_str();
 }
 
 EMSCRIPTEN_KEEPALIVE
