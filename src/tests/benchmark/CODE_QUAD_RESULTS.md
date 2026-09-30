@@ -44,6 +44,7 @@ instruction totals and presentations are checked.
 | long-a | 12.43825 | 12.13650 | 12.25640 | +2.49% | +0.99% |
 | long-b | 12.71130 | 12.11285 | 12.30455 | +4.94% | +1.58% |
 | standard-a | 12.49160 | 12.27085 | 12.41520 | +1.80% | +1.18% |
+| standard-b | 12.50720 | 12.38955 | 12.42400 | +0.95% | +0.28% |
 
 Batch A order: original, grouped, served, served, grouped, original.
 Batch B order: grouped, served, original, original, served, grouped.
