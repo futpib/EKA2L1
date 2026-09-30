@@ -60,14 +60,15 @@ autoStart();
 </script>`;
 }
 
-export type CompilerPolicy = { irMode?: number; eagerRegions?: number; tlbHash?: number; codeCompare?: number };
+export type CompilerPolicy = { irMode?: number; eagerRegions?: number; tlbHash?: number; codeCompare?: number; codeLookup?: number };
 
 export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
   const ir = process.env.EKA2L1_AOT_IR_MODE;
   const eager = process.env.EKA2L1_AOT_EAGER_REGIONS;
   const tlb = process.env.EKA2L1_TLB_HASH;
   const compare = process.env.EKA2L1_CODE_COMPARE;
-  if (ir === undefined && eager === undefined && tlb === undefined && compare === undefined) return undefined;
+  const lookup = process.env.EKA2L1_CODE_LOOKUP;
+  if (ir === undefined && eager === undefined && tlb === undefined && compare === undefined && lookup === undefined) return undefined;
   const policy: CompilerPolicy = {};
   if (ir !== undefined) {
     if (!/^(?:-1|[0-9]|10|11|12|13|14|15)$/.test(ir)) throw new Error("Invalid compiler policy");
@@ -85,6 +86,10 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
     if (!/^[012]$/.test(compare)) throw new Error("Invalid exact comparison policy");
     policy.codeCompare = Number(compare);
   }
+  if (lookup !== undefined) {
+    if (!/^[01]$/.test(lookup)) throw new Error("Invalid code lookup policy");
+    policy.codeLookup = Number(lookup);
+  }
   return policy;
 }
 
@@ -93,7 +98,8 @@ function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   if ((policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 15))
       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions))
       || (policy.tlbHash !== undefined && ![0,1].includes(policy.tlbHash))
-      || (policy.codeCompare !== undefined && ![0,1,2].includes(policy.codeCompare)))
+      || (policy.codeCompare !== undefined && ![0,1,2].includes(policy.codeCompare))
+      || (policy.codeLookup !== undefined && ![0,1].includes(policy.codeLookup)))
     throw new Error("Invalid compiler policy");
   return `<script>
 window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
@@ -102,7 +108,7 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
   startEmulator = async function() {
     const state = window.ekaCompilerPolicy;
     if (!state.applied) {
-      for (const [key, entry] of [['irMode','eka2l1_ir_configure'], ['eagerRegions','eka2l1_eager_regions_configure'], ['tlbHash','eka2l1_tlb_hash_configure'], ['codeCompare','eka2l1_code_compare_configure']]) {
+      for (const [key, entry] of [['irMode','eka2l1_ir_configure'], ['eagerRegions','eka2l1_eager_regions_configure'], ['tlbHash','eka2l1_tlb_hash_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['codeLookup','eka2l1_code_lookup_configure']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function'
             || Module.ccall(entry, 'number', ['number'], [state.requested[key]]) !== 0)
