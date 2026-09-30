@@ -46,17 +46,27 @@ namespace eka2l1::arm::r12l1 {
     static constexpr std::uint32_t TLB_ENTRY_COUNT = 1 << TLB_LOOKUP_BIT_COUNT;
     static constexpr std::uint32_t TLB_ENTRY_MASK = TLB_ENTRY_COUNT - 1;
 
+    // Research configuration, frozen before DynCom cores/regions are created.
+    // Native 12l1r cores retain their fixed low-bit index contract.
+    inline bool dyncom_folded_tlb = false;
+
     struct tlb {
     public:
         tlb_entry entries[TLB_ENTRY_COUNT];
 
         std::size_t page_bits;
         std::size_t page_mask;
+        const bool folded_index;
 
-        explicit tlb(std::size_t page_bits)
-            : page_bits(page_bits) {
+        explicit tlb(std::size_t page_bits, bool folded = false)
+            : page_bits(page_bits), folded_index(folded) {
             page_mask = (1 << page_bits) - 1;
             flush();
+        }
+
+        std::size_t index(vaddress addr) const {
+            const auto page = addr >> page_bits;
+            return (folded_index ? page ^ (page >> TLB_LOOKUP_BIT_COUNT) : page) & TLB_ENTRY_MASK;
         }
 
         void flush() {
@@ -65,8 +75,7 @@ namespace eka2l1::arm::r12l1 {
         }
 
         void add(vaddress addr, std::uint8_t *host, const std::uint32_t perm) {
-            const std::size_t page_index = addr >> page_bits;
-            const std::size_t tlb_index = page_index & (TLB_ENTRY_COUNT - 1);
+            const std::size_t tlb_index = index(addr);
             const std::size_t addr_mod = addr & page_mask;
             const vaddress addr_normed = addr & ~page_mask;
 
@@ -93,8 +102,7 @@ namespace eka2l1::arm::r12l1 {
         }
 
         void make_dirty(const vaddress addr) {
-            const std::size_t page_index = addr >> page_bits;
-            const std::size_t tlb_index = page_index & (TLB_ENTRY_COUNT - 1);
+            const std::size_t tlb_index = index(addr);
             const vaddress addr_normed = addr & ~page_mask;
 
             tlb_entry &entry = entries[tlb_index];
@@ -110,7 +118,7 @@ namespace eka2l1::arm::r12l1 {
         std::uint8_t *lookup_access(const vaddress addr) {
             static_assert(Permission == prot_read || Permission == prot_write || Permission == prot_exec);
             const vaddress page = addr & ~page_mask;
-            const auto &entry = entries[(addr >> page_bits) & TLB_ENTRY_MASK];
+            const auto &entry = entries[index(addr)];
             const vaddress tag = Permission == prot_read ? entry.read_addr
                 : Permission == prot_write ? entry.write_addr : entry.execute_addr;
             return page && entry.host_base && tag == page
@@ -118,8 +126,7 @@ namespace eka2l1::arm::r12l1 {
         }
 
         std::uint8_t *lookup(const vaddress addr) {
-            const std::size_t page_index = addr >> page_bits;
-            const std::size_t tlb_index = page_index & (TLB_ENTRY_COUNT - 1);
+            const std::size_t tlb_index = index(addr);
             const vaddress addr_normed = addr & ~page_mask;
 
             tlb_entry &entry = entries[tlb_index];

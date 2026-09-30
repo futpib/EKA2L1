@@ -19,6 +19,7 @@
 
 #include <common/cvt.h>
 #include <common/frame_dumper.h>
+#include <cpu/12l1r/tlb.h>
 #include <common/performance.h>
 #include <common/guest_profile.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
@@ -214,6 +215,14 @@ int eka2l1_ir_configure(int mode) {
 #endif
     if (mode < 0) unsetenv("EKA2L1_AOT_IR_MODE");
     else setenv("EKA2L1_AOT_IR_MODE", std::to_string(mode).c_str(), 1);
+    return 0;
+}
+
+// DynCom and generated guards must select the same index before initialization.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_tlb_hash_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::r12l1::dyncom_folded_tlb = mode != 0;
     return 0;
 }
 

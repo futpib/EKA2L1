@@ -246,7 +246,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     // The owning core and its embedded TLB storage outlive this chain. Entries
     // still change on remaps; only the address of their fixed array is reused.
     auto *tlb = static_cast<dyncom_core *>(cpu->parent())->mem_cache();
-    const auto tlb_address = tlb->page_bits == 12
+    const auto tlb_address = tlb->page_bits == 12 && tlb->folded_index == r12l1::dyncom_folded_tlb
         ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
 
     while (function && result.instructions < budget && result.blocks < 512) {

@@ -12,6 +12,8 @@ if (!assetArg || !outputArg) throw new Error('Usage: node benchmark.ts ASSETS NE
 const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
 const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
+const tlbHash = process.env.EKA2L1_TLB_HASH === undefined ? -1 : Number(process.env.EKA2L1_TLB_HASH);
+if (![-1,0,1].includes(tlbHash)) throw new Error('Invalid TLB index policy');
 const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
 if (![-1,0,1].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
 const irMode = process.env.EKA2L1_AOT_IR_MODE === undefined ? -1 : Number(process.env.EKA2L1_AOT_IR_MODE);
@@ -63,7 +65,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({codeCompare, eagerRegions, irMode, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+  await page.evaluate(async ({tlbHash, codeCompare, eagerRegions, irMode, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -74,6 +76,10 @@ try {
     if (eagerRegions !== -1) {
       if (typeof g.Module._eka2l1_eager_regions_configure !== 'function') throw new Error('Build lacks eager region selection');
       call('eka2l1_eager_regions_configure', ['number'], [eagerRegions]);
+    }
+    if (tlbHash !== -1) {
+      if (typeof g.Module._eka2l1_tlb_hash_configure !== 'function') throw new Error('Build lacks TLB index selection');
+      call('eka2l1_tlb_hash_configure', ['number'], [tlbHash]);
     }
     if (codeCompare !== -1) {
       if (typeof g.Module._eka2l1_code_compare_configure !== 'function') throw new Error('Build lacks exact comparison selection');
@@ -108,7 +114,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {codeCompare, eagerRegions, irMode, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+  }, {tlbHash, codeCompare, eagerRegions, irMode, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -159,7 +165,7 @@ try {
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, code_compare: codeCompare, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
+    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, tlb_hash: tlbHash, code_compare: codeCompare, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');
 } finally {
   await browser?.close();

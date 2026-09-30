@@ -21,6 +21,7 @@
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/region_ir.h>
+#include <cpu/12l1r/tlb.h>
 
 #include <cstring>
 #include <algorithm>
@@ -171,6 +172,14 @@ namespace eka2l1::arm::aot {
                 i32_const(-1); set_local(WRITE_PAGE);
             }
         }
+        void tlb_index(unsigned address_local) {
+            get_local(address_local); i32_const(12); op(op_i32_shr_u);
+            if (r12l1::dyncom_folded_tlb) {
+                get_local(address_local); i32_const(12 + r12l1::TLB_LOOKUP_BIT_COUNT);
+                op(op_i32_shr_u); op(op_i32_xor);
+            }
+            i32_const(r12l1::TLB_ENTRY_MASK); op(op_i32_and); i32_const(4); op(op_i32_shl);
+        }
         void call(std::uint32_t func_idx) {
             instruction_may_exit = true;
             const bool write = func_idx == 1 || func_idx == 3 || func_idx == 5;
@@ -202,8 +211,7 @@ namespace eka2l1::arm::aot {
             i32_const(0); set_local(HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
             op(op_if); op(type_void);
-            get_local(ADDRESS); i32_const(12); op(op_i32_shr_u);
-            i32_const(511); op(op_i32_and); i32_const(4); op(op_i32_shl);
+            tlb_index(ADDRESS);
             get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,write ? 4 : 0);
             get_local(ADDRESS); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
@@ -255,8 +263,7 @@ namespace eka2l1::arm::aot {
             i32_const(4096 - bytes); op(op_i32_le_u); op(op_i32_and);
             load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
             op(op_if); op(type_void);
-            get_local(address_local); i32_const(12); op(op_i32_shr_u);
-            i32_const(511); op(op_i32_and); i32_const(4); op(op_i32_shl);
+            tlb_index(address_local);
             get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,write ? 4 : 0);
             get_local(address_local); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
