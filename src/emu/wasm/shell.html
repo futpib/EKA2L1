@@ -36,13 +36,13 @@
     </div>
     <div id="game-controls" hidden aria-label="Game controls">
         <button id="btn-sound" type="button" disabled aria-pressed="false" onclick="EkaAudio.toggle()">Enable sound</button>
-        <button data-scan="180">Left softkey</button>
+        <button data-scan="164">Left softkey</button>
         <button data-scan="14" aria-label="Left">←</button>
         <button data-scan="16" aria-label="Up">↑</button>
         <button data-scan="167">Select</button>
         <button data-scan="17" aria-label="Down">↓</button>
         <button data-scan="15" aria-label="Right">→</button>
-        <button data-scan="181">Right softkey</button>
+        <button data-scan="165">Right softkey</button>
     </div>
     <div id="status">Ready</div>
     <details id="log-panel"><summary>Log</summary><div id="log" role="log"></div></details>
@@ -140,9 +140,10 @@
 
         var _gameRunning = false;
         var _inputSources = new Map();
+        // S60 softkeys use Device0/Device1 scan codes.
         var _keyScans = {ArrowLeft:14, ArrowRight:15, ArrowUp:16, ArrowDown:17,
             KeyA:14, KeyD:15, KeyW:16, KeyS:17, Enter:167, NumpadEnter:167,
-            Space:167, F1:180, F2:181, Escape:181};
+            Space:167, F1:164, F2:165, Escape:165};
         function _pressSource(source, scan) {
             if (!_gameRunning || _inputSources.has(source)) return;
             var alreadyDown = Array.from(_inputSources.values()).includes(scan);
