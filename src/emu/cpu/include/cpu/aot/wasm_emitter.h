@@ -40,6 +40,7 @@ namespace eka2l1::arm::aot {
         op_call = 0x10,
 
         op_drop = 0x1A,
+        op_select = 0x1B,
 
         op_local_get = 0x20,
         op_local_set = 0x21,

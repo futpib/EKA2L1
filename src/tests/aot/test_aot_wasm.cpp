@@ -3231,6 +3231,66 @@ static bool test_ir_flags() {
     return true;
 }
 
+static bool test_ir_conditions() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    const unsigned operations[] = {0x00902001u,0x01b02081u,0x01500001u,0x00a02001u};
+    const unsigned inputs[][2]={{0,0},{0xffffffffu,1},{0x7fffffffu,1},{0x80000000u,0xffffffffu}};
+    unsigned comparisons=0;
+    for(unsigned condition=0;condition<14;++condition) for(unsigned operation:operations) {
+        const unsigned code[]={0xe1a08000u,operation|(condition<<28),0x01a04002u|(((condition+1)%14)<<28),
+            0xe59a5000u,0xe0956001u,0xe58b4000u,0xe12fff1eu};
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(code);
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,arm_ir_policy::conditional_value_ir);
+        if(!tr.complete || tr.ir_conditional_instructions!=2 || !tr.ir_memory_guards) {
+            printf("  FAIL conditional IR selection cond=%u op=%x selected=%u\n",condition,operation,tr.ir_conditional_instructions);return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(const auto &input:inputs)for(unsigned flags=0;flags<16;++flags)
+        for(unsigned budget=0;budget<=7;++budget)for(bool mapped:{false,true}) {
+            test_mem actual;actual.write_code(0x1000,{bytes,bytes+sizeof(code)});
+            actual.write32(0x8000,0x87654321);actual.write32(0x9000,0x87654321);
+            test_mem reference_memory=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12);tlb.add(0x8000,actual.data.data()+0x8000,3);
+            alignas(8) std::uint32_t state[256]{};
+            for(unsigned reg=0;reg<16;++reg) {
+                const unsigned value=reg==0?input[0]:reg==1?input[1]:reg==15?0x1000u:reg==14?0x2000u
+                    :reg==10?(mapped?0x8000u:0x9000u):reg==11?0x8080u:0xabc00000u+reg;
+                state[reg]=value;reference->set_reg(reg,value);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(code);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            if(count!=int(std::min(budget,mapped?7u:3u)) || g_memory_helper_calls) {
+                printf("  FAIL conditional IR count cond=%u budget=%u mapped=%u count=%d\n",condition,budget,mapped,count);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf("  FAIL conditional IR cond=%u op=%x flags=%u budget=%u R%u actual=%x expected=%x\n",condition,operation,flags,budget,reg,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1))return false;
+            if(actual.data!=reference_memory.data)return false;
+            ++comparisons;
+        }
+    }
+    // Rejected speculative effects remain original-emitter boundaries.
+    struct access {unsigned host, offset;};
+    const std::map<std::uint32_t, access> no_accesses;
+    for(unsigned opcode:{0x05902000u,0x05802000u,0x01a0f000u,0x0a000000u,0x012fff1eu}) {
+        region_ir trial(0x1000);
+        if(trial.append_conditional(opcode,0x1000,no_accesses,true,true))return false;
+    }
+    printf("  PASS ir_conditions (%u exact predicate/flags/state/memory/budget comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
 static bool test_ir_segments() {
 #if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_SEGMENTS)
     struct program { std::vector<std::uint32_t> body; unsigned extra = 0; };
@@ -4790,6 +4850,7 @@ int main(int argc, char **argv) {
     if (test_invariant_writes(arm_ir_policy::write_budget_chunks)) passed++; else failed++;
     if (test_region_ir()) passed++; else failed++;
     if (test_ir_flags()) passed++; else failed++;
+    if (test_ir_conditions()) passed++; else failed++;
     if (test_ir_segments()) passed++; else failed++;
     if (test_ir_memory_exits()) passed++; else failed++;
     if (test_ir_exit_recipes()) passed++; else failed++;

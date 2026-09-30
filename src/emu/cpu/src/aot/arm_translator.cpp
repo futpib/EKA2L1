@@ -369,6 +369,8 @@ namespace eka2l1::arm::aot {
         auto emit_pure = [&](auto &&input, const region_ir::node &node) {
             input(node.a);
             switch (node.op) {
+            case region_ir::choose:
+                input(node.b); input(static_cast<unsigned>(node.immediate)); w.op(op_select); break;
             case region_ir::pack:
                 w.op(op_i64_extend_i32_u); input(node.b); w.op(op_i64_extend_i32_u);
                 w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shl); w.op(op_i64_or); break;
@@ -907,7 +909,7 @@ namespace eka2l1::arm::aot {
         std::vector<proof_group> proof_groups;
         std::vector<proof_access> proof_accesses;
         bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && ir_policy != arm_ir_policy::deferred_chunk_counts && ir_policy != arm_ir_policy::invariant_read_ir && ir_policy != arm_ir_policy::invariant_read_flag_ir && ir_policy != arm_ir_policy::inline_call_ir && ir_policy != arm_ir_policy::invariant_write_ir && w.region && w.defer_memory && cache_registers && !instructions.empty();
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && ir_policy != arm_ir_policy::deferred_chunk_counts && ir_policy != arm_ir_policy::invariant_read_ir && ir_policy != arm_ir_policy::invariant_read_flag_ir && ir_policy != arm_ir_policy::inline_call_ir && ir_policy != arm_ir_policy::invariant_write_ir && ir_policy != arm_ir_policy::conditional_value_ir && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
         // The guarded IR is an opt-in research path. Version tracking also
         // keeps its existing compiler until separately validated.
@@ -988,9 +990,9 @@ namespace eka2l1::arm::aot {
         // unchanged entry registers. They admit loops and conditional accesses.
         // Write proofs also exclude physical code aliases. All helper paths end
         // this region before a later instruction can use a pointer invalidated by a callback.
-        const bool include_writes = ir_policy == arm_ir_policy::invariant_writes || ir_policy == arm_ir_policy::invariant_write_ir
+        const bool include_writes = ir_policy == arm_ir_policy::invariant_writes || (ir_policy == arm_ir_policy::invariant_write_ir || ir_policy == arm_ir_policy::conditional_value_ir)
             || ir_policy == arm_ir_policy::write_budget_chunks || ir_policy == arm_ir_policy::deferred_chunk_counts;
-        bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || (ir_policy == arm_ir_policy::inline_call_ir || ir_policy == arm_ir_policy::invariant_write_ir) || include_writes || ir_policy == arm_ir_policy::budget_chunks)
+        bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || (ir_policy == arm_ir_policy::inline_call_ir || (ir_policy == arm_ir_policy::invariant_write_ir || ir_policy == arm_ir_policy::conditional_value_ir)) || include_writes || ir_policy == arm_ir_policy::budget_chunks)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #ifdef EKA2L1_WASM_CODE_VERSIONS
         invariant_reads = false;
@@ -1245,9 +1247,9 @@ namespace eka2l1::arm::aot {
             const bool dynamic_memory = false;
 #endif
             const std::map<std::uint32_t, arm_emit::proved_access> no_memory;
-            const auto &segment_memory = (ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || (ir_policy == arm_ir_policy::inline_call_ir || ir_policy == arm_ir_policy::invariant_write_ir)) ? w.proved_accesses : no_memory;
+            const auto &segment_memory = (ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || (ir_policy == arm_ir_policy::inline_call_ir || (ir_policy == arm_ir_policy::invariant_write_ir || ir_policy == arm_ir_policy::conditional_value_ir))) ? w.proved_accesses : no_memory;
 #ifdef EKA2L1_WASM_IR_OUTLINE
-            const bool join_calls = (ir_policy == arm_ir_policy::inline_call_ir || ir_policy == arm_ir_policy::invariant_write_ir);
+            const bool join_calls = (ir_policy == arm_ir_policy::inline_call_ir || (ir_policy == arm_ir_policy::invariant_write_ir || ir_policy == arm_ir_policy::conditional_value_ir));
 #else
             const bool join_calls = false;
 #endif
@@ -1282,7 +1284,10 @@ namespace eka2l1::arm::aot {
                     // Other control transfers remain segment boundaries.
                     if (!dynamic_memory && (((op >> 26) & 3) != 0
                         || (op & 0x0f8000f0u) == 0x00800090u)) break;
-                    if (!trial.append(op, ins.address, false, segment_memory, dynamic_memory, ir_policy == arm_ir_policy::invariant_read_flag_ir || join_calls)) break;
+                    const bool appended = ir_policy == arm_ir_policy::conditional_value_ir
+                        ? trial.append_conditional(op, ins.address, segment_memory, dynamic_memory, true)
+                        : trial.append(op, ins.address, false, segment_memory, dynamic_memory, ir_policy == arm_ir_policy::invariant_read_flag_ir || join_calls);
+                    if (!appended) break;
                     graph = std::move(trial);
                 }
                 if (end - first < 3 || !graph.valid()) { ++first; continue; }
@@ -1565,6 +1570,7 @@ namespace eka2l1::arm::aot {
                 ++tr.ir_segments;
                 tr.ir_flag_instructions += part.graph.flag_instructions;
                 tr.ir_inline_transfers += part.graph.inline_transfers;
+                tr.ir_conditional_instructions += part.graph.conditional_instructions;
                 for (unsigned v = 1; v < part.graph.nodes.size(); ++v) {
                     if (part.graph.nodes[v].op == region_ir::guarded_host) ++tr.ir_memory_guards;
                     if (part.graph.nodes[v].op == region_ir::read32

@@ -119,9 +119,9 @@ async function runTests(): Promise<void> {
     await page.evaluate(() => {
       const m = (window as any).Module;
       const configure = (n: number) => m.ccall('eka2l1_ir_configure', 'number', ['number'], [n]);
-      if (configure(-2) !== -1 || configure(13) !== -1 || configure(0) !== 0)
+      if (configure(-2) !== -1 || configure(14) !== -1 || configure(0) !== 0)
         throw new Error('IR mode validation failed');
-      for (const mode of [1,2,3,4,5,6,7,8,9,10,11,12]) if (![0,-2].includes(configure(mode)))
+      for (const mode of [1,2,3,4,5,6,7,8,9,10,11,12,13]) if (![0,-2].includes(configure(mode)))
         throw new Error('IR capability response failed');
       if (configure(-1) !== 0) throw new Error('IR default restoration failed');
     });

@@ -17,7 +17,7 @@ namespace eka2l1::arm::aot {
         using value = unsigned;
         enum operation : unsigned { constant = 256, state, host, pack, low, high,
             read32, read8u, read8s, read16u, read16s,
-            write32, write8, write16, guarded_host };
+            write32, write8, write16, guarded_host, choose };
         static bool is_read(unsigned op) { return op >= read32 && op <= read16s; }
         static bool is_write(unsigned op) { return op >= write32 && op <= write16; }
         static bool is_effect(unsigned op) { return is_read(op) || is_write(op) || op == guarded_host; }
@@ -39,7 +39,7 @@ namespace eka2l1::arm::aot {
         std::vector<value> effects;
         std::map<std::tuple<unsigned,unsigned,value,value,std::uint64_t>, value> numbers;
         bool optimize = true;
-        unsigned flag_instructions = 0, inline_transfers = 0;
+        unsigned flag_instructions = 0, inline_transfers = 0, conditional_instructions = 0;
 
         explicit region_ir(std::uint32_t pc, bool optimize_ = true) : optimize(optimize_) {
             snapshot entry{};
@@ -282,6 +282,52 @@ namespace eka2l1::arm::aot {
             ++next.count; snapshots.push_back(next); return true;
         }
 
+        value select(value predicate, value yes, value no) {
+            if (optimize) {
+                if (yes == no) return yes;
+                if (nodes[predicate].op == constant) return nodes[predicate].immediate ? yes : no;
+            }
+            // choose.immediate is a third VALUE dependency, not a literal.
+            return make(choose, type_i32, yes, no, predicate);
+        }
+        value condition(unsigned cond) {
+            const auto &f = snapshots.back().flags;
+            auto invert = [&](value v) { return binary(op_i32_xor, v, imm(1)); };
+            switch (cond) {
+            case 0: return f[1]; case 1: return invert(f[1]);
+            case 2: return f[2]; case 3: return invert(f[2]);
+            case 4: return f[0]; case 5: return invert(f[0]);
+            case 6: return f[3]; case 7: return invert(f[3]);
+            case 8: return binary(op_i32_and, f[2], invert(f[1]));
+            case 9: return binary(op_i32_or, invert(f[2]), f[1]);
+            case 10: return binary(op_i32_eq, f[0], f[3]);
+            case 11: return binary(op_i32_xor, f[0], f[3]);
+            case 12: return binary(op_i32_and, invert(f[1]), binary(op_i32_eq, f[0], f[3]));
+            case 13: return binary(op_i32_or, f[1], binary(op_i32_xor, f[0], f[3]));
+            default: return imm(1);
+            }
+        }
+        template <typename AccessMap>
+        bool append_conditional(std::uint32_t op, std::uint32_t pc, const AccessMap &accesses,
+            bool dynamic_memory, bool allow_flags) {
+            const unsigned cond = op >> 28;
+            if (cond == 14) return append(op, pc, false, accesses, dynamic_memory, allow_flags);
+            if (cond == 15) return false;
+            const auto old = snapshots.back();
+            const auto predicate = condition(cond); // pre-instruction NZCV
+            const auto effect_count = effects.size();
+            if (!append((op & 0x0fffffffu) | 0xe0000000u, pc, false, accesses, dynamic_memory, allow_flags)
+                || effects.size() != effect_count || snapshots.back().regs[15] != imm(pc + 4)) return false;
+            // Only nontrapping pure integer expressions reach this merge. Never
+            // speculate conditional memory effects, PC writes or helper calls.
+            auto next = snapshots.back();
+            for (unsigned reg = 0; reg < 15; ++reg)
+                next.regs[reg] = select(predicate, next.regs[reg], old.regs[reg]);
+            for (unsigned flag = 0; flag < 5; ++flag)
+                next.flags[flag] = select(predicate, next.flags[flag], old.flags[flag]);
+            snapshots.back() = next; ++conditional_instructions; return true;
+        }
+
         // Only the caller's validated inline-leaf stream may use these.
         // Counts and true guest PCs include both BL and BX LR. The leaf proof
         // excludes LR writes; its return is the known ARM caller continuation.
@@ -310,6 +356,10 @@ namespace eka2l1::arm::aot {
                 case state: case host: if (n.a || n.b || n.type != type_i32) return false; break;
                 case low: case high: if (!unary_type(type_i64, type_i32)) return false; break;
                 case op_i64_extend_i32_s: case op_i64_extend_i32_u: if (!unary_type(type_i32, type_i64)) return false; break;
+                case choose:
+                    if (!binary_type(type_i32, type_i32) || !n.immediate || n.immediate >= v
+                        || nodes[n.immediate].type != type_i32) return false;
+                    break;
                 case pack: if (!binary_type(type_i32, type_i64)) return false; break;
                 case op_i64_add: case op_i64_mul: if (!binary_type(type_i64, type_i64)) return false; break;
                 case read32: case read8u: case read8s: case read16u: case read16s: if (!unary_type(type_i32, type_i32)) return false; break;
@@ -343,6 +393,7 @@ namespace eka2l1::arm::aot {
             auto mark = [&](auto &&self, value v) -> void {
                 if (!v || live[v]) return;
                 live[v] = true; self(self, nodes[v].a); self(self, nodes[v].b);
+                if (nodes[v].op == choose) self(self, static_cast<value>(nodes[v].immediate));
             };
             for (auto v : effects) mark(mark, v);
             for (auto e : exits) {
