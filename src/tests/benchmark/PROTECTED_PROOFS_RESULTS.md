@@ -24,7 +24,7 @@ guest records and 4,919,249 stereo PCM frames. The protected proof policy also
 matches the longer route for 360 images, guest records and audio. The generic
 fault fixtures are not all watched-page tests; those are covered separately.
 
-Timing is pending. Correctness capture jobs overlapped and their wall times are
+Correctness capture jobs overlapped and their wall times are
 not performance evidence. No promotion or deployment is claimed. Raw reports
 and archive/source hashes are in PROTECTED_PROOFS_EVIDENCE.json.
 
@@ -40,3 +40,12 @@ slightly faster than matching policy 0. All six samples, including the slower
 closing runs, remain. Reordered confirmation is required before promotion.
 Physical NVIDIA Vulkan rendering and the current 610.57.04 environment are
 recorded, with counters and capture disabled throughout timing.
+
+## Reordered longer-route confirmation
+
+Order: proofs, served, protected, protected, served, proofs. Mean seconds:
+11.92725 / 12.13945 / 13.64745 respectively. Throughput improves 1.78% against
+live, following 2.04% in batch A. All four adjacent live comparisons favor the
+combination. The matching policy-0 lead is 14.42%, with visibly slower controls;
+it must not be presented as the net live-build gain. All twelve observations
+are retained. Standard-scene measurements are next; no deployment.
