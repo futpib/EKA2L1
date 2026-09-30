@@ -26,9 +26,9 @@ whole-emulator ranking or a prediction of Snakes speed.
   not timing samples. The downloaded QEMU demo binary's source/build provenance
   must not be inferred from the current source checkout alone.
 
-The source survey also mentioned x86 v86 and SH4 Flycast: these cannot execute
-identical ARM instructions. Equivalent-algorithm ports would form a separate
-comparison. Voland's previously inspected no-op backend cannot get a CPU score.
+The x86 v86 and SH4 Flycast adapters below execute equivalent algorithms, not
+identical ARM instructions, and form separate comparisons. Voland has no working
+guest-code backend at the recorded revision and cannot get a CPU score.
 
 ## Workloads and checks
 
@@ -129,3 +129,33 @@ the independent algorithm reference; scratch SH4 registers and PC differ by ISA.
 It polls completion between 10,000-cycle dispatch slices, so bounded terminal-loop
 work is included. Setup (decode, SSA, module compilation, initialization) is
 recorded separately from execution. Initial and warmup observations are retained.
+
+## Full EKA CPU control
+
+`eka_full.cpp` adds the normal `dyncom_core::run` path: demand compilation,
+interpreter fallback, validated code-cache lookup, exact byte comparisons and
+compiled dispatch. It uses the same flat bounded RAM callbacks as the other
+CPU adapters, without Symbian/device scheduling. Runtime choices match the
+served policy: original emitter policy 7, folded TLB index, grouped exact scanner.
+The build rejects code versions/lifecycle/write protection at compile time.
+The first full run includes demand translation/module compilation. Measured runs
+reuse compiled code; setup resets registers/data and refills the TLB. Completion
+is polled every 10,000 guest instructions, including bounded terminal-loop work.
+
+Configure a **separate** Emscripten build with `EKA_BROWSER_CPU_COMPARISON=ON`,
+`EKA2L1_WASM_CODE_VERSIONS=OFF`, `EKA2L1_WASM_CODE_LIFECYCLE=OFF` and
+`EKA2L1_WASM_CODE_WRITE_PROTECTION=OFF`; build target `eka_browser_cpu`.
+Copy its JS/WASM to a scratch output as `eka_full.js` / `eka_browser_cpu.wasm`
+(the loader requests the original WASM basename), then run:
+
+```
+CORE_NAMES=eka_full CORE_KINDS=4 node src/tests/benchmark/browser_cores/run.mjs OUTPUT REPORT.json
+```
+
+The runner requires actual guest compilation and separately checks an untimed
+census of compiled instructions, dispatches and interpreted instructions. An
+untimed code-mutation check clears only the interpreter decoded cache, leaves
+the AOT cache and mapping generation intact, and verifies changed results and
+restoration. This tests rejection of stale compiled code by the exact validator.
+These diagnostics are excluded from measured medians. This is still a CPU-kernel comparison,
+not a whole-Snakes performance result.

@@ -28,3 +28,5 @@ endif()
 include(${CMAKE_CURRENT_SOURCE_DIR}/../benchmark/matched_kernel.cmake)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../benchmark/audio_probe.cmake)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/../benchmark/browser_cores/eka_full.cmake)
