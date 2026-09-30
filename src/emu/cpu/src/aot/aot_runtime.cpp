@@ -192,7 +192,7 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
     region_enabled = chaining_enabled && region && region[0] == '1';
     ir_policy = arm_ir_policy::configured;
     const char *ir = std::getenv("EKA2L1_AOT_IR_MODE");
-    if (ir && ir[0] >= '0' && ir[0] <= '7' && ir[1] == '\0')
+    if (ir && ir[0] >= '0' && ir[0] <= '8' && ir[1] == '\0')
         ir_policy = static_cast<arm_ir_policy>(ir[0] - '0');
 }
 

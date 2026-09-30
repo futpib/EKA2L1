@@ -66,6 +66,17 @@ namespace eka2l1::arm::aot {
         bool entry_supported = true;
         bool unsupported = false;
         std::uint32_t bail_count = 0;
+        // Offset within an entry-proved straight-line chunk. Cold exits consume
+        // it without changing the representation on the successful path.
+        unsigned count_offset = 0;
+        void count_value() {
+            get_local(COUNT);
+            if (count_offset) { i32_const(count_offset); op(op_i32_add); }
+        }
+        void commit_count() {
+            if (!count_offset) return;
+            count_value(); set_local(COUNT); count_offset = 0;
+        }
         // A straight-line long-multiply value can represent two guest registers.
         // Exits reconstruct their exact halves; control/helper boundaries end
         // the representation. Local 1 is the reserved i64 multiply result.
@@ -317,13 +328,13 @@ namespace eka2l1::arm::aot {
 
         void bail(std::uint32_t pc, std::uint32_t instr_count) {
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
-            if (region) get_local(COUNT); else i32_const(static_cast<std::int32_t>(instr_count));
+            if (region) count_value(); else i32_const(static_cast<std::int32_t>(instr_count));
             ret();
             bail_count++;
         }
 
         void bail_preserve_pc(std::uint32_t instr_count) {
-            if (region) get_local(COUNT); else i32_const(static_cast<std::int32_t>(instr_count));
+            if (region) count_value(); else i32_const(static_cast<std::int32_t>(instr_count));
             ret();
             bail_count++;
         }
@@ -896,7 +907,7 @@ namespace eka2l1::arm::aot {
         std::vector<proof_group> proof_groups;
         std::vector<proof_access> proof_accesses;
         bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && w.region && w.defer_memory && cache_registers && !instructions.empty();
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && ir_policy != arm_ir_policy::deferred_chunk_counts && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
         // The guarded IR is an opt-in research path. Version tracking also
         // keeps its existing compiler until separately validated.
@@ -978,7 +989,7 @@ namespace eka2l1::arm::aot {
         // Write proofs also exclude physical code aliases. All helper paths end
         // this region before a later instruction can use a pointer invalidated by a callback.
         const bool include_writes = ir_policy == arm_ir_policy::invariant_writes
-            || ir_policy == arm_ir_policy::write_budget_chunks;
+            || ir_policy == arm_ir_policy::write_budget_chunks || ir_policy == arm_ir_policy::deferred_chunk_counts;
         bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || include_writes || ir_policy == arm_ir_policy::budget_chunks)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #ifdef EKA2L1_WASM_CODE_VERSIONS
@@ -1182,7 +1193,7 @@ namespace eka2l1::arm::aot {
         // compiler before effects; the hot path keeps every count/exit check.
         std::map<std::size_t, unsigned> budget_chunks;
         if (allow_memory_proof && (ir_policy == arm_ir_policy::budget_chunks
-                || ir_policy == arm_ir_policy::write_budget_chunks)
+                || ir_policy == arm_ir_policy::write_budget_chunks || ir_policy == arm_ir_policy::deferred_chunk_counts)
             && w.region && cache_registers) {
             auto straight = [](std::uint32_t op) {
                 if ((op >> 28) == 15) return false;
@@ -1226,7 +1237,7 @@ namespace eka2l1::arm::aot {
         std::vector<std::pair<std::size_t, unsigned>> wide_fixups;
 #ifdef EKA2L1_WASM_IR_SEGMENTS
         if (allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && w.region && cache_registers && !ir) {
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && ir_policy != arm_ir_policy::deferred_chunk_counts && w.region && cache_registers && !ir) {
             unsigned max_locals = 0, max_wide_locals = 0;
 #if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
             const bool dynamic_memory = w.defer_memory;
@@ -1377,6 +1388,9 @@ namespace eka2l1::arm::aot {
         for (const auto &instruction : instructions) {
             const auto instruction_index = static_cast<std::size_t>(&instruction - instructions.data());
             if (instruction_index < skip_segment_until) continue;
+            // Flush fallthrough before closing labels: a taken edge must not
+            // inherit the lexical predecessor's pending instruction count.
+            if (instruction_index >= budget_chunk_end) w.commit_count();
             // Opcode emitters commonly continue the outer loop. Close the
             // fallback at the next lexical boundary so all such paths join.
             if (segment_end && segment_end == instruction_index) {
@@ -1462,7 +1476,13 @@ namespace eka2l1::arm::aot {
                     w.bail(insn_addr, insn_idx);
                     w.op(op_end);
                 }
-                if (region) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(arm_emit::COUNT); }
+                if (region) {
+                    if (ir_policy == arm_ir_policy::deferred_chunk_counts && instruction_index < budget_chunk_end) {
+                        ++w.count_offset; ++tr.deferred_count_updates;
+                    } else {
+                        w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(arm_emit::COUNT);
+                    }
+                }
                 // Match DynCom's PLD decode: an optional prefetch hint has no
                 // architectural effect, but still consumes one guest instruction.
                 if ((inst & 0xFD70F000) == 0xF550F000) {
@@ -2584,6 +2604,7 @@ namespace eka2l1::arm::aot {
             // be reachable via forward branches.
         }
 
+        w.commit_count();
         if (segment_end) { w.end_wide(); w.op(op_end); }
         if (inner_loop_open) w.op(op_end);
 

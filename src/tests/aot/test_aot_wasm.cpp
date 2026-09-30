@@ -2808,10 +2808,19 @@ static bool test_budget_chunks(arm_ir_policy policy = arm_ir_policy::budget_chun
         {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0x12811004},
         {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe0010394},
     };
+    if (policy == arm_ir_policy::deferred_chunk_counts) {
+        // Taken and untaken forward edges must not inherit another path's
+        // pending count. Both arms contain proved chunks before their join.
+        programs.push_back({0xe2800001,0xe3560000,0x0a000003,
+            0xe2822001,0xe2833001,0xe2844001,0xe2877001,
+            0xe2888001,0xe2899001,0xe28aa001,0xe28bb001});
+    }
     // Three chunks exercise multiple private callees and exact prefix counts.
     std::vector<std::uint32_t> long_program;
     for (unsigned n = 0; n < 24; ++n)
-        for (auto op : {0xe2800001u,0xe2922001u,0x00223004u,0xe2844001u}) long_program.push_back(op);
+        for (auto op : {0xe2800001u,0xe2922001u,0x00223004u,
+                policy == arm_ir_policy::deferred_chunk_counts ? 0xe581400cu : 0xe2844001u})
+            long_program.push_back(op);
     programs.push_back(long_program);
     unsigned checks = 0;
     for (const auto &code : programs) {
@@ -2819,6 +2828,7 @@ static bool test_budget_chunks(arm_ir_policy policy = arm_ir_policy::budget_chun
         auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
             nullptr, nullptr, true, true, true, true, nullptr, true, policy);
         if (!tr.budget_chunks || tr.func.outlined_calls.empty() || tr.ir_segments
+            || (policy == arm_ir_policy::deferred_chunk_counts && !tr.deferred_count_updates)
             || (&code == &programs.back() && tr.budget_chunks != 3)) {
             printf("  FAIL budget chunk selection program=%u chunks=%u\n", unsigned(&code-programs.data()),tr.budget_chunks); return false;
         }
@@ -2921,7 +2931,9 @@ static bool test_invariant_writes(arm_ir_policy policy = arm_ir_policy::invarian
         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
         auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
             nullptr, nullptr, true, true, true, true, nullptr, true, policy);
-        if (policy == arm_ir_policy::write_budget_chunks && (!tr.budget_chunks || tr.func.outlined_calls.empty())) {
+        if ((policy == arm_ir_policy::write_budget_chunks || policy == arm_ir_policy::deferred_chunk_counts)
+            && (!tr.budget_chunks || tr.func.outlined_calls.empty()
+                || (policy == arm_ir_policy::deferred_chunk_counts && !tr.deferred_count_updates))) {
             printf("  FAIL combined write/budget chunk selection\n"); return false;
         }
         const bool selected = &code - programs.data() < 3;
@@ -4669,6 +4681,8 @@ int main(int argc, char **argv) {
     if (test_invariant_writes()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;
+    if (test_budget_chunks(arm_ir_policy::deferred_chunk_counts)) passed++; else failed++;
+    if (test_invariant_writes(arm_ir_policy::deferred_chunk_counts)) passed++; else failed++;
     if (test_invariant_writes(arm_ir_policy::write_budget_chunks)) passed++; else failed++;
     if (test_region_ir()) passed++; else failed++;
     if (test_ir_segments()) passed++; else failed++;
