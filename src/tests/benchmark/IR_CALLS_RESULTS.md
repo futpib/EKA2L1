@@ -3,7 +3,7 @@
 Policy 11 keeps IR values across existing validated BL/leaf/BX sequences, with
 real guest PC/LR/count snapshots and a precise first-instruction fallback for
 short budgets. It stays opt-in and has not changed LAN delivery. Performance
-timing is pending. This measures the combined design, including reduced
+The completed serial batch does not support replacing the served archive. This measures the combined design, including reduced
 fallback duplication, not cross-call value reuse in isolation.
 
 ## Correctness
@@ -58,3 +58,24 @@ no owned heavy job to overlap warmup or measurement.
 
 IR_CALLS_DESIGN.md describes the boundaries and precise fallback. Raw results,
 source/binary hashes and fixture metadata are in IR_CALLS_EVIDENCE.json.
+
+## Completed serial batch
+
+| Run | Seconds |
+| --- | ---: |
+| calls-1 | 13.7958 |
+| flags-1 | 13.9644 |
+| combined-1 | 13.9660 |
+| served-1 | 12.5627 |
+| served-2 | 13.6998 |
+| combined-2 | 13.7938 |
+| flags-2 | 13.6881 |
+| calls-2 | 14.5595 |
+
+Mean elapsed seconds: calls 14.1776, flags 13.8262, combined 13.8799, served 13.1312.
+Candidate throughput relative to controls: flags -2.48%, combined -2.10%, served -7.38%.
+
+All eight samples are retained. This single batch does not establish a
+repeatable marginal call-IR benefit or support replacing the exact served
+archive. The selected policy 7 archive remains live. No owned heavy job
+overlapped warmup or measurement. The IR policies stay opt-in.
