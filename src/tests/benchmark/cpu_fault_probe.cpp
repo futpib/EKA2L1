@@ -58,10 +58,10 @@ int main(int argc, char **argv){
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         const std::string value(mode);
-        if(value!="0" && value!="1" && value!="2" && value!="3") {std::cerr<<"Invalid IR mode\n";return 1;}
+        if(value!="0" && value!="1" && value!="2" && value!="3" && value!="4") {std::cerr<<"Invalid IR mode\n";return 1;}
         ir_policy=static_cast<aot::arm_ir_policy>(value[0]-'0');
     }
-    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled;
+    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads;
     const bool interpreter=argc==2 && (std::string(argv[1])=="--interpreter" || std::string(argv[1])=="--region-spans-interpreter" || std::string(argv[1])=="--entry-budget-interpreter");
     eka2l1::common::performance::enabled=true;
     eka2l1::common::performance::phase=2;
@@ -142,6 +142,9 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,nullptr,deferred,ir_policy);
+            if(ir_policy==aot::arm_ir_policy::invariant_reads && region_spans && !region_block_spans && n==0 && !translated.proved_reads) {
+                std::cerr << "Invariant read fault fixture did not select entry proof\n"; return 4;
+            }
             if(!ir_disabled && ir_segments && n==0 && !translated.ir_segments) {
                 std::cerr << "Integer-segment fault fixture did not select the IR\n"; return 4;
             }
@@ -158,7 +161,7 @@ int main(int argc, char **argv){
                 && translated.ir_cold_values<=translated.ir_cold_halves) {
                 std::cerr<<"General exit recipes were not selected\n";return 4;
             }
-            if((ir_disabled && (translated.ir_segments || translated.func.outlined_callee))
+            if((ir_policy==aot::arm_ir_policy::disabled && (translated.ir_segments || translated.func.outlined_callee))
                 || (ir_policy==aot::arm_ir_policy::inline_segments && translated.ir_outlined_segments)) {
                 std::cerr<<"IR mode selection was ignored\n";return 4;
             }

@@ -895,7 +895,8 @@ namespace eka2l1::arm::aot {
         struct proof_access { std::uint32_t pc; unsigned group; std::int64_t offset; };
         std::vector<proof_group> proof_groups;
         std::vector<proof_access> proof_accesses;
-        bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled && w.region && w.defer_memory && cache_registers && !instructions.empty();
+        bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled
+            && ir_policy != arm_ir_policy::invariant_reads && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
         // The guarded IR is an opt-in research path. Version tracking also
         // keeps its existing compiler until separately validated.
@@ -972,7 +973,68 @@ namespace eka2l1::arm::aot {
                 values[rd] = value;
             } else prove_memory = false;
         }
+        // A separate research policy proves only reads through unchanged entry
+        // registers. It admits loops and conditional accesses; stores retain
+        // their original guards. All helper paths end this region before a
+        // later instruction can use a pointer invalidated by a callback.
+        bool invariant_reads = allow_memory_proof && ir_policy == arm_ir_policy::invariant_reads
+            && w.region && w.defer_memory && cache_registers && !instructions.empty();
+#ifdef EKA2L1_WASM_CODE_VERSIONS
+        invariant_reads = false;
+#endif
+        if (invariant_reads) {
+            unsigned written = 0;
+            bool known = true;
+            for (const auto &ins : instructions) {
+                const auto op = ins.opcode;
+                const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
+                if ((op >> 28) == 15) { known = false; break; }
+                if ((op & 0x0ffffff0u) == 0x012fff10u) continue;
+                if (((op >> 25) & 7) == 5) {
+                    if (op & (1u << 24)) written |= 1u << 14;
+                } else if (((op >> 26) & 3) == 1) {
+                    if ((!(op & (1u << 24)) && (op & (1u << 21)))
+                        || ((op & (1u << 25)) && (op & 16))) { known = false; break; }
+                    if (op & (1u << 20)) written |= 1u << rd;
+                    if (!(op & (1u << 24)) || (op & (1u << 21))) written |= 1u << rn;
+                } else if (((op >> 25) & 7) == 4) {
+                    if ((op & (1u << 22)) || !(op & 65535)) { known = false; break; }
+                    if (op & (1u << 20)) written |= op & 65535;
+                    if (op & (1u << 21)) written |= 1u << rn;
+                } else if ((op & 0x0f8000f0u) == 0x00800090u) {
+                    written |= (1u << rn) | (1u << rd);
+                } else if ((op & 0x0fc000f0u) == 0x00000090u) {
+                    written |= 1u << rn;
+                } else if ((op & 0x0e000090u) == 0x00000090u && (op & 0x60)) {
+                    // LDRD/STRD use the store encoding space and two outputs;
+                    // exclude them rather than treating them as scalar stores.
+                    if (!(op & (1u << 20)) && (op & 0x60) != 0x20) { known = false; break; }
+                    if (op & (1u << 20)) written |= 1u << rd;
+                    if (!(op & (1u << 24)) || (op & (1u << 21))) written |= 1u << rn;
+                } else if (((op >> 26) & 3) == 0 && ((op & (1u << 25)) || (op & 0x90) != 0x90)) {
+                    const unsigned alu = (op >> 21) & 15;
+                    if (alu >= 8 && alu <= 11) { if (!(op & (1u << 20))) known = false; }
+                    else {
+                        if (rd == 15 && (op & (1u << 20))) known = false;
+                        written |= 1u << rd;
+                    }
+                } else known = false;
+                if (!known) break;
+            }
+            proof_groups.clear(); proof_accesses.clear();
+            for (const auto &ins : instructions) {
+                if (!known) break;
+                const auto op = ins.opcode;
+                const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
+                // Immediate pre-indexed word loads, no writeback or PC result.
+                if ((op & 0x0f700000u) != 0x05100000u || rn == 15 || rd == 15
+                    || (written & (1u << rn))) continue;
+                known = add_access(ins.address, {int(rn), (op & (1u << 23) ? 1 : -1) * std::int64_t(op & 4095)}, 4, false);
+            }
+            prove_memory = known;
+        }
         prove_memory = prove_memory && proof_accesses.size() >= 4;
+        if (prove_memory && invariant_reads) tr.proved_reads = static_cast<unsigned>(proof_accesses.size());
         if (prove_memory) {
             for (auto &span : proof_groups) span.host = w.cache.first_local++;
             result.num_locals += static_cast<unsigned>(proof_groups.size());
@@ -986,7 +1048,7 @@ namespace eka2l1::arm::aot {
         std::unique_ptr<region_ir> ir;
         std::vector<bool> ir_live;
         std::vector<unsigned> ir_locals;
-        if (prove_memory) {
+        if (prove_memory && !invariant_reads) {
             ir = std::make_unique<region_ir>(start_address);
             for (unsigned n = 0; n < instructions.size(); ++n) {
                 if (!ir->append(instructions[n].opcode, instructions[n].address,
@@ -1119,7 +1181,8 @@ namespace eka2l1::arm::aot {
         std::map<std::size_t, integer_segment> segments;
         std::vector<std::pair<std::size_t, unsigned>> wide_fixups;
 #ifdef EKA2L1_WASM_IR_SEGMENTS
-        if (allow_memory_proof && ir_policy != arm_ir_policy::disabled && w.region && cache_registers && !ir) {
+        if (allow_memory_proof && ir_policy != arm_ir_policy::disabled
+            && ir_policy != arm_ir_policy::invariant_reads && w.region && cache_registers && !ir) {
             unsigned max_locals = 0, max_wide_locals = 0;
 #if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
             const bool dynamic_memory = w.defer_memory;
@@ -1193,8 +1256,11 @@ namespace eka2l1::arm::aot {
             // The successful IR path cannot call helpers, raise a memory exit,
             // or cross the scheduler budget. All other cases use the precise
             // original function, before any guest memory/state effect.
-            w.load_i32(S::AOT_BUDGET); w.i32_const(static_cast<unsigned>(instructions.size()));
-            w.op(op_i32_lt_u); w.load_i32(S::AOT_EXIT); w.op(op_i32_or); w.set_local(TMP4);
+            if (!invariant_reads) {
+                w.load_i32(S::AOT_BUDGET); w.i32_const(static_cast<unsigned>(instructions.size()));
+                w.op(op_i32_lt_u); w.load_i32(S::AOT_EXIT); w.op(op_i32_or);
+            } else w.load_i32(S::AOT_EXIT);
+            w.set_local(TMP4);
             for (const auto &span : proof_groups) {
                 w.load_reg(span.root); w.i32_const(static_cast<std::int32_t>(span.low));
                 w.op(op_i32_add); w.set_local(arm_emit::ADDRESS);

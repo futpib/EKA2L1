@@ -1,0 +1,665 @@
+{
+  "provenance": {
+    "git_head": "1e9c112b8db021b022f941f9b5699376142689c1",
+    "hashes": {
+      "eka2l1.js": "d7361195b875116cb6e735d58a011ecb950efd19f631f201f5c5691598c1e3e4",
+      "source.patch": "98608544524403f317a56f603a0a1af77ae04a8e91f9774962caf94701fa2152",
+      "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "426038540c288ed57e721169080b643252629a4891596f0fbd70dc3b30479a52",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_fault_native": "7429e15e1605fa9dc8a6905fea528e7c52ac5685afd14690752d66dcb27bba54",
+      "tests/test_aot_wasm.wasm": "e3d608ce81b6832968d36d126498b9f0eb1a76c86b887180c0730ff7517294a9",
+      "tests/eka_compiler_probe": "b043d4bab2e743aa8c77cffc32064016dbdc29141aaccb456472ef81a87cd7f4",
+      "tests/eka_cpu_fault_wasm.wasm": "2e30b232ef179b0adc06485f5ba4ed4c4edab1ca63b04fa09ade4f3ad894d601",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+    },
+    "sources": {
+      "CMakeLists.txt": "27dae1b0f46165fb3fe097f8788bcfd9f83818b6f534092d8fe5dd1a1ec90752",
+      "src/emu/cpu/CMakeLists.txt": "bf21545c7acd8e328dfb8a1201ce2cdc2886ac5df006d18df04593d4a9247e81",
+      "src/emu/cpu/include/cpu/aot/thumb_translator.h": "536769d81baeb2d0c608b4a69ba85a8725e4fafd83eb68d73619f8da77c43af8",
+      "src/emu/cpu/include/cpu/aot/state_locals.h": "46b201a72f1dcc91df86ec030500477e8f400739931b0dc2c76d0b3c7b9d72d3",
+      "src/emu/cpu/include/cpu/aot/region_ir.h": "c9c8adbfd13c43d9bfd6d9906af44048bb8e054a3cf4fb571d91fe4258e2bbef",
+      "src/emu/cpu/src/aot/arm_translator.cpp": "206598b99135253bcb0483d24d09c1986f6c726c9e973dd96b12c238efef903e",
+      "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "76f87cda16f82a8c9dfd45f10ff52ae16f493181835aaa5000710817728c5e0a",
+      "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "a8b03653a705ab06c9d13a0284526f32de487d4907810d6dfe11440c53cf569d",
+      "src/emu/cpu/src/aot/wasm_emitter.cpp": "ff557b6bed576b5ea6645cfe1a440aa54b49b1ba6ee67bcfcfbfe1a0d7f1e3dc",
+      "src/emu/cpu/include/cpu/dyncom/armstate.h": "e3125ce68715bcb2e46998738280c18c339fffdc46e83827e7c20e6d012adfff",
+      "src/emu/cpu/src/dyncom/armstate.cpp": "86693e9ce40170887bb6d556c797b6c87f66f7df3531426cfadbb191ac0a6a7a",
+      "src/tests/aot/test_aot_wasm.cpp": "4ecab5ebcce584bc282515cd8280ce8fc0fca009d8917c3cb77cc6945ed4c29e",
+      "src/tests/benchmark/cpu_fault_probe.cpp": "cbae48570f8bce659e71c0efdad64a0b2a7133807794f32c7191ab8efb6d05b7",
+      "src/tests/cpu/aot.cpp": "53a11703ba12cb1b0dc168e91d479f9a0fb0f148d1fa3ba1841e6fcac42027e8",
+      "src/emu/cpu/include/cpu/aot/arm_translator.h": "78ee8d1bef074671c2efa2fa82d66bd731c9228e4c405ea5f0bc84d1d2e6338c",
+      "src/emu/cpu/src/aot/aot_runtime.cpp": "e579d830b3fab980cc013b3a1d42202591c11d21027acf948e55e2144dd9ff63",
+      "src/emu/wasm/main.cpp": "b344cb2999bd6e98fafdb6202ff659149aa9c6558c4eb86cd17a6f536a9c4c24",
+      "src/tests/wasm/profile.ts": "a35f18e2ddde12c99642461e60bcf2e9b21614dc7ca8fe7457b7dbf835ebae99",
+      "src/tests/wasm/benchmark.ts": "b9c026c8653702757fd2bb0bc6422a0e71cf70d5412c1e7c5f73c6ac2c92b923",
+      "src/tests/wasm/test.ts": "a7c2d0fb8a8c7ace2291c02435bd26326787c3e4e50f91bdb98b99b9e7aaea9a",
+      "src/tests/benchmark/compiler_probe.cpp": "c0596d5efcbbd73397253eb5a6401a308aa57ed8011b227704e4101d02d6777f",
+      "src/tests/benchmark/serial_variants.py": "9725c178550f2cb2f2c3a009f47f943dc3aba3eb3b9ea7d371505049a44cd070",
+      "src/emu/system/src/aot_setup.cpp": "03bf5c2607919586065957696f8339a1d5e4ed7163fafad36b30525eda1eb79d"
+    },
+    "configuration": {
+      "IR_SEGMENTS": true,
+      "IR_MEMORY": true,
+      "IR_OUTLINE": true,
+      "REGION_IR": false,
+      "DEFER_MEMORY": true,
+      "CODE_VERSIONS": false,
+      "candidate_ir_mode": 4,
+      "candidate_eager_regions": 0
+    }
+  },
+  "archive": "/home/claude/.scratch/eka-benchmark/invariant-reads-candidate",
+  "fault_modes": {
+    "0": {
+      "entry-budget-deferred": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-entry-budget-deferred-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-entry-budget-deferred-wasm.log": "c81f0a45d01cfc2c05a31b482713187c68a3f985362dbeb34c1c403a8062efd3"
+        },
+        "differences": []
+      },
+      "ir-short": {
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-short-native.log": "48969e3b2c75f34c47e058a0462f37a3559214dd9bc82be7396064b20356d486",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-short-wasm.log": "7716b830db991109cec0e604f5b8e2a49722aa8e850089aeac858c33fd57f787"
+        },
+        "differences": []
+      },
+      "ir-memory": {
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-memory-native.log": "784b305bffc4a13ab4249aedf4c04244c0efc61e1adfa5bad8f69ca7f978618a",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-memory-wasm.log": "b10118717fd32cc1b5a82f89419b18891602d2e138bb8f86f52a9c1c8fce88dc"
+        },
+        "differences": []
+      },
+      "deferred": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-deferred-native.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-deferred-wasm.log": "462d9d799fe24e29653e35ab417de9febc4d0c1e69938bcba6ff686b42a4c1e7"
+        },
+        "differences": []
+      },
+      "ir-addressing": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-addressing-native.log": "4814b084719a46cd7b89a8861f783fca6a963634d3698c6ef38d4ba6e6362c03",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-addressing-wasm.log": "851f4ec3a143a9bb03d5085ab12ec8f03d7a9fa7e3442e08ff94babda591558f"
+        },
+        "differences": []
+      },
+      "ir-memory-chain": {
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-memory-chain-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-memory-chain-wasm.log": "630da5ffb62fdf6f2abfb173719016f1748e22d12192e7ae9b6ccf46161acba8"
+        },
+        "differences": []
+      },
+      "entry-budget": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-entry-budget-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-entry-budget-wasm.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92"
+        },
+        "differences": []
+      },
+      "region-spans-interpreter": {
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-region-spans-interpreter-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-region-spans-interpreter-wasm.log": "ced007453ce149421354aa00405e7954ec1ffaec9c82a4308c7716b2b4a18bf9"
+        },
+        "differences": []
+      },
+      "read-spans": {
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-read-spans-native.log": "c5ae8fc01c7dc2a882d240b229a855cdd33e679f0935b7526531e25f90aa55d7",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-read-spans-wasm.log": "0a2375c22647e2b666c404dec204a02a2efce3dea4266d42c46b0738d4dd23e3"
+        },
+        "differences": []
+      },
+      "extended": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-extended-native.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-extended-wasm.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143"
+        },
+        "differences": []
+      },
+      "wide-snapshots": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-wide-snapshots-native.log": "c8ac8f9493b24d7291ae1e65c71f33a1bad0af60cf3a80f1263e1d377b5814f5",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-wide-snapshots-wasm.log": "1b78c36fd5bde8100bc6ac58902123f423709d9833e4f0c9c7feb8a981750722"
+        },
+        "differences": []
+      },
+      "ir-recipes": {
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-recipes-native.log": "af29c4c732293fa1765f0c753543edb0ad0db58cd74caedd59c4dd3f15d59f8d",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-recipes-wasm.log": "6f2daa33bdf3f908867c64b4f506fb1239506fc4fb87228c718a16ffd21acd98"
+        },
+        "differences": []
+      },
+      "region-block-spans": {
+        "cases": 96,
+        "all_fields_match": 96,
+        "final_state_and_exact_memory_match": 96,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 24,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-region-block-spans-native.log": "8bddfabf1b8c45f86a1adf80da88502e4ff739e56bed90f9ad6de7252d98ea8a",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-region-block-spans-wasm.log": "6ded304e58ed80eb524fb9d210cd23b5794adec5daa1030f97d9125033e4d0b1"
+        },
+        "differences": []
+      },
+      "ir-segments": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-segments-native.log": "b61bb267fb1b3f13c4ee75fd6a42605abe7d462fe17db7ae3b92502243aa5f60",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-segments-wasm.log": "aea7372f0a2c6aeed6fdb98d9b1f3d0ff89f485869937bdde0cc1be4340eb8b6"
+        },
+        "differences": []
+      },
+      "ir-wide": {
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-wide-native.log": "0d4069ba2b72672ea38ea150b10b5070b3572e33aa882cffd023d8d6f9f1d4ee",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-ir-wide-wasm.log": "b534926f0cb8820ddb8660d5e3f811c913aa79a69a10d4f82420d6bb4713281e"
+        },
+        "differences": []
+      },
+      "entry-budget-interpreter": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-entry-budget-interpreter-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-entry-budget-interpreter-wasm.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92"
+        },
+        "differences": []
+      },
+      "region-spans": {
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-region-spans-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-0-fault-region-spans-wasm.log": "630da5ffb62fdf6f2abfb173719016f1748e22d12192e7ae9b6ccf46161acba8"
+        },
+        "differences": []
+      }
+    },
+    "4": {
+      "entry-budget": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-entry-budget-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-entry-budget-wasm.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92"
+        },
+        "differences": []
+      },
+      "ir-memory": {
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-memory-native.log": "784b305bffc4a13ab4249aedf4c04244c0efc61e1adfa5bad8f69ca7f978618a",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-memory-wasm.log": "b10118717fd32cc1b5a82f89419b18891602d2e138bb8f86f52a9c1c8fce88dc"
+        },
+        "differences": []
+      },
+      "entry-budget-deferred": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-entry-budget-deferred-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-entry-budget-deferred-wasm.log": "c81f0a45d01cfc2c05a31b482713187c68a3f985362dbeb34c1c403a8062efd3"
+        },
+        "differences": []
+      },
+      "ir-memory-chain": {
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-memory-chain-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-memory-chain-wasm.log": "630da5ffb62fdf6f2abfb173719016f1748e22d12192e7ae9b6ccf46161acba8"
+        },
+        "differences": []
+      },
+      "entry-budget-interpreter": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-entry-budget-interpreter-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-entry-budget-interpreter-wasm.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92"
+        },
+        "differences": []
+      },
+      "ir-segments": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-segments-native.log": "b61bb267fb1b3f13c4ee75fd6a42605abe7d462fe17db7ae3b92502243aa5f60",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-segments-wasm.log": "aea7372f0a2c6aeed6fdb98d9b1f3d0ff89f485869937bdde0cc1be4340eb8b6"
+        },
+        "differences": []
+      },
+      "ir-addressing": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-addressing-native.log": "4814b084719a46cd7b89a8861f783fca6a963634d3698c6ef38d4ba6e6362c03",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-addressing-wasm.log": "851f4ec3a143a9bb03d5085ab12ec8f03d7a9fa7e3442e08ff94babda591558f"
+        },
+        "differences": []
+      },
+      "region-spans": {
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-region-spans-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-region-spans-wasm.log": "630da5ffb62fdf6f2abfb173719016f1748e22d12192e7ae9b6ccf46161acba8"
+        },
+        "differences": []
+      },
+      "ir-wide": {
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-wide-native.log": "0d4069ba2b72672ea38ea150b10b5070b3572e33aa882cffd023d8d6f9f1d4ee",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-wide-wasm.log": "b534926f0cb8820ddb8660d5e3f811c913aa79a69a10d4f82420d6bb4713281e"
+        },
+        "differences": []
+      },
+      "region-spans-interpreter": {
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-region-spans-interpreter-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-region-spans-interpreter-wasm.log": "ced007453ce149421354aa00405e7954ec1ffaec9c82a4308c7716b2b4a18bf9"
+        },
+        "differences": []
+      },
+      "extended": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-extended-native.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-extended-wasm.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143"
+        },
+        "differences": []
+      },
+      "ir-recipes": {
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-recipes-native.log": "af29c4c732293fa1765f0c753543edb0ad0db58cd74caedd59c4dd3f15d59f8d",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-recipes-wasm.log": "6f2daa33bdf3f908867c64b4f506fb1239506fc4fb87228c718a16ffd21acd98"
+        },
+        "differences": []
+      },
+      "region-block-spans": {
+        "cases": 96,
+        "all_fields_match": 96,
+        "final_state_and_exact_memory_match": 96,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 24,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-region-block-spans-native.log": "8bddfabf1b8c45f86a1adf80da88502e4ff739e56bed90f9ad6de7252d98ea8a",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-region-block-spans-wasm.log": "6ded304e58ed80eb524fb9d210cd23b5794adec5daa1030f97d9125033e4d0b1"
+        },
+        "differences": []
+      },
+      "read-spans": {
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-read-spans-native.log": "c5ae8fc01c7dc2a882d240b229a855cdd33e679f0935b7526531e25f90aa55d7",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-read-spans-wasm.log": "0a2375c22647e2b666c404dec204a02a2efce3dea4266d42c46b0738d4dd23e3"
+        },
+        "differences": []
+      },
+      "wide-snapshots": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-wide-snapshots-native.log": "c8ac8f9493b24d7291ae1e65c71f33a1bad0af60cf3a80f1263e1d377b5814f5",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-wide-snapshots-wasm.log": "1b78c36fd5bde8100bc6ac58902123f423709d9833e4f0c9c7feb8a981750722"
+        },
+        "differences": []
+      },
+      "ir-short": {
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-short-native.log": "48969e3b2c75f34c47e058a0462f37a3559214dd9bc82be7396064b20356d486",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-ir-short-wasm.log": "7716b830db991109cec0e604f5b8e2a49722aa8e850089aeac858c33fd57f787"
+        },
+        "differences": []
+      },
+      "deferred": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-deferred-native.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143",
+          "/home/claude/.scratch/eka-benchmark/invariant-reads-4-fault-deferred-wasm.log": "462d9d799fe24e29653e35ab417de9febc4d0c1e69938bcba6ff686b42a4c1e7"
+        },
+        "differences": []
+      }
+    }
+  },
+  "replays": {
+    "0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4919249,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+          "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+          "writes": 0,
+          "callbacks": 10190,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 10190,
+          "gameplay_nonzero_samples": 7223662,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 102484363,
+        "instructions": 16263331210
+      },
+      "report": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 188.86818652699998,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "426038540c288ed57e721169080b643252629a4891596f0fbd70dc3b30479a52",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 0,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "1e9c112b8db021b022f941f9b5699376142689c1",
+        "dirty_worktree": true
+      }
+    },
+    "4": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4919249,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+          "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+          "writes": 0,
+          "callbacks": 10190,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 10190,
+          "gameplay_nonzero_samples": 7223662,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 102484363,
+        "instructions": 16263331210
+      },
+      "report": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 187.441402777,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "426038540c288ed57e721169080b643252629a4891596f0fbd70dc3b30479a52",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 4,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "1e9c112b8db021b022f941f9b5699376142689c1",
+        "dirty_worktree": true
+      }
+    }
+  },
+  "compiler_tests": 145,
+  "native_ctest": 3,
+  "frontend_checks": 9,
+  "total_fault_comparisons": 15168,
+  "invariant_read_cases": 15360,
+  "fixture_equivalence": [
+    {
+      "control": "/home/claude/.scratch/eka-benchmark/invariant-reads-control-busy/1879130660.wasm",
+      "previous": "/home/claude/.scratch/eka-benchmark/ir-recipes-0-busy/1879130660.wasm",
+      "identical": true,
+      "control_sha256": "9e97f2b0260b61d0a5bd726ed934e81e360197056b17f8e4ce65518c3114955e",
+      "candidate": "/home/claude/.scratch/eka-benchmark/invariant-reads-busy/1879130660.wasm",
+      "candidate_sha256": "3fd2d6fba61453d8ef60c604277245a223692520d94207bfade24c92baa69070",
+      "control_bytes": 12299,
+      "candidate_bytes": 23201
+    },
+    {
+      "control": "/home/claude/.scratch/eka-benchmark/invariant-reads-control-busy/1879129820.wasm",
+      "previous": "/home/claude/.scratch/eka-benchmark/ir-recipes-0-busy/1879129820.wasm",
+      "identical": true,
+      "control_sha256": "c12845d1cde529a465c992343dc24b59b26f113a920ed884708acdf772743339",
+      "candidate": "/home/claude/.scratch/eka-benchmark/invariant-reads-busy/1879129820.wasm",
+      "candidate_sha256": "ef5647a0ce4fa5880fea6c42f502f0f1dede488173399e586496371d5399d29f",
+      "control_bytes": 20070,
+      "candidate_bytes": 38890
+    }
+  ],
+  "logs": {
+    "invariant-reads-tests.log": "72c180897a42ccca986c294100a0a875381e36750e899f126126359070f50830",
+    "invariant-reads-native-tests.log": "4a9429c274b3635b3af88ad77159dd894fbdf9c9c7d4120a476971603ffbb19e",
+    "invariant-reads-frontend.log": "732c2cb54e56b296c1f99474b9b3fdaaea4ce83337a108905e5f192436148217",
+    "invariant-reads-0-fault-checks.log": "e38693222697ca775ac26a2c42074cb1caa97a75aeb8b8dfdb20c9b884fee138",
+    "invariant-reads-4-fault-checks.log": "e38693222697ca775ac26a2c42074cb1caa97a75aeb8b8dfdb20c9b884fee138",
+    "invariant-reads-probe.log": "c20c9f584613f28309a59642b4551ed33c02c9f539fc5d45ee493e47c66be23d"
+  }
+}
