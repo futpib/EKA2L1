@@ -1,4 +1,4 @@
-# Exact code validation with an overlapping vector tail: pending
+# Exact code validation with an overlapping vector tail: not promoted
 
 Current profiles identify exact code comparison as a material CPU cost. This
 opt-in experiment keeps the existing cache lookup, mapping refresh and complete
@@ -15,7 +15,7 @@ comparison rejects missing/wrong scanner markers, avoiding environment-only
 policy attribution. Native builds retain memcmp; the expanded WASM suite is the
 scanner implementation test.
 
-Correctness acceptance is complete; performance acceptance is pending. Archive:
+Correctness acceptance is complete; the completed performance batch does not justify promotion. Archive:
 /home/claude/.scratch/eka-benchmark/code-tail-candidate, base 478d4414f plus patch.
 WASM SHA256 de8084b1fe75453af0ef807ec5e8cc99894d0e3ede1325987716c64f0766c1c0.
 No deployment or push. Do not infer a speedup from fewer tail branches.
@@ -35,3 +35,22 @@ interpreter-check stride 1,024. An initial launch mistakenly selected stride 1;
 it was stopped before frame capture and remains recorded as incomplete. The
 successful retry uses the unchanged archive. No observation was dropped from
 a performance batch; timing has not yet started.
+
+## Completed serial timing
+
+Original0 → tail1 → served → served → tail1 → original0. All windows cover
+18 guest seconds, 3,975,618,624 guest instructions and 676 presentations. No
+owned heavy work overlaps warmup or timing. The first two policies use the same
+application binary; served is the exact existing archive.
+
+| Policy | First seconds | Second seconds | Mean seconds |
+| --- | ---: | ---: | ---: |
+| Original scanner | 12.5258 | 12.4873 | 12.50655 |
+| Overlapping tail | 12.4670 | 13.3050 | 12.88600 |
+| Served archive | 12.5625 | 12.7404 | 12.65145 |
+
+The first pair marginally favors the candidate; the reverse pair loses. The
+candidate mean is slower than both controls. All six observations, including
+the slow closing candidate, are retained. This does not establish a repeatable
+speedup or a precise intrinsic regression percentage. No confirmation batch is
+justified by this result. The experiment remains opt-in and unserved.
