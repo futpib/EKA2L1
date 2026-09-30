@@ -153,6 +153,11 @@ namespace eka2l1::arm::aot {
         // final index after all public functions, preserving sibling indices.
         std::shared_ptr<wasm_func_def> outlined_callee;
         std::uint32_t outlined_call_offset = 0;
+        struct private_call {
+            std::shared_ptr<wasm_func_def> callee;
+            std::uint32_t call_offset;
+        };
+        std::vector<private_call> outlined_calls;
     };
 
     // Describes an imported function.

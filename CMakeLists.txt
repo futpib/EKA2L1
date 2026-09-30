@@ -20,6 +20,7 @@ option(EKA2L1_WASM_DEFER_MEMORY "Restart eligible AOT memory misses in DynCom wi
 option(EKA2L1_WASM_REGION_IR "Experimental guarded value IR for straight-line ARM regions" OFF)
 option(EKA2L1_WASM_IR_SEGMENTS "Experimental value IR within existing ARM control flow" OFF)
 option(EKA2L1_WASM_IR_MEMORY "Experimental precise memory exits inside IR segments" OFF)
+option(EKA2L1_WASM_IR_OUTLINE "Experimental private short-budget IR segment fallbacks" OFF)
 option(EKA2L1_WASM_CODE_VERSIONS "Experimental WASM code-page versions and guest write barriers" OFF)
 option(EKA2L1_WASM_CODE_LIFECYCLE "Experimental mutation-driven compiled-code validity" OFF)
 if(EKA2L1_WASM_CODE_LIFECYCLE)

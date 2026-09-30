@@ -68,20 +68,25 @@ namespace eka2l1::arm::aot {
         const std::uint32_t num_imports = static_cast<std::uint32_t>(imports.size());
         const std::uint32_t num_funcs = static_cast<std::uint32_t>(funcs.size());
         std::vector<const wasm_func_def *> definitions;
-        std::vector<std::uint32_t> outlined_indices(num_funcs);
+        std::vector<std::vector<std::pair<std::uint32_t, std::uint32_t>>> outlined_indices(num_funcs);
         for (const auto &func : funcs) definitions.push_back(&func);
         for (std::uint32_t i = 0; i < num_funcs; ++i) {
             const auto &func = funcs[i];
-            if (!func.outlined_callee) continue;
-            // Only one outlining level is supported. Invalid metadata must not
-            // silently produce a call to another public function.
-            if (func.outlined_callee->outlined_callee
-                || func.outlined_call_offset == 0
-                || func.outlined_call_offset > func.body.size()
-                || func.body.size() - func.outlined_call_offset < 5
-                || func.body[func.outlined_call_offset - 1] != op_call) return {};
-            outlined_indices[i] = num_imports + static_cast<std::uint32_t>(definitions.size());
-            definitions.push_back(func.outlined_callee.get());
+            auto append_private = [&](const std::shared_ptr<wasm_func_def> &callee, std::uint32_t offset) {
+                // One outlining level; malformed or duplicate relocations must
+                // never silently call another public/private function.
+                if (!callee || callee->outlined_callee || !callee->outlined_calls.empty()
+                    || offset == 0 || offset > func.body.size() || func.body.size() - offset < 5
+                    || func.body[offset - 1] != op_call) return false;
+                for (const auto &prior : outlined_indices[i])
+                    if (prior.first == offset) return false;
+                outlined_indices[i].emplace_back(offset, num_imports + static_cast<std::uint32_t>(definitions.size()));
+                definitions.push_back(callee.get());
+                return true;
+            };
+            if (func.outlined_callee && !append_private(func.outlined_callee, func.outlined_call_offset)) return {};
+            for (const auto &call : func.outlined_calls)
+                if (!append_private(call.callee, call.call_offset)) return {};
         }
         const auto num_definitions = static_cast<std::uint32_t>(definitions.size());
 
@@ -205,11 +210,9 @@ namespace eka2l1::arm::aot {
                 // Body bytecode
                 const auto bytecode_start = body.size();
                 body.insert(body.end(), func.body.begin(), func.body.end());
-                if (func.outlined_callee) {
-                    auto target = outlined_indices[index];
+                if (index < num_funcs) for (auto [offset, target] : outlined_indices[index]) {
                     for (unsigned n = 0; n < 5; ++n) {
-                        body[bytecode_start + func.outlined_call_offset + n]
-                            = (target & 0x7f) | (n < 4 ? 0x80 : 0);
+                        body[bytecode_start + offset + n] = (target & 0x7f) | (n < 4 ? 0x80 : 0);
                         target >>= 7;
                     }
                 }

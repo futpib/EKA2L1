@@ -62,6 +62,17 @@ namespace eka2l1::arm::aot {
             std::vector<std::uint8_t> body;
             transfer(body, true);
             if (shared_return) { body.push_back(op_block); body.push_back(type_i32); }
+            // Segment call operands were recorded before deferred barriers.
+            // Relocate them using the final cache layout, before inserting bytes.
+            std::vector<std::uint8_t> flush;
+            transfer(flush, false);
+            const auto reload_size = body.size() - (shared_return ? 2u : 0u);
+            for (auto &call : function.outlined_calls) {
+                const auto original = call.call_offset;
+                call.call_offset += static_cast<std::uint32_t>(body.size());
+                for (const auto &point : barriers) if (point.position <= original)
+                    call.call_offset += static_cast<std::uint32_t>(point.reload ? reload_size : flush.size());
+            }
             std::size_t previous = 0;
             for (const auto &point : barriers) {
                 body.insert(body.end(), function.body.begin() + previous,

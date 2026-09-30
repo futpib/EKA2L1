@@ -78,6 +78,7 @@ namespace eka2l1::arm::aot {
         unsigned ir_segments = 0;
         unsigned ir_memory_guards = 0;
         unsigned ir_wide_products = 0, ir_cold_halves = 0;
+        unsigned ir_outlined_segments = 0;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call
         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling

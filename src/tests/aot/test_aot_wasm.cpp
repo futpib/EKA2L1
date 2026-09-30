@@ -2537,6 +2537,15 @@ static bool test_outlined_callee_indices() {
         caller.outlined_callee->export_name = "private_seven";
         caller.outlined_callee->num_locals = 0;
         caller.outlined_callee->body = {op_i32_const, 7};
+        auto add_private = [](wasm_func_def &parent, unsigned value) {
+            parent.body.insert(parent.body.end(), {op_local_get, 0, op_call});
+            const auto offset=static_cast<unsigned>(parent.body.size());
+            parent.body.insert(parent.body.end(), {0x80,0x80,0x80,0x80,0,op_i32_add});
+            auto child=std::make_shared<wasm_func_def>();child->num_locals=0;
+            child->body={op_i32_const,static_cast<std::uint8_t>(value)};
+            parent.outlined_calls.push_back({child,offset});
+        };
+        add_private(caller,3);add_private(caller,5);add_private(functions[1],0);
         std::vector<wasm_import_func> imports;
         if (import_count) imports = {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
@@ -2546,11 +2555,18 @@ static bool test_outlined_callee_indices() {
 #ifdef __EMSCRIPTEN__
         alignas(8) std::uint32_t state[256]{};
         if (js_run_aot_wasm(module.data(), module.size(),
-                reinterpret_cast<std::uint8_t *>(state), sizeof(state)) != 20) {
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state)) != 28) {
             printf("  FAIL outlined callee imports=%u public=%u\n", import_count, public_count);
             return false;
         }
 #endif
+        const auto valid=caller.outlined_calls.front().call_offset;
+        caller.outlined_calls.front().call_offset=caller.outlined_call_offset;
+        if(!build_wasm_module(functions,imports).empty())return false;
+        caller.outlined_calls.front().call_offset=valid;
+        caller.outlined_calls.front().callee->outlined_callee=caller.outlined_callee;
+        if(!build_wasm_module(functions,imports).empty())return false;
+        caller.outlined_calls.front().callee->outlined_callee.reset();
         caller.outlined_call_offset = static_cast<std::uint32_t>(caller.body.size());
         if (!build_wasm_module(functions, imports).empty()) return false;
     }
@@ -2820,6 +2836,11 @@ static bool test_ir_segments() {
         if (!tr.complete || !tr.ir_segments || tr.func.outlined_callee) {
             printf("  FAIL IR segment program %u not selected\n",p); return false;
         }
+#ifdef EKA2L1_WASM_IR_OUTLINE
+        if(tr.ir_outlined_segments!=tr.ir_segments || tr.func.outlined_calls.size()!=tr.ir_segments) {
+            printf("  FAIL private IR remainder selection\n");return false;
+        }
+#endif
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         for (unsigned seed=0;seed<8;++seed) for(unsigned flags:{0u,3u,12u,15u})
@@ -2844,7 +2865,7 @@ static bool test_ir_segments() {
             g_test_mem=nullptr;g_count_memory_helpers=false;
             unsigned total=static_cast<unsigned>(code.size())+programs[p].extra;
             if(p==8 && values[(seed+1)%8]==0)total-=3;
-            if(count!=int(std::min(budget,total))||g_memory_helper_calls) {
+            if(count!=int(std::min(budget,total))||g_memory_helper_calls || state[state_offsets::AOT_BUDGET/4]!=budget) {
                 printf("  FAIL IR segment count p=%u budget=%u count=%d expected=%u\n",p,budget,count,std::min(budget,total));return false;
             }
             if(count)reference->run(count);

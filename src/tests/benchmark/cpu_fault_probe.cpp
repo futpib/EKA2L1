@@ -27,7 +27,7 @@ struct Fixture {
     core &cpu;
     std::vector<unsigned char> memory=std::vector<unsigned char>(65536);
     unsigned address, policy, partial=0, calls=0, faults=0;
-    bool repaired=false;
+    bool repaired=false, stopped=false;
     std::vector<std::string> events;
     template<class T> bool access(unsigned a,T *v,bool write) {
         // The data page is inaccessible until the exception handler repairs it.
@@ -46,7 +46,7 @@ struct Fixture {
             ++faults;
             events.push_back("{\"exception\":"+std::to_string(type)+",\"address\":"+std::to_string(a)+",\"regs\":"+regs(cpu)+",\"cpsr\":"+std::to_string(cpu.get_cpsr())+"}");
             if(policy==0){repaired=true;return true;}
-            if(policy==2)cpu.stop();
+            if(policy==2){stopped=true;cpu.stop();}
             // policy 3 requests a retry but leaves the access unresolved.
             return policy==3;
         };
@@ -62,15 +62,17 @@ int main(int argc, char **argv){
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
+    const bool ir_short=argc==2 && std::string(argv[1])=="--ir-short";
     const bool ir_addressing=argc==2 && std::string(argv[1])=="--ir-addressing";
     const bool ir_wide=argc==2 && std::string(argv[1])=="--ir-wide";
-    const bool ir_memory=ir_addressing || ir_wide || (argc==2 && std::string(argv[1])=="--ir-memory");
+    const bool ir_memory=ir_short || ir_addressing || ir_wide || (argc==2 && std::string(argv[1])=="--ir-memory");
     const bool ir_memory_chain=argc==2 && std::string(argv[1])=="--ir-memory-chain";
     const bool ir_segments=ir_memory || (argc==2 && std::string(argv[1])=="--ir-segments");
     const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
     const bool region_spans=ir_memory_chain || region_block_spans || (argc==2 && (std::string(argv[1])=="--region-spans" || std::string(argv[1])=="--region-spans-interpreter"));
     const bool three_instructions=read_spans || wide_snapshots;
     const unsigned instruction_count=ir_segments||region_spans?5:three_instructions?3:2;
+    const unsigned execution_count=ir_short?4:instruction_count;
     const bool deferred=ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred"));
     const bool entry_budget = ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-interpreter" || std::string(argv[1])=="--entry-budget-deferred"));
 #ifdef EKA_MATCHED_REFERENCE
@@ -112,6 +114,7 @@ int main(int argc, char **argv){
             program[4]=op;
             if(ir_memory) {program[1]=0xe1a08004u;program[2]=0xe1a04005u;program[3]=0xe1a05008u;}
             if(ir_wide) {program[1]=0xe0c54796u;program[2]=0xe0e54896u;program[3]=0xe0a54996u;}
+            if(ir_short) {program[1]=0xe1a08004u;program[2]=op;program[3]=0xe2844001u;program[4]=0xe1a05008u;}
         }
         std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
         for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
@@ -137,6 +140,9 @@ int main(int argc, char **argv){
             }
             if(ir_wide && n==0 && !translated.ir_wide_products) {
                 std::cerr << "Wide memory fixture did not select IR products\n"; return 4;
+            }
+            if(ir_short && n==0 && !translated.ir_outlined_segments) {
+                std::cerr << "Short-budget fault fixture did not select private IR fallback\n"; return 4;
             }
             functions.push_back(std::move(translated.func));
         }
@@ -171,15 +177,17 @@ int main(int argc, char **argv){
         frame.flush();const auto reference_count=frame.count;
 #else
 #if defined(__EMSCRIPTEN__)
-        if(entry_budget) cpu.run(instruction_count); else cpu.step();
+        if(entry_budget) cpu.run(execution_count); else cpu.step();
 #else
-        for(unsigned n=1;n<instruction_count;++n) cpu.step();
+        // Native uses individual Step calls. Honor a callback stop across
+        // that harness loop, just as one production Run does on WASM.
+        for(unsigned n=1;n<execution_count && !f.stopped;++n) cpu.step();
 #endif
 #endif
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
         if(deferred && compiled<instruction_count)++deferred_cases;
-        if(!interpreter && (ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
+        if(!interpreter && (ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Unexpected generated instruction count at case "<<cases<<'\n';return 2;
         }
 #endif

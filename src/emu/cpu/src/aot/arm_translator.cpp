@@ -1097,7 +1097,7 @@ namespace eka2l1::arm::aot {
         std::map<std::size_t, integer_segment> segments;
         std::vector<std::pair<std::size_t, unsigned>> wide_fixups;
 #ifdef EKA2L1_WASM_IR_SEGMENTS
-        if (w.region && cache_registers && !ir) {
+        if (allow_memory_proof && w.region && cache_registers && !ir) {
             unsigned max_locals = 0, max_wide_locals = 0;
 #if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
             const bool dynamic_memory = w.defer_memory;
@@ -1237,10 +1237,11 @@ namespace eka2l1::arm::aot {
 
         std::uint32_t insn_idx = 0;
         std::uint32_t decoded_end_offset = 0;
-        std::size_t segment_end = 0;
+        std::size_t segment_end = 0, skip_segment_until = 0;
 
         for (const auto &instruction : instructions) {
             const auto instruction_index = static_cast<std::size_t>(&instruction - instructions.data());
+            if (instruction_index < skip_segment_until) continue;
             // Opcode emitters commonly continue the outer loop. Close the
             // fallback at the next lexical boundary so all such paths join.
             if (segment_end && segment_end == instruction_index) {
@@ -1345,14 +1346,47 @@ namespace eka2l1::arm::aot {
                 emit_ir_values(w, part.graph, part.live, part.locals, false, part.cold, &wide_fixups);
                 w.get_local(arm_emit::COUNT); w.i32_const(part.length - 1);
                 w.op(op_i32_add); w.set_local(arm_emit::COUNT);
-                w.op(op_else);
-                segment_end = instruction_index + part.length;
                 ++tr.ir_segments;
                 for (unsigned v = 1; v < part.graph.nodes.size(); ++v) {
                     if (part.graph.nodes[v].op == region_ir::guarded_host) ++tr.ir_memory_guards;
                     if (part.live[v] && part.graph.nodes[v].op == op_i64_mul) ++tr.ir_wide_products;
                     if (part.cold[v]) ++tr.ir_cold_halves;
                 }
+                w.op(op_else);
+#ifdef EKA2L1_WASM_IR_OUTLINE
+                // The callee receives the exact remainder and current guest
+                // state. It exhausts that short budget or exits precisely; no
+                // subsequent caller instruction is executed on this arm.
+                w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT);
+                w.store_i32_const(S::PC, insn_addr);
+                w.cache.barrier_at(w.b.size());
+                w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
+                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
+                w.state_ptr(); w.op(op_call);
+                const auto call_offset = static_cast<std::uint32_t>(w.b.size());
+                w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});
+                w.get_local(arm_emit::COUNT); w.op(op_i32_add);
+                // Bypass stale caller writeback after the helper updated guest
+                // state. Only restore the runner's original budget contract.
+                w.state_ptr(); w.load_i32(S::AOT_BUDGET);
+                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
+                w.op(op_return); w.op(op_end);
+                std::vector<std::uint32_t> words;
+                for (unsigned n = 0; n < part.length; ++n)
+                    words.push_back(instructions[instruction_index + n].opcode);
+                auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),
+                    words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,
+                    true, true, nullptr, defer_memory, false);
+                precise.func.export_name += "_ir_short";
+                result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});
+                ++tr.ir_outlined_segments;
+                skip_segment_until = instruction_index + part.length;
+                insn_idx += part.length;
+                decoded_end_offset = static_cast<std::uint32_t>(instructions[skip_segment_until - 1].offset) + 4;
+                continue;
+#else
+                segment_end = instruction_index + part.length;
+#endif
             }
 
             if (instruction.leaf && inst == 0xe12fff1e) {
