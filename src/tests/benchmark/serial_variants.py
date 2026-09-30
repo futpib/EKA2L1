@@ -2,6 +2,7 @@
 """Measure archived builds serially in forward/reverse order, including warmup."""
 import argparse
 import json
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -15,7 +16,12 @@ parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/1/
 parser.add_argument('--eager-regions', action='append', default=[], metavar='NAME=0/1',
                     help='Select eager ROM region compilation within an archived binary')
 parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1')
+parser.add_argument('--input', action='append', default=[], metavar='NAME=INPUT', help='Optional per-variant guest input route')
+parser.add_argument('--start-us', type=int, default=78000000)
+parser.add_argument('--end-us', type=int, default=96000000)
 args = parser.parse_args()
+if not 0 <= args.start_us < args.end_us <= 120000000:
+    parser.error('Window must be ordered and within 120 guest seconds')
 variants = []
 for item in args.builds:
     name, path = item.split('=', 1)
@@ -40,6 +46,12 @@ for item in args.code_compare:
     if not separator or name not in dict(variants) or name in compare_modes or value not in ('0', '1'):
         parser.error('Code compare requires a unique known NAME=0/1')
     compare_modes[name] = int(value)
+inputs = {}
+for item in args.input:
+    name, separator, value = item.partition('=')
+    if not separator or name not in dict(variants) or name in inputs or not Path(value).is_file():
+        parser.error('Input requires a unique known NAME=EXISTING_FILE')
+    inputs[name] = Path(value).resolve()
 args.output.mkdir()
 root = Path(__file__).resolve().parents[3]
 rows = []
@@ -48,13 +60,16 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         label = f'{name}-{repetition}'
         env = dict(os.environ, EKA2L1_WASM_BUILD_DIR=str(build),
                    EKA2L1_BENCHMARK_AOT='5', EKA2L1_GPU='hardware',
-                   EKA2L1_PROFILE_DETAIL='0', EKA2L1_PROFILE_START_US='78000000')
+                   EKA2L1_PROFILE_DETAIL='0', EKA2L1_PROFILE_START_US=str(args.start_us))
         for key in ('PROFILE_GATE', 'EKA2L1_AOT_VERIFY', 'EKA2L1_GUEST_PROFILE',
                     'EKA2L1_AOT_DIAGNOSTICS', 'EKA2L1_V8_FLAGS', 'EKA2L1_V8_DUMP'):
             env.pop(key, None)
         env.pop('EKA2L1_AOT_EAGER_REGIONS', None)
         if name in eager_modes:
             env['EKA2L1_AOT_EAGER_REGIONS'] = str(eager_modes[name])
+        env.pop('EKA2L1_PROFILE_INPUT', None)
+        if name in inputs:
+            env['EKA2L1_PROFILE_INPUT'] = str(inputs[name])
         env.pop('EKA2L1_CODE_COMPARE', None)
         if name in compare_modes:
             env['EKA2L1_CODE_COMPARE'] = str(compare_modes[name])
@@ -64,7 +79,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         output = args.output / label
         with (args.output / (label + '.log')).open('w') as log:
             subprocess.run(['node', 'profile.ts', str(args.assets.resolve()),
-                            str(output.resolve()), '2', '0', '96000000'],
+                            str(output.resolve()), '2', '0', str(args.end_us)],
                            cwd=root / 'src/tests/wasm', env=env, stdout=log,
                            stderr=subprocess.STDOUT, timeout=1800, check=True)
         report = json.loads((output / 'report.json').read_text())
@@ -74,7 +89,11 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Profile did not record the requested eager ROM policy')
         if report.get('code_compare', -1) != compare_modes.get(name, -1):
             raise RuntimeError('Profile did not record requested exact comparison policy')
-        row = dict(code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
+        if name in inputs and report['input_sha256'] != hashlib.sha256(inputs[name].read_bytes()).hexdigest():
+            raise RuntimeError('Profile did not use requested input route')
+        if report['measurement']['first_virtual_us'] != args.start_us or report['measurement']['last_virtual_us'] != args.end_us:
+            raise RuntimeError('Profile did not use requested guest window')
+        row = dict(input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
                    eager_regions=report.get('eager_regions', -1),
                    wasm_sha256=report['wasm_sha256'], loader_sha256=report['loader_sha256'],
                    measurement=report['measurement'])
