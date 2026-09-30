@@ -2,10 +2,11 @@
 import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
-import {startServer} from './server.ts';
+import {startServer,compilerPolicyFromEnv} from './server.ts';
 const [assets,out,url]=process.argv.slice(2);
 if(!assets||!out)throw Error('Usage: node softkeys.ts ASSETS NEW_OUTPUT [EXISTING_URL]; requires ImageMagick and Tesseract');
-const local=!url ? await startServer(0,{'/preload/rom':assets+'/SYM.ROM','/preload/rpkg':assets+'/SYM.RPKG','/preload/sis':assets+'/Snakes.sis'},'Snakes',{compilerPolicy:{irMode:7,eagerRegions:0}}) : null;
+const expectedPolicy={irMode:7,eagerRegions:0,...compilerPolicyFromEnv()};
+const local=!url ? await startServer(0,{'/preload/rom':assets+'/SYM.ROM','/preload/rpkg':assets+'/SYM.RPKG','/preload/sis':assets+'/Snakes.sis'},'Snakes',{compilerPolicy:expectedPolicy}) : null;
 const target=local?`http://127.0.0.1:${local.port}/`:url;
 import png from 'pngjs';
 const browser=await puppeteer.launch({executablePath:'/usr/bin/chromium',headless:true,ignoreDefaultArgs:['--mute-audio'],args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=vulkan','--enable-features=Vulkan','--enable-gpu','--ignore-gpu-blocklist']});
@@ -14,7 +15,7 @@ page.on('pageerror',e=>errors.push(String(e)));page.on('requestfailed',r=>errors
 try {
  await page.setViewport({width:900,height:760,hasTouch:true});await page.goto(target,{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>window._gameRunning,{timeout:180000});
- const compilerPolicy=await page.evaluate(()=>window.ekaCompilerPolicy);if(!compilerPolicy?.applied || compilerPolicy.requested.irMode!==7 || compilerPolicy.requested.eagerRegions!==0)throw Error('Wrong served compiler policy');
+ const compilerPolicy=await page.evaluate(()=>window.ekaCompilerPolicy);if(!compilerPolicy?.applied || JSON.stringify(compilerPolicy.requested)!==JSON.stringify(expectedPolicy))throw Error('Wrong served compiler policy');
  const security=await page.evaluate(()=>({secure:isSecureContext,isolated:crossOriginIsolated}));if(!security.secure||!security.isolated)throw Error('Context isolation');
  for(let t=2000000;t<=20000000;t+=2000000){await page.waitForFunction(t=>Module._eka2l1_guest_time_us()>=t,{timeout:120000},t);await page.keyboard.press('Enter',{delay:50});}
  await page.waitForFunction(()=>Module._eka2l1_guest_time_us()>=23000000,{timeout:120000});
