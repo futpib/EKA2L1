@@ -1,0 +1,1268 @@
+{
+  "short": {
+    "cpu_profile": "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile",
+    "guest_profile": "/home/claude/.scratch/eka-benchmark/growth-short-guest-profile",
+    "cpu_report": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 60000000,
+        "first_instructions": 5713625792,
+        "last_instructions": 8333894691,
+        "wall_seconds": 11.7751,
+        "presentations": 736,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 28.376413779000004,
+      "shared_audio": true,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": true,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "861cd13b9f18280921e553df87184ff1e5b2d09b82d217209215374914016b24",
+      "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+      "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "code_compare": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "ba45abfbb03773b0ca56dbb9c2a86a6d53bd8192",
+      "dirty_worktree": false,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "guest_report": {
+      "measurement": {
+        "detailed": true,
+        "capture_mode": 2,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 60000000,
+        "first_instructions": 5713625792,
+        "last_instructions": 8333894691,
+        "wall_seconds": 23.6921,
+        "presentations": 736,
+        "aot_dispatches": 169718533,
+        "aot_instructions": 2585089167,
+        "compiled_runner_calls": 11564131,
+        "ram_aot_dispatches": 145021922,
+        "ram_blocks_compiled": 324,
+        "decoded_instructions": 2330,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 549413,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 23.3395,
+            "calls": 551793
+          },
+          "cpu_run": {
+            "seconds": 20.976,
+            "calls": 549413
+          },
+          "timers": {
+            "seconds": 0.480847,
+            "calls": 551793
+          },
+          "scheduler": {
+            "seconds": 0.426126,
+            "calls": 551793
+          },
+          "graphics_dispatch": {
+            "seconds": 1.09207,
+            "calls": 1472
+          },
+          "graphics_wait": {
+            "seconds": 1.08922,
+            "calls": 1472
+          },
+          "display_hook": {
+            "seconds": 0.00142541,
+            "calls": 736
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0.0920842,
+            "calls": 1800
+          }
+        }
+      },
+      "warmup_seconds": 32.142928936,
+      "shared_audio": true,
+      "guest_profile_stride": 1021,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "861cd13b9f18280921e553df87184ff1e5b2d09b82d217209215374914016b24",
+      "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+      "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "code_compare": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "110db7e16ec332f71a2cbfd70c4385a7ae9abc11",
+      "dirty_worktree": false,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "busiest_isolate": {
+      "file": "worker-14.cpuprofile",
+      "sampled_seconds": 11.911876,
+      "nonidle_seconds": 11.196771,
+      "generated_code_inclusive": {
+        "seconds": 5.084816,
+        "percent_all_samples": 42.686945364441335,
+        "modules": 241
+      },
+      "top_self": [
+        {
+          "function": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "seconds": 2.345063,
+          "percent_all_samples": 19.686764704400886
+        },
+        {
+          "function": "eka2l1::arm::aot::validated_code_cache::find(unsigned int, eka2l1::arm::core&)",
+          "seconds": 1.561662,
+          "percent_all_samples": 13.110126398226443
+        },
+        {
+          "function": "eka2l1::arm::aot::equal_code_bytes(unsigned char const*, unsigned char const*, unsigned long)",
+          "seconds": 1.256936,
+          "percent_all_samples": 10.551956719495736
+        },
+        {
+          "function": "__timedwait_cp",
+          "seconds": 0.708781,
+          "percent_all_samples": 5.9502046529027
+        },
+        {
+          "function": "r_740_pc_1879048720",
+          "seconds": 0.502017,
+          "percent_all_samples": 4.214424327452703
+        },
+        {
+          "function": "f_2149128552",
+          "seconds": 0.24886,
+          "percent_all_samples": 2.089175542122836
+        },
+        {
+          "function": "ARMul_State::ReadMemory32Slow(unsigned int) const",
+          "seconds": 0.242595,
+          "percent_all_samples": 2.0365809717965497
+        },
+        {
+          "function": "f_2149189520",
+          "seconds": 0.212957,
+          "percent_all_samples": 1.7877704569792365
+        },
+        {
+          "function": "r_259_pc_1879455500",
+          "seconds": 0.21194,
+          "percent_all_samples": 1.7792327589709631
+        },
+        {
+          "function": "r_798_pc_1879095064",
+          "seconds": 0.195022,
+          "percent_all_samples": 1.6372064316317598
+        },
+        {
+          "function": "r_799_pc_1879094644",
+          "seconds": 0.194101,
+          "percent_all_samples": 1.6294746520195476
+        },
+        {
+          "function": "std::__2::__hash_iterator<std::__2::__hash_node<std::__2::__hash_value_type<unsigned long long, unsigned long>, void*>*> std::__2::__hash_table<std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::__unordered_map_hasher<unsigned long long, std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::hash<unsigned long long>, std::__2::equal_to<unsigned long long>, true>, std::__2::__unordered_map_equal<unsigned long long, std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::equal_to<unsigned long long>, std::__2::hash<unsigned long long>, true>, std::__2::allocator<std::__2::__hash_value_type<unsigned long long, unsigned long>>>::find<unsigned long long>(unsigned long long const&)",
+          "seconds": 0.135878,
+          "percent_all_samples": 1.140693539791717
+        },
+        {
+          "function": "r_236_pc_1879464696",
+          "seconds": 0.09914,
+          "percent_all_samples": 0.8322786435990435
+        },
+        {
+          "function": "r_1163_pc_1879063876",
+          "seconds": 0.098006,
+          "percent_all_samples": 0.8227587325455705
+        },
+        {
+          "function": "r_240_pc_1879464540",
+          "seconds": 0.090756,
+          "percent_all_samples": 0.7618951036763647
+        },
+        {
+          "function": "r_743_pc_1879048888",
+          "seconds": 0.085439,
+          "percent_all_samples": 0.717258977511183
+        },
+        {
+          "function": "js-to-wasm:i:i",
+          "seconds": 0.070606,
+          "percent_all_samples": 0.592736190336434
+        },
+        {
+          "function": "r_1165_pc_1879454612",
+          "seconds": 0.070549,
+          "percent_all_samples": 0.5922576762887727
+        },
+        {
+          "function": "r_1223_pc_1879455124",
+          "seconds": 0.066471,
+          "percent_all_samples": 0.5580229344227559
+        },
+        {
+          "function": "eka2l1::arm::aot::raw_read32(ARMul_State*, unsigned int)",
+          "seconds": 0.063183,
+          "percent_all_samples": 0.5304202293576595
+        },
+        {
+          "function": "r_1151_pc_1879461032",
+          "seconds": 0.062236,
+          "percent_all_samples": 0.5224701801798474
+        },
+        {
+          "function": "r_737_pc_1879048780",
+          "seconds": 0.060099,
+          "percent_all_samples": 0.5045301008841933
+        },
+        {
+          "function": "std::__2::__function::__func<eka2l1_run::$_0, std::__2::allocator<eka2l1_run::$_0>, void (void*, eka2l1::epoc::screen*, bool)>::operator()(void*&&, eka2l1::epoc::screen*&&, bool&&)",
+          "seconds": 0.058106,
+          "percent_all_samples": 0.48779889918263086
+        },
+        {
+          "function": "eka2l1::arm::dyncom_core::run(unsigned int)",
+          "seconds": 0.058073,
+          "percent_all_samples": 0.4875218647339848
+        },
+        {
+          "function": "r_1171_pc_1879098520",
+          "seconds": 0.058027,
+          "percent_all_samples": 0.4871356955025388
+        }
+      ]
+    },
+    "compiled_blocks": 169718533,
+    "zero_count_blocks": 10891710,
+    "interpreted_instructions": 35179732,
+    "top_edges": [
+      {
+        "from": 1879048888,
+        "to": 1879048888,
+        "asid": 1,
+        "length": 0,
+        "last_opcode": 0,
+        "count": 9863
+      },
+      {
+        "from": 1879452368,
+        "to": 2149128552,
+        "asid": 1,
+        "length": 1,
+        "last_opcode": 0,
+        "count": 4159
+      },
+      {
+        "from": 1879461020,
+        "to": 1879453360,
+        "asid": 1,
+        "length": 3,
+        "last_opcode": 0,
+        "count": 3770
+      },
+      {
+        "from": 1879063676,
+        "to": 1879455500,
+        "asid": 1,
+        "length": 4,
+        "last_opcode": 0,
+        "count": 3706
+      },
+      {
+        "from": 1879453380,
+        "to": 1879461032,
+        "asid": 1,
+        "length": 5,
+        "last_opcode": 0,
+        "count": 3677
+      },
+      {
+        "from": 2149128552,
+        "to": 1879453380,
+        "asid": 1,
+        "length": 88,
+        "last_opcode": 0,
+        "count": 3651
+      },
+      {
+        "from": 1879453360,
+        "to": 1879452368,
+        "asid": 1,
+        "length": 5,
+        "last_opcode": 0,
+        "count": 3640
+      },
+      {
+        "from": 2149121612,
+        "to": 2149129868,
+        "asid": 1,
+        "length": 1,
+        "last_opcode": 0,
+        "count": 2423
+      },
+      {
+        "from": 2149129868,
+        "to": 2149189196,
+        "asid": 1,
+        "length": 1,
+        "last_opcode": 0,
+        "count": 2420
+      },
+      {
+        "from": 2149189196,
+        "to": 2149189520,
+        "asid": 1,
+        "length": 7,
+        "last_opcode": 0,
+        "count": 2399
+      },
+      {
+        "from": 1879452392,
+        "to": 2149121612,
+        "asid": 1,
+        "length": 1,
+        "last_opcode": 0,
+        "count": 2316
+      },
+      {
+        "from": 1879068556,
+        "to": 1879464696,
+        "asid": 1,
+        "length": 7,
+        "last_opcode": 0,
+        "count": 1991
+      },
+      {
+        "from": 1879464540,
+        "to": 1879068672,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1971
+      },
+      {
+        "from": 1879464696,
+        "to": 1879068628,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1970
+      },
+      {
+        "from": 1879464696,
+        "to": 1879068584,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1951
+      },
+      {
+        "from": 1879464696,
+        "to": 1879068692,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1948
+      },
+      {
+        "from": 1879464540,
+        "to": 1879068652,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1870
+      },
+      {
+        "from": 1879068628,
+        "to": 1879464540,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1865
+      },
+      {
+        "from": 1879068672,
+        "to": 1879464696,
+        "asid": 1,
+        "length": 5,
+        "last_opcode": 0,
+        "count": 1834
+      },
+      {
+        "from": 1879068652,
+        "to": 1879464540,
+        "asid": 1,
+        "length": 5,
+        "last_opcode": 0,
+        "count": 1824
+      },
+      {
+        "from": 1879048720,
+        "to": 1879048888,
+        "asid": 1,
+        "length": 54,
+        "last_opcode": 0,
+        "count": 1770
+      },
+      {
+        "from": 1879068608,
+        "to": 1879464696,
+        "asid": 1,
+        "length": 5,
+        "last_opcode": 0,
+        "count": 1728
+      },
+      {
+        "from": 1879048720,
+        "to": 1879048888,
+        "asid": 1,
+        "length": 51,
+        "last_opcode": 0,
+        "count": 1727
+      },
+      {
+        "from": 1879462912,
+        "to": 1879461020,
+        "asid": 1,
+        "length": 4,
+        "last_opcode": 0,
+        "count": 1722
+      },
+      {
+        "from": 1879462880,
+        "to": 1879461020,
+        "asid": 1,
+        "length": 8,
+        "last_opcode": 0,
+        "count": 1717
+      },
+      {
+        "from": 1879461032,
+        "to": 1879462912,
+        "asid": 1,
+        "length": 3,
+        "last_opcode": 0,
+        "count": 1715
+      },
+      {
+        "from": 1879068584,
+        "to": 1879464540,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1698
+      },
+      {
+        "from": 1879458068,
+        "to": 1879063676,
+        "asid": 1,
+        "length": 4,
+        "last_opcode": 0,
+        "count": 1691
+      },
+      {
+        "from": 1879464540,
+        "to": 1879068608,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1689
+      },
+      {
+        "from": 1879458108,
+        "to": 1879068556,
+        "asid": 1,
+        "length": 3,
+        "last_opcode": 0,
+        "count": 1669
+      }
+    ],
+    "files": {
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-2.cpuprofile": "7727e6a0609641bde22c5a37a542c868d73cc5168f20f24a3418d5ff7bac3b2c",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-22.cpuprofile": "08efc6b47076f4b91a16dc133d24f2cba523f3d5c20f3309e8f59579b9ef7eb9",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-1.cpuprofile": "7535f295f8dfb2f8170236c46fca041d4ad6a3e5891c154461ccb26e8ced6532",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-20.cpuprofile": "bc0a137738289344bf363f937cb7d69e6cf4bec554f7f45b41ab28dd692ea261",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-6.cpuprofile": "08857994adafc66849cc34be88ac341df21fb30b064e3b63065357df8023d115",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-4.cpuprofile": "2deef3151c61967bd0460b69bdf146bdd7f67e5fa708c23c8958fe2e6355e2a8",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-27.cpuprofile": "a177c9b0cb99a917ee17779f416515a80c13c902afb67025662f9147241505bc",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-19.cpuprofile": "3815d63c6a11773ce39b1526b343fcd4aedc357ab20cd277db1ae7a6fa482a64",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/page.cpuprofile": "d3833172884dccbaa141b63e59cd36193d6da79218936b36988a12e58bda4d2b",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-0.cpuprofile": "495de9465eaef7245855faf18ae387ccbe1569a3f6aa3279d24d902b832a2f51",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-8.cpuprofile": "5960d3c69e52794e5acb58eaee1825afb7644733c1dea3b41752294e71e5d7fe",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-31.cpuprofile": "a3b0d52be0f99e795d8ffa7ca091a0df8e3f794a18cb2283c88c4ab909bcd87d",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-29.cpuprofile": "331b35a6400c480ec0461cb574e2cdfcfa0c5c95b526ad0ee392a79a337103bc",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-28.cpuprofile": "db24b322364b049e3bfe340165937578390a664d9fb6d492395f328f8948b36b",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/summary-top.json": "5a8c39f7ad48f5b5f0609eb7ccaf65ed12671b3376d8dea40f94480b2bb797f6",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-16.cpuprofile": "548bd13ffe86ecf28f349dd9d5f0e9761d7f3e833bfff823dda660daa8b673de",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-30.cpuprofile": "f5bff9aa053e035c45726738f1608a6723ab4ee3046aaf25251daece4e27f209",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-11.cpuprofile": "17d92c8b033173a3d4ccc0dc03e451d3397e4c9134bdd8d7620960c024f850a8",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/summary.json": "0c426c427bd4d40f6b201de4686d120696489c9b1d67305c82ba1a7d4bc74f76",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-9.cpuprofile": "a5f493ff86503aa88b77cff4357e11359ce12e9d0fe4ae47ec5e7da243958369",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-24.cpuprofile": "2bce787ecfa713d7d48f06ccad51054de1443bd612171d6c9cb7c0e3687e22b2",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-21.cpuprofile": "638ddb8a45c6eea889f11b281aa4773005ec4df0302fca120baec2eda3fa81a5",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-7.cpuprofile": "e906c015eee641f7ec0e10a8dad62ea08cc82f3e15000c24dcb688370ae2e6e1",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-14.cpuprofile": "381d61cccb3c2f7a87bb5c68eadb75004dc999254fc3ec2e5a9216809310d1f8",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-12.cpuprofile": "c543ab9b9eeb5c3d9641de66312fa8fa86893678440681e48bb86a381aa50ae9",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-23.cpuprofile": "d7333e183f52808eb3f8d41aad2fdcaab0bdfa773722646b3330e4fa30c01b34",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/v8-flags.json": "6d037f37c11d0acda4ae60a9c38f30257537e6ed69df1071b1f570e340db811b",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-18.cpuprofile": "a6f38a1dbc398e8363e7ebe869639422964b642f2999eac0baae78ac3e931049",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-13.cpuprofile": "c73e9ec023bdedf534e9d0bb56d0885107b94ee638d4394219a828f0596c4b12",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-5.cpuprofile": "ce3aef333dc7def1b70d3af4749169216b59ff286707d34da6fa8f780c3cda4e",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-3.cpuprofile": "f7cfd9882a27338df5804a12bd2fd8601bd3daa868f838bbf0fe7925e47bb45b",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-15.cpuprofile": "c661130bcd4210c9c3a2c70d537181e09926256d2d5c76ac8d2bfb805760409a",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-25.cpuprofile": "45fd9b91e438b689ed8649a8863398926ac8630d49ea0cb8acc89d7c28145cea",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/gpu.json": "084254b9bcd12652be718ef11f49bb36e5d8dffd27d86db5a3dc4553319c4843",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-26.cpuprofile": "9e4748559c6fd5a2b880f5512a5869482e313cfb89059c4e6b196b6158468140",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/report.json": "815b3f2434640ba80ffa4690d2d415ed49751f3955e64f07c8292dfcf8ee1ae7",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-17.cpuprofile": "a7639103fe3c0ff81c7250b31047b2ec05811e118d427b6f7208bcadcc532f20",
+      "/home/claude/.scratch/eka-benchmark/growth-short-cpu-profile/worker-10.cpuprofile": "e6243fa2c4693f5a7484defaec5b2957311a2f8daabd12bf293a87beb89dae5c",
+      "/home/claude/.scratch/eka-benchmark/growth-short-guest-profile/guest-summary.json": "f27ea72575f1f92a6d0733873c5b9b940fe01842c3050df8ef355f9380a54545",
+      "/home/claude/.scratch/eka-benchmark/growth-short-guest-profile/guest-profile.json": "c3d5b6cbf5aafbfa23b3945f2e151e99a03809ccfa41561754a2c51d5fff842c",
+      "/home/claude/.scratch/eka-benchmark/growth-short-guest-profile/v8-flags.json": "6d037f37c11d0acda4ae60a9c38f30257537e6ed69df1071b1f570e340db811b",
+      "/home/claude/.scratch/eka-benchmark/growth-short-guest-profile/gpu.json": "d0cc37b0de71d653f03c22507570ee4d6ba800b1fcc7b481c3f0847c452743a3",
+      "/home/claude/.scratch/eka-benchmark/growth-short-guest-profile/report.json": "99e5c852df7796717885e76a7a915a432bf67c074fdce1ea148f0e147c8987c2"
+    }
+  },
+  "long": {
+    "cpu_profile": "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile",
+    "guest_profile": "/home/claude/.scratch/eka-benchmark/growth-long-guest-profile",
+    "cpu_report": {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 60000000,
+        "first_instructions": 6116295735,
+        "last_instructions": 9104126133,
+        "wall_seconds": 13.4331,
+        "presentations": 720,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 30.133488182,
+      "shared_audio": true,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": true,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+      "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+      "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "code_compare": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "110db7e16ec332f71a2cbfd70c4385a7ae9abc11",
+      "dirty_worktree": false,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "guest_report": {
+      "measurement": {
+        "detailed": true,
+        "capture_mode": 2,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 60000000,
+        "first_instructions": 6116295735,
+        "last_instructions": 9104126133,
+        "wall_seconds": 26.6547,
+        "presentations": 720,
+        "aot_dispatches": 199922265,
+        "aot_instructions": 2952030355,
+        "compiled_runner_calls": 11809709,
+        "ram_aot_dispatches": 169156085,
+        "ram_blocks_compiled": 297,
+        "decoded_instructions": 1272,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 626047,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 26.2718,
+            "calls": 628251
+          },
+          "cpu_run": {
+            "seconds": 23.7055,
+            "calls": 626047
+          },
+          "timers": {
+            "seconds": 0.503169,
+            "calls": 628251
+          },
+          "scheduler": {
+            "seconds": 0.472459,
+            "calls": 628251
+          },
+          "graphics_dispatch": {
+            "seconds": 1.037,
+            "calls": 1440
+          },
+          "graphics_wait": {
+            "seconds": 1.03133,
+            "calls": 1440
+          },
+          "display_hook": {
+            "seconds": 0.00139443,
+            "calls": 720
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0.0915656,
+            "calls": 1800
+          }
+        }
+      },
+      "warmup_seconds": 34.400538125,
+      "shared_audio": true,
+      "guest_profile_stride": 1021,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+      "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+      "loader_sha256": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "code_compare": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "110db7e16ec332f71a2cbfd70c4385a7ae9abc11",
+      "dirty_worktree": false,
+      "browser": "Chrome/153.0.8010.52",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "busiest_isolate": {
+      "file": "worker-14.cpuprofile",
+      "sampled_seconds": 13.656513,
+      "nonidle_seconds": 12.858066,
+      "generated_code_inclusive": {
+        "seconds": 5.866409,
+        "percent_all_samples": 42.95685875303601,
+        "modules": 247
+      },
+      "top_self": [
+        {
+          "function": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "seconds": 2.665649,
+          "percent_all_samples": 19.519250631548477
+        },
+        {
+          "function": "eka2l1::arm::aot::validated_code_cache::find(unsigned int, eka2l1::arm::core&)",
+          "seconds": 1.868144,
+          "percent_all_samples": 13.679509549765742
+        },
+        {
+          "function": "eka2l1::arm::aot::equal_code_bytes(unsigned char const*, unsigned char const*, unsigned long)",
+          "seconds": 1.485497,
+          "percent_all_samples": 10.877571749098763
+        },
+        {
+          "function": "__timedwait_cp",
+          "seconds": 0.694845,
+          "percent_all_samples": 5.088011851927355
+        },
+        {
+          "function": "r_740_pc_1879048720",
+          "seconds": 0.553631,
+          "percent_all_samples": 4.053970438866789
+        },
+        {
+          "function": "f_2149128552",
+          "seconds": 0.303612,
+          "percent_all_samples": 2.2232029508557565
+        },
+        {
+          "function": "f_2149189520",
+          "seconds": 0.280464,
+          "percent_all_samples": 2.053701409722965
+        },
+        {
+          "function": "r_259_pc_1879455500",
+          "seconds": 0.251023,
+          "percent_all_samples": 1.8381192915058184
+        },
+        {
+          "function": "ARMul_State::ReadMemory32Slow(unsigned int) const",
+          "seconds": 0.237202,
+          "percent_all_samples": 1.736914833237445
+        },
+        {
+          "function": "r_798_pc_1879095064",
+          "seconds": 0.202491,
+          "percent_all_samples": 1.4827430691861092
+        },
+        {
+          "function": "r_799_pc_1879094644",
+          "seconds": 0.186683,
+          "percent_all_samples": 1.3669887767104238
+        },
+        {
+          "function": "std::__2::__hash_iterator<std::__2::__hash_node<std::__2::__hash_value_type<unsigned long long, unsigned long>, void*>*> std::__2::__hash_table<std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::__unordered_map_hasher<unsigned long long, std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::hash<unsigned long long>, std::__2::equal_to<unsigned long long>, true>, std::__2::__unordered_map_equal<unsigned long long, std::__2::__hash_value_type<unsigned long long, unsigned long>, std::__2::equal_to<unsigned long long>, std::__2::hash<unsigned long long>, true>, std::__2::allocator<std::__2::__hash_value_type<unsigned long long, unsigned long>>>::find<unsigned long long>(unsigned long long const&)",
+          "seconds": 0.151652,
+          "percent_all_samples": 1.1104738083579608
+        },
+        {
+          "function": "r_236_pc_1879464696",
+          "seconds": 0.14239,
+          "percent_all_samples": 1.0426526888672094
+        },
+        {
+          "function": "r_1163_pc_1879063876",
+          "seconds": 0.127622,
+          "percent_all_samples": 0.9345138103701874
+        },
+        {
+          "function": "r_240_pc_1879464540",
+          "seconds": 0.123365,
+          "percent_all_samples": 0.9033418706517542
+        },
+        {
+          "function": "r_1223_pc_1879455124",
+          "seconds": 0.11812,
+          "percent_all_samples": 0.8649352876535906
+        },
+        {
+          "function": "(idle)",
+          "seconds": 0.103602,
+          "percent_all_samples": 0.7586270375168244
+        },
+        {
+          "function": "r_743_pc_1879048888",
+          "seconds": 0.100185,
+          "percent_all_samples": 0.7336060090888501
+        },
+        {
+          "function": "r_1165_pc_1879454612",
+          "seconds": 0.082265,
+          "percent_all_samples": 0.602386568225725
+        },
+        {
+          "function": "js-to-wasm:i:",
+          "seconds": 0.082262,
+          "percent_all_samples": 0.6023646006854019
+        },
+        {
+          "function": "eka2l1::arm::aot::raw_read32(ARMul_State*, unsigned int)",
+          "seconds": 0.072793,
+          "percent_all_samples": 0.5330277209123588
+        },
+        {
+          "function": "r_1171_pc_1879098520",
+          "seconds": 0.067529,
+          "percent_all_samples": 0.4944820101588158
+        },
+        {
+          "function": "r_1530_pc_1879230316",
+          "seconds": 0.066303,
+          "percent_all_samples": 0.4855046086801221
+        },
+        {
+          "function": "r_255_pc_1879068332",
+          "seconds": 0.062192,
+          "percent_all_samples": 0.4554017559240781
+        },
+        {
+          "function": "eka2l1::arm::dyncom_core::run(unsigned int)",
+          "seconds": 0.061213,
+          "percent_all_samples": 0.448233015265317
+        }
+      ]
+    },
+    "compiled_blocks": 199922265,
+    "zero_count_blocks": 11043032,
+    "interpreted_instructions": 35800043,
+    "top_edges": [
+      {
+        "from": 1879048888,
+        "to": 1879048888,
+        "asid": 1,
+        "length": 0,
+        "last_opcode": 0,
+        "count": 9813
+      },
+      {
+        "from": 1879452368,
+        "to": 2149128552,
+        "asid": 1,
+        "length": 1,
+        "last_opcode": 0,
+        "count": 4923
+      },
+      {
+        "from": 1879063676,
+        "to": 1879455500,
+        "asid": 1,
+        "length": 4,
+        "last_opcode": 0,
+        "count": 4718
+      },
+      {
+        "from": 1879461020,
+        "to": 1879453360,
+        "asid": 1,
+        "length": 3,
+        "last_opcode": 0,
+        "count": 4573
+      },
+      {
+        "from": 1879453380,
+        "to": 1879461032,
+        "asid": 1,
+        "length": 5,
+        "last_opcode": 0,
+        "count": 4518
+      },
+      {
+        "from": 1879453360,
+        "to": 1879452368,
+        "asid": 1,
+        "length": 5,
+        "last_opcode": 0,
+        "count": 4432
+      },
+      {
+        "from": 2149128552,
+        "to": 1879453380,
+        "asid": 1,
+        "length": 88,
+        "last_opcode": 0,
+        "count": 4375
+      },
+      {
+        "from": 2149189196,
+        "to": 2149189520,
+        "asid": 1,
+        "length": 7,
+        "last_opcode": 0,
+        "count": 3123
+      },
+      {
+        "from": 1879452392,
+        "to": 2149121612,
+        "asid": 1,
+        "length": 1,
+        "last_opcode": 0,
+        "count": 3099
+      },
+      {
+        "from": 2149129868,
+        "to": 2149189196,
+        "asid": 1,
+        "length": 1,
+        "last_opcode": 0,
+        "count": 2994
+      },
+      {
+        "from": 2149121612,
+        "to": 2149129868,
+        "asid": 1,
+        "length": 1,
+        "last_opcode": 0,
+        "count": 2963
+      },
+      {
+        "from": 1879464540,
+        "to": 1879068672,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 2418
+      },
+      {
+        "from": 1879068672,
+        "to": 1879464696,
+        "asid": 1,
+        "length": 5,
+        "last_opcode": 0,
+        "count": 2406
+      },
+      {
+        "from": 1879464696,
+        "to": 1879068628,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 2381
+      },
+      {
+        "from": 1879068556,
+        "to": 1879464696,
+        "asid": 1,
+        "length": 7,
+        "last_opcode": 0,
+        "count": 2347
+      },
+      {
+        "from": 1879068628,
+        "to": 1879464540,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 2343
+      },
+      {
+        "from": 1879464696,
+        "to": 1879068692,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 2336
+      },
+      {
+        "from": 1879464696,
+        "to": 1879068584,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 2317
+      },
+      {
+        "from": 1879462880,
+        "to": 1879461020,
+        "asid": 1,
+        "length": 8,
+        "last_opcode": 0,
+        "count": 2069
+      },
+      {
+        "from": 1879462912,
+        "to": 1879461020,
+        "asid": 1,
+        "length": 4,
+        "last_opcode": 0,
+        "count": 2052
+      },
+      {
+        "from": 1879461032,
+        "to": 1879462912,
+        "asid": 1,
+        "length": 3,
+        "last_opcode": 0,
+        "count": 2034
+      },
+      {
+        "from": 1879068608,
+        "to": 1879464696,
+        "asid": 1,
+        "length": 5,
+        "last_opcode": 0,
+        "count": 2016
+      },
+      {
+        "from": 1879464540,
+        "to": 1879068652,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1995
+      },
+      {
+        "from": 1879068692,
+        "to": 1879458120,
+        "asid": 1,
+        "length": 4,
+        "last_opcode": 0,
+        "count": 1989
+      },
+      {
+        "from": 1879068652,
+        "to": 1879464540,
+        "asid": 1,
+        "length": 5,
+        "last_opcode": 0,
+        "count": 1983
+      },
+      {
+        "from": 1879458120,
+        "to": 1879458068,
+        "asid": 1,
+        "length": 8,
+        "last_opcode": 0,
+        "count": 1978
+      },
+      {
+        "from": 1879464540,
+        "to": 1879068608,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1975
+      },
+      {
+        "from": 1879068584,
+        "to": 1879464540,
+        "asid": 1,
+        "length": 6,
+        "last_opcode": 0,
+        "count": 1966
+      },
+      {
+        "from": 1879458084,
+        "to": 1879462880,
+        "asid": 1,
+        "length": 2,
+        "last_opcode": 0,
+        "count": 1962
+      },
+      {
+        "from": 1879458068,
+        "to": 1879063676,
+        "asid": 1,
+        "length": 4,
+        "last_opcode": 0,
+        "count": 1948
+      }
+    ],
+    "files": {
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-2.cpuprofile": "d0c77028a346c9f2330f47314127a1909a2c56ef6119c63c45e88245b379dbd2",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-22.cpuprofile": "d54fd7d132df4b30bf7f879f0aaf025cd0419b6c5b34f923a9da95e0030519e7",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-1.cpuprofile": "d815cbe6f80514cd906c2a68e47c170757c8e6cb30cdf10d924f212e81161c8a",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-20.cpuprofile": "b2d0cfa9366b17ab55da36773b3c85f5dc504be9380d5112a22f7d68ca76edd9",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-6.cpuprofile": "228b651c579a5166291b3414e3d4047f5335fa9a4b06e3d849ec2fc6b34a0900",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-4.cpuprofile": "089c1efdbd40e4cf522c4da7be2995136c84db24644a11bdc8e24afa405593dc",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-27.cpuprofile": "f21b1e81149dd19df73f8ad8268459ee2f6ecc297c8f5c7195d51e2eafd57ed6",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-19.cpuprofile": "e6d0c30c8618ab95d7fd59242465e6c08eccc1d5f4545587e0122447eab59f62",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/page.cpuprofile": "7c01806269bd1a5e7e90f295852204451e6c573f0137949be0236bcf401b6e29",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-0.cpuprofile": "8bca00115ede2bb40509f662691a1496b659562bf0c209020fe225c61cb8181f",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-8.cpuprofile": "e044ec0dde54707c12ab78444a463d8efa5c5b5ad74a5095e430b91491e8e81d",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-31.cpuprofile": "1b99f69e37378996bc0bbabb57f5d821fb738acd9627184aec825041eee7df24",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-29.cpuprofile": "50cd3b845797791ee64e02d4cf6dac1a5bcee7a6729dab0d79cc583db8cc15cd",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-28.cpuprofile": "a398b1d3fa18241b46fef93841b818c7b47a7ad4e95e26d3dbde3d00a18f5bd4",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/summary-top.json": "3b4fa5a0bcbb808860eacf8c8999a7b1ce038a930a2ddb8f273ac6e96e85d109",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-16.cpuprofile": "39dd78618ecd2785486b58c04f66c0d677f1aab8a186ea6b801fb0f89bc1c756",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-30.cpuprofile": "ddb9650a8483d89b70f791aaed687c9212bcbda8c35a932a9749f5d2009fd314",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-11.cpuprofile": "d1e10c54da54e023dfe0bc7b8dfa4a9dffe96fb937d0fa21a99c207b7afa4e28",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/summary.json": "8815d79e5dcedc364481f7245e8fa8707e18a93caae6bac690ff239c16d51f2a",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-9.cpuprofile": "8715340e3f197206ab39571af5f07dad7b9c4d6ae2d7ac56c8180d66044a814a",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-24.cpuprofile": "6ef34cbb45b769762edc0835cc5d273b16d488235321933f1763ac58bad1d893",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-21.cpuprofile": "a9f05b0bb7bf03ea8bf710ca1d59f4fefc1758e81878a9bcd3ec9b3ec9b3b2c1",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-7.cpuprofile": "c98fd971e6a3e98a7868e038b55f7bb99f2feaf9a7192e69946c1949931c2d21",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-14.cpuprofile": "3ea5c1151b1ffc0c1ed73055044b4ae1190ec0deb039a858a60fcdaaee4b2074",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-12.cpuprofile": "c6f24d78349635b04658ce0392665d24f46ec51fe78ab5b9c95aafdbc225a4fa",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-23.cpuprofile": "66c8dda9d06d28a1a303a165b98772ca41cb405006f562a736a4a854f2146ea6",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/v8-flags.json": "6d037f37c11d0acda4ae60a9c38f30257537e6ed69df1071b1f570e340db811b",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-18.cpuprofile": "2f9ede86ec6f2ee449bca8d5d93aaca1dac8ae5acd1271ed11fc7075871657db",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-13.cpuprofile": "afcb7e3080f94fa214c7f51e7cac8fb63b5bd4b10f6b7c52482513042f5c15ee",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-5.cpuprofile": "8bb37033a2c8a67495cde3deaa60f74e5ac15656226f761b711b04bfbbfa1b28",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-3.cpuprofile": "b64c38b29ad00cd584992a250d91a46469da6e4882345d61441a7004b92ff9b1",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-15.cpuprofile": "ec4961626c32a7f568456958bcad0c2a8cef7304e5f59e02b803b4e2a7c01f63",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-25.cpuprofile": "13bf4f697eb17181597a923d11b40c51aae95a8ba4ab9b677aef16d3afc13cd5",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/gpu.json": "398d382f89e0d1fde86961f5d62b5a5480b24725b903dfdad1f1536ce15f09ad",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-26.cpuprofile": "b7d8c27f6c3a2b63ba81ffa2110b46a7abf601b86195fc6b4a2437c893aaafa4",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/report.json": "df3921cdde02a556f50f26144ea05c1f4d87717d965f36023d7c7b35ec71a739",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-17.cpuprofile": "7224ba9c317bfa5bbc17d907d2730158f004eeaca98018bba82ee09bf2d5b018",
+      "/home/claude/.scratch/eka-benchmark/growth-long-cpu-profile/worker-10.cpuprofile": "adca94f7dad5afe393efb28f71f6f1dc7f5819465cfb964c63e92770f8c5beaa",
+      "/home/claude/.scratch/eka-benchmark/growth-long-guest-profile/guest-summary.json": "56472d8cb543a113142d349d40716e942f741803fab273f14a92821e4942736d",
+      "/home/claude/.scratch/eka-benchmark/growth-long-guest-profile/guest-profile.json": "c28ed3027f8199fc9fad99ab380c3ecd5e78f501960d90cf4a2d8c6558cba449",
+      "/home/claude/.scratch/eka-benchmark/growth-long-guest-profile/v8-flags.json": "6d037f37c11d0acda4ae60a9c38f30257537e6ed69df1071b1f570e340db811b",
+      "/home/claude/.scratch/eka-benchmark/growth-long-guest-profile/gpu.json": "69337a50bb9340d3149cd1145b7c7d026638220e3ffb5e5444678b290d0312ea",
+      "/home/claude/.scratch/eka-benchmark/growth-long-guest-profile/report.json": "fb0b16eb11e8cf9d3582ecbf98a6b0c22179e8aac273da1acf05049ca60e8f00"
+    }
+  }
+}
