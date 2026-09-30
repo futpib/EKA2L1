@@ -26,3 +26,17 @@ These use a different measurement method: host receipt of semihosting start/end 
 The QEMU JIT advantage over TCI is substantial on these three tiny loops. This is not a universal ranking: guest memory systems, core fidelity and instrumentation differ; QEMU uses a 32-bit Cortex-A15 on virt, not Pebble hardware. The current Pebble hosted page now also advertises a separate newer JIT build; that artifact is not the repository TCI binary measured here. The QEMU demo artifact has recorded hashes but no inferred correspondence to the current source checkout.
 
 Non-ARM v86/Flycast require separately compiled equivalent algorithms. See browser_cores/README.md for scope and reproduction; all observations are in BROWSER_CORES_INITIAL_EVIDENCE.json.
+
+## Longer direct-adapter confirmation
+
+Four million iterations, forward and reverse order, all checks pass. Median milliseconds over ten measured observations per cell (all warmups and first runs retained in BROWSER_CORES_LONGER_EVIDENCE.json):
+
+| Adapter | Arithmetic | Indexed RAM | Conditions |
+|---|---:|---:|---:|
+| skyemu7 | 517.08 | 526.79 | 581.57 |
+| cloudpilot | 416.00 | 516.94 | 521.84 |
+| rpcemu | 176.91 | 186.70 | 238.10 |
+| skyemu9 | 556.59 | 568.72 | 625.24 |
+| eka | 18.80 | 26.83 | 31.50 |
+
+Ordering is unchanged. EKA remains generated regions only. This confirms run-length stability for these kernels, not workload representativeness.
