@@ -1,8 +1,8 @@
-# Invariant write spans: initial timing favorable, confirmation pending
+# Invariant write spans: retained opt-in, no deployment gain established
 
 Policy 5 extends delivered policy 4 to selected stable word-store spans. The
 implementation and safety boundaries are in INVARIANT_WRITES_DESIGN.md. It is
-opt-in and has not changed the LAN build. The first timing batch favors the candidate; confirmation is pending.
+opt-in and has not changed the LAN build. Two serial batches favor writes over matching read emission, but do not establish a meaningful improvement over the currently served archive.
 
 The archived candidate is based on f45aca9e0 plus its saved source.patch:
 `/home/claude/.scratch/eka-benchmark/invariant-writes-validated-candidate`.
@@ -28,9 +28,38 @@ reads. Body sizes change 18,780 to 18,605 and 10,862 to 10,380 bytes. Policy 4's
 complete generated modules remain byte-identical to the delivered fixtures.
 These are static observations, not execution coverage or speed measurements.
 
-Next: serial unsampled gameplay comparisons with policies 4/5 in one application
-binary, plus the exact served read-only archive. Every run and outlier will be
-retained. Full provenance, raw log paths and exact comparisons are in
-INVARIANT_WRITES_EVIDENCE.json. Nothing pushed or deployed.
+## Performance and decision
 
-Initial serial batch (writes/reads/served/served/reads/writes): writes 13.0968/13.2155s, reads 14.2718/13.4684s, served 13.3116/13.1908s. Means 13.15615/13.87010/13.25120s: +5.43% throughput versus same-binary reads and +0.72% versus served. Both adjacent pairs favor writes, but the served difference is small. All six runs execute 3,975,618,624 instructions and 676 presentations with shared audio and the physical NVIDIA renderer. No owned heavy work overlaps warmup or measurement. Every observation retained. Reordered confirmation is running; no delivery decision yet.
+Physical NVIDIA renderer, shared audio, guest seconds 78–96. Every run executes
+3,975,618,624 instructions and 676 presentations. Sampling/detailed counters are
+off; no owned heavy jobs overlap warmup or measurement. The application archive
+is identical for reads/writes; served uses the previously delivered archive.
+
+| Batch | Writes | Reads in same binary | Served | Throughput versus reads / served |
+| --- | ---: | ---: | ---: | ---: |
+| A | 13.15615s | 13.87010s | 13.25120s | +5.43% / +0.72% |
+| B | 13.17215s | 13.31700s | 13.18335s | +1.10% / +0.09% |
+
+A: writes 13.0968, reads 14.2718, served 13.3116, served 13.1908,
+reads 13.4684, writes 13.2155 seconds.
+B: reads 13.4441, writes 13.2210, served 13.1383, served 13.2284,
+writes 13.1233, reads 13.1899 seconds.
+
+All twelve samples remain, including the slow opening read control in A.
+Four of four adjacent read/write pairs favor writes. Pooled means are
+13.16415s writes, 13.59355s matching reads and 13.217275s served: +3.26%
+throughput against matching reads, but only +0.40% against served. The ranges
+overlap. This is partial position counterbalancing, not randomization or a
+statistical-significance claim. The slow control inflates the pooled same-binary
+percentage; there is no fixed percentage promise.
+
+Retain policy 5 as an opt-in experiment with repeated same-binary evidence.
+Do not replace LAN on this result: the advantage over the exact delivered
+archive is too small to establish a useful new delivery gain. No new live/audio
+acceptance run or deployment is claimed. Nothing pushed. The ongoing optimization
+request continues with chunk-level budget proofs using the original emitter.
+
+Full provenance and raw results: INVARIANT_WRITES_EVIDENCE.json. Timing commands
+are serial_variants.py with reads/writes selecting policies 4/5 from the validated
+candidate, served selecting policy 4 from invariant-reads-candidate, eager
+regions disabled for every variant. Reproduce both orders listed above.
