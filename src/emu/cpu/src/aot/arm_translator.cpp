@@ -907,7 +907,7 @@ namespace eka2l1::arm::aot {
         std::vector<proof_group> proof_groups;
         std::vector<proof_access> proof_accesses;
         bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && ir_policy != arm_ir_policy::deferred_chunk_counts && ir_policy != arm_ir_policy::invariant_read_ir && ir_policy != arm_ir_policy::invariant_read_flag_ir && w.region && w.defer_memory && cache_registers && !instructions.empty();
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && ir_policy != arm_ir_policy::deferred_chunk_counts && ir_policy != arm_ir_policy::invariant_read_ir && ir_policy != arm_ir_policy::invariant_read_flag_ir && ir_policy != arm_ir_policy::inline_call_ir && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
         // The guarded IR is an opt-in research path. Version tracking also
         // keeps its existing compiler until separately validated.
@@ -990,7 +990,7 @@ namespace eka2l1::arm::aot {
         // this region before a later instruction can use a pointer invalidated by a callback.
         const bool include_writes = ir_policy == arm_ir_policy::invariant_writes
             || ir_policy == arm_ir_policy::write_budget_chunks || ir_policy == arm_ir_policy::deferred_chunk_counts;
-        bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || include_writes || ir_policy == arm_ir_policy::budget_chunks)
+        bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || ir_policy == arm_ir_policy::inline_call_ir || include_writes || ir_policy == arm_ir_policy::budget_chunks)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #ifdef EKA2L1_WASM_CODE_VERSIONS
         invariant_reads = false;
@@ -1245,28 +1245,49 @@ namespace eka2l1::arm::aot {
             const bool dynamic_memory = false;
 #endif
             const std::map<std::uint32_t, arm_emit::proved_access> no_memory;
-            const auto &segment_memory = (ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir) ? w.proved_accesses : no_memory;
+            const auto &segment_memory = (ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || ir_policy == arm_ir_policy::inline_call_ir) ? w.proved_accesses : no_memory;
+#ifdef EKA2L1_WASM_IR_OUTLINE
+            const bool join_calls = ir_policy == arm_ir_policy::inline_call_ir;
+#else
+            const bool join_calls = false;
+#endif
             for (std::size_t first = 0; first < instructions.size();) {
                 region_ir graph(instructions[first].address);
                 std::size_t end = first;
                 for (; end < instructions.size() && end - first < 32; ++end) {
                     const auto &ins = instructions[end];
                     const auto op = ins.opcode;
-                    if (end != first && (ins.leaf != instructions[first].leaf
-                        || ins.address != instructions[end - 1].address + 4
-                        || (!ins.leaf && forward_targets_set.count(ins.address)))) break;
-                    // Memory joins the graph only with precise guard exits.
-                    // Flags, calls and PC writes remain bounds. Wide values
-                    // join the mixed path with precise intermediate snapshots.
+                    if (end != first) {
+                        const auto &previous = instructions[end - 1];
+                        const bool linear = ins.leaf == previous.leaf && ins.address == previous.address + 4;
+                        const auto callee = inlined.find(previous.offset);
+                        const bool enter_leaf = join_calls && !previous.leaf && ins.leaf
+                            && callee != inlined.end() && ins.offset == previous.offset && ins.address == callee->second.address;
+                        const bool leave_leaf = join_calls && previous.leaf && previous.opcode == 0xe12fff1e
+                            && !ins.leaf && ins.address == start_address + previous.offset + 4;
+                        if ((!linear && !enter_leaf && !leave_leaf)
+                            || (!ins.leaf && forward_targets_set.count(ins.address))) break;
+                    }
+                    auto trial = graph;
+                    if (join_calls && !ins.leaf && inlined.count(ins.offset)) {
+                        trial.inline_call(ins.address, inlined.at(ins.offset).address);
+                        graph = std::move(trial); continue;
+                    }
+                    if (join_calls && ins.leaf && op == 0xe12fff1e) {
+                        trial.inline_return(start_address + static_cast<std::uint32_t>(ins.offset) + 4);
+                        graph = std::move(trial); continue;
+                    }
+                    // Memory joins only through precise guards; selected policies
+                    // also model flags and already validated inline transfers.
+                    // Other control transfers remain segment boundaries.
                     if (!dynamic_memory && (((op >> 26) & 3) != 0
                         || (op & 0x0f8000f0u) == 0x00800090u)) break;
-                    auto trial = graph;
-                    if (!trial.append(op, ins.address, false, segment_memory, dynamic_memory, ir_policy == arm_ir_policy::invariant_read_flag_ir)) break;
+                    if (!trial.append(op, ins.address, false, segment_memory, dynamic_memory, ir_policy == arm_ir_policy::invariant_read_flag_ir || join_calls)) break;
                     graph = std::move(trial);
                 }
                 if (end - first < 3 || !graph.valid()) { ++first; continue; }
                 integer_segment segment{std::move(graph), {}, {}, {}, static_cast<unsigned>(end - first)};
-                segment.memoize_cold = ir_policy == arm_ir_policy::outlined_recipes || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir;
+                segment.memoize_cold = ir_policy == arm_ir_policy::outlined_recipes || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || join_calls;
                 std::vector<unsigned> exits{segment.length};
                 for (const auto &node : segment.graph.nodes)
                     if (node.op == region_ir::guarded_host) exits.push_back(static_cast<unsigned>(node.immediate / 2));
@@ -1543,6 +1564,7 @@ namespace eka2l1::arm::aot {
                 w.op(op_i32_add); w.set_local(arm_emit::COUNT);
                 ++tr.ir_segments;
                 tr.ir_flag_instructions += part.graph.flag_instructions;
+                tr.ir_inline_transfers += part.graph.inline_transfers;
                 for (unsigned v = 1; v < part.graph.nodes.size(); ++v) {
                     if (part.graph.nodes[v].op == region_ir::guarded_host) ++tr.ir_memory_guards;
                     if (part.graph.nodes[v].op == region_ir::read32
@@ -1575,7 +1597,12 @@ namespace eka2l1::arm::aot {
                     w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
                     w.op(op_return); w.op(op_end);
                     std::vector<std::uint32_t> words;
-                    for (unsigned n = 0; n < part.length; ++n)
+                    // A flattened caller/leaf sequence is not contiguous guest
+                    // code. On short budgets execute its first real instruction
+                    // at its real PC and return positive progress to the runner.
+                    // Never relabel the flattened words as a contiguous slice.
+                    const unsigned precise_length = part.graph.inline_transfers ? 1 : part.length;
+                    for (unsigned n = 0; n < precise_length; ++n)
                         words.push_back(instructions[instruction_index + n].opcode);
                     auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),
                         words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,

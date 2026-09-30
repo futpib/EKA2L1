@@ -25,15 +25,15 @@
 namespace eka2l1::arm::aot {
     // Research selection at translation time; compile-time feature gates still
     // apply. configured preserves the build's current behavior.
-    enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2, outlined_recipes = 3, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6, write_budget_chunks = 7, deferred_chunk_counts = 8, invariant_read_ir = 9, invariant_read_flag_ir = 10 };
+    enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2, outlined_recipes = 3, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6, write_budget_chunks = 7, deferred_chunk_counts = 8, invariant_read_ir = 9, invariant_read_flag_ir = 10, inline_call_ir = 11 };
 
     inline bool parse_arm_ir_policy(const char *text, arm_ir_policy &out) {
         if (!text) return false;
         if (text[0] >= '0' && text[0] <= '9' && !text[1]) {
             out = static_cast<arm_ir_policy>(text[0] - '0'); return true;
         }
-        if (text[0] == '1' && text[1] == '0' && !text[2]) {
-            out = arm_ir_policy::invariant_read_flag_ir; return true;
+        if (text[0] == '1' && (text[1] == '0' || text[1] == '1') && !text[2]) {
+            out = static_cast<arm_ir_policy>(10 + text[1] - '0'); return true;
         }
         return false;
     }

@@ -39,7 +39,7 @@ namespace eka2l1::arm::aot {
         std::vector<value> effects;
         std::map<std::tuple<unsigned,unsigned,value,value,std::uint64_t>, value> numbers;
         bool optimize = true;
-        unsigned flag_instructions = 0;
+        unsigned flag_instructions = 0, inline_transfers = 0;
 
         explicit region_ir(std::uint32_t pc, bool optimize_ = true) : optimize(optimize_) {
             snapshot entry{};
@@ -280,6 +280,19 @@ namespace eka2l1::arm::aot {
             } else return false;
             if (!writes_pc) next.regs[15] = imm(pc + 4);
             ++next.count; snapshots.push_back(next); return true;
+        }
+
+        // Only the caller's validated inline-leaf stream may use these.
+        // Counts and true guest PCs include both BL and BX LR. The leaf proof
+        // excludes LR writes; its return is the known ARM caller continuation.
+        void inline_call(std::uint32_t pc, std::uint32_t target) {
+            auto next = snapshots.back();
+            next.regs[14] = imm(pc + 4); next.regs[15] = imm(target);
+            ++next.count; snapshots.push_back(next); ++inline_transfers;
+        }
+        void inline_return(std::uint32_t continuation) {
+            auto next = snapshots.back(); next.regs[15] = imm(continuation);
+            ++next.count; snapshots.push_back(next); ++inline_transfers;
         }
 
         bool valid() const {

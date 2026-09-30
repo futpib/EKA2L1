@@ -2369,22 +2369,30 @@ static bool test_region_code_alias() {
     return true;
 }
 
-static bool test_inlined_leaves() {
+static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured) {
 #ifdef __EMSCRIPTEN__
     // Repeated far calls in a loop, including real workload memory leaves.
-    const std::uint32_t caller[] = {0xeb0003fe,0xeb0003fd,0xe2566001,0x1afffffb};
-    const std::vector<std::vector<std::uint32_t>> leaves = {
+    const std::vector<std::uint32_t> caller = policy == arm_ir_policy::inline_call_ir
+        ? std::vector<std::uint32_t>{0xe1a0800f,0xeb0003fd,0xe1a0900f,0xeb0003fb,0xe2566001,0x1afffff9}
+        : std::vector<std::uint32_t>{0xeb0003fe,0xeb0003fd,0xe2566001,0x1afffffb};
+    std::vector<std::vector<std::uint32_t>> leaves = {
         {0xe2800001,0xe12fff1e},
         {0xe3a03000,0xe5803000,0xe5911000,0xe5922000,0xe0411002,0xe5801000,0xe12fff1e},
         {0xe3a03000,0xe5803000,0xe5803004,0xe5803008,0xe12fff1e},
         {0xe12fff1e}
     };
+    if (policy == arm_ir_policy::inline_call_ir) {
+        leaves.push_back({0xe1a02000,0xe1a00001,0xe1a01002,0xe12fff1e}); // register cycle
+        leaves.push_back({0xe0900001,0xe2a02000,0xe12fff1e}); // flags across call
+    }
     unsigned comparisons=0;
     for (bool deferred : {false,true}) for (const auto &words : leaves) {
+        if (policy == arm_ir_policy::inline_call_ir && !deferred) continue;
         std::vector<std::uint8_t> leaf(words.size()*4); std::memcpy(leaf.data(),words.data(),leaf.size());
         leaf_resolver resolve = [&](std::uint32_t pc) { return pc == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
-        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,true,true,true,&resolve,deferred);
-        if (tr.dependencies.size()!=1 || tr.end_address!=0x1010) {printf("  FAIL leaf discovery\n");return false;}
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,true,true,true,&resolve,deferred,policy);
+        if (policy == arm_ir_policy::inline_call_ir && !tr.ir_inline_transfers) {printf("  FAIL inline transfers not selected\n");return false;}
+        if (tr.dependencies.size()!=1 || tr.end_address!=0x1000+caller.size()*4) {printf("  FAIL leaf discovery\n");return false;}
 #if defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)
         if (deferred && words.size() >= 5 && !tr.ir_memory_guards) {
             printf("  FAIL inlined memory leaf did not select IR guards\n"); return false;
@@ -2394,7 +2402,7 @@ static bool test_inlined_leaves() {
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         for(unsigned fast : {0u,1u}) for(unsigned alias : {0u,1u}) for(unsigned budget=0;budget<80;++budget) {
             test_mem actual, reference;
-            std::vector<std::uint8_t> bytes(sizeof(caller));std::memcpy(bytes.data(),caller,sizeof(caller));
+            std::vector<std::uint8_t> bytes(caller.size()*4);std::memcpy(bytes.data(),caller.data(),bytes.size());
             actual.write_code(0x1000,bytes); reference.write_code(0x1000,bytes);
             actual.write_code(0x2000,leaf);reference.write_code(0x2000,leaf);
             actual.write32(0x8000,0x8000);reference.write32(0x8000,0x8000);
@@ -2416,7 +2424,7 @@ static bool test_inlined_leaves() {
             g_test_mem=&actual;
             const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
             g_test_mem=nullptr;
-            if(count<0 || count>static_cast<int>(budget))return false;
+            if(count<0 || count>static_cast<int>(budget) || (policy==arm_ir_policy::inline_call_ir && budget && !count))return false;
             if(count)cpu->run(count);
             for(unsigned r=0;r<16;++r)if(state[r]!=cpu->get_reg(r)) {
                 printf("  FAIL leaf fast=%u alias=%u budget=%u count=%d R%u %x vs %x\n",fast,alias,budget,count,r,state[r],cpu->get_reg(r));return false;
@@ -2427,7 +2435,7 @@ static bool test_inlined_leaves() {
             ++comparisons;
         }
     }
-    printf("  PASS inlined_leaves (%u exact budget/state/memory comparisons)\n",comparisons);
+    printf("  PASS inlined_leaves policy=%d (%u exact budget/state/memory comparisons)\n",int(policy),comparisons);
 #endif
     return true;
 }
@@ -4754,6 +4762,9 @@ int main(int argc, char **argv) {
 
     printf("\nRunning ARM translator-level tests...\n\n");
     if (test_inlined_leaves()) passed++; else failed++;
+#if defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    if (test_inlined_leaves(arm_ir_policy::inline_call_ir)) passed++; else failed++;
+#endif
     if (test_bounded_execution()) passed++; else failed++;
     if (test_exact_code_compare()) passed++; else failed++;
     if (test_region_cpsr_callback()) passed++; else failed++;

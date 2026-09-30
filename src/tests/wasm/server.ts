@@ -66,7 +66,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
   if (ir === undefined && eager === undefined) return undefined;
   const policy: CompilerPolicy = {};
   if (ir !== undefined) {
-    if (!/^(?:-1|[0-9]|10)$/.test(ir)) throw new Error("Invalid compiler policy");
+    if (!/^(?:-1|[0-9]|10|11)$/.test(ir)) throw new Error("Invalid compiler policy");
     policy.irMode = Number(ir);
   }
   if (eager !== undefined) {
@@ -78,7 +78,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
 
 function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   if (!policy) return "";
-  if ((policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 10))
+  if ((policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 11))
       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions)))
     throw new Error("Invalid compiler policy");
   return `<script>
