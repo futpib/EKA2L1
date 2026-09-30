@@ -229,8 +229,8 @@ int eka2l1_tlb_hash_configure(int mode) {
 // Exact byte-scanner research control, frozen before guest execution.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_code_compare_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::code_compare_overlap = mode != 0;
+    if (g_state || mode < 0 || mode > 2) return -1;
+    eka2l1::arm::aot::code_compare_mode = static_cast<unsigned>(mode);
     return 0;
 }
 

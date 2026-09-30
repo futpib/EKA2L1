@@ -74,11 +74,11 @@ int main(int argc, char **argv){
     std::cout << "PROBE_TLB_HASH " << r12l1::dyncom_folded_tlb << "\n";
     if (argc > 1 && std::strncmp(argv[argc-1],"--code-compare=",15) == 0) {
         const std::string value(argv[argc-1]+15);
-        if(value!="0" && value!="1") {std::cerr<<"Invalid comparison policy\n";return 1;}
-        aot::code_compare_overlap=value=="1";
+        if(value!="0" && value!="1" && value!="2") {std::cerr<<"Invalid comparison policy\n";return 1;}
+        aot::code_compare_mode=static_cast<unsigned>(value[0]-'0');
         --argc;
     }
-    std::cout << "PROBE_COMPARE " << aot::code_compare_overlap << "\n";
+    std::cout << "PROBE_COMPARE " << aot::code_compare_mode << "\n";
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         if(!aot::parse_arm_ir_policy(mode,ir_policy)) {std::cerr<<"Invalid IR mode\n";return 1;}

@@ -16,7 +16,7 @@ parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/1/
 parser.add_argument('--eager-regions', action='append', default=[], metavar='NAME=0/1',
                     help='Select eager ROM region compilation within an archived binary')
 parser.add_argument('--tlb-hash', action='append', default=[], metavar='NAME=0/1')
-parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1')
+parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1/2')
 parser.add_argument('--input', action='append', default=[], metavar='NAME=INPUT', help='Optional per-variant guest input route')
 parser.add_argument('--start-us', type=int, default=78000000)
 parser.add_argument('--end-us', type=int, default=96000000)
@@ -44,8 +44,8 @@ for item in args.eager_regions:
 compare_modes = {}
 for item in args.code_compare:
     name, separator, value = item.partition('=')
-    if not separator or name not in dict(variants) or name in compare_modes or value not in ('0', '1'):
-        parser.error('Code compare requires a unique known NAME=0/1')
+    if not separator or name not in dict(variants) or name in compare_modes or value not in ('0', '1', '2'):
+        parser.error('Code compare requires a unique known NAME=0/1/2')
     compare_modes[name] = int(value)
 hash_modes = {}
 for item in args.tlb_hash:

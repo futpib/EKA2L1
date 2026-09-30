@@ -13,7 +13,7 @@ p.add_argument('output', type=Path)
 p.add_argument('--require-equal', action='store_true', help='Exit nonzero on any semantic mismatch')
 p.add_argument('--cases', type=int, choices=(48,64,96,480,672,5376), default=480, help='Expected complete fixture count; read spans has 48, invariant remapping has 64, block spans has 96, extended has 672, conditional IR has 5376')
 p.add_argument('--ir-policy', type=int, choices=range(16), help='Require explicit matching probe-policy markers')
-p.add_argument('--code-compare', type=int, choices=(0,1))
+p.add_argument('--code-compare', type=int, choices=(0,1,2))
 p.add_argument('--tlb-hash', type=int, choices=(0,1))
 a = p.parse_args()
 

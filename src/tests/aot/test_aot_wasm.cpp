@@ -3813,9 +3813,9 @@ static bool test_block_transfer_callback_pc() {
 }
 
 static bool test_exact_code_compare() {
-    for (bool overlap : {false, true}) {
-    code_compare_overlap = overlap;
-    std::array<std::uint8_t,545> a{},b{};
+    for (unsigned mode : {0u, 1u, 2u}) {
+    code_compare_mode = mode;
+    std::array<std::uint8_t,577> a{},b{};
     for(unsigned i=0;i<a.size();++i) a[i]=b[i]=i*37;
     for(unsigned offset=0;offset<16;++offset) for(unsigned size=0;size<=512;++size) {
         if(!equal_code_bytes(a.data()+offset,b.data()+offset,size)) return false;
@@ -3827,7 +3827,7 @@ static bool test_exact_code_compare() {
     }
     // Exercise every byte and independent alignment of the short snapshots.
     for (unsigned left=0;left<16;++left) for(unsigned right=0;right<16;++right)
-        for(unsigned size=0;size<=80;++size) {
+        for(unsigned size=0;size<=192;++size) {
             std::memcpy(b.data()+right,a.data()+left,size);
             if(!equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
             for(unsigned at=0;at<size;++at) {
@@ -3836,9 +3836,23 @@ static bool test_exact_code_compare() {
                 b[right+at]^=128;
             }
         }
+    for (unsigned left=0;left<4;++left) for(unsigned right=0;right<4;++right)
+        for(unsigned size : {255u,256u,257u,511u,512u,513u}) {
+            std::memcpy(b.data()+right,a.data()+left,size);
+            if(!equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
+            for(unsigned at=0;at<size;++at) {
+                b[right+at]^=64;
+                if(equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
+                b[right+at]^=64;
+            }
+            // Equal mismatch bits in separate vectors must not cancel.
+            b[right]^=1; b[right+16]^=1;
+            if(equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
+            b[right]^=1; b[right+16]^=1;
+        }
     }
-    code_compare_overlap = false;
-    printf("  PASS exact_code_compare (unaligned/tails/mutations)\n"); return true;
+    code_compare_mode = 0;
+    printf("  PASS exact_code_compare (three modes, unaligned/tails/mutations)\n"); return true;
 }
 
 // Check every condition/flag combination against DynCom, including false moves,
@@ -4327,6 +4341,7 @@ static bool test_folded_tlb_guards() {
 }
 
 int main(int argc, char **argv) {
+    if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
     if(argc==2 && std::string(argv[1])=="--folded-tlb-only") return test_folded_tlb_guards()?0:1;
     if (argc == 2 && std::string(argv[1]).rfind("--tlb-hash=",0)==0) {
         const std::string value=std::string(argv[1]).substr(11);
