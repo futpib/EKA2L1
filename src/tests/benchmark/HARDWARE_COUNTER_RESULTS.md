@@ -23,6 +23,9 @@ ordinary candidate runs alternated between roughly 12.6 and 14.1 seconds. It
 does not prove that tiering, CPU frequency, cache behavior or interference is
 responsible or absent in the earlier slow runs. No slow sample was discarded.
 
+The added start gate can also give background browser work extra time before
+measurement; this series does not isolate that pause from counter attachment.
+
 The optional hardware-counter tool passed a local busy-loop self-check with
 positive instructions/cycles and full counting coverage, then these four actual
 browser workflows. Source is c911bc967. It counts only user execution in threads
