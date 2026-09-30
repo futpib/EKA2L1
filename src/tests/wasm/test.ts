@@ -115,6 +115,18 @@ async function runTests(): Promise<void> {
     );
     console.log("  PASS");
 
+    console.log("TEST IR: pre-init compiler mode validation...");
+    await page.evaluate(() => {
+      const m = (window as any).Module;
+      const configure = (n: number) => m.ccall('eka2l1_ir_configure', 'number', ['number'], [n]);
+      if (configure(-2) !== -1 || configure(3) !== -1 || configure(0) !== 0)
+        throw new Error('IR mode validation failed');
+      for (const mode of [1,2]) if (![0,-2].includes(configure(mode)))
+        throw new Error('IR capability response failed');
+      if (configure(-1) !== 0) throw new Error('IR default restoration failed');
+    });
+    console.log("  PASS");
+
     // Test 5: eka2l1_init
     console.log("TEST 5: eka2l1_init...");
     const initResult = await page.evaluate(() => {
@@ -122,6 +134,10 @@ async function runTests(): Promise<void> {
       return Module.ccall("eka2l1_init", "number", ["string"], ["/data"]);
     });
     if (initResult !== 0) throw new Error(`eka2l1_init returned ${initResult}`);
+    await page.evaluate(() => {
+      if ((window as any).Module.ccall('eka2l1_ir_configure', 'number', ['number'], [0]) !== -1)
+        throw new Error('IR policy changed after initialization');
+    });
     console.log("  PASS");
 
     // Test 6: eka2l1_shutdown

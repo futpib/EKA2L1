@@ -23,6 +23,10 @@
 #include <functional>
 
 namespace eka2l1::arm::aot {
+    // Research selection at translation time; compile-time feature gates still
+    // apply. configured preserves the build's current behavior.
+    enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2 };
+
     using leaf_resolver = std::function<std::vector<std::uint8_t>(std::uint32_t)>;
 
     // Translate a block of ARM-mode code into a WASM function body.
@@ -40,5 +44,5 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings = nullptr,
-        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false, bool region = false, const leaf_resolver *leaves = nullptr, bool defer_memory = false);
+        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false, bool region = false, const leaf_resolver *leaves = nullptr, bool defer_memory = false, arm_ir_policy ir_policy = arm_ir_policy::configured);
 }

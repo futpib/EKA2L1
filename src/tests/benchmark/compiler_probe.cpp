@@ -26,12 +26,18 @@ struct Source : Dynarmic::A32::TranslateCallbacks {
 };
 int main(int argc,char**argv) {
  bool defer_memory=false, inline_leaves=false;
+ auto ir_policy=eka2l1::arm::aot::arm_ir_policy::configured;
  std::vector<std::pair<unsigned,unsigned>> regions;
  try {
   for(int i=3;i<argc;++i) {
    const std::string arg=argv[i];
    if(arg=="--defer-memory") defer_memory=true;
    else if(arg=="--inline-leaves") inline_leaves=true;
+   else if(arg=="--ir-mode" && i+1<argc) {
+    const std::string mode=argv[++i];
+    if(mode!="0" && mode!="1" && mode!="2")throw std::invalid_argument("IR mode must be 0, 1 or 2");
+    ir_policy=static_cast<eka2l1::arm::aot::arm_ir_policy>(mode[0]-'0');
+   }
    else if(arg=="--region" && i+2<argc) {
     const auto pc=std::stoul(argv[++i],nullptr,0), size=std::stoul(argv[++i],nullptr,0);
     if(pc>0xffffffffu || size>0xffffffffu) throw std::invalid_argument("region overflow");
@@ -40,7 +46,7 @@ int main(int argc,char**argv) {
   }
   if(argc<3) throw std::invalid_argument("missing arguments");
  } catch(const std::exception &e) {
-  std::cerr<<"compiler_probe GAME_EXE NEW_DIRECTORY [--defer-memory] [--inline-leaves] [--region PC SIZE]...\n"<<e.what()<<"\n";return 1;
+  std::cerr<<"compiler_probe GAME_EXE NEW_DIRECTORY [--defer-memory] [--inline-leaves] [--ir-mode 0/1/2] [--region PC SIZE]...\n"<<e.what()<<"\n";return 1;
  }
  if(regions.empty()) regions={{0x7006370cu,0xf0u},{0x70013edcu,0x1cu}};
  if(!std::filesystem::create_directory(argv[2]))return 2;
@@ -88,8 +94,8 @@ int main(int argc,char**argv) {
    const auto begin=src.bytes.begin()+address-0x70000000u;
    return std::vector<std::uint8_t>(begin,begin+64);
   };
-  auto t=translate_arm_block(src.bytes.data()+pc-0x70000000,size,pc,nullptr,nullptr,true,true,true,true,inline_leaves?&resolve:nullptr,defer_memory);
-  std::cout<<pc<<" region_end "<<t.end_address<<" body_bytes "<<t.func.body.size()<<" dependencies "<<t.dependencies.size()<<" guarded_ir "<<bool(t.func.outlined_callee)<<" ir_segments "<<t.ir_segments<<"\n";
+  auto t=translate_arm_block(src.bytes.data()+pc-0x70000000,size,pc,nullptr,nullptr,true,true,true,true,inline_leaves?&resolve:nullptr,defer_memory,ir_policy);
+  std::cout<<pc<<" region_end "<<t.end_address<<" body_bytes "<<t.func.body.size()<<" dependencies "<<t.dependencies.size()<<" guarded_ir "<<bool(t.func.outlined_callee)<<" ir_segments "<<t.ir_segments<<" ir_outlined_segments "<<t.ir_outlined_segments<<" ir_policy "<<static_cast<int>(ir_policy)<<"\n";
   for(const auto &dependency:t.dependencies) {
    const auto name=prefix+"-leaf-"+std::to_string(dependency.address);
    std::ofstream(name+".arm",std::ios::binary).write((const char*)dependency.bytes.data(),dependency.bytes.size());

@@ -809,7 +809,7 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::configured)
     {
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
@@ -874,7 +874,7 @@ namespace eka2l1::arm::aot {
         struct proof_access { std::uint32_t pc; unsigned group; std::int64_t offset; };
         std::vector<proof_group> proof_groups;
         std::vector<proof_access> proof_accesses;
-        bool prove_memory = allow_memory_proof && w.region && w.defer_memory && cache_registers && !instructions.empty();
+        bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
         // The guarded IR is an opt-in research path. Version tracking also
         // keeps its existing compiler until separately validated.
@@ -1097,7 +1097,7 @@ namespace eka2l1::arm::aot {
         std::map<std::size_t, integer_segment> segments;
         std::vector<std::pair<std::size_t, unsigned>> wide_fixups;
 #ifdef EKA2L1_WASM_IR_SEGMENTS
-        if (allow_memory_proof && w.region && cache_registers && !ir) {
+        if (allow_memory_proof && ir_policy != arm_ir_policy::disabled && w.region && cache_registers && !ir) {
             unsigned max_locals = 0, max_wide_locals = 0;
 #if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
             const bool dynamic_memory = w.defer_memory;
@@ -1354,39 +1354,40 @@ namespace eka2l1::arm::aot {
                 }
                 w.op(op_else);
 #ifdef EKA2L1_WASM_IR_OUTLINE
-                // The callee receives the exact remainder and current guest
-                // state. It exhausts that short budget or exits precisely; no
-                // subsequent caller instruction is executed on this arm.
-                w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT);
-                w.store_i32_const(S::PC, insn_addr);
-                w.cache.barrier_at(w.b.size());
-                w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
-                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
-                w.state_ptr(); w.op(op_call);
-                const auto call_offset = static_cast<std::uint32_t>(w.b.size());
-                w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});
-                w.get_local(arm_emit::COUNT); w.op(op_i32_add);
-                // Bypass stale caller writeback after the helper updated guest
-                // state. Only restore the runner's original budget contract.
-                w.state_ptr(); w.load_i32(S::AOT_BUDGET);
-                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
-                w.op(op_return); w.op(op_end);
-                std::vector<std::uint32_t> words;
-                for (unsigned n = 0; n < part.length; ++n)
-                    words.push_back(instructions[instruction_index + n].opcode);
-                auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),
-                    words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,
-                    true, true, nullptr, defer_memory, false);
-                precise.func.export_name += "_ir_short";
-                result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});
-                ++tr.ir_outlined_segments;
-                skip_segment_until = instruction_index + part.length;
-                insn_idx += part.length;
-                decoded_end_offset = static_cast<std::uint32_t>(instructions[skip_segment_until - 1].offset) + 4;
-                continue;
-#else
-                segment_end = instruction_index + part.length;
+                if (ir_policy != arm_ir_policy::inline_segments) {
+                    // The callee receives the exact remainder and current guest
+                    // state. It exhausts that short budget or exits precisely; no
+                    // subsequent caller instruction is executed on this arm.
+                    w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT);
+                    w.store_i32_const(S::PC, insn_addr);
+                    w.cache.barrier_at(w.b.size());
+                    w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
+                    w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
+                    w.state_ptr(); w.op(op_call);
+                    const auto call_offset = static_cast<std::uint32_t>(w.b.size());
+                    w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});
+                    w.get_local(arm_emit::COUNT); w.op(op_i32_add);
+                    // Bypass stale caller writeback after the helper updated guest
+                    // state. Only restore the runner's original budget contract.
+                    w.state_ptr(); w.load_i32(S::AOT_BUDGET);
+                    w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
+                    w.op(op_return); w.op(op_end);
+                    std::vector<std::uint32_t> words;
+                    for (unsigned n = 0; n < part.length; ++n)
+                        words.push_back(instructions[instruction_index + n].opcode);
+                    auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),
+                        words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,
+                        true, true, nullptr, defer_memory, false);
+                    precise.func.export_name += "_ir_short";
+                    result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});
+                    ++tr.ir_outlined_segments;
+                    skip_segment_until = instruction_index + part.length;
+                    insn_idx += part.length;
+                    decoded_end_offset = static_cast<std::uint32_t>(instructions[skip_segment_until - 1].offset) + 4;
+                    continue;
+                }
 #endif
+                segment_end = instruction_index + part.length;
             }
 
             if (instruction.leaf && inst == 0xe12fff1e) {
@@ -2454,10 +2455,10 @@ namespace eka2l1::arm::aot {
         const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
         const sibling_map *siblings, const code_window *dll_code, bool bounded,
         bool stop_after_store, bool cache_registers, bool region,
-        const leaf_resolver *leaves, bool defer_memory)
+        const leaf_resolver *leaves, bool defer_memory, arm_ir_policy ir_policy)
     {
         return translate_arm_block_impl(code, code_size, start_address, siblings,
             dll_code, bounded, stop_after_store, cache_registers, region, leaves,
-            defer_memory, true);
+            defer_memory, true, ir_policy);
     }
 }

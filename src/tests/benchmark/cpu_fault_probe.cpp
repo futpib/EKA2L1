@@ -17,6 +17,7 @@
 #include <sstream>
 #include <vector>
 #include <cstring>
+#include <cstdlib>
 using namespace eka2l1::arm;
 std::string regs(core &c) {
     std::ostringstream o; o << '[';
@@ -54,6 +55,13 @@ struct Fixture {
     }
 };
 int main(int argc, char **argv){
+    auto ir_policy=aot::arm_ir_policy::configured;
+    if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
+        const std::string value(mode);
+        if(value!="0" && value!="1" && value!="2") {std::cerr<<"Invalid IR mode\n";return 1;}
+        ir_policy=static_cast<aot::arm_ir_policy>(value[0]-'0');
+    }
+    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled;
     const bool interpreter=argc==2 && (std::string(argv[1])=="--interpreter" || std::string(argv[1])=="--region-spans-interpreter" || std::string(argv[1])=="--entry-budget-interpreter");
     eka2l1::common::performance::enabled=true;
     eka2l1::common::performance::phase=2;
@@ -131,18 +139,22 @@ int main(int argc, char **argv){
         std::vector<aot::wasm_func_def> functions;
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
-                (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,nullptr,deferred);
-            if(ir_segments && n==0 && !translated.ir_segments) {
+                (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,nullptr,deferred,ir_policy);
+            if(!ir_disabled && ir_segments && n==0 && !translated.ir_segments) {
                 std::cerr << "Integer-segment fault fixture did not select the IR\n"; return 4;
             }
-            if((ir_memory || ir_memory_chain) && n==0 && !translated.ir_memory_guards) {
+            if(!ir_disabled && (ir_memory || ir_memory_chain) && n==0 && !translated.ir_memory_guards) {
                 std::cerr << "Dynamic memory fixture did not select IR guard exits\n"; return 4;
             }
-            if(ir_wide && n==0 && !translated.ir_wide_products) {
+            if(!ir_disabled && ir_wide && n==0 && !translated.ir_wide_products) {
                 std::cerr << "Wide memory fixture did not select IR products\n"; return 4;
             }
-            if(ir_short && n==0 && !translated.ir_outlined_segments) {
+            if(!ir_disabled && ir_policy!=aot::arm_ir_policy::inline_segments && ir_short && n==0 && !translated.ir_outlined_segments) {
                 std::cerr << "Short-budget fault fixture did not select private IR fallback\n"; return 4;
+            }
+            if((ir_disabled && (translated.ir_segments || translated.func.outlined_callee))
+                || (ir_policy==aot::arm_ir_policy::inline_segments && translated.ir_outlined_segments)) {
+                std::cerr<<"IR mode selection was ignored\n";return 4;
             }
             functions.push_back(std::move(translated.func));
         }

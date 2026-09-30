@@ -2823,6 +2823,7 @@ static bool test_ir_segments() {
     leaf_resolver resolve = [&](std::uint32_t address) { return address == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
     const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
     unsigned comparisons = 0;
+    for (auto policy : {arm_ir_policy::disabled, arm_ir_policy::inline_segments, arm_ir_policy::configured})
     for (unsigned p = 0; p < programs.size(); ++p) {
         // A branch to the next instruction excludes the whole-region IR even
         // when both options are enabled, and exercises a real region label.
@@ -2832,12 +2833,13 @@ static bool test_ir_segments() {
         if (p == programs.size()-1) code.push_back(0xe1a0e00bu);
         code.insert(code.end(),{0xe58a2010u,0xe58a3014u,0xe12fff1eu});
         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
-        auto tr = translate_arm_block(bytes,code.size()*4,0x1000,nullptr,nullptr,true,true,true,true,&resolve,true);
-        if (!tr.complete || !tr.ir_segments || tr.func.outlined_callee) {
+        auto tr = translate_arm_block(bytes,code.size()*4,0x1000,nullptr,nullptr,true,true,true,true,&resolve,true,policy);
+        if (!tr.complete || (policy == arm_ir_policy::disabled ? tr.ir_segments != 0 : !tr.ir_segments) || tr.func.outlined_callee) {
             printf("  FAIL IR segment program %u not selected\n",p); return false;
         }
 #ifdef EKA2L1_WASM_IR_OUTLINE
-        if(tr.ir_outlined_segments!=tr.ir_segments || tr.func.outlined_calls.size()!=tr.ir_segments) {
+        const auto expected_private = policy == arm_ir_policy::configured ? tr.ir_segments : 0;
+        if(tr.ir_outlined_segments!=expected_private || tr.func.outlined_calls.size()!=expected_private) {
             printf("  FAIL private IR remainder selection\n");return false;
         }
 #endif
@@ -2879,7 +2881,7 @@ static bool test_ir_segments() {
             ++comparisons;
         }
     }
-    printf("  PASS ir_segments (%u exact state/memory/budget comparisons)\n",comparisons);
+    printf("  PASS ir_segments (%u exact state/memory/budget comparisons across three policies)\n",comparisons);
 #endif
     return true;
 }
