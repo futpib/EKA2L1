@@ -147,7 +147,12 @@ async function runTests(): Promise<void> {
     await page.evaluate((expectEnabled) => {
       const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_write_protect_configure','number',['number'],[n]);
       if(configure(-1)!==-1 || configure(2)!==-1) throw Error('Invalid write protection accepted');
-      const enabled=configure(1), disabled=configure(0);
+      const enabled=configure(1);
+      if(enabled===0) {
+        const ir=(n: number)=>(window as any).Module.ccall('eka2l1_ir_configure','number',['number'],[n]);
+        if(ir(7)!==0 || configure(0)!==-2 || ir(-1)!==0) throw Error('Protected proof policy requirements not enforced');
+      }
+      const disabled=configure(0);
       if(expectEnabled ? (enabled!==0 || disabled!==0) : !((enabled===0 && disabled===0)||(enabled===-1 && disabled===-1)))
         throw Error('Write protection capability mismatch');
     }, process.env.EKA2L1_EXPECT_WRITE_PROTECTION==='1');

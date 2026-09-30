@@ -4276,6 +4276,26 @@ static bool test_code_write_protection() {
             }
             if(count || helper_seen || state[1]!=0x4000 || state[2] || backing[0]!=before || state[15]!=0x1000){printf("write protection failure line %d store %x count %u r1 %x r2 %x pc %x mem %u/%u\n",__LINE__,store,count,state[1],state[2],state[15],backing[0],before);return false;}
         }
+        // Delivered invariant read/write proofs may coexist with protection.
+        // A watched destination refuses its write proof and exits precisely;
+        // a remap to untracked data permits the same compiled function.
+        const std::uint32_t proof_words[]={0xe5910000,0xe5913004,0xe5914008,0xe5820000,0xe5823004,0xe5824008};
+        auto proof=translate_arm_block(reinterpret_cast<const std::uint8_t*>(proof_words),sizeof(proof_words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+        if(proof.proved_reads!=3 || proof.proved_writes!=3){printf("protected entry proofs not selected\n");return false;}
+        auto proof_module=build_wasm_module({proof.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        std::array<std::uint32_t,1024> input{};input[0]=7;input[1]=11;input[2]=19;
+        for(bool watched : {true,false}) for(unsigned budget : {0u,1u,2u,3u,4u,5u,6u,7u}) {
+            auto *destination=watched?backing:backing+4096;std::array<std::uint8_t,12> before{};std::memcpy(before.data(),destination,12);
+            tlb.add(0x201000,reinterpret_cast<std::uint8_t*>(input.data()),prot_read);
+            tlb.add(0x403000,destination,prot_read_write);tlb.sync_write_protection();
+            alignas(8) std::uint32_t state[256]{};state[1]=0x201000;state[2]=0x403000;state[15]=0x1000;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NIRQ/4]=1;
+            const auto count=js_run_aot_wasm(proof_module.data(),proof_module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            const unsigned expected=std::min(budget,watched?3u:6u);
+            std::array<std::uint8_t,12> expected_memory=before;
+            if(!watched && expected>3)std::memcpy(expected_memory.data(),input.data(),(expected-3)*4);
+            if(count!=expected || state[15]!=0x1000+expected*4 || state[1]!=0x201000 || state[2]!=0x403000 || state[0]!=(expected?7u:0u) || state[3]!=(expected>=2?11u:0u) || state[4]!=(expected>=3?19u:0u) || std::memcmp(destination,expected_memory.data(),12)) {printf("protected proof budget/alias failure watched=%d budget=%u count=%u\n",watched,budget,count);return false;}
+        }
         // The checked write path still updates versions; refill stays protected.
         backing[0]^=1;tracking::guest_write(backing,1);if(stamps[0].valid()){printf("write protection failure line %d\n",__LINE__);return false;}
         tlb.add(0x4000,backing,7);if(tlb.lookup_access<prot_write>(0x4000)){printf("write protection failure line %d\n",__LINE__);return false;}

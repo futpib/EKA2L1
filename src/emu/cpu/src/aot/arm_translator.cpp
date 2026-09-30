@@ -1015,7 +1015,15 @@ namespace eka2l1::arm::aot {
         bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || (ir_policy == arm_ir_policy::inline_call_ir || (ir_policy == arm_ir_policy::invariant_write_ir || ir_policy == arm_ir_policy::conditional_value_ir)) || include_writes || ir_policy == arm_ir_policy::budget_chunks)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #ifdef EKA2L1_WASM_CODE_VERSIONS
+#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+        // Only the original-emitter delivered proof policy is admitted. Its
+        // entry checks consume writable TLB tags after runtime protection sync;
+        // denied watched pages retain the precise deferred/helper path.
+        invariant_reads = invariant_reads && common::code_tracking::protect_writes
+            && ir_policy == arm_ir_policy::write_budget_chunks;
+#else
         invariant_reads = false;
+#endif
 #endif
         if (invariant_reads) {
             unsigned written = 0;

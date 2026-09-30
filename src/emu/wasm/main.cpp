@@ -202,7 +202,11 @@ EMSCRIPTEN_KEEPALIVE
 int eka2l1_ir_configure(int mode) {
     if (g_state || mode < -1 || mode > 15) return -1;
 #ifdef EKA2L1_WASM_CODE_VERSIONS
+#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+    if (mode >= 4 && !(mode == 7 && eka2l1::common::code_tracking::protect_writes)) return -2;
+#else
     if (mode >= 4) return -2;
+#endif
 #endif
 #ifndef EKA2L1_WASM_IR_SEGMENTS
     if ((mode > 0 && mode < 4) || (mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15)) return -2;
@@ -231,6 +235,9 @@ EMSCRIPTEN_KEEPALIVE
 int eka2l1_code_write_protect_configure(int mode) {
 #if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
     if (g_state || (mode != 0 && mode != 1)) return -1;
+    // Do not leave a selected proof policy without its required protection.
+    if (!mode) if (const char *policy=std::getenv("EKA2L1_AOT_IR_MODE"))
+        if (std::string(policy)=="7") return -2;
     eka2l1::common::code_tracking::protect_writes = mode != 0;
     return 0;
 #else
