@@ -57,3 +57,21 @@ approaching a marked path. Input, screenshots and counters remain in
 turns may have defeated earlier lane sweeps, but that interpretation is not a
 verified input bug. Pauses, screenshots and pacing make this an exploratory route,
 not an unpaced throughput result or proof against the reported slowdown.
+
+The seventh exploration (`growth-explore-7`) restarts a round and collects the
+N letter in the narrow corridor, then collides. It still does not demonstrate
+sustained length growth. The loading screen's pickup tip is not a replacement
+for the level objective: the subsequent introduction still says to empty the
+blue bar. No performance conclusion is drawn from these paused observations.
+
+Nokia's original N-Gage manual says power paths require endpoint entry:
+https://allaboutsymbian.com/images/ngage/manuals/User%20Manual%20snakes%20DLC.pdf
+Its mechanics are a route-design reference, not assumed identical to this S60
+build. Read-only inspection of this installed game's level scripts is now
+available under scratch/snakes-route-assets. Local archives were copied,
+decrypted and unpacked only in scratch; no game files or state were modified.
+The extraction method was inspected from
+https://github.com/twarp-project-dump/Snakes-Ngage-Assets-Extraction .
+No copyrighted game assets are added to the repository. The first level script
+matches that project's v6 script apart from line endings. Trigger/geometry
+semantics still need decoding before this can guide a reliable progression route.

@@ -618,5 +618,13 @@
         "sha256": "044314f3a045be02dac739071f16d005dc3e4169d84fd6f32f0b7bcdf74efda0"
       }
     ]
+  },
+  "exploration7": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-explore-7",
+    "status": "N letter collected, then collision; no sustained growth established",
+    "route_sha256": "cd8e90617f232e3bce0b286e540dc15554619d004f2b1f383390a1aec006a928",
+    "inputs_sha256": "f4d9c4cc64dbce194e2e52c7fbd47e81fb617ae11b59ea5b4aecab9438ef81b3",
+    "served_policy": 7,
+    "result": "No length-dependent performance conclusion"
   }
 }
