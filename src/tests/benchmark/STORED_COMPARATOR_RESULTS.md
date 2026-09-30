@@ -47,7 +47,7 @@ measurements. No unchecked-replay or live/audio acceptance is claimed yet.
 
 ## Status
 
-Correctness passes; serial timing is next. The comparison uses the new merged
+Correctness passes; serial observations are recorded below. The comparison uses the new merged
 workload: longer route 42–60 seconds, with the validated 60–78-second standard
 holdout available if warranted. The full original route's native-matched restart
 and failed uninterrupted-gameplay threshold remain documented in the merge report.
@@ -57,3 +57,31 @@ Raw artifacts are /home/claude/.scratch/eka-benchmark/stored-comparator-*.
 STORED_COMPARATOR_EVIDENCE.json retains binary/source hashes, complete logs,
 explicit policy evidence, comparisons and reports. The immutable source archive
 records the base commit and implementation patch before this checkpoint.
+
+## Gameplay measurements
+
+Fresh browsers run serially, including warmup, with hardware NVIDIA graphics,
+shared audio, rendering on and capture/profiling/counters off. Batch A order:
+grouped, stored, baseline, baseline, stored, grouped. A reordered batch B was prepared but not run: this completed batch
+already gives no support for promotion. Grouped/stored use scanner2/4 inside the same
+binary; baseline is the untouched merged archive with scanner2. Every sample
+and outlier is retained. Guest instruction endpoints and presentations agree
+exactly across all six observations within each scene/batch. These are comparisons
+within the new upstream workload, not speed claims against the old live archive.
+
+| Scene/batch | Grouped mean s | Stored mean s | Merged baseline mean s | Throughput vs grouped | Throughput vs baseline |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| long-a | 13.15640 | 14.01910 | 12.73460 | -6.15% | -9.16% |
+
+All individual timings, exact modes, binary hashes and complete browser reports
+are retained in STORED_COMPARATOR_EVIDENCE.json. No outliers are removed or normalized.
+
+## Decision
+
+Rejected for delivery. Both stored-comparator observations are slower than their
+adjacent matching controls and the untouched merged controls. The mean is
+14.01910 seconds versus 13.15640 and 12.73460 respectively. This batch does not
+isolate the cause or establish a precise regression size; it provides no evidence
+that selecting an indirect comparator once improves gameplay. No further timing
+or live acceptance is warranted for this candidate. Mode 4 remains opt-in, and
+the live archive is unchanged. All six observations remain in the evidence.
