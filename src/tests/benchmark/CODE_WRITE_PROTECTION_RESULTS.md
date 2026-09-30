@@ -46,3 +46,22 @@ The stale pre-reboot GPU environment initially failed before producing any sampl
 The fresh batch uses system NVIDIA 610.57.04 libraries and verifies physical
 NVIDIA Vulkan rendering in Chromium 153. Raw reports and that environment are
 recorded; all variants use the same current setup without timing normalization.
+
+
+## Reordered confirmation and decision
+
+Order: protected, served, barriers, barriers, served, protected. All six runs
+retain the identical guest workload. Means: barriers 14.55460s, protected
+13.45610s, served 12.58920s. Protection improves on its matching barrier path by
+8.16%, but loses to the exact served archive by 6.44% throughput. The slower
+closing candidate and both slow barrier controls remain in the evidence.
+
+Do not promote this configuration. Its marginal improvement over the barrier
+path repeats, but a useful live-build gain does not. All twelve observations
+are retained without normalization. No standard-scene delivery timing or live
+upgrade is justified by this result.
+
+One concrete integration gap remains: this versions build disables the delivered
+invariant read/write proofs and rejects policy 7 through the frontend. Evaluating
+those proofs with protected writes requires separate watched-page/fallback tests
+and acceptance; it is not covered by these policy-0 measurements.
