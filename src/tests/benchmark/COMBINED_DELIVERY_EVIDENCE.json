@@ -1,5 +1,5 @@
 {
-  "status": "Live acceptance passed; HTTPS deployment pending",
+  "status": "Delivered exact archive with policy7; marginal deferred counts and general IR not selected",
   "selected_policy": 7,
   "eager_regions": 0,
   "archive": {
@@ -8447,6 +8447,71 @@
       "max_sampled_lag_ms": 49.43473800000042,
       "path": "/home/claude/.scratch/eka-benchmark/combined-delivery-live-auto/report.json",
       "sha256": "ac8b7c599399f3cf18bc7c0697c41c71302677af34424b79814b31be065f13d1"
+    }
+  },
+  "deployment": {
+    "url": "https://claude-laptop.lan:8188/",
+    "unit": "eka2l1-lan.service",
+    "verified_at": "2026-09-30T08:05:47.733993+00:00",
+    "downloaded_sha256": {
+      "eka2l1.wasm": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+      "eka2l1.js": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041"
+    },
+    "launcher": {
+      "compilerPolicy": {
+        "requested": {
+          "irMode": 7,
+          "eagerRegions": 0
+        },
+        "applied": true
+      },
+      "security": {
+        "secure": true,
+        "isolated": true
+      },
+      "audio": {
+        "state": "running",
+        "stats": {
+          "queued": 4352,
+          "resyncs": 0,
+          "underruns": 0,
+          "dropped": 0,
+          "played": 245248,
+          "nonzero": 241498
+        },
+        "rate": 48000
+      },
+      "first": {
+        "guest": 23937807,
+        "inputs": 20,
+        "frames": 946
+      },
+      "second": {
+        "guest": 24535886,
+        "inputs": 22,
+        "frames": 970
+      },
+      "last": {
+        "guest": 24854348,
+        "inputs": 24,
+        "frames": 982
+      },
+      "canvasSamples": [
+        244,
+        272,
+        272,
+        255,
+        223,
+        227,
+        227,
+        236,
+        232,
+        240,
+        219,
+        226
+      ],
+      "errors": [],
+      "browser": "Chrome/153.0.8010.52"
     }
   }
 }

@@ -1,4 +1,4 @@
-# Combined write-span and budget proofs: exact archive accepted for delivery
+# Combined write-span and budget proofs: exact archive delivered
 
 The delivered candidate selects policy 7 in the deferred-counts archive. That
 policy uses original instruction lowering, invariant read/write proofs, and
@@ -56,4 +56,18 @@ recovery remains. Exact lag, audio and resource observations are preserved in
 COMBINED_DELIVERY_EVIDENCE.json. The manual desktop/mobile screenshots were also
 visually inspected and show active gameplay and controls fitting the viewport.
 
-HTTPS deployment and final served-asset verification are pending. Nothing pushed.
+## HTTPS delivery
+
+The exact archive is now served at https://claude-laptop.lan:8188/ with policy 7
+and eager regions disabled. Downloaded JS/WASM hashes match the archive above.
+The actual HTTPS launcher passes gesture sound, measured mute/unmute, keyboard,
+touch, mobile layout and shutdown, with no page/request/HTTP errors. Requested
+and applied policy are checked in the real page.
+
+Maximum sampled lag is 37.72ms (manual) and 49.43ms (automatic), with realtime
+ratios 1.00012 and 0.99981. This is not a latency improvement claim. Startup
+worklet underruns are six/five; both measured gameplay windows add zero
+underruns or drops. Normal and checked replay PCM hashes match native.
+
+Nothing pushed. The next IR/read-proof prototype is separate, uncommitted and
+unvalidated; it is not part of the served archive. Ongoing optimization continues.
