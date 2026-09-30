@@ -43,3 +43,19 @@ All six runs execute 3,975,618,624 instructions and 676 presentations in the sam
 18 guest seconds, with shared audio, hardware GPU and no sampling. No owned
 heavy jobs overlap either warmup or measurement. All samples are retained.
 The reordered confirmation is running; no deployment or live acceptance yet.
+
+## Reordered confirmation
+
+Order and elapsed seconds: combined-1 12.6588, deferred-1 12.9991,
+served-1 14.2268, served-2 13.2777, deferred-2 12.4522, combined-2 12.5982.
+Means: deferred 12.72565s, matching combined 12.62850s, served 13.75225s.
+The marginal deferred-count throughput change is -0.76% versus matching
+combined, while it is +8.07% versus served. All twelve A/B samples are retained.
+The new count lowering itself has not shown a repeated gain over policy 7.
+
+Both policies in this archive beat the exact served build in these two batches.
+A third comparison adds read-only policy 4 inside the same application binary,
+alongside 7/8 and exact served, to distinguish policy effects from surrounding
+binary changes. Earlier policy-7 archived-build results remain negative and are
+not discarded. This newer archive does not establish a causal explanation for
+that difference. No deployment yet.
