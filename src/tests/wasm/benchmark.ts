@@ -14,6 +14,8 @@ const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
 const irMode = process.env.EKA2L1_AOT_IR_MODE === undefined ? -1 : Number(process.env.EKA2L1_AOT_IR_MODE);
 if (![-1,0,1,2,3].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes)');
+const eagerRegions = process.env.EKA2L1_AOT_EAGER_REGIONS === undefined ? -1 : Number(process.env.EKA2L1_AOT_EAGER_REGIONS);
+if (![-1,0,1].includes(eagerRegions)) throw new Error('Eager regions must be 0 (off) or 1 (on)');
 const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
 if (!Number.isSafeInteger(verifyAot) || verifyAot < 0 || verifyAot > 2147483647)
   throw new Error('EKA2L1_AOT_VERIFY must be a nonnegative integer stride');
@@ -59,7 +61,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({irMode, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+  await page.evaluate(async ({eagerRegions, irMode, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -67,6 +69,10 @@ try {
     };
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
     call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot, aotDiagnostics ? 1 : 0]);
+    if (eagerRegions !== -1) {
+      if (typeof g.Module._eka2l1_eager_regions_configure !== 'function') throw new Error('Build lacks eager region selection');
+      call('eka2l1_eager_regions_configure', ['number'], [eagerRegions]);
+    }
     if (irMode !== -1) {
       if (typeof g.Module._eka2l1_ir_configure !== 'function') throw new Error('Build lacks IR mode selection');
       call('eka2l1_ir_configure', ['number'], [irMode]);
@@ -96,7 +102,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {irMode, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+  }, {eagerRegions, irMode, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -147,7 +153,7 @@ try {
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
+    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');
 } finally {
   await browser?.close();

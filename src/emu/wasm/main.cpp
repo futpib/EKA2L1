@@ -200,6 +200,15 @@ int eka2l1_ir_configure(int mode) {
     return 0;
 }
 
+// Eager ROM compilation research control. Ordinary startup keeps basic blocks.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_eager_regions_configure(int enabled) {
+    if (g_state || enabled < 0 || enabled > 1) return -1;
+    if (enabled) setenv("EKA2L1_AOT_EAGER_REGIONS", "1", 1);
+    else unsetenv("EKA2L1_AOT_EAGER_REGIONS");
+    return 0;
+}
+
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_audio_configure() {
     if (g_state) return -1;
