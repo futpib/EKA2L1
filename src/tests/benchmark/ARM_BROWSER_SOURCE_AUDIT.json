@@ -1,0 +1,98 @@
+[
+  {
+    "project": "cloudpilot",
+    "commit": "e886d6cf44658e186951efb4f22907ae9184c028",
+    "source": "src/uarm/uarm/CPU.cpp",
+    "url": "https://raw.githubusercontent.com/cloudpilot-emu/cloudpilot-emu/e886d6cf44658e186951efb4f22907ae9184c028/src/uarm/uarm/CPU.cpp",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/cloudpilot-CPU.cpp",
+    "sha256": "8728cfe0552e5a64c49799c5c2948c5058612df6cf8481ad1d65ef1a082f5f9e"
+  },
+  {
+    "project": "cloudpilot",
+    "commit": "e886d6cf44658e186951efb4f22907ae9184c028",
+    "source": "src/uarm/uarm/icache.cpp",
+    "url": "https://raw.githubusercontent.com/cloudpilot-emu/cloudpilot-emu/e886d6cf44658e186951efb4f22907ae9184c028/src/uarm/uarm/icache.cpp",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/cloudpilot-icache.cpp",
+    "sha256": "8e79901827830c020b4499aaff1e91559dca54c826e8d947273e4724bb2387c3"
+  },
+  {
+    "project": "cloudpilot",
+    "commit": "e886d6cf44658e186951efb4f22907ae9184c028",
+    "source": "src/uarm/uarm/pace_patch.cpp",
+    "url": "https://raw.githubusercontent.com/cloudpilot-emu/cloudpilot-emu/e886d6cf44658e186951efb4f22907ae9184c028/src/uarm/uarm/pace_patch.cpp",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/cloudpilot-pace_patch.cpp",
+    "sha256": "e168c3dc43e86941d37a0b6d1488ce37f308f22567c8cec79ce8516e270b12ff"
+  },
+  {
+    "project": "cloudpilot",
+    "commit": "e886d6cf44658e186951efb4f22907ae9184c028",
+    "source": "src/uarm/uarm/patch_dispatch.cpp",
+    "url": "https://raw.githubusercontent.com/cloudpilot-emu/cloudpilot-emu/e886d6cf44658e186951efb4f22907ae9184c028/src/uarm/uarm/patch_dispatch.cpp",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/cloudpilot-patch_dispatch.cpp",
+    "sha256": "dcdf2569458070e2526d2bc93b423ab0ef374b26d84d5ce778a2713994285930"
+  },
+  {
+    "project": "qemu",
+    "commit": "0ef7b4e2814b231705d8371dd7997f5b72e70baf",
+    "source": "tcg/wasm32/tcg-target.c.inc",
+    "url": "https://raw.githubusercontent.com/ktock/qemu-wasm/0ef7b4e2814b231705d8371dd7997f5b72e70baf/tcg/wasm32/tcg-target.c.inc",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/qemu-tcg-target.c.inc",
+    "sha256": "bdb846b844f3d7708eece5f5f1d20d71a309b7c59e3a9ada84cc51544aaa8774"
+  },
+  {
+    "project": "qemu",
+    "commit": "0ef7b4e2814b231705d8371dd7997f5b72e70baf",
+    "source": "tcg/tci.c",
+    "url": "https://raw.githubusercontent.com/ktock/qemu-wasm/0ef7b4e2814b231705d8371dd7997f5b72e70baf/tcg/tci.c",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/qemu-tci.c",
+    "sha256": "dff4ef722e6e42760541a0a1c2b71f6a8bb4848414bc4f3f52ecac5fbc6f778a"
+  },
+  {
+    "project": "qemu",
+    "commit": "0ef7b4e2814b231705d8371dd7997f5b72e70baf",
+    "source": "accel/tcg/cpu-exec.c",
+    "url": "https://raw.githubusercontent.com/ktock/qemu-wasm/0ef7b4e2814b231705d8371dd7997f5b72e70baf/accel/tcg/cpu-exec.c",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/qemu-cpu-exec.c",
+    "sha256": "1e29a41062e9040c8c1a360d5c0341ebe882840761b28750d3de16c3966552b1"
+  },
+  {
+    "project": "cloudpilot",
+    "commit": "e886d6cf44658e186951efb4f22907ae9184c028",
+    "source": "src/uarm/Makefile",
+    "url": "https://raw.githubusercontent.com/cloudpilot-emu/cloudpilot-emu/e886d6cf44658e186951efb4f22907ae9184c028/src/uarm/Makefile",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/cloudpilot-src_uarm_Makefile",
+    "sha256": "f86a1a649308d78e0e5da33175dcc3eefdd14d68e9cfb3bdcf05c01f871159b2"
+  },
+  {
+    "project": "cloudpilot",
+    "commit": "e886d6cf44658e186951efb4f22907ae9184c028",
+    "source": "src/Makefile.common",
+    "url": "https://raw.githubusercontent.com/cloudpilot-emu/cloudpilot-emu/e886d6cf44658e186951efb4f22907ae9184c028/src/Makefile.common",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/cloudpilot-src_Makefile.common",
+    "sha256": "42431a79b214914527d3e02b8aa81e2ee774e24990c290c55ea3ed6b7a27d534"
+  },
+  {
+    "project": "cloudpilot",
+    "commit": "e886d6cf44658e186951efb4f22907ae9184c028",
+    "source": "src/uarm/tools/build-jump-table/main.ts",
+    "url": "https://raw.githubusercontent.com/cloudpilot-emu/cloudpilot-emu/e886d6cf44658e186951efb4f22907ae9184c028/src/uarm/tools/build-jump-table/main.ts",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/cloudpilot-jump-table.ts",
+    "sha256": "28db1dcf9b6f68a739cfb8feedea64043d65250755e8216299e5a5aa1044df17"
+  },
+  {
+    "project": "qemu",
+    "commit": "0ef7b4e2814b231705d8371dd7997f5b72e70baf",
+    "source": "tcg/wasm32.c",
+    "url": "https://raw.githubusercontent.com/ktock/qemu-wasm/0ef7b4e2814b231705d8371dd7997f5b72e70baf/tcg/wasm32.c",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/qemu-tcg_wasm32.c",
+    "sha256": "5e551e478a5ddd86e81964dd3fc3783150d22c1691a1f918290704550e8c433a"
+  },
+  {
+    "project": "qemu",
+    "commit": "0ef7b4e2814b231705d8371dd7997f5b72e70baf",
+    "source": "tcg/wasm32.h",
+    "url": "https://raw.githubusercontent.com/ktock/qemu-wasm/0ef7b4e2814b231705d8371dd7997f5b72e70baf/tcg/wasm32.h",
+    "local": "/home/claude/.scratch/eka-benchmark/browser-arm-source-audit/qemu-tcg_wasm32.h",
+    "sha256": "b7cab94b57e885fb37864aeba09159b2c772366568b9ead38ad584f73cb523c5"
+  }
+]

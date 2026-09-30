@@ -1,4 +1,4 @@
-# Longer mixed-IR segments: correctness accepted, timing pending
+# Longer mixed-IR segments: not promoted
 
 Opt-in policy14 preserves policy13 semantics and raises only the bounded IR
 segment cap32 to128. Original-emitter budget chunks remain capped32. See
@@ -34,3 +34,24 @@ IR_LONG_SEGMENTS_EVIDENCE.json records provenance and all current acceptance dat
 Serial timing compares14,13,7 in one identical application and the exact served
 policy7 archive. No owned heavy workload may overlap timing or warmup. Every
 observation is retained. Experimental IR remains opt-in; no deployment or push.
+
+## Completed serial batch
+
+Order: long14, conditions13, combined7, served7, served7, combined7,
+conditions13, long14. First three policies use the identical application archive.
+No other owned heavy workload ran during warmup or measurement.
+
+| Policy | First seconds | Second seconds | Mean seconds |
+| --- | ---: | ---: | ---: |
+| long | 13.7407 | 16.2220 | 14.9814 |
+| conditions | 14.2462 | 13.7843 | 14.0152 |
+| combined | 13.8611 | 14.8616 | 14.3613 |
+| served | 16.5782 | 15.2262 | 15.9022 |
+
+Every window covers the same 18 guest seconds, 3,975,618,624 guest instructions
+and 676 presentations. The first longer-IR/previous-IR pair favors longer IR,
+the closing pair reverses strongly. Its mean also loses to matching original
+emission. Slow served controls are retained; their mean does not establish an
+IR delivery benefit. No confirmation/promotion is justified by this batch.
+This is a noisy observed comparison, not a precise causal regression estimate.
+The opt-in experiment and correctness coverage are retained; LAN stays unchanged.
