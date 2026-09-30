@@ -49,3 +49,11 @@ help route design but do not establish a length mechanic or explain the reported
 slowdown. Score remains200 in inspected gameplay. Earlier rapid page captures
 show transition animations and are explicitly excluded as instruction evidence.
 This run overlapped correctness checks and is not performance evidence.
+
+The sixth route runs without competing owned compiler/profile jobs. It visibly
+collects a green pickup (200 to205), then shows breakup and a reset to200 while
+approaching a marked path. Input, screenshots and counters remain in
+`growth-explore-6`. This again fails to establish sustained growth. Rapid opposite
+turns may have defeated earlier lane sweeps, but that interpretation is not a
+verified input bug. Pauses, screenshots and pacing make this an exploratory route,
+not an unpaced throughput result or proof against the reported slowdown.

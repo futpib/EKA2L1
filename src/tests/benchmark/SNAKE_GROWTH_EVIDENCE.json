@@ -585,5 +585,38 @@
       "Earlier instructions-2 through instructions-6 captures show transition animation and are not text evidence.",
       "Instruction descriptions alone do not explain the reported length-dependent slowdown."
     ]
+  },
+  "sixth_route": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-explore-6",
+    "scores": [
+      200,
+      205,
+      200
+    ],
+    "result": "Pickup collected, then visible breakup and reset. No sustained long-snake coverage.",
+    "owned_overlap": false,
+    "limits": "Paced exploratory route with pauses/screenshots; not an unpaced throughput trial or exact length measurement. Rapid-turn handling remains a hypothesis, not a proven emulator defect.",
+    "artifacts": [
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-6/input.jsonl",
+        "sha256": "10023975d76229f5878c6151d01f3d8b80af1c21f45e38509dc1cb58bb481bce"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-6/steps.jsonl",
+        "sha256": "efac59ab02c836194478d1351fd4628185b93245c783b7948a92ec8bbc12c2ac"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-6/collect-green-running.png",
+        "sha256": "8bbb98d80612ac4449f7073649ed694312933513cbd48d7d6855bb30128b2ca4"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-6/path-follow-running.png",
+        "sha256": "7a12962adcabd1c7bab87c24ebd9df5e454c0680c137aab4d35afe861f6d616c"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-6/after-fragments-running.png",
+        "sha256": "044314f3a045be02dac739071f16d005dc3e4169d84fd6f32f0b7bcdf74efda0"
+      }
+    ]
   }
 }
