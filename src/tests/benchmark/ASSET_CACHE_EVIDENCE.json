@@ -1,0 +1,1333 @@
+{
+  "implementation_commit": "334f40f33",
+  "checks": {
+    "asset-cache-local/report.json": {
+      "url": "http://127.0.0.1:43393/",
+      "rows": [
+        {
+          "phase": "cold",
+          "elapsedToLaunchMs": 4686,
+          "state": {
+            "secure": true,
+            "isolated": true,
+            "saved": [
+              {
+                "url": "http://127.0.0.1:43393/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+                "bytes": 69947392
+              },
+              {
+                "url": "http://127.0.0.1:43393/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+                "bytes": 121092775
+              },
+              {
+                "url": "http://127.0.0.1:43393/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+                "bytes": 963964
+              }
+            ],
+            "urls": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "/eka2l1.js": "/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf"
+            },
+            "policy": {
+              "requested": {
+                "irMode": 7,
+                "eagerRegions": 0,
+                "tlbHash": 1
+              },
+              "applied": true
+            },
+            "guest": 10000
+          },
+          "transfers": [
+            {
+              "url": "http://127.0.0.1:43393/",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Content-Length": "12026",
+                "Content-Type": "text/html",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "ETag": "\"26a496becd63725b5a29597bb8ed99a28abc6477ecc117535a25d96979ad3271\"",
+                "Keep-Alive": "timeout=5"
+              },
+              "transferred": 12361
+            },
+            {
+              "url": "http://127.0.0.1:43393/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "4673",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 5047
+            },
+            {
+              "url": "http://127.0.0.1:43393/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "288751",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 289127
+            },
+            {
+              "url": "http://127.0.0.1:43393/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "302127",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 302505
+            },
+            {
+              "url": "http://127.0.0.1:43393/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "10665367",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/wasm"
+              },
+              "transferred": 10665739
+            },
+            {
+              "url": "http://127.0.0.1:43393/favicon.ico",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"0e4130093988c6f933b8afd3451e43da585d405584a1f8694bdb10a0f3f50c19\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "104136",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "image/x-icon"
+              },
+              "transferred": 104475
+            },
+            {
+              "url": "http://127.0.0.1:43393/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "69947392",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 69947772
+            },
+            {
+              "url": "http://127.0.0.1:43393/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "121092775",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:03:57 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 121093156
+            },
+            {
+              "url": "http://127.0.0.1:43393/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "963964",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:03:58 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 964342
+            }
+          ]
+        },
+        {
+          "phase": "reload",
+          "elapsedToLaunchMs": 3265,
+          "state": {
+            "secure": true,
+            "isolated": true,
+            "saved": [
+              {
+                "url": "http://127.0.0.1:43393/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+                "bytes": 69947392
+              },
+              {
+                "url": "http://127.0.0.1:43393/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+                "bytes": 121092775
+              },
+              {
+                "url": "http://127.0.0.1:43393/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+                "bytes": 963964
+              }
+            ],
+            "urls": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "/eka2l1.js": "/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf"
+            },
+            "policy": {
+              "requested": {
+                "irMode": 7,
+                "eagerRegions": 0,
+                "tlbHash": 1
+              },
+              "applied": true
+            },
+            "guest": 10000
+          },
+          "transfers": [
+            {
+              "url": "http://127.0.0.1:43393/",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Content-Length": "12026",
+                "Content-Type": "text/html",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Date": "Wed, 30 Sep 2026 16:04:00 GMT",
+                "ETag": "\"26a496becd63725b5a29597bb8ed99a28abc6477ecc117535a25d96979ad3271\""
+              },
+              "transferred": 322
+            },
+            {
+              "url": "http://127.0.0.1:43393/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "4673",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:43393/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "288751",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:43393/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "302127",
+                "ETag": "\"e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468\"",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:43393/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "10665367",
+                "ETag": "\"2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf\"",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/wasm"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:43393/favicon.ico",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "no-cache",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "104136",
+                "Date": "Wed, 30 Sep 2026 16:04:01 GMT",
+                "ETag": "\"0e4130093988c6f933b8afd3451e43da585d405584a1f8694bdb10a0f3f50c19\"",
+                "Content-Type": "image/x-icon"
+              },
+              "transferred": 325
+            }
+          ]
+        },
+        {
+          "phase": "restart",
+          "elapsedToLaunchMs": 3238,
+          "state": {
+            "secure": true,
+            "isolated": true,
+            "saved": [
+              {
+                "url": "http://127.0.0.1:43393/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+                "bytes": 69947392
+              },
+              {
+                "url": "http://127.0.0.1:43393/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+                "bytes": 121092775
+              },
+              {
+                "url": "http://127.0.0.1:43393/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+                "bytes": 963964
+              }
+            ],
+            "urls": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "/eka2l1.js": "/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf"
+            },
+            "policy": {
+              "requested": {
+                "irMode": 7,
+                "eagerRegions": 0,
+                "tlbHash": 1
+              },
+              "applied": true
+            },
+            "guest": 10000
+          },
+          "transfers": [
+            {
+              "url": "http://127.0.0.1:43393/",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Content-Length": "12026",
+                "Content-Type": "text/html",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Date": "Wed, 30 Sep 2026 16:04:04 GMT",
+                "ETag": "\"26a496becd63725b5a29597bb8ed99a28abc6477ecc117535a25d96979ad3271\""
+              },
+              "transferred": 322
+            },
+            {
+              "url": "http://127.0.0.1:43393/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "4673",
+                "ETag": "\"1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8\"",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:43393/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "288751",
+                "ETag": "\"5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec\"",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:43393/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "302127",
+                "ETag": "\"e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468\"",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "http://127.0.0.1:43393/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "10665367",
+                "ETag": "\"2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf\"",
+                "Date": "Wed, 30 Sep 2026 16:03:56 GMT",
+                "Content-Type": "application/wasm"
+              },
+              "transferred": 0
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "asset-cache-https/report.json": {
+      "url": "https://claude-laptop.lan:8188/",
+      "rows": [
+        {
+          "phase": "cold",
+          "elapsedToLaunchMs": 4572,
+          "state": {
+            "secure": true,
+            "isolated": true,
+            "saved": [
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+                "bytes": 69947392
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+                "bytes": 121092775
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+                "bytes": 963964
+              }
+            ],
+            "urls": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "/eka2l1.js": "/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf"
+            },
+            "policy": {
+              "requested": {
+                "irMode": 7,
+                "eagerRegions": 0,
+                "tlbHash": 1
+              },
+              "applied": true
+            },
+            "guest": 10000
+          },
+          "transfers": [
+            {
+              "url": "https://claude-laptop.lan:8188/",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Content-Length": "12037",
+                "Content-Type": "text/html",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "ETag": "\"84f24d4d75d5f950dc45da97b7b57d461f77b0e0e2565dd5a68700ca03b3bfa4\"",
+                "Keep-Alive": "timeout=5"
+              },
+              "transferred": 12372
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "4673",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 5047
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "288751",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 289127
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "302127",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 302505
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "10665367",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/wasm"
+              },
+              "transferred": 10665739
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/favicon.ico",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"0e4130093988c6f933b8afd3451e43da585d405584a1f8694bdb10a0f3f50c19\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "104136",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "image/x-icon"
+              },
+              "transferred": 104475
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "69947392",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 69947772
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "121092775",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:06:25 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 121093156
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "963964",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:06:26 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 964342
+            }
+          ]
+        },
+        {
+          "phase": "reload",
+          "elapsedToLaunchMs": 3156,
+          "state": {
+            "secure": true,
+            "isolated": true,
+            "saved": [
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+                "bytes": 69947392
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+                "bytes": 121092775
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+                "bytes": 963964
+              }
+            ],
+            "urls": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "/eka2l1.js": "/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf"
+            },
+            "policy": {
+              "requested": {
+                "irMode": 7,
+                "eagerRegions": 0,
+                "tlbHash": 1
+              },
+              "applied": true
+            },
+            "guest": 10000
+          },
+          "transfers": [
+            {
+              "url": "https://claude-laptop.lan:8188/",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Content-Length": "12037",
+                "Content-Type": "text/html",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Date": "Wed, 30 Sep 2026 16:06:28 GMT",
+                "ETag": "\"84f24d4d75d5f950dc45da97b7b57d461f77b0e0e2565dd5a68700ca03b3bfa4\""
+              },
+              "transferred": 322
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "4673",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "ETag": "\"5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec\"",
+                "Connection": "keep-alive",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Content-Length": "288751",
+                "Keep-Alive": "timeout=5",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "302127",
+                "ETag": "\"e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468\"",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "10665367",
+                "ETag": "\"2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf\"",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/wasm"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/favicon.ico",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "no-cache",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "104136",
+                "Date": "Wed, 30 Sep 2026 16:06:28 GMT",
+                "ETag": "\"0e4130093988c6f933b8afd3451e43da585d405584a1f8694bdb10a0f3f50c19\"",
+                "Content-Type": "image/x-icon"
+              },
+              "transferred": 325
+            }
+          ]
+        },
+        {
+          "phase": "restart",
+          "elapsedToLaunchMs": 3388,
+          "state": {
+            "secure": true,
+            "isolated": true,
+            "saved": [
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+                "bytes": 69947392
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+                "bytes": 121092775
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+                "bytes": 963964
+              }
+            ],
+            "urls": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "/eka2l1.js": "/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf"
+            },
+            "policy": {
+              "requested": {
+                "irMode": 7,
+                "eagerRegions": 0,
+                "tlbHash": 1
+              },
+              "applied": true
+            },
+            "guest": 10000
+          },
+          "transfers": [
+            {
+              "url": "https://claude-laptop.lan:8188/",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Content-Length": "12037",
+                "Content-Type": "text/html",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Date": "Wed, 30 Sep 2026 16:06:32 GMT",
+                "ETag": "\"84f24d4d75d5f950dc45da97b7b57d461f77b0e0e2565dd5a68700ca03b3bfa4\""
+              },
+              "transferred": 322
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "4673",
+                "ETag": "\"1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8\"",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "288751",
+                "ETag": "\"5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec\"",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "302127",
+                "ETag": "\"e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468\"",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "10665367",
+                "ETag": "\"2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf\"",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/wasm"
+              },
+              "transferred": 0
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "asset-cache-launcher-local/report.json": {
+      "target": "http://127.0.0.1:42041/",
+      "softkeys": [
+        {
+          "name": "f1-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 25625000,
+            "inputs": 26,
+            "frames": 1012
+          }
+        },
+        {
+          "name": "f2-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "\u2014\n",
+          "state": {
+            "guest": 26382342,
+            "inputs": 28,
+            "frames": 1042
+          }
+        },
+        {
+          "name": "escape-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 27187500,
+            "inputs": 30,
+            "frames": 1076
+          }
+        },
+        {
+          "name": "touch-left-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "'\n",
+          "state": {
+            "guest": 27900129,
+            "inputs": 32,
+            "frames": 1104
+          }
+        },
+        {
+          "name": "touch-right-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 28650000,
+            "inputs": 34,
+            "frames": 1136
+          }
+        },
+        {
+          "name": "escape-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "'\n",
+          "state": {
+            "guest": 29412951,
+            "inputs": 36,
+            "frames": 1166
+          }
+        }
+      ],
+      "compilerPolicy": {
+        "requested": {
+          "irMode": 7,
+          "eagerRegions": 0,
+          "tlbHash": 1
+        },
+        "applied": true
+      },
+      "security": {
+        "secure": true,
+        "isolated": true
+      },
+      "audio": {
+        "state": "running",
+        "stats": {
+          "queued": 3520,
+          "resyncs": 0,
+          "underruns": 0,
+          "dropped": 0,
+          "played": 458240,
+          "nonzero": 455684
+        },
+        "rate": 48000
+      },
+      "first": {
+        "guest": 23932376,
+        "inputs": 20,
+        "frames": 942
+      },
+      "second": {
+        "guest": 24531454,
+        "inputs": 22,
+        "frames": 966
+      },
+      "last": {
+        "guest": 24843326,
+        "inputs": 24,
+        "frames": 978
+      },
+      "canvasSamples": [
+        213,
+        220,
+        221,
+        222,
+        233,
+        226,
+        236,
+        231,
+        233,
+        231,
+        231,
+        243
+      ],
+      "errors": [],
+      "browser": "Chrome/153.0.8010.52"
+    },
+    "asset-cache-launcher-https/report.json": {
+      "target": "https://claude-laptop.lan:8188/",
+      "softkeys": [
+        {
+          "name": "f1-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 25665640,
+            "inputs": 26,
+            "frames": 1018
+          }
+        },
+        {
+          "name": "f2-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "' g\n",
+          "state": {
+            "guest": 26445381,
+            "inputs": 28,
+            "frames": 1048
+          }
+        },
+        {
+          "name": "escape-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 27215578,
+            "inputs": 30,
+            "frames": 1080
+          }
+        },
+        {
+          "name": "touch-left-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "\u00a3 8 8 R\n",
+          "state": {
+            "guest": 27915484,
+            "inputs": 32,
+            "frames": 1108
+          }
+        },
+        {
+          "name": "touch-right-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 28656250,
+            "inputs": 34,
+            "frames": 1140
+          }
+        },
+        {
+          "name": "escape-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "",
+          "state": {
+            "guest": 29406250,
+            "inputs": 36,
+            "frames": 1170
+          }
+        }
+      ],
+      "compilerPolicy": {
+        "requested": {
+          "irMode": 7,
+          "eagerRegions": 0,
+          "tlbHash": 1
+        },
+        "applied": true
+      },
+      "security": {
+        "secure": true,
+        "isolated": true
+      },
+      "audio": {
+        "state": "running",
+        "stats": {
+          "queued": 3520,
+          "resyncs": 0,
+          "underruns": 0,
+          "dropped": 0,
+          "played": 458240,
+          "nonzero": 455276
+        },
+        "rate": 48000
+      },
+      "first": {
+        "guest": 23927610,
+        "inputs": 20,
+        "frames": 946
+      },
+      "second": {
+        "guest": 24525005,
+        "inputs": 22,
+        "frames": 970
+      },
+      "last": {
+        "guest": 24890674,
+        "inputs": 24,
+        "frames": 984
+      },
+      "canvasSamples": [
+        230,
+        232,
+        223,
+        226,
+        226,
+        221,
+        221,
+        236,
+        246,
+        264,
+        266,
+        271
+      ],
+      "errors": [],
+      "browser": "Chrome/153.0.8010.52"
+    },
+    "asset-cache-https-headers.json": {
+      "root": {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Cache-Control": "no-cache",
+        "ETag": "\"84f24d4d75d5f950dc45da97b7b57d461f77b0e0e2565dd5a68700ca03b3bfa4\"",
+        "Content-Type": "text/html",
+        "Content-Length": "12037",
+        "Date": "Wed, 30 Sep 2026 16:07:41 GMT",
+        "Connection": "close"
+      },
+      "assets": {
+        "/preload/rom": {
+          "url": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490\"",
+            "Content-Type": "application/octet-stream",
+            "Content-Length": "69947392",
+            "Date": "Wed, 30 Sep 2026 16:07:41 GMT",
+            "Connection": "close"
+          }
+        },
+        "/preload/rpkg": {
+          "url": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531\"",
+            "Content-Type": "application/octet-stream",
+            "Content-Length": "121092775",
+            "Date": "Wed, 30 Sep 2026 16:07:41 GMT",
+            "Connection": "close"
+          }
+        },
+        "/preload/sis": {
+          "url": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a\"",
+            "Content-Type": "application/octet-stream",
+            "Content-Length": "963964",
+            "Date": "Wed, 30 Sep 2026 16:07:42 GMT",
+            "Connection": "close"
+          }
+        },
+        "/audio-worklet.js": {
+          "url": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c\"",
+            "Content-Type": "application/javascript",
+            "Content-Length": "2745",
+            "Date": "Wed, 30 Sep 2026 16:07:42 GMT",
+            "Connection": "close"
+          }
+        },
+        "/audio.js": {
+          "url": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8\"",
+            "Content-Type": "application/javascript",
+            "Content-Length": "4673",
+            "Date": "Wed, 30 Sep 2026 16:07:42 GMT",
+            "Connection": "close"
+          }
+        },
+        "/eka2l1.data": {
+          "url": "/eka2l1.data?v=e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468\"",
+            "Content-Type": "application/octet-stream",
+            "Content-Length": "302127",
+            "Date": "Wed, 30 Sep 2026 16:07:42 GMT",
+            "Connection": "close"
+          }
+        },
+        "/eka2l1.js": {
+          "url": "/eka2l1.js?v=5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec\"",
+            "Content-Type": "application/javascript",
+            "Content-Length": "288751",
+            "Date": "Wed, 30 Sep 2026 16:07:42 GMT",
+            "Connection": "close"
+          },
+          "download_sha256": "5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec"
+        },
+        "/eka2l1.wasm": {
+          "url": "/eka2l1.wasm?v=2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf\"",
+            "Content-Type": "application/wasm",
+            "Content-Length": "10665367",
+            "Date": "Wed, 30 Sep 2026 16:07:42 GMT",
+            "Connection": "close"
+          },
+          "download_sha256": "2010a74b50b54d529b4175eb62a1374961b14086c9c81fa655c0eddfe961dcaf"
+        }
+      }
+    }
+  },
+  "focused_tests": "PASS versioned HTTP/HEAD/304, changed assets, persistent browser cache across restart/offline, pruning and storage-failure fallback\n",
+  "unchanged_emulator_archive": "/home/claude/.scratch/eka-benchmark/tlb-hash-candidate-v2"
+}
