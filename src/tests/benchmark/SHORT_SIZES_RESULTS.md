@@ -27,7 +27,7 @@ allowlists and a hardcoded ETag count; those test/control paths are corrected.
 The captured failing log is retained, not described as a runtime defect.
 
 Rebuilt native/WASM fault probes explicitly verify policy 7, folded TLB and scanner
-mode 2/3. All 13,760 comparisons per mode match exactly,27,520 total. Both checked
+mode 2/3. All 13,760 comparisons per mode match exactly, 27,520 total. Both checked
 standard browser replays match the merged native reference for all 1,600 images,
 guest records, 4,656,051 stereo PCM frames and audio events. Candidate mode 3 also
 matches the 360-image longer route exactly. These gates run concurrently; their
@@ -45,9 +45,42 @@ The already verified longer-route timing window remains 42–60 seconds.
 
 ## Status
 
-Implementation correctness passes. Serial timing is next, against matching
-scanner mode 2 and the untouched merged baseline. No speed claim, push or deployment.
+Implementation correctness passes. Serial gameplay observations are recorded below.
+No push or deployment.
 Raw logs, immutable candidate and captures are under
 /home/claude/.scratch/eka-benchmark/short-sizes-*; hashes and all acceptance evidence
 are in SHORT_SIZES_EVIDENCE.json. Source controls accept mode 3 only before guest
 startup and verify requested modes in the browser/fault measurement harnesses.
+
+## Gameplay measurements
+
+Fresh browsers run serially, including warmup, with hardware NVIDIA graphics,
+shared audio, rendering on and capture/profiling/counters off. Batch A order:
+grouped, fixed, baseline, baseline, fixed, grouped. Batch B: fixed, baseline,
+grouped, grouped, baseline, fixed. Grouped/fixed use scanner2/3 inside the same
+binary; baseline is the untouched merged archive with scanner2. Every sample
+and outlier is retained. Guest instruction endpoints and presentations agree
+exactly across all six observations within each scene/batch. These are comparisons
+within the new upstream workload, not speed claims against the old live archive.
+
+| Scene/batch | Grouped mean s | Fixed mean s | Merged baseline mean s | Throughput vs grouped | Throughput vs baseline |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| long-a | 13.11185 | 13.94720 | 12.29685 | -5.99% | -11.83% |
+
+All individual timings, exact modes, binary hashes and complete browser reports
+are retained in SHORT_SIZES_EVIDENCE.json. No outliers are removed or normalized.
+
+## Decision after the first batch
+
+No promotion. The fixed-size path averages 13.9472 seconds against 13.11185 for
+the same-binary grouped control and 12.29685 for the untouched merged archive.
+Both comparisons against the merged baseline favor baseline; the two grouped
+comparisons disagree because the closing grouped control is also slow. All six
+observations are retained. This does not establish a precise causal regression,
+but it provides no useful application gain from the isolated fixed-size result.
+The experiment remains opt-in and unserved.
+
+The new switch still selects a size on every comparison. The next discriminator
+will select a comparator once when constructing a cache snapshot, then retain
+exact bytes and mapping checks on every lookup. Indirect-call and entry-size
+costs may erase that advantage; it is a separate hypothesis, not a promised fix.
