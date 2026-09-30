@@ -18,6 +18,8 @@ Two frequent six-instruction callees load two values, compare them, execute a co
 
 Source-window-end exits are not all window-imposed boundaries. Some external branches also leave the window. Of 25,300 sampled long-scene external direct branches, 752 target 512-1024 bytes ahead of entry, and 1,062 target 1024-2048 bytes ahead. Another 3,712 target inside the nominal 512-byte window, reflecting other CFG/mapping restrictions; 11,419 target before entry and 8,355 beyond 2048 bytes. These distances are screening evidence, not proof that enlarging a window can fuse the edge. The raw standard-route breakdown is retained too.
 
+The primary-window control currently changes hot RAM and hot ROM translations in aot_runtime.cpp. Startup ROM exports in aot_setup.cpp retain a separate 512-byte window and, with eager regions disabled, bounded-block emission that clears forward branch targets. They can therefore return even on an in-window branch. This is a separate compiler-imposed boundary, not a guest scheduling requirement. The dominant sampled in-window edge is consistent with that path, but this census does not tag translation origin. The window sweep must not be described as changing every ROM window.
+
 ## Controls and verification
 
 Allowed research bounds: primary bytes 128-2048 (multiple of four), leaf instructions 1-64, call sites 0-16, runner regions 0-4096. Browser controls reject invalid values and changes after initialization, then read back the applied configuration. Fault probes require an explicit matching PROBE_LIMITS marker; serial timing rejects wrong limits and enabled exit instrumentation.
@@ -26,10 +28,29 @@ The new test executes the actual runner across five caps and nine budgets, check
 
 Initial harness failures are retained: the first runner test put the large ARMul_State on the WASM stack and trapped; the next test incorrectly expected one dependency per call rather than per distinct callee. Heap allocation and the corrected dependency assertion pass. These were test harness defects, not measured emulator regressions.
 
-Acceptance is complete: all 167 compiler tests, 32 native tests, browser frontend checks, 41,280 explicitly selected native fault comparisons (13,760 for each configuration), all three checked 1,600-image/audio replays and the maximum-configuration 360-image longer-route replay pass. Missing or wrong limit markers are rejected. Full compiler/fault/replay status and all available logs are in REGION_LIMITS_EVIDENCE.json. Replays use the new post-merge native reference, including 4,656,051 stereo PCM frames for the 1,600-image route. The original full-route gameplay-threshold failure at the later level restart remains documented; exact replay is a different check.
+Acceptance is complete: all 167 compiler tests, 32 native tests, browser frontend checks, 41,280 explicitly selected native fault comparisons (13,760 per configuration), three checked 1,600-image/audio replays and the maximum-configuration 360-image longer-route replay pass. Missing or wrong limit markers are rejected. Full compiler/fault/replay status and all available logs are in REGION_LIMITS_EVIDENCE.json. Replays use the new post-merge native reference, including 4,656,051 stereo PCM frames for the 1,600-image route. The original full-route gameplay-threshold failure at the later level restart remains documented; exact replay is a different check.
 
 ## Measurement plan and costs
 
 Serial screening varies one axis at a time: windows 256/512/1024, leaf lengths 8/16/32, sites 0/8/16, runner caps 64/512/unlimited. Same-binary defaults and the untouched merged archive are separate controls; both current scenes use forward/reverse order. No scheduling parameter changes. Every observation and exact guest-instruction/presentation count is retained. Timings have not established an optimum.
 
 Larger windows/leaves may increase generated code, compile work and dependency validation even if they reduce returns. Removing the runner cap retains per-region state publication, lookup and exact validation. The profiler records warmup and final compiled-function/heap counts outside the timed window; these are broad startup/resource measures, not isolated compilation time. Dedicated exit instrumentation is disabled for acceptance timing.
+
+## Longer-route screening results
+
+All twenty trials execute the same 3,031,637,220 guest instructions and 380 presentations from 42 to 60 guest seconds. Times below are forward / reverse observations in seconds, not confidence intervals.
+
+| Setting | Forward | Reverse | Compiled functions |
+| --- | ---: | ---: | ---: |
+| default | 15.0739 | 15.7996 | 14,345 |
+| window256 | 16.5336 | 14.0533 | 14,364 |
+| window1024 | 12.8110 | 14.6896 | 14,296 |
+| leaf8 | 14.1944 | 14.8674 | 14,382 |
+| leaf32 | 14.7909 | 16.7873 | 14,298 |
+| sites0 | 16.4257 | 17.0803 | 14,497 |
+| sites16 | 14.3255 | 14.9606 | 14,366 |
+| cap64 | 12.6943 | 12.7533 | 14,345 |
+| uncapped | 13.3785 | 12.4046 | 14,345 |
+| baseline | 13.9830 | 11.8326 | 14,345 |
+
+This screen does not establish optimal limits. The unchanged archive varies from 13.9830 to 11.8326 seconds; the same-binary default is slower than that archive in both observations. The uncapped runner and cap 64 are promising against this instrumentable binary, but neither consistently beats the untouched archive. A source-window increase has the same limitation. Larger leaves/sites are not uniformly better; disabling inlining is costly in these samples. The standard-route screen and targeted adjacent confirmations are required before attributing a useful gain. No policy is promoted.
