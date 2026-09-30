@@ -49,3 +49,16 @@ live, following 2.04% in batch A. All four adjacent live comparisons favor the
 combination. The matching policy-0 lead is 14.42%, with visibly slower controls;
 it must not be presented as the net live-build gain. All twelve observations
 are retained. Standard-scene measurements are next; no deployment.
+
+## Standard-scene holdout: no promotion
+
+All six runs cover the same 78–96 guest-second window, with identical guest
+instruction and presentation totals. Mean seconds: protected 14.65455,
+proofs 14.44005, live 13.91995. The combination loses both
+adjacent comparisons with live, for -3.60% throughput overall.
+Closing runs are slower across all variants and remain in the record. The
+longer-scene gain does not establish a general improvement; this candidate
+remains opt-in and unserved. All eighteen observations are retained.
+
+These measurements precede the requested upstream merge and use immutable
+archives. They must not be relabelled as measurements of the merged source.
