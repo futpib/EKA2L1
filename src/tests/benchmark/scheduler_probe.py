@@ -134,6 +134,8 @@ def main():
     p.add_argument('--repo', type=Path, default=Path(__file__).resolve().parents[3])
     p.add_argument('--hardware-counters', action='store_true',
                    help='Count user cycles/instructions on existing benchmark threads (diagnostic only)')
+    p.add_argument('--no-start-gate', action='store_true',
+                   help='Attach at the ordinary warmup message without pausing the browser; misses attachment interval')
     args = p.parse_args()
     output = args.output.resolve()
     output.mkdir()
@@ -147,6 +149,8 @@ def main():
                 'EKA2L1_MONITOR_CPU_START_US', 'EKA2L1_CAPTURE_MODULES',
                 'EKA2L1_COMPILE_CENSUS'):
         env.pop(key, None)
+    if args.no_start_gate:
+        env.pop('PROFILE_GATE', None)
     command = ['node', 'profile.ts', str(args.assets.resolve()),
                str(output / 'profile'), '2', '0', '96000000']
     proc = subprocess.Popen(command, cwd=args.repo / 'src/tests/wasm', env=env,
@@ -154,27 +158,40 @@ def main():
                             text=True, bufsize=1, start_new_session=True)
     counters = hardware = None
     try:
-        deadline = time.monotonic() + 1800
-        while not Path(str(gate) + '.ready').exists():
-            if proc.poll() is not None:
-                raise RuntimeError(proc.stdout.read())
-            if time.monotonic() > deadline:
-                raise TimeoutError('Benchmark did not reach its start gate')
-            time.sleep(.1)
-        before = snapshot(proc.pid)
-        if args.hardware_counters:
-            counters = HardwareCounters(before['threads'])
-            counters.start()
-        gate.write_text('resume\n')
+        before = None
+        warmup_received_ns = None
+        if not args.no_start_gate:
+            deadline = time.monotonic() + 1800
+            while not Path(str(gate) + '.ready').exists():
+                if proc.poll() is not None:
+                    raise RuntimeError(proc.stdout.read())
+                if time.monotonic() > deadline:
+                    raise TimeoutError('Benchmark did not reach its start gate')
+                time.sleep(.1)
+            before = snapshot(proc.pid)
+            if args.hardware_counters:
+                counters = HardwareCounters(before['threads'])
+                counters.start()
+            gate.write_text('resume\n')
         after = measurement = None
         with (output / 'run.log').open('w') as log:
             for line in proc.stdout:
                 log.write(line)
+                if args.no_start_gate and line.startswith('Warmup '):
+                    if before is not None:
+                        raise RuntimeError('Duplicate warmup message')
+                    warmup_received_ns = time.monotonic_ns()
+                    before = snapshot(proc.pid)
+                    if args.hardware_counters:
+                        counters = HardwareCounters(before['threads'])
+                        counters.start()
                 try:
                     value = json.loads(line)
                 except json.JSONDecodeError:
                     continue
                 if isinstance(value, dict) and 'wall_seconds' in value:
+                    if before is None:
+                        raise RuntimeError('Measurement arrived before diagnostic attachment')
                     if measurement is not None:
                         raise RuntimeError('Duplicate measurement line')
                     if counters is not None:
@@ -205,7 +222,8 @@ def main():
                 process_deltas.append(dict(pid=last['pid'],
                     user_ticks=last['user_ticks'] - first['user_ticks'],
                     system_ticks=last['system_ticks'] - first['system_ticks']))
-        result = dict(scope='Only descendants of the spawned benchmark; before/after snapshots',
+        result = dict(start_gate=not args.no_start_gate, warmup_received_ns=warmup_received_ns,
+            scope='Only descendants of the spawned benchmark; before/after snapshots',
             limits='Snapshots bracket the window approximately; exclude exited/new threads. '
                    'A busy thread is not automatically identified as the guest CPU. '
                    'Disabled scheduler statistics mean runnable wait is unavailable, not zero. '
@@ -213,6 +231,9 @@ def main():
                    'Optional counters exclude kernel/hypervisor and new threads; they perturb execution. '
                    'Independent enable/disable calls approximately bracket the window. '
                    'Enabled/running times expose multiplexing; scaled counts are estimates. '
+                   'Without the start gate, snapshots and attachment occur after the warmup message; '
+                   'the uncounted beginning and stdout delivery delay are not measured exactly. '
+                   'warmup_received_ns and counter enable times bound local attachment work only. '
                    'Do not subtract scheduler wait from reported wall time or discard runs.',
             measurement=measurement, clock_ticks_per_second=os.sysconf('SC_CLK_TCK'),
             runnable_wait_available=wait_available,

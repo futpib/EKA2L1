@@ -47,3 +47,19 @@ python3 src/tests/benchmark/scheduler_probe.py ASSETS ARCHIVED_BUILD NEW_OUTPUT 
 The next optimization experiment combines the separately tested write-span
 proofs and budget chunks, keeping original instruction lowering and precise
 fallbacks. This is an unmeasured hypothesis; served policy 4 is unchanged.
+
+## Diagnostic without the start gate
+
+`scheduler_probe.py --hardware-counters --no-start-gate` uses the ordinary
+warmup message to attach counters without adding an explicit browser pause.
+This is still intrusive diagnostic work, not promotion timing. It deliberately
+misses the interval used for the initial process/thread snapshot and attachment;
+stdout delivery also has unknown delay. The output records `start_gate: false`,
+`warmup_received_ns`, snapshot times and counter enable times. Full enabled/
+running coverage does not mean the entire gameplay window was counted.
+
+The first actual browser workflow passes with valid counter records and no
+counter errors. Attachment finishes about 97ms after the warmup message, so do
+not describe the missing interval as negligible or compare its raw instruction
+count directly with the earlier fully gated series. Four serial repetitions
+will be recorded in UNGATED_COUNTER_RESULTS.md and UNGATED_COUNTER_EVIDENCE.json.
