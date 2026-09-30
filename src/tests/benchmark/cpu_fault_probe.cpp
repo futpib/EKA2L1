@@ -62,7 +62,8 @@ int main(int argc, char **argv){
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
-    const bool ir_memory=argc==2 && std::string(argv[1])=="--ir-memory";
+    const bool ir_wide=argc==2 && std::string(argv[1])=="--ir-wide";
+    const bool ir_memory=ir_wide || (argc==2 && std::string(argv[1])=="--ir-memory");
     const bool ir_memory_chain=argc==2 && std::string(argv[1])=="--ir-memory-chain";
     const bool ir_segments=ir_memory || (argc==2 && std::string(argv[1])=="--ir-segments");
     const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
@@ -107,6 +108,7 @@ int main(int argc, char **argv){
             program[1]=0xe2844001u; program[2]=0xe0245000u; program[3]=0xe1a06005u;
             program[4]=op;
             if(ir_memory) {program[1]=0xe1a08004u;program[2]=0xe1a04005u;program[3]=0xe1a05008u;}
+            if(ir_wide) {program[1]=0xe0c54796u;program[2]=0xe0e54896u;program[3]=0xe0a54996u;}
         }
         std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
         for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
@@ -128,6 +130,9 @@ int main(int argc, char **argv){
             }
             if((ir_memory || ir_memory_chain) && n==0 && !translated.ir_memory_guards) {
                 std::cerr << "Dynamic memory fixture did not select IR guard exits\n"; return 4;
+            }
+            if(ir_wide && n==0 && !translated.ir_wide_products) {
+                std::cerr << "Wide memory fixture did not select IR products\n"; return 4;
             }
             functions.push_back(std::move(translated.func));
         }

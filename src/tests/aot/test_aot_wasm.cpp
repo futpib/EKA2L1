@@ -2793,7 +2793,14 @@ static bool test_ir_segments() {
         // Branch into an integer sequence: the target must start a new segment.
         {{0xe3510000u,0x0a000002u,0xe0802001u,0xe0222003u,0xe2822001u,
           0xe0823001u,0xe0233000u,0xe2833001u}},
+#if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+        {{0xe0c20190u,0xe0e20190u,0xe0a20190u,0xe1a04002u}}, // source/destination overlap
+        {{0xe0810390u,0xe0a10390u,0xe0c10390u,0xe0e10390u}}, // all four wide forms
+        {{0xe3a04004u,0xe0e32190u,0xe59a0000u,0xe58a2010u,0xe2544001u,0x1afffffau},15},
+        {{0xeb0003f9u,0xe0c32190u,0xe59a0000u,0xe0e32190u},4}, // wide caller after inlined integer leaf
+#else
         {{0xeb0003f9u,0xe0822001u,0xe0222003u,0xe2822001u},4}, // inlined integer leaf
+#endif
     };
     const std::vector<std::uint8_t> leaf{0x01,0x00,0x80,0xe0,0x03,0x20,0x20,0xe0,
         0x02,0x30,0xa0,0xe1,0x1e,0xff,0x2f,0xe1};
@@ -2865,12 +2872,15 @@ static bool test_ir_memory_exits() {
         0xe8bb0005u,0xe8ab0005u,0xe9bb0005u,0xe9ab0005u,
         0xe83b0005u,0xe82b0005u,0xe93b0005u,0xe92b0005u};
     unsigned comparisons=0;
-    for(bool dependent:{false,true})for(unsigned operation:operations) {
-        const unsigned code[]={0xe1a08004u,0xe1a04005u,0xe1a05008u,
+    for(bool wide:{false,true})for(bool dependent:{false,true})for(unsigned operation:operations) {
+        const unsigned code[]={wide?0xe0c54196u:0xe1a08004u,wide?0xe0e54196u:0xe1a04005u,wide?0xe0a54796u:0xe1a05008u,
             0xe58a4020u,dependent?0xe59ab000u:0xe59a0000u,0xe2800001u,operation,0xe3a04000u,0xe3a05000u};
         const auto *bytes=reinterpret_cast<const std::uint8_t *>(code);
         auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
         if(!tr.complete || tr.ir_memory_guards!=3) {printf("  FAIL memory IR not selected %08x guards=%u\n",operation,tr.ir_memory_guards);return false;}
+        if(wide && (!tr.ir_wide_products || !tr.ir_cold_halves)) {
+            printf("  FAIL wide IR snapshot recipes not selected\n");return false;
+        }
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})

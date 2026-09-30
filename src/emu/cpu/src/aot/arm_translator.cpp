@@ -340,8 +340,19 @@ namespace eka2l1::arm::aot {
     // Entry state is read before parallel snapshot destinations are assigned.
     static void emit_ir_values(arm_emit &w, const region_ir &ir,
         const std::vector<bool> &live, const std::vector<unsigned> &locals,
-        bool publish_pc) {
-        auto push = [&](unsigned v) {
+        bool publish_pc, const std::vector<bool> &cold = {},
+        std::vector<std::pair<std::size_t, unsigned>> *wide_fixups = nullptr) {
+        auto local = [&](unsigned opcode, unsigned v) {
+            if (wide_fixups && ir.nodes[v].type == type_i64) {
+                w.op(static_cast<std::uint8_t>(opcode));
+                wide_fixups->emplace_back(w.b.size(), locals[v]);
+                // Fixed width keeps barrier offsets stable until suffix slots
+                // are known, after all architectural locals have been allocated.
+                w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});
+            } else if (opcode == op_local_get) w.get_local(locals[v]);
+            else w.set_local(locals[v]);
+        };
+        auto push_value = [&](auto &&self, unsigned v) -> void {
             const auto &node = ir.nodes[v];
             if (node.op == region_ir::constant) {
                 if (node.type == type_i32) w.i32_const(static_cast<std::int32_t>(node.immediate));
@@ -355,10 +366,17 @@ namespace eka2l1::arm::aot {
                         w.b.push_back(byte | (more ? 128 : 0));
                     }
                 }
+            } else if (!cold.empty() && cold[v]) {
+                self(self, node.a);
+                if (node.op == region_ir::high) {
+                    w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shr_u);
+                }
+                w.op(op_i32_wrap_i64);
             } else if (node.op == region_ir::host) w.get_local(static_cast<unsigned>(node.immediate));
             else if (node.op == region_ir::state) w.load_i32(static_cast<unsigned>(node.immediate));
-            else w.get_local(locals[v]);
+            else local(op_local_get, v);
         };
+        auto push = [&](unsigned v) { push_value(push_value, v); };
         auto snapshot = [&](unsigned index, bool pc) {
             const auto &entry = ir.snapshots.front(); const auto &exit = ir.snapshots.at(index);
             // Consume every source before changing any architectural local.
@@ -374,7 +392,7 @@ namespace eka2l1::arm::aot {
                 w.store_i32_from_stack(*it, 2);
         };
         for (unsigned v = 1; v < ir.nodes.size(); ++v) {
-            if (!live[v]) continue;
+            if (!live[v] || (!cold.empty() && cold[v])) continue;
             const auto &node = ir.nodes[v];
             if (node.op == region_ir::constant || node.op == region_ir::state || node.op == region_ir::host) continue;
             push(node.a);
@@ -420,7 +438,7 @@ namespace eka2l1::arm::aot {
                 if (node.b) push(node.b);
                 w.op(static_cast<std::uint8_t>(node.op)); break;
             }
-            if (node.type != type_void) w.set_local(locals[v]);
+            if (node.type != type_void) local(op_local_set, v);
         }
         snapshot(static_cast<unsigned>(ir.snapshots.size() - 1), publish_pc);
     }
@@ -1063,14 +1081,15 @@ namespace eka2l1::arm::aot {
 
         struct integer_segment {
             region_ir graph;
-            std::vector<bool> live;
+            std::vector<bool> live, cold;
             std::vector<unsigned> locals;
             unsigned length;
         };
         std::map<std::size_t, integer_segment> segments;
+        std::vector<std::pair<std::size_t, unsigned>> wide_fixups;
 #ifdef EKA2L1_WASM_IR_SEGMENTS
         if (w.region && cache_registers && !ir) {
-            unsigned max_locals = 0;
+            unsigned max_locals = 0, max_wide_locals = 0;
 #if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
             const bool dynamic_memory = w.defer_memory;
 #else
@@ -1087,33 +1106,41 @@ namespace eka2l1::arm::aot {
                         || ins.address != instructions[end - 1].address + 4
                         || (!ins.leaf && forward_targets_set.count(ins.address)))) break;
                     // Memory joins the graph only with precise guard exits.
-                    // Flags, calls, PC writes and wide multiplies remain bounds.
-                    if ((!dynamic_memory && ((op >> 26) & 3) != 0)
-                        || (op & 0x0f8000f0u) == 0x00800090u) break;
+                    // Flags, calls and PC writes remain bounds. Wide values
+                    // join the mixed path with precise intermediate snapshots.
+                    if (!dynamic_memory && (((op >> 26) & 3) != 0
+                        || (op & 0x0f8000f0u) == 0x00800090u)) break;
                     auto trial = graph;
                     if (!trial.append(op, ins.address, false, no_memory, dynamic_memory)) break;
                     graph = std::move(trial);
                 }
                 if (end - first < 3 || !graph.valid()) { ++first; continue; }
-                integer_segment segment{std::move(graph), {}, {}, static_cast<unsigned>(end - first)};
+                integer_segment segment{std::move(graph), {}, {}, {}, static_cast<unsigned>(end - first)};
                 std::vector<unsigned> exits{segment.length};
                 for (const auto &node : segment.graph.nodes)
                     if (node.op == region_ir::guarded_host) exits.push_back(static_cast<unsigned>(node.immediate / 2));
                 segment.live = segment.graph.live_for(exits);
                 segment.locals.resize(segment.graph.nodes.size());
-                unsigned count = 0;
+                segment.cold.resize(segment.graph.nodes.size());
+                const auto ordinary = segment.graph.live_for({segment.length});
+                unsigned count = 0, wide_count = 0;
                 for (unsigned v = 1; v < segment.graph.nodes.size(); ++v) {
                     const auto &node = segment.graph.nodes[v];
-                    if (segment.live[v] && node.op != region_ir::state && node.op != region_ir::constant
-                        && node.type != type_void)
-                        segment.locals[v] = w.cache.first_local + count++;
+                    segment.cold[v] = segment.live[v] && !ordinary[v]
+                        && (node.op == region_ir::low || node.op == region_ir::high);
+                    if (segment.live[v] && !segment.cold[v] && node.op != region_ir::state
+                        && node.op != region_ir::constant && node.type != type_void) {
+                        segment.locals[v] = node.type == type_i64 ? wide_count++ : w.cache.first_local + count++;
+                    }
                 }
                 max_locals = std::max(max_locals, count);
+                max_wide_locals = std::max(max_wide_locals, wide_count);
                 segments.emplace(first, std::move(segment)); first = end;
             }
             // Segments never overlap dynamically, so their value locals can
             // share slots. Reserve them before lazy architectural cache slots.
             w.cache.first_local += max_locals; result.num_locals += max_locals;
+            result.num_suffix_i64_locals = max_wide_locals;
         }
 #endif
 
@@ -1306,14 +1333,17 @@ namespace eka2l1::arm::aot {
                 w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
                 w.i32_const(part.length - 1); w.op(op_i32_ge_u);
                 w.op(op_if); w.op(type_void);
-                emit_ir_values(w, part.graph, part.live, part.locals, false);
+                emit_ir_values(w, part.graph, part.live, part.locals, false, part.cold, &wide_fixups);
                 w.get_local(arm_emit::COUNT); w.i32_const(part.length - 1);
                 w.op(op_i32_add); w.set_local(arm_emit::COUNT);
                 w.op(op_else);
                 segment_end = instruction_index + part.length;
                 ++tr.ir_segments;
-                for (const auto &node : part.graph.nodes)
-                    if (node.op == region_ir::guarded_host) ++tr.ir_memory_guards;
+                for (unsigned v = 1; v < part.graph.nodes.size(); ++v) {
+                    if (part.graph.nodes[v].op == region_ir::guarded_host) ++tr.ir_memory_guards;
+                    if (part.live[v] && part.graph.nodes[v].op == op_i64_mul) ++tr.ir_wide_products;
+                    if (part.cold[v]) ++tr.ir_cold_halves;
+                }
             }
 
             if (instruction.leaf && inst == 0xe12fff1e) {
@@ -2360,6 +2390,14 @@ namespace eka2l1::arm::aot {
                 region, leaves, defer_memory, false);
             fallback.func.export_name += "_memory_fallback";
             result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));
+        }
+        const auto wide_base = w.cache.first_local + static_cast<unsigned>(w.cache.locals.size());
+        for (const auto &[position, slot] : wide_fixups) {
+            unsigned index = wide_base + slot;
+            for (unsigned byte = 0; byte < 5; ++byte) {
+                w.b[position + byte] = (index & 127) | (byte == 4 ? 0 : 128);
+                index >>= 7;
+            }
         }
         w.cache.finish(result);
         tr.entry_supported = w.entry_supported;
