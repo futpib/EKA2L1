@@ -29,3 +29,17 @@ Serial timing will compare policies 7 and 8 within one application binary and
 the exact served read-proof archive. No live acceptance or deployment yet.
 DEFERRED_COUNTS_EVIDENCE.json contains source/binary hashes and all acceptance
 records. Nothing pushed.
+
+## First serial batch
+
+Order and elapsed seconds: deferred-1 12.5772, combined-1 12.5934,
+served-1 13.2085, served-2 13.2596, combined-2 12.6404, deferred-2 12.5334.
+Means: deferred 12.5553s, same-binary combined 12.6169s, served 13.23405s.
+That is +0.49% throughput against the matching compiler and +5.41% against
+served. Both adjacent pairs favor the candidate by small amounts. This first
+batch alone does not establish a reliable marginal benefit from deferred counts.
+
+All six runs execute 3,975,618,624 instructions and 676 presentations in the same
+18 guest seconds, with shared audio, hardware GPU and no sampling. No owned
+heavy jobs overlap either warmup or measurement. All samples are retained.
+The reordered confirmation is running; no deployment or live acceptance yet.
