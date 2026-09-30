@@ -65,3 +65,13 @@ screenshots remain under /home/claude/.scratch/eka-benchmark/asset-cache-*.
 
 Compiler optimization continues separately; the prepared exact-validation span
 census is next. The direct-switch discriminator is committed asfa1d948af.
+
+## Manifest-based upgrade harness regression
+
+The upgrade harness now compares prior/current content manifests so changed JS
+and data files are allowed alongside changed WASM, while unchanged runtime files
+must stay cached. Its actual HTTPS regression reused a copy of the preserved old
+profile: only the changed WASM transferred (10,665,860 bytes including headers),
+then reload and browser restart transferred zero runtime bytes and no game assets.
+This regression tested the current live archive; it does not claim acceptance of
+the unserved outlined-lookup candidate. Raw report: /home/claude/.scratch/eka-benchmark/lookup-outline-cache-harness-regression/report.json.

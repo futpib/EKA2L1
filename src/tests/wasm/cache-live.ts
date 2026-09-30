@@ -9,6 +9,11 @@ if (previousProfile && (!existingUrl || !process.env.EKA2L1_EXPECT_WASM_SHA256))
   throw Error('Upgrade check needs the same origin and expected new WASM hash');
 fs.mkdirSync(output);
 if (previousProfile) fs.cpSync(previousProfile, path.join(output, 'profile'), {recursive:true});
+const previousManifest = previousProfile
+  ? JSON.parse(fs.readFileSync(path.join(path.dirname(previousProfile), 'report.json'), 'utf8')).rows.at(-1)?.state?.urls
+  : undefined;
+if (previousProfile && !previousManifest?.['/eka2l1.wasm'])
+  throw Error('Upgrade check requires the previous profile report and content manifest');
 const expectedPolicy = compilerPolicyFromEnv();
 const local = existingUrl ? null : await startServer(0, {
   '/preload/rom': path.join(assets, 'SYM.ROM'), '/preload/rpkg': path.join(assets, 'SYM.RPKG'),
@@ -67,8 +72,16 @@ try {
     if (phase !== 'cold' && preloads.length !== 0) throw Error('Repeated preload network fetch');
     if (phase === 'upgrade') {
       const downloaded = binary.filter(x => x.transferred > 1024);
-      if (!downloaded.length || downloaded.some(x => !new URL(x.url).pathname.endsWith('/eka2l1.wasm')))
-        throw Error('Upgrade should fetch only the new WASM runtime');
+      const changed = Object.keys(state.urls).filter(name => /\.(?:wasm|js|data)$/.test(name)
+        && previousManifest[name] !== state.urls[name]);
+      if (!changed.includes('/eka2l1.wasm') || !downloaded.length
+          || downloaded.some(x => !changed.includes(new URL(x.url).pathname)))
+        throw Error('Upgrade fetched an unchanged runtime file');
+      for (const name of changed.filter(name => /^\/eka2l1\.(?:wasm|js|data)$/.test(name))) {
+        if (!downloaded.some(x => new URL(x.url).pathname === name
+            && new URL(x.url).href === new URL(state.urls[name], url).href))
+          throw Error('Upgrade did not fetch changed runtime: ' + name);
+      }
     }
     if (['reload','restart'].includes(phase) && binary.some(x => x.transferred === null || x.transferred > 1024))
       throw Error('Repeated runtime body transfer: ' + JSON.stringify(binary));
