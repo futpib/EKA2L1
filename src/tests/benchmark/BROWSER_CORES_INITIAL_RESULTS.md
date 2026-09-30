@@ -20,8 +20,9 @@ These use a different measurement method: host receipt of semihosting start/end 
 
 | Prebuilt full-system CPU path | Arithmetic ms | Indexed RAM ms | Conditional integer ms |
 |---|---:|---:|---:|
- Non-ARM v86/Flycast require separately compiled equivalent algorithms. See browser_cores/README.md for scope and reproduction; all observations are in BROWSER_CORES_INITIAL_EVIDENCE.json.
 | QEMU Wasm demo JIT | 11.48 | 16.60 | 16.22 |
 | Pebble repository TCI binary | 149.19 | 184.16 | 261.15 |
 
 The QEMU JIT advantage over TCI is substantial on these three tiny loops. This is not a universal ranking: guest memory systems, core fidelity and instrumentation differ; QEMU uses a 32-bit Cortex-A15 on virt, not Pebble hardware. The current Pebble hosted page now also advertises a separate newer JIT build; that artifact is not the repository TCI binary measured here. The QEMU demo artifact has recorded hashes but no inferred correspondence to the current source checkout.
+
+Non-ARM v86/Flycast require separately compiled equivalent algorithms. See browser_cores/README.md for scope and reproduction; all observations are in BROWSER_CORES_INITIAL_EVIDENCE.json.
