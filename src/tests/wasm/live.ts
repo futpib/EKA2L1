@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import puppeteer from 'puppeteer';
 import {PNG} from 'pngjs';
-import {startServer, buildDir} from './server.ts';
+import {startServer, buildDir, compilerPolicyFromEnv} from './server.ts';
 
 const [assetArg, outputArg, durationArg = '60'] = process.argv.slice(2);
 if (!assetArg || !outputArg) throw new Error('Usage: node live.ts ASSETS NEW_OUTPUT [PLAY_SECONDS]');
@@ -18,7 +18,8 @@ const audioEnabled = process.env.EKA2L1_LIVE_AUDIO === '1';
 const autoStart = process.env.EKA2L1_LIVE_AUTOSTART === '1';
 const preloads: Record<string,string> = autoStart ? {'/preload/rom':path.join(assets,'SYM.ROM'),
   '/preload/rpkg':path.join(assets,'SYM.RPKG'),'/preload/sis':path.join(assets,'Snakes.sis')} : {};
-const {server, port} = await startServer(0, preloads, autoStart ? 'Snakes' : undefined);
+const compilerPolicy = compilerPolicyFromEnv();
+const {server, port} = await startServer(0, preloads, autoStart ? 'Snakes' : undefined, {compilerPolicy});
 const browser = await puppeteer.launch({executablePath: '/usr/bin/chromium', headless: true, ignoreDefaultArgs: audioEnabled ? ['--mute-audio'] : [],
   args: ['--no-sandbox', '--disable-dev-shm-usage', '--use-gl=angle', '--use-angle=vulkan',
     '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist', '--disable-background-timer-throttling']});
@@ -95,6 +96,9 @@ try {
     await page.click('#btn-start');
   }
   await page.waitForFunction(() => (window as any)._gameRunning, {timeout:120000});
+  const appliedPolicy = await page.evaluate(() => (window as any).ekaCompilerPolicy ?? null);
+  if (compilerPolicy && (!appliedPolicy?.applied || JSON.stringify(appliedPolicy.requested) !== JSON.stringify(compilerPolicy)))
+    throw new Error('Live run did not apply the requested compiler policy');
   if (audioEnabled) {
     await page.click('#btn-sound');
     await page.waitForFunction(() => (window as any).EkaAudio.context?.state === 'running' && !(window as any).EkaAudio.muted);
@@ -183,7 +187,7 @@ try {
   if (audioEnabled && !await page.evaluate(() => !(window as any).EkaAudio.context && !(window as any).EkaAudio.timer)) throw Error('Audio shutdown failed');
   if (errors.length) throw new Error(errors.join('\n'));
   fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({start,end,host_seconds:elapsed,audio,audio_continuity:audioContinuity,audio_start:audioStart,
-    resources:{startup:startupResources,final:finalResources}, auto_start:autoStart, sampling:!!profileStart, profile_window:{begin:profileBegin,end:profileFinish},
+    resources:{startup:startupResources,final:finalResources}, compiler_policy:appliedPolicy, auto_start:autoStart, sampling:!!profileStart, profile_window:{begin:profileBegin,end:profileFinish},
     measurement:profileBegin ? {first_virtual_us:profileBegin.guest,last_virtual_us:profileFinish.guest,wall_seconds:profileFinish.host_seconds-profileBegin.host_seconds} : null,
     renderer:'See gpu.json for physical GPU details',
     realtime_ratio:(end.guest-start.guest)/1e6/elapsed, input_delivery_ms:latencies, samples,

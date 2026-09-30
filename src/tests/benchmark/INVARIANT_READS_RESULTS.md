@@ -1,4 +1,4 @@
-# Invariant read spans: first timing batch favorable, confirmation pending
+# Invariant read spans: modest repeated gain; live acceptance pending
 
 Policy 4 proves selected read spans through registers that cannot change in a
 region, including its loops and inlined leaves. It uses original emission,
@@ -36,7 +36,7 @@ First serial timing batch:
 The candidate mean is 2.58% higher throughput than same-binary original,
 and 6.97% higher than served. Both adjacent candidate/control pairs favor
 proofs in this batch. All observations remain, including the slow served
-sample. This is preliminary; confirmation with a changed order is pending.
+sample. This first batch alone was preliminary; reordered confirmations follow below.
 Every run executes 3,975,618,624 instructions and 676 presentations. No owned
 build/test/profiler overlaps the warmups or timing. No promotion, push or deployment.
 
@@ -58,3 +58,59 @@ frontend checks and exact replays are reused for those unchanged bytes, not
 claimed as additional fresh runs. New probe archive: invariant-reads-remap-candidate.
 The comparison tool omits the old unmapped summary for this new 64-case mode,
 whose permission dimension means read-only versus read/write root mapping.
+
+## Reordered confirmation
+
+| Batch | Original, same binary | Read proofs | Served | Throughput vs original / served |
+| --- | ---: | ---: | ---: | ---: |
+| A | 13.44370s | 13.10500s | 14.01840s | +2.58% / +6.97% |
+| B | 13.53210s | 13.59230s | 13.83110s | -0.44% / +1.76% |
+| C | 13.60145s | 13.14590s | 14.02825s | +3.47% / +6.71% |
+
+A order: proof/plain/served/served/plain/proof.
+B order: plain/proof/served/served/proof/plain.
+C order: served/plain/proof/proof/plain/served.
+The candidate occupies outer, intermediate and inner paired positions. This is
+partial position counterbalancing of all variants, not a complete Latin-square
+or randomization scheme. Every warmup and run was serial; no owned heavy job
+overlapped. Application bytes and compiler/runtime sources remain unchanged across all timing batches; only the fault probe was extended between A and B.
+
+Across all 18 runs, original mean is 13.52575s, proof 13.28107s and served
+13.95925s. That is 1.84% higher throughput against matching original emission,
+and 5.11% against served. Two of three batch means and five of six adjacent
+pairs favor the proof over the matching compiler. All three means favor proof
+over served. The 14.025s proof observation and slow served controls remain.
+Ranges overlap; these samples support a modest repeated host-specific gain,
+not a statistical-significance claim or a fixed improvement promise. The served
+comparison also includes previously retained fixes/optimizations; the same-binary
+policy comparison is the more specific evidence for this transformation.
+
+All six proof trials execute 18 guest seconds in 13.0209–14.0250 host seconds,
+1.28–1.38 times realtime in this workload. Live/audio and actual HTTPS launcher
+acceptance are next; deployment has not occurred at this stage.
+
+## Live acceptance
+
+Two independent 120-second live/audio runs pass with explicit compiler policy 4,
+eager regions off, and the exact timed application WASM hash. Manual startup
+achieves 1.000100 times realtime with 15.40 ms maximum sampled lag; automatic
+startup achieves 1.000119 with 5.94 ms lag. Both have zero additional gameplay
+audio underruns or dropped samples. Startup has 6/7 recovery underruns before
+the measured gameplay window; this experiment does not fix startup audio.
+Keyboard and touch delivery, visible gameplay, layout, mute/unmute and shutdown
+pass. Captures were visually reviewed. Chromium uses the physical NVIDIA ANGLE
+Vulkan renderer. The original native-identical movement heuristic remains a
+separate documented limitation, not a newly passing check.
+
+The live/server tools now accept validated explicit compiler settings and apply
+them before the real manual/automatic initialization path. Live reports require
+and record the applied policy; ordinary launcher defaults are unchanged. Nine
+frontend checks pass freshly, as do one-off Node checks of default omission,
+invalid policy rejection and explicit launcher injection. All timings preceded
+these launcher-only source changes. The application was not rebuilt.
+
+Reproduce with EKA2L1_WASM_BUILD_DIR=ARCHIVE EKA2L1_AOT_IR_MODE=4
+EKA2L1_AOT_EAGER_REGIONS=0 EKA2L1_LIVE_AUDIO=1 node live.ts ASSETS NEW_OUTPUT 120;
+add EKA2L1_LIVE_AUTOSTART=1 for the automatic route. Serve the exact archive with
+the same compiler/eager environment. General IR policies remain unselected.
+HTTPS deployment and final launcher smoke are pending at this commit.

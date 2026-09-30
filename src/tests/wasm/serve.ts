@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { buildDir, startServer } from "./server.ts";
+import { buildDir, startServer, compilerPolicyFromEnv } from "./server.ts";
 import { fetchCid } from "@futpib/fetch-cid";
 
 if (!fs.existsSync(path.join(buildDir, "eka2l1.html"))) {
@@ -59,7 +59,7 @@ if (Boolean(certPath) !== Boolean(keyPath)) {
 const tls = certPath && keyPath
   ? { cert: fs.readFileSync(certPath), key: fs.readFileSync(keyPath) }
   : undefined;
-const { port: resolvedPort } = await startServer(port, preloadFiles, appName, { host, tls });
+const { port: resolvedPort } = await startServer(port, preloadFiles, appName, { host, tls, compilerPolicy: compilerPolicyFromEnv() });
 const displayHost = process.env.EKA2L1_SERVE_NAME ?? host;
 const urlHost = displayHost.includes(":") ? `[${displayHost}]` : displayHost;
 console.log(`\nServing EKA2L1 WASM at ${tls ? "https" : "http"}://${urlHost}:${resolvedPort}/`);

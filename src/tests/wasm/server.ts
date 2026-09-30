@@ -58,14 +58,58 @@ autoStart();
 </script>`;
 }
 
+export type CompilerPolicy = { irMode?: number; eagerRegions?: number };
+
+export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
+  const ir = process.env.EKA2L1_AOT_IR_MODE;
+  const eager = process.env.EKA2L1_AOT_EAGER_REGIONS;
+  if (ir === undefined && eager === undefined) return undefined;
+  const policy: CompilerPolicy = {};
+  if (ir !== undefined) {
+    if (!/^(?:-1|[0-4])$/.test(ir)) throw new Error("Invalid compiler policy");
+    policy.irMode = Number(ir);
+  }
+  if (eager !== undefined) {
+    if (!/^[01]$/.test(eager)) throw new Error("Invalid eager-region policy");
+    policy.eagerRegions = Number(eager);
+  }
+  return policy;
+}
+
+function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
+  if (!policy) return "";
+  if ((policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 4))
+      || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions)))
+    throw new Error("Invalid compiler policy");
+  return `<script>
+window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
+{
+  const originalStart = startEmulator;
+  startEmulator = async function() {
+    const state = window.ekaCompilerPolicy;
+    if (!state.applied) {
+      for (const [key, entry] of [['irMode','eka2l1_ir_configure'], ['eagerRegions','eka2l1_eager_regions_configure']]) {
+        if (state.requested[key] === undefined) continue;
+        if (typeof Module['_' + entry] !== 'function'
+            || Module.ccall(entry, 'number', ['number'], [state.requested[key]]) !== 0)
+          throw new Error('Emulator compiler configuration failed: ' + key);
+      }
+      state.applied = true;
+    }
+    return originalStart();
+  };
+}
+</script>`;
+}
+
 export function startServer(
   port = 0,
   preloadFiles: Record<string, string> = {},
   appName?: string,
-  options: { host?: string; tls?: https.ServerOptions } = {},
+  options: { host?: string; tls?: https.ServerOptions; compilerPolicy?: CompilerPolicy } = {},
 ): Promise<{ server: http.Server; port: number }> {
   return new Promise((resolve, reject) => {
-    const autoStartScript = makeAutoStartScript(appName);
+    const autoStartScript = makeCompilerPolicyScript(options.compilerPolicy) + makeAutoStartScript(appName);
 
     const handler: http.RequestListener = (req, res) => {
       let urlPath = (req.url ?? "/").split("?")[0];
@@ -125,12 +169,10 @@ export function startServer(
         return;
       }
 
-      // Inject auto-start script into HTML (before the emscripten module script
-      // so onRuntimeInitialized is set before the module loads)
+      // Install pre-init compiler selection before optional automatic startup.
       if (filePath.endsWith(".html") && autoStartScript) {
         let html = fs.readFileSync(filePath, "utf-8");
-        // Insert before the closing </body> — the Module.onRuntimeInitialized
-        // hook is set early in the page's first <script> block via our injection
+        // The shell has declared startEmulator before these scripts execute.
         html = html.replace("</body>", autoStartScript + "\n</body>");
         res.writeHead(200, {
           "Content-Type": "text/html",
