@@ -1,4 +1,4 @@
-# Budget chunks: correctness passes, timing pending
+# Budget chunks: first batch favorable, confirmation pending
 
 Policy 6 keeps original instruction/value/memory lowering and proves sufficient
 budget once for selected straight-line chunks inside regions. Short budgets use
@@ -28,3 +28,14 @@ Next: serial unsampled gameplay comparing chunk/read policies within this
 application binary plus the exact served archive, retaining all samples. No
 speedup, new live/audio acceptance or deployment is claimed. Full provenance,
 raw log paths and exact comparisons: BUDGET_CHUNKS_EVIDENCE.json. Nothing pushed.
+
+## First timing batch
+
+Serial order: chunks 12.6242, reads 13.2335, served 13.2804, served 14.2402,
+reads 14.8659, chunks 13.9724 seconds. Means are 13.2983s chunks, 14.0497s
+same-binary reads and 13.7603s served: +5.65% and +3.47% throughput. Both adjacent
+read/chunk pairs favor chunks. Closing samples slow in all three variants, and
+ranges overlap. Every sample is retained; this does not establish a fixed gain.
+Each run executes 3,975,618,624 guest instructions and 676 presentations with
+shared audio and the physical NVIDIA renderer. No owned heavy jobs overlap
+warmup or measurement. Reordered confirmation is underway; no promotion.
