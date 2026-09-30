@@ -547,5 +547,43 @@
         "sha256": "f4c549d171bea79e69019b922368817bb10c3347a9cc2081a32bce846a6b8deb"
       }
     ]
+  },
+  "instructions_exploration": {
+    "directory": "/home/claude/.scratch/eka-benchmark/growth-explore-5",
+    "performance_evidence": false,
+    "reason": "Overlapped compiler correctness checks; no substantial snake growth",
+    "observed_score": 200,
+    "screenshots": [
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-5/help1.png",
+        "sha256": "3ef425395e81833053e520e1247d78caa96c86cba3d36ccba02bbc6be1bcb712"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-5/help2.png",
+        "sha256": "f2229a71e4a5dda189f5ea9ffdd462ec6b634ce5ae85736b87f9f1238b702889"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-5/help3.png",
+        "sha256": "9e0253cee6602947f8d9e1da75ab2c7c59dc0e02b51d0328c31fc09cf25c0edd"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-5/help4.png",
+        "sha256": "047c973f134a9fa18d10bc088612f0af47d1d2681f3e52d4373b989eedd2a08f"
+      },
+      {
+        "path": "/home/claude/.scratch/eka-benchmark/growth-explore-5/help5.png",
+        "sha256": "fa130cb7bb4671a61c482659a491213396521f83da96faa9717492b5f7154dba"
+      }
+    ],
+    "observations": [
+      "Instructions say collisions reduce energy and green pickups replenish it.",
+      "Boost can speed up or slow down the snake; red pickups replenish boost.",
+      "Emptying the blue Evolver bar advances a level; power paths maximize points."
+    ],
+    "limits": [
+      "No displayed exact length was identified.",
+      "Earlier instructions-2 through instructions-6 captures show transition animation and are not text evidence.",
+      "Instruction descriptions alone do not explain the reported length-dependent slowdown."
+    ]
   }
 }

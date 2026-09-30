@@ -40,3 +40,12 @@ inspected gameplay images and ends on a level-start screen. It did not establish
 a longer snake. This exploration overlapped compiler correctness jobs; none of
 its elapsed/realtime measurements are performance evidence. Input and screenshots
 remain archived. The required growth-controlled reproduction is still open.
+
+The fifth exploration captures the actual S60 game's instruction pages clearly
+(`growth-explore-5/help1.png` through `help5.png`): green pickups restore energy,
+red pickups restore boost, boost can alter speed, and emptying the blue Evolver
+bar advances a level. Following power paths increases points. These observations
+help route design but do not establish a length mechanic or explain the reported
+slowdown. Score remains200 in inspected gameplay. Earlier rapid page captures
+show transition animations and are explicitly excluded as instruction evidence.
+This run overlapped correctness checks and is not performance evidence.
