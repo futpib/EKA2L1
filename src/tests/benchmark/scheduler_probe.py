@@ -1,16 +1,93 @@
 #!/usr/bin/env python3
 """Diagnostic snapshots of the benchmark's own threads outside its timed window.
 
-Does not adjust wall timings, sample during execution, or change host scheduling.
+Optional user-space hardware counters count without sampling.
+Does not adjust wall timings or change host scheduling.
 Not a substitute for ordinary serial timing controls.
 """
 import argparse
+import ctypes
+import fcntl
 import json
 import os
 from pathlib import Path
+import platform
 import signal
+import struct
 import subprocess
 import time
+
+
+class HardwareCounters:
+    """User-only counting events for existing benchmark threads on Linux x86-64.
+
+    No sampling, inheritance, scheduling changes, or system-wide attachment.
+    Counters are independent; raw enabled/running times expose multiplexing.
+    """
+    def __init__(self, threads):
+        self.events = []
+        self.result = dict(events={}, errors=[], begin_ns=time.monotonic_ns())
+        if platform.system() != 'Linux' or platform.machine() != 'x86_64':
+            raise RuntimeError('Hardware counters currently require Linux x86-64')
+        libc = ctypes.CDLL(None, use_errno=True)
+        libc.syscall.restype = ctypes.c_long
+        for key, thread in threads.items():
+            for config, name in ((0, 'user_cycles'), (1, 'user_instructions')):
+                fd = None
+                try:
+                    # perf_event_attr version 0; disabled, exclude kernel/hypervisor.
+                    attr = ctypes.create_string_buffer(64)
+                    struct.pack_into('=IIQQQQQ', attr, 0, 0, 64, config, 0, 0,
+                                     3, 1 | (1 << 5) | (1 << 6))
+                    fd = libc.syscall(298, ctypes.byref(attr), thread['tid'], -1, -1, 8)
+                    if fd < 0:
+                        raise OSError(ctypes.get_errno(), os.strerror(ctypes.get_errno()))
+                    stat = Path(f"/proc/{thread['pid']}/task/{thread['tid']}/stat").read_text()
+                    if int(stat.rsplit(')', 1)[1].split()[19]) != thread['start_ticks']:
+                        raise RuntimeError('Thread identity changed before attachment')
+                    self.events.append((key, name, fd))
+                    self.result['events'].setdefault(key, dict(start_ticks=thread['start_ticks']))
+                except (OSError, RuntimeError) as error:
+                    if fd is not None and fd >= 0:
+                        os.close(fd)
+                    self.result['errors'].append(dict(thread=key, event=name, stage='attach',
+                                                      error=str(error)))
+
+    def start(self):
+        self.result['enable_begin_ns'] = time.monotonic_ns()
+        for key, name, fd in self.events:
+            try:
+                fcntl.ioctl(fd, 0x2400, 0)  # PERF_EVENT_IOC_ENABLE
+            except OSError as error:
+                self.result['errors'].append(dict(thread=key, event=name, stage='enable',
+                                                  error=str(error)))
+        self.result['enable_end_ns'] = time.monotonic_ns()
+
+    def stop(self):
+        self.result['disable_begin_ns'] = time.monotonic_ns()
+        for key, name, fd in self.events:
+            try:
+                fcntl.ioctl(fd, 0x2401, 0)  # PERF_EVENT_IOC_DISABLE
+            except OSError as error:
+                self.result['errors'].append(dict(thread=key, event=name, stage='disable',
+                                                  error=str(error)))
+        self.result['disable_end_ns'] = time.monotonic_ns()
+        for key, name, fd in self.events:
+            try:
+                raw, enabled, running = struct.unpack('=QQQ', os.read(fd, 24))
+                self.result['events'][key][name] = dict(raw=raw, time_enabled_ns=enabled,
+                    time_running_ns=running,
+                    running_fraction=running / enabled if enabled else None,
+                    scaled=raw * enabled / running if running else None)
+            except (OSError, struct.error) as error:
+                self.result['errors'].append(dict(thread=key, event=name, stage='read',
+                                                  error=str(error)))
+        return self.result
+
+    def close(self):
+        for _, _, fd in self.events:
+            os.close(fd)
+        self.events.clear()
 
 
 def snapshot(root_pid):
@@ -55,6 +132,8 @@ def main():
     p.add_argument('build', type=Path)
     p.add_argument('output', type=Path)
     p.add_argument('--repo', type=Path, default=Path(__file__).resolve().parents[3])
+    p.add_argument('--hardware-counters', action='store_true',
+                   help='Count user cycles/instructions on existing benchmark threads (diagnostic only)')
     args = p.parse_args()
     output = args.output.resolve()
     output.mkdir()
@@ -73,6 +152,7 @@ def main():
     proc = subprocess.Popen(command, cwd=args.repo / 'src/tests/wasm', env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                             text=True, bufsize=1, start_new_session=True)
+    counters = hardware = None
     try:
         deadline = time.monotonic() + 1800
         while not Path(str(gate) + '.ready').exists():
@@ -82,6 +162,9 @@ def main():
                 raise TimeoutError('Benchmark did not reach its start gate')
             time.sleep(.1)
         before = snapshot(proc.pid)
+        if args.hardware_counters:
+            counters = HardwareCounters(before['threads'])
+            counters.start()
         gate.write_text('resume\n')
         after = measurement = None
         with (output / 'run.log').open('w') as log:
@@ -94,6 +177,8 @@ def main():
                 if isinstance(value, dict) and 'wall_seconds' in value:
                     if measurement is not None:
                         raise RuntimeError('Duplicate measurement line')
+                    if counters is not None:
+                        hardware = counters.stop()
                     after, measurement = snapshot(proc.pid), value
         if proc.wait() != 0 or after is None:
             raise RuntimeError('Benchmark failed or omitted its measurement')
@@ -109,6 +194,8 @@ def main():
                 row[k] = last[k] - first[k]
             if not wait_available:
                 row['runnable_wait_ns'] = None
+            if hardware is not None:
+                row['hardware'] = hardware['events'].get(key)
             deltas.append(row)
         deltas.sort(key=lambda x: x['runtime_ns'], reverse=True)
         process_deltas = []
@@ -123,14 +210,21 @@ def main():
                    'A busy thread is not automatically identified as the guest CPU. '
                    'Disabled scheduler statistics mean runnable wait is unavailable, not zero. '
                    'CPU runtime versus wall time alone cannot identify the kind of wait. '
+                   'Optional counters exclude kernel/hypervisor and new threads; they perturb execution. '
+                   'Independent enable/disable calls approximately bracket the window. '
+                   'Enabled/running times expose multiplexing; scaled counts are estimates. '
                    'Do not subtract scheduler wait from reported wall time or discard runs.',
             measurement=measurement, clock_ticks_per_second=os.sysconf('SC_CLK_TCK'),
             runnable_wait_available=wait_available,
             before=before, after=after, thread_deltas=deltas, process_deltas=process_deltas)
+        if hardware is not None:
+            result['hardware_counters'] = hardware
         (output / 'scheduler.json').write_text(json.dumps(result, indent=2) + '\n')
         print(json.dumps(dict(wall_seconds=measurement['wall_seconds'],
                               busiest_threads=deltas[:5]), indent=2))
     finally:
+        if counters is not None:
+            counters.close()
         if proc.poll() is None:
             proc.terminate()
             try:

@@ -46,3 +46,24 @@ Counter definitions: [Linux proc documentation](https://docs.kernel.org/filesyst
 for user/system CPU ticks and context switches, and
 [Linux scheduler statistics](https://docs.kernel.org/scheduler/sched-stats.html)
 for per-task runtime and runnable-wait fields.
+
+## Optional hardware counters
+
+`scheduler_probe.py --hardware-counters ASSETS ARCHIVED_BUILD NEW_OUTPUT`
+adds user-space CPU cycles and retired instructions for each surviving thread
+already present at the start gate. This implementation supports Linux x86-64 and
+uses `perf_event_open` directly; it does not require the `perf` command, elevated
+privileges, or kernel-setting changes. Permission/attachment/read errors are
+retained per thread/event. New threads are not inherited. Counter attachment is
+restricted to descendants of the benchmark launched by this invocation.
+
+Events exclude kernel and hypervisor execution. Raw counts, enabled time,
+running time and estimated scaled counts are retained, exposing multiplexing.
+Independent enable/disable calls bracket the gameplay window approximately;
+these diagnostics perturb execution and are not ordinary promotion timings.
+Instruction counts can reveal changes in host executed work; cycles per
+instruction can reveal changes in execution cost. Neither alone identifies V8,
+cache behavior, CPU frequency or another specific cause. Cycles divided by the
+scheduler runtime are only a frequency proxy because their accounting windows
+and kernel inclusion differ. Do not use counters to correct wall time or drop
+samples.
