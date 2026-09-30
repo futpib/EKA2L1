@@ -1,8 +1,8 @@
-# Invariant write spans: correctness passes, timing pending
+# Invariant write spans: initial timing favorable, confirmation pending
 
 Policy 5 extends delivered policy 4 to selected stable word-store spans. The
 implementation and safety boundaries are in INVARIANT_WRITES_DESIGN.md. It is
-opt-in and has not changed the LAN build. No speedup is claimed.
+opt-in and has not changed the LAN build. The first timing batch favors the candidate; confirmation is pending.
 
 The archived candidate is based on f45aca9e0 plus its saved source.patch:
 `/home/claude/.scratch/eka-benchmark/invariant-writes-validated-candidate`.
@@ -32,3 +32,5 @@ Next: serial unsampled gameplay comparisons with policies 4/5 in one application
 binary, plus the exact served read-only archive. Every run and outlier will be
 retained. Full provenance, raw log paths and exact comparisons are in
 INVARIANT_WRITES_EVIDENCE.json. Nothing pushed or deployed.
+
+Initial serial batch (writes/reads/served/served/reads/writes): writes 13.0968/13.2155s, reads 14.2718/13.4684s, served 13.3116/13.1908s. Means 13.15615/13.87010/13.25120s: +5.43% throughput versus same-binary reads and +0.72% versus served. Both adjacent pairs favor writes, but the served difference is small. All six runs execute 3,975,618,624 instructions and 676 presentations with shared audio and the physical NVIDIA renderer. No owned heavy work overlaps warmup or measurement. Every observation retained. Reordered confirmation is running; no delivery decision yet.
