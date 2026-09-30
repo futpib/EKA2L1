@@ -135,8 +135,7 @@ namespace eka2l1::arm::aot {
         const bool eager_regions = chaining_enabled && eager && std::strcmp(eager, "1") == 0;
         auto eager_ir_policy = arm_ir_policy::configured;
         const char *ir = std::getenv("EKA2L1_AOT_IR_MODE");
-        if (ir && ir[0] >= '0' && ir[0] <= '9' && ir[1] == '\0')
-            eager_ir_policy = static_cast<arm_ir_policy>(ir[0] - '0');
+        parse_arm_ir_policy(ir, eager_ir_policy);
 #ifdef EKA2L1_WASM_DEFER_MEMORY
         const bool eager_defer = true;
 #else

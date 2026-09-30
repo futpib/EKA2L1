@@ -39,6 +39,7 @@ namespace eka2l1::arm::aot {
         std::vector<value> effects;
         std::map<std::tuple<unsigned,unsigned,value,value,std::uint64_t>, value> numbers;
         bool optimize = true;
+        unsigned flag_instructions = 0;
 
         explicit region_ir(std::uint32_t pc, bool optimize_ = true) : optimize(optimize_) {
             snapshot entry{};
@@ -102,6 +103,10 @@ namespace eka2l1::arm::aot {
                     case op_i32_shl: n = std::uint32_t(x) << (y & 31); break;
                     case op_i32_shr_u: n = std::uint32_t(x) >> (y & 31); break;
                     case op_i32_shr_s: n = std::int32_t(x) >> (y & 31); break;
+                    case op_i32_eq: n = std::uint32_t(x) == std::uint32_t(y); break;
+                    case op_i32_lt_u: n = std::uint32_t(x) < std::uint32_t(y); break;
+                    case op_i32_gt_u: n = std::uint32_t(x) > std::uint32_t(y); break;
+                    case op_i32_ge_u: n = std::uint32_t(x) >= std::uint32_t(y); break;
                     case op_i32_rotr: { auto s = y & 31; n = s ? (std::uint32_t(x) >> s) | (std::uint32_t(x) << (32 - s)) : std::uint32_t(x); break; }
                     default: folded = false;
                     }
@@ -116,7 +121,7 @@ namespace eka2l1::arm::aot {
         // rejects the entire graph before any generated guest effect.
         template <typename AccessMap>
         bool append(std::uint32_t op, std::uint32_t pc, bool last, const AccessMap &accesses,
-            bool dynamic_memory = false) {
+            bool dynamic_memory = false, bool allow_flags = false) {
             if ((op >> 28) != 14) return false;
             auto next = snapshots.back();
             auto reg = [&](unsigned r) { return r == 15 ? imm(pc + 8) : next.regs[r]; };
@@ -209,34 +214,69 @@ namespace eka2l1::arm::aot {
                 if (!memory(load, rd, 0, bytes, sign)) return false;
                 if (wb) next.regs[rn] = alu(up ? op_i32_add : op_i32_sub, base, offset);
             } else if (((op >> 26) & 3) == 0) {
-                // Exclude miscellaneous, PSR, flag-setting, register-controlled
-                // shift, exclusive and halfword encodings before broad ALU use.
+                // PSR/miscellaneous encodings have test-opcode bits without S.
+                // Register-controlled shifts remain with the original compiler.
                 const unsigned code = (op >> 21) & 15;
-                if ((op & (1u << 20)) || (code >= 6 && code <= 11)
-                    || (rd == 15 && (!last || code != 13))) return false;
-                value operand;
+                const bool set_flags = op & (1u << 20), test = code >= 8 && code <= 11;
+                if ((!allow_flags && (set_flags || (code >= 6 && code <= 11)))
+                    || (test && !set_flags)
+                    || (!test && rd == 15 && (set_flags || !last || code != 13))) return false;
+                const auto old_carry = next.flags[2];
+                value operand, shifter_carry = old_carry;
                 if (op & (1u << 25)) {
                     unsigned rot = ((op >> 8) & 15) * 2, byte = op & 255;
                     operand = imm(rot ? (byte >> rot) | (byte << (32 - rot)) : byte);
+                    if (set_flags && rot) shifter_carry = alu(op_i32_shr_u, operand, imm(31));
                 } else {
                     if (op & (1u << 4)) return false;
-                    operand = shifted(reg(rm), (op >> 5) & 3, (op >> 7) & 31);
+                    const unsigned shift = (op >> 5) & 3, amount = (op >> 7) & 31;
+                    const auto source = reg(rm);
+                    operand = shifted(source, shift, amount);
+                    if (set_flags && (shift || amount)) {
+                        const unsigned bit = shift == 0 ? 32 - amount
+                            : shift == 3 && !amount ? 0 : amount ? amount - 1 : 31;
+                        shifter_carry = alu(op_i32_and, alu(op_i32_shr_u, source, imm(bit)), imm(1));
+                    }
                 }
                 value result;
                 switch (code) {
-                case 0: result = alu(op_i32_and, reg(rn), operand); break;
-                case 1: result = alu(op_i32_xor, reg(rn), operand); break;
-                case 2: result = alu(op_i32_sub, reg(rn), operand); break;
+                case 0: case 8: result = alu(op_i32_and, reg(rn), operand); break;
+                case 1: case 9: result = alu(op_i32_xor, reg(rn), operand); break;
+                case 2: case 10: result = alu(op_i32_sub, reg(rn), operand); break;
                 case 3: result = alu(op_i32_sub, operand, reg(rn)); break;
-                case 4: result = alu(op_i32_add, reg(rn), operand); break;
+                case 4: case 11: result = alu(op_i32_add, reg(rn), operand); break;
                 case 5: result = alu(op_i32_add, alu(op_i32_add, reg(rn), operand), next.flags[2]); break;
+                case 6: result = alu(op_i32_sub, alu(op_i32_sub, reg(rn), operand), alu(op_i32_xor, old_carry, imm(1))); break;
+                case 7: result = alu(op_i32_sub, alu(op_i32_sub, operand, reg(rn)), alu(op_i32_xor, old_carry, imm(1))); break;
                 case 12: result = alu(op_i32_or, reg(rn), operand); break;
                 case 13: result = operand; break;
                 case 14: result = alu(op_i32_and, reg(rn), alu(op_i32_xor, operand, imm(0xffffffff))); break;
                 case 15: result = alu(op_i32_xor, operand, imm(0xffffffff)); break;
                 default: return false;
                 }
-                next.regs[rd] = result; writes_pc = rd == 15;
+                if (set_flags) {
+                    ++flag_instructions;
+                    next.flags[0] = alu(op_i32_shr_u, result, imm(31));
+                    next.flags[1] = alu(op_i32_eq, result, imm(0));
+                    const bool subtract = code == 2 || code == 3 || code == 6 || code == 7 || code == 10;
+                    const bool add = code == 4 || code == 5 || code == 11;
+                    if (subtract) {
+                        const bool reverse = code == 3 || code == 7;
+                        const auto a = reverse ? operand : reg(rn), b = reverse ? reg(rn) : operand;
+                        next.flags[2] = code == 6 || code == 7
+                            ? alu(op_i32_or, alu(op_i32_gt_u, a, b), alu(op_i32_and, alu(op_i32_eq, a, b), old_carry))
+                            : alu(op_i32_ge_u, a, b);
+                        next.flags[3] = alu(op_i32_shr_u,
+                            alu(op_i32_and, alu(op_i32_xor, a, b), alu(op_i32_xor, a, result)), imm(31));
+                    } else if (add) {
+                        next.flags[2] = alu(op_i32_lt_u, result, reg(rn));
+                        if (code == 5) next.flags[2] = alu(op_i32_or, next.flags[2],
+                            alu(op_i32_and, alu(op_i32_eq, result, reg(rn)), old_carry));
+                        next.flags[3] = alu(op_i32_shr_u,
+                            alu(op_i32_and, alu(op_i32_xor, reg(rn), result), alu(op_i32_xor, operand, result)), imm(31));
+                    } else next.flags[2] = shifter_carry;
+                }
+                if (!test) { next.regs[rd] = result; writes_pc = rd == 15; }
             } else return false;
             if (!writes_pc) next.regs[15] = imm(pc + 4);
             ++next.count; snapshots.push_back(next); return true;
@@ -268,7 +308,7 @@ namespace eka2l1::arm::aot {
                     break;
                 case op_i32_add: case op_i32_sub: case op_i32_mul: case op_i32_and:
                 case op_i32_or: case op_i32_xor: case op_i32_shl: case op_i32_shr_s:
-                case op_i32_shr_u: case op_i32_rotr:
+                case op_i32_shr_u: case op_i32_rotr: case op_i32_eq: case op_i32_lt_u: case op_i32_gt_u: case op_i32_ge_u:
                     if (!binary_type(type_i32, type_i32)) return false; break;
                 default: return false;
                 }

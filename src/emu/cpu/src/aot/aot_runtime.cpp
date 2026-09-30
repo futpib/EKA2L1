@@ -192,8 +192,7 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
     region_enabled = chaining_enabled && region && region[0] == '1';
     ir_policy = arm_ir_policy::configured;
     const char *ir = std::getenv("EKA2L1_AOT_IR_MODE");
-    if (ir && ir[0] >= '0' && ir[0] <= '9' && ir[1] == '\0')
-        ir_policy = static_cast<arm_ir_policy>(ir[0] - '0');
+    parse_arm_ir_policy(ir, ir_policy);
 }
 
 void invalidate_ram_code(std::uint32_t address, std::size_t size) {

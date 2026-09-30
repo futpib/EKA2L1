@@ -907,7 +907,7 @@ namespace eka2l1::arm::aot {
         std::vector<proof_group> proof_groups;
         std::vector<proof_access> proof_accesses;
         bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && ir_policy != arm_ir_policy::deferred_chunk_counts && ir_policy != arm_ir_policy::invariant_read_ir && w.region && w.defer_memory && cache_registers && !instructions.empty();
+            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && ir_policy != arm_ir_policy::deferred_chunk_counts && ir_policy != arm_ir_policy::invariant_read_ir && ir_policy != arm_ir_policy::invariant_read_flag_ir && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
         // The guarded IR is an opt-in research path. Version tracking also
         // keeps its existing compiler until separately validated.
@@ -990,7 +990,7 @@ namespace eka2l1::arm::aot {
         // this region before a later instruction can use a pointer invalidated by a callback.
         const bool include_writes = ir_policy == arm_ir_policy::invariant_writes
             || ir_policy == arm_ir_policy::write_budget_chunks || ir_policy == arm_ir_policy::deferred_chunk_counts;
-        bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || ir_policy == arm_ir_policy::invariant_read_ir || include_writes || ir_policy == arm_ir_policy::budget_chunks)
+        bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || include_writes || ir_policy == arm_ir_policy::budget_chunks)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #ifdef EKA2L1_WASM_CODE_VERSIONS
         invariant_reads = false;
@@ -1245,7 +1245,7 @@ namespace eka2l1::arm::aot {
             const bool dynamic_memory = false;
 #endif
             const std::map<std::uint32_t, arm_emit::proved_access> no_memory;
-            const auto &segment_memory = ir_policy == arm_ir_policy::invariant_read_ir ? w.proved_accesses : no_memory;
+            const auto &segment_memory = (ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir) ? w.proved_accesses : no_memory;
             for (std::size_t first = 0; first < instructions.size();) {
                 region_ir graph(instructions[first].address);
                 std::size_t end = first;
@@ -1261,12 +1261,12 @@ namespace eka2l1::arm::aot {
                     if (!dynamic_memory && (((op >> 26) & 3) != 0
                         || (op & 0x0f8000f0u) == 0x00800090u)) break;
                     auto trial = graph;
-                    if (!trial.append(op, ins.address, false, segment_memory, dynamic_memory)) break;
+                    if (!trial.append(op, ins.address, false, segment_memory, dynamic_memory, ir_policy == arm_ir_policy::invariant_read_flag_ir)) break;
                     graph = std::move(trial);
                 }
                 if (end - first < 3 || !graph.valid()) { ++first; continue; }
                 integer_segment segment{std::move(graph), {}, {}, {}, static_cast<unsigned>(end - first)};
-                segment.memoize_cold = ir_policy == arm_ir_policy::outlined_recipes || ir_policy == arm_ir_policy::invariant_read_ir;
+                segment.memoize_cold = ir_policy == arm_ir_policy::outlined_recipes || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir;
                 std::vector<unsigned> exits{segment.length};
                 for (const auto &node : segment.graph.nodes)
                     if (node.op == region_ir::guarded_host) exits.push_back(static_cast<unsigned>(node.immediate / 2));
@@ -1542,6 +1542,7 @@ namespace eka2l1::arm::aot {
                 w.get_local(arm_emit::COUNT); w.i32_const(part.length - 1);
                 w.op(op_i32_add); w.set_local(arm_emit::COUNT);
                 ++tr.ir_segments;
+                tr.ir_flag_instructions += part.graph.flag_instructions;
                 for (unsigned v = 1; v < part.graph.nodes.size(); ++v) {
                     if (part.graph.nodes[v].op == region_ir::guarded_host) ++tr.ir_memory_guards;
                     if (part.graph.nodes[v].op == region_ir::read32

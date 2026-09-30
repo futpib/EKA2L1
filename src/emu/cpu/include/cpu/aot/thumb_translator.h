@@ -77,7 +77,7 @@ namespace eka2l1::arm::aot {
         // Research coverage metadata; never used to select guest addresses.
         unsigned ir_segments = 0;
         unsigned ir_memory_guards = 0;
-        unsigned ir_proved_reads = 0;
+        unsigned ir_proved_reads = 0, ir_flag_instructions = 0;
         unsigned ir_wide_products = 0, ir_cold_halves = 0, ir_cold_values = 0, proved_reads = 0, proved_writes = 0, budget_chunks = 0, deferred_count_updates = 0;
         unsigned ir_outlined_segments = 0;
         bool complete;  // true if entire block was translated without bailing

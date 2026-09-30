@@ -3152,6 +3152,71 @@ static bool test_region_ir() {
     return true;
 }
 
+static bool test_ir_flags() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    const unsigned operands[] = {0x02000000u,0x020000ffu,0x02000102u,0x020004ffu,
+        1u,0x81u,0xf81u,0x21u,0xa1u,0xfa1u,0x41u,0xc1u,0xfc1u,0x61u,0xe1u,0xfe1u};
+    const unsigned inputs[][2] = {{0,0},{0xffffffffu,0},{0xffffffffu,1},{0x80000000u,0x80000000u},
+        {0x7fffffffu,1},{0,0xffffffffu},{0x80000000u,1},{0x7fffffffu,0xffffffffu},
+        {1,2},{2,1},{0x12345678u,0x87654321u},{0xffff0000u,0x0000ffffu}};
+    unsigned comparisons = 0;
+    for (unsigned opcode = 0; opcode < 16; ++opcode) for (unsigned operand : operands) {
+        const unsigned destination = (opcode >= 8 && opcode <= 11) || (opcode & 1) ? 0 : 2;
+        const unsigned operation = 0xe0100000u | (destination << 12) | (opcode << 21) | operand;
+        // The first S operation feeds ADC/RSC, and is overwritten by MOVS
+        // before exit. A failed intervening load must recover its earlier flags.
+        const unsigned code[] = {operation,0xe2a03000u | (destination << 16),0xe2e34000u,0xe59a5000u,
+            0xe1b06063u,0xe2a67000u,0xe58b7000u,0xe12fff1eu};
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code);
+        auto tr = translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,
+            nullptr,true,arm_ir_policy::invariant_read_flag_ir);
+        if (!tr.complete || !tr.ir_segments || tr.ir_flag_instructions != 2) {
+            printf("  FAIL IR flags selection %08x flags=%u\n",operation,tr.ir_flag_instructions);return false;
+        }
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (const auto &input : inputs) for (unsigned flags : {0u,1u,2u,15u})
+        for (unsigned budget = 0; budget <= 8; ++budget) for (bool mapped : {false,true}) {
+            test_mem actual; actual.write_code(0x1000,{bytes,bytes+sizeof(code)});
+            actual.write32(0x8000,0xfedcba98u); actual.write32(0x9000,0xfedcba98u);
+            test_mem reference_memory = actual; r12l1::exclusive_monitor monitor(1); auto reference = make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12); tlb.add(0x8000,actual.data.data()+0x8000,3);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned r = 0; r < 16; ++r) {
+                const unsigned value = r == 0 ? input[0] : r == 1 ? input[1] : r == 15 ? 0x1000u
+                    : r == 14 ? 0x2000u : r == 10 ? (mapped ? 0x8000u : 0x9000u) : r == 11 ? 0x8080u : 0x12340000u+r;
+                state[r]=value; reference->set_reg(r,value);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(code);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            if(count!=int(std::min(budget,mapped?8u:3u)) || g_memory_helper_calls) {
+                printf("  FAIL IR flags count %08x budget=%u mapped=%u count=%d\n",operation,budget,mapped,count);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r)) {
+                printf("  FAIL IR flags %08x input=%08x/%08x flags=%u budget=%u mapped=%u R%u actual=%08x expected=%08x\n",
+                    operation,input[0],input[1],flags,budget,mapped,r,state[r],reference->get_reg(r));return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1)) {
+                printf("  FAIL IR flags %08x input=%08x/%08x flags=%u budget=%u mapped=%u flag=%u actual=%u cpsr=%08x\n",
+                    operation,input[0],input[1],flags,budget,mapped,f,state[region_ir::flag_offsets[f]/4],reference->get_cpsr());return false;
+            }
+            if(actual.data!=reference_memory.data){printf("  FAIL IR flags memory\n");return false;}
+            ++comparisons;
+        }
+    }
+    printf("  PASS ir_flags (%u exact flags/state/memory/budget comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
 static bool test_ir_segments() {
 #if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_SEGMENTS)
     struct program { std::vector<std::uint32_t> body; unsigned extra = 0; };
@@ -4705,6 +4770,7 @@ int main(int argc, char **argv) {
     if (test_invariant_writes(arm_ir_policy::deferred_chunk_counts)) passed++; else failed++;
     if (test_invariant_writes(arm_ir_policy::write_budget_chunks)) passed++; else failed++;
     if (test_region_ir()) passed++; else failed++;
+    if (test_ir_flags()) passed++; else failed++;
     if (test_ir_segments()) passed++; else failed++;
     if (test_ir_memory_exits()) passed++; else failed++;
     if (test_ir_exit_recipes()) passed++; else failed++;
