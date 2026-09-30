@@ -182,11 +182,12 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
-            if((ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts) && invariant_write_remap && n==0 && translated.proved_writes!=3) {std::cerr<<"Write remap proof was not selected\n";return 4;}
-            if(((ir_policy==aot::arm_ir_policy::invariant_read_ir || ir_policy==aot::arm_ir_policy::invariant_read_flag_ir || ir_policy==aot::arm_ir_policy::inline_call_ir) || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts) && ((!invariant_write_remap && invariant_remap) || (region_spans && !region_block_spans)) && n==0 && !translated.proved_reads) {
+            if((ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::invariant_write_ir || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts) && invariant_write_remap && n==0 && translated.proved_writes!=3) {std::cerr<<"Write remap proof was not selected\n";return 4;}
+            if(ir_policy==aot::arm_ir_policy::invariant_write_ir && invariant_write_remap && n==0 && translated.ir_proved_writes!=3) {std::cerr<<"IR write remap proof was not used\n";return 4;}
+            if(((ir_policy==aot::arm_ir_policy::invariant_read_ir || ir_policy==aot::arm_ir_policy::invariant_read_flag_ir || (ir_policy==aot::arm_ir_policy::inline_call_ir || ir_policy==aot::arm_ir_policy::invariant_write_ir)) || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::invariant_write_ir || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts) && ((!invariant_write_remap && invariant_remap) || (region_spans && !region_block_spans)) && n==0 && !translated.proved_reads) {
                 std::cerr << "Invariant read fault fixture did not select entry proof\n"; return 4;
             }
-            if((ir_policy==aot::arm_ir_policy::invariant_read_ir || ir_policy==aot::arm_ir_policy::invariant_read_flag_ir || ir_policy==aot::arm_ir_policy::inline_call_ir) && invariant_remap && !invariant_write_remap && n==0 && !translated.ir_proved_reads) {std::cerr<<"IR read remap proof was not used\n";return 4;}
+            if((ir_policy==aot::arm_ir_policy::invariant_read_ir || ir_policy==aot::arm_ir_policy::invariant_read_flag_ir || (ir_policy==aot::arm_ir_policy::inline_call_ir || ir_policy==aot::arm_ir_policy::invariant_write_ir)) && invariant_remap && !invariant_write_remap && n==0 && !translated.ir_proved_reads) {std::cerr<<"IR read remap proof was not used\n";return 4;}
             if(!ir_disabled && !ir_flags && !ir_calls && ir_segments && n==0 && !translated.ir_segments) {
                 std::cerr << "Integer-segment fault fixture did not select the IR\n"; return 4;
             }
@@ -207,11 +208,11 @@ int main(int argc, char **argv){
                 || (ir_policy==aot::arm_ir_policy::inline_segments && translated.ir_outlined_segments)) {
                 std::cerr<<"IR mode selection was ignored\n";return 4;
             }
-            if(ir_flags && ir_policy==aot::arm_ir_policy::invariant_read_flag_ir && n==0
+            if(ir_flags && (ir_policy==aot::arm_ir_policy::invariant_read_flag_ir || ir_policy==aot::arm_ir_policy::inline_call_ir || ir_policy==aot::arm_ir_policy::invariant_write_ir) && n==0
                 && (translated.ir_flag_instructions!=4 || !translated.ir_memory_guards)) {
                 std::cerr<<"Flag IR fault snapshot was not selected\n";return 4;
             }
-            if(ir_calls && ir_policy==aot::arm_ir_policy::inline_call_ir && n==0
+            if(ir_calls && (ir_policy==aot::arm_ir_policy::inline_call_ir || ir_policy==aot::arm_ir_policy::invariant_write_ir) && n==0
                 && (translated.ir_inline_transfers!=2 || !translated.ir_memory_guards)) {
                 std::cerr<<"Inline-call fault snapshot was not selected\n";return 4;
             }
