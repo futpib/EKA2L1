@@ -30,3 +30,22 @@ Raw logs, archive hashes and exact comparisons are in CODE_QUAD_EVIDENCE.json.
 The archive is /home/claude/.scratch/eka-benchmark/code-quad-candidate. No performance
 result or deployment is established yet. Next: original/grouped modes in the same
 binary, plus the exact served folded-TLB archive, in serial gameplay batches.
+
+## Gameplay measurements
+
+All runs execute serially, including warmup, in fresh browsers. Original and
+grouped scanners share one application binary; served is the exact live archive.
+Each run covers the same 18 guest seconds for its scene, without profiling
+counters. Each batch runs its listed order followed by its reverse. All samples
+and slow outliers are retained. Requested scanner, TLB and compiler modes, guest
+instruction totals and presentations are checked.
+
+| Scene / batch | Original seconds | Grouped seconds | Served seconds | Gain vs original | Gain vs served |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| long-a | 12.43825 | 12.13650 | 12.25640 | +2.49% | +0.99% |
+
+Batch A order: original, grouped, served, served, grouped, original.
+Batch B order: grouped, served, original, original, served, grouped.
+
+No promotion or deployment is implied by this timing record. See the raw rows
+for individual samples and the acceptance section for correctness scope.
