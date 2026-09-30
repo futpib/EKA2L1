@@ -1,4 +1,5 @@
 #include <cpu/aot/code_cache.h>
+#include <cpu/aot/exit_census.h>
 #ifdef __wasm_simd128__
 #include <wasm_simd128.h>
 #endif
@@ -12,6 +13,7 @@ namespace eka2l1::arm::aot {
         current_.erase(k);
         recent_[recent_index(k)] = nullptr;
         ++invalidations;
+        if(exit_census::counting())++exit_census::invalidations["exact_bytes"];
     }
 
     validated_code_cache::block *validated_code_cache::find_original(std::uint32_t pc_mode, core &cpu) {
@@ -34,6 +36,7 @@ namespace eka2l1::arm::aot {
             current_.erase(k);
             recent = nullptr;
             ++invalidations;
+            if(exit_census::counting())++exit_census::invalidations["exact_bytes"];
             return nullptr;
         }
         core::code_mapping view;

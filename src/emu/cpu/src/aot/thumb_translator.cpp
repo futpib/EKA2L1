@@ -19,6 +19,7 @@
 
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/state_locals.h>
+#include <cpu/aot/exit_census.h>
 
 #include <cstring>
 #include <map>
@@ -163,13 +164,32 @@ namespace eka2l1::arm::aot {
             cache.barrier_at(b.size(), true);
         }
 
-        void ret() { cache.barrier_at(b.size()); op(op_return); }
+        std::uint32_t census_pc=0,census_opcode=0;
+        void census_store(std::uint32_t *where,std::uint32_t value) {
+            if(!exit_census::enabled)return;
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(where)));
+            i32_const(value);op(op_i32_store);leb(b,2);leb(b,0);
+        }
+        void census_effect(unsigned flag) {
+            if(!exit_census::enabled)return;
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&exit_census::effects)));
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&exit_census::effects)));
+            op(op_i32_load);leb(b,2);leb(b,0);i32_const(flag);op(op_i32_or);
+            op(op_i32_store);leb(b,2);leb(b,0);
+        }
+        void census_exit(unsigned reason) {
+            census_store(&exit_census::last_reason,reason);
+            census_store(&exit_census::last_pc,census_pc);
+            census_store(&exit_census::last_opcode,census_opcode);
+        }
+        void ret(unsigned why=exit_census::control) {
+            census_exit(why); cache.barrier_at(b.size()); op(op_return); }
 
         // Bail: set PC, return instruction count (normal control flow exit)
-        void bail(std::uint32_t pc, std::uint32_t instr_count) {
+        void bail(std::uint32_t pc, std::uint32_t instr_count, unsigned why=exit_census::control) {
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
             i32_const(static_cast<std::int32_t>(instr_count));
-            ret();
+            ret(why);
             bail_count++;
         }
 
@@ -187,7 +207,7 @@ namespace eka2l1::arm::aot {
         void bail_unsupported(std::uint32_t pc, std::uint32_t instr_count) {
             unsupported = true;
             if (!instr_count) entry_supported = false;
-            bail(pc, instr_count);
+            bail(pc, instr_count, exit_census::unsupported);
         }
     };
 
@@ -708,6 +728,7 @@ namespace eka2l1::arm::aot {
             }
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
+            w.census_pc=insn_addr|1;w.census_opcode=insn;
 
             // Close any forward-target blocks whose end is at this address.
             // Emitting `end` here means: the instruction we're about to emit
@@ -724,7 +745,7 @@ namespace eka2l1::arm::aot {
                 w.i32_const(insn_idx);
                 w.op(op_i32_le_u);
                 w.op(op_if); w.op(type_void);
-                w.bail(insn_addr, insn_idx);
+                w.bail(insn_addr, insn_idx, exit_census::guard);
                 w.op(op_end);
                 // High-register PC operands require pipeline/control-flow semantics.
                 // Keep these rare forms in the interpreter until implemented fully.
@@ -4154,7 +4175,7 @@ namespace eka2l1::arm::aot {
         w.op(op_end); // end block
 
         // Return total instruction count
-        if (bounded) w.bail(start_address + decoded_end_offset, insn_idx);
+        if (bounded) w.bail(start_address + decoded_end_offset, insn_idx, decoded_end_offset>=code_size?exit_census::source_end:exit_census::emission_end);
         else { w.i32_const(num_insns); w.ret(); }
 
         w.cache.finish(result);

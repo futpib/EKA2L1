@@ -20,6 +20,7 @@
 #include <common/code_tracking.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/state_locals.h>
+#include <cpu/aot/exit_census.h>
 #include <cpu/aot/region_ir.h>
 #include <cpu/12l1r/tlb.h>
 
@@ -167,7 +168,7 @@ namespace eka2l1::arm::aot {
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
             if (region) {
-                store_i32_const(S::AOT_EXIT, 1);
+                store_i32_const(S::AOT_EXIT, 1); census_effect(1);
                 i32_const(-1); set_local(READ_PAGE);
                 i32_const(-1); set_local(WRITE_PAGE);
             }
@@ -224,7 +225,7 @@ namespace eka2l1::arm::aot {
             get_local(HOST); op(op_i32_eqz); op(op_if); op(type_void);
             if (defer_memory && restartable_access) {
                 get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT);
-                bail(current_pc, 0);
+                bail(current_pc, 0, exit_census::memory);
             } else {
                 state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
                 slow_call(func_idx);
@@ -247,7 +248,7 @@ namespace eka2l1::arm::aot {
                 get_local(HOST); load_i32(S::AOT_CODE_END); op(op_i32_lt_u);
                 get_local(HOST); i32_const(size); op(op_i32_add); load_i32(S::AOT_CODE_BEGIN); op(op_i32_gt_u);
                 op(op_i32_and); op(op_if); op(type_void);
-                store_i32_const(S::AOT_EXIT,1); op(op_end);
+                store_i32_const(S::AOT_EXIT,1); census_effect(2); op(op_end);
             }
             op(op_end); // result block
         }
@@ -326,7 +327,26 @@ namespace eka2l1::arm::aot {
             op(op_end);
 #endif
         }
-        void ret() {
+        std::uint32_t census_pc=0,census_opcode=0;
+        void census_store(std::uint32_t *where,std::uint32_t value) {
+            if(!exit_census::enabled)return;
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(where)));
+            i32_const(value);op(op_i32_store);leb(b,2);leb(b,0);
+        }
+        void census_effect(unsigned flag) {
+            if(!exit_census::enabled)return;
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&exit_census::effects)));
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&exit_census::effects)));
+            op(op_i32_load);leb(b,2);leb(b,0);i32_const(flag);op(op_i32_or);
+            op(op_i32_store);leb(b,2);leb(b,0);
+        }
+        void census_exit(unsigned reason) {
+            census_store(&exit_census::last_reason,reason);
+            census_store(&exit_census::last_pc,census_pc);
+            census_store(&exit_census::last_opcode,census_opcode);
+        }
+        void ret(unsigned why=exit_census::control) {
+            census_exit(why);
             // Emitting an exit snapshot must not forget the representation on
             // the other path of the guard being emitted.
             materialize_wide();
@@ -336,10 +356,10 @@ namespace eka2l1::arm::aot {
             else { cache.barrier_at(b.size()); op(op_return); }
         }
 
-        void bail(std::uint32_t pc, std::uint32_t instr_count) {
+        void bail(std::uint32_t pc, std::uint32_t instr_count, unsigned why=exit_census::control) {
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
             if (region) count_value(); else i32_const(static_cast<std::int32_t>(instr_count));
-            ret();
+            ret(why);
             bail_count++;
         }
 
@@ -353,7 +373,7 @@ namespace eka2l1::arm::aot {
             if (region) { get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT); }
             unsupported = true;
             if (!instr_count) entry_supported = false;
-            bail(pc, instr_count);
+            bail(pc, instr_count, exit_census::unsupported);
         }
     };
 
@@ -732,8 +752,10 @@ namespace eka2l1::arm::aot {
 
     // Only short straight-line leaves with an unchanged LR can be inlined.
     // Memory instructions retain the normal region guards and helper exits.
-    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address) {
+    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure) {
+        failure="callee_unsupported";
         auto bytes = resolve(address);
+        if(bytes.empty()) {failure="callee_unmapped_or_other_space";return {};}
         for (std::size_t n = 0; n < 64 && n + 4 <= bytes.size(); n += 4) {
             std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
             if (op == 0xe12fff1e) { bytes.resize(n + 4); return bytes; }
@@ -752,6 +774,7 @@ namespace eka2l1::arm::aot {
                 }
             }
         }
+        failure=bytes.size()>=64?"leaf_instruction_limit":"callee_mapping_extent";
         return {};
     }
 
@@ -788,13 +811,17 @@ namespace eka2l1::arm::aot {
                         if (bounded && cond >= 0xE) {
                             if (cond == 14 && leaves && inlined.size() < 8) {
                                 const auto address = start_address + static_cast<std::uint32_t>(target_off);
-                                auto bytes = resolve_leaf(*leaves, address);
+                                const char *failure=nullptr;
+                                auto bytes = resolve_leaf(*leaves, address, failure);
+                                exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:"call_inlined");
                                 if (!bytes.empty()) {
                                     inlined.emplace(i, code_dependency{address, std::move(bytes)});
                                     i += 4;
                                     continue;
                                 }
                             }
+                            if(cond==14 && leaves && inlined.size()>=8)
+                                exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,"inline_site_limit");
                             break;
                         }
                         // Conditional BL can fall through when its condition fails.
@@ -1471,6 +1498,7 @@ namespace eka2l1::arm::aot {
             if (bounded && !region && stop_after_store && w.memory_write) break;
             const auto inst = instruction.opcode;
             const auto insn_addr = instruction.address;
+            w.census_pc=insn_addr;w.census_opcode=inst;
 
             const unsigned wide_hi = (inst >> 16) & 15, wide_lo = (inst >> 12) & 15;
             const bool lazy_multiply = region && cache_registers && !instruction.leaf
@@ -1542,7 +1570,7 @@ namespace eka2l1::arm::aot {
                 }
                 if (check_budget || (region && check_exit)) {
                     w.op(op_if); w.op(type_void);
-                    w.bail(insn_addr, insn_idx);
+                    w.bail(insn_addr, insn_idx, exit_census::guard);
                     w.op(op_end);
                 }
                 if (region) {
@@ -1748,7 +1776,7 @@ namespace eka2l1::arm::aot {
                         w.load_i32(S::NIRQ); w.op(op_i32_eqz);
                         w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
                         w.op(op_i32_and);
-                        w.op(op_if); w.op(type_void); w.bail(target,insn_idx+1); w.op(op_end);
+                        w.op(op_if); w.op(type_void); w.bail(target,insn_idx+1,exit_census::interrupt); w.op(op_end);
                     }
                     // Backward branch within block: br to loop
                     std::uint32_t loop_depth = direct_loop ? w.scope_depth - direct_loop_depth
@@ -1909,7 +1937,7 @@ namespace eka2l1::arm::aot {
                         w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
                         w.get_local(arm_emit::HOST); w.i32_const(count * 4); w.op(op_i32_add);
                         w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and);
-                        w.op(op_if); w.op(type_void); w.store_i32_const(S::AOT_EXIT,1); w.op(op_end);
+                        w.op(op_if); w.op(type_void); w.store_i32_const(S::AOT_EXIT,1); w.census_effect(2); w.op(op_end);
                     }
                     if (!proved_span) w.op(op_else);
                     // Code generation visits both arms; a fast LDM PC store
@@ -1922,7 +1950,7 @@ namespace eka2l1::arm::aot {
                         // Whole-span validation precedes every transfer. Restart
                         // only here, never after a partially completed LDM/STM.
                         w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT);
-                        w.bail(insn_addr, insn_idx);
+                        w.bail(insn_addr, insn_idx, exit_census::memory);
                     }
                 }
                 int off = 0;
@@ -2211,7 +2239,7 @@ namespace eka2l1::arm::aot {
                         w.i32_const(0); w.op(op_i32_ne);
                         w.get_local(TMP1); w.i32_const(16); w.op(op_i32_ne);
                         w.op(op_i32_and); w.op(op_i32_or);
-                        w.op(op_if); w.op(type_void); if (region) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); } w.bail(insn_addr,insn_idx); w.op(op_end);
+                        w.op(op_if); w.op(type_void); if (region) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); } w.bail(insn_addr,insn_idx,exit_census::status); w.op(op_end);
                         w.load_reg(inst & 15); w.set_local(TMP1);
                         for (auto flag : {std::pair<unsigned,unsigned>{S::NFLAG,31},
                                 {S::ZFLAG,30},{S::CFLAG,29},{S::VFLAG,28}}) {
@@ -2704,7 +2732,7 @@ namespace eka2l1::arm::aot {
         w.op(op_end); // end block
 
         // Return total instruction count
-        if (bounded) w.bail(start_address + decoded_end_offset, insn_idx);
+        if (bounded) w.bail(start_address + decoded_end_offset, insn_idx, decoded_end_offset>=code_size?exit_census::source_end:exit_census::emission_end);
         else { w.i32_const(num_insns); w.ret(); }
 
         if (prove_memory) {

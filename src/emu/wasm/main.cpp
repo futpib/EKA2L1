@@ -22,6 +22,7 @@
 #include <cpu/12l1r/tlb.h>
 #include <common/performance.h>
 #include <common/guest_profile.h>
+#include <cpu/aot/exit_census.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
 #include <drivers/audio/deterministic.h>
 #include <drivers/audio/clocked.h>
@@ -342,6 +343,13 @@ int eka2l1_route_step_to(int stop_us) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_exit_census_configure(int enabled) {
+    if(g_state || (enabled!=0 && enabled!=1))return -1;
+    arm::aot::exit_census::enabled=enabled;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_guest_profile_configure(int stride) {
     if (g_state || stride < 0) return -1;
     common::guest_profile::enabled = stride != 0;
@@ -355,6 +363,7 @@ const char *eka2l1_guest_profile_report() {
     static std::string result;
     if (common::performance::phase.load() != 3) return "{}";
     result = common::guest_profile::state.report(dyncom_instruction_name);
+    if(arm::aot::exit_census::enabled){result.pop_back();result+=",\"boundaries\":"+arm::aot::exit_census::report()+"}";}
     return result.c_str();
 }
 

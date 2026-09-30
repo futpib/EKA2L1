@@ -20,6 +20,7 @@
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/code_cache.h>
+#include <cpu/aot/exit_census.h>
 #include <common/performance.h>
 #include <common/guest_profile.h>
 #include <cpu/dyncom/armstate.h>
@@ -257,7 +258,13 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         cpu->aot_tlb = Verify && validating ? 0 : tlb_address;
         cpu->aot_exit = 0;
         const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
+        if constexpr(Profile) if(exit_census::enabled) {
+            exit_census::last_reason=0;exit_census::effects=0;
+            exit_census::last_pc=0;exit_census::last_opcode=0;
+        }
         const auto count = function(cpu);
+        if constexpr(Profile) exit_census::record(entry_pc,cpu->Reg[15]|cpu->TFlag,
+            cpu->parent()->code_address_space,count,cpu->aot_budget,cpu->aot_exit);
         if (Profile && common::guest_profile::enabled && common::performance::counting()) {
             auto &profile = common::guest_profile::state;
             ++profile.block_lengths[count];
@@ -281,6 +288,12 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         // This stays inside the compiled runner. Every RAM successor is validated;
         // no stale function pointer is linked across a mapping/code change.
         function = lookup_compiled_impl<Profile>(cpu);
+    }
+    if constexpr(Profile) if(exit_census::counting()) {
+        const char *why = !cpu->NumInstrsToExecute ? "stop" : result.instructions==budget ? "budget"
+            : (!cpu->NirqSig && !(cpu->Cpsr&0x80)) ? "interrupt"
+            : !function ? "successor_unavailable" : result.blocks==512 ? "region_cap" : "zero_progress";
+        ++exit_census::runners[why];
     }
     return result;
 }
@@ -345,6 +358,11 @@ void observe_hot_pc(ARMul_State *cpu) {
         // Only emitted instructions depend on these bytes. The rest of the
         // translation window is unused after a store/terminator; validating it
         // on millions of short-block entries needlessly scans unrelated code.
+        if(exit_census::enabled) {
+            ++exit_census::compilation["accepted_regions"];
+            exit_census::compile_site(key,static_cast<unsigned>(size),tr.end_address-pc>=size?"source_window_filled":"source_window_not_filled");
+            exit_census::compile_site(key,static_cast<unsigned>(tr.dependencies.size()),"inline_dependencies");
+        }
         const auto consumed = std::clamp(std::size_t(tr.end_address - pc),
             std::size_t(cpu->TFlag ? 2 : 4), size);
         auto &entry = ram_cache.insert(key, view, consumed);

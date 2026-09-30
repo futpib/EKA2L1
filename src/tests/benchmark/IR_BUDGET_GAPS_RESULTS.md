@@ -16,3 +16,19 @@ source patch, source base, binary hashes and archived tests. Adversarial tests
 include chunks before and after IR, taken/untaken forward joins, short budgets,
 permissions, endian modes, aliases, and memory faults. All artifacts and failures
 will be retained. No performance measurement has been started.
+
+## Preserved correctness result
+
+The archived policy-13 and policy-16 probes pass 27,712 exact native fault
+comparisons, including explicit policy markers. Both checked 1,600-image
+replays match merged native state/images/audio (4,656,051 stereo PCM frames),
+and the candidate longer-route replay matches all 360 images and audio.
+
+The initial compiler suite finished 163 pass / 1 fail: the added gap fixture
+incorrectly assumed LDM/STM would not enter IR. Its coverage assertion rejected
+the test. Replacing that fixture with conditional memory forces actual chunks
+on both sides of IR and passes 7,680 adversarial comparisons. The complete
+subsequent suite with exit instrumentation passes all 165 tests. The failed
+log and final evidence are preserved in REGION_EXIT_CENSUS_EVIDENCE.json.
+No IR timing or deployment was performed; the user-requested boundary work
+remains the priority.

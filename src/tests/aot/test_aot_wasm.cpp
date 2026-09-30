@@ -19,6 +19,7 @@
 #include <cpu/12l1r/tlb.h>
 #include <cpu/dyncom/armstate.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/exit_census.h>
 #include <cpu/aot/region_ir.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/thumb_translator.h>
@@ -2852,9 +2853,9 @@ static bool test_budget_chunks(arm_ir_policy policy = arm_ir_policy::budget_chun
             long_program.push_back(op);
     programs.push_back(long_program);
     if (policy == arm_ir_policy::budget_gaps_ir) {
-        // Three arithmetic instructions form IR; block transfers stay in the
+        // Three arithmetic instructions form IR; conditional memory stays in the
         // original emitter and form a budget chunk on either side of that IR.
-        const std::vector<std::uint32_t> gap{0xe8910001u,0xe8810004u,0xe8910008u,0xe8810010u};
+        const std::vector<std::uint32_t> gap{0x05910000u,0x05812004u,0x05913008u,0x0581400cu};
         const std::vector<std::uint32_t> arithmetic{0xe2800001u,0xe2922001u,0x00233004u};
         std::vector<std::uint32_t> mixed=gap;
         mixed.insert(mixed.end(),arithmetic.begin(),arithmetic.end());
@@ -4565,7 +4566,46 @@ static bool test_folded_tlb_guards() {
     printf("  PASS folded TLB scalar/block/entry guards and exact budgets\n");return true;
 }
 
+static bool test_exit_census() {
+#ifdef __EMSCRIPTEN__
+    const bool old=exit_census::enabled;exit_census::enabled=true;
+    struct fixture {std::uint32_t op;unsigned budget,count;const char *reason;bool thumb=false;};
+    for(const auto &f:std::vector<fixture>{{0xe2800001,8,1,"source_window_end"},
+        {0xe2800001,0,0,"budget"},{0xef000000,8,0,"unsupported"},
+        {0xe5910000,8,0,"memory_guard"},{0xeb000001,8,1,"call"},
+        {0xe12fff1e,8,1,"return_bx_lr"},{0xeafffffe,8,1,"interrupt"},
+        {0xe5810000,8,1,"code_write_guard"},{0xe4910004,8,1,"helper_exit"},
+        {0x2001,8,1,"source_window_end",true},{0x2001,0,0,"budget",true},
+        {0xdf00,8,0,"unsupported",true},{0x4770,8,1,"return_bx_lr",true}}) {
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(&f.op);
+        const auto tr=f.thumb?translate_thumb_block(bytes,2,0x1000,nullptr,nullptr,true,false,true)
+            :translate_arm_block(bytes,4,0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem memory;memory.write32(0x1000,f.op);memory.write32(0x8000,123);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x1000,memory.data.data()+0x1000,3);
+        alignas(8) std::uint32_t state[256]{};state[0]=0xe2800002;state[1]=f.op==0xe5810000?0x1000:0x8000;
+        state[14]=0x2000;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;
+        state[state_offsets::TFLAG/4]=f.thumb;state[state_offsets::NIRQ/4]=f.op==0xeafffffe?0:1;
+        state[state_offsets::AOT_BUDGET/4]=f.budget;state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
+        state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+4;
+        exit_census::last_reason=0;exit_census::effects=0;g_test_mem=&memory;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+        const auto actual=exit_census::classify(f.thumb,count,f.budget,state[state_offsets::AOT_EXIT/4]);
+        if(count!=int(f.count)||std::string(actual)!=f.reason||exit_census::last_pc!=(0x1000u|unsigned(f.thumb))||exit_census::last_opcode!=f.op) {
+            printf(" FAIL exit census op=%x count=%d/%u reason=%s/%s site=%x opcode=%x\n",f.op,count,f.count,actual,f.reason,exit_census::last_pc,exit_census::last_opcode);
+            exit_census::enabled=old;return false;
+        }
+    }
+    exit_census::enabled=old;printf(" PASS exit census actual ARM/Thumb exit labels, budgets, helpers and code aliases\n");
+#endif
+    return true;
+}
+
 int main(int argc, char **argv) {
+    if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
+    if(argc==2 && std::string(argv[1])=="--exit-census") {exit_census::enabled=true;argc=1;}
     if(argc==2 && std::string(argv[1])=="--write-protection-only") return test_code_write_protection()?0:1;
     if(argc==2 && std::string(argv[1])=="--lookup-only") return test_outlined_code_lookup()?0:1;
     if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
@@ -5197,6 +5237,7 @@ int main(int argc, char **argv) {
     if (test_invariant_reads()) passed++; else failed++;
     if (test_invariant_reads(arm_ir_policy::invariant_read_ir)) passed++; else failed++;
     if (test_invariant_writes()) passed++; else failed++;
+    if (test_exit_census()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;

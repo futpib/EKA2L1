@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cpu/aot/aot_registry.h>
+#include <cpu/aot/exit_census.h>
 #include <common/code_tracking.h>
 #include <common/performance.h>
 #include <cpu/arm_interface.h>
@@ -81,8 +82,10 @@ namespace eka2l1::arm::aot {
             // A recent hit only skips the container search. Resolve the mapping
             // at the caller and check backing, extent and exact bytes after
             // mapping changes, including address-space reuse.
-            if (!dependencies_mapped || !view.bytes || view.bytes != entry->backing || view.size < entry->code.size()
-                || !bytes_match(*entry, true)) {
+            const bool mapping_invalid = !dependencies_mapped || !view.bytes
+                || view.bytes != entry->backing || view.size < entry->code.size();
+            if (mapping_invalid || !bytes_match(*entry, true)) {
+                if(exit_census::counting())++exit_census::invalidations[mapping_invalid?"mapping_or_extent":"exact_bytes"];
                 entry->live = false;
                 current_.erase(k);
                 recent = nullptr;
