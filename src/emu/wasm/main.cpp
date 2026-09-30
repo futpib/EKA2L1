@@ -255,7 +255,7 @@ int eka2l1_code_lookup_configure(int mode) {
 // Exact byte-scanner research control, frozen before guest execution.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_code_compare_configure(int mode) {
-    if (g_state || mode < 0 || mode > 3) return -1;
+    if (g_state || mode < 0 || mode > 4) return -1;
     eka2l1::arm::aot::code_compare_mode = static_cast<unsigned>(mode);
     return 0;
 }

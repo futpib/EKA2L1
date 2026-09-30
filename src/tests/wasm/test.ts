@@ -161,7 +161,7 @@ async function runTests(): Promise<void> {
     console.log("TEST exact scanner: pre-init policy validation...");
     await page.evaluate(() => {
       const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[n]);
-      if(configure(-1)!==-1 || configure(4)!==-1 || configure(3)!==0 || configure(2)!==0 || configure(1)!==0 || configure(0)!==0)
+      if(configure(-1)!==-1 || configure(5)!==-1 || configure(4)!==0 || configure(3)!==0 || configure(2)!==0 || configure(1)!==0 || configure(0)!==0)
         throw Error('Exact comparison policy validation failed');
     });
     console.log("  PASS");

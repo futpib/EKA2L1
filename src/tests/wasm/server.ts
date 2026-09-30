@@ -83,7 +83,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
     policy.tlbHash = Number(tlb);
   }
   if (compare !== undefined) {
-    if (!/^[0123]$/.test(compare)) throw new Error("Invalid exact comparison policy");
+    if (!/^[01234]$/.test(compare)) throw new Error("Invalid exact comparison policy");
     policy.codeCompare = Number(compare);
   }
   if (lookup !== undefined) {
@@ -98,7 +98,7 @@ function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   if ((policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 15))
       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions))
       || (policy.tlbHash !== undefined && ![0,1].includes(policy.tlbHash))
-      || (policy.codeCompare !== undefined && ![0,1,2,3].includes(policy.codeCompare))
+      || (policy.codeCompare !== undefined && ![0,1,2,3,4].includes(policy.codeCompare))
       || (policy.codeLookup !== undefined && ![0,1].includes(policy.codeLookup)))
     throw new Error("Invalid compiler policy");
   return `<script>

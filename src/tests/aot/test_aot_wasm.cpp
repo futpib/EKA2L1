@@ -3817,9 +3817,13 @@ static bool test_block_transfer_callback_pc() {
 static bool test_outlined_code_lookup() {
     struct restore_mode {
         bool old = code_lookup_outline;
-        ~restore_mode() { code_lookup_outline = old; }
+        unsigned old_compare = code_compare_mode;
+        ~restore_mode() { code_lookup_outline = old; code_compare_mode = old_compare; }
     } restore;
+    for (const unsigned compare : {2u, 4u})
+    for (const unsigned snapshot_size : {28u, 128u})
     for (const bool outlined : {false, true}) {
+        code_compare_mode = compare;
         code_lookup_outline = outlined;
         test_mem memory;
         r12l1::exclusive_monitor monitor(1);
@@ -3842,12 +3846,18 @@ static bool test_outlined_code_lookup() {
         };
         validated_code_cache cache;
         auto install = [&]() -> validated_code_cache::block & {
-            auto &entry = cache.insert(0x1000, {1, primary_backing, extent}, 128);
+            auto &entry = cache.insert(0x1000, {1, primary_backing, extent}, snapshot_size);
             validated_code_cache::add_dependency(entry, 0x2000, leaf_backing,
-                {leaf_backing, leaf_backing + 128});
+                {leaf_backing, leaf_backing + snapshot_size});
             return entry;
         };
-        install();
+        auto &initial = install();
+        if (compare == 4 && (initial.comparator != select_code_comparator(snapshot_size)
+            || initial.dependencies[0].comparator != select_code_comparator(snapshot_size))) return false;
+#ifdef __wasm_simd128__
+        if (compare == 4 && ((snapshot_size == 28 && initial.comparator == equal_code_bytes)
+            || (snapshot_size == 128 && initial.comparator != equal_code_bytes))) return false;
+#endif
         if (!cache.find(0x1000, *cpu)) return false;
         const auto first_resolutions = resolutions;
         for (unsigned i = 0; i < 8; ++i) if (!cache.find(0x1000, *cpu)) return false;
@@ -3855,7 +3865,7 @@ static bool test_outlined_code_lookup() {
         // Direct host writes invalidate, including dependency bytes. Restoring
         // bytes after rejection must never revive that compiled version.
         for (auto *bytes : {primary.data(), leaf.data()}) {
-            for (unsigned offset : {0u, 15u, 16u, 63u, 64u, 127u}) {
+            for (unsigned offset : {0u, 15u, 16u, snapshot_size / 2, snapshot_size - 1}) {
                 auto &old = install();
                 if (!cache.find(0x1000, *cpu)) return false;
                 const auto before = cache.invalidations;
@@ -3869,6 +3879,10 @@ static bool test_outlined_code_lookup() {
         // Same-index collision recovers the existing generation guard.
         cache.insert(0x3000, {1, other.data(), other.size()}, 8);
         if (!cache.find(0x3000, *cpu)) return false;
+        if (compare == 4) {
+            auto *other_entry = cache.find(0x3000, *cpu);
+            if (!other_entry || other_entry->comparator != select_code_comparator(8)) return false;
+        }
         const auto before_collision = resolutions;
         if (!cache.find(0x1000, *cpu) || resolutions != before_collision) return false;
         // Equal numerical generations from another source force refresh.
@@ -3884,7 +3898,7 @@ static bool test_outlined_code_lookup() {
         if (cache.find(0x1000, *cpu)) return false;
         mapped = true; ++replacement;
         if (!cache.find(0x1000, *cpu)) return false;
-        extent = 64; ++replacement;
+        extent = snapshot_size - 1; ++replacement;
         if (cache.find(0x1000, *cpu)) return false;
         extent = 256; install();
         cpu->code_address_space = 2;
@@ -3902,20 +3916,23 @@ static bool test_outlined_code_lookup() {
         if (!cache.find(0x1000, *cpu) || !cache.find(0x1000, *cpu)
             || resolutions != before_zero + 4) return false;
     }
-    printf("  PASS outlined_code_lookup (both modes, exact bytes, dependencies, mappings, rejection)\n");
+    printf("  PASS outlined_code_lookup (both lookup modes, grouped/stored comparators, short/long snapshots, dependencies, mappings, rejection)\n");
     return true;
 }
 
 static bool test_exact_code_compare() {
-    for (unsigned mode : {0u, 1u, 2u, 3u}) {
+    for (unsigned mode : {0u, 1u, 2u, 3u, 4u}) {
     code_compare_mode = mode;
+    const auto compare = [mode](const std::uint8_t *x, const std::uint8_t *y, std::size_t size) {
+        return (mode == 4 ? select_code_comparator(size) : equal_code_bytes)(x, y, size);
+    };
     std::array<std::uint8_t,577> a{},b{};
     for(unsigned i=0;i<a.size();++i) a[i]=b[i]=i*37;
     for(unsigned offset=0;offset<16;++offset) for(unsigned size=0;size<=512;++size) {
-        if(!equal_code_bytes(a.data()+offset,b.data()+offset,size)) return false;
+        if(!compare(a.data()+offset,b.data()+offset,size)) return false;
         for(unsigned at : {0u,size/2,size ? size-1 : 0u}) if(size) {
             b[offset+at]^=1;
-            if(equal_code_bytes(a.data()+offset,b.data()+offset,size)) return false;
+            if(compare(a.data()+offset,b.data()+offset,size)) return false;
             b[offset+at]^=1;
         }
     }
@@ -3923,30 +3940,30 @@ static bool test_exact_code_compare() {
     for (unsigned left=0;left<16;++left) for(unsigned right=0;right<16;++right)
         for(unsigned size=0;size<=192;++size) {
             std::memcpy(b.data()+right,a.data()+left,size);
-            if(!equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
+            if(!compare(a.data()+left,b.data()+right,size)) return false;
             for(unsigned at=0;at<size;++at) {
                 b[right+at]^=128;
-                if(equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
+                if(compare(a.data()+left,b.data()+right,size)) return false;
                 b[right+at]^=128;
             }
         }
     for (unsigned left=0;left<4;++left) for(unsigned right=0;right<4;++right)
         for(unsigned size : {255u,256u,257u,511u,512u,513u}) {
             std::memcpy(b.data()+right,a.data()+left,size);
-            if(!equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
+            if(!compare(a.data()+left,b.data()+right,size)) return false;
             for(unsigned at=0;at<size;++at) {
                 b[right+at]^=64;
-                if(equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
+                if(compare(a.data()+left,b.data()+right,size)) return false;
                 b[right+at]^=64;
             }
             // Equal mismatch bits in separate vectors must not cancel.
             b[right]^=1; b[right+16]^=1;
-            if(equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
+            if(compare(a.data()+left,b.data()+right,size)) return false;
             b[right]^=1; b[right+16]^=1;
         }
     }
     code_compare_mode = 0;
-    printf("  PASS exact_code_compare (four modes, unaligned/tails/mutations)\n"); return true;
+    printf("  PASS exact_code_compare (five modes including selected functions, unaligned/tails/mutations)\n"); return true;
 }
 
 // Check every condition/flag combination against DynCom, including false moves,

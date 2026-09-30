@@ -74,7 +74,7 @@ int main(int argc, char **argv){
     std::cout << "PROBE_TLB_HASH " << r12l1::dyncom_folded_tlb << "\n";
     if (argc > 1 && std::strncmp(argv[argc-1],"--code-compare=",15) == 0) {
         const std::string value(argv[argc-1]+15);
-        if(value!="0" && value!="1" && value!="2" && value!="3") {std::cerr<<"Invalid comparison policy\n";return 1;}
+        if(value!="0" && value!="1" && value!="2" && value!="3" && value!="4") {std::cerr<<"Invalid comparison policy\n";return 1;}
         aot::code_compare_mode=static_cast<unsigned>(value[0]-'0');
         --argc;
     }

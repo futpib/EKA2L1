@@ -14,7 +14,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(directory, 'manifest.json'
 for (const c of manifest.cases)
     if (hash(path.join(directory, `${c.size}.wasm`)) !== c.wasm_sha256) throw Error('Module hash mismatch');
 const compareMode = Number(process.env.EKA_SNAPSHOT_COMPARE || '2');
-if (![0,1,2,3].includes(compareMode)) throw Error('Invalid comparison mode');
+if (![0,1,2,3,4].includes(compareMode)) throw Error('Invalid comparison mode');
 const checkOnly = process.env.EKA_SNAPSHOT_CHECK_ONLY === '1';
 const provenance = { manifest, compareMode, checkOnly, helperWasm: hash(path.join(build, 'eka_matched_kernel.wasm')),
     helperJs: hash(path.join(build, 'eka_matched_kernel.js')), cpu: os.cpus()[0].model,

@@ -15,7 +15,7 @@ p.add_argument('--cases', type=int, choices=(48,64,96,480,672,5376), default=480
 p.add_argument('--ir-policy', type=int, choices=range(16), help='Require explicit matching probe-policy markers')
 p.add_argument('--code-write-protect', type=int, choices=(0,1))
 p.add_argument('--code-lookup', type=int, choices=(0,1))
-p.add_argument('--code-compare', type=int, choices=(0,1,2,3))
+p.add_argument('--code-compare', type=int, choices=(0,1,2,3,4))
 p.add_argument('--tlb-hash', type=int, choices=(0,1))
 a = p.parse_args()
 

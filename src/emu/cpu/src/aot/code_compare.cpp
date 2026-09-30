@@ -72,6 +72,39 @@ namespace eka2l1::arm::aot {
     }
 #endif
 
+#ifdef __wasm_simd128__
+    template <std::size_t Size>
+    static bool compare_fixed_snapshot(const std::uint8_t *a, const std::uint8_t *b, std::size_t) {
+        return equal_short_code<Size>(a, b);
+    }
+#endif
+
+    code_comparator select_code_comparator(std::size_t size) {
+#ifdef __wasm_simd128__
+        switch (size) {
+        case 0: return compare_fixed_snapshot<0>;
+        case 4: return compare_fixed_snapshot<4>;
+        case 8: return compare_fixed_snapshot<8>;
+        case 12: return compare_fixed_snapshot<12>;
+        case 16: return compare_fixed_snapshot<16>;
+        case 20: return compare_fixed_snapshot<20>;
+        case 24: return compare_fixed_snapshot<24>;
+        case 28: return compare_fixed_snapshot<28>;
+        case 32: return compare_fixed_snapshot<32>;
+        case 36: return compare_fixed_snapshot<36>;
+        case 40: return compare_fixed_snapshot<40>;
+        case 44: return compare_fixed_snapshot<44>;
+        case 48: return compare_fixed_snapshot<48>;
+        case 52: return compare_fixed_snapshot<52>;
+        case 56: return compare_fixed_snapshot<56>;
+        case 60: return compare_fixed_snapshot<60>;
+        case 64: return compare_fixed_snapshot<64>;
+        default: break;
+        }
+#endif
+        return equal_code_bytes;
+    }
+
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size) {
 #ifdef __wasm_simd128__
         if (code_compare_mode == 3) {
@@ -98,7 +131,7 @@ namespace eka2l1::arm::aot {
             default: break;
             }
         }
-        if (code_compare_mode == 2 || code_compare_mode == 3) {
+        if (code_compare_mode == 2 || code_compare_mode == 3 || code_compare_mode == 4) {
             // All eight loads remain in the original spans. Combine mismatch
             // bits before the branch; unequal bytes can never cancel via OR.
             while (size >= 64) {

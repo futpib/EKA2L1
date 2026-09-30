@@ -18,7 +18,7 @@ parser.add_argument('--eager-regions', action='append', default=[], metavar='NAM
 parser.add_argument('--tlb-hash', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-write-protect', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-lookup', action='append', default=[], metavar='NAME=0/1')
-parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1/2/3')
+parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1/2/3/4')
 parser.add_argument('--input', action='append', default=[], metavar='NAME=INPUT', help='Optional per-variant guest input route')
 parser.add_argument('--start-us', type=int, default=78000000)
 parser.add_argument('--end-us', type=int, default=96000000)
@@ -58,8 +58,8 @@ for item in args.code_lookup:
 compare_modes = {}
 for item in args.code_compare:
     name, separator, value = item.partition('=')
-    if not separator or name not in dict(variants) or name in compare_modes or value not in ('0', '1', '2', '3'):
-        parser.error('Code compare requires a unique known NAME=0/1/2/3')
+    if not separator or name not in dict(variants) or name in compare_modes or value not in ('0', '1', '2', '3', '4'):
+        parser.error('Code compare requires a unique known NAME=0/1/2/3/4')
     compare_modes[name] = int(value)
 hash_modes = {}
 for item in args.tlb_hash:

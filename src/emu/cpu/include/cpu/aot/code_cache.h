@@ -13,8 +13,10 @@
 namespace eka2l1::arm::aot {
     // Research switch, configured before CPU startup; exact coverage in both modes.
     extern bool code_lookup_outline; // Opt-in layout only; validation remains exact.
-    extern unsigned code_compare_mode; // 0: original, 1: overlapping tail, 2: four-vector loop, 3: fixed short sizes + grouped
+    extern unsigned code_compare_mode; // 0: original, 1: overlapping tail, 2: four-vector loop, 3: fixed short sizes + grouped, 4: stored comparator
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size);
+    using code_comparator = bool (*)(const std::uint8_t *, const std::uint8_t *, std::size_t);
+    code_comparator select_code_comparator(std::size_t size);
 
     // Known allocations use backing-page write versions. Raw host-pointer
     // escapes permanently restore exact validation for their whole allocation.
@@ -30,6 +32,7 @@ namespace eka2l1::arm::aot {
             std::uint32_t address;
             const std::uint8_t *backing;
             std::vector<std::uint8_t> code;
+            code_comparator comparator = equal_code_bytes;
         };
         struct block {
             std::uint64_t key;
@@ -48,6 +51,8 @@ namespace eka2l1::arm::aot {
             std::uint64_t validation_epoch = 0;
 #endif
             std::vector<common::code_tracking::stamp> stamps;
+            // Snapshot length stays fixed until this version is discarded.
+            code_comparator comparator = equal_code_bytes;
         };
 
         static std::uint64_t key(std::uint32_t space, std::uint32_t pc_mode) {
@@ -124,6 +129,7 @@ namespace eka2l1::arm::aot {
             versions_.push_back({k, version, view.bytes, {view.bytes, view.bytes + size}});
             current_[k] = version;
             auto &entry = versions_.back();
+            if (code_compare_mode == 4) entry.comparator = select_code_comparator(size);
             entry.guard_begin = reinterpret_cast<std::uintptr_t>(view.bytes);
             entry.guard_end = entry.guard_begin + size;
             return entry;
@@ -137,7 +143,8 @@ namespace eka2l1::arm::aot {
 #if defined(EKA2L1_WASM_CODE_LIFECYCLE)
             entry.validation_epoch = 0;
 #endif
-            entry.dependencies.push_back({address, backing, bytes});
+            entry.dependencies.push_back({address, backing, bytes,
+                code_compare_mode == 4 ? select_code_comparator(bytes.size()) : equal_code_bytes});
             const auto begin = reinterpret_cast<std::uintptr_t>(backing);
             entry.guard_begin = std::min(entry.guard_begin, begin);
             entry.guard_end = std::max(entry.guard_end, begin + bytes.size());
@@ -167,9 +174,15 @@ namespace eka2l1::arm::aot {
         std::uint64_t invalidations = 0;
 
     private:
+        template <typename Snapshot>
+        static bool snapshot_equal(const Snapshot &snapshot) {
+            if (code_compare_mode == 4)
+                return snapshot.comparator(snapshot.backing, snapshot.code.data(), snapshot.code.size());
+            return equal_code_bytes(snapshot.backing, snapshot.code.data(), snapshot.code.size());
+        }
         static bool bytes_match(block &entry, bool force) {
 #if !defined(EKA2L1_WASM_CODE_VERSIONS)
-            return equal_code_bytes(entry.backing, entry.code.data(), entry.code.size()) && dependencies_equal(entry);
+            return snapshot_equal(entry) && dependencies_equal(entry);
 #else
 #if defined(EKA2L1_WASM_CODE_LIFECYCLE)
             const auto epoch = common::code_tracking::validation_epoch();
@@ -188,7 +201,7 @@ namespace eka2l1::arm::aot {
                 return true;
             }
             if (common::performance::counting()) ++common::performance::code_byte_checks;
-            if (!equal_code_bytes(entry.backing, entry.code.data(), entry.code.size()) || !dependencies_equal(entry))
+            if (!snapshot_equal(entry) || !dependencies_equal(entry))
                 return false;
             if (!entry.tracking_attempted) {
                 entry.tracking_attempted = true;
@@ -214,7 +227,7 @@ namespace eka2l1::arm::aot {
         }
         static bool dependencies_equal(const block &entry) {
             for (const auto &d : entry.dependencies)
-                if (!equal_code_bytes(d.backing, d.code.data(), d.code.size())) return false;
+                if (!snapshot_equal(d)) return false;
             return true;
         }
         static std::size_t recent_index(std::uint64_t k) {
