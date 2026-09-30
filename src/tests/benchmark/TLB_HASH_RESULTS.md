@@ -1,9 +1,9 @@
-# Folded data-TLB index: correctness accepted, timing pending
+# Folded data-TLB index: performance and local live acceptance pass
 
 The opt-in hash folds higher virtual-page bits into the existing 512-slot cache.
 It targets the measured conflicts in ZERO_LITERAL_RESULTS.md, without game-address
 special cases. See TLB_HASH_DESIGN.md for the coherence and invalidation contract.
-Default remains the original index; LAN is unchanged.
+The binary default remains the original index; delivery selects folded mode explicitly.
 
 Validation completed:
 - 161 compiler tests pass under the original configuration and 161 with the
@@ -59,4 +59,21 @@ the exact LAN archive. Times measure 18 guest seconds with physical GPU renderin
 | standard / a | 13.17525s | 12.40075s | 12.61030s | +6.25% | +1.69% |
 | standard / b | 12.61310s | 12.37580s | 12.76090s | +1.92% | +3.11% |
 
-Assessment remains pending confirmation and live acceptance; no deployment.
+Both workloads improve in two serial batches. All eight adjacent same-binary
+pairs favor folded indexing. Pooled throughput versus served is +6.76% for the
+longer-snake scene and +2.40% for the standard scene. Against the matching original
+index it is +6.52% and +4.08%; the latter is inflated by a slow original control.
+All 24 observations remain recorded, including the slow candidate in long batch A.
+These are host/workload measurements, not a guaranteed speedup on other devices.
+
+## Delivery acceptance
+
+Normal replay also matches native for 1600 images/guest records and 4,919,249 stereo
+PCM frames. Both 120-second live/audio routes pass at realtime, with zero added
+gameplay underruns or drops and 37/46 ms maximum sampled lag. Startup audio recovery
+events remain. Both pages explicitly apply policy 7, eager 0, TLB hash 1 and use the
+timed application SHA256. Local launcher checks pass visible softkey pause/resume,
+gesture audio, measured mute/unmute, keyboard/touch, layout and shutdown.
+
+The exact accepted archive is tlb-hash-candidate-v2. Actual HTTPS verification is
+pending; delivery must retain explicit mode selection and verify downloaded hashes.
