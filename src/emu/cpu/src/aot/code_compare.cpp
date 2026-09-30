@@ -4,8 +4,22 @@
 #endif
 
 namespace eka2l1::arm::aot {
+    bool code_compare_overlap = false;
+
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size) {
 #ifdef __wasm_simd128__
+        if (code_compare_overlap && size >= 16) {
+            // Compare the last full vector instead of decomposing a short tail.
+            // Both loads stay inside the original span, even for size 17. The
+            // overlap repeats comparisons only; every byte is still checked.
+            const auto *end_a = a + size - 16;
+            const auto *end_b = b + size - 16;
+            while (size > 16) {
+                if (wasm_v128_any_true(wasm_v128_xor(wasm_v128_load(a), wasm_v128_load(b)))) return false;
+                a += 16; b += 16; size -= 16;
+            }
+            return !wasm_v128_any_true(wasm_v128_xor(wasm_v128_load(end_a), wasm_v128_load(end_b)));
+        }
         while (size >= 16) {
             if (wasm_v128_any_true(wasm_v128_xor(wasm_v128_load(a), wasm_v128_load(b)))) return false;
             a += 16; b += 16; size -= 16;

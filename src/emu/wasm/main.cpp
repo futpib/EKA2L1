@@ -28,6 +28,7 @@
 #include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/code_cache.h>
 #include <common/log.h>
 #include <common/path.h>
 #include <common/pystr.h>
@@ -213,6 +214,14 @@ int eka2l1_ir_configure(int mode) {
 #endif
     if (mode < 0) unsetenv("EKA2L1_AOT_IR_MODE");
     else setenv("EKA2L1_AOT_IR_MODE", std::to_string(mode).c_str(), 1);
+    return 0;
+}
+
+// Exact byte-scanner research control, frozen before guest execution.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_code_compare_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::code_compare_overlap = mode != 0;
     return 0;
 }
 

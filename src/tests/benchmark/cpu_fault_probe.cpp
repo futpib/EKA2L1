@@ -3,6 +3,7 @@
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/code_cache.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 #ifdef EKA_MATCHED_REFERENCE
@@ -64,6 +65,13 @@ struct Fixture {
     }
 };
 int main(int argc, char **argv){
+    if (argc > 1 && std::strncmp(argv[argc-1],"--code-compare=",15) == 0) {
+        const std::string value(argv[argc-1]+15);
+        if(value!="0" && value!="1") {std::cerr<<"Invalid comparison policy\n";return 1;}
+        aot::code_compare_overlap=value=="1";
+        --argc;
+    }
+    std::cout << "PROBE_COMPARE " << aot::code_compare_overlap << "\n";
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         if(!aot::parse_arm_ir_policy(mode,ir_policy)) {std::cerr<<"Invalid IR mode\n";return 1;}

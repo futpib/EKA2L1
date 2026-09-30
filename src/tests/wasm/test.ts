@@ -135,6 +135,14 @@ async function runTests(): Promise<void> {
     });
     console.log("  PASS");
 
+    console.log("TEST exact scanner: pre-init policy validation...");
+    await page.evaluate(() => {
+      const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[n]);
+      if(configure(-1)!==-1 || configure(2)!==-1 || configure(1)!==0 || configure(0)!==0)
+        throw Error('Exact comparison policy validation failed');
+    });
+    console.log("  PASS");
+
     // Test 5: eka2l1_init
     console.log("TEST 5: eka2l1_init...");
     const initResult = await page.evaluate(() => {
@@ -145,6 +153,8 @@ async function runTests(): Promise<void> {
     await page.evaluate(() => {
       if ((window as any).Module.ccall('eka2l1_ir_configure', 'number', ['number'], [0]) !== -1)
         throw new Error('IR policy changed after initialization');
+      if ((window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[1]) !== -1)
+        throw Error('Exact comparison policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_eager_regions_configure', 'number', ['number'], [1]) !== -1)
         throw new Error('Eager ROM policy changed after initialization');
     });

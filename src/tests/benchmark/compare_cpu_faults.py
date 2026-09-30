@@ -13,6 +13,7 @@ p.add_argument('output', type=Path)
 p.add_argument('--require-equal', action='store_true', help='Exit nonzero on any semantic mismatch')
 p.add_argument('--cases', type=int, choices=(48,64,96,480,672,5376), default=480, help='Expected complete fixture count; read spans has 48, invariant remapping has 64, block spans has 96, extended has 672, conditional IR has 5376')
 p.add_argument('--ir-policy', type=int, choices=range(16), help='Require explicit matching probe-policy markers')
+p.add_argument('--code-compare', type=int, choices=(0,1))
 a = p.parse_args()
 
 def load(path):
@@ -21,6 +22,10 @@ def load(path):
         markers = [line for line in lines if line.startswith('PROBE_POLICY ')]
         if markers != [f'PROBE_POLICY {a.ir_policy}']:
             raise ValueError(f'{path}: requested policy {a.ir_policy}, observed {markers}')
+    if a.code_compare is not None:
+        markers = [line for line in lines if line.startswith('PROBE_COMPARE ')]
+        if markers != [f'PROBE_COMPARE {a.code_compare}']:
+            raise ValueError(f'{path}: wrong comparison policy {markers}')
     rows = [json.loads(line[6:]) for line in lines if line.startswith('FAULT ')]
     if len(rows) != a.cases or [r['id'] for r in rows] != list(range(a.cases)):
         raise ValueError(f'{path}: incomplete or duplicated probe output')
@@ -53,6 +58,8 @@ result = {'cases': len(native), 'all_fields_match': len(native) - len(difference
           'little_endian_unmapped_differences': sum(not d['native']['endian'] and not d['native']['tlb_readonly'] for d in differences),
           'inputs': {str(f): hashlib.sha256(f.read_bytes()).hexdigest() for f in [a.native,a.wasm]},
           'differences': differences}
+if a.code_compare is not None:
+    result['verified_code_compare'] = a.code_compare
 if a.ir_policy is not None:
     result['verified_ir_policy'] = a.ir_policy
 # The 64-case remapping fixture varies read-only versus read/write mappings

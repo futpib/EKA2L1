@@ -10,6 +10,7 @@ parser.add_argument('archive', type=Path)
 parser.add_argument('output', type=Path)
 parser.add_argument('--ir-policy', type=int, choices=range(16), required=True)
 parser.add_argument('--long', action='store_true', help='Include 128-instruction coverage fixture (policies 13/14/15)')
+parser.add_argument('--code-compare', type=int, choices=(0,1))
 a = parser.parse_args()
 if a.long and a.ir_policy not in (13,14,15):
     parser.error('--long requires policy 13, 14 or 15')
@@ -25,19 +26,21 @@ cases = [('ir-conditions',5376),('ir-calls',96),('ir-calls-short',96),('ir-flags
     ('entry-budget-interpreter',672),('region-block-spans',96)]
 if a.long:
     cases.insert(0,('ir-long',96))
+probe_compare = [] if a.code_compare is None else [f'--code-compare={a.code_compare}']
+compare_args = [] if a.code_compare is None else ['--code-compare',str(a.code_compare)]
 results = []
 for name, count in cases:
     for kind, command in [('native',[str(archive/'tests/eka_cpu_fault_native')]),
                           ('wasm',['node',str(archive/'tests/eka_cpu_fault_wasm.js')])]:
         with (a.output/f'{name}-{kind}.log').open('w') as log:
-            subprocess.run(command+['--'+name,f'--ir-policy={a.ir_policy}'],
+            subprocess.run(command+['--'+name,f'--ir-policy={a.ir_policy}']+probe_compare,
                            stdout=log,stderr=subprocess.STDOUT,check=True,cwd=root)
     result = a.output/f'{name}.json'
     subprocess.run(['python3',str(Path(__file__).with_name('compare_cpu_faults.py')),
                     str(a.output/f'{name}-native.log'),str(a.output/f'{name}-wasm.log'),str(result),
-                    '--cases',str(count),'--ir-policy',str(a.ir_policy),'--require-equal'],
+                    '--cases',str(count),'--ir-policy',str(a.ir_policy),'--require-equal']+compare_args,
                    check=True,stdout=subprocess.DEVNULL)
     results.append(json.loads(result.read_text()))
-    (a.output/'summary.json').write_text(json.dumps(dict(ir_policy=a.ir_policy,
+    (a.output/'summary.json').write_text(json.dumps(dict(ir_policy=a.ir_policy, code_compare=a.code_compare,
         completed_cases=sum(x['cases'] for x in results),results=results),indent=2)+'\n')
     print(name,'PASS',count,'policy',a.ir_policy,flush=True)

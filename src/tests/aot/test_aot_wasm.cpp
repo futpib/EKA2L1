@@ -3813,6 +3813,8 @@ static bool test_block_transfer_callback_pc() {
 }
 
 static bool test_exact_code_compare() {
+    for (bool overlap : {false, true}) {
+    code_compare_overlap = overlap;
     std::array<std::uint8_t,545> a{},b{};
     for(unsigned i=0;i<a.size();++i) a[i]=b[i]=i*37;
     for(unsigned offset=0;offset<16;++offset) for(unsigned size=0;size<=512;++size) {
@@ -3825,7 +3827,7 @@ static bool test_exact_code_compare() {
     }
     // Exercise every byte and independent alignment of the short snapshots.
     for (unsigned left=0;left<16;++left) for(unsigned right=0;right<16;++right)
-        for(unsigned size:{4u,8u,16u}) {
+        for(unsigned size=0;size<=80;++size) {
             std::memcpy(b.data()+right,a.data()+left,size);
             if(!equal_code_bytes(a.data()+left,b.data()+right,size)) return false;
             for(unsigned at=0;at<size;++at) {
@@ -3834,6 +3836,8 @@ static bool test_exact_code_compare() {
                 b[right+at]^=128;
             }
         }
+    }
+    code_compare_overlap = false;
     printf("  PASS exact_code_compare (unaligned/tails/mutations)\n"); return true;
 }
 

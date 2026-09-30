@@ -14,6 +14,7 @@ parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/1/
                     help='Select compiler policy within an archived binary')
 parser.add_argument('--eager-regions', action='append', default=[], metavar='NAME=0/1',
                     help='Select eager ROM region compilation within an archived binary')
+parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1')
 args = parser.parse_args()
 variants = []
 for item in args.builds:
@@ -33,6 +34,12 @@ for item in args.eager_regions:
     if not separator or name not in dict(variants) or name in eager_modes or value not in ('0', '1'):
         parser.error('Eager regions requires a unique known NAME=0/1')
     eager_modes[name] = int(value)
+compare_modes = {}
+for item in args.code_compare:
+    name, separator, value = item.partition('=')
+    if not separator or name not in dict(variants) or name in compare_modes or value not in ('0', '1'):
+        parser.error('Code compare requires a unique known NAME=0/1')
+    compare_modes[name] = int(value)
 args.output.mkdir()
 root = Path(__file__).resolve().parents[3]
 rows = []
@@ -48,6 +55,9 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         env.pop('EKA2L1_AOT_EAGER_REGIONS', None)
         if name in eager_modes:
             env['EKA2L1_AOT_EAGER_REGIONS'] = str(eager_modes[name])
+        env.pop('EKA2L1_CODE_COMPARE', None)
+        if name in compare_modes:
+            env['EKA2L1_CODE_COMPARE'] = str(compare_modes[name])
         env.pop('EKA2L1_AOT_IR_MODE', None)
         if name in modes:
             env['EKA2L1_AOT_IR_MODE'] = str(modes[name])
@@ -62,7 +72,9 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Profile did not record the requested IR policy')
         if report.get('eager_regions', -1) != eager_modes.get(name, -1):
             raise RuntimeError('Profile did not record the requested eager ROM policy')
-        row = dict(name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
+        if report.get('code_compare', -1) != compare_modes.get(name, -1):
+            raise RuntimeError('Profile did not record requested exact comparison policy')
+        row = dict(code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
                    eager_regions=report.get('eager_regions', -1),
                    wasm_sha256=report['wasm_sha256'], loader_sha256=report['loader_sha256'],
                    measurement=report['measurement'])
