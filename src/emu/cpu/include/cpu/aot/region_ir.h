@@ -388,6 +388,43 @@ namespace eka2l1::arm::aot {
             return true;
         }
 
+        // A one-use pure result may be evaluated at its immediately following
+        // pure consumer. No effect, guard, or state publication is crossed.
+        // Count snapshot roots as real uses, including roots of cold recipes.
+        std::vector<bool> stack_values_for(const std::vector<bool> &live,
+            const std::vector<bool> &cold, const std::vector<unsigned> &exits) const {
+            std::vector<unsigned> uses(nodes.size());
+            std::vector<bool> roots(nodes.size()), result(nodes.size());
+            auto use = [&](value v) { if (v) ++uses[v]; };
+            for (value v = 1; v < nodes.size(); ++v) if (live[v]) {
+                use(nodes[v].a); use(nodes[v].b);
+                if (nodes[v].op == choose) use(static_cast<value>(nodes[v].immediate));
+            }
+            for (auto e : exits) {
+                const auto &entry = snapshots.front(), &exit = snapshots.at(e);
+                for (unsigned r = 0; r < 16; ++r)
+                    if (r == 15 || exit.regs[r] != entry.regs[r]) {
+                        use(exit.regs[r]); roots[exit.regs[r]] = true;
+                    }
+                for (unsigned f = 0; f < 5; ++f)
+                    if (exit.flags[f] != entry.flags[f]) {
+                        use(exit.flags[f]); roots[exit.flags[f]] = true;
+                    }
+            }
+            auto hot_pure = [&](value v) {
+                const auto &n = nodes[v];
+                return live[v] && !cold[v] && !is_effect(n.op)
+                    && n.op != constant && n.op != state && n.op != host && n.type != type_void;
+            };
+            for (value v = 1; v + 1 < nodes.size(); ++v) {
+                const auto &consumer = nodes[v + 1];
+                if (uses[v] == 1 && !roots[v] && hot_pure(v) && hot_pure(v + 1)
+                    && (consumer.a == v || consumer.b == v
+                        || (consumer.op == choose && consumer.immediate == v))) result[v] = true;
+            }
+            return result;
+        }
+
         std::vector<bool> live_for(const std::vector<unsigned> &exits) const {
             std::vector<bool> live(nodes.size());
             auto mark = [&](auto &&self, value v) -> void {

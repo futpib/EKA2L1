@@ -3295,7 +3295,7 @@ static bool test_ir_conditions(arm_ir_policy policy = arm_ir_policy::conditional
 static bool test_ir_long_segments() {
 #if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
     unsigned comparisons=0;
-    for(auto policy:{arm_ir_policy::conditional_value_ir,arm_ir_policy::long_segments_ir})
+    for(auto policy:{arm_ir_policy::conditional_value_ir,arm_ir_policy::long_segments_ir,arm_ir_policy::stack_values_ir})
     for(unsigned fault_at:{31u,63u,95u,127u}) {
         std::vector<unsigned> code(133);
         const unsigned pattern[]={0xe0900001u,0xe0222000u,0x20a33001u,0xe1a08004u};
@@ -3309,7 +3309,8 @@ static bool test_ir_long_segments() {
         const auto size=code.size()*4;
         auto tr=translate_arm_block(bytes,size,0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,policy);
         if(!tr.complete || tr.ir_max_segment_length!=(policy==arm_ir_policy::long_segments_ir?128u:32u)
-            || !tr.ir_memory_guards || !tr.ir_conditional_instructions || !tr.ir_wide_products) {
+            || !tr.ir_memory_guards || !tr.ir_conditional_instructions || !tr.ir_wide_products
+            || (policy == arm_ir_policy::stack_values_ir && !tr.ir_stack_values)) {
             printf("  FAIL long IR selection policy=%d max=%u\n",int(policy),tr.ir_max_segment_length);return false;
         }
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -4911,6 +4912,7 @@ int main(int argc, char **argv) {
     if (test_ir_flags()) passed++; else failed++;
     if (test_ir_conditions()) passed++; else failed++;
     if (test_ir_conditions(arm_ir_policy::long_segments_ir)) passed++; else failed++;
+    if (test_ir_conditions(arm_ir_policy::stack_values_ir)) passed++; else failed++;
     if (test_ir_long_segments()) passed++; else failed++;
     if (test_ir_segments()) passed++; else failed++;
     if (test_ir_memory_exits()) passed++; else failed++;

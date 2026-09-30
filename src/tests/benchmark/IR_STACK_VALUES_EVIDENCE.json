@@ -1,0 +1,1115 @@
+{
+  "status": "correctness accepted; serial timing pending; opt-in and unserved",
+  "archive": "/home/claude/.scratch/eka-benchmark/ir-stack-candidate",
+  "provenance": {
+    "git_head": "a0cf50a91ced614f0ef313b580ad001946ad8990",
+    "hashes": {
+      "eka2l1.js": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+      "source.patch": "1b1a1455402ae16afbc74d4cdb3d9290f6b35f37815e92da2ccffc623cca04ec",
+      "eka2l1.html": "8e0962709fa2a5cdff9d30125452c500123910e76bdee682092f9fd44a7aee69",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "21653dec5ec6c0c59af954e8ee3a32dd2f0860d2369749752d0b93a8c54eb1ff",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_fault_native": "914186532f1626815773a2573d6a4025258bd9c62c37f3e7416670c38717d362",
+      "tests/test_aot_wasm.wasm": "83e5c24ea80c0e49ec228cfc09382cc0213c044b806fbd076758bed6d0b20709",
+      "tests/eka_compiler_probe": "607a88cbc5153257918f9342b309f7435fd1aae4f6746c445cee8433acfb82a6",
+      "tests/eka_cpu_fault_wasm.wasm": "e0282c906d9e950f28b2cb57c2fc1f529f80979420523654d6e8d241ad8b89d6",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+    },
+    "sources": {
+      "CMakeLists.txt": "27dae1b0f46165fb3fe097f8788bcfd9f83818b6f534092d8fe5dd1a1ec90752",
+      "src/emu/cpu/CMakeLists.txt": "bf21545c7acd8e328dfb8a1201ce2cdc2886ac5df006d18df04593d4a9247e81",
+      "src/emu/cpu/include/cpu/aot/thumb_translator.h": "32a48e8b73fb9b3453b54ae75113bf35e11dd0722afb37f34aa70ca24a34dc9b",
+      "src/emu/cpu/include/cpu/aot/state_locals.h": "46b201a72f1dcc91df86ec030500477e8f400739931b0dc2c76d0b3c7b9d72d3",
+      "src/emu/cpu/include/cpu/aot/region_ir.h": "db463007ed68f7012fc26c7f73a03b68d3fae3c7701df341640e2bc2f1385a2b",
+      "src/emu/cpu/src/aot/arm_translator.cpp": "8f741409ef64d8bd0cd29a1cb70329cdd07442859817378d96ae8cd700baed61",
+      "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "76f87cda16f82a8c9dfd45f10ff52ae16f493181835aaa5000710817728c5e0a",
+      "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "c544d5d0e994bd5e92638c151d08871e4ac35ede29e560e10f0d8e9ed472d063",
+      "src/emu/cpu/src/aot/wasm_emitter.cpp": "ff557b6bed576b5ea6645cfe1a440aa54b49b1ba6ee67bcfcfbfe1a0d7f1e3dc",
+      "src/emu/cpu/include/cpu/dyncom/armstate.h": "e3125ce68715bcb2e46998738280c18c339fffdc46e83827e7c20e6d012adfff",
+      "src/emu/cpu/src/dyncom/armstate.cpp": "86693e9ce40170887bb6d556c797b6c87f66f7df3531426cfadbb191ac0a6a7a",
+      "src/tests/aot/test_aot_wasm.cpp": "559769b64fc2ac5efa0df4920bca058052b5fc2e807021ddc548393980f621e8",
+      "src/tests/benchmark/cpu_fault_probe.cpp": "8b597d2934dbfbc471f9f310f30910795029649fc4832be3243a23e9be24b6f1",
+      "src/tests/cpu/aot.cpp": "53a11703ba12cb1b0dc168e91d479f9a0fb0f148d1fa3ba1841e6fcac42027e8",
+      "src/emu/cpu/include/cpu/aot/arm_translator.h": "fba25942b1dbb2b41bbc469b5c773e6812272fd46bc680f5e0c51741247cd43f",
+      "src/emu/cpu/src/aot/aot_runtime.cpp": "7fd705c357b951aca516c62c20b384a241f081f896cddc9d1b05a100a472cc2e",
+      "src/emu/wasm/main.cpp": "6622789d58db7514eee86dd94e93a603d75c859551c841426dfcfb8007330153",
+      "src/tests/wasm/profile.ts": "817a90027d3043fc3c04848bd1e06a48cebf83a4790d2f7cda37080ed0a4c098",
+      "src/tests/wasm/benchmark.ts": "049493a9007086802d5270704a72ad6c8f5dc6bafa950c9592f6ee86f656cad8",
+      "src/tests/wasm/test.ts": "20f200c7f34ca055eb94186071ed57d6c9f44a8abb2a103ae998bf9a7010cc2a",
+      "src/tests/benchmark/compiler_probe.cpp": "bc9cf9cb5090d3d3708512ff2a5320efec6d3840377ed2f1021c58badaf04afa",
+      "src/tests/benchmark/serial_variants.py": "e5b212885e2a0b25114d54f0a9014a59c0798d0e45de1986b6094dbf23e43bbc",
+      "src/emu/system/src/aot_setup.cpp": "38fec8b76ec6bf850604cf95fdf2a95a6e90ed9c1d748884a94e9f1d36b0e3cf"
+    }
+  },
+  "faults": {
+    "13": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/summary.json",
+      "sha256": "c1cd689b74f601715bbbb53220997f4c2d4f4541f09af2cbd79a8256a816fcdb",
+      "result": {
+        "ir_policy": 13,
+        "completed_cases": 13856,
+        "results": [
+          {
+            "cases": 96,
+            "all_fields_match": 96,
+            "final_state_and_exact_memory_match": 96,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 24,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-long-native.log": "9428cf5f695e91fa7b8a81dcef3aeb3da4671178a79cdcb3a617eb85bd538808",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-long-wasm.log": "6812e08d641e281ab7f25e2a7dc21567cf4c4519b0ba57149e0e625e1a8afeea"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 5376,
+            "all_fields_match": 5376,
+            "final_state_and_exact_memory_match": 5376,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 1344,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-conditions-native.log": "a58871fef194b7b6573224aeabb56cf2c2aed470b4b97df8f5b020ba83e8a35d",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-conditions-wasm.log": "c1efe426dc76d70e25d6fcf1fa11dd5e58bc541477b6cdfc5694ae749893d60e"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 96,
+            "all_fields_match": 96,
+            "final_state_and_exact_memory_match": 96,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 24,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-calls-native.log": "1a9bed637b993a8dee54827e2777d243c8e606e0f4400b946e20ad5d164aa318",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-calls-wasm.log": "b679d74410bdaa5b4f57b8038f17179ee5b15e60e5383e5b36d5b1952a49f9e0"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 96,
+            "all_fields_match": 96,
+            "final_state_and_exact_memory_match": 96,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 24,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-calls-short-native.log": "ee31f959cbc6a1004e77654139b8c9edae4be1ee669404d5ec3a378744ced7c0",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-calls-short-wasm.log": "019e609c052e5f66408b5e2c2fc1cc129c9a1cff931cb7f80dab3ffa31bc15cd"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 480,
+            "all_fields_match": 480,
+            "final_state_and_exact_memory_match": 480,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 120,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-flags-native.log": "2c617fe785bcda0f080757d6dc792d1deb5d82c86c9266538f8462bbdd9f6cf6",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-flags-wasm.log": "bedaa6e29c2d362d4ebb51b79de5a17164a035764a0b55329c82bdff0e21769c"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 64,
+            "all_fields_match": 64,
+            "final_state_and_exact_memory_match": 64,
+            "mismatched_fields": {},
+            "categories": {},
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/invariant-write-remap-native.log": "4fbdd443855650a499465bf98844f806e83016ef0e079f15cb6668114b89760b",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/invariant-write-remap-wasm.log": "6258cff83665ebe56712089cc9175b08a562761f6e2ee77383d33007ddb567e6"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 64,
+            "all_fields_match": 64,
+            "final_state_and_exact_memory_match": 64,
+            "mismatched_fields": {},
+            "categories": {},
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/invariant-remap-native.log": "70effea108c3ebce650e7684f1426e3eb59af3f521fd07fdfe3f7106274acdfd",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/invariant-remap-wasm.log": "845b32a24362023901a6df4c8ee61fbb4fa8d0e7bff654ac9ef4986193a64b29"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-segments-native.log": "05ba81c8f0e27fde74f992c3b2f77c5f261bd32f8241b7028b598aa5928f8a00",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-segments-wasm.log": "6be02a218cdeacdb7517cb7e8537dbf347c29c38460546ca96a8908cd836391b"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 480,
+            "all_fields_match": 480,
+            "final_state_and_exact_memory_match": 480,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 120,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-memory-native.log": "704c294f74c5bc5a7d7ed2162fd2671c82828a3eae233e03056215cc554ea567",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-memory-wasm.log": "ee719999ba2d8cd8f743f9f378ea81f784d99da73aa9b85e94401bd11571d4c1"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 48,
+            "all_fields_match": 48,
+            "final_state_and_exact_memory_match": 48,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 12,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-memory-chain-native.log": "beb8a61823c21c595b27168714dc806022ec6f2b728fd658e500464337252849",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-memory-chain-wasm.log": "4c333fee4a680e2096a4f63b2cb4ad0c898da1fff46e6a9726d70753d8b79149"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 480,
+            "all_fields_match": 480,
+            "final_state_and_exact_memory_match": 480,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 120,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-wide-native.log": "0c7ef5acd9d281052f471eba5cda152b004671961e613d8c070e03eb280ffc18",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-wide-wasm.log": "c28e3ca9d47144c48887eff0b9d619545473f10534a0329255aac5a61ac589bf"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-addressing-native.log": "0be200516b4fcd038092c2b30bbeb4e9cba44cfa8aa578abba0a89e6a4118fe5",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-addressing-wasm.log": "21f1c38f3a36c3ae6004d703bcdcc3aee5c9cbe3af706f9311f52e306b79ded4"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 480,
+            "all_fields_match": 480,
+            "final_state_and_exact_memory_match": 480,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 120,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-short-native.log": "7d2fce2d6096dffc2207d2ed97e8dc6c6f53b3e07b8c87a7d8e6104a406579af",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-short-wasm.log": "7cdeecb62eba912ef862d117b199abcdb7169ba13137cd500ba5b41942ef4deb"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 480,
+            "all_fields_match": 480,
+            "final_state_and_exact_memory_match": 480,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 120,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-recipes-native.log": "d8d2448ebd8c60c3a527e95de654fe0e16dc08a1fbdd223ad8ffd57f831d9280",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/ir-recipes-wasm.log": "a6a425913ee2126342da6d866dad9fa4da7ea240c5ad00bd5a3c53218718be38"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/extended-native.log": "34a589da3fdcc6e5594648a24e9c121211b4ad29a8a1301eb1fb6ca0575047bb",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/extended-wasm.log": "34a589da3fdcc6e5594648a24e9c121211b4ad29a8a1301eb1fb6ca0575047bb"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/deferred-native.log": "34a589da3fdcc6e5594648a24e9c121211b4ad29a8a1301eb1fb6ca0575047bb",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/deferred-wasm.log": "9f56339363f1b633595437d5388a6f1f34e516ba3150dab82f9abd56aa09807a"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/entry-budget-native.log": "3110bf2110aebfe9f787067cff1411ff8c9e554997ccc39e5f20b549941462fa",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/entry-budget-wasm.log": "3110bf2110aebfe9f787067cff1411ff8c9e554997ccc39e5f20b549941462fa"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/entry-budget-deferred-native.log": "3110bf2110aebfe9f787067cff1411ff8c9e554997ccc39e5f20b549941462fa",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/entry-budget-deferred-wasm.log": "a5eae1b2aad3d7848966a4082ec22a4bd06bb39a7df4142d5bce00f842629d14"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 48,
+            "all_fields_match": 48,
+            "final_state_and_exact_memory_match": 48,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 12,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/read-spans-native.log": "92b6b43ce3faee24b9bf32ae2c094b4b6e012e9f3446e6af6d1c8f530ea9dcd0",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/read-spans-wasm.log": "8f4e903d15d61015dbf1cb0dfa468e9b852e2ba949ba924dd3240bb290efee97"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/wide-snapshots-native.log": "e407994457fa15e6baf9040c8e9b94e3e4b1246216cac1dbe51003a0d77c968b",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/wide-snapshots-wasm.log": "55fa71238a0683f62ba2865bc053cd59424b7afaf6053e897c9f2240bd3fa7af"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 48,
+            "all_fields_match": 48,
+            "final_state_and_exact_memory_match": 48,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 12,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/region-spans-native.log": "beb8a61823c21c595b27168714dc806022ec6f2b728fd658e500464337252849",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/region-spans-wasm.log": "4c333fee4a680e2096a4f63b2cb4ad0c898da1fff46e6a9726d70753d8b79149"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 48,
+            "all_fields_match": 48,
+            "final_state_and_exact_memory_match": 48,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 12,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/region-spans-interpreter-native.log": "beb8a61823c21c595b27168714dc806022ec6f2b728fd658e500464337252849",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/region-spans-interpreter-wasm.log": "0b04fe6baeb0c8701f3e32fadba1673f011f582771c8b60e6aad73195aa8cbaa"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/entry-budget-interpreter-native.log": "3110bf2110aebfe9f787067cff1411ff8c9e554997ccc39e5f20b549941462fa",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/entry-budget-interpreter-wasm.log": "3110bf2110aebfe9f787067cff1411ff8c9e554997ccc39e5f20b549941462fa"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          },
+          {
+            "cases": 96,
+            "all_fields_match": 96,
+            "final_state_and_exact_memory_match": 96,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 24,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/region-block-spans-native.log": "6e6302214382b5ebc3b29ad524b5f2d9f74eccaa203bee7ac5291eaa96811664",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit13/region-block-spans-wasm.log": "5f5d3e2f2de3c49dc6a969cf6b1d57d2ef2d225955ed93aabd8b2471cf2627cd"
+            },
+            "differences": [],
+            "verified_ir_policy": 13
+          }
+        ]
+      }
+    },
+    "15": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/summary.json",
+      "sha256": "fdaff4cd041e73005e55e4c7b62874eac32414aa4b2ce179c21affcfaf27dc29",
+      "result": {
+        "ir_policy": 15,
+        "completed_cases": 13856,
+        "results": [
+          {
+            "cases": 96,
+            "all_fields_match": 96,
+            "final_state_and_exact_memory_match": 96,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 24,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-long-native.log": "b2697b6d027357a601e462fb3df365edc2aa5ebde084c2b8c571a59f8b189374",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-long-wasm.log": "e4e120a5ecab5e6f4a55f081d8cab6df91458cf66606dd628763089a555247e6"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 5376,
+            "all_fields_match": 5376,
+            "final_state_and_exact_memory_match": 5376,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 1344,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-conditions-native.log": "4d24c6e377b1d18ae85807f4741f4f26a318e5fc86a4ca57dd0c027859974465",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-conditions-wasm.log": "3955e2bc72e528ef66bf213121881ddb9da1ab8184b9f360f2fb24bbacc54c82"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 96,
+            "all_fields_match": 96,
+            "final_state_and_exact_memory_match": 96,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 24,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-calls-native.log": "6686348b147b0c57dd1b0b52b55463ae80dea26ede418e4ec56c6b2c528c81e3",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-calls-wasm.log": "ce6b39683474ae5de92cae4d9307ca5aa621d14ef32a950e1d4a80c3076a03af"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 96,
+            "all_fields_match": 96,
+            "final_state_and_exact_memory_match": 96,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 24,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-calls-short-native.log": "2d8a5deabeb8ad54bc5c2df4f6016ccffe4f343e46134c94780eee48eab7ed65",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-calls-short-wasm.log": "9a76189e22492dda1eed09c82ace30e19aaed70b435805e4b5999a33dfc420d7"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 480,
+            "all_fields_match": 480,
+            "final_state_and_exact_memory_match": 480,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 120,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-flags-native.log": "1027303da3b8aba97ac4ee9ec7d08f9f032a9707b36b8542b95d756c243b2720",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-flags-wasm.log": "80c58cfd01ba4ac36ae6f8c6ee371fd6f38a173630564d23c0559699a7addb5d"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 64,
+            "all_fields_match": 64,
+            "final_state_and_exact_memory_match": 64,
+            "mismatched_fields": {},
+            "categories": {},
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/invariant-write-remap-native.log": "1e93e17243551ab0748d4d59d8d5acdcd3aed51646e9b24d82279be366b3ce10",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/invariant-write-remap-wasm.log": "d71c7137d5d7bc4285bec28997cd19e36fcafcc33443206c27e2555321beb1bf"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 64,
+            "all_fields_match": 64,
+            "final_state_and_exact_memory_match": 64,
+            "mismatched_fields": {},
+            "categories": {},
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/invariant-remap-native.log": "167f48b5048cf4fa792b75da9076578a1606ad5295cb4fbe24ad5a4c526bcd31",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/invariant-remap-wasm.log": "28fa1e8beb5849e2585dbac1a08876b53adf5682785ab3e1592693852bc7bc39"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-segments-native.log": "ed7578200d8b63eb3a016e10e677f709ebbc0a4409ca548febcda86fd145e7a1",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-segments-wasm.log": "3f1db6a98c1849e3108975a986ed2f01cb658fa60b9677e458cbf4a39d0c71c2"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 480,
+            "all_fields_match": 480,
+            "final_state_and_exact_memory_match": 480,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 120,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-memory-native.log": "442d2500460d025ce44f9e88c59e943e504ecd0c13617c32ddf27d1e6b6726b9",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-memory-wasm.log": "be0051ababd49460bedaedc99cc8f7070a92e88538e4328a9dbc816328cbcd6b"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 48,
+            "all_fields_match": 48,
+            "final_state_and_exact_memory_match": 48,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 12,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-memory-chain-native.log": "e312a136621cd89094574f65c362598c3505fb8b6890648ef47f1320358b6201",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-memory-chain-wasm.log": "c8cbbc355fc9bad7bb5ceba806c74aa88bac2f90a75c9f464fb51ab9478165ed"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 480,
+            "all_fields_match": 480,
+            "final_state_and_exact_memory_match": 480,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 120,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-wide-native.log": "5a92de2a0df61ae715a9a34c1fd4a1a9213d421d9e38797063f4c43544191937",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-wide-wasm.log": "fcc1b2a5f84e9c82a496b58956b974a154469fc151eb13f6efa5456828cc3103"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-addressing-native.log": "71ef1508cdc6be1f2f59ad70986016d38095ecb1b733d1882d62b027178cf5ef",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-addressing-wasm.log": "6c0c27d85ccceffc6d02ed8034c01b7667415993d76f7fe76fb29013ea7bbbad"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 480,
+            "all_fields_match": 480,
+            "final_state_and_exact_memory_match": 480,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 120,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-short-native.log": "ca39949718936d577dbf1c88b27cb60559985af14e8a1aff6b9782ad58ebd92b",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-short-wasm.log": "5f374d69eca459978ae4dc60be71cb22b09789c1e044eab4ea17f3b7aad7f19a"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 480,
+            "all_fields_match": 480,
+            "final_state_and_exact_memory_match": 480,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 120,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-recipes-native.log": "43b9252700f7bfa14722961cb07f388814ed05bac17479d3de12f2f4ec62c97a",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/ir-recipes-wasm.log": "10831f4f38a7cea6658f016ec56d6d5c3c5542e0ab432f64cd39b48b5929e24c"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/extended-native.log": "1d73350a38015964e6251489021e474aaf285f4a18143ca55fe95a481b7d55b9",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/extended-wasm.log": "1d73350a38015964e6251489021e474aaf285f4a18143ca55fe95a481b7d55b9"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/deferred-native.log": "1d73350a38015964e6251489021e474aaf285f4a18143ca55fe95a481b7d55b9",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/deferred-wasm.log": "960f4c5b8f9130733cedd2bffb995081628c65049de03336ff199486566996fd"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/entry-budget-native.log": "b5730c4d9793b0e9f6a66183c6fd2596ee072fdf6adf83a06debcb1e2429d731",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/entry-budget-wasm.log": "b5730c4d9793b0e9f6a66183c6fd2596ee072fdf6adf83a06debcb1e2429d731"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/entry-budget-deferred-native.log": "b5730c4d9793b0e9f6a66183c6fd2596ee072fdf6adf83a06debcb1e2429d731",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/entry-budget-deferred-wasm.log": "a39a9395a132f2abed732ad15e611ea1e7a081b6e26fecd90be746e29da611b6"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 48,
+            "all_fields_match": 48,
+            "final_state_and_exact_memory_match": 48,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 12,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/read-spans-native.log": "b474d66e47b97206b6d73c1afa83e11d5b9eff370bb7dfadc7409423efe2f245",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/read-spans-wasm.log": "5931e74b26f6436c2867042853af3bb325f9904e2a85d11132ad1f617d0c10ce"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/wide-snapshots-native.log": "393eb966300fb330fb39707c825232d84a3f02b8a29edc1c272b697f4d6e722e",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/wide-snapshots-wasm.log": "4328d323b9b9715e83b9edc511b0df034cc2f2457268fba7b15aeb8a82252d50"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 48,
+            "all_fields_match": 48,
+            "final_state_and_exact_memory_match": 48,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 12,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/region-spans-native.log": "e312a136621cd89094574f65c362598c3505fb8b6890648ef47f1320358b6201",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/region-spans-wasm.log": "c8cbbc355fc9bad7bb5ceba806c74aa88bac2f90a75c9f464fb51ab9478165ed"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 48,
+            "all_fields_match": 48,
+            "final_state_and_exact_memory_match": 48,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 12,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/region-spans-interpreter-native.log": "e312a136621cd89094574f65c362598c3505fb8b6890648ef47f1320358b6201",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/region-spans-interpreter-wasm.log": "600b9552178ff1479053904e0312e863b92b017b91151b4457c612ea0a51afb2"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 672,
+            "all_fields_match": 672,
+            "final_state_and_exact_memory_match": 672,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 168,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/entry-budget-interpreter-native.log": "b5730c4d9793b0e9f6a66183c6fd2596ee072fdf6adf83a06debcb1e2429d731",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/entry-budget-interpreter-wasm.log": "b5730c4d9793b0e9f6a66183c6fd2596ee072fdf6adf83a06debcb1e2429d731"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          },
+          {
+            "cases": 96,
+            "all_fields_match": 96,
+            "final_state_and_exact_memory_match": 96,
+            "mismatched_fields": {},
+            "categories": {},
+            "little_endian_unmapped_cases": 24,
+            "little_endian_unmapped_differences": 0,
+            "inputs": {
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/region-block-spans-native.log": "1f16f251453aee7eb9f4efcb8d9ef87eab94c9b5bd5d5ff79748503373d8fba1",
+              "/home/claude/.scratch/eka-benchmark/ir-stack-explicit15-v2/region-block-spans-wasm.log": "a85624c6be6ae50a2545915dba7b52dde10055cbbf1abaa5efe8dcd1c1fbc61b"
+            },
+            "differences": [],
+            "verified_ir_policy": 15
+          }
+        ]
+      }
+    }
+  },
+  "replays": {
+    "13": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-compare13.log",
+      "sha256": "a3ead4cda90609845adb7d73d821f149f1dd9035652be9dc1ceee6ece1391f40",
+      "result": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4919249,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+          "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+          "writes": 0,
+          "callbacks": 10190,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 10190,
+          "gameplay_nonzero_samples": 7223662,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 102484363,
+        "instructions": 16263331210
+      }
+    },
+    "15": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-compare15.log",
+      "sha256": "a3ead4cda90609845adb7d73d821f149f1dd9035652be9dc1ceee6ece1391f40",
+      "result": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4919249,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+          "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+          "writes": 0,
+          "callbacks": 10190,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 10190,
+          "gameplay_nonzero_samples": 7223662,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 102484363,
+        "instructions": 16263331210
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "policy": 13,
+      "file": "/home/claude/.scratch/eka-benchmark/ir-stack-fixture13/1879129820.wasm",
+      "sha256": "d3cf3c4c7ed844673a841aebaa81a158bd4e53569715e6cc02db6b493e856e5a",
+      "module_bytes": 32004,
+      "bodies": [
+        {
+          "body_bytes": 10650,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 82
+          }
+        },
+        {
+          "body_bytes": 19858,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 40
+          }
+        },
+        {
+          "body_bytes": 306,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 22
+          }
+        },
+        {
+          "body_bytes": 157,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 21
+          }
+        },
+        {
+          "body_bytes": 345,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 24
+          }
+        },
+        {
+          "body_bytes": 157,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 21
+          }
+        },
+        {
+          "body_bytes": 154,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 21
+          }
+        }
+      ]
+    },
+    {
+      "policy": 13,
+      "file": "/home/claude/.scratch/eka-benchmark/ir-stack-fixture13/1879130660.wasm",
+      "sha256": "0cf46655c32395660613a6eb9ec36ad7b65e45ec8e151877d93177dc879a2ea2",
+      "module_bytes": 19976,
+      "bodies": [
+        {
+          "body_bytes": 6163,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 86
+          }
+        },
+        {
+          "body_bytes": 12089,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 41
+          }
+        },
+        {
+          "body_bytes": 596,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 28
+          }
+        },
+        {
+          "body_bytes": 306,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 22
+          }
+        },
+        {
+          "body_bytes": 160,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 20
+          }
+        },
+        {
+          "body_bytes": 144,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 20
+          }
+        },
+        {
+          "body_bytes": 142,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 19
+          }
+        }
+      ]
+    },
+    {
+      "policy": 15,
+      "file": "/home/claude/.scratch/eka-benchmark/ir-stack-fixture15/1879129820.wasm",
+      "sha256": "f0ee041d3d116350c359272fd81611033a93afac4f40d8d7aca50b458a103e09",
+      "module_bytes": 31960,
+      "bodies": [
+        {
+          "body_bytes": 10606,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 79
+          }
+        },
+        {
+          "body_bytes": 19858,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 40
+          }
+        },
+        {
+          "body_bytes": 306,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 22
+          }
+        },
+        {
+          "body_bytes": 157,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 21
+          }
+        },
+        {
+          "body_bytes": 345,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 24
+          }
+        },
+        {
+          "body_bytes": 157,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 21
+          }
+        },
+        {
+          "body_bytes": 154,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 21
+          }
+        }
+      ]
+    },
+    {
+      "policy": 15,
+      "file": "/home/claude/.scratch/eka-benchmark/ir-stack-fixture15/1879130660.wasm",
+      "sha256": "cbd06bffe50d2d69419eeb472b69c4b4fae44adf6fe417098120e23c1276b7b6",
+      "module_bytes": 19856,
+      "bodies": [
+        {
+          "body_bytes": 6043,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 77
+          }
+        },
+        {
+          "body_bytes": 12089,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 41
+          }
+        },
+        {
+          "body_bytes": 596,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 28
+          }
+        },
+        {
+          "body_bytes": 306,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 22
+          }
+        },
+        {
+          "body_bytes": 160,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 20
+          }
+        },
+        {
+          "body_bytes": 144,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 20
+          }
+        },
+        {
+          "body_bytes": 142,
+          "locals": {
+            "0x7e": 1,
+            "0x7f": 19
+          }
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "ir-stack-tests.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-tests.log",
+      "sha256": "f153f6b11623fcf4a9ff0e0d1aeea2e51cc5321af7075c3ab7e9e54c61a465c0"
+    },
+    "ir-stack-native-tests.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-native-tests.log",
+      "sha256": "463ad486a7f293ccd3e8747a790b7f5adc24eb21dbd79d765b7cb05af0deb594"
+    },
+    "ir-stack-frontend-v2.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-frontend-v2.log",
+      "sha256": "1302198183accbd24842d04df04c48c23b53c659916cee7d5ed0cd46df5a122e"
+    }
+  },
+  "tools": {
+    "src/tests/benchmark/compare_cpu_faults.py": "2a9abcadabc05b93a007cf08eefedefbd6c003e0e74a3c62387cbd1aae20fbf4",
+    "src/tests/benchmark/run_cpu_fault_matrix.py": "2f53b7a1a1247f5c2bf5ad93fd74fef64c4f9bbcb0b7442441663cb50b45f286",
+    "src/tests/benchmark/serial_variants.py": "e5b212885e2a0b25114d54f0a9014a59c0798d0e45de1986b6094dbf23e43bbc"
+  },
+  "initial_failures": [
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-fault15.log",
+      "reason": "Comparator rejected newly valid policy 15 before comparisons; range corrected and complete matrix rerun.",
+      "sha256": "b9fc6d4fbdac173a72367f3ef213097caeddb68c53feba35965ee1d081b83176"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-frontend.log",
+      "reason": "Bundled Chromium missing; no acceptance tests ran. Retry explicitly selects /usr/bin/chromium.",
+      "sha256": "cf81ae22e074c6bbd09125e8572247c6009eb896c3fb7e38c5519dbc5d5fe619"
+    }
+  ],
+  "negative_policy_contract": {
+    "invalid-native.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-policy-contract/invalid-native.log",
+      "sha256": "9a8e2ea3b9f05d4d35494e7b68c1c09690602ecb2e785986b5675140cbedf877"
+    },
+    "invalid-wasm.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-policy-contract/invalid-wasm.log",
+      "sha256": "9a8e2ea3b9f05d4d35494e7b68c1c09690602ecb2e785986b5675140cbedf877"
+    },
+    "missing-native.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-policy-contract/missing-native.log",
+      "sha256": "d6ea27d5688424d850dd3f9d78a8050d37bf6ce32d784e599ab0455139cf0d77"
+    },
+    "missing.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-policy-contract/missing.log",
+      "sha256": "bc4db4f25f61cde503d92516ff7134a5260a07774f7339309fdfff167340de58"
+    },
+    "wrong.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-stack-policy-contract/wrong.log",
+      "sha256": "5da496f4a8e0416cb9c6d6fe404d5936785dcda9f77faf69907b1219795d7beb"
+    }
+  },
+  "provenance_note": "Application and probes built before archive. Comparator-only range correction after archive is captured by tools hash and local commit; archived application is unchanged."
+}

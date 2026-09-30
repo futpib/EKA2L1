@@ -75,6 +75,7 @@ namespace eka2l1::arm::aot {
         wasm_func_def func;
         bool entry_supported = true;
         // Research coverage metadata; never used to select guest addresses.
+        unsigned ir_stack_values = 0;
         unsigned ir_segments = 0, ir_max_segment_length = 0, ir_segment_instructions = 0;
         unsigned ir_memory_guards = 0;
         unsigned ir_proved_reads = 0, ir_proved_writes = 0, ir_flag_instructions = 0, ir_inline_transfers = 0, ir_conditional_instructions = 0;
