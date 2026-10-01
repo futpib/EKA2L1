@@ -1,5 +1,5 @@
 {
-  "status": "All 176 compiler tests pass; explicit native fault matrix and seven selected replays are running before timing.",
+  "status": "acceptance_complete_timing_pending",
   "focused_log": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS guard publication: 48 real lookup/runner sentinel checks; modes 0/1 always publish\n",
   "frontend_policy_result": "PASS scanner, lookup and fusion policies, exact mode/limit readback, rejected configuration and policy-dependent HTML ETags",
   "build_logs": {
@@ -9,8 +9,26 @@
   },
   "audit": "# Additional mode-3 runtime audit (not implemented or measured)\n\nThe sampled busy worker has about 11% self samples in find_original. Existing outlined lookup is the next independent test after literal fusion.\n\nA separate static lead: lookup_compiled_impl still writes cpu->aot_code_begin/end for every ROM/RAM entry, although mode 3 generated code omits their readers. aot_runtime.cpp lines 212, 223-224, 238-239; emitted readers in arm_translator.cpp are under skip_code_write_guards conditions. These writes have not been isolated in timing, so no speed estimate or change is warranted yet. A future experiment should select a templated guard-publication path once per runner, retain compatibility mode 0, verification callbacks and any alternate-policy tests, and prove no reader needs the fields before suppressing them. Do not add a test to each generated store. No mapping or lifetime check is implicated.\n\nNo build started, no source edit, no change to current frozen timing plan.\n\nAdditional audit after literal-PC delivery: normal mode-3 counters reproduce the earlier 9.11/9.05m region-entry reduction, with slightly lower compiled instruction coverage and negligible net WASM-heap changes. Those effects are separately recorded in MODE3_LITERAL_RESULTS.md; the old module byte-size result remains mode0 only.\n\nFor any guard-publication experiment, inspect the startup ROM emission path and every reader of AOT_CODE_BEGIN/END, not just RAM stores. Mode is frozen before CPU initialization, but precompiled/alternate-policy exports and verification callbacks must be considered explicitly. Prefer one runner-level selection of a templated lookup/runner path; do not add an experimental branch to each generated store. Preserve mapping-source, generation, ASID, liveness, permissions and fault behavior. Retain explicit mode0 publication and a same-binary control. This remains a static lead, not implemented or approved as a measured speedup.\n\n2026-10-01 follow-up audit while outlined-lookup timings run:\n- All production AOT_CODE_BEGIN/END loads occur in arm_translator.cpp scalar writes, IR guarded_host, write-span entry proofs, block stores, or census overlap capture; each is suppressed by skip_code_write_guards(). No Thumb reader exists.\n- Startup ROM exports (system/src/aot_setup.cpp), hot ROM/RAM translations and profile-guided Thumb modules are generated after the pre-initialization policy selection. stage_aot_module is used by these internal producers; no separate persisted generated-module cache was found in these paths.\n- Validation callbacks and ordinary C++ code do not read the two fields. Detailed census uses the cache entry pointer for dependency metadata, not these state slots.\n- A bounded candidate can template publication in lookup/runner, select once per runner, and omit it only when an independent opt-in switch AND skip_code_write_guards() are true. Modes 0/1 must retain publication even with the switch selected. All mapping/generation/ASID/liveness validation stays intact.\n- Required focused test: real lookup/runner with sentinel guard fields, both switches, all unsafe modes, normal/detailed runners, budgets/stop/IRQ, and a synthetic function that checks each lookup publication. This checks removal rather than merely matching guest output.\n- Added cost: additional runner specializations/static module bytes and one choice at the outer entry. Measure those and full gameplay rather than assuming two omitted stores help. This is pending the lookup result; no compiler build or source mutation ran during that panel.\n",
   "scripts": {
-    "prepare_guard_publication.py": "from pathlib import Path\nr=Path('/home/claude/code/EKA2L1')\ndef edit(name, old, new, count=1):\n p=r/name;s=p.read_text();assert s.count(old)==count,(name,s.count(old),old[:80]);p.write_text(s.replace(old,new))\nedit('src/emu/cpu/include/cpu/aot/aot_runtime.h','    extern bool diagnostics_enabled;','    extern bool diagnostics_enabled;\\n    // Opt-in runtime layout experiment; effective only when emitted code has no interval guards.\\n    extern bool omit_guard_publication;')\nf='src/emu/cpu/src/aot/aot_runtime.cpp'\nedit(f,'bool diagnostics_enabled = false;','bool diagnostics_enabled = false;\\nbool omit_guard_publication = false;')\nedit(f,'template<bool Profile>\\nstatic aot_func lookup_compiled_impl','template<bool Profile, bool PublishGuards>\\nstatic aot_func lookup_compiled_impl')\nedit(f,'        cpu->aot_code_begin = cpu->aot_code_end = 0; // ROM is immutable.','        if constexpr (PublishGuards) cpu->aot_code_begin = cpu->aot_code_end = 0; // ROM is immutable.')\nedit(f,'        cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);\\n        cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);','        if constexpr (PublishGuards) {\\n            cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);\\n            cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);\\n        }')\nedit(f,'    cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);\\n    cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);','    if constexpr (PublishGuards) {\\n        cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);\\n        cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);\\n    }')\nedit(f,'''aot_func lookup_compiled(ARMul_State *cpu) {\n    return common::guest_profile::enabled && common::performance::enabled && common::performance::detailed\n        ? lookup_compiled_impl<true>(cpu) : lookup_compiled_impl<false>(cpu);\n}\n\ntemplate<bool Verify, bool Profile>''','''template<bool PublishGuards>\nstatic aot_func lookup_compiled_selected(ARMul_State *cpu) {\n    return common::guest_profile::enabled && common::performance::enabled && common::performance::detailed\n        ? lookup_compiled_impl<true, PublishGuards>(cpu) : lookup_compiled_impl<false, PublishGuards>(cpu);\n}\n\naot_func lookup_compiled(ARMul_State *cpu) {\n    // The executable-byte policy is frozen before modules are generated. Modes\n    // with emitted interval readers always retain publication, even when the\n    // experiment is selected. Mapping/lifetime validation is unchanged.\n    if (omit_guard_publication && common::code_tracking::skip_code_write_guards())\n        return lookup_compiled_selected<false>(cpu);\n    return lookup_compiled_selected<true>(cpu);\n}\n\ntemplate<bool Verify, bool Profile, bool PublishGuards>''')\nedit(f,'function = lookup_compiled_impl<Profile>(cpu);','function = lookup_compiled_impl<Profile, PublishGuards>(cpu);')\nedit(f,'compiled_run execute_chain(ARMul_State *cpu, aot_func function) {','template<bool PublishGuards>\\nstatic compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {')\nfor args in ['true, true','false, true','false, false']:\n edit(f,'execute_chain_impl<'+args+'>','execute_chain_impl<'+args+', PublishGuards>')\nedit(f,'std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {','''compiled_run execute_chain(ARMul_State *cpu, aot_func function) {\n    // Choose once per outer runner, not once per compiled region or guest store.\n    if (omit_guard_publication && common::code_tracking::skip_code_write_guards())\n        return execute_chain_selected<false>(cpu, function);\n    return execute_chain_selected<true>(cpu, function);\n}\n\nstd::uint32_t execute_single(ARMul_State *cpu, aot_func function) {''')\nf='src/emu/wasm/main.cpp'\nedit(f,'EMSCRIPTEN_KEEPALIVE\\nint eka2l1_code_lookup_configure(int mode) {','''EMSCRIPTEN_KEEPALIVE\nint eka2l1_omit_guard_publication_configure(int mode) {\n    if (g_state || mode < 0 || mode > 1) return -1;\n    eka2l1::arm::aot::omit_guard_publication = mode != 0;\n    return 0;\n}\n\nEMSCRIPTEN_KEEPALIVE\nint eka2l1_omit_guard_publication_report() {\n    return eka2l1::arm::aot::omit_guard_publication ? 1 : 0;\n}\n\nEMSCRIPTEN_KEEPALIVE\nint eka2l1_code_lookup_configure(int mode) {''')\nf='src/tests/aot/test_aot_wasm.cpp'\ntest=r'''\nstatic bool publication_test_omit=false,publication_test_ok=true;\nstatic unsigned publication_test_calls=0;\nstatic std::uint32_t publication_test_function(ARMul_State *cpu) {\n    const auto begin=publication_test_omit?0x12345678u:0u;\n    const auto end=publication_test_omit?0x23456789u:0u;\n    publication_test_ok &= cpu->aot_code_begin==begin && cpu->aot_code_end==end;\n    // Every subsequent lookup must either republish or leave these sentinels.\n    cpu->aot_code_begin=0x12345678;cpu->aot_code_end=0x23456789;\n    ++publication_test_calls;++cpu->Reg[0];return 1;\n}\nstatic bool test_guard_publication() {\n    namespace tracking=eka2l1::common::code_tracking;\n    namespace perf=eka2l1::common::performance;\n    namespace gp=eka2l1::common::guest_profile;\n    struct restore {\n        bool omit=omit_guard_publication,ram=ram_compilation_enabled;\n        bool enabled=perf::enabled,detailed=perf::detailed,guest=gp::enabled;\n        unsigned mode=tracking::unsafe_code_mode;\n        ~restore(){omit_guard_publication=omit;ram_compilation_enabled=ram;\n            perf::enabled=enabled;perf::detailed=detailed;gp::enabled=guest;\n            tracking::unsafe_code_mode=mode;global_registry().unregister_function(0x54340);}\n    } saved;\n    test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);\n    ram_compilation_enabled=false;gp::enabled=false;\n    global_registry().register_function(0x54340,publication_test_function);\n    auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);\n    unsigned checks=0;\n    for(unsigned mode=0;mode<4;++mode)for(bool omit:{false,true})for(bool detailed:{false,true})\n    for(unsigned budget:{1u,2u,5u}) {\n        tracking::unsafe_code_mode=mode;omit_guard_publication=omit;\n        perf::enabled=detailed;perf::detailed=detailed;gp::enabled=detailed;\n        publication_test_omit=omit && (mode&2);publication_test_ok=true;publication_test_calls=0;\n        auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54340;cpu.TFlag=0;\n        cpu.NumInstrsToExecute=budget;cpu.aot_budget=budget;cpu.NirqSig=1;cpu.Cpsr=16;\n        cpu.aot_code_begin=0x12345678;cpu.aot_code_end=0x23456789;\n        auto function=lookup_compiled(&cpu);\n        if(function!=publication_test_function)return false;\n        const auto result=execute_chain(&cpu,function);\n        if(!publication_test_ok || publication_test_calls!=budget || result.instructions!=budget\n            || result.blocks!=budget || cpu.Reg[0]!=budget) {\n            printf(\" FAIL guard publication mode=%u omit=%u detailed=%u budget=%u\\n\",mode,omit,detailed,budget);return false;\n        }\n        ++checks;\n    }\n    printf(\" PASS guard publication: %u real lookup/runner sentinel checks; modes 0/1 always publish\\n\",checks);\n    return true;\n}\n'''\nedit(f,'static bool test_inline_limits() {',test+'\\nstatic bool test_inline_limits() {')\nedit(f,'    if(argc==2 && std::string(argv[1])==\"--execution-limits-only\")','    if(argc==2 && std::string(argv[1])==\"--guard-publication-only\")return test_guard_publication()?0:1;\\n    if(argc==2 && std::string(argv[1])==\"--execution-limits-only\")')\nedit(f,'    if (test_execution_limits()) passed++; else failed++;','    if (test_execution_limits()) passed++; else failed++;\\n    if (test_guard_publication()) passed++; else failed++;')\nprint('Runtime, API and focused runner tests prepared. Harness changes are a separate step.')\n",
-    "prepare_guard_harness.py": "from pathlib import Path\nr=Path('/home/claude/code/EKA2L1')\ndef edit(name,old,new,count=1):\n p=r/name;s=p.read_text();assert s.count(old)==count,(name,s.count(old),old[:80]);p.write_text(s.replace(old,new))\nfor name in ['benchmark.ts','profile.ts']:\n f='src/tests/wasm/'+name\n edit(f,'const codeCompare = process.env.EKA2L1_CODE_COMPARE',\"const omitGuardText=process.env.EKA2L1_OMIT_GUARD_PUBLICATION;\\nif(omitGuardText!==undefined && !/^[01]$/.test(omitGuardText))throw Error('Invalid guard publication policy');\\nconst omitGuardPublication=omitGuardText===undefined?-1:Number(omitGuardText);\\nconst codeCompare = process.env.EKA2L1_CODE_COMPARE\")\n p=r/f;s=p.read_text();assert s.count('codeCompare, codeLookup,')==2;s=s.replace('codeCompare, codeLookup,','codeCompare, codeLookup, omitGuardPublication,');p.write_text(s)\n edit(f,'    if (codeCompare !== -1) {',\"\"\"    if (omitGuardPublication !== -1) {\n      if (typeof g.Module._eka2l1_omit_guard_publication_configure !== 'function') throw Error('Build lacks guard publication selection');\n      call('eka2l1_omit_guard_publication_configure',['number'],[omitGuardPublication]);\n    }\n    g.omitGuardPublicationActual=typeof g.Module._eka2l1_omit_guard_publication_report==='function'\n      ?g.Module.ccall('eka2l1_omit_guard_publication_report','number',[],[]):null;\n    if(omitGuardPublication!==-1 && g.omitGuardPublicationActual!==omitGuardPublication)throw Error('Guard publication readback mismatch');\n    if (codeCompare !== -1) {\"\"\")\n edit(f,'code_lookup: codeLookup,','code_lookup: codeLookup, omit_guard_publication:await page.evaluate(()=>(globalThis as any).omitGuardPublicationActual),')\nf='src/tests/wasm/server.ts'\nedit(f,'codeLookup?: number;','codeLookup?: number; omitGuardPublication?: number;')\nedit(f,'  const lookup = process.env.EKA2L1_CODE_LOOKUP;','  const lookup = process.env.EKA2L1_CODE_LOOKUP;\\n  const omitGuards = process.env.EKA2L1_OMIT_GUARD_PUBLICATION;')\nedit(f,'  if (lookup !== undefined) {',\"  if (omitGuards !== undefined) {\\n    if (!/^[01]$/.test(omitGuards)) throw new Error('Invalid guard publication policy');\\n    policy.omitGuardPublication = Number(omitGuards);\\n  }\\n  if (lookup !== undefined) {\")\nedit(f,'      || (policy.codeLookup !== undefined','      || (policy.omitGuardPublication !== undefined && ![0,1].includes(policy.omitGuardPublication))\\n      || (policy.codeLookup !== undefined')\nedit(f,\"['codeLookup','eka2l1_code_lookup_configure'],\",\"['codeLookup','eka2l1_code_lookup_configure'], ['omitGuardPublication','eka2l1_omit_guard_publication_configure'],\")\nedit(f,\"[['predicatedLeaves','eka2l1_leaf_predication_report'],\",\"[['omitGuardPublication','eka2l1_omit_guard_publication_report'], ['predicatedLeaves','eka2l1_leaf_predication_report'],\")\nf='src/tests/wasm/compiler-policy.test.ts'\nedit(f,\"'EKA2L1_UNSAFE_CODE'])\",\"'EKA2L1_UNSAFE_CODE','EKA2L1_OMIT_GUARD_PUBLICATION'])\")\nedit(f,\"    ['EKA2L1_UNSAFE_CODE','unsafeCode',\",\"    ['EKA2L1_OMIT_GUARD_PUBLICATION','omitGuardPublication',['0','1'],['','2','-1','1.0']],\\n    ['EKA2L1_UNSAFE_CODE','unsafeCode',\")\nedit(f,'    ...[0,1,2,3].map(unsafeCode=>','    ...[0,1].map(omitGuardPublication=>({omitGuardPublication,unsafeCode:3,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,16,8,512]})),\\n    ...[0,1,2,3].map(unsafeCode=>')\nedit(f,\"...('unsafeCode' in policy?['unsafe_code']:[])];\",\"...('unsafeCode' in policy?['unsafe_code']:[]),...('omitGuardPublication' in policy?['omit_guard_publication']:[])];\")\nedit(f,\"...('unsafeCode' in policy?[policy.unsafeCode]:[])];\",\"...('unsafeCode' in policy?[policy.unsafeCode]:[]),...('omitGuardPublication' in policy?[policy.omitGuardPublication]:[])];\")\nedit(f,\"...('unsafeCode' in policy?{eka2l1_unsafe_code_configure:[policy.unsafeCode]}:{})});\",\"...('unsafeCode' in policy?{eka2l1_unsafe_code_configure:[policy.unsafeCode]}:{}),...('omitGuardPublication' in policy?{eka2l1_omit_guard_publication_configure:[policy.omitGuardPublication]}:{})});\")\nedit(f,'    {unsafeCode:4},','    {omitGuardPublication:2},{omitGuardPublication:-1},{omitGuardPublication:NaN},\\n    {unsafeCode:4},')\nprint('Replay/profile/launcher policy configuration and tests prepared.')\nf='src/tests/benchmark/serial_variants.py'\nedit(f,\"parser.add_argument('--code-lookup',\", \"parser.add_argument('--omit-guard-publication',action='append',default=[],metavar='NAME=0/1')\\nparser.add_argument('--code-lookup',\")\nedit(f,'lookup_modes = {}',\"guard_modes = {}\\nfor item in args.omit_guard_publication:\\n    name,separator,value=item.partition('=')\\n    if not separator or name not in dict(variants) or name in guard_modes or value not in ('0','1'):\\n        parser.error('Guard publication requires unique known NAME=0/1')\\n    guard_modes[name]=int(value)\\nlookup_modes = {}\")\nedit(f,\"        env.pop('EKA2L1_CODE_LOOKUP', None)\",\"        env.pop('EKA2L1_OMIT_GUARD_PUBLICATION',None)\\n        if name in guard_modes:env['EKA2L1_OMIT_GUARD_PUBLICATION']=str(guard_modes[name])\\n        env.pop('EKA2L1_CODE_LOOKUP', None)\")\nedit(f,\"        if report.get('unsafe_code')\", \"        if name in guard_modes and report.get('omit_guard_publication')!=guard_modes[name]:\\n            raise RuntimeError('Wrong guard publication mode')\\n        if name not in guard_modes and report.get('omit_guard_publication') not in (None,0):\\n            raise RuntimeError('Unexpected nondefault guard publication mode')\\n        if report.get('unsafe_code')\")\nedit(f,\"        row = dict(unsafe_code=\", \"        row = dict(omit_guard_publication=report.get('omit_guard_publication'),unsafe_code=\")\nfreeze=\"\"\"  if (omitGuardPublication !== -1) await page.evaluate(() => {\n    const g=window as any;\n    if(g.Module.ccall('eka2l1_omit_guard_publication_configure','number',['number'],[1-g.omitGuardPublicationActual])!==-1)\n      throw Error('Guard publication changed after CPU initialization');\n    if(g.Module.ccall('eka2l1_omit_guard_publication_report','number',[],[])!==g.omitGuardPublicationActual)\n      throw Error('Guard publication readback changed');\n  });\n\"\"\"\nedit('src/tests/wasm/benchmark.ts',\"  await page.evaluate(() => (window as any).Module._eka2l1_shutdown());\",freeze+\"  await page.evaluate(() => (window as any).Module._eka2l1_shutdown());\")\nedit('src/tests/wasm/profile.ts',\"  fs.writeFileSync(path.join(output, 'report.json'),\",freeze+\"  fs.writeFileSync(path.join(output, 'report.json'),\")\n"
+    "accept_guard_publication.py": {
+      "sha256": "22bacae8edf7945032564e056857a6938eb5cde06614499ab9168109864e3e64",
+      "source": "from pathlib import Path\nimport subprocess,os,json,time,re\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'guard-publication-candidate'\ndef phase(name,**kw):\n (s/'guard-publication-acceptance-state.json').write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ne=dict(os.environ,EKA2L1_WASM_BUILD_DIR=str(a),EKA2L1_AOT_IR_MODE='7',EKA2L1_AOT_EAGER_REGIONS='0',EKA2L1_TLB_HASH='1',EKA2L1_SHARED_AUDIO='1',EKA2L1_BENCHMARK_AOT='5',EKA2L1_AOT_VERIFY='0',EKA2L1_CODE_COMPARE='2',EKA2L1_CODE_LOOKUP='0',EKA2L1_EXECUTION_LIMITS='512,16,8,512',EKA2L1_PREDICATED_LEAVES='1',EKA2L1_LEAF_FEATURES='128',EKA2L1_UNSAFE_CODE='3',EKA2L1_EXIT_CENSUS='0')\nfor k in ['LD_LIBRARY_PATH','EKA2L1_GUEST_PROFILE','EKA2L1_AOT_DIAGNOSTICS','EKA2L1_OMIT_GUARD_PUBLICATION','EKA2L1_CODE_WRITE_PROTECT']:e.pop(k,None)\ndef run(args,name,cwd=r,env=e):\n with(s/name).open('w')as log:subprocess.run(args,cwd=cwd,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=1800)\n print(name+' PASS',flush=True)\ntry:\n phase('waiting_for_compiler_suite')\n start=time.time()\n while '176 passed, 0 failed' not in (s/'guard-publication-suite.log').read_text():\n  text=(s/'guard-publication-suite.log').read_text()\n  if re.search(r'\\d+ passed, [1-9]\\d* failed',text) or time.time()-start>1800:raise RuntimeError('Compiler suite failed or timed out; original log retained')\n  time.sleep(3)\n phase('native_faults')\n # This probe tests generated instructions/callbacks, not the publication selector.\n # Dedicated real-runner tests and selected browser replays cover that selector.\n run(['python3','src/tests/benchmark/run_cpu_fault_matrix.py',str(a),str(s/'guard-publication-fault'),'--ir-policy','7','--code-compare','2','--tlb-hash','1','--execution-limits','512,16,8,512','--predicated-leaves','1','--exit-census','0','--leaf-features','128','--code-lookup','0','--unsafe-code','3','--literal-pc-veneers'],'guard-publication-fault.log')\n q=json.loads((s/'guard-publication-fault/summary.json').read_text());assert q['completed_cases']==46016 and all(x['all_fields_match']==x['cases']for x in q['results'])\n for mode,omit,verify,scene in [(3,1,0,'standard'),(3,1,0,'long'),(3,0,0,'standard'),(3,0,0,'long'),(3,1,1024,'standard'),(3,1,1024,'long'),(0,1,0,'standard')]:\n  label=f'{scene}-m{mode}-o{omit}-v{verify}'\n  phase('native_replay',label=label)\n  frames,start,route,ref,pcm=(1600,21000000,'snakes.input','merge-20260930-native',4656051)if scene=='standard'else(360,42000000,'snakes-length-long.input','merge-20260930-long-native',2832756)\n  out=s/f'guard-publication-replay-{label}'\n  env=dict(e,EKA2L1_UNSAFE_CODE=str(mode),EKA2L1_OMIT_GUARD_PUBLICATION=str(omit),EKA2L1_AOT_VERIFY=str(verify))\n  run(['node','benchmark.ts',str(s/'assets'),str(out),str(frames),str(r/'src/tests/benchmark'/route),str(start)],f'guard-publication-replay-{label}.log',r/'src/tests/wasm',env)\n  run(['python3','src/tests/benchmark/compare.py',str(s/ref/'run-0/frames'),str(out)],f'guard-publication-compare-{label}.json')\n  c=json.loads((s/f'guard-publication-compare-{label}.json').read_text());assert c['match']and c['frames']==frames and c['audio']['sample_frames']==pcm\n  q=json.loads((out/'report.json').read_text());assert q['unsafe_code']==mode and q['unsafe_code_initial']==3 and q['verify_aot']==verify and q['leaf_features']==128 and q['code_lookup']==0 and q['predicated_leaves']==1 and q['omit_guard_publication']==omit\n phase('acceptance_complete')\n (s/'guard-publication-acceptance-complete.json').write_text(json.dumps(dict(accepted=True,archive=str(a),mode=3,features=128,lookup=0)))\nexcept Exception as error:phase('failure',error=str(error));raise\n"
+    },
+    "run_guard_publication_timing.py": {
+      "sha256": "2924c1e3cc1b0c1759e04161de5c3c852b208042ccd4f544918f4c21c1668bf8",
+      "source": "from pathlib import Path\nimport os,subprocess,json,sys\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'guard-publication-candidate';baseline=s/'unsafe-default-candidate'\nscene,batch=sys.argv[1:];assert scene in ('long','standard')and batch in ('a','b')\nstart,end,route=(42000000,60000000,'snakes-length-long.input')if scene=='long'else(60000000,78000000,'snakes.input')\norder={'a':['control','candidate','baseline'],'b':['candidate','baseline','control']}[batch]\nargs=['python3','src/tests/benchmark/serial_variants.py',str(s/'assets'),str(s/f'guard-publication-timing-{scene}-{batch}')]+[f'{n}={baseline if n==\"baseline\"else a}'for n in order]\nfor name in order:\n for option,value in [('unsafe-code','3'),('ir-mode','7'),('eager-regions','0'),('tlb-hash','1'),('code-compare','2'),('code-lookup','0'),('execution-limits','512,16,8,512'),('predicated-leaves','1'),('leaf-features','128'),('input',str(r/'src/tests/benchmark'/route))]:args.extend(['--'+option,f'{name}={value}'])\n if name!='baseline':args.extend(['--omit-guard-publication',f'{name}={int(name==\"candidate\")}'])\nargs+=['--start-us',str(start),'--end-us',str(end)]\nsubprocess.run(args,cwd=r,env=dict(os.environ,EKA2L1_SHARED_AUDIO='1'),check=True)\nrows=json.loads((s/f'guard-publication-timing-{scene}-{batch}/measurements.json').read_text());assert len(rows)==6\nassert len({(x['measurement']['first_instructions'],x['measurement']['last_instructions'],x['measurement']['presentations'])for x in rows})==1\nprint(scene,batch,'identical guest work verified',flush=True)\n"
+    },
+    "guarded_guard_publication_timings.py": {
+      "sha256": "fceeaf552e90b9589e16ae23ac8c05fb093e62cad51b07fe60eaf24190ea7d58",
+      "source": "from pathlib import Path\nimport os,time,json,subprocess,sys\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1');state=s/'guard-publication-timing-state.json'\ndef phase(name,**kw):\n state.write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ndef foreign():\n rows={}\n for p in Path('/proc').iterdir():\n  if not p.name.isdecimal():continue\n  try:\n   args=(p/'cmdline').read_bytes().split(b'\\0');args=[x.decode(errors='replace')for x in args if x]\n   fields=(p/'stat').read_text().rsplit(')',1)[1].split();parent=int(fields[1])\n  except (OSError,ValueError,IndexError):continue\n  rows[int(p.name)]=(parent,args)\n own={os.getpid()}\n while True:\n  add={pid for pid,(parent,_)in rows.items()if parent in own}\n  if add<=own:break\n  own|=add\n found=[]\n for pid,(parent,args)in rows.items():\n  if pid in own or not args:continue\n  exe=Path(args[0]).name\n  active=exe.startswith('node')and any(x.endswith('/profile.ts')or x=='profile.ts'or('service-overlap-'in x and x.endswith('.ts'))or Path(x).name in ('benchmark.ts','live.ts','softkeys.ts','route.ts')or x.endswith('/test_aot_wasm.js')or x.endswith('/eka_cpu_fault_wasm.js')for x in args[1:])\n  active|=exe.startswith('eka_cpu_fault_')\n  active|=exe in ('cmake','ninja','make','cc1','cc1plus','clang','clang++','clang-23','wasm-opt','wasm-ld','ld.lld','emcc','em++')\n  if active:found.append(dict(pid=pid,parent=parent,args=args))\n return found\ndef telemetry(scene,batch,start):\n read_start=time.perf_counter()\n sample=dict(seconds=time.time()-start,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),frequency_khz={},temperatures_millidegrees={})\n for path in sorted(Path('/sys/devices/system/cpu/cpufreq').glob('policy*/scaling_cur_freq')):\n  try:sample['frequency_khz'][path.parent.name]=int(path.read_text())\n  except (OSError,ValueError):pass\n for path in sorted(Path('/sys/class/thermal').glob('thermal_zone*/temp')):\n  try:sample['temperatures_millidegrees'][path.parent.name+':'+(path.parent/'type').read_text().strip()]=int(path.read_text())\n  except (OSError,ValueError):pass\n try:sample['loadavg']=Path('/proc/loadavg').read_text().strip()\n except OSError:pass\n try:sample['completed_rows']=len(json.loads((s/f'guard-publication-timing-{scene}-{batch}/measurements.json').read_text()))\n except (OSError,ValueError):sample['completed_rows']=0\n sample['observer_duration_seconds']=time.perf_counter()-read_start\n return sample\ntry:\n assert json.loads((s/'guard-publication-acceptance-complete.json').read_text())['accepted'] is True\n assert (r/'src/tests/benchmark/MODE3_REMAINING_EVIDENCE.json').exists()\n for scene,batch in [('long','a'),('standard','a'),('long','b'),('standard','b')]:\n  phase('waiting_for_quiet',scene=scene,batch=batch)\n  quiet=0\n  while quiet<15:\n   jobs=foreign();quiet=0 if jobs else quiet+1;time.sleep(2)\n  phase('timing',scene=scene,batch=batch)\n  observed={};start=time.time();host_samples=[]\n  with(s/f'guard-publication-timing-{scene}-{batch}-driver.log').open('w')as log:\n   child=subprocess.Popen(['bash','-lc',f'source {s}/write-protection-gpu.env\\npython3 {s}/run_guard_publication_timing.py {scene} {batch}'],cwd=r,stdout=log,stderr=subprocess.STDOUT)\n   while child.poll()is None:\n    host_samples.append(telemetry(scene,batch,start))\n    for job in foreign():\n     key=str(job['pid']);observed.setdefault(key,dict(**job,first_seconds=time.time()-start))['last_seconds']=time.time()-start\n    time.sleep(2)\n  evidence=dict(telemetry=host_samples,telemetry_note='Passive sysfs readings every two seconds across startup, warmup and measurement; not a cause attribution or exclusion criterion.',scene=scene,batch=batch,returncode=child.returncode,observer_interval_seconds=2,foreign_jobs=list(observed.values()),note='Host process observer excludes its own descendants; it does not measure all possible host contention or normalize timings.')\n  (s/f'guard-publication-timing-{scene}-{batch}-host.json').write_text(json.dumps(evidence,indent=2)+'\\n')\n  if child.returncode:raise RuntimeError('Timing harness failed')\n  if observed:raise RuntimeError('Observed concurrent profiling; completed batch retained, queue held')\n phase('all_timing_complete')\nexcept Exception as e:phase('failure',error=str(e));raise\n"
+    },
+    "record_guard_publication.py": {
+      "sha256": "f3be57f07b04d52ecc68e5c4fe4cfdec9bb48b606d2112ee213f3116e0a42a07",
+      "source": "from pathlib import Path\nimport json,hashlib\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');d=r/'src/tests/benchmark';p=d/'GUARD_PUBLICATION_EVIDENCE.json'\nread=lambda p:json.loads(p.read_text())\nassert read(s/'guard-publication-acceptance-complete.json')['accepted']\ne=read(p);e['compiler_suite']=(s/'guard-publication-suite.log').read_text();assert '176 passed, 0 failed'in e['compiler_suite']\ne['faults']=read(s/'guard-publication-fault/summary.json');assert e['faults']['completed_cases']==46016\ne['fault_scope']='Fresh explicit mode-3/feature-128 emitted-instruction/native fault matrix. Publication switch is covered by the 48 real-runner checks and selected replays, not this direct instruction probe.'\narchives={n:read(s/n/'source.json')for n in ['guard-publication-candidate','unsafe-default-candidate']}\nfor name,a in archives.items():\n for filename,h in a['files'].items():assert hashlib.sha256((s/name/filename).read_bytes()).hexdigest()==h,(name,filename)\ne['archives']=archives;e['replays']={}\nfor mode,omit,verify,scene in [(3,1,0,'standard'),(3,1,0,'long'),(3,0,0,'standard'),(3,0,0,'long'),(3,1,1024,'standard'),(3,1,1024,'long'),(0,1,0,'standard')]:\n label=f'{scene}-m{mode}-o{omit}-v{verify}';q=read(s/f'guard-publication-replay-{label}/report.json');c=read(s/f'guard-publication-compare-{label}.json')\n assert c['match']and c['frames']==(1600 if scene=='standard'else 360)and c['audio']['sample_frames']==(4656051 if scene=='standard'else 2832756)\n assert q['unsafe_code']==mode and q['omit_guard_publication']==omit and q['leaf_features']==128 and q['code_lookup']==0 and q['verify_aot']==verify and q['execution_limits']==[512,16,8,512]\n assert q['wasm_sha256']==archives['guard-publication-candidate']['files']['eka2l1.wasm']and q['loader_sha256']==archives['guard-publication-candidate']['files']['eka2l1.js']\n e['replays'][label]={'report':q,'comparison':c}\ne['scripts']={name:{'sha256':hashlib.sha256((s/name).read_bytes()).hexdigest(),'source':(s/name).read_text()}for name in ['accept_guard_publication.py','run_guard_publication_timing.py','guarded_guard_publication_timings.py','record_guard_publication.py','finish_guard_publication.py']}\ne['timings']={};complete=True\nfor scene,b in [('long','a'),('standard','a'),('long','b'),('standard','b')]:\n path=s/f'guard-publication-timing-{scene}-{b}/measurements.json';hp=s/f'guard-publication-timing-{scene}-{b}-host.json'\n if not path.exists()or not hp.exists():complete=False;continue\n rows=read(path);host=read(hp);assert len(rows)==6 and not host['foreign_jobs']and host['returncode']==0\n assert len({tuple(x['measurement'][k]for k in ['first_instructions','last_instructions','presentations'])for x in rows})==1\n for x in rows:\n  mode=x['name'].rsplit('-',1)[0];archive=archives['unsafe-default-candidate'if mode=='baseline'else'guard-publication-candidate']\n  assert x['wasm_sha256']==archive['files']['eka2l1.wasm']and x['loader_sha256']==archive['files']['eka2l1.js']\n  assert x['unsafe_code']==3 and x['leaf_features']==128 and x['code_lookup']==0 and x['execution_limits']==[512,16,8,512]and not x['measurement']['detailed']\n  assert x['omit_guard_publication']==(None if mode=='baseline'else int(mode=='candidate'))\n vals={n:[x['measurement']['wall_seconds']for x in rows if x['name'].startswith(n)]for n in ['control','candidate','baseline']};means={n:sum(v)/2 for n,v in vals.items()}\n pairs={n:[(c/v-1)*100 for c,v in zip(vals[n],vals['candidate'])]for n in ['control','baseline']}\n gains={n:(means[n]/means['candidate']-1)*100 for n in ['control','baseline']}\n e['timings'][scene+'-'+b]={'rows':rows,'host':host,'means':means,'gains_percent':gains,'half_pairs_percent':pairs}\ne['status']='timing_complete_pending_review'if complete else'acceptance_complete_timing_pending'\np.write_text(json.dumps(e,indent=2)+'\\n')\np=d/'GUARD_PUBLICATION_RESULTS.md';prefix=p.read_text().split('\\n## Full acceptance')[0]\nlines=['','## Full acceptance','','All 176 compiler tests pass, including 48 real-runner publication checks and the','existing budget, callback, remap, cache and deliberate stale-code tests. Fresh','mode-3/feature-128 native fault comparisons match in all 46,016 cases. That','direct-instruction probe covers emitted operations; the publication option is','exercised by the focused real runner and browser replays.','','Both new-binary modes exactly match standard 1,600 images / 4,656,051 stereo','PCM frames and longer 360 images / 2,832,756 PCM frames, including guest records.','The candidate also passes both interpreter-checked routes at stride 1024.','Explicit mode 0 with the option selected passes standard exact replay; its','interval publication remains enabled. Configuration readback and rejection of','post-initialization changes are checked in those runs.','','The 24-observation timing plan compares candidate, matching control and the','untouched delivered archive, with literal feature 128, mode 3, lookup 0 and','limits 512/16/8/512 fixed. All samples, actual orders and passive host readings','are retained. The old archive has no publication-selector API; no selector is','sent to it, and its original publishing runtime is the baseline.']\nif complete:\n lines+=['','| Route/batch | Matching seconds | Candidate seconds | Live seconds | vs matching | vs live |','| --- | ---: | ---: | ---: | ---: | ---: |']\n for k,v in e['timings'].items():\n  m=v['means'];g=v['gains_percent'];lines.append(f\"| {k} | {m['control']:.5f} | {m['candidate']:.5f} | {m['baseline']:.5f} | {g['control']:+.2f}% | {g['baseline']:+.2f}% |\")\n lines+=['','All 24 observations are retained. Review is pending; no promotion is automatic.']\nelse:lines+=['','Acceptance passes. Timings are pending; no speed claim or promotion.']\np.write_text(prefix+'\\n'.join(lines)+'\\n')\nprint(e['status'],json.dumps({k:{x:v[x]for x in ['means','gains_percent','half_pairs_percent']}for k,v in e['timings'].items()},indent=2))\n"
+    },
+    "finish_guard_publication.py": {
+      "sha256": "e3e29001aae968d96d897f0626e1766f9447e129062a3f2837b1dba7c271ccb8",
+      "source": "from pathlib import Path\nimport json,subprocess,time\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1')\ndef phase(name):\n (s/'guard-publication-queue-state.json').write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()))));print(name,flush=True)\ndef run(script):subprocess.run(['python3',str(s/script)],cwd=r,check=True)\ndef commit(message):\n subprocess.run(['git','add','src/tests/benchmark/GUARD_PUBLICATION_RESULTS.md','src/tests/benchmark/GUARD_PUBLICATION_EVIDENCE.json'],cwd=r,check=True)\n subprocess.run(['git','commit','-m',message],cwd=r,check=True)\ntry:\n phase('waiting_for_acceptance')\n while not(s/'guard-publication-acceptance-complete.json').exists():\n  q=json.loads((s/'guard-publication-acceptance-state.json').read_text())\n  if q['phase']=='failure':raise RuntimeError('Acceptance stopped: '+str(q))\n  time.sleep(3)\n phase('recording_acceptance');run('record_guard_publication.py');commit('Verify opt-in guard publication removal against native execution')\n phase('serial_timing');run('guarded_guard_publication_timings.py')\n phase('recording_timings');run('record_guard_publication.py');commit('Retain all guard publication timing samples and host context')\n phase('timings_complete_pending_review')\nexcept Exception as error:phase('failure');print(repr(error),flush=True);raise\n"
+    }
   },
   "source_files": {
     "src/emu/cpu/src/aot/aot_runtime.cpp": "2e0a3b73e6c4e3a7fa65bbbcf78b052f584c33f4edfcd685612fee7b8361234a",
@@ -69,5 +87,1159 @@
     "initial_acceptance_script": "from pathlib import Path\nimport subprocess,os,json,time\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'guard-publication-candidate'\ndef phase(name,**kw):\n (s/'guard-publication-acceptance-state.json').write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ne=dict(os.environ,EKA2L1_WASM_BUILD_DIR=str(a),EKA2L1_AOT_IR_MODE='7',EKA2L1_AOT_EAGER_REGIONS='0',EKA2L1_TLB_HASH='1',EKA2L1_SHARED_AUDIO='1',EKA2L1_BENCHMARK_AOT='5',EKA2L1_AOT_VERIFY='0',EKA2L1_CODE_COMPARE='2',EKA2L1_CODE_LOOKUP='0',EKA2L1_EXECUTION_LIMITS='512,16,8,512',EKA2L1_PREDICATED_LEAVES='1',EKA2L1_LEAF_FEATURES='128',EKA2L1_UNSAFE_CODE='3',EKA2L1_EXIT_CENSUS='0')\nfor k in ['LD_LIBRARY_PATH','EKA2L1_GUEST_PROFILE','EKA2L1_AOT_DIAGNOSTICS','EKA2L1_OMIT_GUARD_PUBLICATION','EKA2L1_CODE_WRITE_PROTECT']:e.pop(k,None)\ndef run(args,name,cwd=r,env=e):\n with(s/name).open('w')as log:subprocess.run(args,cwd=cwd,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=1800)\n print(name+' PASS',flush=True)\ntry:\n phase('waiting_for_compiler_suite')\n start=time.time()\n while '176 passed, 0 failed' not in (s/'guard-publication-suite.log').read_text():\n  text=(s/'guard-publication-suite.log').read_text()\n  if ' FAIL ' in text or time.time()-start>1800:raise RuntimeError('Compiler suite failed or timed out; original log retained')\n  time.sleep(3)\n phase('native_faults')\n # This probe tests generated instructions/callbacks, not the publication selector.\n # Dedicated real-runner tests and selected browser replays cover that selector.\n run(['python3','src/tests/benchmark/run_cpu_fault_matrix.py',str(a),str(s/'guard-publication-fault'),'--ir-policy','7','--code-compare','2','--tlb-hash','1','--execution-limits','512,16,8,512','--predicated-leaves','1','--exit-census','0','--leaf-features','128','--code-lookup','0','--unsafe-code','3','--literal-pc-veneers'],'guard-publication-fault.log')\n q=json.loads((s/'guard-publication-fault/summary.json').read_text());assert q['completed_cases']==46016 and all(x['all_fields_match']==x['cases']for x in q['results'])\n for mode,omit,verify,scene in [(3,1,0,'standard'),(3,1,0,'long'),(3,0,0,'standard'),(3,0,0,'long'),(3,1,1024,'standard'),(3,1,1024,'long'),(0,1,0,'standard')]:\n  label=f'{scene}-m{mode}-o{omit}-v{verify}'\n  phase('native_replay',label=label)\n  frames,start,route,ref,pcm=(1600,21000000,'snakes.input','merge-20260930-native',4656051)if scene=='standard'else(360,42000000,'snakes-length-long.input','merge-20260930-long-native',2832756)\n  out=s/f'guard-publication-replay-{label}'\n  env=dict(e,EKA2L1_UNSAFE_CODE=str(mode),EKA2L1_OMIT_GUARD_PUBLICATION=str(omit),EKA2L1_AOT_VERIFY=str(verify))\n  run(['node','benchmark.ts',str(s/'assets'),str(out),str(frames),str(r/'src/tests/benchmark'/route),str(start)],f'guard-publication-replay-{label}.log',r/'src/tests/wasm',env)\n  run(['python3','src/tests/benchmark/compare.py',str(s/ref/'run-0/frames'),str(out)],f'guard-publication-compare-{label}.json')\n  c=json.loads((s/f'guard-publication-compare-{label}.json').read_text());assert c['match']and c['frames']==frames and c['audio']['sample_frames']==pcm\n  q=json.loads((out/'report.json').read_text());assert q['unsafe_code']==mode and q['unsafe_code_initial']==3 and q['verify_aot']==verify and q['leaf_features']==128 and q['code_lookup']==0 and q['predicated_leaves']==1 and q['omit_guard_publication']==omit\n phase('acceptance_complete')\n (s/'guard-publication-acceptance-complete.json').write_text(json.dumps(dict(accepted=True,archive=str(a),mode=3,features=128,lookup=0)))\nexcept Exception as error:phase('failure',error=str(error));raise\n",
     "reason": "The preliminary log watcher matched a known crash-repro XFAIL before the final suite result. It was corrected to inspect nonzero failed totals; no emulator change."
   },
-  "compiler_suite": "TEST_UNSAFE_CODE_DEFAULT 3\nTEST_TLB_HASH 0\nRunning 74 AOT WASM correctness tests...\n\n  PASS MOVS R0, #42\n  PASS MOVS R0, #0 (zero flag)\n  PASS ADDS R0, R0, #1\n  PASS SUBS R0, R0, #1\n  PASS SUBS to zero\n  PASS CMP R0, R1 equal\n  PASS CMP R0, R1 greater\n  PASS CMP R0, R1 less\n  PASS CMP R0, #0\n  PASS CMP R0, #5 when R0=5\n  PASS MOVS R1, R0 (LSLS #0)\n  PASS LSLS R0, R1, #4\n  PASS LSRS R0, R1, #1\n  PASS ANDS R0, R1\n  PASS ORRS R0, R1\n  PASS EORS R0, R1\n  PASS MVNS R0, R1\n  PASS ADDS R0, #100\n  PASS SUBS R0, #1 to zero\n  PASS MOV R8, R0 (high reg)\n  PASS LDR R0, [R1, #0]\n  PASS LDR R0, [R1, #4]\n  PASS STR R0, [R1, #0]\n  PASS LDR R0, [R1, R2]\n  PASS LDR R0, [SP, #8]\n  PASS STR R0, [SP, #0]\n  PASS LDRB R0, [R1, #0]\n  PASS STRB R0, [R1, #0]\n  PASS LDRB R0, [R1, R2]\n  PASS LDRH R0, [R1, #0]\n  PASS SUBS R0, R1, R2\n  PASS ADDS R0, R1, R2\n  PASS ASRS R0, R1, #4\n  PASS ASRS R0, R1 (reg)\n  PASS MULS R0, R1\n  PASS BICS R0, R1\n  PASS NEGS R0, R1\n  PASS TST R0, R1 (nonzero)\n  PASS TST R0, R1 (zero)\n  PASS ADD R0, SP, #16\n  PASS SUB SP, #8\n  PASS ADD SP, #8\n  PASS LDR R0, [PC, #0]\n  PASS LDRSB R0, [R1, R2]\n  PASS CMN R0, R1\n  PASS CMP R8, R0\n  PASS LSLS R0, R1 (reg)\n  PASS LSRS R0, R1 (reg)\n  PASS MOVS+ADDS sequence\n  PASS MOVS+SUBS+SUBS\n  PASS PUSH+POP roundtrip\n  PASS PUSH {R4,LR} then BL bail\n  PASS MOVS + BL offset 0\n  PASS MOVS + BL +10\n  PASS ADD R5, R0 (T2)\n  PASS ADD R8, R0 (high Rdn)\n  PASS CMP R3, LR (T2 low Rn)\n  PASS LDRSH R0, [R1, R2]\n  PASS STRH R0, [R1, R2]\n  PASS LDRH R0, [R1, R2]\n  PASS STR R0, [R1, R2]\n  PASS STRB R0, [R1, R2]\n  PASS ADR R0, #0\n  PASS ADR R2, #20\n  PASS STMIA R1!, {R0,R2}\n  PASS LDMIA R1!, {R0,R2}\n  PASS BEQ forward not taken\n  PASS BEQ forward taken\n  PASS B forward\n  PASS Backward loop BNE\n  FAIL crash-repro 0x8046506E (harness limitation): Z=0 (wasm) vs 1 (interp)\n  XFAIL crash-repro 0x8046506E (harness limitation) (known failure, see test comment)\n  PASS crash-repro 0x80464BBE\n  PASS Backward branch to non-entry\n  PASS Forward target reused as backward\n\nRunning translator-level tests...\n\n  PASS resume_points_blx_rm\n  PASS resume_points_bl_imm\n  PASS blx_veneer_inlining\n  PASS function_end_stops_at_pop_pc\n  PASS function_end_stops_at_bx_lr\n  PASS branch_targets_include_bl_next_pc\n  PASS branch_targets_include_beq_target\n  PASS literal_pool_between_early_return_and_target\n  PASS wide_push_pop\n  PASS stop_at_wide_bail\n  PASS wide_movw_movt\n  PASS wide_ldr_str_imm12\n  PASS wide_add_sub_imm\n  PASS wide_and_orr_eor_bic_imm\n  PASS wide_ldr_str_reg\n  PASS wide_ldr_neg_offset\n  PASS wide_b_uncond\n  PASS wide_ldrd_strd\n  PASS wide_ubfx_sbfx\n  PASS wide_bfi_bfc\n  PASS wide_uxtb_sxth\n  PASS wide_clz\n  PASS wide_mul_mla_mls\n  PASS wide_sdiv_udiv\n  PASS wide_shifted_reg\n  PASS wide_addw_subw\n  PASS wide_mov_mvn_imm\n  PASS wide_strb_imm12\n  PASS vfp_vldr_vadd_vstr\n  PASS vfp_vcvt_vcmp_vmrs\n  PASS vfp_f64_instantiation\n  PASS resume_points_beyond_1024\n  PASS sibling_bl_resume_point\n\nRunning ARM translator-level tests...\n\n  PASS inlined_leaves policy=-1 (2560 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=11 (1920 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=12 (1920 exact budget/state/memory comparisons)\n  PASS invariant_writes policy=12 (16896 exact state/memory/budget comparisons)\n  PASS bounded_execution (464912 exact budget/state/memory comparisons)\n  PASS folded TLB scalar/block/entry guards and exact budgets\n UNSAFE_EMISSION mode=0 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=2 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_PROOF_EMISSION mode=0 proved_writes=4 bytes=2822\n UNSAFE_PROOF_EMISSION mode=3 proved_writes=4 bytes=2575\n PASS unsafe_code_diagnostic (42 checks; expected stale primary/dependency bytes and stale post-store execution; mapping, lifetime and budget checks retained)\n  PASS outlined_code_lookup (both lookup modes, grouped/stored comparators, short/long snapshots, dependencies, mappings, rejection)\n  PASS exact_code_compare (five modes including selected functions, unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n  PASS outlined_callee_indices\n  PASS proved_read_spans (30976 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=4 (15360 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=9 (25600 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=5 (16896 exact state/memory/budget comparisons)\nAOT: unsupported ARM insn 0xEF000000 at 0x00001000\n PASS exit census actual ARM/Thumb exit labels, budgets, helpers and code aliases\n PASS execution limits validation and 270 real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor checks\n PASS guard publication: 48 real lookup/runner sentinel checks; modes 0/1 always publish\n PASS inline leaf/site bounds and 640 exact interpreter budget comparisons\n PASS predicated leaves (29120 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS expanded leaves (88035 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS preserve inner fusion (2496 exact selection/budget/state/stack comparisons)\n PASS call prefixes (36960 exact budget/state/stack/memory/alias/continuation comparisons)\n PASS branch veneers (12800 exact budget/state/alias/path comparisons)\n PASS tail prefixes (86400 exact budget/state/alias/path comparisons)\n PASS literal PC veneers (15360 exact state/budget/runtime-target/mapping comparisons)\n PASS boundary details (97 exact rejection labels/counters and primary/dependency/gap/outside guards)\n  PASS budget_chunks policy=6 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=16 (7680 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=7 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=8 (30720 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=8 (16896 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=7 (16896 exact state/memory/budget comparisons)\n  PASS region_ir (snapshot liveness/type checks; backend disabled)\n  PASS ir_flags (221184 exact flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=13 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=14 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=15 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=16 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_long_segments (51840 exact long-graph state/flags/memory/budget comparisons)\n  PASS ir_segments (81536 exact state/memory/budget comparisons across enabled policies)\n  PASS ir_memory_exits (24584 exact intermediate snapshot/effect comparisons)\n  PASS ir_exit_recipes (6120 exact load-history/DAG/width/budget comparisons)\n  PASS ir_addressing (24112 exact width/address/snapshot/budget comparisons)\n  PASS memory_displacements (72 exact state/memory/budget checks)\n  PASS deferred_memory_exits (672 exact pre-instruction exits)\n  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS conditional_alu_select (229376 exact budget/state comparisons)\n  PASS compare_conditions (64512 exact budget/state comparisons)\n  PASS arm_long_multiply (92160 exact budget/state comparisons)\n  PASS cached_callback_state\n  PASS msr_privilege_guard\n  SKIP code validity generation tests (experimental build option disabled)\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n176 passed, 0 failed\n"
+  "compiler_suite": "TEST_UNSAFE_CODE_DEFAULT 3\nTEST_TLB_HASH 0\nRunning 74 AOT WASM correctness tests...\n\n  PASS MOVS R0, #42\n  PASS MOVS R0, #0 (zero flag)\n  PASS ADDS R0, R0, #1\n  PASS SUBS R0, R0, #1\n  PASS SUBS to zero\n  PASS CMP R0, R1 equal\n  PASS CMP R0, R1 greater\n  PASS CMP R0, R1 less\n  PASS CMP R0, #0\n  PASS CMP R0, #5 when R0=5\n  PASS MOVS R1, R0 (LSLS #0)\n  PASS LSLS R0, R1, #4\n  PASS LSRS R0, R1, #1\n  PASS ANDS R0, R1\n  PASS ORRS R0, R1\n  PASS EORS R0, R1\n  PASS MVNS R0, R1\n  PASS ADDS R0, #100\n  PASS SUBS R0, #1 to zero\n  PASS MOV R8, R0 (high reg)\n  PASS LDR R0, [R1, #0]\n  PASS LDR R0, [R1, #4]\n  PASS STR R0, [R1, #0]\n  PASS LDR R0, [R1, R2]\n  PASS LDR R0, [SP, #8]\n  PASS STR R0, [SP, #0]\n  PASS LDRB R0, [R1, #0]\n  PASS STRB R0, [R1, #0]\n  PASS LDRB R0, [R1, R2]\n  PASS LDRH R0, [R1, #0]\n  PASS SUBS R0, R1, R2\n  PASS ADDS R0, R1, R2\n  PASS ASRS R0, R1, #4\n  PASS ASRS R0, R1 (reg)\n  PASS MULS R0, R1\n  PASS BICS R0, R1\n  PASS NEGS R0, R1\n  PASS TST R0, R1 (nonzero)\n  PASS TST R0, R1 (zero)\n  PASS ADD R0, SP, #16\n  PASS SUB SP, #8\n  PASS ADD SP, #8\n  PASS LDR R0, [PC, #0]\n  PASS LDRSB R0, [R1, R2]\n  PASS CMN R0, R1\n  PASS CMP R8, R0\n  PASS LSLS R0, R1 (reg)\n  PASS LSRS R0, R1 (reg)\n  PASS MOVS+ADDS sequence\n  PASS MOVS+SUBS+SUBS\n  PASS PUSH+POP roundtrip\n  PASS PUSH {R4,LR} then BL bail\n  PASS MOVS + BL offset 0\n  PASS MOVS + BL +10\n  PASS ADD R5, R0 (T2)\n  PASS ADD R8, R0 (high Rdn)\n  PASS CMP R3, LR (T2 low Rn)\n  PASS LDRSH R0, [R1, R2]\n  PASS STRH R0, [R1, R2]\n  PASS LDRH R0, [R1, R2]\n  PASS STR R0, [R1, R2]\n  PASS STRB R0, [R1, R2]\n  PASS ADR R0, #0\n  PASS ADR R2, #20\n  PASS STMIA R1!, {R0,R2}\n  PASS LDMIA R1!, {R0,R2}\n  PASS BEQ forward not taken\n  PASS BEQ forward taken\n  PASS B forward\n  PASS Backward loop BNE\n  FAIL crash-repro 0x8046506E (harness limitation): Z=0 (wasm) vs 1 (interp)\n  XFAIL crash-repro 0x8046506E (harness limitation) (known failure, see test comment)\n  PASS crash-repro 0x80464BBE\n  PASS Backward branch to non-entry\n  PASS Forward target reused as backward\n\nRunning translator-level tests...\n\n  PASS resume_points_blx_rm\n  PASS resume_points_bl_imm\n  PASS blx_veneer_inlining\n  PASS function_end_stops_at_pop_pc\n  PASS function_end_stops_at_bx_lr\n  PASS branch_targets_include_bl_next_pc\n  PASS branch_targets_include_beq_target\n  PASS literal_pool_between_early_return_and_target\n  PASS wide_push_pop\n  PASS stop_at_wide_bail\n  PASS wide_movw_movt\n  PASS wide_ldr_str_imm12\n  PASS wide_add_sub_imm\n  PASS wide_and_orr_eor_bic_imm\n  PASS wide_ldr_str_reg\n  PASS wide_ldr_neg_offset\n  PASS wide_b_uncond\n  PASS wide_ldrd_strd\n  PASS wide_ubfx_sbfx\n  PASS wide_bfi_bfc\n  PASS wide_uxtb_sxth\n  PASS wide_clz\n  PASS wide_mul_mla_mls\n  PASS wide_sdiv_udiv\n  PASS wide_shifted_reg\n  PASS wide_addw_subw\n  PASS wide_mov_mvn_imm\n  PASS wide_strb_imm12\n  PASS vfp_vldr_vadd_vstr\n  PASS vfp_vcvt_vcmp_vmrs\n  PASS vfp_f64_instantiation\n  PASS resume_points_beyond_1024\n  PASS sibling_bl_resume_point\n\nRunning ARM translator-level tests...\n\n  PASS inlined_leaves policy=-1 (2560 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=11 (1920 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=12 (1920 exact budget/state/memory comparisons)\n  PASS invariant_writes policy=12 (16896 exact state/memory/budget comparisons)\n  PASS bounded_execution (464912 exact budget/state/memory comparisons)\n  PASS folded TLB scalar/block/entry guards and exact budgets\n UNSAFE_EMISSION mode=0 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=2 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_PROOF_EMISSION mode=0 proved_writes=4 bytes=2822\n UNSAFE_PROOF_EMISSION mode=3 proved_writes=4 bytes=2575\n PASS unsafe_code_diagnostic (42 checks; expected stale primary/dependency bytes and stale post-store execution; mapping, lifetime and budget checks retained)\n  PASS outlined_code_lookup (both lookup modes, grouped/stored comparators, short/long snapshots, dependencies, mappings, rejection)\n  PASS exact_code_compare (five modes including selected functions, unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n  PASS outlined_callee_indices\n  PASS proved_read_spans (30976 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=4 (15360 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=9 (25600 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=5 (16896 exact state/memory/budget comparisons)\nAOT: unsupported ARM insn 0xEF000000 at 0x00001000\n PASS exit census actual ARM/Thumb exit labels, budgets, helpers and code aliases\n PASS execution limits validation and 270 real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor checks\n PASS guard publication: 48 real lookup/runner sentinel checks; modes 0/1 always publish\n PASS inline leaf/site bounds and 640 exact interpreter budget comparisons\n PASS predicated leaves (29120 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS expanded leaves (88035 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS preserve inner fusion (2496 exact selection/budget/state/stack comparisons)\n PASS call prefixes (36960 exact budget/state/stack/memory/alias/continuation comparisons)\n PASS branch veneers (12800 exact budget/state/alias/path comparisons)\n PASS tail prefixes (86400 exact budget/state/alias/path comparisons)\n PASS literal PC veneers (15360 exact state/budget/runtime-target/mapping comparisons)\n PASS boundary details (97 exact rejection labels/counters and primary/dependency/gap/outside guards)\n  PASS budget_chunks policy=6 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=16 (7680 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=7 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=8 (30720 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=8 (16896 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=7 (16896 exact state/memory/budget comparisons)\n  PASS region_ir (snapshot liveness/type checks; backend disabled)\n  PASS ir_flags (221184 exact flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=13 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=14 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=15 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=16 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_long_segments (51840 exact long-graph state/flags/memory/budget comparisons)\n  PASS ir_segments (81536 exact state/memory/budget comparisons across enabled policies)\n  PASS ir_memory_exits (24584 exact intermediate snapshot/effect comparisons)\n  PASS ir_exit_recipes (6120 exact load-history/DAG/width/budget comparisons)\n  PASS ir_addressing (24112 exact width/address/snapshot/budget comparisons)\n  PASS memory_displacements (72 exact state/memory/budget checks)\n  PASS deferred_memory_exits (672 exact pre-instruction exits)\n  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS conditional_alu_select (229376 exact budget/state comparisons)\n  PASS compare_conditions (64512 exact budget/state comparisons)\n  PASS arm_long_multiply (92160 exact budget/state comparisons)\n  PASS cached_callback_state\n  PASS msr_privilege_guard\n  SKIP code validity generation tests (experimental build option disabled)\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n176 passed, 0 failed\n",
+  "faults": {
+    "unsafe_code": 3,
+    "literal_pc_veneers": true,
+    "tail_prefixes": false,
+    "leaf_features": 128,
+    "exit_census": 0,
+    "predicated_leaves": 1,
+    "execution_limits": "512,16,8,512",
+    "code_write_protect": null,
+    "code_lookup": 0,
+    "ir_policy": 7,
+    "tlb_hash": 1,
+    "code_compare": 2,
+    "completed_cases": 46016,
+    "results": [
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/literal-pc-veneers-native.log": "91106cf8bd861cc23291c050e837cc8db22d2bb8ea0f13b4baf55ce81bc44c95",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/literal-pc-veneers-wasm.log": "bcf6fd8ef8e8f369990115227a0855a16fd43d1ef39f5640553a1943bbbcab50"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/predicated-calls-native.log": "1093284e39794315be1418df27ed8ab5a006814286374d500cb637edd47bd53a",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/predicated-calls-wasm.log": "9a6a2ea5e02d5d19fcc38e418366b0e729c1f5540b2a14bf12d367262d1b4684"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/preserve-inner-native.log": "03c2c0fa22890c6de539f4d07deaea429c450d43a3ab3a49052474ca91e2d411",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/preserve-inner-wasm.log": "e568e6371919ba18d64feffe0eea38a920d42678c4d81145eeecde77043bfc97"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/prefix-calls-native.log": "f919ac040058e93a7e83f36fc9b166f26c8a6c2b8b9f165aeabb3a7a1dbda923",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/prefix-calls-wasm.log": "4d21013d83eeb0ed5139f19833869be27cdb6a315d6cd72db3b028c567049aca"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/expanded-calls-native.log": "5a310604e14580c80d4144d10bbaff20c0c2aa7d141fa2dd206435a1c3b7c386",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/expanded-calls-wasm.log": "780d753b76864955b86b0a4ba6158c78312f13df318dede298232e296d573563"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/branch-veneers-native.log": "6e954ccf0f334375735b10a8aeb20170dc3214298734afbac1049ea26c1dff0f",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/branch-veneers-wasm.log": "1efed459167a7a9fd794a369177dc40f18efffb55b12dc8c1091539f105e2f18"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-conditions-native.log": "c9e0b50478652091647dde528c0b40312bf71aa6a30e51bc67929d6e2ad8c07d",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-conditions-wasm.log": "d30233d1d1cfe0037666eebd0fcabb3d668b47884cb7d2a99864d62241a76f4d"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 96,
+        "all_fields_match": 96,
+        "final_state_and_exact_memory_match": 96,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 24,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-calls-native.log": "3007012e0ea4b91f74896fa22f975f8b39e1c335de0d34cd8f60dc6fd336cbb3",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-calls-wasm.log": "916193d648685ddd1c9ba34899b0445f010bb6ee124a753e58da8f216d924b46"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 96,
+        "all_fields_match": 96,
+        "final_state_and_exact_memory_match": 96,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 24,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-calls-short-native.log": "2637cd8e3765de9231d42cc33abed1c734b0186d729cc46c8d2a178f9a2b9231",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-calls-short-wasm.log": "3b48f6be93e4cf4713dd1d39b7c9235e5c2090cff44940d958eab8a297356b52"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-flags-native.log": "b45cae07a8a36091871ed70f4dc8cc36697355c4bf1adf4185dbf8444412c7df",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-flags-wasm.log": "da980a53581e3c6d328d52f25459ffe8c80d5490001275439ec5757bbd7c7107"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 64,
+        "all_fields_match": 64,
+        "final_state_and_exact_memory_match": 64,
+        "mismatched_fields": {},
+        "categories": {},
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/invariant-write-remap-native.log": "c14f2013e905bbf44ac64f0aac3ea14630c8d7b6709d62ee568c96d0af65c6d4",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/invariant-write-remap-wasm.log": "f48f49ab9c34a980f51c233b34f9c7c1bcfab3d0da1fd8651f7f756bb67826a9"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 64,
+        "all_fields_match": 64,
+        "final_state_and_exact_memory_match": 64,
+        "mismatched_fields": {},
+        "categories": {},
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/invariant-remap-native.log": "59de72c9625103a2acdf4e18f26896937e5252f2d6fa8293c4553cb6fa74b5f5",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/invariant-remap-wasm.log": "a5dbee4a9d4ce046807e51072aaa93dbd02446cf1ca79437a25db298c8087855"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-segments-native.log": "049930f1edc52df3606eb54324946f38b57ed82b5e6c58f4019a33fa13716288",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-segments-wasm.log": "9b03d9c2d0fd1b7280d0b550e6607167005bdd052e8697fba9a067c00a2491e4"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-memory-native.log": "4a4eb2aef8650a66dac90cf62b3e0cf7d8a3a9f1200bcb5fafef12cced8c2ae5",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-memory-wasm.log": "fcb893e7258cdcf6c053790ae42dc2ff5d06f32301bdb5ff071afbf9e08401cc"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-memory-chain-native.log": "9786537e58aafaf0dbeeb9e0b04684cc6ea331eae9377688bcd86addc26aeb97",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-memory-chain-wasm.log": "e55e7219aabe5373311485c39c7f246de4b5a7e1af8847ec36442313bfcec3e6"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-wide-native.log": "fa6ba207338b1142f1ed16f88e43b98c23a56e9f0d73e765c7782c0c6a20f9ac",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-wide-wasm.log": "ceea77898d6a3ccc3479976757b551f690ed847d65fd726b24fa969538c302f3"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-addressing-native.log": "dd725e150e6032b4252f06cec0d1540c99aa1d9dd174b30ee8e08e6761249cdc",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-addressing-wasm.log": "5cceeaba3deb74b3e90f3ed64b49360e0cbffda100d06c7f932581b13a4744c9"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-short-native.log": "ef8e7a07258a63957f0264c356be3d4bf6f04d31ed5cfbd04017b39ed9c6f13e",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-short-wasm.log": "0513be8217ce84af8b3e61cd243e73d1d17951eb13e033d862084e3955dfc5aa"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-recipes-native.log": "ab4aa518bce9050b2c9ca57de0f68420b1463dbe5d14f9502c75e375f71b4326",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/ir-recipes-wasm.log": "49eff48103955e2aa91e950fa9f7665b229efc5286434f33f86bece011a587f4"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/extended-native.log": "96e4a7b2ea37348643de8a9242544ba4c66ee53f705bcdb3d8faed8b22345a84",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/extended-wasm.log": "96e4a7b2ea37348643de8a9242544ba4c66ee53f705bcdb3d8faed8b22345a84"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/deferred-native.log": "96e4a7b2ea37348643de8a9242544ba4c66ee53f705bcdb3d8faed8b22345a84",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/deferred-wasm.log": "4104917ec10e4e58dfe43ba6c18413ec9e087cd985121725a4d21453c33e3a43"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/entry-budget-native.log": "ed43a93759bc958fe4433c11d66901199518a2adb7ddb42f4a7fe63982c6cfd4",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/entry-budget-wasm.log": "ed43a93759bc958fe4433c11d66901199518a2adb7ddb42f4a7fe63982c6cfd4"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/entry-budget-deferred-native.log": "ed43a93759bc958fe4433c11d66901199518a2adb7ddb42f4a7fe63982c6cfd4",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/entry-budget-deferred-wasm.log": "62fe23a70f88854e2a56f60f654f9a9cea18abfab5e9108963c42b694c6d4f04"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/read-spans-native.log": "2e8beeea28a3b4b29fbe12a45fe95c3a1aca17dd0247dd6d2c241476ea713ece",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/read-spans-wasm.log": "63d1e8efce42444d5e6ce4415140e08aee89381f775f1454f90774f06672831a"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/wide-snapshots-native.log": "85db5d4005b4aa0e40612a65f8e8283340799c34e62d9d9a58e7c9f6c42284b4",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/wide-snapshots-wasm.log": "97617a6e8d8c02a19b525b4aad374ec36d60749d89f248c6a3814baa19c0a10f"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/region-spans-native.log": "9786537e58aafaf0dbeeb9e0b04684cc6ea331eae9377688bcd86addc26aeb97",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/region-spans-wasm.log": "e55e7219aabe5373311485c39c7f246de4b5a7e1af8847ec36442313bfcec3e6"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/region-spans-interpreter-native.log": "9786537e58aafaf0dbeeb9e0b04684cc6ea331eae9377688bcd86addc26aeb97",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/region-spans-interpreter-wasm.log": "d7e960df22007a0ffee9b8b74eeb68e560a36a47bd427e7e7e5baa56ebeb1542"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/entry-budget-interpreter-native.log": "ed43a93759bc958fe4433c11d66901199518a2adb7ddb42f4a7fe63982c6cfd4",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/entry-budget-interpreter-wasm.log": "ed43a93759bc958fe4433c11d66901199518a2adb7ddb42f4a7fe63982c6cfd4"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_unsafe_code": 3,
+        "verified_leaf_features": 128,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 96,
+        "all_fields_match": 96,
+        "final_state_and_exact_memory_match": 96,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 24,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/region-block-spans-native.log": "4c78b0e05eb053c18a13b4cc963e44dd7bc7ea11f76801cb0f37ea86f4241efc",
+          "/home/claude/.scratch/eka-benchmark/guard-publication-fault/region-block-spans-wasm.log": "122294e06b5a22c23d5e9773f63ae8b78701664f98a33737d2c5085a05f1c4ee"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_lookup": 0,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      }
+    ]
+  },
+  "fault_scope": "Fresh explicit mode-3/feature-128 emitted-instruction/native fault matrix. Publication switch is covered by the 48 real-runner checks and selected replays, not this direct instruction probe.",
+  "archives": {
+    "guard-publication-candidate": {
+      "base": "eea5b9e1f2cbceed0fbf687a7b1ae36a179db81e",
+      "files": {
+        "eka2l1.js": "6d4be1c41280567a40041f281be2f8c5ba53b915a7b97f4e1b8bd65afc2a4adb",
+        "source.patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "eka2l1.html": "6db44cdb134c6f5d9e5b38b2ea8d4a241c7f34263196ad69c75417f8ec337dd1",
+        "eka2l1.data": "3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+        "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "eka2l1.wasm": "0941f7148d5ea514b33e440b15d3d74fc5250b10fe607da4e1082e55a598f742",
+        "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+        "tests/eka_cpu_fault_native": "3810ea321124198fe8894a104dab223f1344cb0c254ce9443041994363020242",
+        "tests/test_aot_wasm.wasm": "ccb7ef66b21b0a0a12d3ab40e5133764ddeeafaec265282cdb3d947e3b51084f",
+        "tests/eka_cpu_fault_wasm.wasm": "39730bfc3098fd2ffd8fcd29c5fbda53a69e14bda20d559d09c9b9b5e368a2e7",
+        "tests/test_aot_wasm.js": "d8902d725c60ba99fc03538a67b0ce71cc07ddc950018b5fda6b416525be7d66"
+      }
+    },
+    "unsafe-default-candidate": {
+      "base": "fba7e89b7489cd95736ed1ff921dac015a2135d0",
+      "files": {
+        "eka2l1.js": "4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33",
+        "source.patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "eka2l1.html": "6db44cdb134c6f5d9e5b38b2ea8d4a241c7f34263196ad69c75417f8ec337dd1",
+        "eka2l1.data": "3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+        "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "eka2l1.wasm": "6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39",
+        "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+        "tests/eka_cpu_fault_native": "c276cf77260a97110bf8ad165146a3ed1fbfcb24129379dc0aa789c134302759",
+        "tests/test_aot_wasm.wasm": "e601df08ec12e97f232da657ec6421ce8f519e6827637ca8ddcbb64f6e801816",
+        "tests/eka_cpu_fault_wasm.wasm": "e5734a53e2901fd6e223d6899a8d03aabb68456805620f7f63b9a9b072f39066",
+        "tests/test_aot_wasm.js": "98fcd3b16a1edb25d4f5616af4451e6ae0b0f38df3a6b65306a4fccd2a1b607a"
+      }
+    }
+  },
+  "replays": {
+    "standard-m3-o1-v0": {
+      "report": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 79.12931984500001,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "0941f7148d5ea514b33e440b15d3d74fc5250b10fe607da4e1082e55a598f742",
+        "loader_sha256": "6d4be1c41280567a40041f281be2f8c5ba53b915a7b97f4e1b8bd65afc2a4adb",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 1,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "438ea3b19868c5db2e1aa31e80063069c2f16959",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4656051,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+          "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+          "writes": 0,
+          "callbacks": 9648,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 9648,
+          "gameplay_nonzero_samples": 6784478,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 97001070,
+        "instructions": 16376387249
+      }
+    },
+    "long-m3-o1-v0": {
+      "report": {
+        "frames": 360,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 41.378313215999995,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "wasm_sha256": "0941f7148d5ea514b33e440b15d3d74fc5250b10fe607da4e1082e55a598f742",
+        "loader_sha256": "6d4be1c41280567a40041f281be2f8c5ba53b915a7b97f4e1b8bd65afc2a4adb",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 1,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "438ea3b19868c5db2e1aa31e80063069c2f16959",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2832756,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "cff3ae6616cdda70e86562cd63566fd809b125041a7b338afc66b36e77a8f5a8",
+          "sha256_events": "2a099f1ce470188019b5d06f67e05c5386ad0f16fd193bce211603bba3c053d1",
+          "writes": 0,
+          "callbacks": 5849,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 5849,
+          "gameplay_nonzero_samples": 1611214,
+          "gameplay_peak": 573
+        },
+        "frames": 360,
+        "unique_images": 360,
+        "last_virtual_us": 59015758,
+        "instructions": 9309923112
+      }
+    },
+    "standard-m3-o0-v0": {
+      "report": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 74.575355243,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "0941f7148d5ea514b33e440b15d3d74fc5250b10fe607da4e1082e55a598f742",
+        "loader_sha256": "6d4be1c41280567a40041f281be2f8c5ba53b915a7b97f4e1b8bd65afc2a4adb",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "438ea3b19868c5db2e1aa31e80063069c2f16959",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4656051,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+          "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+          "writes": 0,
+          "callbacks": 9648,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 9648,
+          "gameplay_nonzero_samples": 6784478,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 97001070,
+        "instructions": 16376387249
+      }
+    },
+    "long-m3-o0-v0": {
+      "report": {
+        "frames": 360,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 40.450332788,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "wasm_sha256": "0941f7148d5ea514b33e440b15d3d74fc5250b10fe607da4e1082e55a598f742",
+        "loader_sha256": "6d4be1c41280567a40041f281be2f8c5ba53b915a7b97f4e1b8bd65afc2a4adb",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "438ea3b19868c5db2e1aa31e80063069c2f16959",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2832756,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "cff3ae6616cdda70e86562cd63566fd809b125041a7b338afc66b36e77a8f5a8",
+          "sha256_events": "2a099f1ce470188019b5d06f67e05c5386ad0f16fd193bce211603bba3c053d1",
+          "writes": 0,
+          "callbacks": 5849,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 5849,
+          "gameplay_nonzero_samples": 1611214,
+          "gameplay_peak": 573
+        },
+        "frames": 360,
+        "unique_images": 360,
+        "last_virtual_us": 59015758,
+        "instructions": 9309923112
+      }
+    },
+    "standard-m3-o1-v1024": {
+      "report": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 98.762105095,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "0941f7148d5ea514b33e440b15d3d74fc5250b10fe607da4e1082e55a598f742",
+        "loader_sha256": "6d4be1c41280567a40041f281be2f8c5ba53b915a7b97f4e1b8bd65afc2a4adb",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 1,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "438ea3b19868c5db2e1aa31e80063069c2f16959",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4656051,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+          "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+          "writes": 0,
+          "callbacks": 9648,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 9648,
+          "gameplay_nonzero_samples": 6784478,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 97001070,
+        "instructions": 16376387249
+      }
+    },
+    "long-m3-o1-v1024": {
+      "report": {
+        "frames": 360,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 54.944662536,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "wasm_sha256": "0941f7148d5ea514b33e440b15d3d74fc5250b10fe607da4e1082e55a598f742",
+        "loader_sha256": "6d4be1c41280567a40041f281be2f8c5ba53b915a7b97f4e1b8bd65afc2a4adb",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 1,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "438ea3b19868c5db2e1aa31e80063069c2f16959",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2832756,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "cff3ae6616cdda70e86562cd63566fd809b125041a7b338afc66b36e77a8f5a8",
+          "sha256_events": "2a099f1ce470188019b5d06f67e05c5386ad0f16fd193bce211603bba3c053d1",
+          "writes": 0,
+          "callbacks": 5849,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 5849,
+          "gameplay_nonzero_samples": 1611214,
+          "gameplay_peak": 573
+        },
+        "frames": 360,
+        "unique_images": 360,
+        "last_virtual_us": 59015758,
+        "instructions": 9309923112
+      }
+    },
+    "standard-m0-o1-v0": {
+      "report": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 85.72363607499999,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "0941f7148d5ea514b33e440b15d3d74fc5250b10fe607da4e1082e55a598f742",
+        "loader_sha256": "6d4be1c41280567a40041f281be2f8c5ba53b915a7b97f4e1b8bd65afc2a4adb",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 0,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 1,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "438ea3b19868c5db2e1aa31e80063069c2f16959",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4656051,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+          "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+          "writes": 0,
+          "callbacks": 9648,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 9648,
+          "gameplay_nonzero_samples": 6784478,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 97001070,
+        "instructions": 16376387249
+      }
+    }
+  },
+  "timings": {}
 }

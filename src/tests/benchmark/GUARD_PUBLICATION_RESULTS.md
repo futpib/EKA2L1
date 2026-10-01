@@ -52,3 +52,26 @@ crash-repro XFAIL remains unchanged; it is not a new failure. Optional code
 version/lifecycle/write-protection builds remain disabled and were not retested.
 Fresh mode-3 native instruction-fault coverage and the selected replay matrix
 now follow serially. No timing or speed claim has been made for this option.
+
+## Full acceptance
+
+All 176 compiler tests pass, including 48 real-runner publication checks and the
+existing budget, callback, remap, cache and deliberate stale-code tests. Fresh
+mode-3/feature-128 native fault comparisons match in all 46,016 cases. That
+direct-instruction probe covers emitted operations; the publication option is
+exercised by the focused real runner and browser replays.
+
+Both new-binary modes exactly match standard 1,600 images / 4,656,051 stereo
+PCM frames and longer 360 images / 2,832,756 PCM frames, including guest records.
+The candidate also passes both interpreter-checked routes at stride 1024.
+Explicit mode 0 with the option selected passes standard exact replay; its
+interval publication remains enabled. Configuration readback and rejection of
+post-initialization changes are checked in those runs.
+
+The 24-observation timing plan compares candidate, matching control and the
+untouched delivered archive, with literal feature 128, mode 3, lookup 0 and
+limits 512/16/8/512 fixed. All samples, actual orders and passive host readings
+are retained. The old archive has no publication-selector API; no selector is
+sent to it, and its original publishing runtime is the baseline.
+
+Acceptance passes. Timings are pending; no speed claim or promotion.
