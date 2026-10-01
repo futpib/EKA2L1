@@ -1,0 +1,18 @@
+GUEST THREAD EXIT
+this = 0x5555578eb880
+the_exit_type = eka2l1::kernel::entity_exit_type::panic
+category = u"AVKON"
+reason = 61
+#0  eka2l1::kernel::thread::kill (this=this@entry=0x5555578eb880, the_exit_type=the_exit_type@entry=eka2l1::kernel::entity_exit_type::panic, category=u"AVKON", reason=reason@entry=61) at /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:530
+#1  0x0000555555d12e13 in eka2l1::epoc::thread_kill (kern=kern@entry=0x7ffff0080010, h=<optimized out>, etype=etype@entry=eka2l1::kernel::entity_exit_type::panic, reason=reason@entry=61, reason_des=reason_des@entry=...) at /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:2342
+#2  0x0000555555d3f258 in eka2l1::hle::call<eka2l1::kernel_system, int, unsigned int, eka2l1::kernel::entity_exit_type, int, eka2l1::ptr<eka2l1::epoc::desc<char> >, 0ul, 1ul, 2ul, 3ul> (export_fn=0x555555d12d40 <eka2l1::epoc::thread_kill(eka2l1::kernel_system*, unsigned int, eka2l1::kernel::entity_exit_type, int, eka2l1::ptr<eka2l1::epoc::desc<char> >)>, layout=<optimized out>, cpu=0x555557513f80, pr=0x5555577337d0, data=0x7ffff0080010) at /home/claude/code/EKA2L1/src/emu/bridge/include/bridge/bridge.h:41
+#3  eka2l1::hle::bridge<eka2l1::kernel_system, int, unsigned int, eka2l1::kernel::entity_exit_type, int, eka2l1::ptr<eka2l1::epoc::desc<char> > >(int (*)(eka2l1::kernel_system*, unsigned int, eka2l1::kernel::entity_exit_type, int, eka2l1::ptr<eka2l1::epoc::desc<char> >))::{lambda(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)#1}::operator()(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*) const (__closure=<optimized out>, data=0x7ffff0080010, pr=0x5555577337d0, cpu=0x555557513f80) at /home/claude/code/EKA2L1/src/emu/bridge/include/bridge/bridge.h:58
+Thread 22 "Graphics thread" received signal SIGSEGV, Segmentation fault.
+[Switching to Thread 0x7fffd4fe66c0 (LWP 4149585)]
+0x00007ffff5cea8d0 in std::thread::join() () from /usr/lib/libstdc++.so.6
+#0  0x00007ffff5cea8d0 in std::thread::join() () at /usr/lib/libstdc++.so.6
+#1  0x00005555559d0cd5 in eka2l1::desktop::graphics_driver_thread_deinitialization (state=...) at /home/claude/code/EKA2L1/src/emu/qt/src/thread.cpp:300
+#2  eka2l1::desktop::graphics_driver_thread (state=...) at /home/claude/code/EKA2L1/src/emu/qt/src/thread.cpp:325
+#3  0x00007ffff5cea859 in ??? () at /usr/lib/libstdc++.so.6
+#4  0x00007ffff58980a2 in ??? () at /usr/lib/libc.so.6
+#5  0x00007ffff592080c in ??? () at /usr/lib/libc.so.6

@@ -1,0 +1,254 @@
+{
+  "git_head_at_snapshot": "69d6416beb860c6b63072079f2b1e738445bbe02",
+  "working_changes": " M src/emu/wasm/main.cpp\n?? build-browser-cores-config-overlap/\n?? build-browser-cores/\n?? src/tests/wasm/pacing.ts\n",
+  "binary_sha256": "268ca713af03daf982a8f2583393d588461e4f2e83cfff0127d340b2d198ab56",
+  "assets": {
+    "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+    "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+    "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+  },
+  "binary_embedded_revision": "wasm-port-25792310e",
+  "note": "Existing native binary frozen by SHA-256; not claimed to be a rebuild of the recorded checkout HEAD.",
+  "original_replay": {
+    "240x320": {
+      "frames": 60,
+      "unique_images": 60,
+      "unique_viewports": 60,
+      "first_virtual_us": 21032223,
+      "last_virtual_us": 23812627,
+      "virtual_seconds": 2.780404,
+      "game_images_per_virtual_second": 21.21993782198558,
+      "median_interval_us": 46854,
+      "max_interval_us": 62969,
+      "min_viewport_changed_fraction": 0.25365000000000004,
+      "median_viewport_changed_fraction": 0.32981666666666665,
+      "pass": true
+    },
+    "320x240": {
+      "frames": 60,
+      "unique_images": 60,
+      "unique_viewports": 60,
+      "first_virtual_us": 21031704,
+      "last_virtual_us": 23812583,
+      "virtual_seconds": 2.780879,
+      "game_images_per_virtual_second": 21.21631325922487,
+      "median_interval_us": 46847,
+      "max_interval_us": 62508,
+      "min_viewport_changed_fraction": 0.30551470588235297,
+      "median_viewport_changed_fraction": 0.3768198529411765,
+      "pass": true
+    }
+  },
+  "unmodified_baseline_vs_configured_control": {
+    "match": true,
+    "audio": {
+      "sample_frames": 1143006,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "dfae62a0ed5a7d7d2b8168d50d0f87656d2330b561780caa5d7caa865fc0b260",
+      "sha256_events": "c44c0d4b51515879824f4029c231eed86171d5df418c4db9d0b57be44da889c6",
+      "writes": 483,
+      "callbacks": 483,
+      "gameplay_nonzero_samples": 264676,
+      "gameplay_peak": 382
+    },
+    "frames": 60,
+    "unique_images": 60,
+    "last_virtual_us": 23812627,
+    "instructions": 3027400608
+  },
+  "runs": [
+    {
+      "configured_mode1": [
+        240,
+        320
+      ],
+      "exit_code": 0,
+      "wall_seconds": 28.168875092000235,
+      "captured_frames": 60,
+      "captured_sizes": [
+        [
+          240,
+          320
+        ]
+      ],
+      "first_virtual_us": 21032223,
+      "last_virtual_us": 23812627,
+      "raw_artifact_directory": "/home/claude/.scratch/snakes-resolution-20261001/sweep/240x320",
+      "log_sha256": "7784e08b7a9e267eecb1938f087d382f5e75bbb041f7f25f40ed33664e1728d2",
+      "wsini_sha256": "3467c1fd1eba7fc84bdbce931de4f1efcfaff2419d5f36bf4e401a25782b44b2"
+    },
+    {
+      "configured_mode1": [
+        320,
+        240
+      ],
+      "exit_code": 0,
+      "wall_seconds": 40.168114864995005,
+      "captured_frames": 60,
+      "captured_sizes": [
+        [
+          320,
+          240
+        ]
+      ],
+      "first_virtual_us": 21031704,
+      "last_virtual_us": 23812583,
+      "raw_artifact_directory": "/home/claude/.scratch/snakes-resolution-20261001/sweep/320x240",
+      "log_sha256": "31d7f4c13fe7e08e496c797fc1715f74a94c976bb538ade0b23a70d71c4c3ae3",
+      "wsini_sha256": "afeed1f9087fc94b3d97320185a4b2cf3308c3617c8cef1a8051f17f6d375441"
+    },
+    {
+      "configured_mode1": [
+        640,
+        480
+      ],
+      "exit_code": 139,
+      "wall_seconds": 5.629403667990118,
+      "guest_panics": [
+        "T /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:542 [Kernel]: Thread 6r45_1b panicked with category: AVKON and exit code: 61 "
+      ],
+      "captured_frames": 0,
+      "raw_artifact_directory": "/home/claude/.scratch/snakes-resolution-20261001/confirmed/640x480",
+      "log_sha256": "9462904a4a76f6e2aae842ff1dc4a72c00f9d9face9438172946a4803ff279fe",
+      "wsini_sha256": "c1a991f593557db5f0d1f76cc3e434af4c39644f702142cccd701a08814d428d"
+    },
+    {
+      "configured_mode1": [
+        800,
+        352
+      ],
+      "exit_code": 139,
+      "wall_seconds": 5.7300123469904065,
+      "guest_panics": [
+        "T /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:542 [Kernel]: Thread 6r45_1b panicked with category: AVKON and exit code: 61 "
+      ],
+      "captured_frames": 0,
+      "raw_artifact_directory": "/home/claude/.scratch/snakes-resolution-20261001/confirmed/800x352",
+      "log_sha256": "ec075f9ac5a88256ed839c74ffb246baebd9f9eaf67962bf315e2007cfcadc2c",
+      "wsini_sha256": "c8a31284350ac08613f31dc6fe203581d2b725c287ba273dbbfa5d9928fe2836"
+    },
+    {
+      "configured_mode1": [
+        1280,
+        720
+      ],
+      "exit_code": 139,
+      "wall_seconds": 5.982322205003584,
+      "guest_panics": [
+        "T /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:542 [Kernel]: Thread 6r45_1b panicked with category: AVKON and exit code: 61 "
+      ],
+      "captured_frames": 0,
+      "raw_artifact_directory": "/home/claude/.scratch/snakes-resolution-20261001/confirmed/1280x720",
+      "log_sha256": "9ca0d242f3f6de2ea67d1cfaa0bb3ccdb8f7c9babcea97635a08e2f2e68c8017",
+      "wsini_sha256": "4a19f477cf58a7e7a798e723894c39ac44005bcba81a1af6ff5f531daa93ef45"
+    },
+    {
+      "configured_mode1": [
+        352,
+        416
+      ],
+      "exit_code": 139,
+      "wall_seconds": 5.730930946010631,
+      "guest_panics": [
+        "T /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:542 [Kernel]: Thread 6r45_1b panicked with category: AVKON and exit code: 61 "
+      ],
+      "captured_frames": 0,
+      "raw_artifact_directory": "/home/claude/.scratch/snakes-resolution-20261001/confirmed/352x416",
+      "log_sha256": "660adcd81f72174290c2413a57b835da458e76fc489423d2e29812ec43fc2e73",
+      "wsini_sha256": "50c8d5155e818c6e52623f340d8347c29d9f0ac4a13b748d816c1648c7b31963"
+    }
+  ],
+  "final_runner_check": {
+    "binary_sha256": "268ca713af03daf982a8f2583393d588461e4f2e83cfff0127d340b2d198ab56",
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "frames_requested": 60,
+    "start_us": 21000000,
+    "method": "wsini pixel sizes only; original rotation, twips and S60 layout names retained",
+    "runs": [
+      {
+        "configured_mode1": [
+          240,
+          320
+        ],
+        "exit_code": 0,
+        "wall_seconds": 29.122080712986644,
+        "game_screen_diagnostics": [],
+        "errors": [
+          "E /home/claude/code/EKA2L1/src/emu/package/src/sis_script_interpreter.cpp:590 [Packages]: SIS names an invalid install target, skipping it: z:\\resource\\\\nsmlemaildatastoreformat.r*",
+          "E /home/claude/code/EKA2L1/src/emu/drivers/src/graphics/backend/context_glx.cpp:182 [Driver.Graphics]: Created a GLX context with version 4.6",
+          "E /home/claude/code/EKA2L1/src/emu/drivers/src/graphics/backend/context_glx.cpp:103 [Driver.Graphics]: No support for SwapInterval (framerate clamped to monitor refresh rate).",
+          "E /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:376 [Kernel]: Getting descriptor length of unused slot: 1",
+          "E /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:432 [Kernel]: Parameter slot unused, error: 3",
+          "E /home/claude/code/EKA2L1/src/emu/services/src/ui/skin/skn.cpp:231 [Service.UI]: Unknown class def chunk type: 12",
+          "E /home/claude/code/EKA2L1/src/emu/services/src/notifier/notifier.cpp:78 [Service.Notifier]: Can't find the plugin with UID 0x101F467A. This is fine (but take note).",
+          "E /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:916 [Service.EFsrv]: Trying to open a non-existent file: E:\\Snake60defaults.txt while the open mode requires its availbility!",
+          "E /home/claude/code/EKA2L1/src/emu/services/src/window/window.cpp:931 [Service.Window]: Can't find requested screen 711620864, use focus one",
+          "E /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:916 [Service.EFsrv]: Trying to open a non-existent file: c:\\system\\data\\sno.bin while the open mode requires its availbility!",
+          "E /home/claude/code/EKA2L1/src/emu/kernel/src/libmanager.cpp:1356 [Kernel]: Unimplement system call: 0xE2!",
+          "E /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:916 [Service.EFsrv]: Trying to open a non-existent file: c:\\system\\data\\sts.bin while the open mode requires its availbility!",
+          "E /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:916 [Service.EFsrv]: Trying to open a non-existent file: c:\\system\\data\\sts.bin while the open mode requires its availbility!",
+          "E /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:916 [Service.EFsrv]: Trying to open a non-existent file: c:\\system\\data\\sno.bin while the open mode requires its availbility!",
+          "E /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:916 [Service.EFsrv]: Trying to open a non-existent file: c:\\system\\data\\sno.bin while the open mode requires its availbility!",
+          "E /home/claude/code/EKA2L1/src/emu/services/src/fs/files.cpp:916 [Service.EFsrv]: Trying to open a non-existent file: c:\\system\\data\\sts.bin while the open mode requires its availbility!"
+        ],
+        "guest_panics": [],
+        "captured_frames": 60,
+        "capture_complete": true,
+        "captured_sizes": [
+          [
+            240,
+            320
+          ]
+        ],
+        "first_virtual_us": 21032223,
+        "last_virtual_us": 23812627
+      },
+      {
+        "configured_mode1": [
+          640,
+          480
+        ],
+        "exit_code": 139,
+        "wall_seconds": 5.626651105005294,
+        "game_screen_diagnostics": [],
+        "errors": [
+          "E /home/claude/code/EKA2L1/src/emu/package/src/sis_script_interpreter.cpp:590 [Packages]: SIS names an invalid install target, skipping it: z:\\resource\\\\nsmlemaildatastoreformat.r*",
+          "E /home/claude/code/EKA2L1/src/emu/drivers/src/graphics/backend/context_glx.cpp:182 [Driver.Graphics]: Created a GLX context with version 4.6",
+          "E /home/claude/code/EKA2L1/src/emu/drivers/src/graphics/backend/context_glx.cpp:103 [Driver.Graphics]: No support for SwapInterval (framerate clamped to monitor refresh rate).",
+          "E /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:376 [Kernel]: Getting descriptor length of unused slot: 1",
+          "E /home/claude/code/EKA2L1/src/emu/kernel/src/svc.cpp:432 [Kernel]: Parameter slot unused, error: 3",
+          "T /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:542 [Kernel]: Thread 6r45_1b panicked with category: AVKON and exit code: 61 "
+        ],
+        "guest_panics": [
+          "T /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:542 [Kernel]: Thread 6r45_1b panicked with category: AVKON and exit code: 61 "
+        ],
+        "captured_frames": 0,
+        "capture_complete": false
+      }
+    ]
+  },
+  "final_runner_control_comparison": {
+    "match": true,
+    "audio": {
+      "sample_frames": 1143006,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "dfae62a0ed5a7d7d2b8168d50d0f87656d2330b561780caa5d7caa865fc0b260",
+      "sha256_events": "c44c0d4b51515879824f4029c231eed86171d5df418c4db9d0b57be44da889c6",
+      "writes": 483,
+      "callbacks": 483,
+      "gameplay_nonzero_samples": 264676,
+      "gameplay_peak": 382
+    },
+    "frames": 60,
+    "unique_images": 60,
+    "last_virtual_us": 23812627,
+    "instructions": 3027400608
+  }
+}
