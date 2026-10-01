@@ -104,3 +104,24 @@ has mutation-version/lifecycle/protection build options OFF; source also bypasse
 them in full unsafe mode when built in, but those optional builds were not tested.
 
 Full unsafe-versus-control measurements now follow; no performance claim yet.
+
+## Fully unsafe serial timings
+
+All 24 planned observations are retained, including slow candidates and controls. Elapsed seconds for identical guest work within each route, lower is faster. Mode 3 is compared first; attribution modes have not been timed here.
+
+| Route/batch | Matching control | Fully unsafe | Untouched live |
+| --- | ---: | ---: | ---: |
+| long a | 11.1025 | 9.6421 | 11.6264 |
+| long b | 11.9815 | 11.8449 | 16.2727 |
+| standard a | 12.8835 | 10.4977 | 16.0891 |
+| standard b | 11.7991 | 9.9641 | 12.0057 |
+
+long a: versus control +15.15% throughput, corresponding-half pairs +19.88% / +10.81%; versus baseline +20.58% throughput, corresponding-half pairs +23.07% / +18.29%; 
+
+long b: versus control +1.15% throughput, corresponding-half pairs -4.90% / +9.07%; versus baseline +37.38% throughput, corresponding-half pairs +58.64% / +9.60%; 
+
+standard a: versus control +22.73% throughput, corresponding-half pairs +7.63% / +37.68%; versus baseline +53.26% throughput, corresponding-half pairs +89.86% / +17.03%; 
+
+standard b: versus control +18.42% throughput, corresponding-half pairs +23.42% / +14.10%; versus baseline +20.49% throughput, corresponding-half pairs +40.19% / +3.49%; 
+
+These corresponding-half pairs are not all adjacent. Passive host readings and process observations accompany every batch; no observation is normalized or removed. Different older live compiler layout is a separate control. This deliberately unsafe semantic assumption is not suitable for promotion. No deployment or push.
