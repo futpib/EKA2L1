@@ -18,3 +18,18 @@ Two routes, two batches, 16 observations: A control/candidate/candidate/control,
 | standard-b | 16.40735 | 10.66733 | +53.81% | +72.19% / +28.85% |
 
 All 16 observations are retained. These are within-route matching comparisons under mode 3; earlier mode-0 gains or losses are not pooled. Normal/live/audio acceptance and review remain required before any promotion. No source default, service or Git remote changes are made by this experiment.
+
+## Review decision
+
+Do not promote lookup 1. Three of four batches have opposing paired changes,
+and the longer-route means reverse. Candidate 14.6949s (long A) and controls
+23.4761s (standard A), 19.1033s (long B) and 21.1565s (standard B) remain in
+the evidence; the latter inflate positive means substantially. The observer
+recorded no watched competing job, which does not exclude other host activity
+or establish a cause. Passive frequency/temperature readings are not a basis
+for deleting or normalizing observations. This panel does not resolve a useful
+lookup-layout gain; current delivered lookup 0 remains selected.
+
+Optimization continues with an independent opt-in test of unused guard-interval
+publication. The current literal feature 128, mode 3, lookup 0 and original
+limits will be fixed in both new candidate and control.

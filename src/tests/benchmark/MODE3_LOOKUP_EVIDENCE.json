@@ -19652,5 +19652,11 @@
       ]
     }
   },
-  "status": "timing_complete_pending_review"
+  "status": "timing_complete_pending_review",
+  "decision": {
+    "promote": false,
+    "reason": "Longer-route means reverse; three of four batches have opposing half-pairs. Large slow controls inflate positive means. No stable useful gain established.",
+    "all_samples_retained": 16,
+    "selected_lookup": 0
+  }
 }
