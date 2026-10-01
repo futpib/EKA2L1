@@ -1,0 +1,2136 @@
+{
+  "status": "correctness accepted; gameplay timing pending; feature 32 opt-in; no deployment",
+  "archive_path": "/home/claude/.scratch/eka-benchmark/branch-veneer-candidate",
+  "archive": {
+    "base": "871c89a38d9b5f3512d2663bca9efcb4f18b9f0a",
+    "files": {
+      "eka2l1.js": "dd48a3a224ba43816448409b333bee4fdbcd9bca44e31b0430a42896620e3f1c",
+      "source.patch": "35c0b1a00f991de15b9f108a53f051e6671ddf408c142a62cfcdd122b7780b1c",
+      "eka2l1.html": "8e0962709fa2a5cdff9d30125452c500123910e76bdee682092f9fd44a7aee69",
+      "eka2l1.data": "3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "549edb7572a8e04e1dfc586a8edcf37e7929bc12e151c4072bfcb871dc0c77d4",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_tests": "6c436fe3b7176ce267767a0d332af8c8e056f42121e9f8e6b3eea27ea9a294ff",
+      "tests/eka_cpu_fault_native": "efca8fc25b401ec9aca5edce6dfec27d068edb4bc6950a4431da687cd5e3fa24",
+      "tests/test_aot_wasm.wasm": "1fcefddbe09f09a1ab2b3b7ce38f0404e27c89baed6728546a42ae2fd2767ba1",
+      "tests/eka_cpu_fault_wasm.wasm": "8a34e7dfea9c817e5c15a916538bfda0c4787ccc5f703668cbd8314f187ef22e",
+      "tests/test_aot_wasm.js": "bf3af8143d1f4e8c3eb2d0cb599e9cb8d2f2b2076caaf30895178b023fae0d16"
+    }
+  },
+  "checks": {
+    "focused": {
+      "path": "/home/claude/.scratch/eka-benchmark/branch-veneer-focused.log",
+      "log": " PASS branch veneers (12800 exact budget/state/alias/path comparisons)\n"
+    },
+    "native-tests": {
+      "path": "/home/claude/.scratch/eka-benchmark/branch-veneer-native-tests.log",
+      "log": "  ARMul_State offsets:\n    Reg:   0\n    Cpsr:  784\n    NFlag: 804\n    ZFlag: 808\n    CFlag: 812\n    VFlag: 816\n    TFlag: 828\n===============================================================================\nAll tests passed (570 assertions in 33 test cases)\n\n"
+    },
+    "unit-instrumented": {
+      "path": "/home/claude/.scratch/eka-benchmark/branch-veneer-unit-instrumented.log",
+      "log": "TEST_TLB_HASH 0\nRunning 74 AOT WASM correctness tests...\n\n  PASS MOVS R0, #42\n  PASS MOVS R0, #0 (zero flag)\n  PASS ADDS R0, R0, #1\n  PASS SUBS R0, R0, #1\n  PASS SUBS to zero\n  PASS CMP R0, R1 equal\n  PASS CMP R0, R1 greater\n  PASS CMP R0, R1 less\n  PASS CMP R0, #0\n  PASS CMP R0, #5 when R0=5\n  PASS MOVS R1, R0 (LSLS #0)\n  PASS LSLS R0, R1, #4\n  PASS LSRS R0, R1, #1\n  PASS ANDS R0, R1\n  PASS ORRS R0, R1\n  PASS EORS R0, R1\n  PASS MVNS R0, R1\n  PASS ADDS R0, #100\n  PASS SUBS R0, #1 to zero\n  PASS MOV R8, R0 (high reg)\n  PASS LDR R0, [R1, #0]\n  PASS LDR R0, [R1, #4]\n  PASS STR R0, [R1, #0]\n  PASS LDR R0, [R1, R2]\n  PASS LDR R0, [SP, #8]\n  PASS STR R0, [SP, #0]\n  PASS LDRB R0, [R1, #0]\n  PASS STRB R0, [R1, #0]\n  PASS LDRB R0, [R1, R2]\n  PASS LDRH R0, [R1, #0]\n  PASS SUBS R0, R1, R2\n  PASS ADDS R0, R1, R2\n  PASS ASRS R0, R1, #4\n  PASS ASRS R0, R1 (reg)\n  PASS MULS R0, R1\n  PASS BICS R0, R1\n  PASS NEGS R0, R1\n  PASS TST R0, R1 (nonzero)\n  PASS TST R0, R1 (zero)\n  PASS ADD R0, SP, #16\n  PASS SUB SP, #8\n  PASS ADD SP, #8\n  PASS LDR R0, [PC, #0]\n  PASS LDRSB R0, [R1, R2]\n  PASS CMN R0, R1\n  PASS CMP R8, R0\n  PASS LSLS R0, R1 (reg)\n  PASS LSRS R0, R1 (reg)\n  PASS MOVS+ADDS sequence\n  PASS MOVS+SUBS+SUBS\n  PASS PUSH+POP roundtrip\n  PASS PUSH {R4,LR} then BL bail\n  PASS MOVS + BL offset 0\n  PASS MOVS + BL +10\n  PASS ADD R5, R0 (T2)\n  PASS ADD R8, R0 (high Rdn)\n  PASS CMP R3, LR (T2 low Rn)\n  PASS LDRSH R0, [R1, R2]\n  PASS STRH R0, [R1, R2]\n  PASS LDRH R0, [R1, R2]\n  PASS STR R0, [R1, R2]\n  PASS STRB R0, [R1, R2]\n  PASS ADR R0, #0\n  PASS ADR R2, #20\n  PASS STMIA R1!, {R0,R2}\n  PASS LDMIA R1!, {R0,R2}\n  PASS BEQ forward not taken\n  PASS BEQ forward taken\n  PASS B forward\n  PASS Backward loop BNE\n  FAIL crash-repro 0x8046506E (harness limitation): Z=0 (wasm) vs 1 (interp)\n  XFAIL crash-repro 0x8046506E (harness limitation) (known failure, see test comment)\n  PASS crash-repro 0x80464BBE\n  PASS Backward branch to non-entry\n  PASS Forward target reused as backward\n\nRunning translator-level tests...\n\n  PASS resume_points_blx_rm\n  PASS resume_points_bl_imm\n  PASS blx_veneer_inlining\n  PASS function_end_stops_at_pop_pc\n  PASS function_end_stops_at_bx_lr\n  PASS branch_targets_include_bl_next_pc\n  PASS branch_targets_include_beq_target\n  PASS literal_pool_between_early_return_and_target\n  PASS wide_push_pop\n  PASS stop_at_wide_bail\n  PASS wide_movw_movt\n  PASS wide_ldr_str_imm12\n  PASS wide_add_sub_imm\n  PASS wide_and_orr_eor_bic_imm\n  PASS wide_ldr_str_reg\n  PASS wide_ldr_neg_offset\n  PASS wide_b_uncond\n  PASS wide_ldrd_strd\n  PASS wide_ubfx_sbfx\n  PASS wide_bfi_bfc\n  PASS wide_uxtb_sxth\n  PASS wide_clz\n  PASS wide_mul_mla_mls\n  PASS wide_sdiv_udiv\n  PASS wide_shifted_reg\n  PASS wide_addw_subw\n  PASS wide_mov_mvn_imm\n  PASS wide_strb_imm12\n  PASS vfp_vldr_vadd_vstr\n  PASS vfp_vcvt_vcmp_vmrs\n  PASS vfp_f64_instantiation\n  PASS resume_points_beyond_1024\n  PASS sibling_bl_resume_point\n\nRunning ARM translator-level tests...\n\n  PASS inlined_leaves policy=-1 (2560 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=11 (1920 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=12 (1920 exact budget/state/memory comparisons)\n  PASS invariant_writes policy=12 (16896 exact state/memory/budget comparisons)\n  PASS bounded_execution (464912 exact budget/state/memory comparisons)\n  PASS folded TLB scalar/block/entry guards and exact budgets\n  PASS outlined_code_lookup (both lookup modes, grouped/stored comparators, short/long snapshots, dependencies, mappings, rejection)\n  PASS exact_code_compare (five modes including selected functions, unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n  PASS outlined_callee_indices\n  PASS proved_read_spans (30976 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=4 (15360 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=9 (25600 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=5 (16896 exact state/memory/budget comparisons)\nAOT: unsupported ARM insn 0xEF000000 at 0x00001000\n PASS exit census actual ARM/Thumb exit labels, budgets, helpers and code aliases\n PASS execution limits validation and 270 real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor checks\n PASS inline leaf/site bounds and 640 exact interpreter budget comparisons\n PASS predicated leaves (29120 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS expanded leaves (88035 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS preserve inner fusion (2496 exact selection/budget/state/stack comparisons)\n PASS call prefixes (36960 exact budget/state/stack/memory/alias/continuation comparisons)\n PASS branch veneers (12800 exact budget/state/alias/path comparisons)\n PASS boundary details (97 exact rejection labels/counters and primary/dependency/gap/outside guards)\n  PASS budget_chunks policy=6 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=16 (7680 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=7 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=8 (30720 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=8 (16896 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=7 (16896 exact state/memory/budget comparisons)\n  PASS region_ir (snapshot liveness/type checks; backend disabled)\n  PASS ir_flags (221184 exact flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=13 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=14 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=15 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=16 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_long_segments (51840 exact long-graph state/flags/memory/budget comparisons)\n  PASS ir_segments (81536 exact state/memory/budget comparisons across enabled policies)\n  PASS ir_memory_exits (24584 exact intermediate snapshot/effect comparisons)\n  PASS ir_exit_recipes (6120 exact load-history/DAG/width/budget comparisons)\n  PASS ir_addressing (24112 exact width/address/snapshot/budget comparisons)\n  PASS memory_displacements (72 exact state/memory/budget checks)\n  PASS deferred_memory_exits (672 exact pre-instruction exits)\n  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS conditional_alu_select (229376 exact budget/state comparisons)\n  PASS compare_conditions (64512 exact budget/state comparisons)\n  PASS arm_long_multiply (92160 exact budget/state comparisons)\n  PASS cached_callback_state\n  PASS msr_privilege_guard\n  SKIP code validity generation tests (experimental build option disabled)\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n172 passed, 0 failed\n"
+    },
+    "frontend": {
+      "path": "/home/claude/.scratch/eka-benchmark/branch-veneer-frontend.log",
+      "log": "PASS scanner, lookup and fusion policies, exact mode/limit readback, rejected configuration and policy-dependent HTML ETags\n\u2714 src/tests/wasm/compiler-policy.test.ts (214.129692ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 222.965612\n"
+    },
+    "fault-conditional": {
+      "leaf_features": 0,
+      "exit_census": 0,
+      "predicated_leaves": 1,
+      "execution_limits": "512,16,8,512",
+      "code_write_protect": null,
+      "code_lookup": null,
+      "ir_policy": 7,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "completed_cases": 40640,
+      "results": [
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/predicated-calls-native.log": "cfcf0debb8bbe7a7699012ca5583b061898b1fc3e6e1762457d823c57e48c8c5",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/predicated-calls-wasm.log": "06ccf2ea468e67de16ee33af1a04e848f48ac106093ca9554895942b8db0532a"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/preserve-inner-native.log": "f6361099038c5b3aa3dc5fc72363015abf15747e03c4d97c54de901c87f82a07",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/preserve-inner-wasm.log": "9a538f9fd44d6adc4035594c317580b4302461933fa8d7c4ca01aa16bd211bee"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/prefix-calls-native.log": "4c38299444f0147364e9bc13887564fd330980610565ad8d5422cff0aeeee404",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/prefix-calls-wasm.log": "2580956eba6ccc828dc74eb29510932805da07bc684e155de3af33ccc5cf0537"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/expanded-calls-native.log": "982e5d1578a63de358cc2f15f106602e09468c10f054547bfd007b81399290ac",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/expanded-calls-wasm.log": "1d02d99fed03b9be05abee793c1407589d4eedf297f5e20ce79b837572305c8c"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/branch-veneers-native.log": "6fb635e29260a302242b333f606ae32ceffdc0da7fdfec5f44cfa7057f9bedcd",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/branch-veneers-wasm.log": "d4013e0ea08fcc22b6b388057fa3efc6474110e66dc7e52d210f5f02759bf68b"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-conditions-native.log": "57bde438544def71bd8ee753b6d9c81af657747ad3f0e43e57d0552478638d4e",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-conditions-wasm.log": "f692312bd05f3e02201c1a759d5dd6bfc0bbc5ebd75634d8fbfb1510f2a5ccc5"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-calls-native.log": "1f91960012786ebed0ae01f64daf197e411e25202ada4a2420b5a80913044da8",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-calls-wasm.log": "c623a043478ed27b169925dbbe56ec3927a03ade05bdb114474c3a7a0338f065"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-calls-short-native.log": "5d554b481e855fec3895ce3c20a87abb7a5958a1f336aacc332d18b184089119",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-calls-short-wasm.log": "3aeedaf7fe490f82d0f11c98b3232169affbb89d40d0dc7586d6e74d5a5254fc"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-flags-native.log": "627b8fe0d9541a02d9a1da5a46f7ff19975607013d9b0cbae2be2b6be936edae",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-flags-wasm.log": "5be482e4612d10ab520f77780400a4c1fe3c8852c40f9a1ae8de056a746d7871"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/invariant-write-remap-native.log": "dce47bbb8421613739ddefd0c40ac19546d2e450518a3ecfc400a02530a0058e",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/invariant-write-remap-wasm.log": "d66b15e405cefbc7e06ed3dbfccc32a13fe95cb56b25211aef2a6c6594b83915"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/invariant-remap-native.log": "28b24e84e01314e4272cc988cc1e237fa4fe30fe1ce5605b514c52d343116d77",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/invariant-remap-wasm.log": "eb1cfd37c15665f5eec3894972cd82b541a8acd65e5e1d4342b23a05f1ba044a"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-segments-native.log": "66249846fd8a5ab31695a2e900c7e79775973c77e00345c522cd31d156564d3c",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-segments-wasm.log": "66b4f4404ff368f15d11cf1684f2de71f6f0a78449dffc55d8a8b27216cccb3b"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-memory-native.log": "31b76f01f6dbc7a353fb57fea589d0c0fb0b3ab0ccf10c60e90047c69a7c25f3",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-memory-wasm.log": "e83732068346a796e27f9a4e8e7c6a6023a875da955c2313b6739ad8b3df37e3"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-memory-chain-native.log": "73a11833b2ee8f64822f28707136530a7bb5e4e8627f5a77f6d656a9036256cd",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-memory-chain-wasm.log": "62db4348f9e3df2bd06f5dc4111360038c9d0ffa2e4950dc80b87fa6e95b5e88"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-wide-native.log": "dd2231f4bc62e86b5fc64152915c4470deaf9dd593d67a5832e55e641e302a80",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-wide-wasm.log": "48650cacdb80abeb881df0ef9ab7193ff49b854750f8013e728b75bb260c08eb"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-addressing-native.log": "e93911ab2848002dc812f65298fc3fd8ccff50f51f96e9798bdc779b582ca8fc",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-addressing-wasm.log": "d6c1376678b01a12b7a3d6bd50f191ee16c0474cbafa458573530cb6189dae18"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-short-native.log": "5921cb347357770d752d603b524c6ecff4ac01a88255f604475d2b60e1cd6de5",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-short-wasm.log": "2126ee9e6cc2404469f2b7400085e24a00e9463b565e75725d1669bcc6b2d90d"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-recipes-native.log": "fa1a4588bc95f9ba4a720b35bfeaa1c2e84b9f1b14a56b4c361396b2c8948d7a",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/ir-recipes-wasm.log": "fc62cf9698ad9ab96c86efa37c82dd12f885fb740fadc7ae71f14b728b2d1810"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/extended-native.log": "3652d923a0fd30b3f325e9f7d310f74e68abeee6bfa6a4a502e3b0d3f92e249b",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/extended-wasm.log": "3652d923a0fd30b3f325e9f7d310f74e68abeee6bfa6a4a502e3b0d3f92e249b"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/deferred-native.log": "3652d923a0fd30b3f325e9f7d310f74e68abeee6bfa6a4a502e3b0d3f92e249b",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/deferred-wasm.log": "ba0ad72cf96b8dca5d00a51f3ee4c5b59e896238906163a5d05c9f086e92715f"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/entry-budget-native.log": "e446ed189103bc5d61823b82fd82d68dac6d11e734da873464733e47a84bf201",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/entry-budget-wasm.log": "e446ed189103bc5d61823b82fd82d68dac6d11e734da873464733e47a84bf201"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/entry-budget-deferred-native.log": "e446ed189103bc5d61823b82fd82d68dac6d11e734da873464733e47a84bf201",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/entry-budget-deferred-wasm.log": "eee2c71a3ea869c03602abd9809041a12bb4fa4e1838bc1e27f3fe9f3a779026"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/read-spans-native.log": "4d421b7c4961f39e4e5b714a3c3a94739f9b73981cc02115551a77e8b9a251f3",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/read-spans-wasm.log": "ba7e89f39f8b5dbaaf3a6dba7bbf765ddb5e9b222365c975bf9a1ccb95d459ea"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/wide-snapshots-native.log": "b3e58e12881168c504e5a20f4fbd7cd70073097420157b6d3bf97fa8e6dab102",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/wide-snapshots-wasm.log": "9e4038d8d60f4b2c262ba7da6750f45f8c066d093269784edd67a3a987699283"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/region-spans-native.log": "73a11833b2ee8f64822f28707136530a7bb5e4e8627f5a77f6d656a9036256cd",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/region-spans-wasm.log": "62db4348f9e3df2bd06f5dc4111360038c9d0ffa2e4950dc80b87fa6e95b5e88"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/region-spans-interpreter-native.log": "73a11833b2ee8f64822f28707136530a7bb5e4e8627f5a77f6d656a9036256cd",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/region-spans-interpreter-wasm.log": "926801f1b505f9974c7fe36314a74afc30c74c3286638c37c96e42fce545d8bc"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/entry-budget-interpreter-native.log": "e446ed189103bc5d61823b82fd82d68dac6d11e734da873464733e47a84bf201",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/entry-budget-interpreter-wasm.log": "e446ed189103bc5d61823b82fd82d68dac6d11e734da873464733e47a84bf201"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/region-block-spans-native.log": "0cd36f7ea41c95114b094acc8c139fe13dd9ff0b49fde41b97bb261dce524b46",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-conditional/region-block-spans-wasm.log": "d277a4281601e0e07753688fcb9bb26a38a1a45460a508e6eae707c40b798623"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        }
+      ]
+    },
+    "fault-candidate": {
+      "leaf_features": 32,
+      "exit_census": 0,
+      "predicated_leaves": 1,
+      "execution_limits": "512,16,8,512",
+      "code_write_protect": null,
+      "code_lookup": null,
+      "ir_policy": 7,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "completed_cases": 40640,
+      "results": [
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/predicated-calls-native.log": "549ab925b0087ab441472974cf26103af2e8590640744c2c1b541e01c2fdd04e",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/predicated-calls-wasm.log": "55bc8c844effa994de1395555ce06d353e0ef1382fde002d6800dee326749077"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/preserve-inner-native.log": "1ba3ee44231b1da64cbbc656b9833182b5efb825ecfd58794ef891faed749fe1",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/preserve-inner-wasm.log": "0a438cfa8e3a16f80929192a1e2f521072dfddb84e54c437827d5dbfe9fa4034"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/prefix-calls-native.log": "cf28fca27f740dc8636515e0bbc8261f4f1097af7eb535ba56f2ad21adac7a73",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/prefix-calls-wasm.log": "9bfa0f875dd085319f2d39be0cad36869f4d41f287d54f6d5ad72ab63919f90d"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/expanded-calls-native.log": "d31d5a02a785127b406c0160ec679d9c8afc28e599dad2f6ba470d876af4fdad",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/expanded-calls-wasm.log": "e176a4ed1301ae8d38656827cc966337a753cc85d17bf39ef70564353cf90743"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/branch-veneers-native.log": "bf1e059f87775367964b8002eef823920ac9cc29888b392de00db834583ba745",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/branch-veneers-wasm.log": "d897a04fcb7d6450d6ebdd27a9809a2aa03ec65ed87a3f78a4dfbb132bbcb744"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-conditions-native.log": "9fd08f8b16a1d5572d0c36ae734b6c2c60d1131c4fccd270f9de043d9df3356b",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-conditions-wasm.log": "a9964448f7ef974ed7cac72beac6dd677d88989c86f925644a3d1b5c974dd1d0"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-calls-native.log": "ed78abbd249ce85c411aee7ae55fdebddf2a7c3bdfcfaca7a48d76fcb591ba96",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-calls-wasm.log": "cec1704ea043ca5ca1f82d553a7d255815d427ae0a205244ee27272626e94280"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-calls-short-native.log": "0b26e928f5a1cbb389e022f28b020ac21d0b984eaccca931fb692f8951843d12",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-calls-short-wasm.log": "f7b653b83cf225b762060586a5241135e3ad5c6bce475f3accf9d6d9059e492a"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-flags-native.log": "801899e5bd112928307c149f5ea537d9ffb1507d9330ec4c8e7b6d16d5336227",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-flags-wasm.log": "823d96e53f94c1c90240ead9f1e0d553646a7bddd93d5cdb3776227de4104ff9"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/invariant-write-remap-native.log": "b0f9a154d67f475c7941176273f1d75ce34952da6ba40b745518975e6b4d1e36",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/invariant-write-remap-wasm.log": "25a945accb4cc9de7a257e36aec75b577f8502fc9d75f02359c84e8b246cb076"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/invariant-remap-native.log": "0a3398afc2086298b9b2e42e15d30ab9c16c145490357780753124a48b91a9cb",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/invariant-remap-wasm.log": "8856bb3c9872736b381f35966571c5234b8a34b99d653b9a4faf817f41e8e64d"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-segments-native.log": "a82b2a80615e20c8ee9bae8bf2f2e8e9b6c0a9aefd1d947ac41141e1ae7e0810",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-segments-wasm.log": "194e0f6354707f88eb07112fe14f86a54921c7b80fba2a06355147e08d2384f9"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-memory-native.log": "c479caa801616d707dfd060739c00de6c05bcd548b967c1f3581d5a39d9b621a",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-memory-wasm.log": "718d70e964e70163e0e88c2d0296c713fde96bcf24c1f5725ca800a403146127"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-memory-chain-native.log": "424257867fedd0d9b1103b6ed4a9293542da83479c1ed06f7dcce68db84a9fa8",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-memory-chain-wasm.log": "96d9d6135aac3e786153af7ae24087395fc396a9795af31a421f58885e2e9c76"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-wide-native.log": "d5ddceaddb3c5ce422d966d372d20797926afd3430c06944a96c8941cd814713",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-wide-wasm.log": "0e18e0938d0322e0cf80de838f742482103253771f41b3d5170784c82ef26941"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-addressing-native.log": "e6c542aa8abe7c1e71f70fcae8b0ee2f78ca18ee54c6637423991ab38c0f1ae6",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-addressing-wasm.log": "ebdb8ed86714118df61c04f0a209b9d3d126771a8978556bfcc9d3ffada48b8b"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-short-native.log": "9f066e6e3877d469d40d1c4dbef23a2dcb003dd748b7428df24bb11ba318e1c8",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-short-wasm.log": "0f12df63494cbfd8b399a2fdd8a3a775a5d30867bda4cb7d79fb6ef96f41bcf3"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-recipes-native.log": "bc53d6c1abc6028e3bd054260c6b3bebba5de39ebdc544b6059f4832141f4b77",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/ir-recipes-wasm.log": "c24b49081dbfc99528cffe6df5b1f6b6e1c60202c2e68c0bfb072c2141a124f5"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/extended-native.log": "b86bdb695960bd22ba46815d578220ae63e5b62cd84a2a076672d93082428090",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/extended-wasm.log": "b86bdb695960bd22ba46815d578220ae63e5b62cd84a2a076672d93082428090"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/deferred-native.log": "b86bdb695960bd22ba46815d578220ae63e5b62cd84a2a076672d93082428090",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/deferred-wasm.log": "6eda5c562d2c4cf88e806a00cb72d7e8a7351cbec78d03b916127abc8a7032a6"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/entry-budget-native.log": "462a94befcf262e6e14867405ae29a35c279474e236c56cb5d9b56c8dee489a3",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/entry-budget-wasm.log": "462a94befcf262e6e14867405ae29a35c279474e236c56cb5d9b56c8dee489a3"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/entry-budget-deferred-native.log": "462a94befcf262e6e14867405ae29a35c279474e236c56cb5d9b56c8dee489a3",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/entry-budget-deferred-wasm.log": "70a076a531c37c46d2be23ec2c1561c0a09caf299f4c59f2ea035cdb7101c54c"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/read-spans-native.log": "32b42a8d713f25b2ecbef16253f9989da49a8345b63dec3daddc72076c330f0b",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/read-spans-wasm.log": "b7ee7bac8ad0fdf455c9385be0cb31dd9202fba81c937217f085dfc37dfb7b8a"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/wide-snapshots-native.log": "9c3d9968b6844c2005a3e3fc6e4ec59e94aece4f91ad0f2a9d1a0f5d069a4e2f",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/wide-snapshots-wasm.log": "1bab7e3573dc7589a9946fae2a2e3bd3b5f7ef27ef447d469123bfeb010dcb2f"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/region-spans-native.log": "424257867fedd0d9b1103b6ed4a9293542da83479c1ed06f7dcce68db84a9fa8",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/region-spans-wasm.log": "96d9d6135aac3e786153af7ae24087395fc396a9795af31a421f58885e2e9c76"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/region-spans-interpreter-native.log": "424257867fedd0d9b1103b6ed4a9293542da83479c1ed06f7dcce68db84a9fa8",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/region-spans-interpreter-wasm.log": "7f4fff8f2aa2e6b46718e922387314e8b20149c8485c7d4b7ce7fb3d6cfa9022"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/entry-budget-interpreter-native.log": "462a94befcf262e6e14867405ae29a35c279474e236c56cb5d9b56c8dee489a3",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/entry-budget-interpreter-wasm.log": "462a94befcf262e6e14867405ae29a35c279474e236c56cb5d9b56c8dee489a3"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/region-block-spans-native.log": "6433c3f03d9bd574bd4ae7fddb6d850a34f8baa6b2a3998f244f7059c1a6cd46",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-fault-candidate/region-block-spans-wasm.log": "ce6ff180b964ea134b3239f56eb9b90b3125c18958839440078096e1a1748e57"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        }
+      ]
+    },
+    "replay-control": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4656051,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+        "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+        "writes": 0,
+        "callbacks": 9648,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 9648,
+        "gameplay_nonzero_samples": 6784478,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 97001070,
+      "instructions": 16376387249,
+      "configuration": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 145.52941963700002,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "549edb7572a8e04e1dfc586a8edcf37e7929bc12e151c4072bfcb871dc0c77d4",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 0,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "871c89a38d9b5f3512d2663bca9efcb4f18b9f0a",
+        "dirty_worktree": true
+      }
+    },
+    "replay-candidate": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4656051,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+        "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+        "writes": 0,
+        "callbacks": 9648,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 9648,
+        "gameplay_nonzero_samples": 6784478,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 97001070,
+      "instructions": 16376387249,
+      "configuration": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 148.837262443,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "549edb7572a8e04e1dfc586a8edcf37e7929bc12e151c4072bfcb871dc0c77d4",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 32,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "674ffd72fbcede02b6ac7532f15362f6ddba8ca9",
+        "dirty_worktree": true
+      }
+    },
+    "replay-normal": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4656051,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+        "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+        "writes": 0,
+        "callbacks": 9648,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 9648,
+        "gameplay_nonzero_samples": 6784478,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 97001070,
+      "instructions": 16376387249,
+      "configuration": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 115.872891688,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "549edb7572a8e04e1dfc586a8edcf37e7929bc12e151c4072bfcb871dc0c77d4",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 32,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "674ffd72fbcede02b6ac7532f15362f6ddba8ca9",
+        "dirty_worktree": true
+      }
+    },
+    "long-replay": {
+      "match": true,
+      "audio": {
+        "sample_frames": 2832756,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "cff3ae6616cdda70e86562cd63566fd809b125041a7b338afc66b36e77a8f5a8",
+        "sha256_events": "2a099f1ce470188019b5d06f67e05c5386ad0f16fd193bce211603bba3c053d1",
+        "writes": 0,
+        "callbacks": 5849,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 5849,
+        "gameplay_nonzero_samples": 1611214,
+        "gameplay_peak": 573
+      },
+      "frames": 360,
+      "unique_images": 360,
+      "last_virtual_us": 59015758,
+      "instructions": 9309923112,
+      "configuration": {
+        "frames": 360,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 83.457121789,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "wasm_sha256": "549edb7572a8e04e1dfc586a8edcf37e7929bc12e151c4072bfcb871dc0c77d4",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 32,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "674ffd72fbcede02b6ac7532f15362f6ddba8ca9",
+        "dirty_worktree": true
+      }
+    },
+    "marker-rejections": [
+      {
+        "marker": "PROBE_EXIT_CENSUS",
+        "case": "missing",
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 33, in load\n    if markers != [f'PROBE_EXIT_CENSUS {a.exit_census}']:raise ValueError(f'{path}: wrong exit census {markers}')\n                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: /home/claude/.scratch/eka-benchmark/branch-veneer-marker-checks/PROBE_EXIT_CENSUS-missing.log: wrong exit census []\n"
+      },
+      {
+        "marker": "PROBE_EXIT_CENSUS",
+        "case": "wrong",
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 33, in load\n    if markers != [f'PROBE_EXIT_CENSUS {a.exit_census}']:raise ValueError(f'{path}: wrong exit census {markers}')\n                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: /home/claude/.scratch/eka-benchmark/branch-veneer-marker-checks/PROBE_EXIT_CENSUS-wrong.log: wrong exit census ['PROBE_EXIT_CENSUS 1']\n"
+      },
+      {
+        "marker": "PROBE_EXIT_CENSUS",
+        "case": "duplicate",
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 33, in load\n    if markers != [f'PROBE_EXIT_CENSUS {a.exit_census}']:raise ValueError(f'{path}: wrong exit census {markers}')\n                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: /home/claude/.scratch/eka-benchmark/branch-veneer-marker-checks/PROBE_EXIT_CENSUS-duplicate.log: wrong exit census ['PROBE_EXIT_CENSUS 0', 'PROBE_EXIT_CENSUS 0']\n"
+      },
+      {
+        "marker": "PROBE_LEAF_FEATURES",
+        "case": "missing",
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 30, in load\n    if markers != [f'PROBE_LEAF_FEATURES {a.leaf_features}']:raise ValueError(f'{path}: wrong leaf features {markers}')\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: /home/claude/.scratch/eka-benchmark/branch-veneer-marker-checks/PROBE_LEAF_FEATURES-missing.log: wrong leaf features []\n"
+      },
+      {
+        "marker": "PROBE_LEAF_FEATURES",
+        "case": "wrong",
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 30, in load\n    if markers != [f'PROBE_LEAF_FEATURES {a.leaf_features}']:raise ValueError(f'{path}: wrong leaf features {markers}')\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: /home/claude/.scratch/eka-benchmark/branch-veneer-marker-checks/PROBE_LEAF_FEATURES-wrong.log: wrong leaf features ['PROBE_LEAF_FEATURES 0']\n"
+      },
+      {
+        "marker": "PROBE_LEAF_FEATURES",
+        "case": "duplicate",
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 30, in load\n    if markers != [f'PROBE_LEAF_FEATURES {a.leaf_features}']:raise ValueError(f'{path}: wrong leaf features {markers}')\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: /home/claude/.scratch/eka-benchmark/branch-veneer-marker-checks/PROBE_LEAF_FEATURES-duplicate.log: wrong leaf features ['PROBE_LEAF_FEATURES 32', 'PROBE_LEAF_FEATURES 32']\n"
+      }
+    ],
+    "diagnostic-fault": {
+      "leaf_features": 32,
+      "exit_census": 1,
+      "predicated_leaves": 1,
+      "execution_limits": "512,16,8,512",
+      "code_write_protect": null,
+      "code_lookup": null,
+      "ir_policy": 7,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "completed_cases": 40640,
+      "results": [
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/predicated-calls-native.log": "0116663ec97dece1405a55f10f7ea3a17d2da4f96d345e55093cb91a44ecfc19",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/predicated-calls-wasm.log": "0185570ac07fafa48105123d0ed841602bb6a0e68dd4586771fba30c0806cd84"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/preserve-inner-native.log": "c8208be136a36aec4166182049464f299870174cec75b0baea35b0e1bf37c7d6",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/preserve-inner-wasm.log": "21be54f771b5b3c2ee84a546fadbdeb0108855f192257f7a640eaf374678b635"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/prefix-calls-native.log": "4790a3e6471fe181daed92d4a76c81e2023e67234e0216268bbdd3a4aa6fb74d",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/prefix-calls-wasm.log": "2ca331cec2006cd148b42e4af2a211f5a025e40b84ea35dc2dcb7687905f8008"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/expanded-calls-native.log": "fee05bb5e0d7aa288eef9c00dfa7124e8306f4c0ef8b114d8028cd17c9cea08e",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/expanded-calls-wasm.log": "579dbf19bc95cef8658f91fcae357b64e3d077c55abf324e42905f269ead60ae"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/branch-veneers-native.log": "df90864700c994c92c33ad0df6e6e7ecf720c2866db443c687f6883d90f84346",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/branch-veneers-wasm.log": "5a936f51e1317bc900fcf19c81fe345a97501fc7217982ed3413d57af7e594f8"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-conditions-native.log": "6ed29538e126c92a7d16317257059cfc968b876333ca3c9c6071af61be0910f2",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-conditions-wasm.log": "9d961d5991c91a024865d6b5090b1d4d4ca8b747c2bf9ddc269aaba9f85dcf2b"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-calls-native.log": "bd836afd00d4b979a781d133312aee7a4a23149728a65f3bf281ead40faacffb",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-calls-wasm.log": "0fea0c979b8728003cdf8f9827f0d36cd2a14f2ff0d2a09ba788a8bffd5e0360"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-calls-short-native.log": "09a9f21c6e1cd6570512441744e219c68baacb6821e4dddecfae0fe7328f6981",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-calls-short-wasm.log": "f5b9bfac95bc3631ca09c2953061cc96ee3395a6219218829c1988adc4ff589d"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-flags-native.log": "37707fd2ab83144ebb17469e057d382e6ded073a53e66cc93ec38da0dce09d39",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-flags-wasm.log": "fb4528e14f92fd3696b397160da6ab91741b54f518a375e8bb58c691ab55c7a0"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/invariant-write-remap-native.log": "3dee5133ff7ed0dbb688f19ec46e4efe999cbf1e4932b603b8938fdd2863fd3f",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/invariant-write-remap-wasm.log": "320a439a340432f27fcafeeefa3449743e3a195060c662ca799892cc8a300262"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/invariant-remap-native.log": "2617c8c76b5cde7c5ea5ec87ba445b85299dbee24a16770ece9814d8069499da",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/invariant-remap-wasm.log": "6320607a19fe48a619610298cfa93ae1d3724fb0453ba6a098c90b872b1f346b"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-segments-native.log": "75b454aa0a0574089cf84c8ac3d90a977d68841a58b81db6b1495f80485fe6d5",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-segments-wasm.log": "5614a9ba6c8464cec323cd8a1c9af776cabb2fb8cfa1606ced03ed9e884655e7"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-memory-native.log": "52b4189abe7f7842a18fedd82549c2ab7e2069910c22538634c93a86b7fed257",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-memory-wasm.log": "bf0a2b014b3622fe375b7f4a73349cba4b2285248e0c40e10743dce4f15eea16"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-memory-chain-native.log": "9dc96df749301065f483ebe2cb82836cf2676ec5f476f5998b99a50677ed24d8",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-memory-chain-wasm.log": "520cf18de0a93badbaf4ea2327f2f3151369fa7b3f9df1771ad6ae99195f2dbb"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-wide-native.log": "96a87eabc44ac39c4818b5865bc64c2a1744293d35c1689deec4afb37721d23f",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-wide-wasm.log": "b61ab362cca987e6d4d2cd2cbf9147b6a1fde8ce9343565c891c7672b260d926"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-addressing-native.log": "868601eeff336f0db633254ad4a1e2f98e4f4d1681fc680a397d08a659e52844",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-addressing-wasm.log": "a2d66f39e3cf3e80ca6a645bffcf367131f521adaa4da5d7e13332f30bf5da48"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-short-native.log": "a804f12b7a66020db16a2d9d744cdefef90b1e1bfabc76611d671a1eb1fc9987",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-short-wasm.log": "affc8fd9608bbae7d72a2fcfb2a880dd4d9729f2a25d38f97a7ab3fdc8860ce3"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-recipes-native.log": "f16b66f87d68d50c2cb45b9b56b377d8d4c632f70b3b98cc5d3e4011375ded9a",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/ir-recipes-wasm.log": "b71bc7e94559aa420eea28912ee4d167d1ca9c799904395c1be89fa63f1c232c"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/extended-native.log": "ad83a44309b696f8a926af7be841ba07af4a56707ae09ff12a5c6bc61206fb01",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/extended-wasm.log": "ad83a44309b696f8a926af7be841ba07af4a56707ae09ff12a5c6bc61206fb01"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/deferred-native.log": "ad83a44309b696f8a926af7be841ba07af4a56707ae09ff12a5c6bc61206fb01",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/deferred-wasm.log": "6aa9083e8cdc8e561e3faeb8dde1248385e54bb934853d8839139989e3c6da3d"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/entry-budget-native.log": "f8a34db825c74e850876d14d48b5493daeeb4dabfe6368c8efe41340ebfef005",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/entry-budget-wasm.log": "f8a34db825c74e850876d14d48b5493daeeb4dabfe6368c8efe41340ebfef005"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/entry-budget-deferred-native.log": "f8a34db825c74e850876d14d48b5493daeeb4dabfe6368c8efe41340ebfef005",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/entry-budget-deferred-wasm.log": "f4c6699cb38052a5fe842ad4b7669cc737dc5f62814d8bd230f4a1aaa59620b3"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/read-spans-native.log": "ef6c7802f338cfb23085914f744b697560413552da022be5647e274e67f353b0",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/read-spans-wasm.log": "f8877a271177d845a72111dad895dd8a0343014bd0fa5d7f2f5185e7e9cb5de9"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/wide-snapshots-native.log": "bb33e703ca696713e2a548288626f82e2498f5ef4f99a3e33c4a3048bf6b21c0",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/wide-snapshots-wasm.log": "6fcb2ab44795ee0f8bb377bb7d8326a705d5dcb7c7903d17324f69be4d7a8ad0"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/region-spans-native.log": "9dc96df749301065f483ebe2cb82836cf2676ec5f476f5998b99a50677ed24d8",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/region-spans-wasm.log": "520cf18de0a93badbaf4ea2327f2f3151369fa7b3f9df1771ad6ae99195f2dbb"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/region-spans-interpreter-native.log": "9dc96df749301065f483ebe2cb82836cf2676ec5f476f5998b99a50677ed24d8",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/region-spans-interpreter-wasm.log": "57e684c0a8eefdb5a6301be95906be4faaa5e249bbbc94b489c99de0c498ed74"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/entry-budget-interpreter-native.log": "f8a34db825c74e850876d14d48b5493daeeb4dabfe6368c8efe41340ebfef005",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/entry-budget-interpreter-wasm.log": "f8a34db825c74e850876d14d48b5493daeeb4dabfe6368c8efe41340ebfef005"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 32,
+          "verified_exit_census": 1,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/region-block-spans-native.log": "194857904b2f5d30320a62d83629d8aca18f3a8e3ac294cc3ca16c3d23604e47",
+            "/home/claude/.scratch/eka-benchmark/branch-veneer-diagnostic-fault-candidate/region-block-spans-wasm.log": "03b942ed12ac173a0514ee9291324bcc746fe914aa103e6b90525a063ca6f999"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,8,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        }
+      ]
+    },
+    "diagnostic-standard": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4656051,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+        "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+        "writes": 0,
+        "callbacks": 9648,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 9648,
+        "gameplay_nonzero_samples": 6784478,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 97001070,
+      "instructions": 16376387249
+    },
+    "diagnostic-long": {
+      "match": true,
+      "audio": {
+        "sample_frames": 2832756,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "cff3ae6616cdda70e86562cd63566fd809b125041a7b338afc66b36e77a8f5a8",
+        "sha256_events": "2a099f1ce470188019b5d06f67e05c5386ad0f16fd193bce211603bba3c053d1",
+        "writes": 0,
+        "callbacks": 5849,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 5849,
+        "gameplay_nonzero_samples": 1611214,
+        "gameplay_peak": 573
+      },
+      "frames": 360,
+      "unique_images": 360,
+      "last_virtual_us": 59015758,
+      "instructions": 9309923112
+    }
+  }
+}
