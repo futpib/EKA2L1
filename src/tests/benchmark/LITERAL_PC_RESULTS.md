@@ -23,3 +23,9 @@ After the runner-cap study completes, run full control/candidate native fault ma
 A separately checked census will measure compiled calls, indirect exits, dependency spans/bytes, primary byte coverage, entry proofs and code/interval-gap guards. Generated-module size and construction costs will be measured separately. Any apparent throughput gain must survive normal/live/audio and actual HTTPS/cache-upgrade acceptance before delivery. Nothing is pushed or deployed by this experiment.
 
 The preserved completion queue now includes metadata-only generated-module captures after the exit census, with an exact native checked replay of the hooked loader first. Disjoint control/candidate correctness matrices can run concurrently; all must finish before replays and serial timing. No timing order or frozen binary changes. Final disposition records every sample and requires manual live/audio review if comparisons consistently favor the candidate; it never deploys automatically. These are queued procedures, not completed results.
+
+## Full correctness acceptance
+
+Both control and candidate pass 46,016 explicitly selected native fault comparisons (92,032 total), including the runtime literal-load fixture. Checked control/candidate and normal candidate standard replays match all 1,600 native images, guest records and 4,656,051 PCM frames. The checked longer route matches 360 images and 2,832,756 PCM frames. Actual compiler policy, feature mask, limits and archive hashes are verified. These full matrices include cases also reported by the focused runs; no extra distinct coverage is implied.
+
+No new timing or live/audio acceptance is claimed yet. The previous conditional-only archive stays served.
