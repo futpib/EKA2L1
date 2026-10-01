@@ -144,11 +144,13 @@ static unsigned g_expected_callback_pc = 0;
 static bool g_callback_pc_matches = true;
 static bool g_count_memory_helpers = false;
 static unsigned g_memory_helper_calls = 0;
+static std::function<void(std::uint32_t,std::uint32_t)> g_read32_observer;
 static std::function<void(std::uint32_t,std::uint32_t,std::uint32_t)> g_write16_observer;
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read32(std::uint32_t state_ptr, std::uint32_t addr) {
+        if (g_read32_observer) g_read32_observer(state_ptr, addr);
         if (g_count_memory_helpers) ++g_memory_helper_calls;
         if (g_expected_callback_pc)
             g_callback_pc_matches &= reinterpret_cast<std::uint32_t *>(state_ptr)[15] == g_expected_callback_pc;
@@ -4747,6 +4749,101 @@ static bool test_branch_veneers() {
     return true;
 }
 
+static bool test_literal_pc_veneers() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        bool flag=predicated_leaves, hash=r12l1::dyncom_folded_tlb;
+        unsigned features=leaf_features; std::string limits=execution_limits_text();
+        ~restore(){predicated_leaves=flag;leaf_features=features;r12l1::dyncom_folded_tlb=hash;
+            parse_execution_limits(limits.c_str());g_test_mem=nullptr;g_read32_observer={};}
+    } saved;
+    configure_execution_limits(512,16,8,512);predicated_leaves=true;
+    unsigned checks=0;
+    for(bool hash:{false,true}) for(unsigned literal:{0x1ffcu,0x2004u,0x2010u,0x3000u})
+    for(unsigned features:{0u,128u}) {
+        r12l1::dyncom_folded_tlb=hash;leaf_features=features;
+        const unsigned caller[]={0xe2844001u,0xeb0003fdu,0xe28bb001u};
+        const unsigned op=(literal>=0x2008u?0xe59ff000u:0xe51ff000u) |
+            (literal>=0x2008u?literal-0x2008u:0x2008u-literal);
+        const unsigned leaf[]={op,0xe3a0c077u};
+        leaf_resolver resolver=[&](unsigned pc){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);
+            return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
+        auto translate=[&](arm_ir_policy policy=arm_ir_policy::write_budget_chunks){return translate_arm_block(
+            reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        auto tr=translate();
+        if(tr.dependencies.size()!=unsigned(features==128) || (features &&
+            (tr.dependencies[0].bytes.size()!=4 || tr.dependencies[0].address!=0x2000 ||
+             std::find(tr.resume_points.begin(),tr.resume_points.end(),0x1008u)==tr.resume_points.end()))) {
+            printf(" FAIL literal PC veneer selection\n");return false;
+        }
+        if(features) {
+            predicated_leaves=false;if(!translate().dependencies.empty())return false;predicated_leaves=true;
+            inline_site_limit=0;if(!translate().dependencies.empty())return false;inline_site_limit=8;
+            if(!translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        // Reuse identical translated bytes with changed literal contents and mappings.
+        // Neither the target nor the literal's backing page is a code dependency.
+        for(unsigned target:{0x4000u,0x4001u,0x5002u,0x1008u}) for(unsigned mapping=0;mapping<3;++mapping)
+        for(unsigned flags=0;flags<16;++flags) for(unsigned budget=0;budget<5;++budget) {
+            test_mem actual;
+            auto *cb=reinterpret_cast<const std::uint8_t*>(caller);actual.write_code(0x1000,{cb,cb+sizeof(caller)});
+            auto *lb=reinterpret_cast<const std::uint8_t*>(leaf);actual.write_code(0x2000,{lb,lb+sizeof(leaf)});
+            actual.write32(literal,target);
+            const unsigned page=literal&~4095u, backing=mapping==2?0x7000u:page;
+            if(mapping==2) {
+                std::memcpy(actual.data.data()+backing,actual.data.data()+page,4096);
+                actual.write32(literal,0x6000); // stale unmapped backing must not supply the target
+            }
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            r12l1::tlb tlb(12,hash);
+            if(mapping){tlb.add(page,actual.data.data()+backing,3);reference->set_tlb_page(page,expected.data.data()+backing,prot_read_write);}
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg){state[reg]=reg==14?0x6001:reg==15?0x1000:reg;reference->set_reg(reg,state[reg]);}
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x2004);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            unsigned callbacks=0;bool visible=true;
+            g_read32_observer=[&](unsigned ptr,unsigned address){auto *v=reinterpret_cast<unsigned*>(ptr);++callbacks;
+                visible &= address==literal && v[15]==0x2000 && v[14]==0x1008 && v[4]==5;};
+            g_test_mem=&actual;
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_test_mem=nullptr;g_read32_observer={};
+            if(count<0 || count>int(budget) || (!count && budget) || !visible){printf(" FAIL literal veneer count/callback\n");return false;}
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg) {
+                unsigned value=state[reg];
+                // The dispatcher aligns the raw loaded PC on the next entry.
+                if(reg==15)value &= state[state_offsets::TFLAG/4]?~1u:~3u;
+                if(value!=reference->get_reg(reg)) {
+                    printf(" FAIL literal veneer literal=%x target=%x features=%u hash=%u mapping=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",
+                        literal,target,features,hash,mapping,flags,budget,count,reg,value,reference->get_reg(reg));return false;
+                }
+            }
+            for(auto f:{std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},{state_offsets::ZFLAG,30},
+                {state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if(state[f.first/4]!=((reference->get_cpsr()>>f.second)&1))return false;
+            if(actual.data!=expected.data)return false;
+            if(features && budget>=3 && (count!=3 || state[15]!=target || state[14]!=0x1008 || state[11]!=11 || callbacks!=unsigned(mapping==0)))return false;
+            ++checks;
+        }
+    }
+    leaf_features=128;
+    for(unsigned op:{0x159ff000u,0xe5dff000u,0xe49ff000u,0xe5bff000u,0xe79ff000u,0xe591f000u,0xe12fff10u}) {
+        const unsigned caller[]={0xeb0003feu};
+        leaf_resolver resolver=[&](unsigned){auto *b=reinterpret_cast<const std::uint8_t*>(&op);return std::vector<std::uint8_t>(b,b+4);};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty()){printf(" FAIL unsupported literal veneer accepted %x\n",op);return false;}
+    }
+    printf(" PASS literal PC veneers (%u exact state/budget/runtime-target/mapping comparisons)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_tail_prefixes() {
 #ifdef __EMSCRIPTEN__
     struct restore {bool flag=predicated_leaves,hash=r12l1::dyncom_folded_tlb;unsigned features=leaf_features;std::string limits=execution_limits_text();
@@ -5247,6 +5344,7 @@ static bool test_exit_census() {
 }
 
 int main(int argc, char **argv) {
+    if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--tail-prefixes-only")return test_tail_prefixes()?0:1;
     if(argc==2 && std::string(argv[1])=="--branch-veneers-only")return test_branch_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--expanded-leaves-always-only")return test_expanded_leaves(true)?0:1;
@@ -5896,6 +5994,7 @@ int main(int argc, char **argv) {
     if (test_call_prefixes()) passed++; else failed++;
     if (test_branch_veneers()) passed++; else failed++;
     if (test_tail_prefixes()) passed++; else failed++;
+    if (test_literal_pc_veneers()) passed++; else failed++;
     if (test_boundary_details()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;

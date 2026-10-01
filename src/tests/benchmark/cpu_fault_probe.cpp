@@ -69,7 +69,7 @@ struct Fixture {
 int main(int argc, char **argv){
     if(argc>1 && std::strncmp(argv[argc-1],"--leaf-features=",16)==0) {
         const std::string value(argv[argc-1]+16);
-        if(value.empty() || value.size()>3 || value.find_first_not_of("0123456789")!=std::string::npos || std::stoi(value)>127){std::cerr<<"Invalid leaf feature policy\n";return 1;}
+        if(value.empty() || value.size()>3 || value.find_first_not_of("0123456789")!=std::string::npos || std::stoi(value)>255){std::cerr<<"Invalid leaf feature policy\n";return 1;}
         aot::leaf_features=static_cast<unsigned>(std::stoi(value));--argc;
     }
     std::cout<<"PROBE_LEAF_FEATURES "<<aot::leaf_features<<"\n";
@@ -151,12 +151,13 @@ int main(int argc, char **argv){
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
     const bool ir_call_short=argc==2 && std::string(argv[1])=="--ir-calls-short";
     const bool preserve_inner=argc==2 && std::string(argv[1])=="--preserve-inner";
+    const bool literal_pc_veneers=argc==2 && std::string(argv[1])=="--literal-pc-veneers";
     const bool tail_prefixes=argc==2 && std::string(argv[1])=="--tail-prefixes";
     const bool branch_veneers=argc==2 && std::string(argv[1])=="--branch-veneers";
     const bool prefix_calls=preserve_inner || (argc==2 && std::string(argv[1])=="--prefix-calls");
     const bool expanded_calls=argc==2 && std::string(argv[1])=="--expanded-calls";
     const bool predicated_calls=argc==2 && std::string(argv[1])=="--predicated-calls";
-    const bool ir_calls=tail_prefixes || branch_veneers || prefix_calls || expanded_calls || predicated_calls || ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
+    const bool ir_calls=literal_pc_veneers || tail_prefixes || branch_veneers || prefix_calls || expanded_calls || predicated_calls || ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
     const bool ir_long=argc==2 && std::string(argv[1])=="--ir-long";
     const bool ir_conditions=argc==2 && std::string(argv[1])=="--ir-conditions";
     const bool ir_flags=argc==2 && std::string(argv[1])=="--ir-flags";
@@ -189,15 +190,17 @@ int main(int argc, char **argv){
         0xe7910106,0xe7810106,0xe7d10106,0xe7c10106,0xe19100b6,0xe18100b6,0xe19100d6,0xe19100f6};
     if(ir_calls || ir_conditions || ir_long) instructions={0xe5910000,0xe5810000};
     if(invariant_remap) instructions={0xe5d28000,0xe8920300}; // LDRB / LDM via an unproved root
-    const std::vector<unsigned> addresses=invariant_remap
+    const std::vector<unsigned> addresses=literal_pc_veneers
+        ? std::vector<unsigned>{0x8010u,0x8ff8u,0x8ffcu}
+        : invariant_remap
         ? std::vector<unsigned>{0x8000u,0x8ff0u}
         : region_spans
         ? std::vector<unsigned>{0x8000u,0x8ff0u,0x8ff4u}
         : read_spans
         ? std::vector<unsigned>{0x8000u,0x8ff8u,0x8ffcu}
         : std::vector<unsigned>{0x8000u,0x8ffdu,0x8ffcu};
-    const std::vector<unsigned> predicates=(tail_prefixes || branch_veneers || ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,1,2,3,4,5,6,7,8,9,10,11,12,13} : std::vector<unsigned>{14};
-    const std::vector<unsigned> initial_flags=(tail_prefixes || branch_veneers || ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
+    const std::vector<unsigned> predicates=(literal_pc_veneers || tail_prefixes || branch_veneers || ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,1,2,3,4,5,6,7,8,9,10,11,12,13} : std::vector<unsigned>{14};
+    const std::vector<unsigned> initial_flags=(literal_pc_veneers || tail_prefixes || branch_veneers || ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
     for(unsigned predicate:predicates)for(unsigned flags:initial_flags)
     for(unsigned op:instructions)for(unsigned policy=0;policy<4;++policy)
     for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u})for(unsigned partial=0;partial<(!invariant_remap && !region_spans && (op&0x0e000000u)==0x08000000u?2u:1u);++partial){
@@ -245,6 +248,7 @@ int main(int argc, char **argv){
             f.remap_root=address&~4095u;
             for(unsigned i=0xa000;i<0xb000;++i) f.memory[i]=(i*13+91)&255;
         }
+        const unsigned callee_address=literal_pc_veneers?0x8000u:0x2000u;
         unsigned called_words[]={0xe0944005u,0xe0b46000u,op,0xe12fff1eu};
         if(ir_calls) {
             program[0]=0xe3b02007u;program[1]=0xeb0003fdu;program[2]=0xe0967005u;
@@ -280,7 +284,15 @@ int main(int argc, char **argv){
                     called_words[3]=0xea0003fbu; // B 0x3000 after the register prefix.
                 }
             }
-            std::memcpy(f.memory.data()+0x2000,called_words,sizeof(called_words));
+            if(literal_pc_veneers) {
+                program[0]=0xe3a02007u;program[1]=0xeb001bfdu; // BL 0x8000
+                called_words[0]=0xe59ff000u|(address-0x8008u);
+                const unsigned target[]={0x00944005u|(predicate<<28),0x00b46000u|((predicate^1)<<28),op,0xe12fff1eu};
+                std::memcpy(f.memory.data()+0x3000,target,sizeof(target));
+                const unsigned literal=endian?0x00300000u:0x3000u;
+                std::memcpy(f.memory.data()+address,&literal,4);
+            }
+            std::memcpy(f.memory.data()+callee_address,called_words,sizeof(called_words));
         }
         std::memcpy(f.memory.data()+0x1000,program,(ir_long?135u:7u)*sizeof(unsigned));
         for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
@@ -301,11 +313,15 @@ int main(int argc, char **argv){
         aot::leaf_resolver call_resolver=[&](std::uint32_t pc) {
             const auto *begin=reinterpret_cast<const std::uint8_t *>(called_words);
             if(preserve_inner && pc==0x3000)return std::vector<std::uint8_t>(f.memory.begin()+0x3000,f.memory.begin()+0x300c);
-            return pc==0x2000 ? std::vector<std::uint8_t>(begin,begin+sizeof(called_words)) : std::vector<std::uint8_t>{};
+            return pc==callee_address ? std::vector<std::uint8_t>(begin,begin+sizeof(called_words)) : std::vector<std::uint8_t>{};
         };
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
+            if(literal_pc_veneers && n==0 && (translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&128)) ||
+                (!translated.dependencies.empty() && (translated.dependencies[0].bytes.size()!=4 || translated.dependencies[0].address!=callee_address)))) {
+                std::cerr<<"Literal PC veneer fusion selection mismatch\n";return 4;
+            }
             if(branch_veneers && n==0 && (translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&32)) ||
                 (!translated.dependencies.empty() && translated.dependencies[0].bytes.size()!=4))) {
                 std::cerr<<"Branch veneer fusion selection mismatch\n";return 4;
@@ -373,12 +389,12 @@ int main(int argc, char **argv){
         }
         if(ir_calls) for(unsigned n=0;n<4;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<const unsigned char *>(called_words+n),
-                (4-n)*4,0x2000+n*4,nullptr,nullptr,true,false,true,true,preserve_inner?&call_resolver:nullptr,true,ir_policy);
+                (4-n)*4,callee_address+n*4,nullptr,nullptr,true,false,true,true,preserve_inner?&call_resolver:nullptr,true,ir_policy);
             if(preserve_inner && n==0 && translated.dependencies.size()!=1){std::cerr<<"Preserved inner leaf not selected\n";return 4;}
             functions.push_back(std::move(translated.func));
         }
-        if(prefix_calls || branch_veneers || tail_prefixes)for(unsigned n=0;n<((branch_veneers || tail_prefixes)?4u:3u);++n) {
-            auto translated=aot::translate_arm_block(f.memory.data()+0x3000+n*4,(((branch_veneers || tail_prefixes)?4u:3u)-n)*4,0x3000+n*4,nullptr,nullptr,true,false,true,true,nullptr,true,ir_policy);
+        if(literal_pc_veneers || prefix_calls || branch_veneers || tail_prefixes)for(unsigned n=0;n<((literal_pc_veneers || branch_veneers || tail_prefixes)?4u:3u);++n) {
+            auto translated=aot::translate_arm_block(f.memory.data()+0x3000+n*4,(((literal_pc_veneers || branch_veneers || tail_prefixes)?4u:3u)-n)*4,0x3000+n*4,nullptr,nullptr,true,false,true,true,nullptr,true,ir_policy);
             functions.push_back(std::move(translated.func));
         }
         if(region_ir && !functions.front().outlined_callee) {
@@ -422,7 +438,7 @@ int main(int argc, char **argv){
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
         if(deferred && compiled<(ir_calls?execution_count:instruction_count))++deferred_cases;
-        if(!interpreter && (ir_long ? (compiled<111 || compiled>135) : invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : prefix_calls ? (compiled<2 || compiled>9) : expanded_calls ? (compiled<3 || compiled>9) : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
+        if(!interpreter && (ir_long ? (compiled<111 || compiled>135) : invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : literal_pc_veneers ? (compiled<2 || compiled>9) : prefix_calls ? (compiled<2 || compiled>9) : expanded_calls ? (compiled<3 || compiled>9) : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Unexpected generated instruction count at case "<<cases<<'\n';return 2;
         }
 #endif

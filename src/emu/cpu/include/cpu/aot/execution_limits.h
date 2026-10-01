@@ -10,6 +10,7 @@ namespace eka2l1::arm::aot {
     // Bit 16 declines prefixes that would displace an eligible returning leaf.
     // Bit 32 fuses single unconditional branch veneers, retaining their exit.
     // Bit 64 fuses register-only prefixes ending in an unconditional branch.
+    // Bit 128 fuses literal LDR-PC veneers, retaining the runtime load and exit.
     inline unsigned leaf_features = 0;
     // Translation/runner limits, fixed before guest execution. These do not
     // change the owning CPU run budget or guest scheduling quantum.

@@ -811,8 +811,16 @@ namespace eka2l1::arm::aot {
         return (last & 0xff000000u) == 0xea000000u;
     }
 
+    static bool is_literal_pc_veneer(const std::vector<std::uint8_t> &bytes) {
+        if (bytes.size() != 4) return false;
+        std::uint32_t op; std::memcpy(&op, bytes.data(), 4);
+        // Unconditional, immediate, pre-indexed word LDR PC from PC, without
+        // writeback. The literal remains a runtime memory access, not code.
+        return (op & 0xff7ff000u) == 0xe51ff000u;
+    }
+
     static bool exits_inlined_callee(const std::vector<std::uint8_t> &bytes) {
-        return ends_in_nested_call(bytes) || ends_in_tail_branch(bytes);
+        return ends_in_nested_call(bytes) || ends_in_tail_branch(bytes) || is_literal_pc_veneer(bytes);
     }
 
     // Admit a nonempty, register-only prefix followed by an unconditional B.
@@ -879,6 +887,10 @@ namespace eka2l1::arm::aot {
         if(allow_prefix && (features&32) && bytes.size()>=4) {
             std::vector<std::uint8_t> first(bytes.begin(),bytes.begin()+4);
             if(is_branch_veneer(first))return first;
+        }
+        if (allow_prefix && (features & 128) && bytes.size() >= 4) {
+            std::vector<std::uint8_t> first(bytes.begin(), bytes.begin() + 4);
+            if (is_literal_pc_veneer(first)) return first;
         }
         if (allow_prefix && (features & 64)) {
             auto prefix = resolve_tail_prefix(bytes);
@@ -1015,7 +1027,7 @@ namespace eka2l1::arm::aot {
                                 exit_census::leaf_refusal refusal;
                                 auto bytes = resolve_leaf(*leaves, address, failure, allow_predicates, refusal);
                                 if(exit_census::enabled)refusals[i]=refusal;
-                                exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:is_branch_veneer(bytes)?"branch_veneer_inlined":ends_in_tail_branch(bytes)?"tail_prefix_inlined":ends_in_nested_call(bytes)?"call_prefix_inlined":"call_inlined");
+                                exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:is_branch_veneer(bytes)?"branch_veneer_inlined":is_literal_pc_veneer(bytes)?"literal_pc_veneer_inlined":ends_in_tail_branch(bytes)?"tail_prefix_inlined":ends_in_nested_call(bytes)?"call_prefix_inlined":"call_inlined");
                                 if(exit_census::enabled && bytes.empty())refusals[i].constraint=
                                     std::strcmp(failure,"leaf_instruction_limit")==0?2:
                                     std::strcmp(failure,"callee_unsupported")==0?3:

@@ -105,7 +105,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
     policy.predicatedLeaves = Number(predicates);
   }
   if (features !== undefined) {
-    if (!/^(?:[0-9]|[1-9][0-9]|1[01][0-9]|12[0-7])$/.test(features)) throw new Error("Invalid leaf features policy");
+    if (!/^(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$/.test(features)) throw new Error("Invalid leaf features policy");
     policy.leafFeatures = Number(features);
   }
   if (limits !== undefined) {
@@ -124,7 +124,7 @@ function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
       || (policy.codeCompare !== undefined && ![0,1,2,3,4].includes(policy.codeCompare))
       || (policy.codeLookup !== undefined && ![0,1].includes(policy.codeLookup))
       || (policy.predicatedLeaves !== undefined && ![0,1].includes(policy.predicatedLeaves))
-      || (policy.leafFeatures !== undefined && (!Number.isInteger(policy.leafFeatures) || policy.leafFeatures < 0 || policy.leafFeatures > 127))
+      || (policy.leafFeatures !== undefined && (!Number.isInteger(policy.leafFeatures) || policy.leafFeatures < 0 || policy.leafFeatures > 255))
       || (policy.executionLimits !== undefined && !validExecutionLimits(policy.executionLimits)))
     throw new Error("Invalid compiler policy");
   return `<script>
