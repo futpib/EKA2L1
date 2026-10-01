@@ -36,6 +36,9 @@ const codeWriteProtect = process.env.EKA2L1_CODE_WRITE_PROTECT === undefined ? -
 if (![-1,0,1].includes(codeWriteProtect)) throw new Error('Invalid code write protection policy');
 const codeLookup = process.env.EKA2L1_CODE_LOOKUP === undefined ? -1 : Number(process.env.EKA2L1_CODE_LOOKUP);
 if (![-1,0,1].includes(codeLookup)) throw new Error('Invalid code lookup policy');
+const omitGuardText=process.env.EKA2L1_OMIT_GUARD_PUBLICATION;
+if(omitGuardText!==undefined && !/^[01]$/.test(omitGuardText))throw Error('Invalid guard publication policy');
+const omitGuardPublication=omitGuardText===undefined?-1:Number(omitGuardText);
 const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
 if (![-1,0,1,2,3,4].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
 const unsafeText=process.env.EKA2L1_UNSAFE_CODE ?? '3';
@@ -113,7 +116,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -141,6 +144,13 @@ try {
       if (typeof g.Module._eka2l1_code_lookup_configure !== 'function') throw new Error('Build lacks code lookup selection');
       call('eka2l1_code_lookup_configure', ['number'], [codeLookup]);
     }
+    if (omitGuardPublication !== -1) {
+      if (typeof g.Module._eka2l1_omit_guard_publication_configure !== 'function') throw Error('Build lacks guard publication selection');
+      call('eka2l1_omit_guard_publication_configure',['number'],[omitGuardPublication]);
+    }
+    g.omitGuardPublicationActual=typeof g.Module._eka2l1_omit_guard_publication_report==='function'
+      ?g.Module.ccall('eka2l1_omit_guard_publication_report','number',[],[]):null;
+    if(omitGuardPublication!==-1 && g.omitGuardPublicationActual!==omitGuardPublication)throw Error('Guard publication readback mismatch');
     if (codeCompare !== -1) {
       if (typeof g.Module._eka2l1_code_compare_configure !== 'function') throw new Error('Build lacks exact comparison selection');
       call('eka2l1_code_compare_configure', ['number'], [codeCompare]);
@@ -200,7 +210,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+  }, {tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -328,10 +338,17 @@ try {
   }
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
+  if (omitGuardPublication !== -1) await page.evaluate(() => {
+    const g=window as any;
+    if(g.Module.ccall('eka2l1_omit_guard_publication_configure','number',['number'],[1-g.omitGuardPublicationActual])!==-1)
+      throw Error('Guard publication changed after CPU initialization');
+    if(g.Module.ccall('eka2l1_omit_guard_publication_report','number',[],[])!==g.omitGuardPublicationActual)
+      throw Error('Guard publication readback changed');
+  });
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({measurement: measured, warmup_seconds: warmupSeconds,
     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
+    aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, omit_guard_publication:await page.evaluate(()=>(globalThis as any).omitGuardPublicationActual), code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     runtime_footprint: await page.evaluate(() => {
       const m=(window as any).Module;
       return typeof m._eka2l1_monitor_report==='function' ? JSON.parse(m.ccall('eka2l1_monitor_report','string',[],[])) : null;

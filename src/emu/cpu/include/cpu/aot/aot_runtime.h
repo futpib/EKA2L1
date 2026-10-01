@@ -28,6 +28,8 @@ struct ARMul_State;
 
 namespace eka2l1::arm::aot {
     extern bool diagnostics_enabled;
+    // Opt-in runtime layout experiment; effective only when emitted code has no interval guards.
+    extern bool omit_guard_publication;
     extern bool hot_compilation_enabled;
     extern bool ram_compilation_enabled;
     extern bool chaining_enabled;

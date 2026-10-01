@@ -60,7 +60,7 @@ autoStart();
 </script>`;
 }
 
-export type CompilerPolicy = { irMode?: number; eagerRegions?: number; tlbHash?: number; codeCompare?: number; codeLookup?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; executionLimits?: [number,number,number,number] };
+export type CompilerPolicy = { irMode?: number; eagerRegions?: number; tlbHash?: number; codeCompare?: number; codeLookup?: number; omitGuardPublication?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; executionLimits?: [number,number,number,number] };
 
 function validExecutionLimits(limits: unknown): limits is [number,number,number,number] {
   return Array.isArray(limits) && limits.length === 4 && limits.every(Number.isInteger)
@@ -75,6 +75,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
   const tlb = process.env.EKA2L1_TLB_HASH;
   const compare = process.env.EKA2L1_CODE_COMPARE;
   const lookup = process.env.EKA2L1_CODE_LOOKUP;
+  const omitGuards = process.env.EKA2L1_OMIT_GUARD_PUBLICATION;
   const predicates = process.env.EKA2L1_PREDICATED_LEAVES;
   const features = process.env.EKA2L1_LEAF_FEATURES;
   const limits = process.env.EKA2L1_EXECUTION_LIMITS;
@@ -96,6 +97,10 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
   if (compare !== undefined) {
     if (!/^[01234]$/.test(compare)) throw new Error("Invalid exact comparison policy");
     policy.codeCompare = Number(compare);
+  }
+  if (omitGuards !== undefined) {
+    if (!/^[01]$/.test(omitGuards)) throw new Error('Invalid guard publication policy');
+    policy.omitGuardPublication = Number(omitGuards);
   }
   if (lookup !== undefined) {
     if (!/^[01]$/.test(lookup)) throw new Error("Invalid code lookup policy");
@@ -124,6 +129,7 @@ function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions))
       || (policy.tlbHash !== undefined && ![0,1].includes(policy.tlbHash))
       || (policy.codeCompare !== undefined && ![0,1,2,3,4].includes(policy.codeCompare))
+      || (policy.omitGuardPublication !== undefined && ![0,1].includes(policy.omitGuardPublication))
       || (policy.codeLookup !== undefined && ![0,1].includes(policy.codeLookup))
       || (policy.unsafeCode !== undefined && ![0,1,2,3].includes(policy.unsafeCode))
       || (policy.predicatedLeaves !== undefined && ![0,1].includes(policy.predicatedLeaves))
@@ -137,14 +143,14 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
   startEmulator = async function() {
     const state = window.ekaCompilerPolicy;
     if (!state.applied) {
-      for (const [key, entry] of [['irMode','eka2l1_ir_configure'], ['eagerRegions','eka2l1_eager_regions_configure'], ['tlbHash','eka2l1_tlb_hash_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['codeLookup','eka2l1_code_lookup_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure'], ['unsafeCode','eka2l1_unsafe_code_configure']]) {
+      for (const [key, entry] of [['irMode','eka2l1_ir_configure'], ['eagerRegions','eka2l1_eager_regions_configure'], ['tlbHash','eka2l1_tlb_hash_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['codeLookup','eka2l1_code_lookup_configure'], ['omitGuardPublication','eka2l1_omit_guard_publication_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure'], ['unsafeCode','eka2l1_unsafe_code_configure']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function'
             || Module.ccall(entry, 'number', ['number'], [state.requested[key]]) !== 0)
           throw new Error('Emulator compiler configuration failed: ' + key);
       }
       state.observed = {};
-      for (const [key, entry] of [['predicatedLeaves','eka2l1_leaf_predication_report'], ['leafFeatures','eka2l1_leaf_features_report'], ['unsafeCode','eka2l1_unsafe_code_report']]) {
+      for (const [key, entry] of [['omitGuardPublication','eka2l1_omit_guard_publication_report'], ['predicatedLeaves','eka2l1_leaf_predication_report'], ['leafFeatures','eka2l1_leaf_features_report'], ['unsafeCode','eka2l1_unsafe_code_report']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function') throw new Error('Emulator compiler readback unavailable: ' + key);
         state.observed[key] = Module.ccall(entry, 'number', [], []);

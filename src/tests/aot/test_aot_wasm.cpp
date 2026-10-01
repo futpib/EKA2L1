@@ -5268,6 +5268,55 @@ static bool test_execution_limits() {
     return true;
 }
 
+
+static bool publication_test_omit=false,publication_test_ok=true;
+static unsigned publication_test_calls=0;
+static std::uint32_t publication_test_function(ARMul_State *cpu) {
+    const auto begin=publication_test_omit?0x12345678u:0u;
+    const auto end=publication_test_omit?0x23456789u:0u;
+    publication_test_ok &= cpu->aot_code_begin==begin && cpu->aot_code_end==end;
+    // Every subsequent lookup must either republish or leave these sentinels.
+    cpu->aot_code_begin=0x12345678;cpu->aot_code_end=0x23456789;
+    ++publication_test_calls;++cpu->Reg[0];return 1;
+}
+static bool test_guard_publication() {
+    namespace tracking=eka2l1::common::code_tracking;
+    namespace perf=eka2l1::common::performance;
+    namespace gp=eka2l1::common::guest_profile;
+    struct restore {
+        bool omit=omit_guard_publication,ram=ram_compilation_enabled;
+        bool enabled=perf::enabled,detailed=perf::detailed,guest=gp::enabled;
+        unsigned mode=tracking::unsafe_code_mode;
+        ~restore(){omit_guard_publication=omit;ram_compilation_enabled=ram;
+            perf::enabled=enabled;perf::detailed=detailed;gp::enabled=guest;
+            tracking::unsafe_code_mode=mode;global_registry().unregister_function(0x54340);}
+    } saved;
+    test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
+    ram_compilation_enabled=false;gp::enabled=false;
+    global_registry().register_function(0x54340,publication_test_function);
+    auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);
+    unsigned checks=0;
+    for(unsigned mode=0;mode<4;++mode)for(bool omit:{false,true})for(bool detailed:{false,true})
+    for(unsigned budget:{1u,2u,5u}) {
+        tracking::unsafe_code_mode=mode;omit_guard_publication=omit;
+        perf::enabled=detailed;perf::detailed=detailed;gp::enabled=detailed;
+        publication_test_omit=omit && (mode&2);publication_test_ok=true;publication_test_calls=0;
+        auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54340;cpu.TFlag=0;
+        cpu.NumInstrsToExecute=budget;cpu.aot_budget=budget;cpu.NirqSig=1;cpu.Cpsr=16;
+        cpu.aot_code_begin=0x12345678;cpu.aot_code_end=0x23456789;
+        auto function=lookup_compiled(&cpu);
+        if(function!=publication_test_function)return false;
+        const auto result=execute_chain(&cpu,function);
+        if(!publication_test_ok || publication_test_calls!=budget || result.instructions!=budget
+            || result.blocks!=budget || cpu.Reg[0]!=budget) {
+            printf(" FAIL guard publication mode=%u omit=%u detailed=%u budget=%u\n",mode,omit,detailed,budget);return false;
+        }
+        ++checks;
+    }
+    printf(" PASS guard publication: %u real lookup/runner sentinel checks; modes 0/1 always publish\n",checks);
+    return true;
+}
+
 static bool test_inline_limits() {
 #ifdef __EMSCRIPTEN__
     struct restore {std::string value=execution_limits_text();~restore(){parse_execution_limits(value.c_str());}} saved;
@@ -5431,6 +5480,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--expanded-leaves-only")return test_expanded_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;
     if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
+    if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
     if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census") {exit_census::enabled=true;argc=1;}
@@ -6068,6 +6118,7 @@ int main(int argc, char **argv) {
     if (test_invariant_writes()) passed++; else failed++;
     if (test_exit_census()) passed++; else failed++;
     if (test_execution_limits()) passed++; else failed++;
+    if (test_guard_publication()) passed++; else failed++;
     if (test_inline_limits()) passed++; else failed++;
     if (test_predicated_leaves()) passed++; else failed++;
     if (test_expanded_leaves()) passed++; else failed++;

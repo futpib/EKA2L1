@@ -46,6 +46,7 @@ std::uint64_t compiled_function_count() { return completed_function_count.load(s
 // execution; the reference interpreter uses a private byte overlay.
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 bool diagnostics_enabled = false;
+bool omit_guard_publication = false;
 bool validation_running = false;
 static bool validating = false;
 static ARMul_State *validation_guest = nullptr;
@@ -202,14 +203,14 @@ void invalidate_ram_code(std::uint32_t address, std::size_t size) {
     ram_cache.invalidate(address, size);
 }
 
-template<bool Profile>
+template<bool Profile, bool PublishGuards>
 static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     if constexpr(Profile) if(exit_census::enabled)census_entry=nullptr;
     if (validation_running) return nullptr;
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
     if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
-        cpu->aot_code_begin = cpu->aot_code_end = 0; // ROM is immutable.
+        if constexpr (PublishGuards) cpu->aot_code_begin = cpu->aot_code_end = 0; // ROM is immutable.
         auto function = global_registry().lookup(pc_mode);
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
         return function;
@@ -220,8 +221,10 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
         auto *entry = ram_cache.find(pc_mode, *cpu->parent());
         if (!entry) return nullptr;
         if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
-        cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
-        cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
+        if constexpr (PublishGuards) {
+            cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
+            cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
+        }
         return entry->function;
     }
     core::code_mapping view;
@@ -235,17 +238,29 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     }
     if (!mapped || !entry) return nullptr;
     if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
-    cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
-    cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
+    if constexpr (PublishGuards) {
+        cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
+        cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
+    }
     return entry->function;
 }
 
-aot_func lookup_compiled(ARMul_State *cpu) {
+template<bool PublishGuards>
+static aot_func lookup_compiled_selected(ARMul_State *cpu) {
     return common::guest_profile::enabled && common::performance::enabled && common::performance::detailed
-        ? lookup_compiled_impl<true>(cpu) : lookup_compiled_impl<false>(cpu);
+        ? lookup_compiled_impl<true, PublishGuards>(cpu) : lookup_compiled_impl<false, PublishGuards>(cpu);
 }
 
-template<bool Verify, bool Profile>
+aot_func lookup_compiled(ARMul_State *cpu) {
+    // The executable-byte policy is frozen before modules are generated. Modes
+    // with emitted interval readers always retain publication, even when the
+    // experiment is selected. Mapping/lifetime validation is unchanged.
+    if (omit_guard_publication && common::code_tracking::skip_code_write_guards())
+        return lookup_compiled_selected<false>(cpu);
+    return lookup_compiled_selected<true>(cpu);
+}
+
+template<bool Verify, bool Profile, bool PublishGuards>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     const auto budget = cpu->aot_budget;
     compiled_run result;
@@ -335,7 +350,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         // This stays inside the compiled runner. Every RAM successor retains
         // mapping/lifetime validation. Byte-mutation detection is policy-dependent;
         // trusted-byte modes intentionally permit stale code after guest writes.
-        function = lookup_compiled_impl<Profile>(cpu);
+        function = lookup_compiled_impl<Profile, PublishGuards>(cpu);
     }
     if constexpr(Profile) if(exit_census::counting()) {
         const char *why = !cpu->NumInstrsToExecute ? "stop" : result.instructions==budget ? "budget"
@@ -346,14 +361,22 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     return result;
 }
 
-compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+template<bool PublishGuards>
+static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
     // Diagnostic configuration is fixed before guest threads start. Preserve
     // phase-dependent counting in the diagnostic runner, but omit its branches
     // entirely in normal play and counter-free timing runs.
-    if (verification_stride()) return execute_chain_impl<true, true>(cpu, function);
+    if (verification_stride()) return execute_chain_impl<true, true, PublishGuards>(cpu, function);
     if (common::performance::enabled && common::performance::detailed)
-        return execute_chain_impl<false, true>(cpu, function);
-    return execute_chain_impl<false, false>(cpu, function);
+        return execute_chain_impl<false, true, PublishGuards>(cpu, function);
+    return execute_chain_impl<false, false, PublishGuards>(cpu, function);
+}
+
+compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+    // Choose once per outer runner, not once per compiled region or guest store.
+    if (omit_guard_publication && common::code_tracking::skip_code_write_guards())
+        return execute_chain_selected<false>(cpu, function);
+    return execute_chain_selected<true>(cpu, function);
 }
 
 std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {

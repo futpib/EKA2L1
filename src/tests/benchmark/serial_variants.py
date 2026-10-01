@@ -17,6 +17,7 @@ parser.add_argument('--eager-regions', action='append', default=[], metavar='NAM
                     help='Select eager ROM region compilation within an archived binary')
 parser.add_argument('--tlb-hash', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-write-protect', action='append', default=[], metavar='NAME=0/1')
+parser.add_argument('--omit-guard-publication',action='append',default=[],metavar='NAME=0/1')
 parser.add_argument('--code-lookup', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1/2/3/4')
 parser.add_argument('--unsafe-code',action='append',default=[],metavar='NAME=0/1/2/3')
@@ -53,6 +54,12 @@ for item in args.code_write_protect:
     if not separator or name not in dict(variants) or name in protection_modes or value not in ('0', '1'):
         parser.error('Code write protection requires a unique known NAME=0/1')
     protection_modes[name] = int(value)
+guard_modes = {}
+for item in args.omit_guard_publication:
+    name,separator,value=item.partition('=')
+    if not separator or name not in dict(variants) or name in guard_modes or value not in ('0','1'):
+        parser.error('Guard publication requires unique known NAME=0/1')
+    guard_modes[name]=int(value)
 lookup_modes = {}
 for item in args.code_lookup:
     name, separator, value = item.partition('=')
@@ -130,6 +137,8 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         env.pop('EKA2L1_CODE_WRITE_PROTECT', None)
         if name in protection_modes:
             env['EKA2L1_CODE_WRITE_PROTECT'] = str(protection_modes[name])
+        env.pop('EKA2L1_OMIT_GUARD_PUBLICATION',None)
+        if name in guard_modes:env['EKA2L1_OMIT_GUARD_PUBLICATION']=str(guard_modes[name])
         env.pop('EKA2L1_CODE_LOOKUP', None)
         if name in lookup_modes:
             env['EKA2L1_CODE_LOOKUP'] = str(lookup_modes[name])
@@ -150,6 +159,10 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
                            cwd=root / 'src/tests/wasm', env=env, stdout=log,
                            stderr=subprocess.STDOUT, timeout=1800, check=True)
         report = json.loads((output / 'report.json').read_text())
+        if name in guard_modes and report.get('omit_guard_publication')!=guard_modes[name]:
+            raise RuntimeError('Wrong guard publication mode')
+        if name not in guard_modes and report.get('omit_guard_publication') not in (None,0):
+            raise RuntimeError('Unexpected nondefault guard publication mode')
         if report.get('unsafe_code') != unsafe_modes.get(name,3):raise RuntimeError('Wrong unsafe code mode')
         if report.get('leaf_features') != features.get(name,0):raise RuntimeError('Wrong leaf feature mask')
         if report.get('predicated_leaves') != predicates.get(name,0):
@@ -172,7 +185,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Profile did not use requested input route')
         if report['measurement']['first_virtual_us'] != args.start_us or report['measurement']['last_virtual_us'] != args.end_us:
             raise RuntimeError('Profile did not use requested guest window')
-        row = dict(unsafe_code=report['unsafe_code'],leaf_features=report['leaf_features'],predicated_leaves=report['predicated_leaves'], runtime_footprint=report.get('runtime_footprint'), warmup_seconds=report['warmup_seconds'], execution_limits=report['execution_limits'], code_write_protect=report.get('code_write_protect', -1), code_lookup=report.get('code_lookup', -1), tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
+        row = dict(omit_guard_publication=report.get('omit_guard_publication'),unsafe_code=report['unsafe_code'],leaf_features=report['leaf_features'],predicated_leaves=report['predicated_leaves'], runtime_footprint=report.get('runtime_footprint'), warmup_seconds=report['warmup_seconds'], execution_limits=report['execution_limits'], code_write_protect=report.get('code_write_protect', -1), code_lookup=report.get('code_lookup', -1), tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
                    eager_regions=report.get('eager_regions', -1),
                    wasm_sha256=report['wasm_sha256'], loader_sha256=report['loader_sha256'],
                    measurement=report['measurement'])

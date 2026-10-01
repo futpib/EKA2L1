@@ -248,6 +248,18 @@ int eka2l1_code_write_protect_configure(int mode) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_omit_guard_publication_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::omit_guard_publication = mode != 0;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_omit_guard_publication_report() {
+    return eka2l1::arm::aot::omit_guard_publication ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_code_lookup_configure(int mode) {
     if (g_state || mode < 0 || mode > 1) return -1;
     eka2l1::arm::aot::code_lookup_outline = mode != 0;
