@@ -1,6 +1,6 @@
 # Conditional integer leaf fusion
 
-This opt-in experiment uses the original instruction emitter (policy 7) to inline straight-line leaf functions containing conditional integer operations. The default remains disabled. Source window, leaf length, inline-site count, runner cap and guest scheduling are unchanged. Repeated matching-control gains are measured below; actual HTTPS delivery verification is pending.
+This opt-in experiment uses the original instruction emitter (policy 7) to inline straight-line leaf functions containing conditional integer operations. The default remains disabled. Source window, leaf length, inline-site count, runner cap and guest scheduling are unchanged. Repeated matching-control gains are measured below; normal/live and actual HTTPS delivery verification pass.
 
 The exit census motivated this change: two six-instruction load/compare/conditional-MOV leaves account for 28.6% of sampled direct-call exits in the longer-snake window. Raising the 16-instruction leaf bound cannot make these leaves eligible. No guest address or captured opcode sequence is special-cased by the implementation.
 
@@ -60,4 +60,14 @@ These timings do not by themselves authorize promotion. The follow-up census mus
 
 ## Normal and live acceptance
 
-The normal 1,600-image replay exactly matches native guest records and 4,656,051 stereo PCM frames. Both 120-second manual/automatic live launches verify conditional fusion and the original limits by API readback, sustain realtime and add zero measured audio underruns or drops. Maximum sampled lag is 47.65 / 30.35 ms. Startup recovery events remain in the raw records. The routes include the known native-matching level restart and do not establish uninterrupted gameplay. Local gesture audio, measured mute/unmute, keyboard/touch, pause/resume, layout and shutdown pass. The two-second process observer sees no foreign watched profiling/test jobs; this does not exclude every source of host contention. Frontend policy/readback and persistent-cache tests pass. Actual HTTPS upgrade verification is pending.
+The normal 1,600-image replay exactly matches native guest records and 4,656,051 stereo PCM frames. Both 120-second manual/automatic live launches verify conditional fusion and the original limits by API readback, sustain realtime and add zero measured audio underruns or drops. Maximum sampled lag is 47.65 / 30.35 ms. Startup recovery events remain in the raw records. The routes include the known native-matching level restart and do not establish uninterrupted gameplay. Local gesture audio, measured mute/unmute, keyboard/touch, pause/resume, layout and shutdown pass. The two-second process observer sees no foreign watched profiling/test jobs; this does not exclude every source of host contention. Frontend policy/readback and persistent-cache tests pass. Actual HTTPS upgrade verification also passes, as recorded below.
+
+## Verified delivery, 2026-10-01
+
+https://claude-laptop.lan:8188/ now serves the original conditional-only archive, explicitly selecting policy 7, predication 1 and limits 512/16/8/512. The later expanded-leaf and prefix experiments are absent from this archived binary. The actual trusted HTTPS page passes gesture audio, measured mute/unmute, keyboard/touch, pause/resume, mobile layout and shutdown. Downloaded JS, WASM and data hashes match the tested archive and content-versioned URLs.
+
+An existing browser profile from the prior live version retains all 192,004,131 bytes of ROM/RPKG/game assets. Upgrade fetches the changed JS/WASM/data (11,444,842 transferred bytes), then reload and browser restart transfer zero runtime bodies and zero preload downloads. The original profile is preserved. API readback verifies conditional fusion and limits on each launch.
+
+The first HTTPS probe ran before the restarted service listened and got connection refused; retry passed without changes. This harness startup race is retained in the evidence.
+
+This delivery includes the previously verified upstream merge. Performance comparisons above use identical post-merge guest work; they do not quantify a speedup versus the older pre-merge live workload. Conditional fusion wins all eight matching-control adjacent pairs, but baseline timings vary and the reordered standard baseline lead is only 1.49%. The two-minute live routes include the native-matching level restart. No claim of universally optimal limits or uninterrupted gameplay follows. Local commits only; nothing pushed.
