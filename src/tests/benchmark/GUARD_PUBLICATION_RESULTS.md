@@ -75,3 +75,7 @@ are retained. The old archive has no publication-selector API; no selector is
 sent to it, and its original publishing runtime is the baseline.
 
 Acceptance passes. Timings are pending; no speed claim or promotion.
+
+## Stopped at user request
+
+The user stopped optimization on 2026-10-01 at 16:32 UTC. The active controller, timing queue and their child processes were terminated. 8 completed timing observations and the interrupted run artifacts remain preserved in `GUARD_PUBLICATION_STOP_EVIDENCE.json` and the scratch output directories. The planned 24-observation panel is incomplete; no promotion or performance conclusion follows. Correctness acceptance remains committed as `cc4092f84`. The live mode-3/literal-128 build is unchanged. No further experiment was started and nothing was pushed.
