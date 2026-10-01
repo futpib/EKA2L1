@@ -45,3 +45,64 @@ Neither changed bound earns promotion. Four sites loses all four matching-contro
 No watched foreign benchmark job was observed. Passive frequency/temperature ranges and observer costs are retained in `telemetry_summary`, covering startup, warmup and measurement together. They are not assigned to individual measured windows and do not prove a thermal cause for slow runs. No sample is excluded or normalized.
 
 The separately gated instrumented census and module captures continue to measure the structural tradeoff. Diagnostic timings cannot reverse this no-promotion decision.
+
+## Conditional-only site-limit census
+
+The two changed bounds separately pass another 81,280 explicitly selected instrumented native fault comparisons and exact checked standard/longer image/audio replays. Site 8 reuses the same frozen binary and policy from the preceding branch-veneer control census; it is not a fresh run. Diagnostic elapsed time is excluded from throughput acceptance.
+
+### long
+
+| Counter | 4 sites | 8 sites | 16 sites |
+| --- | ---: | ---: | ---: |
+| Compiled invocations | 148,979,036 | 140,994,669 | 140,864,201 |
+| Direct-call exits | 48,561,465 | 43,526,965 | 43,463,362 |
+| Site-limit exits | 6,079,692 | 551,863 | 30,443 |
+| Leaf-length limit exits | 969,345 | 970,429 | 970,496 |
+| Dependency spans requested | 37,345,539 | 35,294,035 | 35,294,470 |
+| Dependency bytes requested | 814,503,784 | 768,017,640 | 767,788,176 |
+| Primary bytes requested | 9,943,292,216 | 9,690,132,630 | 9,691,138,486 |
+| Entry-proof attempts | 19,129,666 | 17,354,245 | 17,323,251 |
+| Private entry-proof fallbacks | 737,263 | 733,238 | 733,216 |
+| Gap-only fallbacks | 0 | 0 | 0 |
+
+4 sites vs 8: compiled calls +7,984,367 (+5.66%); requested dependency bytes +6.05%.
+
+16 sites vs 8: compiled calls -130,468 (-0.09%); requested dependency bytes -0.03%.
+
+### standard
+
+| Counter | 4 sites | 8 sites | 16 sites |
+| --- | ---: | ---: | ---: |
+| Compiled invocations | 148,794,685 | 140,626,048 | 140,462,878 |
+| Direct-call exits | 49,648,458 | 44,506,411 | 44,423,756 |
+| Site-limit exits | 6,236,274 | 571,365 | 29,010 |
+| Leaf-length limit exits | 1,019,496 | 1,020,658 | 1,020,706 |
+| Dependency spans requested | 38,020,692 | 35,765,500 | 35,747,297 |
+| Dependency bytes requested | 831,752,068 | 778,289,684 | 777,783,680 |
+| Primary bytes requested | 9,968,819,252 | 9,698,087,982 | 9,695,823,080 |
+| Entry-proof attempts | 19,141,189 | 17,400,966 | 17,371,973 |
+| Private entry-proof fallbacks | 745,896 | 741,998 | 742,033 |
+| Gap-only fallbacks | 0 | 0 | 0 |
+
+4 sites vs 8: compiled calls +8,168,637 (+5.81%); requested dependency bytes +6.87%.
+
+16 sites vs 8: compiled calls -163,170 (-0.12%); requested dependency bytes -0.07%.
+
+Requested byte coverage is not physical memory traffic. All raw exits, proof causes, mapping/guard results and compile counters are retained. Removing a compiled boundary does not remove guest instructions or change guest scheduling.
+
+## Generated-module diagnostics
+
+The metadata-only hook is byte-identical in application WASM to the accepted archive. Both changed bounds pass a hooked, checked 360-image native replay before captures. Site 8 reuses the preceding control capture with identical binary, policy, route and hook. These observations include startup through 60 guest seconds, not just the warmed timing window.
+
+| Metric | 4 sites | 8 sites | 16 sites |
+| --- | ---: | ---: | ---: |
+| Modules | 534 | 534 | 532 |
+| Generated module bytes | 60,398,127 | 62,123,036 | 62,504,588 |
+| Function exports including repeated construction | 14,336 | 14,257 | 14,261 |
+| Summed synchronous constructor milliseconds | 170.060 | 146.665 | 191.830 |
+
+Synchronous constructor sums are single instrumented observations, not total browser JIT time or repeatable compilation-speed comparisons. Raw module metadata and worker-selection evidence are retained.
+
+## Completion
+
+Four sites adds 7.98/8.17 million compiled invocations (5.66/5.81%) and 6.05/6.87% more requested dependency-byte checks on longer/standard. Sixteen removes only 130,468/163,170 invocations (0.09/0.12%), with near-unchanged dependency coverage. Most relieved site-limit labels become unsupported-callee labels; they are not all fusion opportunities. No gap-only proof fallback occurs. The checked counter/module evidence describes that structural tradeoff; it does not override the no-promotion timing result. The delivered eight-site conditional-only build remains unchanged. The later census/module captures overlapped separate correctness-only tail-prefix work after timing had finished; their wall/constructor times are not comparative performance evidence. All results and failures are local; nothing pushed. Separate source, leaf and runner bounds are still not established optima.
