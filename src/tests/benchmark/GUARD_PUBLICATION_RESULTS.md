@@ -44,3 +44,11 @@ The acceptance watcher initially misclassified the suite's known crash-repro
 XFAIL as a new failure. The original script/traceback are retained; the corrected
 watcher checks the final nonzero failed total. The emulator was not changed in
 response to that harness mistake.
+
+## Compiler checkpoint
+
+All 176 compiler tests pass, including the new 48 real-runner checks. The known
+crash-repro XFAIL remains unchanged; it is not a new failure. Optional code
+version/lifecycle/write-protection builds remain disabled and were not retested.
+Fresh mode-3 native instruction-fault coverage and the selected replay matrix
+now follow serially. No timing or speed claim has been made for this option.
