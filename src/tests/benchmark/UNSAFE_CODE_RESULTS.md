@@ -67,7 +67,7 @@ veneer work runs concurrently. All prior work remains preserved.
 
 Initial status (superseded by acceptance and timing sections below): implementation building.
 
-Checkpoint: all 175 normal-mode compiler tests and 40,640 explicitly selected native fault comparisons in mode 3 pass. Matching control faults, exact native replays and all timings remain pending. Frozen archive and executable queue sources are retained in the evidence file.
+Earlier checkpoint (superseded below): all 175 normal-mode compiler tests and 40,640 explicitly selected native fault comparisons in mode 3 pass. Matching control faults, exact native replays and all timings remain pending. Frozen archive and executable queue sources are retained in the evidence file.
 
 ### Retained initial replay configuration failure
 
@@ -133,3 +133,7 @@ All four matching-control batch means favor full unsafe mode; seven of eight cor
 The 19.83-second standard-A and 21.292-second long-B untouched-control observations inflate those live-archive comparisons. They remain in the table and raw evidence; no observations are excluded or normalized. Passive observers recorded no watched competing benchmark/build/profiler process, which does not prove the host was contention-free or explain the slow samples. Performance counters were disabled during timings, so their zero fields cannot establish absence of mutation, invalidation or IMB activity.
 
 Attribution is useful given the standard-route result and uncertain longer-route effect. The next fixed panel measures scan-only (1), guard-only (2), both (3) and exact control (0) in this same archive, after independent component fault/replay acceptance. It adds 32 serial reordered observations, with every mode moved between inner and outer positions. No new compiler or scheduling change is mixed in; the earlier untouched archive remains a separate panel. Detailed plan and evidence are in UNSAFE_CODE_ATTRIBUTION_RESULTS.md / EVIDENCE.json once acceptance completes.
+
+## Completion
+
+Component attribution is complete in UNSAFE_CODE_ATTRIBUTION_RESULTS.md / EVIDENCE.json. All 56 planned observations remain. Full unsafe favors all eight matching-control batch means and 15/16 corresponding pairs across the two panels, with substantial variation. Scan removal repeats its benefit; guard-only and incremental guard removal do not. Unsafe remains OFF by default and unserved; no push.

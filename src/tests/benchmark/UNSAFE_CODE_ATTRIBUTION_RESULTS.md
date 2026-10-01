@@ -30,3 +30,22 @@ standard a: scan +3.16% throughput versus exact, corresponding-half pairs -0.34%
 standard b: scan +19.02% throughput versus exact, corresponding-half pairs +21.43% / +16.71%; guards -0.31% throughput versus exact, corresponding-half pairs +5.39% / -5.40%; unsafe +9.73% throughput versus exact, corresponding-half pairs +5.41% / +14.40%; 
 
 Corresponding-half pairs are not all adjacent. No samples are filtered or normalized; host readings do not establish causes of individual slow observations. Interpret the per-batch and paired results before pooled averages. This experiment deliberately breaks self-modifying-code semantics and is not a deployable optimization.
+
+## Completed interpretation
+
+The full-mode panel (24 observations) and component panel (32 observations) are complete. Every sample is retained. All eight full-unsafe matching-control batch means favor removing scans and guards; 15 of 16 corresponding-half pairs do. The original panel includes slow candidate and control observations and a reversed longer-route pair, so it remains part of the conclusion rather than being replaced by the cleaner component panel. This establishes material cost on the tested gameplay windows, not a stable universal percentage or proof of immutable guest code.
+
+Scan removal is the repeatable component: longer-route throughput gains are 18.98% and 18.00%; standard gains are 3.16% and 19.02%. Seven of eight corresponding-half pairs favor scan removal. Guard-only changes are -6.41% / +1.43% on longer and -6.44% / -0.31% on standard; its positive longer batch also has opposing pairs. Removing guards in addition to scans loses three of four batch means. The isolated code-write checks therefore have no demonstrated repeatable net benefit to remove in this study. Do not add the two percentages or assign a fixed cost to those checks.
+
+Incremental guard removal on the scan-free path (throughput change, both versus scan-only):
+
+- long-a: -0.29%
+- long-b: -0.66%
+- standard-a: +18.06%
+- standard-b: -7.80%
+
+The measured target for later code-lifecycle work is avoiding repeated instruction-byte validation while retaining required semantics. No safe replacement has been designed or substituted in this experiment. Ordinary translation, mapping/address-space/lifetime handling, permissions, fault/callback behavior, budgets, interrupts and guest scheduling remain fixed.
+
+Validation comprises the 175-test compiler suite, 40,640 explicitly selected native fault comparisons for each of modes 0/1/2/3, and exact standard/longer native image, guest-record and PCM replays in each mode. The total is 162,560 policy-selected fault comparisons; the base cases are reused across policies, not independent new inputs. Disassembly and deliberately stale primary/dependency/overlapping-store counterexamples verify the removed work and intentional semantic incompatibility. Build-time version/epoch/write-protection options were OFF in the tested archive; optional tracking builds were not tested.
+
+Default mode remains 0. The live conditional-only archive was neither replaced nor configured unsafe. No deployment or push. Runner diagnostics and literal-PC work were preserved while this priority experiment ran and may now resume serially from their existing checkpoints.

@@ -1,5 +1,5 @@
 {
-  "status": "Full unsafe versus matching and untouched controls measured; all 24 observations retained; unsafe mode remains off by default and never deployed.",
+  "status": "Unsafe full-mode and component experiment complete, all 56 observations retained; deliberate semantic limitations remain; default and live unchanged.",
   "unsafe_default": 0,
   "deployment": false,
   "earlier_evidence": [
@@ -31076,5 +31076,38 @@
       "same_frozen_archive": true,
       "new_deployment": false
     }
+  },
+  "attribution_report": "UNSAFE_CODE_ATTRIBUTION_RESULTS.md",
+  "completed_interpretation": {
+    "component_effects": {
+      "long-a": {
+        "scan_vs_exact_percent": 18.976544713294864,
+        "guards_vs_exact_percent": -6.409022944701981,
+        "both_vs_exact_percent": 18.632086428773565,
+        "both_vs_scan_percent": -0.289517808196027
+      },
+      "long-b": {
+        "scan_vs_exact_percent": 17.996011832792004,
+        "guards_vs_exact_percent": 1.4283385261937287,
+        "both_vs_exact_percent": 17.215691631196293,
+        "both_vs_scan_percent": -0.6613106574326122
+      },
+      "standard-a": {
+        "scan_vs_exact_percent": 3.16359407820046,
+        "guards_vs_exact_percent": -6.440129719635523,
+        "both_vs_exact_percent": 21.79071175713483,
+        "both_vs_scan_percent": 18.05590222536697
+      },
+      "standard-b": {
+        "scan_vs_exact_percent": 19.01920883294217,
+        "guards_vs_exact_percent": -0.3076300165917756,
+        "both_vs_exact_percent": 9.73212460483317,
+        "both_vs_scan_percent": -7.803012907895013
+      }
+    },
+    "full_mode_matching_pairs_favored": 15,
+    "full_mode_matching_pairs_total": 16,
+    "all_planned_observations": 56,
+    "decision": "Material scan-validation cost; no repeatable incremental code-write-guard-removal gain. Diagnostic stays off; no safe replacement or deployment."
   }
 }
