@@ -63,6 +63,10 @@ def main():
                    help='JSON with assets keyed by filename, each containing sha256; defaults to Nokia 5320')
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--binary', type=Path, default=ROOT / 'build/bin/eka2l1_qt')
+    p.add_argument('--app-uid', type=lambda value: int(value, 0), default=0x2000730F,
+                   help='Application UID to launch (default: installed Snakes 0x2000730F)')
+    p.add_argument('--rom-app', action='store_true',
+                   help='Launch ROM-bundled Snakes without installing Snakes.sis')
     p.add_argument('--input', type=Path, default=Path(__file__).with_name('snakes.input'))
     p.add_argument('--frames', type=int, default=1000)
     p.add_argument('--repeat', type=int, default=2)
@@ -72,10 +76,15 @@ def main():
     a = p.parse_args()
     if not 1 <= a.frames <= 100000 or a.repeat < 1 or a.timeout < 1 or not 0 <= a.start_us <= 120000000:
         p.error("frames must be 1..100000; repeat and timeout must be positive")
+    if not 0 < a.app_uid <= 0xFFFFFFFF:
+        p.error('app-uid must be a nonzero 32-bit UID')
     assets = ASSETS
     if a.asset_manifest:
         manifest = json.loads(a.asset_manifest.read_text())
-        assets = {name: manifest['assets'][name]['sha256'] for name in ASSETS}
+        assets = {name: manifest['assets'][name]['sha256'] for name in ASSETS
+                  if not a.rom_app or name != 'Snakes.sis'}
+    elif a.rom_app:
+        assets = {name: digest for name, digest in ASSETS.items() if name != 'Snakes.sis'}
     for name, expected in assets.items():
         if hashlib.sha256((a.assets / name).read_bytes()).hexdigest() != expected:
             raise RuntimeError(f'Asset hash mismatch: {name}')
@@ -95,6 +104,7 @@ def main():
     if code not in (0, 255) or 'Device installed:' not in (a.output / 'install.log').read_text():
         raise RuntimeError('Device install failed; see install.log')
     report = {'shared_audio': env.get('EKA2L1_SHARED_AUDIO') == '1',
+              'app_uid': f'0x{a.app_uid:08X}', 'rom_app': a.rom_app,
               'snakes_n80_native_resolution': env.get('EKA2L1_SNAKES_N80_NATIVE_RESOLUTION') == '1',
               'git_head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'dirty_worktree': bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT)),
@@ -110,7 +120,8 @@ def main():
         frames.mkdir()
         env.update(XDG_DATA_HOME=str(directory / 'state/data'), XDG_CONFIG_HOME=str(directory / 'state/config'))
         # N80 firmware also registers a different built-in game named Snakes.
-        code, elapsed = run([a.binary, '--install', a.assets / 'Snakes.sis', '--run', '0x2000730F',
+        install = [] if a.rom_app else ['--install', a.assets / 'Snakes.sis']
+        code, elapsed = run([a.binary, *install, '--run', f'0x{a.app_uid:08X}',
                              '--dump-frames', frames], env, directory / 'run.log', a.timeout)
         if code:
             raise RuntimeError(f'Run {i} exited {code}; see {directory}/run.log')

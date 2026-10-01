@@ -82,7 +82,17 @@ validation policy did not resolve it. The compiler issue remains open. An
 earlier, separate browser abort when looking up missing panic descriptions was
 fixed by checking YAML node types without relying on C++ exception catching.
 
-## Options beyond 352×416
+## Stock resolution and larger-display experiments
+
+The [stock-resolution survey](STOCK_RESOLUTION_RESULTS.md) supersedes the
+following candidates as a recommendation for unmodified Snakes. Across three
+executable variants, 640×480 and 800×352 select a 176×208 buffer. The highest
+stock rendering resolution verified in gameplay remains the 5320's 240×320.
+The game contains 320×480/480×320 choices, but no stock S60 device using those
+dimensions was identified. N80 at native 352×416 requires the game patch above.
+
+The larger displays below remain **modified-game experiments**, outside the
+stock-experience goal. No E6 or E90 gameplay result is claimed.
 
 The N80 result is 146,432 rendered pixels. Larger firmware candidates still
 need Snakes compatibility and rendering tests; display specifications alone
@@ -95,9 +105,9 @@ do not establish the game's internal resolution.
 | 3 | Virtual device, example target | 1280×720 = 921,600 | 6.29× | Supply compatible OS layouts or change layout selection, then extend game rendering and validate bounds |
 
 The [Nokia E6 launch announcement](https://blogs.windows.com/devices/2011/04/12/launch-nokia-e6/)
-confirms its 640×480 capacitive touchscreen and Symbian platform. It is the
-preferred next physical-device target for pixel count and a conventional 4:3
-landscape aspect ratio. The [Nokia E90 datasheet](https://manualzz.com/doc/2635566/nokia-e90-communicator-datasheet)
+confirms its 640×480 capacitive touchscreen and Symbian platform. Its pixel
+count alone does not establish a stock Snakes improvement.
+The [Nokia E90 datasheet](https://manualzz.com/doc/2635566/nokia-e90-communicator-datasheet)
 confirms its 800×352 internal screen and S60 3rd Edition platform. Its older S60
 generation is closer to this game's original environment; easier game
 compatibility is a hypothesis, not a measured result.

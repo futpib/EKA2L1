@@ -1,0 +1,49 @@
+{
+  "packages": [
+    {
+      "name": "benchmark Snakes SIS",
+      "archive_url": "https://www.myabandonware.com/download/pcr0-snakes",
+      "sis_filename": "Snakes (S60 3rd)(Maze).sis",
+      "sis_bytes": 963964,
+      "sis_sha256": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+      "e32_sha256": "7d546b6b3a6f54be730df216efecd9923cb596a1469241d18e1bc987d3d29369",
+      "e32_sha1": "5cb835d99a57ed196a673ce25e8aec864ca9b7e7",
+      "e32_hash_controller_offset": 4140,
+      "controller_sha256": "2a6ae7bede650f2c176d735be0a1637dc72d0caf41279073bbe6c18a5f0e9962",
+      "verified_signature": "RSA PKCS1 v1.5 with SHA-1",
+      "verified_controller_range_exclusive_end": [
+        8,
+        21020
+      ],
+      "certificate_subject": "CN=Nokia Content,O=Nokia",
+      "certificate_issuer": "CN=Nokia Content Signing CA,O=Nokia",
+      "certificate_sha256": "36b320b06cd36c858d5f3882f33655a88ee9ca6822beddfd9110da83e52e0631",
+      "certificate_chain_trust_validated": false
+    },
+    {
+      "name": "archive Snakes HD SISX",
+      "archive_url": "https://www.myabandonware.com/download/pcr2-snakes",
+      "sis_filename": "Snakes HD (S60 3rd)(Maze).sisx",
+      "sis_bytes": 871132,
+      "sis_sha256": "aa630be8306e7bccc29cc1c4d63b0261a93d9e18f1eb55ecc13fc66f5a428be0",
+      "e32_sha256": "95f6b4775a75e7d8c43f9e5bd874babb2b47080aef7cf916a12bd844d1f2cd2b",
+      "e32_sha1": "4388112234fd8b7e7d3fb52fa78b0405c8237ef0",
+      "e32_hash_controller_offset": 472,
+      "controller_sha256": "5fa7203b5eaf16e3c9acb88c19957286086a09a59b7fff83ad696e2db1643215",
+      "verified_signature": "RSA PKCS1 v1.5 with SHA-1",
+      "verified_controller_range_exclusive_end": [
+        8,
+        6936
+      ],
+      "certificate_subject": "CN=Nokia Content,O=Nokia",
+      "certificate_issuer": "CN=Nokia Content Signing CA,O=Nokia",
+      "certificate_sha256": "769a7b942db150a0e789092cd2de3c4ebe6dc53b734b97829bf96881badc6256",
+      "certificate_chain_trust_validated": false
+    }
+  ],
+  "excluded_package": {
+    "name": "Snakes Deluxe (S60 3rd)(Animals).sis",
+    "sha256": "ceedae65e5bb804292bfe554079d18bda6517eebb6d51b6a41924441d0cc162d",
+    "reason": "CrazySoft Snake Deluxe is a different game; UID 0xA00029A2"
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "date": "2026-10-01",
+  "scratch_directory": "/home/claude/.scratch/snakes-higher-resolution-roms/stock-survey",
+  "resolution_patch_enabled": false,
+  "runs": {
+    "stock-5320": {
+      "report": {
+        "shared_audio": false,
+        "app_uid": "0x2000730F",
+        "rom_app": false,
+        "snakes_n80_native_resolution": false,
+        "git_head": "4d85089169b8d10490a6ee9829f128d08d4a90ab",
+        "dirty_worktree": true,
+        "binary_sha256": "72d91bc3eaabeb294f150ec717bc4f37cf6691b843b1a5eb4f1a58aa4b3d4fa2",
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "frames": 240,
+        "start_us": 21000000,
+        "unique": true,
+        "runs": [
+          {
+            "wall_seconds": 39.84404809301486,
+            "last_virtual_us": 32328199
+          },
+          {
+            "wall_seconds": 39.845441031997325,
+            "last_virtual_us": 32328199
+          }
+        ]
+      },
+      "gameplay": {
+        "frames": 240,
+        "unique_images": 240,
+        "unique_viewports": 240,
+        "first_virtual_us": 21032223,
+        "last_virtual_us": 32328199,
+        "virtual_seconds": 11.295976,
+        "game_images_per_virtual_second": 21.157976964540293,
+        "median_interval_us": 46860,
+        "max_interval_us": 62969,
+        "min_viewport_changed_fraction": 0.2333833333333334,
+        "median_viewport_changed_fraction": 0.2982666666666667,
+        "pass": true
+      },
+      "audio": {
+        "sample_frames": 1551753,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "0719dbb260ae254006f359e65f4c969acd69e5e5ca0c9cb0bb1dfcea58f47ef3",
+        "sha256_events": "dc79c157cb57163f03376f62d52ec54bd958b26a50c3a38e6e0ffd8f452a0b51",
+        "writes": 661,
+        "callbacks": 660,
+        "gameplay_nonzero_samples": 1074682,
+        "gameplay_peak": 4116
+      },
+      "log_sha256": "f04e58eec1b1826b88e92c12e3321ca96c5e3e1fc86afde8d13d8920dd906630"
+    },
+    "hd-5320": {
+      "report": {
+        "shared_audio": false,
+        "app_uid": "0x10208A45",
+        "rom_app": false,
+        "snakes_n80_native_resolution": false,
+        "git_head": "4d85089169b8d10490a6ee9829f128d08d4a90ab",
+        "dirty_worktree": true,
+        "binary_sha256": "72d91bc3eaabeb294f150ec717bc4f37cf6691b843b1a5eb4f1a58aa4b3d4fa2",
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "aa630be8306e7bccc29cc1c4d63b0261a93d9e18f1eb55ecc13fc66f5a428be0"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "frames": 60,
+        "start_us": 21000000,
+        "unique": true,
+        "runs": [
+          {
+            "wall_seconds": 20.55888792598853,
+            "last_virtual_us": 23838741
+          }
+        ]
+      },
+      "gameplay": {
+        "frames": 60,
+        "unique_images": 60,
+        "unique_viewports": 60,
+        "first_virtual_us": 21011476,
+        "last_virtual_us": 23838741,
+        "virtual_seconds": 2.827265,
+        "game_images_per_virtual_second": 20.868224237911903,
+        "median_interval_us": 46868,
+        "max_interval_us": 62868,
+        "min_viewport_changed_fraction": 0.24458333333333337,
+        "median_viewport_changed_fraction": 0.3270166666666666,
+        "pass": true
+      },
+      "audio": {
+        "sample_frames": 1144259,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "07533cd8e55beca14a59580a62dd90b1d1877a03084ff530d6c73ec286a8df3c",
+        "sha256_events": "88f185538bf3209dcc5769619813f7a238863105005eb58283c4fea53141c1fd",
+        "writes": 489,
+        "callbacks": 489,
+        "gameplay_nonzero_samples": 266486,
+        "gameplay_peak": 182
+      },
+      "log_sha256": "9d4a4a2da18edde24b89c4e536e4adbff60e0062bf520c012489cdbc0fc4e524"
+    },
+    "n80-bundled": {
+      "app_uid": "0x10208A45",
+      "rom_app": true,
+      "emulator_exit_code": 2,
+      "frames": 0,
+      "virtual_time_limit_reached": true,
+      "log_sha256": "07fd439cbaa5d250b558e0bd652430fc4d2ebae17374465551de306cb153f61f",
+      "local_directory": "/home/claude/.scratch/snakes-higher-resolution-roms/stock-n80-bundled"
+    },
+    "hd-n80": {
+      "app_uid": "0x10208A45",
+      "rom_app": false,
+      "emulator_exit_code": 2,
+      "frames": 0,
+      "virtual_time_limit_reached": true,
+      "log_sha256": "97f5300d6a7335ab5ff08704b0a024d8ed92b1a0951070b9a7e85e7d779baf73",
+      "local_directory": "/home/claude/.scratch/snakes-higher-resolution-roms/stock-survey/hd-n80"
+    }
+  }
+}

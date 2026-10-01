@@ -51,6 +51,10 @@ and deterministic Snakes gameplay/audio pass in the native build. Set
 game doubles a 176×208 image. See the N80 notes for reproduction and scope.
 These are not the default reference assets. The runner launches SIS game
 UID `0x2000730F` explicitly because N80 also bundles another game named Snakes.
+Use `--app-uid` to select another release, and `--rom-app` to skip SIS
+installation for a bundled game. The [stock-resolution survey](STOCK_RESOLUTION_RESULTS.md)
+compares three game executables and explains why larger stock displays do not
+automatically provide more rendered detail.
 
 ## Browser build and comparison
 

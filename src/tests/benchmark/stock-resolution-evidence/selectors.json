@@ -1,0 +1,989 @@
+{
+  "unicorn_version": "2.1.4",
+  "variants": [
+    {
+      "code_sha256": "23dec1c3fe2831b2faf02fa0577eddb180cf33642c74e9d8ee78070a925c38f4",
+      "code_bytes": 485908,
+      "name": "benchmark SIS, 6r45_1b.exe, UID 0x2000730F",
+      "start": 6644,
+      "stop": 6968,
+      "stack_size_offset": 512,
+      "screen_size": 403536,
+      "size_equal": 402712,
+      "rect": 403248,
+      "results": [
+        {
+          "screen": [
+            176,
+            208
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            208,
+            176
+          ],
+          "rectangle": [
+            0,
+            0,
+            208,
+            176
+          ],
+          "buffer": [
+            208,
+            176
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            208,
+            208
+          ],
+          "rectangle": [
+            0,
+            0,
+            208,
+            208
+          ],
+          "buffer": [
+            208,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            240,
+            320
+          ],
+          "rectangle": [
+            0,
+            0,
+            240,
+            320
+          ],
+          "buffer": [
+            240,
+            320
+          ],
+          "helper_calls": {
+            "screen_size": 1,
+            "size_equal": 1,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            320,
+            240
+          ],
+          "rectangle": [
+            0,
+            0,
+            320,
+            240
+          ],
+          "buffer": [
+            320,
+            240
+          ],
+          "helper_calls": {
+            "screen_size": 2,
+            "size_equal": 2,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            352,
+            416
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 3,
+            "size_equal": 3,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            416,
+            352
+          ],
+          "rectangle": [
+            0,
+            0,
+            208,
+            176
+          ],
+          "buffer": [
+            208,
+            176
+          ],
+          "helper_calls": {
+            "screen_size": 4,
+            "size_equal": 4,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            320,
+            480
+          ],
+          "rectangle": [
+            0,
+            0,
+            320,
+            480
+          ],
+          "buffer": [
+            320,
+            480
+          ],
+          "helper_calls": {
+            "screen_size": 5,
+            "size_equal": 5,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            480,
+            320
+          ],
+          "rectangle": [
+            0,
+            0,
+            480,
+            320
+          ],
+          "buffer": [
+            480,
+            320
+          ],
+          "helper_calls": {
+            "screen_size": 6,
+            "size_equal": 6,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            360,
+            640
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            640,
+            360
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            640,
+            480
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            480,
+            640
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            800,
+            352
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            1280,
+            720
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        }
+      ]
+    },
+    {
+      "code_sha256": "56c569d7de85d21c57eb60aff361be68ba54a5a21a09b1a17cd69aa942d00a5f",
+      "code_bytes": 491368,
+      "name": "N80 ROM, 6r45_1.exe, UID 0x10208A45",
+      "start": 7984,
+      "stop": 8176,
+      "stack_size_offset": 640,
+      "screen_size": 441816,
+      "size_equal": 441000,
+      "rect": 441528,
+      "results": [
+        {
+          "screen": [
+            176,
+            208
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            208,
+            176
+          ],
+          "rectangle": [
+            0,
+            0,
+            208,
+            176
+          ],
+          "buffer": [
+            208,
+            176
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            208,
+            208
+          ],
+          "rectangle": [
+            0,
+            0,
+            208,
+            208
+          ],
+          "buffer": [
+            208,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            240,
+            320
+          ],
+          "rectangle": [
+            0,
+            0,
+            240,
+            320
+          ],
+          "buffer": [
+            240,
+            320
+          ],
+          "helper_calls": {
+            "screen_size": 1,
+            "size_equal": 1,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            320,
+            240
+          ],
+          "rectangle": [
+            0,
+            0,
+            320,
+            240
+          ],
+          "buffer": [
+            320,
+            240
+          ],
+          "helper_calls": {
+            "screen_size": 2,
+            "size_equal": 2,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            352,
+            416
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 3,
+            "size_equal": 3,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            416,
+            352
+          ],
+          "rectangle": [
+            0,
+            0,
+            208,
+            176
+          ],
+          "buffer": [
+            208,
+            176
+          ],
+          "helper_calls": {
+            "screen_size": 4,
+            "size_equal": 4,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            320,
+            480
+          ],
+          "rectangle": [
+            0,
+            0,
+            320,
+            480
+          ],
+          "buffer": [
+            320,
+            480
+          ],
+          "helper_calls": {
+            "screen_size": 5,
+            "size_equal": 5,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            480,
+            320
+          ],
+          "rectangle": [
+            0,
+            0,
+            480,
+            320
+          ],
+          "buffer": [
+            480,
+            320
+          ],
+          "helper_calls": {
+            "screen_size": 6,
+            "size_equal": 6,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            360,
+            640
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            640,
+            360
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            640,
+            480
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            480,
+            640
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            800,
+            352
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            1280,
+            720
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 8,
+            "size_equal": 8,
+            "rect": 1
+          }
+        }
+      ]
+    },
+    {
+      "code_sha256": "1eb0c7a7eca6c123025672b042b51b1f40b7d6fb6763c4437458fe1eea030a12",
+      "code_bytes": 490804,
+      "name": "archive Snakes HD SISX, 6r45_1.exe, UID 0x10208A45",
+      "start": 7900,
+      "stop": 8092,
+      "stack_size_offset": 640,
+      "screen_size": 440984,
+      "size_equal": 440184,
+      "rect": 440712,
+      "results": [
+        {
+          "screen": [
+            176,
+            208
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            208,
+            176
+          ],
+          "rectangle": [
+            0,
+            0,
+            208,
+            176
+          ],
+          "buffer": [
+            208,
+            176
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            208,
+            208
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            240,
+            320
+          ],
+          "rectangle": [
+            0,
+            0,
+            240,
+            320
+          ],
+          "buffer": [
+            240,
+            320
+          ],
+          "helper_calls": {
+            "screen_size": 1,
+            "size_equal": 1,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            320,
+            240
+          ],
+          "rectangle": [
+            0,
+            0,
+            320,
+            240
+          ],
+          "buffer": [
+            320,
+            240
+          ],
+          "helper_calls": {
+            "screen_size": 2,
+            "size_equal": 2,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            352,
+            416
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 3,
+            "size_equal": 3,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            416,
+            352
+          ],
+          "rectangle": [
+            0,
+            0,
+            208,
+            176
+          ],
+          "buffer": [
+            208,
+            176
+          ],
+          "helper_calls": {
+            "screen_size": 4,
+            "size_equal": 4,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            320,
+            480
+          ],
+          "rectangle": [
+            0,
+            0,
+            320,
+            480
+          ],
+          "buffer": [
+            320,
+            480
+          ],
+          "helper_calls": {
+            "screen_size": 5,
+            "size_equal": 5,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            480,
+            320
+          ],
+          "rectangle": [
+            0,
+            0,
+            480,
+            320
+          ],
+          "buffer": [
+            480,
+            320
+          ],
+          "helper_calls": {
+            "screen_size": 6,
+            "size_equal": 6,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            360,
+            640
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            640,
+            360
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            640,
+            480
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            480,
+            640
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            800,
+            352
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        },
+        {
+          "screen": [
+            1280,
+            720
+          ],
+          "rectangle": [
+            0,
+            0,
+            176,
+            208
+          ],
+          "buffer": [
+            176,
+            208
+          ],
+          "helper_calls": {
+            "screen_size": 7,
+            "size_equal": 7,
+            "rect": 1
+          }
+        }
+      ]
+    }
+  ]
+}
