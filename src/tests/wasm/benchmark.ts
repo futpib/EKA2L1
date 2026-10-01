@@ -10,6 +10,7 @@ import {startServer, buildDir} from './server.ts';
 const [assetArg, outputArg, frameArg = '1000', inputArg = '../benchmark/snakes.input', startArg = '21000000'] = process.argv.slice(2);
 if (!assetArg || !outputArg) throw new Error('Usage: node benchmark.ts ASSETS NEW_OUTPUT [FRAMES] [INPUT] [START_US]');
 const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
+const snakesN80NativeResolution = process.env.EKA2L1_SNAKES_N80_NATIVE_RESOLUTION === '1';
 const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
 const tlbHash = process.env.EKA2L1_TLB_HASH === undefined ? -1 : Number(process.env.EKA2L1_TLB_HASH);
@@ -56,6 +57,14 @@ const expected: Record<string,string> = {
   'SYM.RPKG': '58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531',
   'Snakes.sis': '14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a',
 };
+if (process.env.EKA2L1_ASSET_MANIFEST) {
+  const manifest = JSON.parse(fs.readFileSync(process.env.EKA2L1_ASSET_MANIFEST, 'utf8'));
+  for (const name of Object.keys(expected)) {
+    const digest = manifest.assets?.[name]?.sha256;
+    if (typeof digest !== 'string' || !/^[0-9a-f]{64}$/.test(digest)) throw new Error(`Invalid asset digest: ${name}`);
+    expected[name] = digest;
+  }
+}
 const hash = (data: Uint8Array) => crypto.createHash('sha256').update(data).digest('hex');
 for (const [name, digest] of Object.entries(expected))
   if (hash(fs.readFileSync(path.join(assets, name))) !== digest) throw new Error(`Bad asset: ${name}`);
@@ -87,13 +96,15 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio, snakesN80NativeResolution}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
       if (code !== 0) throw new Error(`${name} returned ${code}`);
     };
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
+    if (snakesN80NativeResolution)
+      call('eka2l1_snakes_n80_native_resolution_configure', ['number'], [1]);
     call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot, aotDiagnostics ? 1 : 0]);
     if (eagerRegions !== -1) {
       if (typeof g.Module._eka2l1_eager_regions_configure !== 'function') throw new Error('Build lacks eager region selection');
@@ -179,8 +190,9 @@ try {
         await new Promise(resolve => setTimeout(resolve, 10));
       }
     }
-    call('eka2l1_run', ['string'], ['Snakes']);
-  }, {tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+    // N80 also registers a different ROM-bundled game with the caption Snakes.
+    call('eka2l1_run', ['string'], ['0x2000730F']);
+  }, {tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio, snakesN80NativeResolution});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -237,6 +249,7 @@ try {
   await page.evaluate(() => (window as any).Module._eka2l1_shutdown());
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
+    snakes_n80_native_resolution: snakesN80NativeResolution,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, omit_guard_publication:await page.evaluate(()=>(globalThis as any).omitGuardPublicationActual), code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');

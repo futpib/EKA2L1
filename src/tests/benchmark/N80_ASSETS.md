@@ -8,11 +8,110 @@ CIDs, SHA-256 hashes, sizes and source archive are recorded in
 The pair installs successfully as **Nokia N80 (05), RM-92, Symbian 9.1** with
 machine UID `0x200005f9`. Its original `wsini.ini` declares 352×416 portrait and
 416×352 landscape modes. The tested Snakes SIS now **passes native gameplay and
-audio validation** after the Symbian 9.1 compatibility fixes below. The default
-game renders 176×208 and doubles both axes for the 352×416 display: this is a
-larger output image, but less rendering detail than the 5320's 240×320 mode.
+audio validation** after the Symbian 9.1 compatibility fixes below. The opt-in
+resolution patch renders at **352×416**, 91% more pixels than the 5320's 240×320.
+The unmodified game renders 176×208 and doubles both axes for the N80 display.
 
-![Snakes running on N80](n80-evidence/gameplay-352x416.png)
+![Snakes rendering at 352 by 416 on N80](n80-evidence/native-resolution-352x416.png)
+
+## Full-resolution Snakes
+
+```sh
+EKA2L1_SNAKES_N80_NATIVE_RESOLUTION=1 \
+python3 src/tests/benchmark/run_native.py \
+  --assets /absolute/path/to/n80-assets \
+  --asset-manifest src/tests/benchmark/n80-assets.json \
+  --binary /absolute/path/to/eka2l1_qt \
+  --output /absolute/path/to/new-n80-full-resolution-run \
+  --frames 240 --repeat 2 --timeout 300
+```
+
+For interactive native play, use the same environment variable and launch
+`--run 0x2000730F` after installing the N80 device and the Snakes SIS. The browser
+launcher has a **Snakes at full N80 resolution** checkbox; select the N80 ROM,
+RPKG and the existing SIS, and use app UID `0x2000730F`. The checkbox currently
+uses the interpreter, so browser execution is slower than the compiled 5320
+path. N80 compiled execution stalls during startup even with the game patch off.
+
+This changes three ARM instructions in the loaded copy of `6r45_1b.exe`: select
+the normal blit for 352×416, and change the rendering rectangle from 176×208 to
+352×416. Disabling doubling alone leaves the old small image in a corner; both
+changes are necessary. The patch checks the UID, executable name, code size,
+unrelocated code hash and original instructions before writing anything. It runs
+before code relocation and CPU translation. The SIS, firmware files and IPFS
+CIDs stay unchanged. This experiment covers N80 portrait, not arbitrary screen
+sizes or other game releases.
+
+Two native runs matched all 240 frames, guest timestamps, PCM samples and audio
+events, covering 11.30 seconds of gameplay at 21.16 images per virtual second.
+Every image has genuine single-pixel detail; none is an exact doubled 176×208
+image. Visual inspection also confirms the scene fills the display. Disabling
+the option reproduces the stock N80 output exactly, and enabling it on 5320
+reproduces the previous 240×320 baseline exactly (60 frames each, including
+audio). The native unit suite still passes all 330 cases and 28,873 assertions.
+See [full-resolution evidence](n80-evidence/native-resolution.json).
+
+The Chromium/WASM interpreter also completed 240 frames: **every image and PCM
+sample matches native**. Instruction counts differ throughout, six image
+timestamps differ, and audio event timestamps are not identical, so this is
+not a pass of the stricter cross-target deterministic comparison. Both targets
+pass gameplay and audio validation. The WASM build uses Emscripten 4.0.10.
+
+The actual browser launcher checkbox also passed the existing live test flow:
+gameplay, keyboard and touch input, mobile layout, blur-release and shutdown,
+using Chromium's NVIDIA/Vulkan backend. The 10-second interval advanced only
+4.18 guest seconds (0.417× real time), so this interpreter path is functional
+but currently too slow for normal-speed play on the tested host. Live sound was
+not enabled in that UI test; PCM correctness is covered by the replay above.
+
+![Live browser gameplay](n80-evidence/browser-gameplay-352x416.png)
+
+```sh
+cd src/tests/wasm
+EKA2L1_WASM_BUILD_DIR=/absolute/path/to/wasm-build/src/emu/wasm \
+EKA2L1_ASSET_MANIFEST=../benchmark/n80-assets.json \
+EKA2L1_SNAKES_N80_NATIVE_RESOLUTION=1 \
+EKA2L1_BENCHMARK_AOT=0 \
+node benchmark.ts /absolute/path/to/n80-assets /absolute/path/to/new-browser-run 240
+```
+
+Compiled modes 1 (exports), 4 (chained blocks), and 5 (regions) reached the
+120-second virtual replay limit without gameplay. Mode 5 also failed with code
+validation enabled and with unsafe-code mode 0; changing executable-byte
+validation policy did not resolve it. The compiler issue remains open. An
+earlier, separate browser abort when looking up missing panic descriptions was
+fixed by checking YAML node types without relying on C++ exception catching.
+
+## Options beyond 352×416
+
+The N80 result is 146,432 rendered pixels. Larger firmware candidates still
+need Snakes compatibility and rendering tests; display specifications alone
+do not establish the game's internal resolution.
+
+| # | Candidate | Display pixels | Relative to full-resolution N80 | Work remaining |
+|---|---|---|---|---|
+| 1 | Nokia E6, RM-609 | 640×480 = 307,200 | 2.10× | Install its Anna/Belle firmware, test the existing SIS, extend the renderer patch |
+| 2 | Nokia E90, RA-6, internal display | 800×352 = 281,600 | 1.92× | Install firmware, select the internal display, extend the renderer patch |
+| 3 | Virtual device, example target | 1280×720 = 921,600 | 6.29× | Supply compatible OS layouts or change layout selection, then extend game rendering and validate bounds |
+
+The [Nokia E6 launch announcement](https://blogs.windows.com/devices/2011/04/12/launch-nokia-e6/)
+confirms its 640×480 capacitive touchscreen and Symbian platform. It is the
+preferred next physical-device target for pixel count and a conventional 4:3
+landscape aspect ratio. The [Nokia E90 datasheet](https://manualzz.com/doc/2635566/nokia-e90-communicator-datasheet)
+confirms its 800×352 internal screen and S60 3rd Edition platform. Its older S60
+generation is closer to this game's original environment; easier game
+compatibility is a hypothesis, not a measured result.
+
+An [E90 firmware archive directory](https://firmware.center/firmware/Nokia/E90%20%28RA-6%29/Flash%20Files/)
+lists versions 210.3 and 300.3. An [E6 Belle firmware listing](https://nokia-msft.ru/firmware/firmware-nokia-belle/firmware-rm-609/059f4l1/)
+identifies core/ROFS/VPL files for revision 111.130.0625, but working file
+downloads and emulator compatibility have not been verified for either target.
+
+The previous [virtual-display sweep](RESOLUTION_RESULTS.md) reached `AVKON 61`
+before gameplay at larger sizes. Changing `wsini.ini` alone therefore does not
+complete the virtual-device option. The three N80 game changes establish that
+Snakes' chosen rendering resolution can be changed; they do not establish an
+arbitrary-resolution limit or guarantee 720p rendering.
 
 ## Working native runtime
 
@@ -35,10 +134,10 @@ scene captures and non-silent audio. The unchanged 5320 assets also passed a
 60-frame gameplay/audio regression. The native unit suite passed 330 cases and
 28,873 assertions. See [runtime evidence](n80-evidence/gameplay.json).
 
-All 60 N80 images consist of exact repeated 2×2 pixel blocks. The installed
+All 60 unmodified N80 images consist of exact repeated 2×2 pixel blocks. The installed
 game explicitly recognizes 352×416 and chooses a doubled presentation mode.
-These results establish native-emulator compatibility; they do not establish
-a browser build or higher-detail rendering from the unmodified game.
+These stock-game results establish native-emulator compatibility, separately
+from the opt-in rendering change above.
 
 ## Pin and retrieve
 

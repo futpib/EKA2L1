@@ -1,0 +1,433 @@
+{
+  "date": "2026-10-01",
+  "game_uid": "0x2000730F",
+  "game_executable": "6r45_1b.exe",
+  "environment": {
+    "EKA2L1_SNAKES_N80_NATIVE_RESOLUTION": "1"
+  },
+  "output_and_render_size": [
+    352,
+    416
+  ],
+  "unmodified_render_size": [
+    176,
+    208
+  ],
+  "exact_doubled_2x2_frames": 0,
+  "inspected_frames": 240,
+  "unrelocated_code": {
+    "bytes": 485908,
+    "xxh32_seed": "0x5B001101",
+    "xxh32": "0x3A0D7287",
+    "sha256": "23dec1c3fe2831b2faf02fa0577eddb180cf33642c74e9d8ee78070a925c38f4"
+  },
+  "native_report": {
+    "shared_audio": false,
+    "snakes_n80_native_resolution": true,
+    "git_head": "14383e6f7286ecf53b2ad27bb820ba0e2c6e6780",
+    "dirty_worktree": true,
+    "binary_sha256": "f2a39e731fdc5112fcc86bcfe6cd9d5c39810b00216def866d44652c64664090",
+    "assets": {
+      "SYM.ROM": "99fc5d84bc66a4dfa00f66a967dcd817e344c9ac7eb7ee6124d40b1e75278698",
+      "SYM.RPKG": "be82cd991db95e2e9128b48dc7b9618f653813ec864c63db1952821de2178be0",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "frames": 240,
+    "start_us": 21000000,
+    "unique": true,
+    "runs": [
+      {
+        "wall_seconds": 48.9027439779893,
+        "last_virtual_us": 32332602
+      },
+      {
+        "wall_seconds": 49.67405344999861,
+        "last_virtual_us": 32332602
+      }
+    ]
+  },
+  "native_gameplay": {
+    "frames": 240,
+    "unique_images": 240,
+    "unique_viewports": 240,
+    "first_virtual_us": 21035729,
+    "last_virtual_us": 32332602,
+    "virtual_seconds": 11.296873,
+    "game_images_per_virtual_second": 21.156296968196422,
+    "median_interval_us": 46833,
+    "max_interval_us": 62899,
+    "min_viewport_changed_fraction": 0.17732691802417233,
+    "median_viewport_changed_fraction": 0.2338741460851288,
+    "pass": true
+  },
+  "native_audio": {
+    "sample_frames": 1551964,
+    "sample_rate": 48000,
+    "channels": 2,
+    "sha256_pcm": "655a13d5a733254b288017553ced9187680c89d31f7a888a822f7c5dcc98ee57",
+    "sha256_events": "b0076072c86485dfd2dcbc7fb184331c11f0f463f1405a132641bd4f8a8bd306",
+    "writes": 655,
+    "callbacks": 655,
+    "gameplay_nonzero_samples": 1071960,
+    "gameplay_peak": 516
+  },
+  "controls": {
+    "n80_option_off_matches_previous_pixels_timestamps_pcm_and_events": true,
+    "nokia_5320_option_on_matches_previous_pixels_timestamps_pcm_and_events": true,
+    "frames_each": 60
+  },
+  "unit_tests": {
+    "test_cases": 330,
+    "assertions": 28873,
+    "pass": true
+  },
+  "native_final_report": {
+    "shared_audio": false,
+    "snakes_n80_native_resolution": true,
+    "git_head": "14383e6f7286ecf53b2ad27bb820ba0e2c6e6780",
+    "dirty_worktree": true,
+    "binary_sha256": "72d91bc3eaabeb294f150ec717bc4f37cf6691b843b1a5eb4f1a58aa4b3d4fa2",
+    "assets": {
+      "SYM.ROM": "99fc5d84bc66a4dfa00f66a967dcd817e344c9ac7eb7ee6124d40b1e75278698",
+      "SYM.RPKG": "be82cd991db95e2e9128b48dc7b9618f653813ec864c63db1952821de2178be0",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "frames": 60,
+    "start_us": 21000000,
+    "unique": true,
+    "runs": [
+      {
+        "wall_seconds": 37.65873561499757,
+        "last_virtual_us": 23830888
+      }
+    ]
+  },
+  "native_final_first_60_frames_match": true,
+  "browser_interpreter_report": {
+    "frames": 240,
+    "start_us": 21000000,
+    "unique": true,
+    "wall_seconds": 76.73686017099999,
+    "snakes_n80_native_resolution": true,
+    "assets": {
+      "SYM.ROM": "99fc5d84bc66a4dfa00f66a967dcd817e344c9ac7eb7ee6124d40b1e75278698",
+      "SYM.RPKG": "be82cd991db95e2e9128b48dc7b9618f653813ec864c63db1952821de2178be0",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+    "wasm_sha256": "7ab3ba8249535e877fab378fe1eae0e6b640a2e2d0b989d09d47aa055080542c",
+    "loader_sha256": "bce0e8f10fa4598c50fb80a97cd2026a86d877b5b90fa61eb017377b9f594bb2",
+    "gl_diagnostics": false,
+    "gl_diagnostics_configurable": true,
+    "shared_audio": false,
+    "aot": 0,
+    "aot_diagnostics": false,
+    "ir_mode": -1,
+    "execution_limits": [
+      512,
+      16,
+      8,
+      512
+    ],
+    "predicated_leaves": 0,
+    "leaf_features": 0,
+    "unsafe_code_initial": 3,
+    "unsafe_code": 3,
+    "exit_census": false,
+    "tlb_hash": -1,
+    "code_compare": -1,
+    "code_lookup": -1,
+    "omit_guard_publication": 0,
+    "code_write_protect": -1,
+    "eager_regions": -1,
+    "verify_aot": 0,
+    "git_head": "14383e6f7286ecf53b2ad27bb820ba0e2c6e6780",
+    "dirty_worktree": true
+  },
+  "browser_comparison": {
+    "match": false,
+    "frames": 240,
+    "differing_frames_by_field": {
+      "frame": 0,
+      "presentation": 0,
+      "virtual_us": 6,
+      "instructions": 240,
+      "width": 0,
+      "height": 0,
+      "sha256_rgba": 0
+    },
+    "first_divergence": 0,
+    "expected": {
+      "frame": 0,
+      "presentation": 427,
+      "virtual_us": 21035729,
+      "instructions": 3155594457,
+      "width": 352,
+      "height": 416,
+      "sha256_rgba": "5a674c24e919b9540df9fc92b7952c2736e0820da659d63955192e770d8913d8"
+    },
+    "actual": {
+      "frame": 0,
+      "presentation": 427,
+      "virtual_us": 21035729,
+      "instructions": 3155600312,
+      "width": 352,
+      "height": 416,
+      "sha256_rgba": "5a674c24e919b9540df9fc92b7952c2736e0820da659d63955192e770d8913d8"
+    }
+  },
+  "browser_audio": {
+    "sample_frames": 1551964,
+    "sample_rate": 48000,
+    "channels": 2,
+    "sha256_pcm": "655a13d5a733254b288017553ced9187680c89d31f7a888a822f7c5dcc98ee57",
+    "sha256_events": "b6a1d8eae57a1b660283455ae519816c48ca88b69dd853a23e2ed62d6bd5818c",
+    "writes": 655,
+    "callbacks": 655,
+    "gameplay_nonzero_samples": 1071960,
+    "gameplay_peak": 516
+  },
+  "browser_gameplay": {
+    "frames": 240,
+    "unique_images": 240,
+    "unique_viewports": 240,
+    "first_virtual_us": 21035729,
+    "last_virtual_us": 32332602,
+    "virtual_seconds": 11.296873,
+    "game_images_per_virtual_second": 21.156296968196422,
+    "median_interval_us": 46833,
+    "max_interval_us": 62899,
+    "min_viewport_changed_fraction": 0.17732691802417233,
+    "median_viewport_changed_fraction": 0.2338741460851288,
+    "pass": true
+  },
+  "browser_note": "All 240 images and PCM match native. Instruction counts, six image timestamps and some audio event timestamps differ. Compiled modes 1, 4 and 5 time out in startup; mode 5 also fails with the game patch off, validation enabled or unsafe-code mode 0. The full-resolution launcher uses interpreter mode 0.",
+  "tool_versions": {
+    "emscripten": "4.0.10",
+    "chromium": "153.0.8010.52",
+    "node": "26.8.1"
+  },
+  "browser_live": {
+    "start": {
+      "guest": 23174238,
+      "inputs": 26,
+      "frames": 472
+    },
+    "end": {
+      "guest": 27349460,
+      "inputs": 26,
+      "frames": 561
+    },
+    "host_seconds": 10.017790893999997,
+    "audio": null,
+    "audio_continuity": null,
+    "audio_start": null,
+    "resources": {
+      "startup": {
+        "tmp": [],
+        "worker_pool": {
+          "running": 19,
+          "unused": 13
+        },
+        "selected_files": [
+          0,
+          0,
+          0
+        ],
+        "linear_bytes": 268435456,
+        "allocator": {
+          "guest_us": 10000,
+          "instructions": 0,
+          "compiled_functions": 0,
+          "allocated_bytes": 216330072,
+          "free_bytes": 1178296
+        },
+        "pss_kib": 1372596
+      },
+      "final": {
+        "tmp": [],
+        "worker_pool": {
+          "running": 19,
+          "unused": 13
+        },
+        "selected_files": [
+          0,
+          0,
+          0
+        ],
+        "linear_bytes": 488636416,
+        "allocator": {
+          "guest_us": 27401328,
+          "instructions": 4406508222,
+          "compiled_functions": 0,
+          "allocated_bytes": 399276328,
+          "free_bytes": 4657384
+        },
+        "pss_kib": 1221189
+      }
+    },
+    "compiler_policy": {
+      "requested": {
+        "unsafeCode": 3
+      },
+      "applied": true,
+      "observed": {
+        "unsafeCode": 3
+      }
+    },
+    "unsafe_code": 3,
+    "auto_start": false,
+    "sampling": false,
+    "profile_window": {
+      "begin": null,
+      "end": null
+    },
+    "measurement": null,
+    "renderer": "See gpu.json for physical GPU details",
+    "realtime_ratio": 0.4167807098569691,
+    "input_delivery_ms": [
+      4.183015000000523,
+      1.135497999999643,
+      4.025967000001401,
+      3.814871000000494,
+      1.6157789999997476,
+      1.021614999997837,
+      1.036536999999953,
+      1.0879079999940586,
+      1.2682280000008177,
+      1.1409599999969942,
+      0.9288569999989704,
+      0.877399000004516
+    ],
+    "samples": [
+      {
+        "host_seconds": 1.001262735999997,
+        "guest": 23580027,
+        "inputs": 26,
+        "frames": 481
+      },
+      {
+        "host_seconds": 2.003181285999999,
+        "guest": 24004158,
+        "inputs": 26,
+        "frames": 490
+      },
+      {
+        "host_seconds": 3.0052468599999993,
+        "guest": 24431305,
+        "inputs": 26,
+        "frames": 499
+      },
+      {
+        "host_seconds": 4.007167178999996,
+        "guest": 24844618,
+        "inputs": 26,
+        "frames": 508
+      },
+      {
+        "host_seconds": 5.009151547000001,
+        "guest": 25270462,
+        "inputs": 26,
+        "frames": 517
+      },
+      {
+        "host_seconds": 6.010532030000002,
+        "guest": 25670148,
+        "inputs": 26,
+        "frames": 525
+      },
+      {
+        "host_seconds": 7.012527228999999,
+        "guest": 26089605,
+        "inputs": 26,
+        "frames": 534
+      },
+      {
+        "host_seconds": 8.014320029000002,
+        "guest": 26514119,
+        "inputs": 26,
+        "frames": 543
+      },
+      {
+        "host_seconds": 9.016210525000002,
+        "guest": 26934268,
+        "inputs": 26,
+        "frames": 552
+      },
+      {
+        "host_seconds": 10.017202337000002,
+        "guest": 27349340,
+        "inputs": 26,
+        "frames": 561
+      }
+    ],
+    "browser": "Chrome/153.0.8010.52",
+    "wasm_sha256": "2cfcc42e189fcc13b1e4a6366a07f2d8986449df8a35297b1fd830a09f400190",
+    "note": "Input latency measures DOM keydown to guest queue consumption, not display response."
+  },
+  "browser_live_gpu": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.57.4.0)",
+  "browser_live_method": "Existing live.ts with one added checkbox click before Start; entered Snakes by caption, confirmed native-resolution launch, keyboard/touch, no mobile horizontal overflow, blur-release and shutdown. 10-second measured interval; live sound not enabled.",
+  "browser_5320_control": {
+    "report": {
+      "frames": 60,
+      "start_us": 21000000,
+      "unique": true,
+      "wall_seconds": 16.705436594,
+      "snakes_n80_native_resolution": false,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "2cfcc42e189fcc13b1e4a6366a07f2d8986449df8a35297b1fd830a09f400190",
+      "loader_sha256": "bce0e8f10fa4598c50fb80a97cd2026a86d877b5b90fa61eb017377b9f594bb2",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "shared_audio": false,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": -1,
+      "execution_limits": [
+        512,
+        16,
+        8,
+        512
+      ],
+      "predicated_leaves": 0,
+      "leaf_features": 0,
+      "unsafe_code_initial": 3,
+      "unsafe_code": 3,
+      "exit_census": false,
+      "tlb_hash": -1,
+      "code_compare": -1,
+      "code_lookup": -1,
+      "omit_guard_publication": 0,
+      "code_write_protect": -1,
+      "eager_regions": -1,
+      "verify_aot": 0,
+      "git_head": "3fa726542578b950d7be7d3047e1fde9dbefc935",
+      "dirty_worktree": true
+    },
+    "comparison_to_native": {
+      "match": true,
+      "audio": {
+        "sample_frames": 1143006,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "dfae62a0ed5a7d7d2b8168d50d0f87656d2330b561780caa5d7caa865fc0b260",
+        "sha256_events": "c44c0d4b51515879824f4029c231eed86171d5df418c4db9d0b57be44da889c6",
+        "writes": 483,
+        "callbacks": 483,
+        "gameplay_nonzero_samples": 264676,
+        "gameplay_peak": 382
+      },
+      "frames": 60,
+      "unique_images": 60,
+      "last_virtual_us": 23812627,
+      "instructions": 3027400608
+    }
+  }
+}

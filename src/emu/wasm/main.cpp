@@ -172,6 +172,14 @@ namespace {
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_snakes_n80_native_resolution_configure(int enabled) {
+    if (g_state || (enabled != 0 && enabled != 1)) return -1;
+    if (enabled) setenv("EKA2L1_SNAKES_N80_NATIVE_RESOLUTION", "1", 1);
+    else unsetenv("EKA2L1_SNAKES_N80_NATIVE_RESOLUTION");
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_graphics_diagnostics_configure(int enabled) {
     if (g_state || (enabled != 0 && enabled != 1)) return -1;
     if (enabled) setenv("EKA2L1_GL_DIAGNOSTICS", "1", 1);
@@ -317,7 +325,11 @@ int eka2l1_live_configure() {
     if (g_state) return -1;
     common::benchmark::interactive = true;
     setenv("EKA2L1_BENCHMARK", "1", 1);
-    return eka2l1_aot_configure(5, 0, 0);
+    // The N80 experiment currently passes replay with the interpreter; its
+    // ROM stalls during startup with compiled exports as well as regions.
+    const char *n80_resolution = std::getenv("EKA2L1_SNAKES_N80_NATIVE_RESOLUTION");
+    const bool n80_experiment = n80_resolution && std::strcmp(n80_resolution, "1") == 0;
+    return eka2l1_aot_configure(n80_experiment ? 0 : 5, 0, 0);
 }
 
 EMSCRIPTEN_KEEPALIVE

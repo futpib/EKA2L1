@@ -94,7 +94,9 @@ def main():
     # The existing CLI returns 255 even for successful install-only commands.
     if code not in (0, 255) or 'Device installed:' not in (a.output / 'install.log').read_text():
         raise RuntimeError('Device install failed; see install.log')
-    report = {'shared_audio': env.get('EKA2L1_SHARED_AUDIO') == '1', 'git_head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+    report = {'shared_audio': env.get('EKA2L1_SHARED_AUDIO') == '1',
+              'snakes_n80_native_resolution': env.get('EKA2L1_SNAKES_N80_NATIVE_RESOLUTION') == '1',
+              'git_head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'dirty_worktree': bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT)),
               'binary_sha256': hashlib.sha256(a.binary.read_bytes()).hexdigest(),
               'assets': assets, 'input_sha256': hashlib.sha256(a.input.read_bytes()).hexdigest(),

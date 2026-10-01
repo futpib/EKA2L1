@@ -7,7 +7,7 @@
     352,
     416
   ],
-  "status": "Snakes UID 0x2000730F passes native gameplay and audio at 352x416 output; unmodified game doubles 176x208 pixels",
+  "status": "Snakes UID 0x2000730F renders true 352x416 with EKA2L1_SNAKES_N80_NATIVE_RESOLUTION=1 in native and browser interpreter replays; compiled N80 browser execution stalls during startup",
   "source": {
     "filename": "Nokia_N80_RM-92_0542699_5.0719.0.2_V001.zip",
     "url": "https://androiddatahost.com/tryu5",

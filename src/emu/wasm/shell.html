@@ -29,6 +29,7 @@
         <label>RPKG: <input type="file" id="rpkg-file"></label>
         <label>SIS: <input type="file" id="sis-file"></label>
         <label>App: <input type="text" id="app-name" placeholder="App name or UID" size="20"></label>
+        <label title="352×416 portrait; experimental, slower execution"><input type="checkbox" id="snakes-n80-native-resolution"> Snakes at full N80 resolution</label>
         <button id="btn-start" onclick="startEmulator()">Start</button>
     </div>
     <div id="canvas-container">
@@ -191,6 +192,12 @@
                 var rpkgInput = document.getElementById('rpkg-file');
                 var sisInput = document.getElementById('sis-file');
                 var appName = document.getElementById('app-name').value;
+                var nativeResolution = document.getElementById('snakes-n80-native-resolution').checked;
+                if (nativeResolution) {
+                    if (Module.ccall('eka2l1_snakes_n80_native_resolution_configure', 'number', ['number'], [1]) !== 0)
+                        throw new Error('Snakes resolution configuration failed');
+                    if (appName.trim().toLowerCase() === 'snakes') appName = '0x2000730F';
+                }
 
                 // The runtime defaults to immutable executable bytes (mode 3).
                 // A launcher can select compatibility mode 0 before initialization.
