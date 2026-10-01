@@ -1,0 +1,15 @@
+# Entry-proof fallback census after expanded leaf eligibility
+
+Diagnostic correctness acceptance passes; census measurement is pending. This is a diagnostic extension; the expanded-leaf timing archive is unchanged. No new compiler eligibility, scheduling or default policy is selected.
+
+The preceding census classified post-store code-write exits. It did not count a write-span proof rejected at region entry, before any guest effect. Such rejection calls the precise private compiled fallback; it is not itself a browser yield or a guest-scheduler return. A false conditional store, for example, can reject an entry proof without later executing a store or triggering a post-store guard.
+
+The new diagnostic records attempts, read/write spans checked, private fallbacks, and each valid non-wrapping write span that intersects the combined protected interval. After the compiled invocation returns, those spans are compared with the exact primary and dependency snapshots. Up to 32 spans are retained per invocation, with explicit overflow accounting. Missing mappings, permission/alignment failures, wrapping spans and pre-existing exit/budget failures are tracked separately from interval overlap. The census labels a fallback `interval_gaps_only` only when every captured overlap is a gap and no other entry-proof guard failed. This identifies a sole entry-proof cause; it does not establish how much execution time removing that cause would save.
+
+Generated counter stores exist only with the explicit exit-census mode enabled. They preserve the guard expressions and use reserved scratch locals. Focused fixtures compare all state words, returned counts and memory with uninstrumented versions at partial budgets, using primary/dependency/gap/outside destinations and missing/read-only/writable mappings. Broader fault and native image/audio checks must pass before using these counts.
+
+The planned paired census compares conditional-only leaves at length 32, expanded leaves at 32, and expanded leaves at 16 on both current post-merge routes. It retains exact instruction endpoints, presentations, rejected instructions, binding limits, dependency coverage, footprint and all raw counters. Diagnostic elapsed times will not be used as performance evidence. Timing observations and their host-contention limitation are recorded separately in `EXPANDED_LEAVES_RESULTS.md`.
+
+## Correctness acceptance
+
+All 170 instrumented compiler tests pass, including 97 focused rejection/guard/equivalence checks. All 33 native tests pass (548 assertions). Both explicitly selected feature modes match native on 24,512 fault cases each, 49,024 total, with census mode 1 verified. Both checked standard replays match 1,600 images, guest records and 4,656,051 stereo PCM frames; the expanded longer-route replay matches 360 images and audio. Missing, wrong and duplicate census/feature markers are rejected. The initial compile error from an incorrectly scoped diagnostic scratch name is retained in evidence, with the corrected build tested.

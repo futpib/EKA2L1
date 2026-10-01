@@ -4632,6 +4632,47 @@ static bool test_boundary_details() {
             validated_code_cache::diagnostic_code_overlap(entry,last_guard_host,last_guard_size)!=(address!=0x1800)))return false;
         ++checks;
     }
+    // Compare instrumented entry proofs with identical uninstrumented code.
+    // A gap can reject a proof before a store executes (even at budget zero).
+    // Missing/write-denied mappings must not be called interval overlaps.
+#ifndef EKA2L1_WASM_CODE_VERSIONS
+    for(unsigned address:{0x1000u,0x1800u,0x2000u,0x3000u})for(unsigned permission:{0u,1u,3u})for(unsigned budget=0;budget<=5;++budget) {
+        test_mem memory;const unsigned code[]={0xe5810000u,0xe5812004u,0xe5813008u,0xe581400cu};
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(code);
+        memory.write_code(0x1000,{bytes,bytes+sizeof(code)});memory.write32(0x2000,0xe12fff1e);
+        auto translate=[&](){return translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);};
+        enabled=false;auto control=translate();enabled=true;auto candidate=translate();
+        if(candidate.proved_writes!=4 || !candidate.func.outlined_callee) {printf(" FAIL entry-proof diagnostic fixture not selected\n");return false;}
+        const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+        auto module=build_wasm_module({candidate.func},imports),original=build_wasm_module({control.func},imports);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        for(unsigned page:{0x1000u,0x2000u,0x3000u})tlb.add(page,memory.data.data()+page,permission);
+        validated_code_cache cache;core::code_mapping view{1,memory.data.data()+0x1000,sizeof(code)};auto &entry=cache.insert(0x1000,view,sizeof(code));
+        validated_code_cache::add_dependency(entry,0x2000,memory.data.data()+0x2000,{memory.data.begin()+0x2000,memory.data.begin()+0x2004});
+        alignas(8) unsigned state[256]{};state[0]=0xe1a00000;state[1]=address;state[15]=0x1000;
+        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=entry.guard_begin;state[state_offsets::AOT_CODE_END/4]=entry.guard_end;
+        alignas(8) unsigned expected[256];std::copy(std::begin(state),std::end(state),std::begin(expected));const auto before=memory.data;
+        entry_proof_failed=0;entry_overlap_count=0;entry_other_failure=0;g_test_mem=&memory;
+        entry_proof_attempted=0;entry_read_spans=0;entry_write_spans=0;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        const bool overlap=permission==3 && address!=0x3000;
+        if(entry_proof_attempted!=1 || entry_read_spans || entry_write_spans!=1) {printf(" FAIL entry-proof attempt/span counters\n");return false;}
+        if(entry_proof_failed!=unsigned(permission!=3 || overlap) || entry_overlap_count!=unsigned(overlap) || entry_other_failure!=unsigned(permission!=3)) {
+            printf(" FAIL entry-proof addr=%x permission=%u budget=%u fallback=%u overlaps=%u other=%u\n",address,permission,budget,entry_proof_failed,entry_overlap_count,entry_other_failure);return false;
+        }
+        if(overlap && (entry_overlaps[0].host!=reinterpret_cast<std::uintptr_t>(memory.data.data()+address) || entry_overlaps[0].bytes!=16 ||
+            validated_code_cache::diagnostic_code_overlap(entry,entry_overlaps[0].host,entry_overlaps[0].bytes)!=(address!=0x1800)))return false;
+        const auto after=memory.data;std::copy(before.begin(),before.end(),memory.data.begin());
+        const auto original_count=js_run_aot_wasm(original.data(),original.size(),reinterpret_cast<std::uint8_t*>(expected),sizeof(expected));g_test_mem=nullptr;
+        if(count!=original_count || !std::equal(std::begin(state),std::end(state),std::begin(expected)) || after!=memory.data) {
+            printf(" FAIL instrumented entry-proof equivalence addr=%x permission=%u budget=%u count=%d original=%d\n",address,permission,budget,count,original_count);return false;
+        }
+        ++checks;
+    }
+#endif
     printf(" PASS boundary details (%u exact rejection labels/counters and primary/dependency/gap/outside guards)\n",checks);
 #endif
     return true;

@@ -268,6 +268,8 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
             exit_census::last_pc=0;exit_census::last_opcode=0;
             exit_census::last_restriction=0;exit_census::last_rejected_pc=0;exit_census::last_rejected_opcode=0;
             exit_census::guard_hits=0;exit_census::last_guard_host=0;exit_census::last_guard_size=0;
+            exit_census::entry_proof_failed=0;exit_census::entry_overlap_count=0;exit_census::entry_other_failure=0;
+            exit_census::entry_proof_attempted=0;exit_census::entry_read_spans=0;exit_census::entry_write_spans=0;
         }
         // Deque-backed entries remain stable across inserts/invalidation. Keep
         // this invocation's entry even if a synchronous helper performs lookup.
@@ -281,6 +283,27 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
             exit_census::protected_interval_bytes += guard_entry->guard_end-guard_entry->guard_begin;
         }
         const auto count = function(cpu);
+        if constexpr(Profile) if(exit_census::counting()) {
+            exit_census::entry_proof_attempts+=exit_census::entry_proof_attempted;
+            exit_census::entry_read_span_checks+=exit_census::entry_read_spans;
+            exit_census::entry_write_span_checks+=exit_census::entry_write_spans;
+            exit_census::entry_proof_fallbacks += bool(exit_census::entry_proof_failed);
+            unsigned gaps=0,snapshots=0;
+            for(unsigned n=0;n<std::min(32u,exit_census::entry_overlap_count);++n) {
+                const auto &span=exit_census::entry_overlaps[n];
+                const char *outcome=!guard_entry?"unavailable_entry":
+                    validated_code_cache::diagnostic_code_overlap(*guard_entry,span.host,span.bytes)?"snapshot_overlap":"interval_gap_only";
+                ++exit_census::entry_proof_outcomes[outcome];
+                if(guard_entry) {if(std::string(outcome)=="interval_gap_only")++gaps;else ++snapshots;}
+            }
+            if(exit_census::entry_overlap_count>32)exit_census::entry_overlap_dropped+=exit_census::entry_overlap_count-32;
+            if(exit_census::entry_proof_failed) {
+                const char *cause=exit_census::entry_overlap_count>32 || (!guard_entry && exit_census::entry_overlap_count)?"unclassified_overlap":
+                    gaps && !snapshots && !exit_census::entry_other_failure?"interval_gaps_only":
+                    gaps?"gap_with_other_failure":snapshots?"snapshot_overlap":"other_guard";
+                ++exit_census::entry_fallback_causes[cause];
+            }
+        }
         if constexpr(Profile) if(exit_census::counting() && (exit_census::effects&2)) {
             const char *outcome=!exit_census::guard_hits?"uncaptured_guard":!guard_entry?"unavailable_entry":exit_census::guard_hits!=1?"multiple_guards":
                 validated_code_cache::diagnostic_code_overlap(*guard_entry,exit_census::last_guard_host,exit_census::last_guard_size)

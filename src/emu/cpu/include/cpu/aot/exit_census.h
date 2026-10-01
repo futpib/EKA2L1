@@ -30,6 +30,16 @@ namespace eka2l1::arm::aot::exit_census {
     struct leaf_refusal { unsigned constraint=0, detail=0; std::uint32_t pc=0, opcode=0; };
     inline std::uint32_t last_restriction=0,last_rejected_pc=0,last_rejected_opcode=0;
     inline std::uint32_t last_guard_host=0,last_guard_size=0,guard_hits=0;
+    // Entry proof failures call a precise fallback before any guest effect;
+    // they are distinct from a post-store code-write exit. Retain each bounded
+    // overlap so interval gaps can be classified against actual snapshots.
+    inline std::uint32_t entry_proof_failed=0,entry_overlap_count=0,entry_other_failure=0;
+    inline std::uint32_t entry_proof_attempted=0,entry_read_spans=0,entry_write_spans=0;
+    struct entry_overlap { std::uint32_t host=0,bytes=0; };
+    inline entry_overlap entry_overlaps[32];
+    inline std::uint64_t entry_proof_fallbacks=0,entry_overlap_dropped=0;
+    inline std::uint64_t entry_proof_attempts=0,entry_read_span_checks=0,entry_write_span_checks=0;
+    inline std::map<std::string,std::uint64_t> entry_proof_outcomes,entry_fallback_causes;
     inline std::map<std::string,std::uint64_t> exits, runners, compilation, invalidations, call_constraints,
         call_restrictions, code_guard_outcomes;
     using rejected_key=std::tuple<std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,unsigned>;
@@ -112,6 +122,10 @@ namespace eka2l1::arm::aot::exit_census {
         o<<",\"validated_snapshot_requests\":{\"entries\":"<<validated_entries<<",\"primary_bytes\":"<<validated_primary_bytes
             <<",\"dependency_spans\":"<<validated_dependency_spans<<",\"dependency_bytes\":"<<validated_dependency_bytes<<",\"protected_interval_bytes\":"<<protected_interval_bytes<<'}';
         counts("callee_restrictions",call_restrictions);counts("code_guard_outcomes",code_guard_outcomes);
+        counts("entry_proof_overlap_outcomes",entry_proof_outcomes);
+        counts("entry_proof_fallback_causes",entry_fallback_causes);
+        o<<",\"entry_proof_fallbacks\":"<<entry_proof_fallbacks<<",\"entry_proof_overlap_dropped\":"<<entry_overlap_dropped;
+        o<<",\"entry_proof_attempts\":"<<entry_proof_attempts<<",\"entry_read_span_checks\":"<<entry_read_span_checks<<",\"entry_write_span_checks\":"<<entry_write_span_checks;
         counts("region_exits",exits);counts("runner_returns",runners);counts("invalidations",invalidations);counts("call_constraints",call_constraints);counts("lifetime_compile_events",compilation);
         o<<",\"sampled_edges\":[";bool first=true;for(const auto &[k,n]:edges){if(!first)o<<',';first=false;const auto &[why,from,to,asid,site,op]=k;
             o<<"{\"reason\":"<<common::guest_profile::quote(why)<<",\"from\":"<<from<<",\"to\":"<<to<<",\"asid\":"<<asid<<",\"site\":"<<site<<",\"opcode\":"<<op<<",\"samples\":"<<n<<'}';}

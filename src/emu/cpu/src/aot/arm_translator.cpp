@@ -340,6 +340,31 @@ namespace eka2l1::arm::aot {
             op(op_i32_load);leb(b,2);leb(b,0);i32_const(1);op(op_i32_add);
             op(op_i32_store);leb(b,2);leb(b,0);
         }
+        void census_entry_overlap(unsigned bytes) {
+            if(!exit_census::enabled)return;
+            // Ignore missing mappings and wrapping spans: those cannot be
+            // attributed solely to overlap with the protected code interval.
+            get_local(HOST);op(op_i32_eqz);op(op_i32_eqz);
+            get_local(HOST);i32_const(0xffffffffu-bytes);op(op_i32_le_u);op(op_i32_and);
+            get_local(HOST);load_i32(S::AOT_CODE_END);op(op_i32_lt_u);op(op_i32_and);
+            get_local(HOST);i32_const(bytes);op(op_i32_add);load_i32(S::AOT_CODE_BEGIN);op(op_i32_gt_u);op(op_i32_and);
+            op(op_if);op(type_void);
+            const auto counter=static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&exit_census::entry_overlap_count));
+            i32_const(counter);op(op_i32_load);leb(b,2);leb(b,0);set_local(ENTRY);
+            get_local(ENTRY);i32_const(32);op(op_i32_lt_u);op(op_if);op(type_void);
+            get_local(ENTRY);i32_const(3);op(op_i32_shl);
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(exit_census::entry_overlaps)));op(op_i32_add);set_local(VALUE);
+            get_local(VALUE);get_local(HOST);op(op_i32_store);leb(b,2);leb(b,0);
+            get_local(VALUE);i32_const(bytes);op(op_i32_store);leb(b,2);leb(b,4);op(op_end);
+            i32_const(counter);get_local(ENTRY);i32_const(1);op(op_i32_add);op(op_i32_store);leb(b,2);leb(b,0);
+            op(op_end);
+        }
+        void census_entry_other() {
+            if(!exit_census::enabled)return;
+            // Preserve the boolean proof expression already on the stack.
+            set_local(VALUE);get_local(VALUE);op(op_if);op(type_void);
+            census_store(&exit_census::entry_other_failure,1);op(op_end);get_local(VALUE);
+        }
         void census_store(std::uint32_t *where,std::uint32_t value) {
             if(!exit_census::enabled)return;
             i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(where)));
@@ -811,8 +836,9 @@ namespace eka2l1::arm::aot {
             }
             // Conditional integer operations already have precise lowering in
             // the original emitter. They do not alter the linear control path;
-            // false predicates still consume an instruction. Keep conditional
-            // memory, transfers and reserved encodings outside this experiment.
+            // false predicates still consume an instruction. Selected additional
+            // forms use the feature gates; all remaining instructions retain
+            // the conservative register and encoding filters below.
             const auto reject = [&](unsigned detail) {
                 if(exit_census::enabled){refusal.detail=detail;refusal.pc=address+static_cast<std::uint32_t>(n);refusal.opcode=op;}
                 return std::vector<std::uint8_t>{};
@@ -1477,6 +1503,12 @@ namespace eka2l1::arm::aot {
 
         std::uint32_t proof_call_offset = 0;
         if (prove_memory) {
+            if(exit_census::enabled) {
+                const auto write_spans=static_cast<unsigned>(std::count_if(proof_groups.begin(),proof_groups.end(),[](const auto &span){return span.write;}));
+                w.census_store(&exit_census::entry_proof_attempted,1);
+                w.census_store(&exit_census::entry_write_spans,write_spans);
+                w.census_store(&exit_census::entry_read_spans,static_cast<unsigned>(proof_groups.size())-write_spans);
+            }
             // The successful IR path cannot call helpers, raise a memory exit,
             // or cross the scheduler budget. All other cases use the precise
             // original function, before any guest memory/state effect.
@@ -1484,6 +1516,7 @@ namespace eka2l1::arm::aot {
                 w.load_i32(S::AOT_BUDGET); w.i32_const(static_cast<unsigned>(instructions.size()));
                 w.op(op_i32_lt_u); w.load_i32(S::AOT_EXIT); w.op(op_i32_or);
             } else w.load_i32(S::AOT_EXIT);
+            w.census_entry_other();
             w.set_local(TMP4);
             for (const auto &span : proof_groups) {
                 w.load_reg(span.root); w.i32_const(static_cast<std::int32_t>(span.low));
@@ -1491,18 +1524,21 @@ namespace eka2l1::arm::aot {
                 w.block_transfer_host(arm_emit::ADDRESS, static_cast<unsigned>(span.high - span.low), span.write);
                 w.get_local(arm_emit::HOST); w.op(op_i32_eqz);
                 if (span.write) {
+                    w.census_entry_overlap(static_cast<unsigned>(span.high-span.low));
                     // A wrapping physical exclusive end cannot prove non-alias.
                     w.get_local(arm_emit::HOST);
                     w.i32_const(static_cast<std::int32_t>(0xffffffffu - unsigned(span.high - span.low)));
                     w.op(op_i32_gt_u); w.op(op_i32_or);
+                    w.census_entry_other();
                     w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
                     w.get_local(arm_emit::HOST); w.i32_const(static_cast<std::int32_t>(span.high - span.low)); w.op(op_i32_add);
                     w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and); w.op(op_i32_or);
-                }
+                } else w.census_entry_other();
                 w.get_local(TMP4); w.op(op_i32_or); w.set_local(TMP4);
                 w.get_local(arm_emit::HOST); w.set_local(span.host);
             }
             w.get_local(TMP4); w.op(op_if); w.op(type_void);
+            w.census_store(&exit_census::entry_proof_failed,1);
             w.state_ptr(); w.op(op_call);
             proof_call_offset = static_cast<std::uint32_t>(result.body.size());
             result.body.insert(result.body.end(), {0x80,0x80,0x80,0x80,0});
