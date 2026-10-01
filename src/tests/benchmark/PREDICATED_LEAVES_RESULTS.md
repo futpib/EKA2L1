@@ -1,6 +1,6 @@
 # Conditional integer leaf fusion
 
-This opt-in experiment uses the original instruction emitter (policy 7) to inline straight-line leaf functions containing conditional integer operations. The default remains disabled. Source window, leaf length, inline-site count, runner cap and guest scheduling are unchanged. No timing claim or deployment.
+This opt-in experiment uses the original instruction emitter (policy 7) to inline straight-line leaf functions containing conditional integer operations. The default remains disabled. Source window, leaf length, inline-site count, runner cap and guest scheduling are unchanged. No confirmed speed gain or deployment.
 
 The exit census motivated this change: two six-instruction load/compare/conditional-MOV leaves account for 28.6% of sampled direct-call exits in the longer-snake window. Raising the 16-instruction leaf bound cannot make these leaves eligible. No guest address or captured opcode sequence is special-cased by the implementation.
 
@@ -16,16 +16,44 @@ The focused interpreter matrix passes 29,120 comparisons across all fourteen con
 
 Acceptance passes: all 168 compiler tests, 32 native tests, frontend checks and 38,272 explicitly selected native fault comparisons. Both option-off/on checked replays exactly match 1,600 native images, guest records and 4,656,051 stereo PCM frames. The enabled-mode 360-image longer route also matches native. The new fault matrix includes 5,376 conditional-call cases in addition to the existing 13,760 cases per mode. Missing and wrong option markers are verified to fail. Probe and browser reports must verify the requested option; a claimed mode without its matching marker is rejected.
 
-The immutable archive and its source patch are under `/home/claude/.scratch/eka-benchmark/predicated-leaf-candidate`. Evidence is recorded in PREDICATED_LEAVES_EVIDENCE.json. Future timing compares enabled/disabled execution in that same binary and the untouched post-merge baseline, with every sample and identical guest work retained.
+The immutable archive and its source patch are under `/home/claude/.scratch/eka-benchmark/predicated-leaf-candidate`. Evidence is recorded in PREDICATED_LEAVES_EVIDENCE.json. Timing compares enabled/disabled execution in that same binary and the untouched post-merge baseline, with every sample and identical guest work retained.
 
-## First longer-route timing batch
+## Completed initial and reordered timing batches
 
-At unchanged default limits, six serial observations execute identical guest work. Each number is seconds for the same eighteen guest seconds.
+All twenty-four trials use the immutable candidate archive or the untouched merged baseline. Fusion is the only changed setting between matching control/candidate runs; guest scheduling and all four execution limits remain unchanged. No owned build, test or diagnostic overlaps these serial timings. Every sample, including slow runs, is retained.
 
-| Mode | First | Reverse | Mean |
+### long
+
+| Batch / mode | First seconds | Reverse seconds | Mean seconds |
 | --- | ---: | ---: | ---: |
-| control | 14.6549 | 13.4966 | 14.0757 |
-| candidate | 14.4124 | 11.1062 | 12.7593 |
-| baseline | 15.6751 | 13.3453 | 14.5102 |
+| a / control | 14.6549 | 13.4966 | 14.0757 |
+| a / candidate | 14.4124 | 11.1062 | 12.7593 |
+| a / baseline | 15.6751 | 13.3453 | 14.5102 |
 
-Both adjacent enabled/disabled comparisons favor fusion. The enabled mean is 10.3% faster in throughput than its matching control and 13.7% ahead of the untouched archive, but the candidate itself varies from 11.1062 to 14.4124 seconds. These are initial observations, not a confirmed gain. Standard-route measurement and reordered confirmation remain pending. All observations are retained; nothing is promoted.
+Batch a: throughput difference +10.32% versus matching control and +13.72% versus untouched baseline; 2/2 matching pairs favor fusion.
+
+| b / baseline | 13.1487 | 11.8815 | 12.5151 |
+| b / candidate | 11.0001 | 11.0987 | 11.0494 |
+| b / control | 13.3601 | 13.8179 | 13.5890 |
+
+Batch b: throughput difference +22.98% versus matching control and +13.26% versus untouched baseline; 2/2 matching pairs favor fusion.
+
+
+### standard
+
+| Batch / mode | First seconds | Reverse seconds | Mean seconds |
+| --- | ---: | ---: | ---: |
+| a / control | 13.4562 | 16.3658 | 14.9110 |
+| a / candidate | 11.5099 | 11.1568 | 11.3333 |
+| a / baseline | 11.7133 | 14.9486 | 13.3310 |
+
+Batch a: throughput difference +31.57% versus matching control and +17.63% versus untouched baseline; 2/2 matching pairs favor fusion.
+
+| b / baseline | 11.9574 | 11.8280 | 11.8927 |
+| b / candidate | 12.3691 | 11.0680 | 11.7186 |
+| b / control | 12.4749 | 13.2267 | 12.8508 |
+
+Batch b: throughput difference +9.66% versus matching control and +1.49% versus untouched baseline; 2/2 matching pairs favor fusion.
+
+
+These timings do not by themselves authorize promotion. The follow-up census must establish which boundaries were removed, where unsupported callees still exit, and whether broader dependency intervals add conservative exits. Correctness gates above apply to the immutable timing archive. Any promotion additionally requires normal/live/audio/actual-launcher acceptance. The current live build remains unchanged.
