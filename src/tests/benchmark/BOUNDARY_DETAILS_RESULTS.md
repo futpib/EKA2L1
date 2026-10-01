@@ -26,3 +26,7 @@ The current inlined instruction records reuse their caller's source offset while
 - Missing, wrong and duplicate instrumentation markers are rejected.
 
 The first build failed on an unqualified namespace in the new focused test. It produced no accepted archive; the corrected build passes. The failed log is retained in BOUNDARY_DETAILS_EVIDENCE.json alongside accepted checks, archived hashes and source patch. This is diagnostic acceptance, not a new timing or deployment claim. Live Snakes remains unchanged.
+
+## Diagnostic label clarification
+
+The archived enum label `internal_branch` identifies a non-link ARM B rejected by the leaf validator; it does not establish that the target lies within the callee span. For example, rejected opcode `0xea017e9f` at `0x70003c88` branches to `0x7006370c`, outside that probe. Treat this raw bucket as **direct branch, target scope not yet classified**. Opcode/PC records are retained unchanged; the disassembly audit separates internal joins from external tail branches before selecting an extension. No count or eligibility decision is changed by this clarification.
