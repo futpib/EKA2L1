@@ -1166,6 +1166,7 @@ TEST_CASE("decoded_cache_separates_arm_thumb_contexts", "[aot][dyncom]") {
 
 TEST_CASE("Inlined code dependencies validate every mapping and exact byte", "[aot]") {
     lookup_mode_scope lookup_mode(GENERATE(false, true));
+    const unsigned dependency_size=GENERATE(4u,8u);
     using namespace eka2l1::arm;
     aot_test_env env; auto cpu=env.make_cpu();
     aot::validated_code_cache cache;
@@ -1179,7 +1180,7 @@ TEST_CASE("Inlined code dependencies validate every mapping and exact byte", "[a
     };
     auto insert=[&]() {
         auto &b=cache.insert(0x1000,{1,caller.data(),16},8);
-        aot::validated_code_cache::add_dependency(b,0x2000,leaf_backing,{leaf_backing,leaf_backing+8});
+        aot::validated_code_cache::add_dependency(b,0x2000,leaf_backing,{leaf_backing,leaf_backing+dependency_size});
         return b.version;
     };
     insert();REQUIRE(cache.find(0x1000,*cpu));REQUIRE(cache.find(0x1000,*cpu));
@@ -1190,7 +1191,7 @@ TEST_CASE("Inlined code dependencies validate every mapping and exact byte", "[a
     insert();REQUIRE(cache.find(0x1000,*cpu));
     mapped=false;++generation;REQUIRE_FALSE(cache.find(0x1000,*cpu));
     mapped=true;++generation;insert();REQUIRE(cache.find(0x1000,*cpu));
-    cache.invalidate(0x2004,4);REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    cache.invalidate(0x2000+dependency_size-4,4);REQUIRE_FALSE(cache.find(0x1000,*cpu));
     insert();cpu->code_address_space=2;REQUIRE_FALSE(cache.find(0x1000,*cpu));
     cpu->code_address_space=1;REQUIRE(cache.find(0x1000,*cpu));
 }

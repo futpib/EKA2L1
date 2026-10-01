@@ -73,7 +73,7 @@ try {
   for (const invalid of [-1,2,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeLookup:invalid}}),/Invalid compiler policy/);
   for (const [envName,key,valid,invalid] of [
     ['EKA2L1_PREDICATED_LEAVES','predicatedLeaves',['0','1'],['','2','-1','1.0']],
-    ['EKA2L1_LEAF_FEATURES','leafFeatures',['0','1','7','8','15','16','24','31'],['','32','-1','8.0','08']],
+    ['EKA2L1_LEAF_FEATURES','leafFeatures',['0','1','7','8','15','16','24','31','32','63'],['','64','-1','8.0','08']],
     ['EKA2L1_EXECUTION_LIMITS','executionLimits',['512,16,8,512','128,1,0,0','2048,64,16,4096'],['512,0,8,512','127,16,8,512','130,16,8,512','2049,16,8,512','512,65,8,512','512,16,17,512','512,16,8,4097','512,16,8,-1','512,16,8,0,0','0512,16,8,512','512,16,8,NaN','']]
   ] as const) {
     for (const value of valid) {
@@ -87,6 +87,7 @@ try {
   for (const policy of [
     {predicatedLeaves:1,leafFeatures:0,executionLimits:[512,16,8,512]},
     {predicatedLeaves:1,leafFeatures:8,executionLimits:[512,16,8,512]},
+    {predicatedLeaves:1,leafFeatures:32,executionLimits:[512,16,8,512]},
     {predicatedLeaves:1,leafFeatures:15,executionLimits:[1024,32,16,0]},
     {predicatedLeaves:0,leafFeatures:0,executionLimits:[128,1,0,4096]}
   ]) {
@@ -124,7 +125,7 @@ try {
   }
   assert.equal(new Set(fusionEtags).size,fusionEtags.length);
   for(const invalid of [
-    {predicatedLeaves:2},{leafFeatures:32},{leafFeatures:NaN},{leafFeatures:1.5},
+    {predicatedLeaves:2},{leafFeatures:64},{leafFeatures:NaN},{leafFeatures:1.5},
     {executionLimits:[512,0,8,512]},{executionLimits:[512,16,8,-1]},{executionLimits:[512,16,8,4097]},
     {executionLimits:[512,16,8]},{executionLimits:'512,16,8,512'}
   ]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:invalid as any}),/Invalid compiler policy/);

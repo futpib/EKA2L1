@@ -69,7 +69,7 @@ struct Fixture {
 int main(int argc, char **argv){
     if(argc>1 && std::strncmp(argv[argc-1],"--leaf-features=",16)==0) {
         const std::string value(argv[argc-1]+16);
-        if(value.empty() || value.size()>2 || value.find_first_not_of("0123456789")!=std::string::npos || std::stoi(value)>31){std::cerr<<"Invalid leaf feature policy\n";return 1;}
+        if(value.empty() || value.size()>2 || value.find_first_not_of("0123456789")!=std::string::npos || std::stoi(value)>63){std::cerr<<"Invalid leaf feature policy\n";return 1;}
         aot::leaf_features=static_cast<unsigned>(std::stoi(value));--argc;
     }
     std::cout<<"PROBE_LEAF_FEATURES "<<aot::leaf_features<<"\n";
@@ -151,10 +151,11 @@ int main(int argc, char **argv){
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
     const bool ir_call_short=argc==2 && std::string(argv[1])=="--ir-calls-short";
     const bool preserve_inner=argc==2 && std::string(argv[1])=="--preserve-inner";
+    const bool branch_veneers=argc==2 && std::string(argv[1])=="--branch-veneers";
     const bool prefix_calls=preserve_inner || (argc==2 && std::string(argv[1])=="--prefix-calls");
     const bool expanded_calls=argc==2 && std::string(argv[1])=="--expanded-calls";
     const bool predicated_calls=argc==2 && std::string(argv[1])=="--predicated-calls";
-    const bool ir_calls=prefix_calls || expanded_calls || predicated_calls || ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
+    const bool ir_calls=branch_veneers || prefix_calls || expanded_calls || predicated_calls || ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
     const bool ir_long=argc==2 && std::string(argv[1])=="--ir-long";
     const bool ir_conditions=argc==2 && std::string(argv[1])=="--ir-conditions";
     const bool ir_flags=argc==2 && std::string(argv[1])=="--ir-flags";
@@ -194,8 +195,8 @@ int main(int argc, char **argv){
         : read_spans
         ? std::vector<unsigned>{0x8000u,0x8ff8u,0x8ffcu}
         : std::vector<unsigned>{0x8000u,0x8ffdu,0x8ffcu};
-    const std::vector<unsigned> predicates=(ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,1,2,3,4,5,6,7,8,9,10,11,12,13} : std::vector<unsigned>{14};
-    const std::vector<unsigned> initial_flags=(ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
+    const std::vector<unsigned> predicates=(branch_veneers || ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,1,2,3,4,5,6,7,8,9,10,11,12,13} : std::vector<unsigned>{14};
+    const std::vector<unsigned> initial_flags=(branch_veneers || ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
     for(unsigned predicate:predicates)for(unsigned flags:initial_flags)
     for(unsigned op:instructions)for(unsigned policy=0;policy<4;++policy)
     for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u})for(unsigned partial=0;partial<(!invariant_remap && !region_spans && (op&0x0e000000u)==0x08000000u?2u:1u);++partial){
@@ -266,6 +267,12 @@ int main(int argc, char **argv){
                 const unsigned nested[]={0xe28aa001u,0xe2899001u,preserve_inner?0xe12fff1eu:0xeafffffeu};
                 std::memcpy(f.memory.data()+0x3000,nested,sizeof(nested));
             }
+            if(branch_veneers) {
+                program[0]=0xe3a02007u;
+                const unsigned target[]={0x00944005u|(predicate<<28),0x00b46000u|((predicate^1)<<28),op,0xe12fff1eu};
+                std::memcpy(f.memory.data()+0x3000,target,sizeof(target));
+                called_words[0]=0xea0003feu; // B 0x3000; following words are unreachable.
+            }
             std::memcpy(f.memory.data()+0x2000,called_words,sizeof(called_words));
         }
         std::memcpy(f.memory.data()+0x1000,program,(ir_long?135u:7u)*sizeof(unsigned));
@@ -292,6 +299,10 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
+            if(branch_veneers && n==0 && (translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&32)) ||
+                (!translated.dependencies.empty() && translated.dependencies[0].bytes.size()!=4))) {
+                std::cerr<<"Branch veneer fusion selection mismatch\n";return 4;
+            }
             if(prefix_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&8) && !(preserve_inner && (aot::leaf_features&16)))) {
                 std::cerr<<"Call-prefix fusion selection mismatch\n";return 4;
             }
@@ -355,8 +366,8 @@ int main(int argc, char **argv){
             if(preserve_inner && n==0 && translated.dependencies.size()!=1){std::cerr<<"Preserved inner leaf not selected\n";return 4;}
             functions.push_back(std::move(translated.func));
         }
-        if(prefix_calls)for(unsigned n=0;n<3;++n) {
-            auto translated=aot::translate_arm_block(f.memory.data()+0x3000+n*4,(3-n)*4,0x3000+n*4,nullptr,nullptr,true,false,true,true,nullptr,true,ir_policy);
+        if(prefix_calls || branch_veneers)for(unsigned n=0;n<(branch_veneers?4u:3u);++n) {
+            auto translated=aot::translate_arm_block(f.memory.data()+0x3000+n*4,((branch_veneers?4u:3u)-n)*4,0x3000+n*4,nullptr,nullptr,true,false,true,true,nullptr,true,ir_policy);
             functions.push_back(std::move(translated.func));
         }
         if(region_ir && !functions.front().outlined_callee) {
