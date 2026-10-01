@@ -16395,7 +16395,7 @@
       ]
     }
   },
-  "status": "timing_complete_pending_review",
+  "status": "local_live_accepted_pending_https",
   "fault_mode_marker_reextraction": {
     "verified_unsafe_code": 3,
     "verified_leaf_features": 128,
@@ -16417,5 +16417,6241 @@
     "verified_tlb_hash": 1,
     "verified_code_compare": 2,
     "verified_ir_policy": 7
-  }
+  },
+  "live": {
+    "manual": {
+      "report": {
+        "start": {
+          "guest": 23450000,
+          "inputs": 26,
+          "frames": 485
+        },
+        "end": {
+          "guest": 144115781,
+          "inputs": 26,
+          "frames": 3038
+        },
+        "host_seconds": 120.67682410399999,
+        "audio": {
+          "state": "running",
+          "rate": 48000,
+          "muted": false,
+          "received": 6924480,
+          "worklet": {
+            "queued": 5792,
+            "resyncs": 21,
+            "underruns": 7,
+            "dropped": 153632,
+            "played": 6759296,
+            "nonzero": 6293448
+          },
+          "sink": {
+            "queued": 960,
+            "dropped": 0,
+            "read": 6924480
+          }
+        },
+        "audio_continuity": {
+          "added_underruns": 0,
+          "added_drops": 0,
+          "max_sampled_queue": 6688,
+          "device_seconds": 120.88533333333332
+        },
+        "audio_start": {
+          "context_time": 23.317333333333334,
+          "state": "running",
+          "worklet": {
+            "queued": 5888,
+            "resyncs": 21,
+            "underruns": 7,
+            "dropped": 153632,
+            "played": 959360,
+            "nonzero": 778946
+          },
+          "received": 1125120,
+          "sink": {
+            "queued": 480,
+            "dropped": 0,
+            "read": 1125120
+          }
+        },
+        "resources": {
+          "startup": {
+            "tmp": [],
+            "worker_pool": {
+              "running": 19,
+              "unused": 13
+            },
+            "selected_files": [
+              0,
+              0,
+              0
+            ],
+            "linear_bytes": 322174976,
+            "allocator": {
+              "guest_us": 10000,
+              "instructions": 0,
+              "compiled_functions": 6108,
+              "allocated_bytes": 280844432,
+              "free_bytes": 17213440
+            },
+            "pss_kib": 1680246
+          },
+          "final": {
+            "tmp": [],
+            "worker_pool": {
+              "running": 19,
+              "unused": 13
+            },
+            "selected_files": [
+              0,
+              0,
+              0
+            ],
+            "linear_bytes": 685768704,
+            "allocator": {
+              "guest_us": 144340000,
+              "instructions": 24213346660,
+              "compiled_functions": 15250,
+              "allocated_bytes": 572478032,
+              "free_bytes": 11533888
+            },
+            "pss_kib": 1638610
+          }
+        },
+        "compiler_policy": {
+          "requested": {
+            "irMode": 7,
+            "eagerRegions": 0,
+            "tlbHash": 1,
+            "codeCompare": 2,
+            "codeLookup": 0,
+            "predicatedLeaves": 1,
+            "leafFeatures": 128,
+            "executionLimits": [
+              512,
+              16,
+              8,
+              512
+            ],
+            "unsafeCode": 3
+          },
+          "applied": true,
+          "observed": {
+            "predicatedLeaves": 1,
+            "leafFeatures": 128,
+            "unsafeCode": 3,
+            "executionLimits": [
+              512,
+              16,
+              8,
+              512
+            ]
+          }
+        },
+        "unsafe_code": 3,
+        "auto_start": false,
+        "sampling": false,
+        "profile_window": {
+          "begin": null,
+          "end": null
+        },
+        "measurement": null,
+        "renderer": "See gpu.json for physical GPU details",
+        "realtime_ratio": 0.999908490266611,
+        "input_delivery_ms": [
+          1.3024110000005749,
+          3.594093000000612,
+          4.0021940000006,
+          4.12150500000098,
+          3.8349570000009408,
+          1.8601289999987785,
+          1.0261980000032054,
+          3.973660999999993,
+          1.259369000003062,
+          0.9135109999988344,
+          1.350453999999445,
+          1.1108170000006794
+        ],
+        "samples": [
+          {
+            "host_seconds": 1.0010657680000004,
+            "guest": 24440984,
+            "inputs": 26,
+            "frames": 506,
+            "audio": {
+              "context_time": 24.309333333333335,
+              "state": "running",
+              "worklet": {
+                "queued": 6176,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1008512,
+                "nonzero": 827280
+              },
+              "received": 1172640,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1172640
+              }
+            }
+          },
+          {
+            "host_seconds": 2.003290143999999,
+            "guest": 25430003,
+            "inputs": 26,
+            "frames": 527,
+            "audio": {
+              "context_time": 25.312,
+              "state": "running",
+              "worklet": {
+                "queued": 5984,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1057664,
+                "nonzero": 875751
+              },
+              "received": 1220160,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1220160
+              }
+            }
+          },
+          {
+            "host_seconds": 3.0055604219999985,
+            "guest": 26428997,
+            "inputs": 26,
+            "frames": 548,
+            "audio": {
+              "context_time": 26.314666666666668,
+              "state": "running",
+              "worklet": {
+                "queued": 5792,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1106816,
+                "nonzero": 923861
+              },
+              "received": 1268160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1268160
+              }
+            }
+          },
+          {
+            "host_seconds": 4.008538784999997,
+            "guest": 27453125,
+            "inputs": 26,
+            "frames": 570,
+            "audio": {
+              "context_time": 27.317333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 5600,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1155968,
+                "nonzero": 972337
+              },
+              "received": 1317600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1317600
+              }
+            }
+          },
+          {
+            "host_seconds": 5.012884630999997,
+            "guest": 28453181,
+            "inputs": 26,
+            "frames": 591,
+            "audio": {
+              "context_time": 28.330666666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 6368,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1205120,
+                "nonzero": 1020920
+              },
+              "received": 1365600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1365600
+              }
+            }
+          },
+          {
+            "host_seconds": 6.016219411000002,
+            "guest": 29456856,
+            "inputs": 26,
+            "frames": 612,
+            "audio": {
+              "context_time": 29.333333333333332,
+              "state": "running",
+              "worklet": {
+                "queued": 5280,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1237888,
+                "nonzero": 1053392
+              },
+              "received": 1413600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1413600
+              }
+            }
+          },
+          {
+            "host_seconds": 7.018799258999996,
+            "guest": 30451445,
+            "inputs": 26,
+            "frames": 633,
+            "audio": {
+              "context_time": 30.336,
+              "state": "running",
+              "worklet": {
+                "queued": 6048,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1287040,
+                "nonzero": 1102252
+              },
+              "received": 1461120,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1461120
+              }
+            }
+          },
+          {
+            "host_seconds": 8.021620359999996,
+            "guest": 31468750,
+            "inputs": 26,
+            "frames": 655,
+            "audio": {
+              "context_time": 31.338666666666665,
+              "state": "running",
+              "worklet": {
+                "queued": 4896,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1336192,
+                "nonzero": 1151176
+              },
+              "received": 1510080,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1510080
+              }
+            }
+          },
+          {
+            "host_seconds": 9.024495747999998,
+            "guest": 32468750,
+            "inputs": 26,
+            "frames": 676,
+            "audio": {
+              "context_time": 32.34133333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 5664,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1385344,
+                "nonzero": 1200042
+              },
+              "received": 1558080,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1558080
+              }
+            }
+          },
+          {
+            "host_seconds": 10.026598001000002,
+            "guest": 33463463,
+            "inputs": 26,
+            "frames": 697,
+            "audio": {
+              "context_time": 33.344,
+              "state": "running",
+              "worklet": {
+                "queued": 5472,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1434496,
+                "nonzero": 1248793
+              },
+              "received": 1606080,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1606080
+              }
+            }
+          },
+          {
+            "host_seconds": 11.028674220999998,
+            "guest": 34464671,
+            "inputs": 26,
+            "frames": 718,
+            "audio": {
+              "context_time": 34.346666666666664,
+              "state": "running",
+              "worklet": {
+                "queued": 6240,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1483648,
+                "nonzero": 1297173
+              },
+              "received": 1654080,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1654080
+              }
+            }
+          },
+          {
+            "host_seconds": 12.032232619999998,
+            "guest": 35457074,
+            "inputs": 26,
+            "frames": 739,
+            "audio": {
+              "context_time": 35.349333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 5568,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1532800,
+                "nonzero": 1345531
+              },
+              "received": 1701600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1701600
+              }
+            }
+          },
+          {
+            "host_seconds": 13.035829426,
+            "guest": 36480000,
+            "inputs": 26,
+            "frames": 761,
+            "audio": {
+              "context_time": 36.352,
+              "state": "running",
+              "worklet": {
+                "queued": 5856,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1581952,
+                "nonzero": 1394104
+              },
+              "received": 1751040,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1751040
+              }
+            }
+          },
+          {
+            "host_seconds": 14.038624437000003,
+            "guest": 37476892,
+            "inputs": 26,
+            "frames": 782,
+            "audio": {
+              "context_time": 37.35466666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6144,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1631104,
+                "nonzero": 1442483
+              },
+              "received": 1798560,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1798560
+              }
+            }
+          },
+          {
+            "host_seconds": 15.040537694999996,
+            "guest": 38475764,
+            "inputs": 26,
+            "frames": 803,
+            "audio": {
+              "context_time": 38.35733333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 5952,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1680256,
+                "nonzero": 1491067
+              },
+              "received": 1846560,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1846560
+              }
+            }
+          },
+          {
+            "host_seconds": 16.043067536,
+            "guest": 39490000,
+            "inputs": 26,
+            "frames": 825,
+            "audio": {
+              "context_time": 39.36,
+              "state": "running",
+              "worklet": {
+                "queued": 5760,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1729408,
+                "nonzero": 1539403
+              },
+              "received": 1894080,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 1894080
+              }
+            }
+          },
+          {
+            "host_seconds": 17.045545627999996,
+            "guest": 40461592,
+            "inputs": 26,
+            "frames": 845,
+            "audio": {
+              "context_time": 40.36266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6528,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1778560,
+                "nonzero": 1587688
+              },
+              "received": 1942080,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1942080
+              }
+            }
+          },
+          {
+            "host_seconds": 18.048317135,
+            "guest": 41500000,
+            "inputs": 26,
+            "frames": 867,
+            "audio": {
+              "context_time": 41.36533333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 5856,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1827712,
+                "nonzero": 1636052
+              },
+              "received": 1991520,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1991520
+              }
+            }
+          },
+          {
+            "host_seconds": 19.050792356000002,
+            "guest": 42489041,
+            "inputs": 26,
+            "frames": 888,
+            "audio": {
+              "context_time": 42.368,
+              "state": "running",
+              "worklet": {
+                "queued": 6144,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1876864,
+                "nonzero": 1684614
+              },
+              "received": 2039040,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2039040
+              }
+            }
+          },
+          {
+            "host_seconds": 20.05223664,
+            "guest": 43478994,
+            "inputs": 26,
+            "frames": 909,
+            "audio": {
+              "context_time": 43.370666666666665,
+              "state": "running",
+              "worklet": {
+                "queued": 5952,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1926016,
+                "nonzero": 1732894
+              },
+              "received": 2086560,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2086560
+              }
+            }
+          },
+          {
+            "host_seconds": 21.10597143,
+            "guest": 44524193,
+            "inputs": 26,
+            "frames": 931,
+            "audio": {
+              "context_time": 44.416,
+              "state": "running",
+              "worklet": {
+                "queued": 5760,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 1975168,
+                "nonzero": 1781115
+              },
+              "received": 2136960,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2136960
+              }
+            }
+          },
+          {
+            "host_seconds": 22.108712086999997,
+            "guest": 45550185,
+            "inputs": 26,
+            "frames": 953,
+            "audio": {
+              "context_time": 45.41866666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 5568,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2024320,
+                "nonzero": 1829479
+              },
+              "received": 2185920,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 2185920
+              }
+            }
+          },
+          {
+            "host_seconds": 23.112695965999997,
+            "guest": 46547727,
+            "inputs": 26,
+            "frames": 974,
+            "audio": {
+              "context_time": 46.42133333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 6336,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2073472,
+                "nonzero": 1878038
+              },
+              "received": 2233920,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2233920
+              }
+            }
+          },
+          {
+            "host_seconds": 24.116448318,
+            "guest": 47555105,
+            "inputs": 26,
+            "frames": 995,
+            "audio": {
+              "context_time": 47.434666666666665,
+              "state": "running",
+              "worklet": {
+                "queued": 5248,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2106240,
+                "nonzero": 1910202
+              },
+              "received": 2282400,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2282400
+              }
+            }
+          },
+          {
+            "host_seconds": 25.118822986999994,
+            "guest": 48570000,
+            "inputs": 26,
+            "frames": 1017,
+            "audio": {
+              "context_time": 48.437333333333335,
+              "state": "running",
+              "worklet": {
+                "queued": 6496,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2155392,
+                "nonzero": 1958650
+              },
+              "received": 2330880,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 2330880
+              }
+            }
+          },
+          {
+            "host_seconds": 26.121509388000003,
+            "guest": 49525605,
+            "inputs": 26,
+            "frames": 1037,
+            "audio": {
+              "context_time": 49.44,
+              "state": "running",
+              "worklet": {
+                "queued": 4864,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2204544,
+                "nonzero": 2006995
+              },
+              "received": 2376960,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2376960
+              }
+            }
+          },
+          {
+            "host_seconds": 27.124239037999995,
+            "guest": 50564984,
+            "inputs": 26,
+            "frames": 1059,
+            "audio": {
+              "context_time": 50.44266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6112,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2253696,
+                "nonzero": 2055526
+              },
+              "received": 2426880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2426880
+              }
+            }
+          },
+          {
+            "host_seconds": 28.126428379,
+            "guest": 51561558,
+            "inputs": 26,
+            "frames": 1080,
+            "audio": {
+              "context_time": 51.434666666666665,
+              "state": "running",
+              "worklet": {
+                "queued": 5920,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2302848,
+                "nonzero": 2103688
+              },
+              "received": 2474880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2474880
+              }
+            }
+          },
+          {
+            "host_seconds": 29.129145923,
+            "guest": 52563030,
+            "inputs": 26,
+            "frames": 1101,
+            "audio": {
+              "context_time": 52.437333333333335,
+              "state": "running",
+              "worklet": {
+                "queued": 6688,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2352000,
+                "nonzero": 2152127
+              },
+              "received": 2522880,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 2522880
+              }
+            }
+          },
+          {
+            "host_seconds": 30.131856286999998,
+            "guest": 53580000,
+            "inputs": 26,
+            "frames": 1123,
+            "audio": {
+              "context_time": 53.44,
+              "state": "running",
+              "worklet": {
+                "queued": 4096,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2401152,
+                "nonzero": 2200573
+              },
+              "received": 2570880,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 2570880
+              }
+            }
+          },
+          {
+            "host_seconds": 31.134486439999996,
+            "guest": 54578125,
+            "inputs": 26,
+            "frames": 1144,
+            "audio": {
+              "context_time": 54.44266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6304,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2450304,
+                "nonzero": 2249351
+              },
+              "received": 2617920,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 2617920
+              }
+            }
+          },
+          {
+            "host_seconds": 32.136504212999995,
+            "guest": 55566789,
+            "inputs": 26,
+            "frames": 1165,
+            "audio": {
+              "context_time": 55.44533333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 6592,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2499456,
+                "nonzero": 2298231
+              },
+              "received": 2666880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2666880
+              }
+            }
+          },
+          {
+            "host_seconds": 33.138435541,
+            "guest": 56575223,
+            "inputs": 26,
+            "frames": 1186,
+            "audio": {
+              "context_time": 56.448,
+              "state": "running",
+              "worklet": {
+                "queued": 5440,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2548608,
+                "nonzero": 2347120
+              },
+              "received": 2715360,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2715360
+              }
+            }
+          },
+          {
+            "host_seconds": 34.140157708,
+            "guest": 57590000,
+            "inputs": 26,
+            "frames": 1208,
+            "audio": {
+              "context_time": 57.45066666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 6208,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2597760,
+                "nonzero": 2395968
+              },
+              "received": 2763840,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 2763840
+              }
+            }
+          },
+          {
+            "host_seconds": 35.142618764,
+            "guest": 58590000,
+            "inputs": 26,
+            "frames": 1229,
+            "audio": {
+              "context_time": 58.45333333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 6496,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2646912,
+                "nonzero": 2444888
+              },
+              "received": 2811840,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 2811840
+              }
+            }
+          },
+          {
+            "host_seconds": 36.145353328,
+            "guest": 59557796,
+            "inputs": 26,
+            "frames": 1249,
+            "audio": {
+              "context_time": 59.456,
+              "state": "running",
+              "worklet": {
+                "queued": 5824,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2696064,
+                "nonzero": 2493791
+              },
+              "received": 2858400,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2858400
+              }
+            }
+          },
+          {
+            "host_seconds": 37.148281134,
+            "guest": 60586228,
+            "inputs": 26,
+            "frames": 1271,
+            "audio": {
+              "context_time": 60.458666666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 6112,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2745216,
+                "nonzero": 2542714
+              },
+              "received": 2907840,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2907840
+              }
+            }
+          },
+          {
+            "host_seconds": 38.151380193,
+            "guest": 61570004,
+            "inputs": 26,
+            "frames": 1292,
+            "audio": {
+              "context_time": 61.461333333333336,
+              "state": "running",
+              "worklet": {
+                "queued": 6400,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2794368,
+                "nonzero": 2591620
+              },
+              "received": 2954880,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 2954880
+              }
+            }
+          },
+          {
+            "host_seconds": 39.15382248799999,
+            "guest": 62577955,
+            "inputs": 26,
+            "frames": 1313,
+            "audio": {
+              "context_time": 62.464,
+              "state": "running",
+              "worklet": {
+                "queued": 5728,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2843520,
+                "nonzero": 2640533
+              },
+              "received": 3003360,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3003360
+              }
+            }
+          },
+          {
+            "host_seconds": 40.155995241,
+            "guest": 63596205,
+            "inputs": 26,
+            "frames": 1335,
+            "audio": {
+              "context_time": 63.46666666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6080,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2876288,
+                "nonzero": 2673143
+              },
+              "received": 3052320,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3052320
+              }
+            }
+          },
+          {
+            "host_seconds": 41.22288809899999,
+            "guest": 64647372,
+            "inputs": 26,
+            "frames": 1357,
+            "audio": {
+              "context_time": 64.53333333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 6304,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2941824,
+                "nonzero": 2738152
+              },
+              "received": 3102720,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3102720
+              }
+            }
+          },
+          {
+            "host_seconds": 42.227467657999995,
+            "guest": 65645431,
+            "inputs": 26,
+            "frames": 1378,
+            "audio": {
+              "context_time": 65.536,
+              "state": "running",
+              "worklet": {
+                "queued": 5632,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 2990976,
+                "nonzero": 2786655
+              },
+              "received": 3150720,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3150720
+              }
+            }
+          },
+          {
+            "host_seconds": 43.230926322,
+            "guest": 66672406,
+            "inputs": 26,
+            "frames": 1400,
+            "audio": {
+              "context_time": 66.54933333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 6464,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3023744,
+                "nonzero": 2818868
+              },
+              "received": 3200160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3200160
+              }
+            }
+          },
+          {
+            "host_seconds": 44.233463777999994,
+            "guest": 67659826,
+            "inputs": 26,
+            "frames": 1421,
+            "audio": {
+              "context_time": 67.552,
+              "state": "running",
+              "worklet": {
+                "queued": 6272,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3072896,
+                "nonzero": 2867382
+              },
+              "received": 3247200,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3247200
+              }
+            }
+          },
+          {
+            "host_seconds": 45.23705172999999,
+            "guest": 68661609,
+            "inputs": 26,
+            "frames": 1442,
+            "audio": {
+              "context_time": 68.55466666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 6080,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3122048,
+                "nonzero": 2915668
+              },
+              "received": 3295680,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3295680
+              }
+            }
+          },
+          {
+            "host_seconds": 46.241639297,
+            "guest": 69687500,
+            "inputs": 26,
+            "frames": 1464,
+            "audio": {
+              "context_time": 69.55733333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 4448,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3171200,
+                "nonzero": 2964191
+              },
+              "received": 3344640,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3344640
+              }
+            }
+          },
+          {
+            "host_seconds": 47.245599006999996,
+            "guest": 70687575,
+            "inputs": 26,
+            "frames": 1485,
+            "audio": {
+              "context_time": 70.56,
+              "state": "running",
+              "worklet": {
+                "queued": 6656,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3220352,
+                "nonzero": 3012548
+              },
+              "received": 3392640,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3392640
+              }
+            }
+          },
+          {
+            "host_seconds": 48.247151126,
+            "guest": 71687852,
+            "inputs": 26,
+            "frames": 1505,
+            "audio": {
+              "context_time": 71.56266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 5984,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3269504,
+                "nonzero": 3061160
+              },
+              "received": 3439200,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 3439200
+              }
+            }
+          },
+          {
+            "host_seconds": 49.250180467,
+            "guest": 72679635,
+            "inputs": 26,
+            "frames": 1527,
+            "audio": {
+              "context_time": 72.56533333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 6272,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3318656,
+                "nonzero": 3109539
+              },
+              "received": 3488160,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3488160
+              }
+            }
+          },
+          {
+            "host_seconds": 50.253769382,
+            "guest": 73663371,
+            "inputs": 26,
+            "frames": 1548,
+            "audio": {
+              "context_time": 73.568,
+              "state": "running",
+              "worklet": {
+                "queued": 6560,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3367808,
+                "nonzero": 3158586
+              },
+              "received": 3535680,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3535680
+              }
+            }
+          },
+          {
+            "host_seconds": 51.25816419699999,
+            "guest": 74700000,
+            "inputs": 26,
+            "frames": 1570,
+            "audio": {
+              "context_time": 74.57066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 5888,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3416960,
+                "nonzero": 3207648
+              },
+              "received": 3585600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3585600
+              }
+            }
+          },
+          {
+            "host_seconds": 52.261782509,
+            "guest": 75692818,
+            "inputs": 26,
+            "frames": 1591,
+            "audio": {
+              "context_time": 75.57333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 5696,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3466112,
+                "nonzero": 3256712
+              },
+              "received": 3633120,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3633120
+              }
+            }
+          },
+          {
+            "host_seconds": 53.26443259,
+            "guest": 76691058,
+            "inputs": 26,
+            "frames": 1612,
+            "audio": {
+              "context_time": 76.576,
+              "state": "running",
+              "worklet": {
+                "queued": 6464,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3515264,
+                "nonzero": 3305644
+              },
+              "received": 3680640,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3680640
+              }
+            }
+          },
+          {
+            "host_seconds": 54.267665234999996,
+            "guest": 77700485,
+            "inputs": 26,
+            "frames": 1633,
+            "audio": {
+              "context_time": 77.57866666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 5792,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3564416,
+                "nonzero": 3354567
+              },
+              "received": 3729120,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3729120
+              }
+            }
+          },
+          {
+            "host_seconds": 55.270004562000004,
+            "guest": 78718750,
+            "inputs": 26,
+            "frames": 1655,
+            "audio": {
+              "context_time": 78.58133333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 6080,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3613568,
+                "nonzero": 3403709
+              },
+              "received": 3778080,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3778080
+              }
+            }
+          },
+          {
+            "host_seconds": 56.272688406,
+            "guest": 79711926,
+            "inputs": 26,
+            "frames": 1676,
+            "audio": {
+              "context_time": 79.584,
+              "state": "running",
+              "worklet": {
+                "queued": 4928,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3662720,
+                "nonzero": 3432165
+              },
+              "received": 3825600,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3825600
+              }
+            }
+          },
+          {
+            "host_seconds": 57.27696529199999,
+            "guest": 80705482,
+            "inputs": 26,
+            "frames": 1697,
+            "audio": {
+              "context_time": 80.58666666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6176,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3711872,
+                "nonzero": 3432165
+              },
+              "received": 3873600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3873600
+              }
+            }
+          },
+          {
+            "host_seconds": 58.27981704299999,
+            "guest": 81702633,
+            "inputs": 26,
+            "frames": 1718,
+            "audio": {
+              "context_time": 81.58933333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 5504,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3761024,
+                "nonzero": 3432165
+              },
+              "received": 3921120,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3921120
+              }
+            }
+          },
+          {
+            "host_seconds": 59.28236621199999,
+            "guest": 82698360,
+            "inputs": 26,
+            "frames": 1739,
+            "audio": {
+              "context_time": 82.592,
+              "state": "running",
+              "worklet": {
+                "queued": 5856,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3793792,
+                "nonzero": 3432165
+              },
+              "received": 3969120,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3969120
+              }
+            }
+          },
+          {
+            "host_seconds": 60.28525430799999,
+            "guest": 83707658,
+            "inputs": 26,
+            "frames": 1760,
+            "audio": {
+              "context_time": 83.59466666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6144,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3842944,
+                "nonzero": 3432165
+              },
+              "received": 4017600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4017600
+              }
+            }
+          },
+          {
+            "host_seconds": 61.33297147399999,
+            "guest": 84771847,
+            "inputs": 26,
+            "frames": 1783,
+            "audio": {
+              "context_time": 84.65066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 5888,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3908480,
+                "nonzero": 3475277
+              },
+              "received": 4068480,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4068480
+              }
+            }
+          },
+          {
+            "host_seconds": 62.334116419,
+            "guest": 85774235,
+            "inputs": 26,
+            "frames": 1804,
+            "audio": {
+              "context_time": 85.64266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 5280,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3941248,
+                "nonzero": 3507896
+              },
+              "received": 4116480,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4116480
+              }
+            }
+          },
+          {
+            "host_seconds": 63.33643068399999,
+            "guest": 86777676,
+            "inputs": 26,
+            "frames": 1825,
+            "audio": {
+              "context_time": 86.64533333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 6048,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 3990400,
+                "nonzero": 3556774
+              },
+              "received": 4164960,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4164960
+              }
+            }
+          },
+          {
+            "host_seconds": 64.33919010999999,
+            "guest": 87781535,
+            "inputs": 26,
+            "frames": 1847,
+            "audio": {
+              "context_time": 87.648,
+              "state": "running",
+              "worklet": {
+                "queued": 6336,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4039552,
+                "nonzero": 3605458
+              },
+              "received": 4212960,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4212960
+              }
+            }
+          },
+          {
+            "host_seconds": 65.34168677999999,
+            "guest": 88781668,
+            "inputs": 26,
+            "frames": 1867,
+            "audio": {
+              "context_time": 88.65066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6144,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4088704,
+                "nonzero": 3653942
+              },
+              "received": 4260960,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4260960
+              }
+            }
+          },
+          {
+            "host_seconds": 66.344122609,
+            "guest": 89781816,
+            "inputs": 26,
+            "frames": 1888,
+            "audio": {
+              "context_time": 89.65333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 5952,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4137856,
+                "nonzero": 3702381
+              },
+              "received": 4308960,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4308960
+              }
+            }
+          },
+          {
+            "host_seconds": 67.346347549,
+            "guest": 90775797,
+            "inputs": 26,
+            "frames": 1909,
+            "audio": {
+              "context_time": 90.656,
+              "state": "running",
+              "worklet": {
+                "queued": 6240,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4187008,
+                "nonzero": 3750697
+              },
+              "received": 4356960,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4356960
+              }
+            }
+          },
+          {
+            "host_seconds": 68.349048727,
+            "guest": 91763058,
+            "inputs": 26,
+            "frames": 1930,
+            "audio": {
+              "context_time": 91.65866666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 6528,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4236160,
+                "nonzero": 3799521
+              },
+              "received": 4404480,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4404480
+              }
+            }
+          },
+          {
+            "host_seconds": 69.35204717799999,
+            "guest": 92765561,
+            "inputs": 26,
+            "frames": 1951,
+            "audio": {
+              "context_time": 92.66133333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 5856,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4285312,
+                "nonzero": 3847784
+              },
+              "received": 4452480,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4452480
+              }
+            }
+          },
+          {
+            "host_seconds": 70.355082425,
+            "guest": 93791608,
+            "inputs": 26,
+            "frames": 1973,
+            "audio": {
+              "context_time": 93.664,
+              "state": "running",
+              "worklet": {
+                "queued": 6144,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4334464,
+                "nonzero": 3896191
+              },
+              "received": 4501920,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4501920
+              }
+            }
+          },
+          {
+            "host_seconds": 71.359129582,
+            "guest": 94784600,
+            "inputs": 26,
+            "frames": 1994,
+            "audio": {
+              "context_time": 94.67733333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 6432,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4383616,
+                "nonzero": 3944689
+              },
+              "received": 4549440,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4549440
+              }
+            }
+          },
+          {
+            "host_seconds": 72.36241673399999,
+            "guest": 95796650,
+            "inputs": 26,
+            "frames": 2015,
+            "audio": {
+              "context_time": 95.68,
+              "state": "running",
+              "worklet": {
+                "queued": 5760,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4432768,
+                "nonzero": 3993042
+              },
+              "received": 4597920,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4597920
+              }
+            }
+          },
+          {
+            "host_seconds": 73.365701911,
+            "guest": 96810000,
+            "inputs": 26,
+            "frames": 2037,
+            "audio": {
+              "context_time": 96.68266666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 6048,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4481920,
+                "nonzero": 4041490
+              },
+              "received": 4646880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4646880
+              }
+            }
+          },
+          {
+            "host_seconds": 74.371431299,
+            "guest": 97812514,
+            "inputs": 26,
+            "frames": 2058,
+            "audio": {
+              "context_time": 97.68533333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 6336,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4531072,
+                "nonzero": 4089833
+              },
+              "received": 4694880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4694880
+              }
+            }
+          },
+          {
+            "host_seconds": 75.37557265999999,
+            "guest": 98810569,
+            "inputs": 26,
+            "frames": 2079,
+            "audio": {
+              "context_time": 98.688,
+              "state": "running",
+              "worklet": {
+                "queued": 6144,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4580224,
+                "nonzero": 4138292
+              },
+              "received": 4742880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4742880
+              }
+            }
+          },
+          {
+            "host_seconds": 76.378271945,
+            "guest": 99828125,
+            "inputs": 26,
+            "frames": 2101,
+            "audio": {
+              "context_time": 99.69066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 5952,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4629376,
+                "nonzero": 4186679
+              },
+              "received": 4791360,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4791360
+              }
+            }
+          },
+          {
+            "host_seconds": 77.381192366,
+            "guest": 100828125,
+            "inputs": 26,
+            "frames": 2122,
+            "audio": {
+              "context_time": 100.69333333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 6240,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4678528,
+                "nonzero": 4235198
+              },
+              "received": 4839360,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4839360
+              }
+            }
+          },
+          {
+            "host_seconds": 78.38347454499998,
+            "guest": 101828125,
+            "inputs": 26,
+            "frames": 2143,
+            "audio": {
+              "context_time": 101.696,
+              "state": "running",
+              "worklet": {
+                "queued": 6592,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4711296,
+                "nonzero": 4267360
+              },
+              "received": 4887360,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4887360
+              }
+            }
+          },
+          {
+            "host_seconds": 79.387137372,
+            "guest": 102817349,
+            "inputs": 26,
+            "frames": 2164,
+            "audio": {
+              "context_time": 102.69866666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6400,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4760448,
+                "nonzero": 4315922
+              },
+              "received": 4934880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4934880
+              }
+            }
+          },
+          {
+            "host_seconds": 80.38980954399999,
+            "guest": 103825275,
+            "inputs": 26,
+            "frames": 2185,
+            "audio": {
+              "context_time": 103.70133333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 6688,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4809600,
+                "nonzero": 4364180
+              },
+              "received": 4983360,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4983360
+              }
+            }
+          },
+          {
+            "host_seconds": 81.440384172,
+            "guest": 104854958,
+            "inputs": 26,
+            "frames": 2207,
+            "audio": {
+              "context_time": 104.75733333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 6016,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4858752,
+                "nonzero": 4412790
+              },
+              "received": 5032800,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5032800
+              }
+            }
+          },
+          {
+            "host_seconds": 82.443420841,
+            "guest": 105882107,
+            "inputs": 26,
+            "frames": 2229,
+            "audio": {
+              "context_time": 105.76,
+              "state": "running",
+              "worklet": {
+                "queued": 6304,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4907904,
+                "nonzero": 4460840
+              },
+              "received": 5081760,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5081760
+              }
+            }
+          },
+          {
+            "host_seconds": 83.446280667,
+            "guest": 106882868,
+            "inputs": 26,
+            "frames": 2250,
+            "audio": {
+              "context_time": 106.76266666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 5632,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 4957056,
+                "nonzero": 4509395
+              },
+              "received": 5130240,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5130240
+              }
+            }
+          },
+          {
+            "host_seconds": 84.449316314,
+            "guest": 107882088,
+            "inputs": 26,
+            "frames": 2271,
+            "audio": {
+              "context_time": 107.76533333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 6400,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5006208,
+                "nonzero": 4557519
+              },
+              "received": 5178240,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5178240
+              }
+            }
+          },
+          {
+            "host_seconds": 85.45273210499998,
+            "guest": 108900000,
+            "inputs": 26,
+            "frames": 2293,
+            "audio": {
+              "context_time": 108.768,
+              "state": "running",
+              "worklet": {
+                "queued": 4768,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5055360,
+                "nonzero": 4606062
+              },
+              "received": 5226720,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5226720
+              }
+            }
+          },
+          {
+            "host_seconds": 86.45458137099999,
+            "guest": 109900000,
+            "inputs": 26,
+            "frames": 2314,
+            "audio": {
+              "context_time": 109.77066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6496,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5104512,
+                "nonzero": 4654469
+              },
+              "received": 5274720,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5274720
+              }
+            }
+          },
+          {
+            "host_seconds": 87.457324551,
+            "guest": 110896859,
+            "inputs": 26,
+            "frames": 2335,
+            "audio": {
+              "context_time": 110.77333333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 5824,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5153664,
+                "nonzero": 4703066
+              },
+              "received": 5322720,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5322720
+              }
+            }
+          },
+          {
+            "host_seconds": 88.459654542,
+            "guest": 111910000,
+            "inputs": 26,
+            "frames": 2356,
+            "audio": {
+              "context_time": 111.776,
+              "state": "running",
+              "worklet": {
+                "queued": 6112,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5202816,
+                "nonzero": 4751440
+              },
+              "received": 5370240,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 5370240
+              }
+            }
+          },
+          {
+            "host_seconds": 89.46220364199999,
+            "guest": 112910000,
+            "inputs": 26,
+            "frames": 2378,
+            "audio": {
+              "context_time": 112.77866666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 4960,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5251968,
+                "nonzero": 4800026
+              },
+              "received": 5418720,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 5418720
+              }
+            }
+          },
+          {
+            "host_seconds": 90.463923,
+            "guest": 113890573,
+            "inputs": 26,
+            "frames": 2398,
+            "audio": {
+              "context_time": 113.78133333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 6208,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5301120,
+                "nonzero": 4848425
+              },
+              "received": 5466240,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5466240
+              }
+            }
+          },
+          {
+            "host_seconds": 91.467574492,
+            "guest": 114906428,
+            "inputs": 26,
+            "frames": 2420,
+            "audio": {
+              "context_time": 114.784,
+              "state": "running",
+              "worklet": {
+                "queued": 6496,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5350272,
+                "nonzero": 4896997
+              },
+              "received": 5515200,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5515200
+              }
+            }
+          },
+          {
+            "host_seconds": 92.471935135,
+            "guest": 115911448,
+            "inputs": 26,
+            "frames": 2441,
+            "audio": {
+              "context_time": 115.78666666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 5824,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5399424,
+                "nonzero": 4945307
+              },
+              "received": 5563200,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5563200
+              }
+            }
+          },
+          {
+            "host_seconds": 93.473608187,
+            "guest": 116896160,
+            "inputs": 26,
+            "frames": 2462,
+            "audio": {
+              "context_time": 116.78933333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 6112,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5448576,
+                "nonzero": 4993793
+              },
+              "received": 5610720,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5610720
+              }
+            }
+          },
+          {
+            "host_seconds": 94.47648863399999,
+            "guest": 117891452,
+            "inputs": 26,
+            "frames": 2483,
+            "audio": {
+              "context_time": 117.792,
+              "state": "running",
+              "worklet": {
+                "queued": 5920,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5497728,
+                "nonzero": 5042198
+              },
+              "received": 5658720,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 5658720
+              }
+            }
+          },
+          {
+            "host_seconds": 95.47827919,
+            "guest": 118921875,
+            "inputs": 26,
+            "frames": 2505,
+            "audio": {
+              "context_time": 118.79466666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 5248,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5546880,
+                "nonzero": 5090744
+              },
+              "received": 5708160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5708160
+              }
+            }
+          },
+          {
+            "host_seconds": 96.480889639,
+            "guest": 119922402,
+            "inputs": 26,
+            "frames": 2526,
+            "audio": {
+              "context_time": 119.79733333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 4640,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5579648,
+                "nonzero": 5123076
+              },
+              "received": 5756160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5756160
+              }
+            }
+          },
+          {
+            "host_seconds": 97.48312311400001,
+            "guest": 120919646,
+            "inputs": 26,
+            "frames": 2547,
+            "audio": {
+              "context_time": 120.8,
+              "state": "running",
+              "worklet": {
+                "queued": 5408,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5628800,
+                "nonzero": 5171487
+              },
+              "received": 5803680,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5803680
+              }
+            }
+          },
+          {
+            "host_seconds": 98.485060004,
+            "guest": 121917617,
+            "inputs": 26,
+            "frames": 2568,
+            "audio": {
+              "context_time": 121.80266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 5216,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5677952,
+                "nonzero": 5220033
+              },
+              "received": 5851680,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5851680
+              }
+            }
+          },
+          {
+            "host_seconds": 99.48927384899999,
+            "guest": 122937500,
+            "inputs": 26,
+            "frames": 2590,
+            "audio": {
+              "context_time": 122.80533333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 5984,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5727104,
+                "nonzero": 5268705
+              },
+              "received": 5900640,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5900640
+              }
+            }
+          },
+          {
+            "host_seconds": 100.494343667,
+            "guest": 123923946,
+            "inputs": 26,
+            "frames": 2611,
+            "audio": {
+              "context_time": 123.808,
+              "state": "running",
+              "worklet": {
+                "queued": 6272,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5776256,
+                "nonzero": 5317594
+              },
+              "received": 5948160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5948160
+              }
+            }
+          },
+          {
+            "host_seconds": 101.56662765299998,
+            "guest": 124980741,
+            "inputs": 26,
+            "frames": 2633,
+            "audio": {
+              "context_time": 124.88533333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 6080,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5825408,
+                "nonzero": 5366535
+              },
+              "received": 5999040,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5999040
+              }
+            }
+          },
+          {
+            "host_seconds": 102.569758084,
+            "guest": 126015625,
+            "inputs": 26,
+            "frames": 2655,
+            "audio": {
+              "context_time": 125.888,
+              "state": "running",
+              "worklet": {
+                "queued": 6368,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5874560,
+                "nonzero": 5415428
+              },
+              "received": 6048480,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6048480
+              }
+            }
+          },
+          {
+            "host_seconds": 103.571460551,
+            "guest": 127009549,
+            "inputs": 26,
+            "frames": 2676,
+            "audio": {
+              "context_time": 126.88,
+              "state": "running",
+              "worklet": {
+                "queued": 6656,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5923712,
+                "nonzero": 5464336
+              },
+              "received": 6096000,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 6096000
+              }
+            }
+          },
+          {
+            "host_seconds": 104.57413305399999,
+            "guest": 128002528,
+            "inputs": 26,
+            "frames": 2697,
+            "audio": {
+              "context_time": 127.88266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6464,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 5972864,
+                "nonzero": 5513180
+              },
+              "received": 6144000,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6144000
+              }
+            }
+          },
+          {
+            "host_seconds": 105.57690729299998,
+            "guest": 128994010,
+            "inputs": 26,
+            "frames": 2718,
+            "audio": {
+              "context_time": 128.88533333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 5792,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6022016,
+                "nonzero": 5562108
+              },
+              "received": 6191520,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6191520
+              }
+            }
+          },
+          {
+            "host_seconds": 106.579836074,
+            "guest": 130020110,
+            "inputs": 26,
+            "frames": 2740,
+            "audio": {
+              "context_time": 129.888,
+              "state": "running",
+              "worklet": {
+                "queued": 6080,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6071168,
+                "nonzero": 5610996
+              },
+              "received": 6240480,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 6240480
+              }
+            }
+          },
+          {
+            "host_seconds": 107.583853429,
+            "guest": 131017261,
+            "inputs": 26,
+            "frames": 2761,
+            "audio": {
+              "context_time": 130.90133333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 5888,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6120320,
+                "nonzero": 5659784
+              },
+              "received": 6288480,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6288480
+              }
+            }
+          },
+          {
+            "host_seconds": 108.587650053,
+            "guest": 132025475,
+            "inputs": 26,
+            "frames": 2782,
+            "audio": {
+              "context_time": 131.904,
+              "state": "running",
+              "worklet": {
+                "queued": 6176,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6169472,
+                "nonzero": 5708463
+              },
+              "received": 6336960,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6336960
+              }
+            }
+          },
+          {
+            "host_seconds": 109.58984049299998,
+            "guest": 133040000,
+            "inputs": 26,
+            "frames": 2804,
+            "audio": {
+              "context_time": 132.90666666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6464,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6218624,
+                "nonzero": 5757061
+              },
+              "received": 6384480,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 6384480
+              }
+            }
+          },
+          {
+            "host_seconds": 110.591928906,
+            "guest": 134040000,
+            "inputs": 26,
+            "frames": 2825,
+            "audio": {
+              "context_time": 133.90933333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 5792,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6267776,
+                "nonzero": 5805903
+              },
+              "received": 6433440,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 6433440
+              }
+            }
+          },
+          {
+            "host_seconds": 111.59448529,
+            "guest": 135032782,
+            "inputs": 26,
+            "frames": 2846,
+            "audio": {
+              "context_time": 134.912,
+              "state": "running",
+              "worklet": {
+                "queued": 6080,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6316928,
+                "nonzero": 5854825
+              },
+              "received": 6479520,
+              "sink": {
+                "queued": 1920,
+                "dropped": 0,
+                "read": 6479520
+              }
+            }
+          },
+          {
+            "host_seconds": 112.59658888999999,
+            "guest": 136030672,
+            "inputs": 26,
+            "frames": 2867,
+            "audio": {
+              "context_time": 135.91466666666668,
+              "state": "running",
+              "worklet": {
+                "queued": 5888,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6366080,
+                "nonzero": 5903726
+              },
+              "received": 6529440,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6529440
+              }
+            }
+          },
+          {
+            "host_seconds": 113.59968615300001,
+            "guest": 137021066,
+            "inputs": 26,
+            "frames": 2888,
+            "audio": {
+              "context_time": 136.91733333333335,
+              "state": "running",
+              "worklet": {
+                "queued": 6656,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6415232,
+                "nonzero": 5952554
+              },
+              "received": 6576480,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 6576480
+              }
+            }
+          },
+          {
+            "host_seconds": 114.601383751,
+            "guest": 138025611,
+            "inputs": 26,
+            "frames": 2909,
+            "audio": {
+              "context_time": 137.92,
+              "state": "running",
+              "worklet": {
+                "queued": 5984,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6464384,
+                "nonzero": 6001203
+              },
+              "received": 6624960,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6624960
+              }
+            }
+          },
+          {
+            "host_seconds": 115.60446262399999,
+            "guest": 139046875,
+            "inputs": 26,
+            "frames": 2931,
+            "audio": {
+              "context_time": 138.92266666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 6272,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6513536,
+                "nonzero": 6049573
+              },
+              "received": 6673920,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6673920
+              }
+            }
+          },
+          {
+            "host_seconds": 116.608441646,
+            "guest": 140046914,
+            "inputs": 26,
+            "frames": 2951,
+            "audio": {
+              "context_time": 139.92533333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 6624,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6546304,
+                "nonzero": 6081974
+              },
+              "received": 6720480,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 6720480
+              }
+            }
+          },
+          {
+            "host_seconds": 117.61186960399999,
+            "guest": 141037151,
+            "inputs": 26,
+            "frames": 2973,
+            "audio": {
+              "context_time": 140.928,
+              "state": "running",
+              "worklet": {
+                "queued": 6432,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6595456,
+                "nonzero": 6130530
+              },
+              "received": 6769440,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6769440
+              }
+            }
+          },
+          {
+            "host_seconds": 118.615206734,
+            "guest": 142060000,
+            "inputs": 26,
+            "frames": 2995,
+            "audio": {
+              "context_time": 141.93066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 6240,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6644608,
+                "nonzero": 6179301
+              },
+              "received": 6818880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6818880
+              }
+            }
+          },
+          {
+            "host_seconds": 119.61828258399999,
+            "guest": 143062500,
+            "inputs": 26,
+            "frames": 3016,
+            "audio": {
+              "context_time": 142.93333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 5568,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6693760,
+                "nonzero": 6228211
+              },
+              "received": 6866880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6866880
+              }
+            }
+          },
+          {
+            "host_seconds": 120.62114052499999,
+            "guest": 144062574,
+            "inputs": 26,
+            "frames": 3037,
+            "audio": {
+              "context_time": 143.936,
+              "state": "running",
+              "worklet": {
+                "queued": 6336,
+                "resyncs": 21,
+                "underruns": 7,
+                "dropped": 153632,
+                "played": 6742912,
+                "nonzero": 6277137
+              },
+              "received": 6914880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6914880
+              }
+            }
+          }
+        ],
+        "browser": "Chrome/153.0.8010.52",
+        "wasm_sha256": "6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39",
+        "note": "Input latency measures DOM keydown to guest queue consumption, not display response."
+      },
+      "max_sampled_lag_ms": 45.904388000002655
+    },
+    "auto": {
+      "report": {
+        "start": {
+          "guest": 23438979,
+          "inputs": 26,
+          "frames": 484
+        },
+        "end": {
+          "guest": 144093186,
+          "inputs": 26,
+          "frames": 3036
+        },
+        "host_seconds": 120.647702485,
+        "audio": {
+          "state": "running",
+          "rate": 48000,
+          "muted": false,
+          "received": 6924000,
+          "worklet": {
+            "queued": 3168,
+            "resyncs": 21,
+            "underruns": 5,
+            "dropped": 144864,
+            "played": 6767328,
+            "nonzero": 6305647
+          },
+          "sink": {
+            "queued": 480,
+            "dropped": 0,
+            "read": 6924000
+          }
+        },
+        "audio_continuity": {
+          "added_underruns": 0,
+          "added_drops": 0,
+          "max_sampled_queue": 4032,
+          "device_seconds": 120.864
+        },
+        "audio_start": {
+          "context_time": 23.392,
+          "state": "running",
+          "worklet": {
+            "queued": 2784,
+            "resyncs": 21,
+            "underruns": 5,
+            "dropped": 144864,
+            "played": 967392,
+            "nonzero": 779524
+          },
+          "received": 1124640,
+          "sink": {
+            "queued": 0,
+            "dropped": 0,
+            "read": 1124640
+          }
+        },
+        "resources": {
+          "startup": {
+            "tmp": [],
+            "worker_pool": {
+              "running": 19,
+              "unused": 13
+            },
+            "selected_files": [
+              0,
+              0,
+              0
+            ],
+            "linear_bytes": 322174976,
+            "allocator": {
+              "guest_us": 10008,
+              "instructions": 4101,
+              "compiled_functions": 6108,
+              "allocated_bytes": 280866152,
+              "free_bytes": 17191720
+            },
+            "pss_kib": 1693834
+          },
+          "final": {
+            "tmp": [],
+            "worker_pool": {
+              "running": 19,
+              "unused": 13
+            },
+            "selected_files": [
+              0,
+              0,
+              0
+            ],
+            "linear_bytes": 685768704,
+            "allocator": {
+              "guest_us": 144314902,
+              "instructions": 24212739569,
+              "compiled_functions": 15229,
+              "allocated_bytes": 572437528,
+              "free_bytes": 12524664
+            },
+            "pss_kib": 1641507
+          }
+        },
+        "compiler_policy": {
+          "requested": {
+            "irMode": 7,
+            "eagerRegions": 0,
+            "tlbHash": 1,
+            "codeCompare": 2,
+            "codeLookup": 0,
+            "predicatedLeaves": 1,
+            "leafFeatures": 128,
+            "executionLimits": [
+              512,
+              16,
+              8,
+              512
+            ],
+            "unsafeCode": 3
+          },
+          "applied": true,
+          "observed": {
+            "predicatedLeaves": 1,
+            "leafFeatures": 128,
+            "unsafeCode": 3,
+            "executionLimits": [
+              512,
+              16,
+              8,
+              512
+            ]
+          }
+        },
+        "unsafe_code": 3,
+        "auto_start": true,
+        "sampling": false,
+        "profile_window": {
+          "begin": null,
+          "end": null
+        },
+        "measurement": null,
+        "renderer": "See gpu.json for physical GPU details",
+        "realtime_ratio": 1.0000539132935482,
+        "input_delivery_ms": [
+          1.5116159999997762,
+          0.661154000001261,
+          3.4976079999996728,
+          3.756213000000571,
+          3.304513000000952,
+          4.260598000000755,
+          4.0519770000028075,
+          1.1358749999999418,
+          1.0964739999981248,
+          2.6362949999966077,
+          3.815255999998044,
+          2.4491549999984272
+        ],
+        "samples": [
+          {
+            "host_seconds": 1.001042121999999,
+            "guest": 24449007,
+            "inputs": 26,
+            "frames": 505,
+            "audio": {
+              "context_time": 24.394666666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 2112,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1016544,
+                "nonzero": 828468
+              },
+              "received": 1173120,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1173120
+              }
+            }
+          },
+          {
+            "host_seconds": 2.0028485779999974,
+            "guest": 25460000,
+            "inputs": 26,
+            "frames": 527,
+            "audio": {
+              "context_time": 25.397333333333332,
+              "state": "running",
+              "worklet": {
+                "queued": 3840,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1065696,
+                "nonzero": 877359
+              },
+              "received": 1220640,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 1220640
+              }
+            }
+          },
+          {
+            "host_seconds": 3.004900948999999,
+            "guest": 26456416,
+            "inputs": 26,
+            "frames": 548,
+            "audio": {
+              "context_time": 26.4,
+              "state": "running",
+              "worklet": {
+                "queued": 3168,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1114848,
+                "nonzero": 926298
+              },
+              "received": 1269600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1269600
+              }
+            }
+          },
+          {
+            "host_seconds": 4.0076599150000005,
+            "guest": 27457893,
+            "inputs": 26,
+            "frames": 569,
+            "audio": {
+              "context_time": 27.402666666666665,
+              "state": "running",
+              "worklet": {
+                "queued": 3456,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1164000,
+                "nonzero": 975212
+              },
+              "received": 1317600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1317600
+              }
+            }
+          },
+          {
+            "host_seconds": 5.0096433629999995,
+            "guest": 28465528,
+            "inputs": 26,
+            "frames": 591,
+            "audio": {
+              "context_time": 28.405333333333335,
+              "state": "running",
+              "worklet": {
+                "queued": 3744,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1213152,
+                "nonzero": 1024116
+              },
+              "received": 1365600,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1365600
+              }
+            }
+          },
+          {
+            "host_seconds": 6.013731468000001,
+            "guest": 29468750,
+            "inputs": 26,
+            "frames": 612,
+            "audio": {
+              "context_time": 29.408,
+              "state": "running",
+              "worklet": {
+                "queued": 4032,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1262304,
+                "nonzero": 1073045
+              },
+              "received": 1414080,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1414080
+              }
+            }
+          },
+          {
+            "host_seconds": 7.017777273999997,
+            "guest": 30461112,
+            "inputs": 26,
+            "frames": 633,
+            "audio": {
+              "context_time": 30.410666666666668,
+              "state": "running",
+              "worklet": {
+                "queued": 2880,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1311456,
+                "nonzero": 1121955
+              },
+              "received": 1461600,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1461600
+              }
+            }
+          },
+          {
+            "host_seconds": 8.020530014,
+            "guest": 31466949,
+            "inputs": 26,
+            "frames": 654,
+            "audio": {
+              "context_time": 31.413333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3648,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1360608,
+                "nonzero": 1170845
+              },
+              "received": 1510080,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1510080
+              }
+            }
+          },
+          {
+            "host_seconds": 9.022924814000001,
+            "guest": 32480000,
+            "inputs": 26,
+            "frames": 676,
+            "audio": {
+              "context_time": 32.416,
+              "state": "running",
+              "worklet": {
+                "queued": 4000,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1393376,
+                "nonzero": 1203426
+              },
+              "received": 1558560,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1558560
+              }
+            }
+          },
+          {
+            "host_seconds": 10.024772746999998,
+            "guest": 33472970,
+            "inputs": 26,
+            "frames": 697,
+            "audio": {
+              "context_time": 33.41866666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3328,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1442528,
+                "nonzero": 1252324
+              },
+              "received": 1606560,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1606560
+              }
+            }
+          },
+          {
+            "host_seconds": 11.028105875999998,
+            "guest": 34470786,
+            "inputs": 26,
+            "frames": 718,
+            "audio": {
+              "context_time": 34.42133333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3616,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1491680,
+                "nonzero": 1301208
+              },
+              "received": 1654560,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1654560
+              }
+            }
+          },
+          {
+            "host_seconds": 12.031619171000003,
+            "guest": 35479901,
+            "inputs": 26,
+            "frames": 739,
+            "audio": {
+              "context_time": 35.424,
+              "state": "running",
+              "worklet": {
+                "queued": 2944,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1540832,
+                "nonzero": 1349952
+              },
+              "received": 1702560,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1702560
+              }
+            }
+          },
+          {
+            "host_seconds": 13.034246574,
+            "guest": 36490000,
+            "inputs": 26,
+            "frames": 761,
+            "audio": {
+              "context_time": 36.42666666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3232,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1589984,
+                "nonzero": 1398345
+              },
+              "received": 1751520,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1751520
+              }
+            }
+          },
+          {
+            "host_seconds": 14.036842545999995,
+            "guest": 37500000,
+            "inputs": 26,
+            "frames": 782,
+            "audio": {
+              "context_time": 37.42933333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3520,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1639136,
+                "nonzero": 1446702
+              },
+              "received": 1799520,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1799520
+              }
+            }
+          },
+          {
+            "host_seconds": 15.039362430999997,
+            "guest": 38490269,
+            "inputs": 26,
+            "frames": 803,
+            "audio": {
+              "context_time": 38.432,
+              "state": "running",
+              "worklet": {
+                "queued": 3808,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1688288,
+                "nonzero": 1495270
+              },
+              "received": 1847040,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1847040
+              }
+            }
+          },
+          {
+            "host_seconds": 16.04210133,
+            "guest": 39498420,
+            "inputs": 26,
+            "frames": 825,
+            "audio": {
+              "context_time": 39.434666666666665,
+              "state": "running",
+              "worklet": {
+                "queued": 3136,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1737440,
+                "nonzero": 1543864
+              },
+              "received": 1895040,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 1895040
+              }
+            }
+          },
+          {
+            "host_seconds": 17.044646416,
+            "guest": 40500000,
+            "inputs": 26,
+            "frames": 846,
+            "audio": {
+              "context_time": 40.437333333333335,
+              "state": "running",
+              "worklet": {
+                "queued": 3424,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1786592,
+                "nonzero": 1592720
+              },
+              "received": 1944000,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1944000
+              }
+            }
+          },
+          {
+            "host_seconds": 18.047048773,
+            "guest": 41510000,
+            "inputs": 26,
+            "frames": 866,
+            "audio": {
+              "context_time": 41.44,
+              "state": "running",
+              "worklet": {
+                "queued": 2752,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1835744,
+                "nonzero": 1641666
+              },
+              "received": 1991040,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 1991040
+              }
+            }
+          },
+          {
+            "host_seconds": 19.049401295,
+            "guest": 42501636,
+            "inputs": 26,
+            "frames": 888,
+            "audio": {
+              "context_time": 42.44266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3520,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1884896,
+                "nonzero": 1690580
+              },
+              "received": 2040000,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2040000
+              }
+            }
+          },
+          {
+            "host_seconds": 20.0504872,
+            "guest": 43503004,
+            "inputs": 26,
+            "frames": 909,
+            "audio": {
+              "context_time": 43.44533333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3808,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1934048,
+                "nonzero": 1739389
+              },
+              "received": 2088000,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2088000
+              }
+            }
+          },
+          {
+            "host_seconds": 21.121937014,
+            "guest": 44578125,
+            "inputs": 26,
+            "frames": 932,
+            "audio": {
+              "context_time": 44.512,
+              "state": "running",
+              "worklet": {
+                "queued": 3616,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 1983200,
+                "nonzero": 1787741
+              },
+              "received": 2139360,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2139360
+              }
+            }
+          },
+          {
+            "host_seconds": 22.125502076,
+            "guest": 45566110,
+            "inputs": 26,
+            "frames": 953,
+            "audio": {
+              "context_time": 45.525333333333336,
+              "state": "running",
+              "worklet": {
+                "queued": 3904,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2032352,
+                "nonzero": 1836108
+              },
+              "received": 2186880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2186880
+              }
+            }
+          },
+          {
+            "host_seconds": 23.128793046999995,
+            "guest": 46575802,
+            "inputs": 26,
+            "frames": 974,
+            "audio": {
+              "context_time": 46.528,
+              "state": "running",
+              "worklet": {
+                "queued": 3232,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2081504,
+                "nonzero": 1884665
+              },
+              "received": 2235360,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2235360
+              }
+            }
+          },
+          {
+            "host_seconds": 24.131789461999997,
+            "guest": 47567310,
+            "inputs": 26,
+            "frames": 995,
+            "audio": {
+              "context_time": 47.53066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 4000,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2130656,
+                "nonzero": 1932951
+              },
+              "received": 2282880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2282880
+              }
+            }
+          },
+          {
+            "host_seconds": 25.134507505,
+            "guest": 48590000,
+            "inputs": 26,
+            "frames": 1017,
+            "audio": {
+              "context_time": 48.53333333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3328,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2179808,
+                "nonzero": 1981466
+              },
+              "received": 2332320,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2332320
+              }
+            }
+          },
+          {
+            "host_seconds": 26.137379749999997,
+            "guest": 49593750,
+            "inputs": 26,
+            "frames": 1038,
+            "audio": {
+              "context_time": 49.536,
+              "state": "running",
+              "worklet": {
+                "queued": 3616,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2228960,
+                "nonzero": 2029767
+              },
+              "received": 2380320,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2380320
+              }
+            }
+          },
+          {
+            "host_seconds": 27.141743338999998,
+            "guest": 50580619,
+            "inputs": 26,
+            "frames": 1059,
+            "audio": {
+              "context_time": 50.538666666666664,
+              "state": "running",
+              "worklet": {
+                "queued": 3904,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2278112,
+                "nonzero": 2078362
+              },
+              "received": 2427360,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 2427360
+              }
+            }
+          },
+          {
+            "host_seconds": 28.14653879,
+            "guest": 51600000,
+            "inputs": 26,
+            "frames": 1081,
+            "audio": {
+              "context_time": 51.541333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3712,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2327264,
+                "nonzero": 2126661
+              },
+              "received": 2476800,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2476800
+              }
+            }
+          },
+          {
+            "host_seconds": 29.15085337,
+            "guest": 52609375,
+            "inputs": 26,
+            "frames": 1102,
+            "audio": {
+              "context_time": 52.544,
+              "state": "running",
+              "worklet": {
+                "queued": 2624,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2360032,
+                "nonzero": 2159220
+              },
+              "received": 2524800,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2524800
+              }
+            }
+          },
+          {
+            "host_seconds": 30.153439859000002,
+            "guest": 53609375,
+            "inputs": 26,
+            "frames": 1123,
+            "audio": {
+              "context_time": 53.54666666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3392,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2409184,
+                "nonzero": 2208117
+              },
+              "received": 2572800,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2572800
+              }
+            }
+          },
+          {
+            "host_seconds": 31.156241029,
+            "guest": 54604095,
+            "inputs": 26,
+            "frames": 1144,
+            "audio": {
+              "context_time": 54.54933333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3200,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2458336,
+                "nonzero": 2257034
+              },
+              "received": 2620800,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2620800
+              }
+            }
+          },
+          {
+            "host_seconds": 32.15834105,
+            "guest": 55603729,
+            "inputs": 26,
+            "frames": 1165,
+            "audio": {
+              "context_time": 55.552,
+              "state": "running",
+              "worklet": {
+                "queued": 2528,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2507488,
+                "nonzero": 2305905
+              },
+              "received": 2668800,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2668800
+              }
+            }
+          },
+          {
+            "host_seconds": 33.160690071999994,
+            "guest": 56620000,
+            "inputs": 26,
+            "frames": 1187,
+            "audio": {
+              "context_time": 56.55466666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 2336,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2556640,
+                "nonzero": 2354591
+              },
+              "received": 2717280,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 2717280
+              }
+            }
+          },
+          {
+            "host_seconds": 34.162014974,
+            "guest": 57613995,
+            "inputs": 26,
+            "frames": 1208,
+            "audio": {
+              "context_time": 57.55733333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3104,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2605792,
+                "nonzero": 2402976
+              },
+              "received": 2764800,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 2764800
+              }
+            }
+          },
+          {
+            "host_seconds": 35.164602253999995,
+            "guest": 58615461,
+            "inputs": 26,
+            "frames": 1229,
+            "audio": {
+              "context_time": 58.56,
+              "state": "running",
+              "worklet": {
+                "queued": 3872,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2654944,
+                "nonzero": 2451370
+              },
+              "received": 2813280,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2813280
+              }
+            }
+          },
+          {
+            "host_seconds": 36.167181595,
+            "guest": 59617202,
+            "inputs": 26,
+            "frames": 1250,
+            "audio": {
+              "context_time": 59.562666666666665,
+              "state": "running",
+              "worklet": {
+                "queued": 3200,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2704096,
+                "nonzero": 2499833
+              },
+              "received": 2861280,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2861280
+              }
+            }
+          },
+          {
+            "host_seconds": 37.171361995999995,
+            "guest": 60598811,
+            "inputs": 26,
+            "frames": 1271,
+            "audio": {
+              "context_time": 60.565333333333335,
+              "state": "running",
+              "worklet": {
+                "queued": 3488,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2753248,
+                "nonzero": 2548602
+              },
+              "received": 2908320,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2908320
+              }
+            }
+          },
+          {
+            "host_seconds": 38.174948785,
+            "guest": 61630000,
+            "inputs": 26,
+            "frames": 1293,
+            "audio": {
+              "context_time": 61.568,
+              "state": "running",
+              "worklet": {
+                "queued": 2336,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2802400,
+                "nonzero": 2597473
+              },
+              "received": 2958240,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2958240
+              }
+            }
+          },
+          {
+            "host_seconds": 39.17693538899999,
+            "guest": 62627949,
+            "inputs": 26,
+            "frames": 1314,
+            "audio": {
+              "context_time": 62.57066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 2624,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2851552,
+                "nonzero": 2646385
+              },
+              "received": 3005760,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3005760
+              }
+            }
+          },
+          {
+            "host_seconds": 40.179816062,
+            "guest": 63640000,
+            "inputs": 26,
+            "frames": 1335,
+            "audio": {
+              "context_time": 63.57333333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3392,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2900704,
+                "nonzero": 2695269
+              },
+              "received": 3053760,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 3053760
+              }
+            }
+          },
+          {
+            "host_seconds": 41.229369391,
+            "guest": 64690000,
+            "inputs": 26,
+            "frames": 1358,
+            "audio": {
+              "context_time": 64.62933333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3680,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2949856,
+                "nonzero": 2744197
+              },
+              "received": 3104160,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 3104160
+              }
+            }
+          },
+          {
+            "host_seconds": 42.23162836199999,
+            "guest": 65690000,
+            "inputs": 26,
+            "frames": 1379,
+            "audio": {
+              "context_time": 65.632,
+              "state": "running",
+              "worklet": {
+                "queued": 3968,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 2999008,
+                "nonzero": 2793114
+              },
+              "received": 3152160,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 3152160
+              }
+            }
+          },
+          {
+            "host_seconds": 43.233956588999995,
+            "guest": 66687583,
+            "inputs": 26,
+            "frames": 1400,
+            "audio": {
+              "context_time": 66.624,
+              "state": "running",
+              "worklet": {
+                "queued": 2816,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3048160,
+                "nonzero": 2842037
+              },
+              "received": 3200640,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3200640
+              }
+            }
+          },
+          {
+            "host_seconds": 44.237974298999994,
+            "guest": 67690046,
+            "inputs": 26,
+            "frames": 1421,
+            "audio": {
+              "context_time": 67.63733333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 2144,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3097312,
+                "nonzero": 2890923
+              },
+              "received": 3248640,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3248640
+              }
+            }
+          },
+          {
+            "host_seconds": 45.241143771999994,
+            "guest": 68675874,
+            "inputs": 26,
+            "frames": 1442,
+            "audio": {
+              "context_time": 68.64,
+              "state": "running",
+              "worklet": {
+                "queued": 3872,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3146464,
+                "nonzero": 2939669
+              },
+              "received": 3296160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3296160
+              }
+            }
+          },
+          {
+            "host_seconds": 46.24516915299999,
+            "guest": 69700000,
+            "inputs": 26,
+            "frames": 1464,
+            "audio": {
+              "context_time": 69.64266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 2720,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3195616,
+                "nonzero": 2988233
+              },
+              "received": 3345600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3345600
+              }
+            }
+          },
+          {
+            "host_seconds": 47.247395395999995,
+            "guest": 70703125,
+            "inputs": 26,
+            "frames": 1484,
+            "audio": {
+              "context_time": 70.64533333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3552,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3228384,
+                "nonzero": 3020471
+              },
+              "received": 3392160,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 3392160
+              }
+            }
+          },
+          {
+            "host_seconds": 48.24856803699999,
+            "guest": 71703200,
+            "inputs": 26,
+            "frames": 1506,
+            "audio": {
+              "context_time": 71.648,
+              "state": "running",
+              "worklet": {
+                "queued": 3360,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3277536,
+                "nonzero": 3069082
+              },
+              "received": 3440160,
+              "sink": {
+                "queued": 1440,
+                "dropped": 0,
+                "read": 3440160
+              }
+            }
+          },
+          {
+            "host_seconds": 49.251354318,
+            "guest": 72693298,
+            "inputs": 26,
+            "frames": 1527,
+            "audio": {
+              "context_time": 72.65066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3168,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3326688,
+                "nonzero": 3117442
+              },
+              "received": 3489120,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3489120
+              }
+            }
+          },
+          {
+            "host_seconds": 50.254358694,
+            "guest": 73700345,
+            "inputs": 26,
+            "frames": 1548,
+            "audio": {
+              "context_time": 73.65333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3936,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3375840,
+                "nonzero": 3166505
+              },
+              "received": 3537600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3537600
+              }
+            }
+          },
+          {
+            "host_seconds": 51.256743575,
+            "guest": 74686291,
+            "inputs": 26,
+            "frames": 1569,
+            "audio": {
+              "context_time": 74.656,
+              "state": "running",
+              "worklet": {
+                "queued": 3264,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3424992,
+                "nonzero": 3215565
+              },
+              "received": 3584640,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3584640
+              }
+            }
+          },
+          {
+            "host_seconds": 52.25876623499999,
+            "guest": 75709343,
+            "inputs": 26,
+            "frames": 1591,
+            "audio": {
+              "context_time": 75.65866666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 3552,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3474144,
+                "nonzero": 3264638
+              },
+              "received": 3633600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3633600
+              }
+            }
+          },
+          {
+            "host_seconds": 53.26101766099999,
+            "guest": 76711343,
+            "inputs": 26,
+            "frames": 1612,
+            "audio": {
+              "context_time": 76.66133333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 1920,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3523296,
+                "nonzero": 3313564
+              },
+              "received": 3681600,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3681600
+              }
+            }
+          },
+          {
+            "host_seconds": 54.263697699,
+            "guest": 77713072,
+            "inputs": 26,
+            "frames": 1633,
+            "audio": {
+              "context_time": 77.664,
+              "state": "running",
+              "worklet": {
+                "queued": 3168,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3572448,
+                "nonzero": 3362357
+              },
+              "received": 3729600,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3729600
+              }
+            }
+          },
+          {
+            "host_seconds": 55.267744072999996,
+            "guest": 78730000,
+            "inputs": 26,
+            "frames": 1655,
+            "audio": {
+              "context_time": 78.66666666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 2976,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3621600,
+                "nonzero": 3411499
+              },
+              "received": 3778560,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3778560
+              }
+            }
+          },
+          {
+            "host_seconds": 56.270686495999996,
+            "guest": 79730000,
+            "inputs": 26,
+            "frames": 1676,
+            "audio": {
+              "context_time": 79.66933333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 2784,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3670752,
+                "nonzero": 3444339
+              },
+              "received": 3826560,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3826560
+              }
+            }
+          },
+          {
+            "host_seconds": 57.273441475999995,
+            "guest": 80724117,
+            "inputs": 26,
+            "frames": 1697,
+            "audio": {
+              "context_time": 80.672,
+              "state": "running",
+              "worklet": {
+                "queued": 3072,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3719904,
+                "nonzero": 3444339
+              },
+              "received": 3874080,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 3874080
+              }
+            }
+          },
+          {
+            "host_seconds": 58.274895253,
+            "guest": 81726829,
+            "inputs": 26,
+            "frames": 1718,
+            "audio": {
+              "context_time": 81.67466666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3360,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3769056,
+                "nonzero": 3444339
+              },
+              "received": 3922560,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3922560
+              }
+            }
+          },
+          {
+            "host_seconds": 59.277966778,
+            "guest": 82709381,
+            "inputs": 26,
+            "frames": 1739,
+            "audio": {
+              "context_time": 82.67733333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3648,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3818208,
+                "nonzero": 3444339
+              },
+              "received": 3969600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 3969600
+              }
+            }
+          },
+          {
+            "host_seconds": 60.280089889999985,
+            "guest": 83740000,
+            "inputs": 26,
+            "frames": 1761,
+            "audio": {
+              "context_time": 83.68,
+              "state": "running",
+              "worklet": {
+                "queued": 2976,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3867360,
+                "nonzero": 3444339
+              },
+              "received": 4018560,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 4018560
+              }
+            }
+          },
+          {
+            "host_seconds": 61.318239248,
+            "guest": 84769902,
+            "inputs": 26,
+            "frames": 1782,
+            "audio": {
+              "context_time": 84.71466666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 2784,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3916512,
+                "nonzero": 3485368
+              },
+              "received": 4068480,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4068480
+              }
+            }
+          },
+          {
+            "host_seconds": 62.320058886,
+            "guest": 85770267,
+            "inputs": 26,
+            "frames": 1803,
+            "audio": {
+              "context_time": 85.71733333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3552,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 3965664,
+                "nonzero": 3534271
+              },
+              "received": 4116480,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4116480
+              }
+            }
+          },
+          {
+            "host_seconds": 63.32311463899999,
+            "guest": 86756795,
+            "inputs": 26,
+            "frames": 1824,
+            "audio": {
+              "context_time": 86.72,
+              "state": "running",
+              "worklet": {
+                "queued": 3840,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4014816,
+                "nonzero": 3583124
+              },
+              "received": 4164000,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4164000
+              }
+            }
+          },
+          {
+            "host_seconds": 64.326240137,
+            "guest": 87781250,
+            "inputs": 26,
+            "frames": 1846,
+            "audio": {
+              "context_time": 87.72266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3648,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4063968,
+                "nonzero": 3631762
+              },
+              "received": 4212960,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4212960
+              }
+            }
+          },
+          {
+            "host_seconds": 65.328345235,
+            "guest": 88781538,
+            "inputs": 26,
+            "frames": 1867,
+            "audio": {
+              "context_time": 88.72533333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3520,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4096736,
+                "nonzero": 3663832
+              },
+              "received": 4260960,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4260960
+              }
+            }
+          },
+          {
+            "host_seconds": 66.331081936,
+            "guest": 89780746,
+            "inputs": 26,
+            "frames": 1887,
+            "audio": {
+              "context_time": 89.728,
+              "state": "running",
+              "worklet": {
+                "queued": 3328,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4145888,
+                "nonzero": 3712227
+              },
+              "received": 4308960,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4308960
+              }
+            }
+          },
+          {
+            "host_seconds": 67.33312601899999,
+            "guest": 90784712,
+            "inputs": 26,
+            "frames": 1908,
+            "audio": {
+              "context_time": 90.73066666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 3616,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4195040,
+                "nonzero": 3760762
+              },
+              "received": 4357440,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4357440
+              }
+            }
+          },
+          {
+            "host_seconds": 68.335062083,
+            "guest": 91786715,
+            "inputs": 26,
+            "frames": 1929,
+            "audio": {
+              "context_time": 91.73333333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 2464,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4244192,
+                "nonzero": 3809634
+              },
+              "received": 4405440,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4405440
+              }
+            }
+          },
+          {
+            "host_seconds": 69.33803090299999,
+            "guest": 92796288,
+            "inputs": 26,
+            "frames": 1950,
+            "audio": {
+              "context_time": 92.736,
+              "state": "running",
+              "worklet": {
+                "queued": 3232,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4293344,
+                "nonzero": 3858058
+              },
+              "received": 4452960,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 4452960
+              }
+            }
+          },
+          {
+            "host_seconds": 70.340494202,
+            "guest": 93800000,
+            "inputs": 26,
+            "frames": 1972,
+            "audio": {
+              "context_time": 93.73866666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 3520,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4342496,
+                "nonzero": 3906474
+              },
+              "received": 4501920,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 4501920
+              }
+            }
+          },
+          {
+            "host_seconds": 71.342914272,
+            "guest": 94800000,
+            "inputs": 26,
+            "frames": 1993,
+            "audio": {
+              "context_time": 94.74133333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3808,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4391648,
+                "nonzero": 3954960
+              },
+              "received": 4548480,
+              "sink": {
+                "queued": 1920,
+                "dropped": 0,
+                "read": 4548480
+              }
+            }
+          },
+          {
+            "host_seconds": 72.344730295,
+            "guest": 95797867,
+            "inputs": 26,
+            "frames": 2014,
+            "audio": {
+              "context_time": 95.744,
+              "state": "running",
+              "worklet": {
+                "queued": 3136,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4440800,
+                "nonzero": 4003300
+              },
+              "received": 4597920,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4597920
+              }
+            }
+          },
+          {
+            "host_seconds": 73.348201613,
+            "guest": 96784874,
+            "inputs": 26,
+            "frames": 2035,
+            "audio": {
+              "context_time": 96.74666666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3424,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4489952,
+                "nonzero": 4051774
+              },
+              "received": 4645440,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4645440
+              }
+            }
+          },
+          {
+            "host_seconds": 74.35228125,
+            "guest": 97786251,
+            "inputs": 26,
+            "frames": 2056,
+            "audio": {
+              "context_time": 97.74933333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3712,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4539104,
+                "nonzero": 4100087
+              },
+              "received": 4693440,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4693440
+              }
+            }
+          },
+          {
+            "host_seconds": 75.355147136,
+            "guest": 98810000,
+            "inputs": 26,
+            "frames": 2078,
+            "audio": {
+              "context_time": 98.752,
+              "state": "running",
+              "worklet": {
+                "queued": 4000,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4588256,
+                "nonzero": 4148579
+              },
+              "received": 4742880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4742880
+              }
+            }
+          },
+          {
+            "host_seconds": 76.359777211,
+            "guest": 99812524,
+            "inputs": 26,
+            "frames": 2099,
+            "audio": {
+              "context_time": 99.75466666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3328,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4637408,
+                "nonzero": 4196945
+              },
+              "received": 4790880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4790880
+              }
+            }
+          },
+          {
+            "host_seconds": 77.363741648,
+            "guest": 100815593,
+            "inputs": 26,
+            "frames": 2120,
+            "audio": {
+              "context_time": 100.75733333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 2176,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4686560,
+                "nonzero": 4245514
+              },
+              "received": 4838880,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4838880
+              }
+            }
+          },
+          {
+            "host_seconds": 78.36719274800001,
+            "guest": 101801582,
+            "inputs": 26,
+            "frames": 2141,
+            "audio": {
+              "context_time": 101.76,
+              "state": "running",
+              "worklet": {
+                "queued": 3424,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4735712,
+                "nonzero": 4293892
+              },
+              "received": 4886400,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4886400
+              }
+            }
+          },
+          {
+            "host_seconds": 79.37080145,
+            "guest": 102793717,
+            "inputs": 26,
+            "frames": 2162,
+            "audio": {
+              "context_time": 102.76266666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 3232,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4784864,
+                "nonzero": 4342498
+              },
+              "received": 4933920,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4933920
+              }
+            }
+          },
+          {
+            "host_seconds": 80.373742741,
+            "guest": 103828125,
+            "inputs": 26,
+            "frames": 2184,
+            "audio": {
+              "context_time": 103.76533333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 4000,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4834016,
+                "nonzero": 4390870
+              },
+              "received": 4983360,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 4983360
+              }
+            }
+          },
+          {
+            "host_seconds": 81.437795327,
+            "guest": 104900000,
+            "inputs": 26,
+            "frames": 2207,
+            "audio": {
+              "context_time": 104.832,
+              "state": "running",
+              "worklet": {
+                "queued": 3808,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4883168,
+                "nonzero": 4439184
+              },
+              "received": 5034720,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5034720
+              }
+            }
+          },
+          {
+            "host_seconds": 82.440843282,
+            "guest": 105900000,
+            "inputs": 26,
+            "frames": 2228,
+            "audio": {
+              "context_time": 105.83466666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 3136,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4932320,
+                "nonzero": 4487545
+              },
+              "received": 5082720,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5082720
+              }
+            }
+          },
+          {
+            "host_seconds": 83.44464162899999,
+            "guest": 106900000,
+            "inputs": 26,
+            "frames": 2249,
+            "audio": {
+              "context_time": 106.83733333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3904,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 4981472,
+                "nonzero": 4536030
+              },
+              "received": 5131200,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5131200
+              }
+            }
+          },
+          {
+            "host_seconds": 84.450088441,
+            "guest": 107892415,
+            "inputs": 26,
+            "frames": 2270,
+            "audio": {
+              "context_time": 107.85066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3296,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5014240,
+                "nonzero": 4568432
+              },
+              "received": 5178720,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5178720
+              }
+            }
+          },
+          {
+            "host_seconds": 85.45404424499999,
+            "guest": 108910000,
+            "inputs": 26,
+            "frames": 2292,
+            "audio": {
+              "context_time": 108.85333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3584,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5063392,
+                "nonzero": 4617261
+              },
+              "received": 5227680,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5227680
+              }
+            }
+          },
+          {
+            "host_seconds": 86.456370763,
+            "guest": 109920000,
+            "inputs": 26,
+            "frames": 2313,
+            "audio": {
+              "context_time": 109.856,
+              "state": "running",
+              "worklet": {
+                "queued": 2912,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5112544,
+                "nonzero": 4666161
+              },
+              "received": 5275680,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5275680
+              }
+            }
+          },
+          {
+            "host_seconds": 87.45855851399999,
+            "guest": 110909985,
+            "inputs": 26,
+            "frames": 2334,
+            "audio": {
+              "context_time": 110.85866666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 3200,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5161696,
+                "nonzero": 4715060
+              },
+              "received": 5323200,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5323200
+              }
+            }
+          },
+          {
+            "host_seconds": 88.460010079,
+            "guest": 111911285,
+            "inputs": 26,
+            "frames": 2355,
+            "audio": {
+              "context_time": 111.85066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3488,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5210848,
+                "nonzero": 4763957
+              },
+              "received": 5371200,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5371200
+              }
+            }
+          },
+          {
+            "host_seconds": 89.46206897799999,
+            "guest": 112908832,
+            "inputs": 26,
+            "frames": 2376,
+            "audio": {
+              "context_time": 112.85333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3776,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5260000,
+                "nonzero": 4812846
+              },
+              "received": 5419200,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5419200
+              }
+            }
+          },
+          {
+            "host_seconds": 90.464879193,
+            "guest": 113920000,
+            "inputs": 26,
+            "frames": 2398,
+            "audio": {
+              "context_time": 113.856,
+              "state": "running",
+              "worklet": {
+                "queued": 3104,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5309152,
+                "nonzero": 4861744
+              },
+              "received": 5468160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5468160
+              }
+            }
+          },
+          {
+            "host_seconds": 91.468562018,
+            "guest": 114921879,
+            "inputs": 26,
+            "frames": 2419,
+            "audio": {
+              "context_time": 114.86933333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3392,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5358304,
+                "nonzero": 4910646
+              },
+              "received": 5516160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5516160
+              }
+            }
+          },
+          {
+            "host_seconds": 92.47188095199999,
+            "guest": 115924273,
+            "inputs": 26,
+            "frames": 2440,
+            "audio": {
+              "context_time": 115.872,
+              "state": "running",
+              "worklet": {
+                "queued": 2720,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5407456,
+                "nonzero": 4959567
+              },
+              "received": 5564160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5564160
+              }
+            }
+          },
+          {
+            "host_seconds": 93.47403459899999,
+            "guest": 116920655,
+            "inputs": 26,
+            "frames": 2461,
+            "audio": {
+              "context_time": 116.872,
+              "state": "running",
+              "worklet": {
+                "queued": 3488,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5456608,
+                "nonzero": 5008475
+              },
+              "received": 5612160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5612160
+              }
+            }
+          },
+          {
+            "host_seconds": 94.47632909999999,
+            "guest": 117915177,
+            "inputs": 26,
+            "frames": 2482,
+            "audio": {
+              "context_time": 117.86666666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 3776,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5505760,
+                "nonzero": 5057324
+              },
+              "received": 5659680,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5659680
+              }
+            }
+          },
+          {
+            "host_seconds": 95.478043305,
+            "guest": 118940000,
+            "inputs": 26,
+            "frames": 2503,
+            "audio": {
+              "context_time": 118.86933333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3104,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5554912,
+                "nonzero": 5106033
+              },
+              "received": 5708160,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 5708160
+              }
+            }
+          },
+          {
+            "host_seconds": 96.482331723,
+            "guest": 119937500,
+            "inputs": 26,
+            "frames": 2525,
+            "audio": {
+              "context_time": 119.88266666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3392,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5604064,
+                "nonzero": 5154412
+              },
+              "received": 5756640,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5756640
+              }
+            }
+          },
+          {
+            "host_seconds": 97.486128747,
+            "guest": 120932887,
+            "inputs": 26,
+            "frames": 2546,
+            "audio": {
+              "context_time": 120.88533333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3200,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5653216,
+                "nonzero": 5202914
+              },
+              "received": 5804640,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5804640
+              }
+            }
+          },
+          {
+            "host_seconds": 98.489105713,
+            "guest": 121927260,
+            "inputs": 26,
+            "frames": 2567,
+            "audio": {
+              "context_time": 121.888,
+              "state": "running",
+              "worklet": {
+                "queued": 3968,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5702368,
+                "nonzero": 5251305
+              },
+              "received": 5852160,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5852160
+              }
+            }
+          },
+          {
+            "host_seconds": 99.4916987,
+            "guest": 122950000,
+            "inputs": 26,
+            "frames": 2589,
+            "audio": {
+              "context_time": 122.89066666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 3296,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5751520,
+                "nonzero": 5299812
+              },
+              "received": 5901120,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5901120
+              }
+            }
+          },
+          {
+            "host_seconds": 100.49422797,
+            "guest": 123950000,
+            "inputs": 26,
+            "frames": 2610,
+            "audio": {
+              "context_time": 123.89333333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 3168,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5784288,
+                "nonzero": 5332160
+              },
+              "received": 5949600,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 5949600
+              }
+            }
+          },
+          {
+            "host_seconds": 101.53294742199999,
+            "guest": 124990000,
+            "inputs": 26,
+            "frames": 2632,
+            "audio": {
+              "context_time": 124.928,
+              "state": "running",
+              "worklet": {
+                "queued": 3872,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5849824,
+                "nonzero": 5397070
+              },
+              "received": 5999040,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 5999040
+              }
+            }
+          },
+          {
+            "host_seconds": 102.53476913499999,
+            "guest": 125987034,
+            "inputs": 26,
+            "frames": 2653,
+            "audio": {
+              "context_time": 125.93066666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 3264,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5882592,
+                "nonzero": 5429673
+              },
+              "received": 6047040,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6047040
+              }
+            }
+          },
+          {
+            "host_seconds": 103.53697748799999,
+            "guest": 126983242,
+            "inputs": 26,
+            "frames": 2674,
+            "audio": {
+              "context_time": 126.93333333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3552,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5931744,
+                "nonzero": 5478589
+              },
+              "received": 6095040,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6095040
+              }
+            }
+          },
+          {
+            "host_seconds": 104.539445937,
+            "guest": 127994880,
+            "inputs": 26,
+            "frames": 2695,
+            "audio": {
+              "context_time": 127.936,
+              "state": "running",
+              "worklet": {
+                "queued": 3360,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 5980896,
+                "nonzero": 5527438
+              },
+              "received": 6143040,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 6143040
+              }
+            }
+          },
+          {
+            "host_seconds": 105.54167383299999,
+            "guest": 129000000,
+            "inputs": 26,
+            "frames": 2716,
+            "audio": {
+              "context_time": 128.93866666666668,
+              "state": "running",
+              "worklet": {
+                "queued": 3168,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6030048,
+                "nonzero": 5576214
+              },
+              "received": 6190080,
+              "sink": {
+                "queued": 1920,
+                "dropped": 0,
+                "read": 6190080
+              }
+            }
+          },
+          {
+            "host_seconds": 106.544336217,
+            "guest": 130000000,
+            "inputs": 26,
+            "frames": 2738,
+            "audio": {
+              "context_time": 129.94133333333335,
+              "state": "running",
+              "worklet": {
+                "queued": 3456,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6079200,
+                "nonzero": 5624787
+              },
+              "received": 6240000,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6240000
+              }
+            }
+          },
+          {
+            "host_seconds": 107.54728739100001,
+            "guest": 131000245,
+            "inputs": 26,
+            "frames": 2759,
+            "audio": {
+              "context_time": 130.944,
+              "state": "running",
+              "worklet": {
+                "queued": 3744,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6128352,
+                "nonzero": 5673126
+              },
+              "received": 6288000,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6288000
+              }
+            }
+          },
+          {
+            "host_seconds": 108.55102693499998,
+            "guest": 131986315,
+            "inputs": 26,
+            "frames": 2780,
+            "audio": {
+              "context_time": 131.94666666666666,
+              "state": "running",
+              "worklet": {
+                "queued": 3072,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6177504,
+                "nonzero": 5721706
+              },
+              "received": 6335040,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6335040
+              }
+            }
+          },
+          {
+            "host_seconds": 109.55656215,
+            "guest": 133010000,
+            "inputs": 26,
+            "frames": 2802,
+            "audio": {
+              "context_time": 132.94933333333333,
+              "state": "running",
+              "worklet": {
+                "queued": 1920,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6226656,
+                "nonzero": 5770074
+              },
+              "received": 6384480,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6384480
+              }
+            }
+          },
+          {
+            "host_seconds": 110.560721854,
+            "guest": 134015625,
+            "inputs": 26,
+            "frames": 2823,
+            "audio": {
+              "context_time": 133.952,
+              "state": "running",
+              "worklet": {
+                "queued": 2688,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6275808,
+                "nonzero": 5818667
+              },
+              "received": 6432480,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6432480
+              }
+            }
+          },
+          {
+            "host_seconds": 111.563387512,
+            "guest": 135011063,
+            "inputs": 26,
+            "frames": 2844,
+            "audio": {
+              "context_time": 134.95466666666667,
+              "state": "running",
+              "worklet": {
+                "queued": 2976,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6324960,
+                "nonzero": 5867224
+              },
+              "received": 6480000,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 6480000
+              }
+            }
+          },
+          {
+            "host_seconds": 112.56618145200001,
+            "guest": 136013561,
+            "inputs": 26,
+            "frames": 2865,
+            "audio": {
+              "context_time": 135.95733333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3744,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6374112,
+                "nonzero": 5916072
+              },
+              "received": 6528480,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6528480
+              }
+            }
+          },
+          {
+            "host_seconds": 113.56910206399999,
+            "guest": 137014951,
+            "inputs": 26,
+            "frames": 2886,
+            "audio": {
+              "context_time": 136.96,
+              "state": "running",
+              "worklet": {
+                "queued": 2592,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6423264,
+                "nonzero": 5964997
+              },
+              "received": 6576480,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6576480
+              }
+            }
+          },
+          {
+            "host_seconds": 114.570422098,
+            "guest": 138030000,
+            "inputs": 26,
+            "frames": 2908,
+            "audio": {
+              "context_time": 137.96266666666668,
+              "state": "running",
+              "worklet": {
+                "queued": 3360,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6472416,
+                "nonzero": 6013911
+              },
+              "received": 6624480,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 6624480
+              }
+            }
+          },
+          {
+            "host_seconds": 115.57296501199998,
+            "guest": 139023465,
+            "inputs": 26,
+            "frames": 2929,
+            "audio": {
+              "context_time": 138.96533333333332,
+              "state": "running",
+              "worklet": {
+                "queued": 3168,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6521568,
+                "nonzero": 6062693
+              },
+              "received": 6672480,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 6672480
+              }
+            }
+          },
+          {
+            "host_seconds": 116.576971137,
+            "guest": 140017704,
+            "inputs": 26,
+            "frames": 2950,
+            "audio": {
+              "context_time": 139.968,
+              "state": "running",
+              "worklet": {
+                "queued": 3936,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6570720,
+                "nonzero": 6111387
+              },
+              "received": 6720480,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6720480
+              }
+            }
+          },
+          {
+            "host_seconds": 117.581360918,
+            "guest": 141040000,
+            "inputs": 26,
+            "frames": 2972,
+            "audio": {
+              "context_time": 140.98133333333334,
+              "state": "running",
+              "worklet": {
+                "queued": 3264,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6619872,
+                "nonzero": 6159669
+              },
+              "received": 6769440,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 6769440
+              }
+            }
+          },
+          {
+            "host_seconds": 118.58574160500001,
+            "guest": 142046875,
+            "inputs": 26,
+            "frames": 2993,
+            "audio": {
+              "context_time": 141.984,
+              "state": "running",
+              "worklet": {
+                "queued": 3616,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6652640,
+                "nonzero": 6192060
+              },
+              "received": 6817920,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6817920
+              }
+            }
+          },
+          {
+            "host_seconds": 119.59035880499998,
+            "guest": 143046875,
+            "inputs": 26,
+            "frames": 3014,
+            "audio": {
+              "context_time": 142.98666666666668,
+              "state": "running",
+              "worklet": {
+                "queued": 3904,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6701792,
+                "nonzero": 6240587
+              },
+              "received": 6865920,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 6865920
+              }
+            }
+          },
+          {
+            "host_seconds": 120.59381672399999,
+            "guest": 144042057,
+            "inputs": 26,
+            "frames": 3035,
+            "audio": {
+              "context_time": 143.98933333333332,
+              "state": "running",
+              "worklet": {
+                "queued": 3712,
+                "resyncs": 21,
+                "underruns": 5,
+                "dropped": 144864,
+                "played": 6750944,
+                "nonzero": 6289336
+              },
+              "received": 6913440,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 6913440
+              }
+            }
+          }
+        ],
+        "browser": "Chrome/153.0.8010.52",
+        "wasm_sha256": "6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39",
+        "note": "Input latency measures DOM keydown to guest queue consumption, not display response."
+      },
+      "max_sampled_lag_ms": 16.063450000001467
+    }
+  },
+  "local_launcher": {
+    "target": "http://127.0.0.1:40885/",
+    "softkeys": [
+      {
+        "name": "f1-paused",
+        "expected_paused": true,
+        "seen": true,
+        "text": "Paused\n",
+        "state": {
+          "guest": 25690000,
+          "inputs": 26,
+          "frames": 532
+        }
+      },
+      {
+        "name": "f2-resumed",
+        "expected_paused": false,
+        "seen": false,
+        "text": "B B B e -\n",
+        "state": {
+          "guest": 26500000,
+          "inputs": 28,
+          "frames": 549
+        }
+      },
+      {
+        "name": "escape-paused",
+        "expected_paused": true,
+        "seen": true,
+        "text": "Paused\n",
+        "state": {
+          "guest": 27265625,
+          "inputs": 30,
+          "frames": 565
+        }
+      },
+      {
+        "name": "touch-left-resumed",
+        "expected_paused": false,
+        "seen": false,
+        "text": "",
+        "state": {
+          "guest": 27980515,
+          "inputs": 32,
+          "frames": 580
+        }
+      },
+      {
+        "name": "touch-right-paused",
+        "expected_paused": true,
+        "seen": true,
+        "text": "Paused\n",
+        "state": {
+          "guest": 28720000,
+          "inputs": 34,
+          "frames": 596
+        }
+      },
+      {
+        "name": "escape-resumed",
+        "expected_paused": false,
+        "seen": false,
+        "text": "R \u2014\u2014\u2014\u2014\n",
+        "state": {
+          "guest": 29480000,
+          "inputs": 36,
+          "frames": 612
+        }
+      }
+    ],
+    "compilerPolicy": {
+      "requested": {
+        "irMode": 7,
+        "eagerRegions": 0,
+        "tlbHash": 1,
+        "codeCompare": 2,
+        "codeLookup": 0,
+        "predicatedLeaves": 1,
+        "leafFeatures": 128,
+        "executionLimits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "unsafeCode": 3
+      },
+      "applied": true,
+      "observed": {
+        "predicatedLeaves": 1,
+        "leafFeatures": 128,
+        "unsafeCode": 3,
+        "executionLimits": [
+          512,
+          16,
+          8,
+          512
+        ]
+      }
+    },
+    "unsafeCode": 3,
+    "security": {
+      "secure": true,
+      "isolated": true
+    },
+    "audio": {
+      "state": "running",
+      "stats": {
+        "queued": 4416,
+        "resyncs": 0,
+        "underruns": 0,
+        "dropped": 0,
+        "played": 474624,
+        "nonzero": 472806
+      },
+      "rate": 48000
+    },
+    "first": {
+      "guest": 23894903,
+      "inputs": 20,
+      "frames": 494
+    },
+    "second": {
+      "guest": 24500561,
+      "inputs": 22,
+      "frames": 507
+    },
+    "last": {
+      "guest": 24920000,
+      "inputs": 24,
+      "frames": 516
+    },
+    "canvasSamples": [
+      218,
+      221,
+      215,
+      208,
+      228,
+      247,
+      249,
+      268,
+      265,
+      268,
+      264,
+      246
+    ],
+    "errors": [],
+    "browser": "Chrome/153.0.8010.52"
+  },
+  "live_harness": "from pathlib import Path\nimport os,json,subprocess,time\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1')\nq=json.loads((r/'src/tests/benchmark/MODE3_LITERAL_EVIDENCE.json').read_text())\nassert q['status']=='timing_complete_pending_review' and len(q['timings'])==4\nassert all(x['gain_percent']>0 and min(x['half_pairs_percent'])>0 for x in q['timings'].values()),'Mixed results; no automatic live acceptance'\ne=dict(os.environ,EKA2L1_WASM_BUILD_DIR=str(s/'unsafe-default-candidate'),EKA2L1_AOT_IR_MODE='7',EKA2L1_AOT_EAGER_REGIONS='0',EKA2L1_TLB_HASH='1',EKA2L1_SHARED_AUDIO='1',EKA2L1_BENCHMARK_AOT='5',EKA2L1_AOT_VERIFY='0',EKA2L1_CODE_COMPARE='2',EKA2L1_CODE_LOOKUP='0',EKA2L1_EXECUTION_LIMITS='512,16,8,512',EKA2L1_PREDICATED_LEAVES='1',EKA2L1_LEAF_FEATURES='128',EKA2L1_UNSAFE_CODE='3',EKA2L1_EXIT_CENSUS='0')\nfor k in ['LD_LIBRARY_PATH','EKA2L1_GUEST_PROFILE','EKA2L1_AOT_DIAGNOSTICS','EKA2L1_LIVE_AUTOSTART','EKA2L1_LIVE_PROFILE_START_US','EKA2L1_LIVE_PROFILE_END_US']:e.pop(k,None)\ndef phase(name,**kw):\n (s/'mode3-literal-live-state.json').write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw)));print(name,kw,flush=True)\ntry:\n for label,auto in [('manual',False),('auto',True)]:\n  phase('live_audio',route=label);env=dict(e,EKA2L1_LIVE_AUDIO='1')\n  if auto:env['EKA2L1_LIVE_AUTOSTART']='1'\n  with(s/f'mode3-literal-live-{label}.log').open('w')as log:subprocess.run(['node','live.ts',str(s/'assets'),str(s/f'mode3-literal-live-{label}'),'120'],cwd=r/'src/tests/wasm',env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=900)\n  q=json.loads((s/f'mode3-literal-live-{label}/report.json').read_text());policy=q['compiler_policy']['observed']\n  assert policy['unsafeCode']==3 and policy['leafFeatures']==128 and q['audio_continuity']['added_underruns']==0 and q['audio_continuity']['added_drops']==0 and q['realtime_ratio']>.99\n phase('local_controls')\n with(s/'mode3-literal-launcher.log').open('w')as log:subprocess.run(['node','softkeys.ts',str(s/'assets'),str(s/'mode3-literal-launcher')],cwd=r/'src/tests/wasm',env=e,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=900)\n q=json.loads((s/'mode3-literal-launcher/report.json').read_text());policy=q['compilerPolicy']['observed'];assert policy['unsafeCode']==3 and policy['leafFeatures']==128 and not q['errors']\n phase('local_live_complete')\nexcept Exception as error:phase('failure',error=str(error));raise\n"
 }

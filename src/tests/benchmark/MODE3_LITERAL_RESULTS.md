@@ -18,3 +18,7 @@ Two routes, two batches, 16 observations: A control/candidate/candidate/control,
 | standard-b | 9.22058 | 8.95407 | +2.98% | +0.91% / +5.08% |
 
 All 16 observations are retained. These are within-route matching comparisons under mode 3; earlier mode-0 gains or losses are not pooled. Normal/live/audio acceptance and review remain required before any promotion. No source default, service or Git remote changes are made by this experiment.
+
+## Normal live acceptance
+
+All eight timing pairs favor the candidate. The gain is modest and variable; the larger standard confirmation includes a slower control and faster closing candidate. Both two-minute live/audio routes sustain realtime with zero added measured underruns or drops. Desktop/mobile controls and gesture audio pass with actual mode 3 and feature 128 readback. The known native-matching level restart remains; no uninterrupted-gameplay claim is made. Actual HTTPS and existing-profile policy-only upgrade checks follow.
