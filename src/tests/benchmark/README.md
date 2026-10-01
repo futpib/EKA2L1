@@ -41,6 +41,12 @@ Use the original assets (not committed to this repository). The runner validates
 
 Retrieve using `ipfs cat CID > filename` with a running IPFS node. The old `@futpib/fetch-cid` downloader does not check HTTP status and can cache gateway notices as files.
 
+The experimental [Nokia N80 assets](N80_ASSETS.md) use the same ROM/RPKG convention
+with separate CIDs and a reproducible firmware converter. Select their manifest
+using `--asset-manifest src/tests/benchmark/n80-assets.json`. Device installation
+passes, but Snakes gameplay fails in the tested build; these are not the default
+reference assets.
+
 ## Browser build and comparison
 
 Use Emscripten 4.0.10 (the version used for validation), Node.js with TypeScript stripping, Python 3 for audio validation, and Chromium. Activate the SDK environment first.

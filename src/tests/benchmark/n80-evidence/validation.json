@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-01",
+  "binary": {
+    "embedded_version": "wasm-port-25792310e",
+    "sha256": "268ca713af03daf982a8f2583393d588461e4f2e83cfff0127d340b2d198ab56"
+  },
+  "extraction": {
+    "archive_sha256": "16440261e679e277680664585b5a11702ea623b9fd723c2de994e43f72660903",
+    "entries": {
+      "rom": 969,
+      "rofs": 2333,
+      "rofx_reference": 2333,
+      "rofx": 3518
+    },
+    "merged_files": 6819,
+    "assets": {
+      "SYM.ROM": {
+        "sha256": "99fc5d84bc66a4dfa00f66a967dcd817e344c9ac7eb7ee6124d40b1e75278698",
+        "bytes": 21217280
+      },
+      "SYM.RPKG": {
+        "sha256": "be82cd991db95e2e9128b48dc7b9618f653813ec864c63db1952821de2178be0",
+        "bytes": 64619910
+      }
+    }
+  },
+  "installation": {
+    "exit_code": 255,
+    "result": "Device installed: Nokia N80 (05) (RM-92)",
+    "symbian_version": "epoc91",
+    "machine_uid": "0x200005f9"
+  },
+  "gameplay": {
+    "requested_frames": 60,
+    "start_us": 21000000,
+    "captured_frames": 0,
+    "exit_code": 139,
+    "guest_panic": {
+      "category": "USER-EXEC",
+      "code": 3
+    }
+  },
+  "startup": {
+    "requested_frames": 6,
+    "start_us": 0,
+    "unique": false,
+    "captured_frames": 1,
+    "exit_code": 139,
+    "frame": {
+      "frame": 0,
+      "presentation": 6,
+      "virtual_us": 149994,
+      "instructions": 66017933,
+      "width": 352,
+      "height": 416
+    }
+  },
+  "ipfs": {
+    "rom_and_rpkg_recursively_pinned": true,
+    "local_cat_sha256_matches": true,
+    "remote_retrieval_verified": false
+  },
+  "manifest_runner": {
+    "installation_passed": true,
+    "game_exit_code": 139,
+    "same_failure_reproduced": true
+  },
+  "default_5320_control": {
+    "frames": 60,
+    "exit_code": 0,
+    "guest_clock_audio_validated": true,
+    "report": {
+      "git_head": "40fcd81710d92a2fded669833456b625c5073b38",
+      "dirty_worktree": true,
+      "binary_sha256": "268ca713af03daf982a8f2583393d588461e4f2e83cfff0127d340b2d198ab56",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "frames": 60,
+      "start_us": 21000000,
+      "unique": true,
+      "runs": [
+        {
+          "wall_seconds": 27.764884186995914,
+          "last_virtual_us": 23812627
+        }
+      ]
+    }
+  }
+}

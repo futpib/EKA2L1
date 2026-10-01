@@ -59,6 +59,8 @@ def frame_records(directory, expected):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--assets', type=Path, required=True)
+    p.add_argument('--asset-manifest', type=Path,
+                   help='JSON with assets keyed by filename, each containing sha256; defaults to Nokia 5320')
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--binary', type=Path, default=ROOT / 'build/bin/eka2l1_qt')
     p.add_argument('--input', type=Path, default=Path(__file__).with_name('snakes.input'))
@@ -70,7 +72,11 @@ def main():
     a = p.parse_args()
     if not 1 <= a.frames <= 100000 or a.repeat < 1 or a.timeout < 1 or not 0 <= a.start_us <= 120000000:
         p.error("frames must be 1..100000; repeat and timeout must be positive")
-    for name, expected in ASSETS.items():
+    assets = ASSETS
+    if a.asset_manifest:
+        manifest = json.loads(a.asset_manifest.read_text())
+        assets = {name: manifest['assets'][name]['sha256'] for name in ASSETS}
+    for name, expected in assets.items():
         if hashlib.sha256((a.assets / name).read_bytes()).hexdigest() != expected:
             raise RuntimeError(f'Asset hash mismatch: {name}')
     a.output = a.output.resolve()
@@ -91,7 +97,7 @@ def main():
     report = {'git_head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'dirty_worktree': bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT)),
               'binary_sha256': hashlib.sha256(a.binary.read_bytes()).hexdigest(),
-              'assets': ASSETS, 'input_sha256': hashlib.sha256(a.input.read_bytes()).hexdigest(),
+              'assets': assets, 'input_sha256': hashlib.sha256(a.input.read_bytes()).hexdigest(),
               'frames': a.frames, 'start_us': a.start_us, 'unique': not a.all_presentations, 'runs': []}
     baseline = None
     baseline_audio = None

@@ -1,0 +1,33 @@
+{
+  "device": "Nokia N80 (RM-92)",
+  "firmware": "5.0719.0.2",
+  "language_image": "N80_rofx_5.0719.0.2-prd.V05",
+  "machine_uid": "0x200005f9",
+  "screen": [352, 416],
+  "status": "Device installation succeeds; Snakes gameplay fails in the tested emulator build",
+  "source": {
+    "filename": "Nokia_N80_RM-92_0542699_5.0719.0.2_V001.zip",
+    "url": "https://androiddatahost.com/tryu5",
+    "download_url": "https://androiddatahost.com/wp-content/uploads/Nokia_N80_RM-92_0542699_5.0719.0.2_V001.zip",
+    "cid": "bafybeic6uqroqcxbqqrez5f7jjpowrrw7pp2lsylbzxr4mncvdker5i3tu",
+    "bytes": 75729951,
+    "sha256": "16440261e679e277680664585b5a11702ea623b9fd723c2de994e43f72660903"
+  },
+  "assets": {
+    "SYM.ROM": {
+      "cid": "bafybeich2rmx24qbgshmdf3pufazf2wujd5233sqgxkheh7c5ms4xm6edi",
+      "bytes": 21217280,
+      "sha256": "99fc5d84bc66a4dfa00f66a967dcd817e344c9ac7eb7ee6124d40b1e75278698"
+    },
+    "SYM.RPKG": {
+      "cid": "bafybeihwio3n2bekh73lco4mo4mxt55iyryx6jzzn3fkpfiusdhih4s3em",
+      "bytes": 64619910,
+      "sha256": "be82cd991db95e2e9128b48dc7b9618f653813ec864c63db1952821de2178be0"
+    },
+    "Snakes.sis": {
+      "cid": "bafybeicuomcc2zhzi3vwfb5xihnlkikz3biaa43g4d22z2wptcmhvmp3di",
+      "bytes": 963964,
+      "sha256": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    }
+  }
+}

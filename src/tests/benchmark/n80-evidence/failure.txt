@@ -1,0 +1,7 @@
+E /home/claude/code/EKA2L1/src/emu/services/src/window/window.cpp:931 [Service.Window]: Can't find requested screen 27949312, use focus one
+E /home/claude/code/EKA2L1/src/emu/kernel/src/libmanager.cpp:1356 [Kernel]: Unimplement system call: 0x82!
+E /home/claude/code/EKA2L1/src/emu/kernel/src/libmanager.cpp:1356 [Kernel]: Unimplement system call: 0xA!
+E /home/claude/code/EKA2L1/src/emu/kernel/src/libmanager.cpp:1356 [Kernel]: Unimplement system call: 0xA!
+E /home/claude/code/EKA2L1/src/emu/kernel/src/libmanager.cpp:1356 [Kernel]: Unimplement system call: 0xA!
+T /home/claude/code/EKA2L1/src/emu/kernel/src/thread.cpp:542 [Kernel]: Thread Snakes panicked with category: USER-EXEC and exit code: 3
+/usr/bin/xvfb-run: line 180: 400457 Segmentation fault         (core dumped) DISPLAY=:$SERVERNUM XAUTHORITY=$AUTHFILE "$@"
