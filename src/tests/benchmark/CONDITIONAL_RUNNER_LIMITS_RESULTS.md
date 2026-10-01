@@ -53,3 +53,7 @@ results and normal/live/audio acceptance. No bound is claimed optimal in advance
 Status: plan only; no new runner measurements or delivery.
 
 Before timing starts, the quiet-host observer also waits for compiler, build and linker processes. This keeps the separate literal-PC candidate build out of runner timing; the frozen runner archive and preplanned orders are unchanged.
+
+## Correctness acceptance
+
+Caps 64 and zero each pass 40,640 explicitly selected native instruction-fault comparisons (81,280 fresh comparisons total), exact 1,600-image standard and 360-image longer replays, including guest records and 4,656,051 / 2,832,756 stereo PCM frames. All replays verify actual limits, feature policy and archive hash. The same archive's 173-test suite, including 270 actual-runner cases, and cap-512 control evidence are reused with attribution. Standalone fault comparisons do not replace actual-runner tests. Timing and any live/audio graduation remain pending.
