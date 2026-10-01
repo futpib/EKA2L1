@@ -86,7 +86,7 @@ for n, w in zip(native, wasm):
                 else 'other')
     categories[category] += 1
     differences.append({'id': n['id'], 'category': category, 'fields': changed, 'native': n, 'wasm': w})
-result = {'verified_leaf_features':a.leaf_features,'verified_exit_census':a.exit_census,'verified_predicated_leaves':a.predicated_leaves,'cases': len(native), 'all_fields_match': len(native) - len(differences),
+result = {'verified_unsafe_code':a.unsafe_code,'verified_leaf_features':a.leaf_features,'verified_exit_census':a.exit_census,'verified_predicated_leaves':a.predicated_leaves,'cases': len(native), 'all_fields_match': len(native) - len(differences),
           'final_state_and_exact_memory_match': state_matches,
           'mismatched_fields': dict(fields), 'categories': dict(categories),
           'little_endian_unmapped_cases': sum(not r['endian'] and not r['tlb_readonly'] for r in native),
