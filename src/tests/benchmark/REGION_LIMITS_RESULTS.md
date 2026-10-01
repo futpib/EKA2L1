@@ -54,3 +54,5 @@ All twenty trials execute the same 3,031,637,220 guest instructions and 380 pres
 | baseline | 13.9830 | 11.8326 | 14,345 |
 
 This screen does not establish optimal limits. The unchanged archive varies from 13.9830 to 11.8326 seconds; the same-binary default is slower than that archive in both observations. The uncapped runner and cap 64 are promising against this instrumentable binary, but neither consistently beats the untouched archive. A source-window increase has the same limitation. Larger leaves/sites are not uniformly better; disabling inlining is costly in these samples. The standard-route screen and targeted adjacent confirmations are required before attributing a useful gain. No policy is promoted.
+
+The independent runner control replaces the original constant `result.blocks < 512` with a runtime-configurable bound, including the zero/unlimited case. Even with diagnostic counters omitted, this changes the normal runner code. Its contribution to the same-binary-default versus untouched-archive gap is not isolated. Do not attribute that gap entirely to exit instrumentation, CPU frequency or any one limit.
