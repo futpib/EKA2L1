@@ -18,13 +18,13 @@ namespace eka2l1::arm::aot::exit_census {
         conditional_memory, conditional_transfer, nested_call, internal_branch, block_transfer,
         coprocessor_or_supervisor, sp_operand, lr_operand, pc_operand, register_memory_shift,
         status_or_misc, sp_index, lr_index, pc_index, sp_shift, lr_shift, pc_shift,
-        multiply, halfword_or_signed_transfer, swap_or_exclusive, other_extra_transfer };
+        multiply, halfword_or_signed_transfer, swap_or_exclusive, other_extra_transfer, forward_target_after_return };
     inline const char *restriction_name(unsigned value) {
         static const char *names[]={"unrecorded","predicates_disabled","reserved_predicate",
             "conditional_memory","conditional_transfer","nested_call","internal_branch","block_transfer",
             "coprocessor_or_supervisor","sp_rn_or_rd_field","lr_rn_or_rd_field","pc_rn_or_rd_field","register_memory_shift",
             "status_or_misc","sp_rm_field","lr_rm_field","pc_rm_field","sp_rs_field","lr_rs_field","pc_rs_field",
-            "multiply","halfword_or_signed_transfer","swap_or_exclusive","other_extra_transfer"};
+            "multiply","halfword_or_signed_transfer","swap_or_exclusive","other_extra_transfer","forward_target_after_return"};
         return value<sizeof(names)/sizeof(names[0])?names[value]:"unrecorded";
     }
     struct leaf_refusal { unsigned constraint=0, detail=0; std::uint32_t pc=0, opcode=0; };
@@ -100,8 +100,8 @@ namespace eka2l1::arm::aot::exit_census {
         const auto name=classify(entry&1,count,budget,flag);++exits[name];
         if(std::string(name)=="call") {
             const char *names[]={"unrecorded","inline_site_limit","leaf_instruction_limit","callee_unsupported",
-                "callee_mapping_extent","callee_unmapped_or_other_space","no_leaf_resolver","conditional_call"};
-            ++call_constraints[names[last_constraint<8?last_constraint:0]];
+                "callee_mapping_extent","callee_unmapped_or_other_space","no_leaf_resolver","conditional_call","inlined_prefix_call"};
+            ++call_constraints[names[last_constraint<9?last_constraint:0]];
             if(last_constraint==3) {
                 ++call_restrictions[restriction_name(last_restriction)];
                 rejected_key key{asid,last_pc,last_rejected_pc,last_rejected_opcode,last_restriction};

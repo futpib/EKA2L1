@@ -793,12 +793,55 @@ namespace eka2l1::arm::aot {
 
     // Only short straight-line leaves with an unchanged LR can be inlined.
     // Memory instructions retain the normal region guards and helper exits.
+    static bool ends_in_nested_call(const std::vector<std::uint8_t> &bytes) {
+        if(bytes.size()<4)return false;
+        std::uint32_t last;std::memcpy(&last,bytes.data()+bytes.size()-4,4);
+        return (last&0xff000000u)==0xeb000000u;
+    }
+
+    // A straight prefix need not return in this region. Its final unconditional
+    // BL uses the ordinary precise exit, with the real callee LR/PC/count.
+    // In particular, stack saves are still guest memory effects, not elided
+    // host bookkeeping. No nested call is executed recursively by this path.
+    static std::vector<std::uint8_t> resolve_call_prefix(const std::vector<std::uint8_t> &bytes) {
+        for(std::size_t n=0;n<leaf_instruction_limit*4 && n+4<=bytes.size();n+=4) {
+            std::uint32_t op;std::memcpy(&op,bytes.data()+n,4);
+            if((op&0xff000000u)==0xeb000000u)
+                return {bytes.begin(),bytes.begin()+n+4};
+            if((op>>28)>14)return {};
+            const unsigned group=(op>>25)&7,rn=(op>>16)&15,rd=(op>>12)&15;
+            if(group==4) {
+                const auto list=op&65535u;
+                if(rn==15 || !list || (list&32768) || (op&(1u<<22)) ||
+                    ((op&(1u<<21)) && (list&(1u<<rn))))return {};
+                continue;
+            }
+            if(((op>>26)&3)==1) {
+                if(rn==15 || rd==15 || (!(op&(1u<<24)) && (op&(1u<<21))) ||
+                    ((op&(1u<<25)) && ((op&16) || (op&15)==15)) ||
+                    ((op&(1u<<20)) && (!(op&(1u<<24)) || (op&(1u<<21))) && rn==rd))return {};
+                continue;
+            }
+            if(((op>>26)&3)!=0)return {}; // branches, calls and coprocessors
+            const unsigned alu=(op>>21)&15;
+            if(alu>=8 && alu<=11 && !(op&(1u<<20)))return {}; // status/misc
+            if(rn==15 || rd==15)return {};
+            if(!(op&(1u<<25)) && ((op&0x90)==0x90 || (op&15)==15 ||
+                ((op&16) && ((op>>8)&15)==15)))return {};
+        }
+        return {};
+    }
+
     static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure, bool allow_predicates, exit_census::leaf_refusal &refusal) {
         failure="callee_unsupported";
         auto bytes = resolve(address);
         exit_census::probe(address,bytes.data(),bytes.size());
         if(bytes.empty()) {failure="callee_unmapped_or_other_space";return {};}
         const unsigned features = allow_predicates ? leaf_features : 0;
+        if(features&8) {
+            auto prefix=resolve_call_prefix(bytes);
+            if(!prefix.empty())return prefix;
+        }
         std::vector<std::uint32_t> leaf_targets;
         for (std::size_t n = 0; n < leaf_instruction_limit*4 && n + 4 <= bytes.size(); n += 4) {
             std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
@@ -806,7 +849,10 @@ namespace eka2l1::arm::aot {
                 // The first return must close every accepted forward path.
                 if(std::any_of(leaf_targets.begin(),leaf_targets.end(),[&](auto target) {
                     return std::uint64_t(target)>std::uint64_t(address)+n;
-                })) return {};
+                })) {
+                    if(exit_census::enabled){refusal.detail=exit_census::forward_target_after_return;refusal.pc=address+static_cast<std::uint32_t>(n);refusal.opcode=op;}
+                    return {};
+                }
                 bytes.resize(n + 4); return bytes;
             }
             const auto group = (op >> 26) & 3;
@@ -907,13 +953,17 @@ namespace eka2l1::arm::aot {
                                 exit_census::leaf_refusal refusal;
                                 auto bytes = resolve_leaf(*leaves, address, failure, allow_predicates, refusal);
                                 if(exit_census::enabled)refusals[i]=refusal;
-                                exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:"call_inlined");
+                                exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:ends_in_nested_call(bytes)?"call_prefix_inlined":"call_inlined");
                                 if(exit_census::enabled && bytes.empty())refusals[i].constraint=
                                     std::strcmp(failure,"leaf_instruction_limit")==0?2:
                                     std::strcmp(failure,"callee_unsupported")==0?3:
                                     std::strcmp(failure,"callee_mapping_extent")==0?4:5;
                                 if (!bytes.empty()) {
+                                    const bool prefix=ends_in_nested_call(bytes);
                                     inlined.emplace(i, code_dependency{address, std::move(bytes)});
+                                    // A nested call exits. The original caller continuation
+                                    // is reached only after later guest returns, not now.
+                                    if(prefix)break;
                                     i += 4;
                                     continue;
                                 }
@@ -1037,6 +1087,7 @@ namespace eka2l1::arm::aot {
             auto it = inlined.find(i);
             if (it == inlined.end()) continue;
             const auto &leaf = it->second;
+            if(ends_in_nested_call(leaf.bytes))tr.resume_points.push_back(start_address+static_cast<std::uint32_t>(i)+4);
             if (std::none_of(tr.dependencies.begin(), tr.dependencies.end(), [&](const auto &d) { return d.address == leaf.address; }))
                 tr.dependencies.push_back(leaf);
             for (std::size_t n = 0; n < leaf.bytes.size(); n += 4) {
@@ -1626,7 +1677,8 @@ namespace eka2l1::arm::aot {
             const bool leaf_join=instruction.leaf && std::binary_search(leaf_forward_targets.begin(),leaf_forward_targets.end(),insn_addr);
             w.census_pc=insn_addr;w.census_opcode=inst;
             const auto refusal=exit_census::enabled && !instruction.leaf && refusals.count(i)?refusals.at(i):exit_census::leaf_refusal{};
-            w.census_constraint=refusal.constraint;w.census_restriction=refusal.detail;
+            w.census_constraint=instruction.leaf && (inst&0xff000000u)==0xeb000000u?8:refusal.constraint;
+            w.census_restriction=refusal.detail;
             w.census_rejected_pc=refusal.pc;w.census_rejected_opcode=refusal.opcode;
 
             const unsigned wide_hi = (inst >> 16) & 15, wide_lo = (inst >> 12) & 15;

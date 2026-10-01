@@ -8,7 +8,7 @@ import subprocess
 parser = argparse.ArgumentParser(__doc__)
 parser.add_argument('archive', type=Path)
 parser.add_argument('output', type=Path)
-parser.add_argument('--leaf-features',type=int,choices=range(8))
+parser.add_argument('--leaf-features',type=int,choices=range(16))
 parser.add_argument('--exit-census',type=int,choices=(0,1))
 parser.add_argument('--predicated-leaves', type=int, choices=(0,1))
 parser.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
@@ -33,6 +33,7 @@ cases = [('ir-conditions',5376),('ir-calls',96),('ir-calls-short',96),('ir-flags
     ('entry-budget-interpreter',672),('region-block-spans',96)]
 if a.leaf_features is not None:
     cases.insert(0,('expanded-calls',5376))
+    cases.insert(0,('prefix-calls',5376))
 if a.predicated_leaves is not None:
     cases.insert(0,('predicated-calls',5376))
 if a.long:
