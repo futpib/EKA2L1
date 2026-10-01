@@ -79,3 +79,75 @@ All 32 observations are retained. Values are mean elapsed seconds for identical 
 - standard b, uncapped: vs control512: +8.42% throughput; half-pairs +16.17% / +0.66%; vs baseline: +5.63% throughput; half-pairs +12.31% / -1.06%.
 
 Pairs associate corresponding halves and are not all adjacent. Host observers detect watched competing jobs, not all host activity. Startup includes guest work and is not isolated compilation time. These timings do not establish an optimum outside the tested range. Diagnostic cost counters and any normal/live/audio delivery checks remain separate.
+
+## Conditional-only runner-limit census
+
+The two changed bounds separately pass another 81,280 explicitly selected instrumented native fault comparisons and exact checked standard/longer image/audio replays. Cap 512 reuses the same frozen binary and policy from the preceding tail-prefix control census; it is not a fresh run. Diagnostic elapsed time is excluded from throughput acceptance.
+
+### long
+
+| Counter | 64 regions | 512 regions | Uncapped |
+| --- | ---: | ---: | ---: |
+| Runner invocations | 3,599,894 | 1,910,747 | 1,897,082 |
+| Cap returns | 1,706,092 | 13,666 | 0 |
+| Budget returns | 623,516 | 623,516 | 623,516 |
+| Zero-progress returns | 1,140,632 | 1,143,911 | 1,143,912 |
+| Missing successor returns | 129,654 | 129,654 | 129,654 |
+| Compiled invocations | 140,993,871 | 140,994,669 | 140,994,670 |
+| Direct-call exits | 43,526,965 | 43,526,965 | 43,526,965 |
+| Site-limit exits | 551,863 | 551,863 | 551,863 |
+| Leaf-length limit exits | 970,429 | 970,429 | 970,429 |
+| Dependency spans requested | 35,293,874 | 35,294,035 | 35,294,035 |
+| Dependency bytes requested | 768,013,864 | 768,017,640 | 768,017,640 |
+| Primary bytes requested | 9,690,075,866 | 9,690,132,630 | 9,690,132,714 |
+| Entry-proof attempts | 17,353,977 | 17,354,245 | 17,354,245 |
+| Private entry-proof fallbacks | 733,061 | 733,238 | 733,238 |
+| Gap-only fallbacks | 0 | 0 | 0 |
+
+cap 64 vs 512: compiled calls -798 (-0.00%); requested dependency bytes -0.00%.
+
+cap 0 vs 512: compiled calls +1 (+0.00%); requested dependency bytes +0.00%.
+
+### standard
+
+| Counter | 64 regions | 512 regions | Uncapped |
+| --- | ---: | ---: | ---: |
+| Runner invocations | 3,622,309 | 1,907,427 | 1,897,997 |
+| Cap returns | 1,727,271 | 9,430 | 0 |
+| Budget returns | 611,615 | 611,615 | 611,615 |
+| Zero-progress returns | 1,135,846 | 1,138,805 | 1,138,805 |
+| Missing successor returns | 147,577 | 147,577 | 147,577 |
+| Compiled invocations | 140,625,080 | 140,626,048 | 140,626,048 |
+| Direct-call exits | 44,506,411 | 44,506,411 | 44,506,411 |
+| Site-limit exits | 571,365 | 571,365 | 571,365 |
+| Leaf-length limit exits | 1,020,658 | 1,020,658 | 1,020,658 |
+| Dependency spans requested | 35,765,197 | 35,765,500 | 35,765,500 |
+| Dependency bytes requested | 778,282,396 | 778,289,684 | 778,289,684 |
+| Primary bytes requested | 9,697,995,198 | 9,698,087,982 | 9,698,087,982 |
+| Entry-proof attempts | 17,400,648 | 17,400,966 | 17,400,966 |
+| Private entry-proof fallbacks | 741,779 | 741,998 | 741,998 |
+| Gap-only fallbacks | 0 | 0 | 0 |
+
+cap 64 vs 512: compiled calls -968 (-0.00%); requested dependency bytes -0.00%.
+
+cap 0 vs 512: compiled calls +0 (+0.00%); requested dependency bytes +0.00%.
+
+Requested byte coverage is not physical memory traffic. All raw exits, proof causes, mapping/guard results and compile counters are retained. Removing a compiled boundary does not remove guest instructions or change guest scheduling.
+
+## Disposition after the conditional-only revisit
+
+cap64: long-a matching +3.51%, live +4.50%; long-b matching -11.43%, live -3.58%; standard-a matching -3.78%, live -2.02%; standard-b matching +4.99%, live +2.29%.
+
+uncapped: long-a matching +3.81%, live +4.80%; long-b matching -3.32%, live +5.25%; standard-a matching -8.42%, live -6.75%; standard-b matching +8.42%, live +5.63%.
+
+Neither changed bound has a repeatable gain across both routes and batches against its matching control. The 512-region default remains a retained bound for this configuration, not an established global optimum. All 32 observations, both timing orders and passive host readings remain, including slow controls and candidates. No new live/audio or deployment acceptance is claimed for either rejected bound.
+
+long, cap 64: +1,689,147 runner returns, -798 compiled invocations, combined primary/dependency requested bytes -0.0006%, cap returns 1,706,092.
+
+long, cap 0: -13,665 runner returns, +1 compiled invocations, combined primary/dependency requested bytes +0.0000%, cap returns 0.
+
+standard, cap 64: +1,714,882 runner returns, -968 compiled invocations, combined primary/dependency requested bytes -0.0010%, cap returns 1,727,271.
+
+standard, cap 0: -9,430 runner returns, +0 compiled invocations, combined primary/dependency requested bytes +0.0000%, cap returns 0.
+
+Compiled invocations are not individual state-load/store counts, and requested bytes are not physical memory traffic. Uncapping retains budget, interrupt, stop, zero-progress and successor-validity checks; it does not fuse compiled regions or change guest scheduling. The frozen conditional-only LAN archive remains served. The separate opt-in literal-PC veneer candidate proceeds to full correctness acceptance next; nothing is pushed or deployed.
