@@ -1,5 +1,5 @@
 {
-  "status": "Implementation and 42 focused checks pass; full compiler, faults and replay pending.",
+  "status": "175 compiler tests and 40,640 full unsafe native fault comparisons pass; matching control faults, native replay and timing continue automatically.",
   "unsafe_default": 0,
   "deployment": false,
   "earlier_evidence": [
@@ -15,5 +15,650 @@
     "live_unchanged": true
   },
   "held_runner_census": "from pathlib import Path\nimport os,json,subprocess\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'tail-prefix-candidate'\n# User steering: finish current timings, then prioritize unsafe immutable-code experiment.\nimport time\nprint('Runner census retained; waiting until unsafe experiment is complete',flush=True)\nwhile not (s/'allow-runner-census-after-unsafe.json').exists():time.sleep(5)\nchecklog=s/'conditional-runner-diagnostic-acceptance.log'\nif not checklog.exists() or 'Instrumented conditional runner bounds 64 and 0 accepted' not in checklog.read_text():\n with checklog.open('w')as log:subprocess.run(['python3',str(s/'conditional_runner_diagnostic_acceptance.py')],cwd=r,stdout=log,stderr=subprocess.STDOUT,check=True)\ne=dict(os.environ,EKA2L1_WASM_BUILD_DIR=str(a),EKA2L1_AOT_IR_MODE='7',EKA2L1_AOT_EAGER_REGIONS='0',EKA2L1_TLB_HASH='1',EKA2L1_SHARED_AUDIO='1',EKA2L1_BENCHMARK_AOT='5',EKA2L1_AOT_VERIFY='0',EKA2L1_CODE_COMPARE='2',EKA2L1_CODE_LOOKUP='0',EKA2L1_EXIT_CENSUS='1',EKA2L1_GUEST_PROFILE='1021',EKA2L1_PROFILE_DETAIL='1',EKA2L1_GPU='hardware',EKA2L1_EXECUTION_LIMITS='512,16,8,512')\ne.pop('EKA2L1_CODE_WRITE_PROTECT',None)\nfor scene,start,end,route in [('long',42000000,60000000,'snakes-length-long.input'),('standard',60000000,78000000,'snakes.input')]:\n for mode,cap in [('cap64',64),('uncapped',0)]:\n  out=s/f'conditional-runner-census-{scene}-{mode}'\n  env=dict(e,EKA2L1_PREDICATED_LEAVES='1',EKA2L1_LEAF_FEATURES='0',EKA2L1_EXECUTION_LIMITS=f'512,16,8,{cap}',EKA2L1_PROFILE_START_US=str(start),EKA2L1_PROFILE_INPUT=str(r/'src/tests/benchmark'/route))\n  with out.with_suffix('.log').open('w')as log:\n   subprocess.run(['node','profile.ts',str(s/'assets'),str(out),'2','0',str(end)],cwd=r/'src/tests/wasm',env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=2400)\n  report=json.loads((out/'report.json').read_text());assert report['predicated_leaves']==1 and report['leaf_features']==0 and report['exit_census'] and report['ir_mode']==7 and report['execution_limits']==[512,16,8,cap]\n  assert report['tlb_hash']==1 and report['code_compare']==2 and report['code_lookup']==0 and report['eager_regions']==0 and report['shared_audio']\n  assert report['wasm_sha256']==json.loads((s/'tail-prefix-candidate/source.json').read_text())['files']['eka2l1.wasm']\n  guest=json.loads((out/'guest-profile.json').read_text());b=guest['boundaries']\n  assert bool(b['lifetime_compile_events'].get('branch_veneer_inlined',0))==False;assert sum(b['region_exits'].values())==guest['compiled_blocks']\n  assert sum(b['callee_restrictions'].values())==b['call_constraints'].get('callee_unsupported',0)\n  assert sum(x['calls']for x in b['rejected_call_sites'])+b['dropped_rejected_calls']==b['call_constraints'].get('callee_unsupported',0)\n  assert sum(b['code_guard_outcomes'].values())==sum(b['region_exits'].get(k,0)for k in ['code_write_guard','helper_and_code_write'])\n  assert sum(b['entry_proof_fallback_causes'].values())==b['entry_proof_fallbacks']<=b['entry_proof_attempts']<=b['calls']\n  assert sum(b['entry_proof_overlap_outcomes'].values())+b['entry_proof_overlap_dropped']<=b['entry_write_span_checks']\n  assert not b['entry_proof_overlap_dropped']\n  expected=(6445351805,9476989025,380)if scene=='long'else(8980877653,11957513019,381)\n  assert tuple(report['measurement'][k]for k in ['first_instructions','last_instructions','presentations'])==expected\n  print(scene,mode,'calls',guest['compiled_blocks'],'exits',b['region_exits'],'footprint',report.get('runtime_footprint'),flush=True)\n",
-  "focused": " UNSAFE_EMISSION mode=0 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=2 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_PROOF_EMISSION mode=0 proved_writes=4 bytes=2822\n UNSAFE_PROOF_EMISSION mode=3 proved_writes=4 bytes=2575\n PASS unsafe_code_diagnostic (42 checks; expected stale primary/dependency bytes and stale post-store execution; mapping, lifetime and budget checks retained)\n"
+  "focused": " UNSAFE_EMISSION mode=0 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=2 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_PROOF_EMISSION mode=0 proved_writes=4 bytes=2822\n UNSAFE_PROOF_EMISSION mode=3 proved_writes=4 bytes=2575\n PASS unsafe_code_diagnostic (42 checks; expected stale primary/dependency bytes and stale post-store execution; mapping, lifetime and budget checks retained)\n",
+  "compiler_suite": "TEST_TLB_HASH 0\nRunning 74 AOT WASM correctness tests...\n\n  PASS MOVS R0, #42\n  PASS MOVS R0, #0 (zero flag)\n  PASS ADDS R0, R0, #1\n  PASS SUBS R0, R0, #1\n  PASS SUBS to zero\n  PASS CMP R0, R1 equal\n  PASS CMP R0, R1 greater\n  PASS CMP R0, R1 less\n  PASS CMP R0, #0\n  PASS CMP R0, #5 when R0=5\n  PASS MOVS R1, R0 (LSLS #0)\n  PASS LSLS R0, R1, #4\n  PASS LSRS R0, R1, #1\n  PASS ANDS R0, R1\n  PASS ORRS R0, R1\n  PASS EORS R0, R1\n  PASS MVNS R0, R1\n  PASS ADDS R0, #100\n  PASS SUBS R0, #1 to zero\n  PASS MOV R8, R0 (high reg)\n  PASS LDR R0, [R1, #0]\n  PASS LDR R0, [R1, #4]\n  PASS STR R0, [R1, #0]\n  PASS LDR R0, [R1, R2]\n  PASS LDR R0, [SP, #8]\n  PASS STR R0, [SP, #0]\n  PASS LDRB R0, [R1, #0]\n  PASS STRB R0, [R1, #0]\n  PASS LDRB R0, [R1, R2]\n  PASS LDRH R0, [R1, #0]\n  PASS SUBS R0, R1, R2\n  PASS ADDS R0, R1, R2\n  PASS ASRS R0, R1, #4\n  PASS ASRS R0, R1 (reg)\n  PASS MULS R0, R1\n  PASS BICS R0, R1\n  PASS NEGS R0, R1\n  PASS TST R0, R1 (nonzero)\n  PASS TST R0, R1 (zero)\n  PASS ADD R0, SP, #16\n  PASS SUB SP, #8\n  PASS ADD SP, #8\n  PASS LDR R0, [PC, #0]\n  PASS LDRSB R0, [R1, R2]\n  PASS CMN R0, R1\n  PASS CMP R8, R0\n  PASS LSLS R0, R1 (reg)\n  PASS LSRS R0, R1 (reg)\n  PASS MOVS+ADDS sequence\n  PASS MOVS+SUBS+SUBS\n  PASS PUSH+POP roundtrip\n  PASS PUSH {R4,LR} then BL bail\n  PASS MOVS + BL offset 0\n  PASS MOVS + BL +10\n  PASS ADD R5, R0 (T2)\n  PASS ADD R8, R0 (high Rdn)\n  PASS CMP R3, LR (T2 low Rn)\n  PASS LDRSH R0, [R1, R2]\n  PASS STRH R0, [R1, R2]\n  PASS LDRH R0, [R1, R2]\n  PASS STR R0, [R1, R2]\n  PASS STRB R0, [R1, R2]\n  PASS ADR R0, #0\n  PASS ADR R2, #20\n  PASS STMIA R1!, {R0,R2}\n  PASS LDMIA R1!, {R0,R2}\n  PASS BEQ forward not taken\n  PASS BEQ forward taken\n  PASS B forward\n  PASS Backward loop BNE\n  FAIL crash-repro 0x8046506E (harness limitation): Z=0 (wasm) vs 1 (interp)\n  XFAIL crash-repro 0x8046506E (harness limitation) (known failure, see test comment)\n  PASS crash-repro 0x80464BBE\n  PASS Backward branch to non-entry\n  PASS Forward target reused as backward\n\nRunning translator-level tests...\n\n  PASS resume_points_blx_rm\n  PASS resume_points_bl_imm\n  PASS blx_veneer_inlining\n  PASS function_end_stops_at_pop_pc\n  PASS function_end_stops_at_bx_lr\n  PASS branch_targets_include_bl_next_pc\n  PASS branch_targets_include_beq_target\n  PASS literal_pool_between_early_return_and_target\n  PASS wide_push_pop\n  PASS stop_at_wide_bail\n  PASS wide_movw_movt\n  PASS wide_ldr_str_imm12\n  PASS wide_add_sub_imm\n  PASS wide_and_orr_eor_bic_imm\n  PASS wide_ldr_str_reg\n  PASS wide_ldr_neg_offset\n  PASS wide_b_uncond\n  PASS wide_ldrd_strd\n  PASS wide_ubfx_sbfx\n  PASS wide_bfi_bfc\n  PASS wide_uxtb_sxth\n  PASS wide_clz\n  PASS wide_mul_mla_mls\n  PASS wide_sdiv_udiv\n  PASS wide_shifted_reg\n  PASS wide_addw_subw\n  PASS wide_mov_mvn_imm\n  PASS wide_strb_imm12\n  PASS vfp_vldr_vadd_vstr\n  PASS vfp_vcvt_vcmp_vmrs\n  PASS vfp_f64_instantiation\n  PASS resume_points_beyond_1024\n  PASS sibling_bl_resume_point\n\nRunning ARM translator-level tests...\n\n  PASS inlined_leaves policy=-1 (2560 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=11 (1920 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=12 (1920 exact budget/state/memory comparisons)\n  PASS invariant_writes policy=12 (16896 exact state/memory/budget comparisons)\n  PASS bounded_execution (464912 exact budget/state/memory comparisons)\n  PASS folded TLB scalar/block/entry guards and exact budgets\n UNSAFE_EMISSION mode=0 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=2 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_PROOF_EMISSION mode=0 proved_writes=4 bytes=2822\n UNSAFE_PROOF_EMISSION mode=3 proved_writes=4 bytes=2575\n PASS unsafe_code_diagnostic (42 checks; expected stale primary/dependency bytes and stale post-store execution; mapping, lifetime and budget checks retained)\n  PASS outlined_code_lookup (both lookup modes, grouped/stored comparators, short/long snapshots, dependencies, mappings, rejection)\n  PASS exact_code_compare (five modes including selected functions, unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n  PASS outlined_callee_indices\n  PASS proved_read_spans (30976 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=4 (15360 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=9 (25600 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=5 (16896 exact state/memory/budget comparisons)\nAOT: unsupported ARM insn 0xEF000000 at 0x00001000\n PASS exit census actual ARM/Thumb exit labels, budgets, helpers and code aliases\n PASS execution limits validation and 270 real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor checks\n PASS inline leaf/site bounds and 640 exact interpreter budget comparisons\n PASS predicated leaves (29120 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS expanded leaves (88035 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS preserve inner fusion (2496 exact selection/budget/state/stack comparisons)\n PASS call prefixes (36960 exact budget/state/stack/memory/alias/continuation comparisons)\n PASS branch veneers (12800 exact budget/state/alias/path comparisons)\n PASS tail prefixes (86400 exact budget/state/alias/path comparisons)\n PASS literal PC veneers (15360 exact state/budget/runtime-target/mapping comparisons)\n PASS boundary details (97 exact rejection labels/counters and primary/dependency/gap/outside guards)\n  PASS budget_chunks policy=6 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=16 (7680 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=7 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=8 (30720 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=8 (16896 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=7 (16896 exact state/memory/budget comparisons)\n  PASS region_ir (snapshot liveness/type checks; backend disabled)\n  PASS ir_flags (221184 exact flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=13 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=14 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=15 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=16 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_long_segments (51840 exact long-graph state/flags/memory/budget comparisons)\n  PASS ir_segments (81536 exact state/memory/budget comparisons across enabled policies)\n  PASS ir_memory_exits (24584 exact intermediate snapshot/effect comparisons)\n  PASS ir_exit_recipes (6120 exact load-history/DAG/width/budget comparisons)\n  PASS ir_addressing (24112 exact width/address/snapshot/budget comparisons)\n  PASS memory_displacements (72 exact state/memory/budget checks)\n  PASS deferred_memory_exits (672 exact pre-instruction exits)\n  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS conditional_alu_select (229376 exact budget/state comparisons)\n  PASS compare_conditions (64512 exact budget/state comparisons)\n  PASS arm_long_multiply (92160 exact budget/state comparisons)\n  PASS cached_callback_state\n  PASS msr_privilege_guard\n  SKIP code validity generation tests (experimental build option disabled)\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n175 passed, 0 failed\n",
+  "full_unsafe_faults": {
+    "literal_pc_veneers": false,
+    "tail_prefixes": false,
+    "leaf_features": 0,
+    "exit_census": 0,
+    "predicated_leaves": 1,
+    "execution_limits": "512,16,8,512",
+    "code_write_protect": null,
+    "code_lookup": null,
+    "ir_policy": 7,
+    "tlb_hash": 1,
+    "code_compare": 2,
+    "completed_cases": 40640,
+    "results": [
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/predicated-calls-native.log": "87c14e2687e3039f2537c4662246335388c6b46e40038febed747793dd6e74af",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/predicated-calls-wasm.log": "c47fcdc035bb3f621f4e0cef4a76ad1d1d42cb2eef5c91f8bbaccdf8e051d8f1"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/preserve-inner-native.log": "33eaaab270b8da4b045cd7ac7d6cf092d4792485a401b8be5fe8c8b09fb9bb70",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/preserve-inner-wasm.log": "c41399bd458fee9df2bf5c87479be82cf037ea6a91bd7d9e4f16b967fcfcf73e"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/prefix-calls-native.log": "a7b845f0276a1c842dd49aaaa3bfbd7478992f875de6a964c325b9667d9d950e",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/prefix-calls-wasm.log": "a285197edd5187edef3a1d12c324a4b6c566206b7d887e354a9870a7e3f436b3"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/expanded-calls-native.log": "4afc8e72f3717fd231306a07dd8638b794f3ec75fc442838285d51fbc113cc7c",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/expanded-calls-wasm.log": "705a293bfb13503708c1a9c7ec1bb1c0bec128c4417886d1d874436ae31e0f07"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/branch-veneers-native.log": "32cf35ca039884474d4568190ce34557ab4d5ac4ce112069a2cd2c51aef2786b",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/branch-veneers-wasm.log": "d5f3a804a60be95c3b6ac603274a85ce2bc6c1830df9be0ac7f590e72db04bf9"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 5376,
+        "all_fields_match": 5376,
+        "final_state_and_exact_memory_match": 5376,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 1344,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-conditions-native.log": "15912e6efb60f3f8b206a17ccecf0d11cd8871b1600b641f6ff09870078d50cc",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-conditions-wasm.log": "e0dc5d201bb49576aed7b9c5832c2244f200480b72167ce1cc3f962c03c3e58a"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 96,
+        "all_fields_match": 96,
+        "final_state_and_exact_memory_match": 96,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 24,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-calls-native.log": "e95076d92ef44b8bcca067fd800a158f3520d80e77004e9642a98de4ba0c0321",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-calls-wasm.log": "647824e68bf40f05c4359414f502eadd158a5c4e0bca052f45f6b5adf5b455e3"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 96,
+        "all_fields_match": 96,
+        "final_state_and_exact_memory_match": 96,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 24,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-calls-short-native.log": "06094ccdca8a280bfe2157f20bc61d2c56908f6f64baa6ed083dd7d71eefee49",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-calls-short-wasm.log": "7cecad00177d93b8634e2d0b494ba32f7429f72e04eccca0086e1d8c8ec547d2"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-flags-native.log": "50ef7b97487074c738abd9846b8c7720084863f59772631e5e4b98ccf8acceba",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-flags-wasm.log": "fea91af81edc4c7b57cf558d6d930a860c54cd54bd395957900ec84da4429cea"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 64,
+        "all_fields_match": 64,
+        "final_state_and_exact_memory_match": 64,
+        "mismatched_fields": {},
+        "categories": {},
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/invariant-write-remap-native.log": "97cef62257c319440d15977573fdb413a2e9c962269e61b068f7f0679dcad9d6",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/invariant-write-remap-wasm.log": "acd5c5f81e0c0229f030aaeea4b2eb0d49fd2e310135100759c5622ae4a20d11"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 64,
+        "all_fields_match": 64,
+        "final_state_and_exact_memory_match": 64,
+        "mismatched_fields": {},
+        "categories": {},
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/invariant-remap-native.log": "bfbf95efd5ef5ddf551656bf7e41b109db760e2462c4be0df2814aca813f1700",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/invariant-remap-wasm.log": "94f09b10c3820d68ed8a2f165b92675104694b3321277bd96a3f82f0e871d0f3"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-segments-native.log": "240a93e592204abc33d90e19e112cb6ed0cf205055ee047b35b1e16994029f77",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-segments-wasm.log": "caa2f97d6aa9f3e308bbf0ceb56c8c56c5d5702e285c40e9ae169c04dd0ecb6d"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-memory-native.log": "976da5ac81cd4620c419ea89aa4932e7a8b8ae8002e99397da33e239179e6c6b",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-memory-wasm.log": "5834714f4ff1b1b3410dddc7ce70a6a6ab02f00017cee07a93f4323edd5e6e43"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-memory-chain-native.log": "f2b2569863f05615babb8bc95f1a5166deda77b9ac6b4f0c1bde888e2aafc2ee",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-memory-chain-wasm.log": "cc8a1153644027c64d6027321ed0b8a93e6de80fe1ae068006ccfeb5c2b797c7"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-wide-native.log": "d9b71da70b80a3e42376183ef4620b3377f8a5bd35ce1d504a8e06fce842ae52",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-wide-wasm.log": "2166ac8e5977ba0249df3b75449c350f3bc8175fdd2dd84b0b36d48e7b88311d"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-addressing-native.log": "1d5bc957fc9320b653ff4abf96f05537711f5382f71aa4f2d6b21c9a96a365a4",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-addressing-wasm.log": "ad34378fa191f8028fb048ac8053048922561195a46add2d5484944887f75aac"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-short-native.log": "76a0ad2b3f5e814671c5b5b58847f70ed1c1152a2808bfccdea98385173dd0e7",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-short-wasm.log": "c8519c025866e05296b63dd24c1a500fc21447dcba913b248f6e461bda520587"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 480,
+        "all_fields_match": 480,
+        "final_state_and_exact_memory_match": 480,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 120,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-recipes-native.log": "f46fa38d9ecb012b857af48251be8b134181ba8c558391532fba3dfe335d13ec",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/ir-recipes-wasm.log": "f7d3f06b5687b3c5d5a602c2dbfa478a2fa2a3178fdbbb7f22c6c79cce61f915"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/extended-native.log": "0686ee266d5e0f4b3ffa59c0e728d981cb592ec8c17058d01316f3e4bfa74f30",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/extended-wasm.log": "0686ee266d5e0f4b3ffa59c0e728d981cb592ec8c17058d01316f3e4bfa74f30"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/deferred-native.log": "0686ee266d5e0f4b3ffa59c0e728d981cb592ec8c17058d01316f3e4bfa74f30",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/deferred-wasm.log": "48d344ca4b6785f38b880f2f9adfa7ac2ead5905bfa5a161e9af3589bc4ecd6d"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/entry-budget-native.log": "b258b919ac9bd898513469e2c056c1c6443ac255a70d936412756621b36c70be",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/entry-budget-wasm.log": "b258b919ac9bd898513469e2c056c1c6443ac255a70d936412756621b36c70be"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/entry-budget-deferred-native.log": "b258b919ac9bd898513469e2c056c1c6443ac255a70d936412756621b36c70be",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/entry-budget-deferred-wasm.log": "513a70132b37cf86f2b201a9fe23d2f49d33fe1da90570aad6b90a6008a844d3"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/read-spans-native.log": "90c6cdd6c53ebc0c1dcba61d6fdbc33064a44b8c3ef77fb618911dd2c055c753",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/read-spans-wasm.log": "ea48decb98a1000759baa14816ffcdaf3047dfbe1fcbe26884931083ab35d42d"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/wide-snapshots-native.log": "e94326c029fd1c56681d544834fe540e83f733246b9d8d1bda7048b11c57ccee",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/wide-snapshots-wasm.log": "c125f4ed98404c0678e1deb85cf74c8eadd6edbfbc45af95710e4d683cc447c8"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/region-spans-native.log": "f2b2569863f05615babb8bc95f1a5166deda77b9ac6b4f0c1bde888e2aafc2ee",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/region-spans-wasm.log": "cc8a1153644027c64d6027321ed0b8a93e6de80fe1ae068006ccfeb5c2b797c7"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 48,
+        "all_fields_match": 48,
+        "final_state_and_exact_memory_match": 48,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 12,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/region-spans-interpreter-native.log": "f2b2569863f05615babb8bc95f1a5166deda77b9ac6b4f0c1bde888e2aafc2ee",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/region-spans-interpreter-wasm.log": "bd9fd9876ca0d4d02bed7720963e0451b8a0a391703ce36d5b145daa9f561b3b"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/entry-budget-interpreter-native.log": "b258b919ac9bd898513469e2c056c1c6443ac255a70d936412756621b36c70be",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/entry-budget-interpreter-wasm.log": "b258b919ac9bd898513469e2c056c1c6443ac255a70d936412756621b36c70be"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      },
+      {
+        "verified_leaf_features": 0,
+        "verified_exit_census": 0,
+        "verified_predicated_leaves": 1,
+        "cases": 96,
+        "all_fields_match": 96,
+        "final_state_and_exact_memory_match": 96,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 24,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/region-block-spans-native.log": "4597df56d1fbbcc64fa6426e7272a605325d96b8f5054bf07811007f5699e5c9",
+          "/home/claude/.scratch/eka-benchmark/unsafe-code-fault-3/region-block-spans-wasm.log": "74b7f6c1a08ae0831f3e8485e0687b542e4f6f181bbff8de9b9ffc6206a1ed78"
+        },
+        "differences": [],
+        "verified_execution_limits": "512,16,8,512",
+        "verified_tlb_hash": 1,
+        "verified_code_compare": 2,
+        "verified_ir_policy": 7
+      }
+    ]
+  },
+  "archive": {
+    "base": "6e9649582c67bb28ef8d49e365a3db0d43707664",
+    "files": {
+      "eka2l1.js": "4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33",
+      "source.patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "eka2l1.html": "8e0962709fa2a5cdff9d30125452c500123910e76bdee682092f9fd44a7aee69",
+      "UNSAFE_DIAGNOSTIC_ONLY.txt": "2f66b186f5c1ba3fed7f75034ae5da88c90668b0ee18bd694831348eb594cb05",
+      "eka2l1.data": "3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "a281fb81caba623642ad848a2647bd31dbf2ff17c4c8a4328082cc06bef78642",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_fault_native": "c276cf77260a97110bf8ad165146a3ed1fbfcb24129379dc0aa789c134302759",
+      "tests/test_aot_wasm.wasm": "be373f92148aec613850adef9f863df1a95c9f03256d2219ddab5ef9d942357d",
+      "tests/eka_cpu_fault_wasm.wasm": "e5734a53e2901fd6e223d6899a8d03aabb68456805620f7f63b9a9b072f39066",
+      "tests/test_aot_wasm.js": "fe249e80ffe8fa085a65e6d5bea68997660306d3231e54d7e5e470839d724ad4"
+    }
+  },
+  "harness": {
+    "accept_unsafe_code.py": {
+      "source": "from pathlib import Path\nimport os,sys,subprocess,json,shutil,hashlib,time\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'unsafe-code-candidate'\ne=dict(os.environ,PUPPETEER_EXECUTABLE_PATH='/usr/bin/chromium',EKA2L1_WASM_BUILD_DIR=str(a),EKA2L1_AOT_IR_MODE='7',EKA2L1_AOT_EAGER_REGIONS='0',EKA2L1_TLB_HASH='1',EKA2L1_SHARED_AUDIO='1',EKA2L1_BENCHMARK_AOT='5',EKA2L1_AOT_VERIFY='0',EKA2L1_CODE_COMPARE='2',EKA2L1_CODE_LOOKUP='0',EKA2L1_EXECUTION_LIMITS='512,16,8,512',EKA2L1_PREDICATED_LEAVES='1',EKA2L1_EXIT_CENSUS='0',EKA2L1_LEAF_FEATURES='0')\nfor k in ['LD_LIBRARY_PATH','EKA2L1_CODE_WRITE_PROTECT','EKA2L1_GUEST_PROFILE','EKA2L1_AOT_DIAGNOSTICS']:e.pop(k,None)\ndef phase(name,**kw):\n (s/'unsafe-code-acceptance-state.json').write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ndef run(args,name,cwd=r,env=e):\n with(s/name).open('w')as log:subprocess.run(args,cwd=cwd,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=3600)\n print(name+' PASS',flush=True)\ntry:\n phase('waiting_for_suite')\n for _ in range(900):\n  q=s/'unsafe-code-suite.log'\n  if q.exists()and '175 passed, 0 failed' in q.read_text():break\n  time.sleep(2)\n else:raise RuntimeError('Compiler suite did not finish successfully')\n phase('archiving')\n a.mkdir();(a/'tests').mkdir()\n for name in ['eka2l1.js','eka2l1.wasm','eka2l1.data','eka2l1.html','audio.js','audio-worklet.js']:shutil.copy2(r/'build-wasm/src/emu/wasm'/name,a/name)\n for name in ['test_aot_wasm.js','test_aot_wasm.wasm','eka_cpu_fault_wasm.js','eka_cpu_fault_wasm.wasm']:shutil.copy2(r/'build-wasm/src/tests/aot'/name,a/'tests'/name)\n shutil.copy2(r/'build/src/tests/eka_cpu_fault_native',a/'tests/eka_cpu_fault_native')\n (a/'UNSAFE_DIAGNOSTIC_ONLY.txt').write_text('Mode 3 deliberately ignores executable-byte mutations. Off by default; never deploy this experiment.\\n')\n (a/'source.patch').write_bytes(subprocess.check_output(['git','diff','HEAD','--binary'],cwd=r))\n (a/'source.json').write_text(json.dumps(dict(base=subprocess.check_output(['git','rev-parse','HEAD'],cwd=r,text=True).strip(),files={str(p.relative_to(a)):hashlib.sha256(p.read_bytes()).hexdigest()for p in a.rglob('*')if p.is_file()}),indent=2)+'\\n')\n for mode in [3,0]:\n  phase('faults',mode=mode)\n  run(['python3','src/tests/benchmark/run_cpu_fault_matrix.py',str(a),str(s/f'unsafe-code-fault-{mode}'),'--ir-policy','7','--code-compare','2','--tlb-hash','1','--execution-limits','512,16,8,512','--predicated-leaves','1','--exit-census','0','--leaf-features','0','--unsafe-code',str(mode)],f'unsafe-code-fault-{mode}.log')\n for scene in ['standard','long']:\n  frames,start,route=(1600,0,'snakes.input')if scene=='standard'else(360,42000000,'snakes-length-long.input')\n  reference=s/('merge-20260930-native/run-0/frames'if scene=='standard'else'merge-20260930-long-native/run-0/frames')\n  for mode in [3,0]:\n   phase('native_replay',scene=scene,mode=mode)\n   out=s/f'unsafe-code-replay-{scene}-{mode}'\n   run(['node','benchmark.ts',str(s/'assets'),str(out),str(frames),str(r/'src/tests/benchmark'/route),str(start)],f'unsafe-code-replay-{scene}-{mode}.log',r/'src/tests/wasm',dict(e,EKA2L1_UNSAFE_CODE=str(mode)))\n   run(['python3','src/tests/benchmark/compare.py',str(reference),str(out)],f'unsafe-code-compare-{scene}-{mode}.json')\n   comparison=json.loads((s/f'unsafe-code-compare-{scene}-{mode}.json').read_text());assert comparison['match']and comparison['frames']==frames\n   report=json.loads((out/'report.json').read_text());assert report['unsafe_code']==mode and report['verify_aot']==0 and report['ir_mode']==7 and report['leaf_features']==0 and report['predicated_leaves']==1\n phase('complete_pending_record')\nexcept Exception as error:phase('failure',error=str(error));raise\n",
+      "sha256": "bae565a4bdec45c1c98e2f7a141d73428c88fc25327a156203eb1612346b7d20"
+    },
+    "unsafe_code_finish_queue.py": {
+      "source": "from pathlib import Path\nimport subprocess,json,time\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark')\ndef phase(name,**kw):\n (s/'unsafe-code-finish-state.json').write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ndef run(script,log):\n with(s/log).open('w')as out:subprocess.run(['python3',str(s/script)],cwd=r,stdout=out,stderr=subprocess.STDOUT,check=True)\ntry:\n phase('waiting_for_acceptance')\n while True:\n  state=json.loads((s/'unsafe-code-acceptance-state.json').read_text())\n  if state['phase']=='failure':raise RuntimeError(state)\n  if state['phase']=='complete_pending_record':break\n  time.sleep(3)\n phase('recording_acceptance');run('record_unsafe_acceptance.py','unsafe-code-acceptance-record.log')\n phase('serial_timing');run('guarded_unsafe_code_timings.py','unsafe-code-timing-driver.log')\n phase('recording_timings');run('record_unsafe_timings.py','unsafe-code-timing-record.log')\n phase('full_mode_timings_complete_attribution_review_pending')\nexcept Exception as error:phase('failure',error=str(error));raise\n",
+      "sha256": "290dd88aa3a6a827ae53a89d50556c95eb51879159f1cbce9b17d39fe2906e5f"
+    },
+    "record_unsafe_acceptance.py": {
+      "source": "from pathlib import Path\nimport json,hashlib,subprocess,time\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');d=r/'src/tests/benchmark';a=s/'unsafe-code-candidate';p=d/'UNSAFE_CODE_EVIDENCE.json';e=json.loads(p.read_text())\nassert json.loads((s/'unsafe-code-acceptance-state.json').read_text())['phase']=='complete_pending_record'\nassert '175 passed, 0 failed' in (s/'unsafe-code-suite.log').read_text()\ne['archive']=json.loads((a/'source.json').read_text());e['compiler_suite']=(s/'unsafe-code-suite.log').read_text();e['focused']=(s/'unsafe-code-focused-final.log').read_text()\ne['build_logs']={name:(s/name).read_text()for name in ['unsafe-code-build.log','unsafe-code-native-build.log','unsafe-code-runtime-rebuild.log','unsafe-code-test-final-build.log']}\ne['faults']={}\nfor mode in [0,3]:\n f=json.loads((s/f'unsafe-code-fault-{mode}/summary.json').read_text());assert f['completed_cases']==40640 and all(x['all_fields_match']==x['cases']for x in f['results']);e['faults'][str(mode)]=f\n for log in (s/f'unsafe-code-fault-{mode}').glob('*-wasm.log'):\n  assert log.read_text().splitlines()[0]==f'PROBE_UNSAFE_CODE {mode}'\ne['replays']={}\nfor scene,frames,pcm in [('standard',1600,4656051),('long',360,2832756)]:\n for mode in [0,3]:\n  c=json.loads((s/f'unsafe-code-compare-{scene}-{mode}.json').read_text());q=json.loads((s/f'unsafe-code-replay-{scene}-{mode}/report.json').read_text())\n  assert c['match']and c['frames']==frames and c['audio']['sample_frames']==pcm\n  assert q['unsafe_code']==mode and q['verify_aot']==0 and q['ir_mode']==7 and q['execution_limits']==[512,16,8,512] and q['predicated_leaves']==1 and q['leaf_features']==0 and q['exit_census']==0\n  assert q['wasm_sha256']==e['archive']['files']['eka2l1.wasm']and q['loader_sha256']==e['archive']['files']['eka2l1.js']\n  e['replays'][f'{scene}-{mode}']={'comparison':c,'report':q}\ne['emission']={}\nfor path in sorted((s/'unsafe-code-modules').glob('*.wasm')):\n wat=path.with_suffix('.wat');subprocess.run([str(s/'emsdk/upstream/bin/wasm-dis'),str(path),'-o',str(wat)],check=True)\n text=wat.read_text();guards=sum(text.count('offset='+str(n))for n in [856,860]);mode=int(path.stem.split('-')[1]);assert (guards==0)==(mode in [2,3])\n e['emission'][path.name]=dict(bytes=path.stat().st_size,sha256=hashlib.sha256(path.read_bytes()).hexdigest(),code_interval_loads=guards,wat=text)\ne['harness']={}\nfor name in ['accept_unsafe_code.py','record_unsafe_acceptance.py','run_unsafe_code_timing.py','guarded_unsafe_code_timings.py']:\n e['harness'][name]=dict(source=(s/name).read_text(),sha256=hashlib.sha256((s/name).read_bytes()).hexdigest())\ne['status']='175 compiler tests, 81,280 explicit native fault comparisons, four exact native image/audio replays and emitted guard-removal verification pass; fully unsafe timing next.'\np.write_text(json.dumps(e,indent=2)+'\\n')\np=d/'UNSAFE_CODE_RESULTS.md';p.write_text(p.read_text()+'''\\n## Correctness and intentional incompatibility\\n\\nAll 175 normal-mode compiler tests pass, including 42 focused diagnostic checks.\nBoth mode 0 and mode 3 match 40,640 explicitly selected native instruction-fault\ncomparisons each. Both modes exactly match the native standard 1,600 images / \n4,656,051 PCM frames and longer 360 images / 2,832,756 PCM frames, with guest\nrecords, compiler policy, actual unsafe-mode readback and artifact hashes checked.\nReplay used verify_aot=0: no interpreter check or fallback concealed unsafe execution.\nThe API rejects mode changes after initialization.\n\nThe focused test intentionally demonstrates stale primary/dependency acceptance\nand stale execution after a store overwrites the next instruction; the control\nrejects or exits. Remap/lifetime/budget checks still pass. This is the requested\nsemantic limitation, not evidence that Snakes never mutates executable bytes.\n\nDisassembly outside timing confirms zero AOT_CODE_BEGIN/END loads in unsafe\nscalar-store and four-store entry-proof modules. Corresponding controls contain\nthose loads. Module sizes: scalar 627 -> 582 bytes; proof 2,822 -> 2,575 bytes.\nThe proof fixture asserts all four writes actually use the entry proof. Mode 1\nretains store guards; mode 2 emits the same guard-free paths as mode 3. The binary\nhas mutation-version/lifecycle/protection build options OFF; source also bypasses\nthem in full unsafe mode when built in, but those optional builds were not tested.\n\nFull unsafe-versus-control measurements now follow; no performance claim yet.\n''')\npaths=['src/emu/common/include/common/code_tracking.h','src/emu/common/src/code_tracking.cpp','src/emu/cpu/include/cpu/12l1r/tlb.h','src/emu/cpu/include/cpu/aot/code_cache.h','src/emu/cpu/src/aot/aot_runtime.cpp','src/emu/cpu/src/aot/arm_translator.cpp','src/emu/wasm/main.cpp','src/tests/aot/test_aot_wasm.cpp','src/tests/benchmark/compare_cpu_faults.py','src/tests/benchmark/cpu_fault_probe.cpp','src/tests/benchmark/run_cpu_fault_matrix.py','src/tests/benchmark/serial_variants.py','src/tests/wasm/benchmark.ts','src/tests/wasm/profile.ts','src/tests/benchmark/UNSAFE_CODE_RESULTS.md','src/tests/benchmark/UNSAFE_CODE_EVIDENCE.json']\nsubprocess.run(['git','add',*paths],cwd=r,check=True);subprocess.run(['git','commit','-m','Measure unsafe immutable executable bytes without scan or write guards'],cwd=r,check=True)\n(s/'unsafe-code-acceptance-recorded.json').write_text(json.dumps(dict(commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=r,text=True).strip(),accepted=True),indent=2)+'\\n')\n",
+      "sha256": "88691ec46a8a9455b5dff5b9ef9db7b55f35856ca1ce07f55044b588d04c0468"
+    },
+    "run_unsafe_code_timing.py": {
+      "source": "from pathlib import Path\nimport os,subprocess,json,sys\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'unsafe-code-candidate';baseline=s/'predicated-leaf-candidate'\nscene,batch=sys.argv[1:];assert scene in ('long','standard') and batch in ('a','b')\nstart,end,route=(42000000,60000000,'snakes-length-long.input')if scene=='long'else(60000000,78000000,'snakes.input')\norder={'a':['control','unsafe','baseline'],'b':['unsafe','baseline','control']}[batch]\nargs=['python3','src/tests/benchmark/serial_variants.py',str(s/'assets'),str(s/f'unsafe-code-timing-{scene}-{batch}')]+[f'{n}={baseline if n==\"baseline\" else a}'for n in order]\nfor name in order:\n mode=3 if name=='unsafe'else 0\n for option,value in [('ir-mode','7'),('eager-regions','0'),('tlb-hash','1'),('code-compare','2'),('code-lookup','0'),('execution-limits','512,16,8,512'),('unsafe-code',str(mode)),('predicated-leaves','1'),('leaf-features','0'),('input',str(r/'src/tests/benchmark'/route))]:args.extend(['--'+option,f'{name}={value}'])\nargs+=['--start-us',str(start),'--end-us',str(end)]\nsubprocess.run(args,cwd=r,env=dict(os.environ,EKA2L1_SHARED_AUDIO='1'),check=True)\nrows=json.loads((s/f'unsafe-code-timing-{scene}-{batch}/measurements.json').read_text());assert len(rows)==6\nassert len({tuple(x['measurement'][k]for k in ['first_instructions','last_instructions','presentations'])for x in rows})==1\nprint(scene,batch,'identical guest work verified',flush=True)\n",
+      "sha256": "94068d5a10bb96e7c25e3a609220287ccdcf34c0207db28e5fa7d334258378d7"
+    },
+    "guarded_unsafe_code_timings.py": {
+      "source": "from pathlib import Path\nimport os,time,json,subprocess,sys\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1');state=s/'unsafe-code-timing-state.json'\ndef phase(name,**kw):\n state.write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ndef foreign():\n rows={}\n for p in Path('/proc').iterdir():\n  if not p.name.isdecimal():continue\n  try:\n   args=(p/'cmdline').read_bytes().split(b'\\0');args=[x.decode(errors='replace')for x in args if x]\n   fields=(p/'stat').read_text().rsplit(')',1)[1].split();parent=int(fields[1])\n  except (OSError,ValueError,IndexError):continue\n  rows[int(p.name)]=(parent,args)\n own={os.getpid()}\n while True:\n  add={pid for pid,(parent,_)in rows.items()if parent in own}\n  if add<=own:break\n  own|=add\n found=[]\n for pid,(parent,args)in rows.items():\n  if pid in own or not args:continue\n  exe=Path(args[0]).name\n  active=exe.startswith('node')and any(x.endswith('/profile.ts')or x=='profile.ts'or('service-overlap-'in x and x.endswith('.ts'))or Path(x).name in ('benchmark.ts','live.ts','softkeys.ts','route.ts')or x.endswith('/test_aot_wasm.js')or x.endswith('/eka_cpu_fault_wasm.js')for x in args[1:])\n  active|=exe.startswith('eka_cpu_fault_')\n  active|=exe in ('cmake','ninja','make','cc1','cc1plus','clang','clang++','clang-23','wasm-opt','wasm-ld','ld.lld','emcc','em++')\n  if active:found.append(dict(pid=pid,parent=parent,args=args))\n return found\ndef telemetry(scene,batch,start):\n read_start=time.perf_counter()\n sample=dict(seconds=time.time()-start,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),frequency_khz={},temperatures_millidegrees={})\n for path in sorted(Path('/sys/devices/system/cpu/cpufreq').glob('policy*/scaling_cur_freq')):\n  try:sample['frequency_khz'][path.parent.name]=int(path.read_text())\n  except (OSError,ValueError):pass\n for path in sorted(Path('/sys/class/thermal').glob('thermal_zone*/temp')):\n  try:sample['temperatures_millidegrees'][path.parent.name+':'+(path.parent/'type').read_text().strip()]=int(path.read_text())\n  except (OSError,ValueError):pass\n try:sample['loadavg']=Path('/proc/loadavg').read_text().strip()\n except OSError:pass\n try:sample['completed_rows']=len(json.loads((s/f'unsafe-code-timing-{scene}-{batch}/measurements.json').read_text()))\n except (OSError,ValueError):sample['completed_rows']=0\n sample['observer_duration_seconds']=time.perf_counter()-read_start\n return sample\ntry:\n assert (s/'unsafe-code-acceptance-recorded.json').exists()\n assert (r/'src/tests/benchmark/UNSAFE_CODE_EVIDENCE.json').exists()\n for scene,batch in [('long','a'),('standard','a'),('long','b'),('standard','b')]:\n  phase('waiting_for_quiet',scene=scene,batch=batch)\n  quiet=0\n  while quiet<15:\n   jobs=foreign();quiet=0 if jobs else quiet+1;time.sleep(2)\n  phase('timing',scene=scene,batch=batch)\n  observed={};start=time.time();host_samples=[]\n  with(s/f'unsafe-code-timing-{scene}-{batch}-driver.log').open('w')as log:\n   child=subprocess.Popen(['bash','-lc',f'source {s}/write-protection-gpu.env\\npython3 {s}/run_unsafe_code_timing.py {scene} {batch}'],cwd=r,stdout=log,stderr=subprocess.STDOUT)\n   while child.poll()is None:\n    host_samples.append(telemetry(scene,batch,start))\n    for job in foreign():\n     key=str(job['pid']);observed.setdefault(key,dict(**job,first_seconds=time.time()-start))['last_seconds']=time.time()-start\n    time.sleep(2)\n  evidence=dict(telemetry=host_samples,telemetry_note='Passive sysfs readings every two seconds across startup, warmup and measurement; not a cause attribution or exclusion criterion.',scene=scene,batch=batch,returncode=child.returncode,observer_interval_seconds=2,foreign_jobs=list(observed.values()),note='Host process observer excludes its own descendants; it does not measure all possible host contention or normalize timings.')\n  (s/f'unsafe-code-timing-{scene}-{batch}-host.json').write_text(json.dumps(evidence,indent=2)+'\\n')\n  if child.returncode:raise RuntimeError('Timing harness failed')\n  if observed:raise RuntimeError('Observed concurrent profiling; completed batch retained, queue held')\n phase('all_timing_complete')\nexcept Exception as e:phase('failure',error=str(e));raise\n",
+      "sha256": "1fd9d87534f5c3a861b5d7599edbe85332d123b5298d0ea63818dca42e925748"
+    },
+    "record_unsafe_timings.py": {
+      "source": "from pathlib import Path\nimport json,hashlib,statistics,subprocess\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');d=r/'src/tests/benchmark';p=d/'UNSAFE_CODE_EVIDENCE.json';e=json.loads(p.read_text());e['timing']={}\ntext='\\n## Fully unsafe serial timings\\n\\nAll 24 planned observations are retained, including slow candidates and controls. Elapsed seconds for identical guest work within each route, lower is faster. Mode 3 is compared first; attribution modes have not been timed here.\\n\\n| Route/batch | Matching control | Fully unsafe | Untouched live |\\n| --- | ---: | ---: | ---: |\\n'\nratios=[]\nfor scene,batch in [('long','a'),('long','b'),('standard','a'),('standard','b')]:\n root=s/f'unsafe-code-timing-{scene}-{batch}';rows=json.loads((root/'measurements.json').read_text());assert len(rows)==6\n assert len({tuple(x['measurement'][k]for k in ['first_instructions','last_instructions','presentations'])for x in rows})==1\n host=json.loads((s/f'unsafe-code-timing-{scene}-{batch}-host.json').read_text());assert host['returncode']==0\n values={};means={}\n for mode in ['control','unsafe','baseline']:\n  selected=[x for x in rows if x['name'].rsplit('-',1)[0]==mode];assert len(selected)==2\n  for row in selected:assert row['unsafe_code']==(3 if mode=='unsafe'else 0) and row['ir_mode']==7 and row['predicated_leaves']==1 and row['leaf_features']==0 and row['execution_limits']==[512,16,8,512]\n  values[mode]=[x['measurement']['wall_seconds']for x in selected];means[mode]=statistics.mean(values[mode])\n ratios.append((scene,batch,means,values))\n e['timing'][f'{scene}-{batch}']=dict(rows=rows,means=means,host=host)\n text+=f\"| {scene} {batch} | {means['control']:.4f} | {means['unsafe']:.4f} | {means['baseline']:.4f} |\\n\"\ntext+='\\n'\nfor scene,batch,means,values in ratios:\n text+=f\"{scene} {batch}: \"\n for ref in ['control','baseline']:\n  pairs=[100*(c/u-1)for c,u in zip(values[ref],values['unsafe'])]\n  text+=f\"versus {ref} {100*(means[ref]/means['unsafe']-1):+.2f}% throughput, corresponding-half pairs {pairs[0]:+.2f}% / {pairs[1]:+.2f}%; \"\n text+='\\n\\n'\ntext+='These corresponding-half pairs are not all adjacent. Passive host readings and process observations accompany every batch; no observation is normalized or removed. Different older live compiler layout is a separate control. This deliberately unsafe semantic assumption is not suitable for promotion. No deployment or push.\\n'\ne['status']='Full unsafe versus matching and untouched controls measured; all 24 observations retained; unsafe mode remains off by default and never deployed.'\ne['harness']['record_unsafe_timings.py']=dict(source=Path(__file__).read_text(),sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())\np.write_text(json.dumps(e,indent=2)+'\\n');p=d/'UNSAFE_CODE_RESULTS.md';p.write_text(p.read_text().split('\\n## Fully unsafe serial timings')[0]+text)\nsubprocess.run(['git','add','src/tests/benchmark/UNSAFE_CODE_RESULTS.md','src/tests/benchmark/UNSAFE_CODE_EVIDENCE.json'],cwd=r,check=True)\nsubprocess.run(['git','commit','-m','Retain fully unsafe code-mutation cost measurements on both routes'],cwd=r,check=True)\nprint(text)\n",
+      "sha256": "63437facd24c63b64f35d516c32bb91afc6a03859fdb159419b5a5a6860d32e7"
+    }
+  }
 }

@@ -66,3 +66,5 @@ b37918c9c are held behind the unsafe-experiment completion marker. No new
 veneer work runs concurrently. All prior work remains preserved.
 
 Status: implementation building; no new performance result yet.
+
+Checkpoint: all 175 normal-mode compiler tests and 40,640 explicitly selected native fault comparisons in mode 3 pass. Matching control faults, exact native replays and all timings remain pending. Frozen archive and executable queue sources are retained in the evidence file.
