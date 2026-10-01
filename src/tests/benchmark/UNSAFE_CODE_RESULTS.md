@@ -79,3 +79,28 @@ window. Comparing those captures to native differs from frame zero (723,785 vs
 are retained. This is a configuration failure, not a measured unsafe-mode mismatch.
 The replay is repeated with the correct timestamp; completed 175-test and both
 40,640-case fault results are reused, not claimed as fresh runs.
+
+## Correctness and intentional incompatibility
+
+All 175 normal-mode compiler tests pass, including 42 focused diagnostic checks.
+Both mode 0 and mode 3 match 40,640 explicitly selected native instruction-fault
+comparisons each. Both modes exactly match the native standard 1,600 images / 
+4,656,051 PCM frames and longer 360 images / 2,832,756 PCM frames, with guest
+records, compiler policy, actual unsafe-mode readback and artifact hashes checked.
+Replay used verify_aot=0: no interpreter check or fallback concealed unsafe execution.
+The API rejects mode changes after initialization.
+
+The focused test intentionally demonstrates stale primary/dependency acceptance
+and stale execution after a store overwrites the next instruction; the control
+rejects or exits. Remap/lifetime/budget checks still pass. This is the requested
+semantic limitation, not evidence that Snakes never mutates executable bytes.
+
+Disassembly outside timing confirms zero AOT_CODE_BEGIN/END loads in unsafe
+scalar-store and four-store entry-proof modules. Corresponding controls contain
+those loads. Module sizes: scalar 627 -> 582 bytes; proof 2,822 -> 2,575 bytes.
+The proof fixture asserts all four writes actually use the entry proof. Mode 1
+retains store guards; mode 2 emits the same guard-free paths as mode 3. The binary
+has mutation-version/lifecycle/protection build options OFF; source also bypasses
+them in full unsafe mode when built in, but those optional builds were not tested.
+
+Full unsafe-versus-control measurements now follow; no performance claim yet.
