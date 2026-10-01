@@ -34,25 +34,46 @@ Acceptance is complete: all 167 compiler tests, 32 native tests, browser fronten
 
 Serial screening varies one axis at a time: windows 256/512/1024, leaf lengths 8/16/32, sites 0/8/16, runner caps 64/512/unlimited. Same-binary defaults and the untouched merged archive are separate controls; both current scenes use forward/reverse order. No scheduling parameter changes. Every observation and exact guest-instruction/presentation count is retained. Timings have not established an optimum.
 
+The runner control replaces a compile-time constant bound with a runtime-configurable check in the hot loop. Its contribution to the gap from the untouched archive is not isolated; both controls remain necessary.
+
 Larger windows/leaves may increase generated code, compile work and dependency validation even if they reduce returns. Removing the runner cap retains per-region state publication, lookup and exact validation. The profiler records warmup and final compiled-function/heap counts outside the timed window; these are broad startup/resource measures, not isolated compilation time. Dedicated exit instrumentation is disabled for acceptance timing.
 
-## Longer-route screening results
+## Completed independent-limit screening
 
-All twenty trials execute the same 3,031,637,220 guest instructions and 380 presentations from 42 to 60 guest seconds. Times below are forward / reverse observations in seconds, not confidence intervals.
+All forty observations are retained. Every trial within each route executes identical guest work. These are two observations per setting and route, not estimates of an optimum.
 
-| Setting | Forward | Reverse | Compiled functions |
-| --- | ---: | ---: | ---: |
-| default | 15.0739 | 15.7996 | 14,345 |
-| window256 | 16.5336 | 14.0533 | 14,364 |
-| window1024 | 12.8110 | 14.6896 | 14,296 |
-| leaf8 | 14.1944 | 14.8674 | 14,382 |
-| leaf32 | 14.7909 | 16.7873 | 14,298 |
-| sites0 | 16.4257 | 17.0803 | 14,497 |
-| sites16 | 14.3255 | 14.9606 | 14,366 |
-| cap64 | 12.6943 | 12.7533 | 14,345 |
-| uncapped | 13.3785 | 12.4046 | 14,345 |
-| baseline | 13.9830 | 11.8326 | 14,345 |
+### long
 
-This screen does not establish optimal limits. The unchanged archive varies from 13.9830 to 11.8326 seconds; the same-binary default is slower than that archive in both observations. The uncapped runner and cap 64 are promising against this instrumentable binary, but neither consistently beats the untouched archive. A source-window increase has the same limitation. Larger leaves/sites are not uniformly better; disabling inlining is costly in these samples. The standard-route screen and targeted adjacent confirmations are required before attributing a useful gain. No policy is promoted.
+Each trial: 3,031,637,220 guest instructions, 380 presentations. Seconds below are first and reverse-order samples.
 
-The independent runner control replaces the original constant `result.blocks < 512` with a runtime-configurable bound, including the zero/unlimited case. Even with diagnostic counters omitted, this changes the normal runner code. Its contribution to the same-binary-default versus untouched-archive gap is not isolated. Do not attribute that gap entirely to exit instrumentation, CPU frequency or any one limit.
+| Setting | First | Reverse | Mean | Compiled functions |
+| --- | ---: | ---: | ---: | ---: |
+| default | 15.0739 | 15.7996 | 15.4367 | 14,345 |
+| window256 | 16.5336 | 14.0533 | 15.2934 | 14,364 |
+| window1024 | 12.8110 | 14.6896 | 13.7503 | 14,296 |
+| leaf8 | 14.1944 | 14.8674 | 14.5309 | 14,382 |
+| leaf32 | 14.7909 | 16.7873 | 15.7891 | 14,298 |
+| sites0 | 16.4257 | 17.0803 | 16.7530 | 14,497 |
+| sites16 | 14.3255 | 14.9606 | 14.6430 | 14,366 |
+| cap64 | 12.6943 | 12.7533 | 12.7238 | 14,345 |
+| uncapped | 13.3785 | 12.4046 | 12.8916 | 14,345 |
+| baseline | 13.9830 | 11.8326 | 12.9078 | 14,345 |
+
+### standard
+
+Each trial: 2,976,635,366 guest instructions, 381 presentations. Seconds below are first and reverse-order samples.
+
+| Setting | First | Reverse | Mean | Compiled functions |
+| --- | ---: | ---: | ---: | ---: |
+| baseline | 14.0793 | 17.8965 | 15.9879 | 14,621 |
+| uncapped | 14.5755 | 14.3818 | 14.4787 | 14,621 |
+| cap64 | 15.3139 | 14.3401 | 14.8270 | 14,621 |
+| sites16 | 13.8366 | 14.6764 | 14.2565 | 14,644 |
+| sites0 | 14.4793 | 18.2934 | 16.3864 | 14,818 |
+| leaf32 | 13.7958 | 12.6263 | 13.2111 | 14,554 |
+| leaf8 | 14.8338 | 16.3951 | 15.6144 | 14,666 |
+| window1024 | 14.3560 | 16.6730 | 15.5145 | 14,545 |
+| window256 | 14.6477 | 14.1730 | 14.4104 | 14,662 |
+| default | 15.1980 | 12.5669 | 13.8825 | 14,621 |
+
+These broad screens are not adjacent paired confirmations for every setting. The untouched archive and same-binary default differ materially, and unchanged variants vary between orders. No setting is promoted from this screen. The tested range is hot windows 256-1024 bytes, leaves 8-32 instructions, zero to sixteen inline sites, and runner caps 64/512/unlimited. Correctness holds at the broader tested acceptance extremes; speed optima remain unresolved. In particular, removing the runner cap does not remove per-region state publication, validation or dispatch. The census-selected conditional-leaf fusion is measured separately at the original default limits.
