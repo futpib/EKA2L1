@@ -8,6 +8,7 @@
 #include <drivers/input/common.h>
 #include <drivers/audio/deterministic.h>
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -26,6 +27,7 @@ namespace eka2l1 {
                 timer->get_register_event("BenchmarkAudio"), next);
         });
         timer->schedule_event(10000, audio_event, timer->microseconds() + 10000);
+        if (common::benchmark::interactive) return;
         const char *path = std::getenv("EKA2L1_BENCHMARK_INPUT");
         if (!path) throw std::runtime_error("Set EKA2L1_BENCHMARK_INPUT to a replay file");
         std::ifstream input(path);
@@ -37,6 +39,9 @@ namespace eka2l1 {
             input.key_.state_ = (data & 1) ? drivers::key_state::pressed : drivers::key_state::released;
             winserv->queue_input_from_driver(input);
         });
+        const std::uint64_t replay_limit_us = !common::benchmark::retain_audio && common::performance::enabled
+            ? std::max(std::uint64_t(120000000), common::performance::end_us)
+            : 120000000;
         std::string line;
         std::uint64_t previous = 0;
         while (std::getline(input, line)) {
@@ -45,15 +50,18 @@ namespace eka2l1 {
             std::uint64_t us;
             unsigned key, down;
             std::string extra;
-            if (!(row >> us >> key >> down) || (row >> extra) || us < previous || us > 120000000 || key > 255 || down > 1)
+            if (!(row >> us >> key >> down) || (row >> extra) || us < previous || us > replay_limit_us || key > 255 || down > 1)
                 throw std::runtime_error("Invalid benchmark replay row: " + line);
             timer->schedule_event(us, event, (static_cast<std::uint64_t>(key) << 1) | down);
             previous = us;
         }
         const int limit = timer->register_event("BenchmarkLimit", [](std::uint64_t, int) {
-            LOG_ERROR(FRONTEND_CMDLINE, "Benchmark did not capture the requested frames within 120 virtual seconds");
+            LOG_ERROR(FRONTEND_CMDLINE, "Benchmark exceeded its virtual-time limit");
             std::_Exit(2);
         });
-        timer->schedule_event(120000000, limit, 0);
+        const std::uint64_t limit_us = !common::benchmark::retain_audio && common::performance::enabled
+            ? std::max(std::uint64_t(120000000), common::performance::end_us + 1000000)
+            : 120000000;
+        timer->schedule_event(limit_us, limit, 0);
     }
 }

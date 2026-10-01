@@ -1,0 +1,163 @@
+diff --git a/src/emu/common/include/common/guest_profile.h b/src/emu/common/include/common/guest_profile.h
+index 0f29e07f9..49cfe6e36 100644
+--- a/src/emu/common/include/common/guest_profile.h
++++ b/src/emu/common/include/common/guest_profile.h
+@@ -10,6 +10,7 @@
+ 
+ namespace eka2l1::common::guest_profile {
+     // Guest-thread-only counters, consumed after the performance phase handoff.
++    inline std::uint32_t fill_iterations[2]{};
+     inline bool enabled = false;
+     inline std::string quote(const std::string &s) {
+         std::ostringstream out;
+@@ -70,7 +71,7 @@ namespace eka2l1::common::guest_profile {
+         }
+         template<class Names> std::string report(Names name) const {
+             std::ostringstream out;
+-            out << "{\"stride\":" << stride << ",\"executed\":" << total[0]
++            out << "{\"fill_iterations\":[" << fill_iterations[0] << "," << fill_iterations[1] << "],\"stride\":" << stride << ",\"executed\":" << total[0]
+                 << ",\"decoded\":" << total[1] << ",\"dropped_samples\":[" << dropped[0] << ',' << dropped[1]
+                 << "],\"types\":[";
+             bool first = true;
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index 8ec6fc662..6683a3829 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -22,6 +22,8 @@
+ #include <cpu/aot/code_cache.h>
+ #include <common/performance.h>
+ #include <common/guest_profile.h>
++#include <common/deterministic.h>
++#include <set>
+ #include <cpu/dyncom/armstate.h>
+ #include <common/log.h>
+ #include <cpu/dyncom/arm_dyncom.h>
+@@ -169,9 +171,11 @@ static std::vector<wasm_func_def> hot_pending;
+ 
+ static void flush_hot_blocks() {
+     if (hot_pending.empty()) return;
++    const double emit_start = emscripten_get_now();
+     auto bytes = build_wasm_module(hot_pending, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+         {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++    fprintf(stderr, "CENSUS_CPP emit %llu %.6f\n", (unsigned long long)common::benchmark::virtual_us.load(), emscripten_get_now()-emit_start);
+     stage_aot_module(std::move(bytes), "hot-rom");
+     instantiate_staged_modules();
+     hot_pending.clear();
+@@ -259,6 +263,13 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+             if (++profile.compiled_blocks % profile.stride == 0) {
+                 core::code_mapping view;
+                 if (cpu->parent()->resolve_code) cpu->parent()->resolve_code(entry_pc & ~1u,view);
++                // Diagnostic only: bounded, side-effect-free mapping snapshots.
++                static std::set<std::pair<std::uint32_t,std::uint32_t>> captured;
++                if (view.bytes && captured.emplace(view.address_space,entry_pc).second) {
++                    fprintf(stderr,"CENSUS_CODE %u %u ",view.address_space,entry_pc);
++                    for (std::size_t j=0;j<std::min(view.size,std::size_t(512));++j) fprintf(stderr,"%02x",view.bytes[j]);
++                    fprintf(stderr,"\n");
++                }
+                 const auto width = (entry_pc & 1) ? 2u : 4u;
+                 std::uint32_t last = 0;
+                 if (!region_enabled && count && cpu->parent()->resolve_code && cpu->parent()->resolve_code((entry_pc & ~1u)+(count-1)*width,view)
+@@ -328,8 +339,10 @@ void observe_hot_pc(ARMul_State *cpu) {
+             const auto bytes = std::min(std::size_t(64), leaf.size);
+             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
+         };
++        const double translation_start = emscripten_get_now();
+         auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
+                             : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled, &leaves, defer_memory_enabled);
++        fprintf(stderr, "CENSUS_CPP translate %llu %.6f\n", (unsigned long long)common::benchmark::virtual_us.load(), emscripten_get_now()-translation_start);
+         if (tr.func.body.empty() || !tr.entry_supported) {
+             // Cache rejection against these exact bytes; retry only after mutation.
+             ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4))).rejected = true;
+@@ -439,12 +452,14 @@ static void prof_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { cou
+ // JS function that instantiates a WASM module and returns exported function
+ // addresses as a comma-separated string of "name:table_idx" pairs.
+ // Returns empty string on failure.
+-EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const std::uintptr_t *helpers), {
++EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const std::uintptr_t *helpers, double guest_us), {
+     try {
+         var wasmBytes = new Uint8Array(wasmMemory.buffer, bytes, len);
+         // Copy the bytes — the buffer may be detached during instantiation
+         wasmBytes = new Uint8Array(wasmBytes);
++        var t0 = performance.now();
+         var wasmModule = new WebAssembly.Module(wasmBytes);
++        var t1 = performance.now();
+ 
+         // wasmExports AND wasmTable.get can be JS abort wrappers. Native table
+         // access obtains the C++ function pointers as genuine WASM functions.
+@@ -458,6 +473,7 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
+         }};
+ 
+         var instance = new WebAssembly.Instance(wasmModule, importObj);
++        var t2 = performance.now();
+ 
+         // Collect exports and add them to Emscripten's function table
+         var results = [];
+@@ -471,6 +487,7 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
+             results.push(name + ':' + tableIdx);
+         }
+ 
++        err("CENSUS_JS " + JSON.stringify({guest_us:guest_us, bytes:wasmBytes.length, exports:results.length, compile_ms:t1-t0, instantiate_ms:t2-t1, table_ms:performance.now()-t2}));
+         var resultStr = results.join(',');
+         var len = lengthBytesUTF8(resultStr) + 1;
+         var ptr = _malloc(len);
+@@ -504,6 +521,9 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
+     const std::string &dll_name)
+ {
+     if (wasm_bytes.empty()) return 0;
++    static unsigned module_id = 0;
++    const auto capture_path = "/tmp/census-module-" + std::to_string(module_id++) + ".wasm";
++    if (FILE *f = fopen(capture_path.c_str(), "wb")) { fwrite(wasm_bytes.data(), 1, wasm_bytes.size(), f); fclose(f); }
+ 
+     const bool verify = verification_stride() != 0;
+     const std::uintptr_t helpers[] = {
+@@ -515,7 +535,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
+         reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? prof_write16 : raw_write16)
+     };
+     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
+-        static_cast<int>(wasm_bytes.size()), helpers);
++        static_cast<int>(wasm_bytes.size()), helpers, common::benchmark::virtual_us.load());
+ 
+     if (!result_str || result_str[0] == '\0') {
+         if (result_str) free(result_str);
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index cadb45ae2..275e6e678 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -18,6 +18,8 @@
+  */
+ 
+ #include <common/code_tracking.h>
++#include <common/guest_profile.h>
++#include <common/performance.h>
+ #include <cpu/aot/arm_translator.h>
+ #include <cpu/aot/state_locals.h>
+ 
+@@ -812,6 +814,27 @@ namespace eka2l1::arm::aot {
+             std::uint32_t cond = (inst >> 28) & 0xF;
+             bool handled = true;
+ 
++            // Diagnostic-only exact completed iterations of generic
++            // STR postincrement / SUBS counter,#1 / BNE backward triples.
++            if (!instruction.leaf && i >= 8 && inst == 0x1afffffc) {
++                std::uint32_t store, sub;
++                std::memcpy(&store, code+i-8, 4); std::memcpy(&sub, code+i-4, 4);
++                const auto base=(store>>16)&15, value=(store>>12)&15, counter=(sub>>12)&15;
++                if ((store & 0xfff00fff) == 0xe4800004 && (sub & 0xfff00fff) == 0xe2500001
++                    && ((sub>>16)&15)==counter && base!=counter && value!=counter && base!=value
++                    && base!=15 && value!=15 && counter!=15) {
++                    w.i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&common::performance::phase)));
++                    w.op(op_i32_load); leb(result.body,2); leb(result.body,0);
++                    w.i32_const(2); w.op(op_i32_eq); w.op(op_if); w.op(type_void);
++                    for (unsigned phase=0;phase<2;++phase) {
++                        const auto pointer=static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&common::guest_profile::fill_iterations[phase==0 ? 1 : 0]));
++                        w.i32_const(pointer);w.i32_const(pointer);w.op(op_i32_load);leb(result.body,2);leb(result.body,0);
++                        w.i32_const(1);w.op(op_i32_add);w.op(op_i32_store);leb(result.body,2);leb(result.body,0);
++                        if(phase==0)w.op(op_else);
++                    }
++                    w.op(op_end);
++                }
++            }
+             // Emit condition check
+             bool cond_opened = emit_cond_check(w, cond, TMP1, TMP2);
+ 

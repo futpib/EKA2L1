@@ -9,6 +9,10 @@ namespace eka2l1::arm::aot {
     // first textual use is after a callback or a conditional early return.
     struct state_local_cache {
         bool enabled = false;
+        bool runtime_fields = false;
+        // A result block carries the instruction count to one final writeback.
+        // Helper barriers still flush/reload at their original positions.
+        bool shared_return = false;
         std::uint32_t first_local = 0;
         std::map<std::uint32_t, std::uint32_t> locals;
         std::set<std::uint32_t> written;
@@ -19,7 +23,9 @@ namespace eka2l1::arm::aot {
             using S = state_offsets;
             return enabled && ((offset < S::PC && offset % 4 == 0)
                 || offset == S::NFLAG || offset == S::ZFLAG || offset == S::CFLAG
-                || offset == S::VFLAG || offset == S::TFLAG);
+                || offset == S::VFLAG || offset == S::TFLAG
+                || (runtime_fields && (offset == S::CPSR
+                    || (offset >= S::AOT_BUDGET && offset <= S::AOT_EXIT))));
         }
         std::uint32_t local(std::uint32_t offset) {
             auto it = locals.find(offset);
@@ -55,6 +61,18 @@ namespace eka2l1::arm::aot {
             if (!enabled) return;
             std::vector<std::uint8_t> body;
             transfer(body, true);
+            if (shared_return) { body.push_back(op_block); body.push_back(type_i32); }
+            // Segment call operands were recorded before deferred barriers.
+            // Relocate them using the final cache layout, before inserting bytes.
+            std::vector<std::uint8_t> flush;
+            transfer(flush, false);
+            const auto reload_size = body.size() - (shared_return ? 2u : 0u);
+            for (auto &call : function.outlined_calls) {
+                const auto original = call.call_offset;
+                call.call_offset += static_cast<std::uint32_t>(body.size());
+                for (const auto &point : barriers) if (point.position <= original)
+                    call.call_offset += static_cast<std::uint32_t>(point.reload ? reload_size : flush.size());
+            }
             std::size_t previous = 0;
             for (const auto &point : barriers) {
                 body.insert(body.end(), function.body.begin() + previous,
@@ -63,6 +81,11 @@ namespace eka2l1::arm::aot {
                 previous = point.position;
             }
             body.insert(body.end(), function.body.begin() + previous, function.body.end());
+            if (shared_return) {
+                body.push_back(op_end);
+                transfer(body, false);
+                body.push_back(op_return);
+            }
             function.body = std::move(body);
             function.num_locals += static_cast<std::uint32_t>(locals.size());
         }

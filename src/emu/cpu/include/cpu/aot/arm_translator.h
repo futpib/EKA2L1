@@ -20,8 +20,26 @@
 #pragma once
 
 #include <cpu/aot/thumb_translator.h>
+#include <functional>
 
 namespace eka2l1::arm::aot {
+    // Research selection at translation time; compile-time feature gates still
+    // apply. configured preserves the build's current behavior.
+    enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2, outlined_recipes = 3, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6, write_budget_chunks = 7, deferred_chunk_counts = 8, invariant_read_ir = 9, invariant_read_flag_ir = 10, inline_call_ir = 11, invariant_write_ir = 12, conditional_value_ir = 13, long_segments_ir = 14, stack_values_ir = 15, budget_gaps_ir = 16 };
+
+    inline bool parse_arm_ir_policy(const char *text, arm_ir_policy &out) {
+        if (!text) return false;
+        if (text[0] >= '0' && text[0] <= '9' && !text[1]) {
+            out = static_cast<arm_ir_policy>(text[0] - '0'); return true;
+        }
+        if (text[0] == '1' && (text[1] >= '0' && text[1] <= '6') && !text[2]) {
+            out = static_cast<arm_ir_policy>(10 + text[1] - '0'); return true;
+        }
+        return false;
+    }
+
+    using leaf_resolver = std::function<std::vector<std::uint8_t>(std::uint32_t)>;
+
     // Translate a block of ARM-mode code into a WASM function body.
     // ARM instructions are 32-bit fixed-width with condition codes in bits [31:28].
     //
@@ -37,5 +55,5 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings = nullptr,
-        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false);
+        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false, bool region = false, const leaf_resolver *leaves = nullptr, bool defer_memory = false, arm_ir_policy ir_policy = arm_ir_policy::configured);
 }

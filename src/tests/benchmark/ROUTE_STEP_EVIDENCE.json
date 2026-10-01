@@ -1,0 +1,253 @@
+{
+  "status": "diagnostic stepping validated; growth reproduction remains open",
+  "archive": "/home/claude/.scratch/eka-benchmark/route-step-candidate",
+  "source": {
+    "git_head": "8e02c72e1ec1ba0bdfe8be0809390f0689d7e047",
+    "hashes": {
+      "eka2l1.js": "6adfda89a8a48163433f9c8188e8fde37f8c4edee7090e147cd43fb7d8f255cf",
+      "source.patch": "ff6715629458d166c161afb080e0834008742291d43680b847143c30a2244346",
+      "eka2l1.html": "8e0962709fa2a5cdff9d30125452c500123910e76bdee682092f9fd44a7aee69",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "0b60d48f92f2e65d0c3011e82e11f63af68ed8784de330fe659e03ff75808eda",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_fault_native": "914186532f1626815773a2573d6a4025258bd9c62c37f3e7416670c38717d362",
+      "tests/test_aot_wasm.wasm": "83e5c24ea80c0e49ec228cfc09382cc0213c044b806fbd076758bed6d0b20709",
+      "tests/eka_compiler_probe": "607a88cbc5153257918f9342b309f7435fd1aae4f6746c445cee8433acfb82a6",
+      "tests/eka_cpu_fault_wasm.wasm": "e0282c906d9e950f28b2cb57c2fc1f529f80979420523654d6e8d241ad8b89d6",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+    },
+    "sources": {
+      "CMakeLists.txt": "27dae1b0f46165fb3fe097f8788bcfd9f83818b6f534092d8fe5dd1a1ec90752",
+      "src/emu/cpu/CMakeLists.txt": "bf21545c7acd8e328dfb8a1201ce2cdc2886ac5df006d18df04593d4a9247e81",
+      "src/emu/cpu/include/cpu/aot/thumb_translator.h": "32a48e8b73fb9b3453b54ae75113bf35e11dd0722afb37f34aa70ca24a34dc9b",
+      "src/emu/cpu/include/cpu/aot/state_locals.h": "46b201a72f1dcc91df86ec030500477e8f400739931b0dc2c76d0b3c7b9d72d3",
+      "src/emu/cpu/include/cpu/aot/region_ir.h": "db463007ed68f7012fc26c7f73a03b68d3fae3c7701df341640e2bc2f1385a2b",
+      "src/emu/cpu/src/aot/arm_translator.cpp": "8f741409ef64d8bd0cd29a1cb70329cdd07442859817378d96ae8cd700baed61",
+      "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "76f87cda16f82a8c9dfd45f10ff52ae16f493181835aaa5000710817728c5e0a",
+      "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "c544d5d0e994bd5e92638c151d08871e4ac35ede29e560e10f0d8e9ed472d063",
+      "src/emu/cpu/src/aot/wasm_emitter.cpp": "ff557b6bed576b5ea6645cfe1a440aa54b49b1ba6ee67bcfcfbfe1a0d7f1e3dc",
+      "src/emu/cpu/include/cpu/dyncom/armstate.h": "e3125ce68715bcb2e46998738280c18c339fffdc46e83827e7c20e6d012adfff",
+      "src/emu/cpu/src/dyncom/armstate.cpp": "86693e9ce40170887bb6d556c797b6c87f66f7df3531426cfadbb191ac0a6a7a",
+      "src/tests/aot/test_aot_wasm.cpp": "559769b64fc2ac5efa0df4920bca058052b5fc2e807021ddc548393980f621e8",
+      "src/tests/benchmark/cpu_fault_probe.cpp": "8b597d2934dbfbc471f9f310f30910795029649fc4832be3243a23e9be24b6f1",
+      "src/tests/cpu/aot.cpp": "53a11703ba12cb1b0dc168e91d479f9a0fb0f148d1fa3ba1841e6fcac42027e8",
+      "src/emu/cpu/include/cpu/aot/arm_translator.h": "fba25942b1dbb2b41bbc469b5c773e6812272fd46bc680f5e0c51741247cd43f",
+      "src/emu/cpu/src/aot/aot_runtime.cpp": "7fd705c357b951aca516c62c20b384a241f081f896cddc9d1b05a100a472cc2e",
+      "src/emu/wasm/main.cpp": "1019155fe256f9747e502772ef368594e6b494a36df3433b419ca5712b1aae8b",
+      "src/tests/wasm/profile.ts": "817a90027d3043fc3c04848bd1e06a48cebf83a4790d2f7cda37080ed0a4c098",
+      "src/tests/wasm/benchmark.ts": "049493a9007086802d5270704a72ad6c8f5dc6bafa950c9592f6ee86f656cad8",
+      "src/tests/wasm/test.ts": "20f200c7f34ca055eb94186071ed57d6c9f44a8abb2a103ae998bf9a7010cc2a",
+      "src/tests/benchmark/compiler_probe.cpp": "bc9cf9cb5090d3d3708512ff2a5320efec6d3840377ed2f1021c58badaf04afa",
+      "src/tests/benchmark/serial_variants.py": "e5b212885e2a0b25114d54f0a9014a59c0798d0e45de1986b6094dbf23e43bbc",
+      "src/emu/system/src/aot_setup.cpp": "38fec8b76ec6bf850604cf95fdf2a95a6e90ed9c1d748884a94e9f1d36b0e3cf"
+    }
+  },
+  "disabled_replay": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+      "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+      "writes": 0,
+      "callbacks": 10190,
+      "backend": "shared-dsp-cubeb-resampler",
+      "render_callbacks": 10190,
+      "gameplay_nonzero_samples": 7223662,
+      "gameplay_peak": 8449
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16263331210
+  },
+  "frontend": {
+    "path": "/home/claude/.scratch/eka-benchmark/route-step-frontend.log",
+    "sha256": "95f328e3813a7d561bc4ec78011e526253fc0d5d1f50a67c4640aa504ec11a09"
+  },
+  "completed_exploration": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-step-1",
+    "files": {
+      "ready.json": "f7b69fd65d866160dc5b7bf757696c4b68b8ce5994a3827ed56e5cf003437006",
+      "turn-to-green.png": "ab7244dccbb138a9dc39a9fd87be81265240a461a5d31f590ff494af3326dae2",
+      "same-time-again.png": "14492e71fe36eed4450deceb6c97789eb5bf195fd4a4a8a891dee778a292fb19",
+      "pickup-pass.png": "4cad73d37dd8d08f04c9f7f96f89c44a39599d605586bf07ca3f95389e47a0b2",
+      "cam3.png": "4901b2afd5f47dca74d1a3395ef308c0dc6969c3e4492ff01d130eab04b6d993",
+      "steps.jsonl": "406c9481639c388493a4b55156058c61f31222e66502ce3b7827cd4181540796",
+      "second-pickup.png": "8fbdc5109f46ecba0972da96c10a750321ae0f1ac868471b538445a5108988a0",
+      "input.jsonl": "b7bc915302cfa3718d2f1b9bb5f3d21db73a7d07e3ccb536e0c6bed1df1f239f",
+      "right-to-food.png": "92c1d3324361448e9a08366b7fa6dead4b7c6424a9d4b6024f6df1f5ccf4364b",
+      "commands.jsonl": "95c8e1a87ccd4b05c345a3175b1dfab9feee087f00af4279586e58b4ecba0050",
+      "after-first-pickup.png": "807f092efab98154ebb455d273483001a51cd5ee4abb61331c1a24ff88b2ada5",
+      "cam1.png": "c072905e26a96ea69b0be2a7528a9a779f4de0ff539195a85f854e70bd0cf244",
+      "right-settled.png": "14492e71fe36eed4450deceb6c97789eb5bf195fd4a4a8a891dee778a292fb19",
+      "toward-first-x.png": "11b5f26dbe98f97fc73d155819ccf275d7355aed914cb4c3b3cf9e727be5b3df",
+      "next-pickup.png": "c7802072b2e9f2f9cd78c65986cf62920eefbf488f252def24ff52d63d373302",
+      "browser.log": "ac9077491e9e0c29eb42fb2ee96556a720c20b451445cd6c525a8b31ced64d70",
+      "straight-follow.png": "d7bca63a7a52730a4d3c947892a95fa3a29b9b55a2e103945ff1a62132ca152e",
+      "circle-green.png": "84306f5c2335e1ab0b6a8db1b51bb379db26538ae50b5bdbc4bb054f0f3e2f8b",
+      "align-food-settle.png": "71e20b1d71f70c6681f6b800746abebeb8e2ee8ecde12a928d0ffb062912578d",
+      "cam2.png": "a02606028a55cf6f47c2ef73e535f3877d1df016ce580a7688c6c323f90a1fb5",
+      "shutdown.json": "a6468e67393fbfc34252468ed4a2042b98c6d7b56ebbedff31d0f20c9cb5e7ec",
+      "left-now.png": "fa8e778fcc0af435685415b02117cb23b0096b0702ab38ece38514433a7b1988",
+      "initial.png": "22f73570cdf88e69e6fef26e069066ecb1e63333a46b60b439a44810927c4379",
+      "first-pickup-approach.png": "aa28e6a4c4060bebc2ed9317f69fab82d4187d7c11028a6f6aae8faa81431c8c",
+      "align-food.png": "66bf42d359933da67a02d34ddd201c274bfb5f8b085350684e2ddd26711523e1"
+    }
+  },
+  "route_source_sha256": "5a8f9458687367da9b4eb505e6e6f39f9eebccc7ccb96dbc8e69d6a2787107d2",
+  "limitations": [
+    "Not deployed; no performance measurement under stepping.",
+    "First exploration reaches score205 then collides; no sustained growth established.",
+    "Compiler code and archived compiler/fault probes unchanged from f0e8c2651; not claimed as newly rerun tests."
+  ],
+  "second_exploration": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-step-2",
+    "shutdown": {
+      "passed": true,
+      "errors": []
+    },
+    "observed_score_start": 200,
+    "observed_score_end": 235,
+    "letter": "N in NOKIA",
+    "files": {
+      "commands.jsonl": "5e2e72d7e0a3f9bc4f44dce0ef0da631899234af2293a0d44309a31f61a77d90",
+      "input.jsonl": "f508fe96b3a488ff05c586588b8445ac71fe350112b37f71ce3bb0b0c15f3d0e",
+      "steps.jsonl": "52c8e36fd5c5bd8ce547aa3faf63e7079c8799ddddbb67bfc57cd20d5bf43df9",
+      "room-white-cell.png": "670cd355711bea08f048da851757867d0ad0989d1bd3d14a5c410df74d86e030"
+    }
+  },
+  "ordinary_served_replay": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-normal-replay-2",
+    "report": {
+      "frames": 800,
+      "start_us": 21000000,
+      "unique": true,
+      "wall_seconds": 55.642836422,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "8e4183e6a4397f5459fb5c1a3cf6e6dbb959bb3c7b622f0cc3e40da5dbb9a1dd",
+      "wasm_sha256": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "shared_audio": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "be6ac20fcd4ee20197cdd9d0da323f35b249ae3c",
+      "dirty_worktree": false
+    },
+    "metrics": {
+      "frames": 800,
+      "capture_wall_seconds": 38.2211,
+      "first_virtual_us": 21031559,
+      "duplicate_presentations": 799,
+      "last_virtual_us": 60939113,
+      "instructions": 9016490106
+    },
+    "observed_final_score": 235,
+    "observed_final_letter": "N in NOKIA",
+    "files": {
+      "frames.jsonl": "57d5deb4d8d5f7fe97aa0fdbdaee11e06266a608141665bd31eebd8c3114da77",
+      "report.json": "0c4dd670c0ecf2579319f1fc87d01e7d7e5cfa35f2545c9f8c1ca01e719eb326",
+      "metrics.json": "8ec895a2102379c1610c96b2b3c9c47b97fda29d0438d375d35e1f8d62f88917",
+      "frame-0799.png": "750a45a472b4992dcf65f66cf0a30f2df0031f13e1c9af78e8656cdd2edd0b87"
+    },
+    "windows": [
+      {
+        "guest_start_s": 21,
+        "guest_end_s": 26,
+        "captured_distinct_images_per_guest_second": 20.041942319290005,
+        "presentations_per_guest_second": 40.08388463858001,
+        "million_instructions_per_guest_second": 165.9185554172864
+      },
+      {
+        "guest_start_s": 26,
+        "guest_end_s": 31,
+        "captured_distinct_images_per_guest_second": 20.060647999456943,
+        "presentations_per_guest_second": 40.12129599891389,
+        "million_instructions_per_guest_second": 165.20621920614545
+      },
+      {
+        "guest_start_s": 31,
+        "guest_end_s": 36,
+        "captured_distinct_images_per_guest_second": 20.11494888690913,
+        "presentations_per_guest_second": 40.22989777381826,
+        "million_instructions_per_guest_second": 163.35709425080566
+      },
+      {
+        "guest_start_s": 36,
+        "guest_end_s": 41,
+        "captured_distinct_images_per_guest_second": 19.99115139137404,
+        "presentations_per_guest_second": 39.98230278274808,
+        "million_instructions_per_guest_second": 169.2402259928989
+      },
+      {
+        "guest_start_s": 41,
+        "guest_end_s": 46,
+        "captured_distinct_images_per_guest_second": 19.994296576410928,
+        "presentations_per_guest_second": 39.988593152821856,
+        "million_instructions_per_guest_second": 171.07037103759492
+      },
+      {
+        "guest_start_s": 46,
+        "guest_end_s": 51,
+        "captured_distinct_images_per_guest_second": 19.98782559713629,
+        "presentations_per_guest_second": 39.97565119427258,
+        "million_instructions_per_guest_second": 168.25663641236702
+      },
+      {
+        "guest_start_s": 51,
+        "guest_end_s": 56,
+        "captured_distinct_images_per_guest_second": 19.9907436798961,
+        "presentations_per_guest_second": 39.9814873597922,
+        "million_instructions_per_guest_second": 165.49251538479558
+      },
+      {
+        "guest_start_s": 56,
+        "guest_end_s": 61,
+        "captured_distinct_images_per_guest_second": 19.974318733057498,
+        "presentations_per_guest_second": 39.948637466114995,
+        "million_instructions_per_guest_second": 161.50818009497993
+      }
+    ],
+    "limitation": "Screenshot capture is not an uninstrumented throughput measurement. Snake length was not measured; this does not establish or refute length-dependent slowdown."
+  },
+  "early_short_exploration": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-step-5",
+    "initial_stop_us": 12050000,
+    "observations": "Introduction remained until Enter at guest 18.64 seconds. Right turn at 18.69 avoids the star; score remains 0 with visibly short tail at 20.98 seconds. Ordinary replay and length/headroom comparison pending.",
+    "shutdown": {
+      "passed": true,
+      "errors": []
+    },
+    "input": "/home/claude/.scratch/eka-benchmark/growth-short-route.input",
+    "input_sha256": "042edc423ba06a270dc34858ae5eaf79336dd4dcafa0411a0e152410a0245ca3",
+    "files": {
+      "ready.json": "2df9d20303f05132b36c4a62813c38740c39955bd3443aa92f3177f135a3cb73",
+      "commands.jsonl": "9cb9444b2c77f46f0c1eea3894deb23e7741039dfb623c472595f5e1d207c324",
+      "input.jsonl": "60674bce63d7cec4290dd5a5abcfec1751ca7a8f9f9267b81ad9863b98db55e7",
+      "start-play.png": "08f949d618e674b1a5c3132d14060f900b5186e087c0758cc29661caae7d0748",
+      "short-camera3.png": "32d16dda86774024c6d763291940c91c5e39f5bd6da067dd5434eb90e3f7de8f",
+      "short-straight.png": "1ed4c91be8ad16a739958ab113d232004b8dbc18e1b7666af221dac06b2ec537"
+    }
+  },
+  "early_start_attempts": [
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/growth-step-3",
+      "limitation": "Initial script edit used wrong working directory; old script ignored requested earlier stop and parked at23s. Stopped cleanly; no early-start evidence."
+    },
+    {
+      "path": "/home/claude/.scratch/eka-benchmark/growth-step-4",
+      "limitation": "20.05s stop worked but already score200. Stopped cleanly."
+    }
+  ]
+}

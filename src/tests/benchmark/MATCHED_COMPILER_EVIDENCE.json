@@ -1,0 +1,4225 @@
+{
+  "implementation_commit": "ac147d59d",
+  "scope": "Same-source native/WASM kernels; one general precise memory-miss prototype; no universal platform penalty or whole-game causal split",
+  "kernel_stats": [
+    {
+      "pc": 1879455500,
+      "calls": 5000000,
+      "native_ms": [
+        525.537,
+        527.041,
+        524.071,
+        524.295,
+        529.835,
+        528.591,
+        524.445,
+        522.993,
+        526.752,
+        540.05,
+        525.56,
+        526.02,
+        527.745,
+        525.117,
+        521.661,
+        581.628
+      ],
+      "wasm_ms": {
+        "0": [
+          593.2299995422363,
+          550.8099994659424,
+          555.8450002670288,
+          553.3599996566772,
+          555.8099994659424,
+          562.2399997711182,
+          558.3249998092651,
+          552.3699998855591,
+          741.3099994659424,
+          652.0550003051758,
+          640.6100006103516,
+          557.7000007629395,
+          556.8200006484985,
+          557.3000001907349,
+          555.7399997711182,
+          551.6050004959106
+        ],
+        "1": [
+          587.7849998474121,
+          582.4700002670288,
+          594.8800001144409,
+          594.2550001144409,
+          594.9349994659424,
+          595.960000038147,
+          583.2449998855591,
+          586.4400005340576,
+          721.7400007247925,
+          763.6850004196167,
+          613.960000038147,
+          586.7449998855591,
+          583.4450006484985,
+          586.9449996948242,
+          582.25,
+          589.0600004196167
+        ],
+        "2": [
+          488.0300006866455,
+          478.1000003814697,
+          500.05499935150146,
+          487.8450002670288,
+          491.335000038147,
+          496.01000022888184,
+          480.9949998855591,
+          482.789999961853,
+          590.7849998474121,
+          596.960000038147,
+          484.9399995803833,
+          488.0249996185303,
+          486.9099998474121,
+          485.32499980926514,
+          480.26499938964844,
+          477.38999938964844
+        ]
+      },
+      "native_median_ms": 525.79,
+      "wasm_median_ms": {
+        "0": 557.0600004196167,
+        "1": 588.4225001335144,
+        "2": 487.37750005722046
+      }
+    },
+    {
+      "pc": 1879129820,
+      "calls": 5000000,
+      "native_ms": [
+        97.9367,
+        98.0295,
+        98.0039,
+        98.6574,
+        99.8955,
+        98.3765,
+        100.275,
+        97.8025,
+        98.2195,
+        97.5533,
+        100.448,
+        98.5544,
+        98.2577,
+        97.1132,
+        97.2541,
+        97.2617
+      ],
+      "wasm_ms": {
+        "0": [
+          119.94999980926514,
+          121.99000072479248,
+          125.13500022888184,
+          119.82999992370605,
+          119.91499996185303,
+          119.38500022888184,
+          117.11000061035156,
+          118.07999992370605,
+          129.99499988555908,
+          124.03999996185303,
+          118.40999984741211,
+          117.59000015258789,
+          119.54999923706055,
+          121.18000030517578,
+          120.75500011444092,
+          119.19999980926514
+        ],
+        "1": [
+          114.02499961853027,
+          115.09500026702881,
+          118.83500003814697,
+          115.02000045776367,
+          114.13999938964844,
+          113.92499923706055,
+          111.54999923706055,
+          111.84000015258789,
+          114.23500061035156,
+          117.02500057220459,
+          112,
+          112.23000049591064,
+          115.21500015258789,
+          114.05499935150146,
+          114.4399995803833,
+          115.13999938964844
+        ],
+        "2": [
+          106.09500026702881,
+          105.91499996185303,
+          107.39499950408936,
+          120.60499954223633,
+          106.14500045776367,
+          105.21500015258789,
+          103.5,
+          103.375,
+          115.47500038146973,
+          115.9350004196167,
+          112.03999996185303,
+          111.83500003814697,
+          113.72499942779541,
+          111.74499988555908,
+          114.83500003814697,
+          115.23500061035156
+        ]
+      },
+      "native_median_ms": 98.1245,
+      "wasm_median_ms": {
+        "0": 119.87249994277954,
+        "1": 114.1875,
+        "2": 111.78999996185303
+      }
+    }
+  ],
+  "browser_batches": [
+    {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "edgeComparisons": 528,
+      "all": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "calls": 5000000,
+          "comparisons": 2784,
+          "timings": [
+            {
+              "round": 0,
+              "variant": 0,
+              "ms": 593.2299995422363
+            },
+            {
+              "round": 0,
+              "variant": 1,
+              "ms": 587.7849998474121
+            },
+            {
+              "round": 0,
+              "variant": 2,
+              "ms": 488.0300006866455
+            },
+            {
+              "round": 1,
+              "variant": 2,
+              "ms": 478.1000003814697
+            },
+            {
+              "round": 1,
+              "variant": 1,
+              "ms": 582.4700002670288
+            },
+            {
+              "round": 1,
+              "variant": 0,
+              "ms": 550.8099994659424
+            },
+            {
+              "round": 2,
+              "variant": 0,
+              "ms": 555.8450002670288
+            },
+            {
+              "round": 2,
+              "variant": 1,
+              "ms": 594.8800001144409
+            },
+            {
+              "round": 2,
+              "variant": 2,
+              "ms": 500.05499935150146
+            },
+            {
+              "round": 3,
+              "variant": 2,
+              "ms": 487.8450002670288
+            },
+            {
+              "round": 3,
+              "variant": 1,
+              "ms": 594.2550001144409
+            },
+            {
+              "round": 3,
+              "variant": 0,
+              "ms": 553.3599996566772
+            },
+            {
+              "round": 4,
+              "variant": 0,
+              "ms": 555.8099994659424
+            },
+            {
+              "round": 4,
+              "variant": 1,
+              "ms": 594.9349994659424
+            },
+            {
+              "round": 4,
+              "variant": 2,
+              "ms": 491.335000038147
+            },
+            {
+              "round": 5,
+              "variant": 2,
+              "ms": 496.01000022888184
+            },
+            {
+              "round": 5,
+              "variant": 1,
+              "ms": 595.960000038147
+            },
+            {
+              "round": 5,
+              "variant": 0,
+              "ms": 562.2399997711182
+            },
+            {
+              "round": 6,
+              "variant": 0,
+              "ms": 558.3249998092651
+            },
+            {
+              "round": 6,
+              "variant": 1,
+              "ms": 583.2449998855591
+            },
+            {
+              "round": 6,
+              "variant": 2,
+              "ms": 480.9949998855591
+            },
+            {
+              "round": 7,
+              "variant": 2,
+              "ms": 482.789999961853
+            },
+            {
+              "round": 7,
+              "variant": 1,
+              "ms": 586.4400005340576
+            },
+            {
+              "round": 7,
+              "variant": 0,
+              "ms": 552.3699998855591
+            }
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "calls": 5000000,
+          "comparisons": 384,
+          "timings": [
+            {
+              "round": 0,
+              "variant": 0,
+              "ms": 119.94999980926514
+            },
+            {
+              "round": 0,
+              "variant": 1,
+              "ms": 114.02499961853027
+            },
+            {
+              "round": 0,
+              "variant": 2,
+              "ms": 106.09500026702881
+            },
+            {
+              "round": 1,
+              "variant": 2,
+              "ms": 105.91499996185303
+            },
+            {
+              "round": 1,
+              "variant": 1,
+              "ms": 115.09500026702881
+            },
+            {
+              "round": 1,
+              "variant": 0,
+              "ms": 121.99000072479248
+            },
+            {
+              "round": 2,
+              "variant": 0,
+              "ms": 125.13500022888184
+            },
+            {
+              "round": 2,
+              "variant": 1,
+              "ms": 118.83500003814697
+            },
+            {
+              "round": 2,
+              "variant": 2,
+              "ms": 107.39499950408936
+            },
+            {
+              "round": 3,
+              "variant": 2,
+              "ms": 120.60499954223633
+            },
+            {
+              "round": 3,
+              "variant": 1,
+              "ms": 115.02000045776367
+            },
+            {
+              "round": 3,
+              "variant": 0,
+              "ms": 119.82999992370605
+            },
+            {
+              "round": 4,
+              "variant": 0,
+              "ms": 119.91499996185303
+            },
+            {
+              "round": 4,
+              "variant": 1,
+              "ms": 114.13999938964844
+            },
+            {
+              "round": 4,
+              "variant": 2,
+              "ms": 106.14500045776367
+            },
+            {
+              "round": 5,
+              "variant": 2,
+              "ms": 105.21500015258789
+            },
+            {
+              "round": 5,
+              "variant": 1,
+              "ms": 113.92499923706055
+            },
+            {
+              "round": 5,
+              "variant": 0,
+              "ms": 119.38500022888184
+            },
+            {
+              "round": 6,
+              "variant": 0,
+              "ms": 117.11000061035156
+            },
+            {
+              "round": 6,
+              "variant": 1,
+              "ms": 111.54999923706055
+            },
+            {
+              "round": 6,
+              "variant": 2,
+              "ms": 103.5
+            },
+            {
+              "round": 7,
+              "variant": 2,
+              "ms": 103.375
+            },
+            {
+              "round": 7,
+              "variant": 1,
+              "ms": 111.84000015258789
+            },
+            {
+              "round": 7,
+              "variant": 0,
+              "ms": 118.07999992370605
+            }
+          ]
+        }
+      ],
+      "wasm_sha256": "97f52acbccc001718777e0caec5f8288891ecf1cbd40b790839e216c32d7450d",
+      "browser": "Chrome/153.0.8010.52",
+      "inspection": false
+    },
+    {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "edgeComparisons": 528,
+      "all": [
+        {
+          "pc": 1879455500,
+          "cycles": 57,
+          "calls": 5000000,
+          "comparisons": 2784,
+          "timings": [
+            {
+              "round": 0,
+              "variant": 0,
+              "ms": 741.3099994659424
+            },
+            {
+              "round": 0,
+              "variant": 1,
+              "ms": 721.7400007247925
+            },
+            {
+              "round": 0,
+              "variant": 2,
+              "ms": 590.7849998474121
+            },
+            {
+              "round": 1,
+              "variant": 2,
+              "ms": 596.960000038147
+            },
+            {
+              "round": 1,
+              "variant": 1,
+              "ms": 763.6850004196167
+            },
+            {
+              "round": 1,
+              "variant": 0,
+              "ms": 652.0550003051758
+            },
+            {
+              "round": 2,
+              "variant": 0,
+              "ms": 640.6100006103516
+            },
+            {
+              "round": 2,
+              "variant": 1,
+              "ms": 613.960000038147
+            },
+            {
+              "round": 2,
+              "variant": 2,
+              "ms": 484.9399995803833
+            },
+            {
+              "round": 3,
+              "variant": 2,
+              "ms": 488.0249996185303
+            },
+            {
+              "round": 3,
+              "variant": 1,
+              "ms": 586.7449998855591
+            },
+            {
+              "round": 3,
+              "variant": 0,
+              "ms": 557.7000007629395
+            },
+            {
+              "round": 4,
+              "variant": 0,
+              "ms": 556.8200006484985
+            },
+            {
+              "round": 4,
+              "variant": 1,
+              "ms": 583.4450006484985
+            },
+            {
+              "round": 4,
+              "variant": 2,
+              "ms": 486.9099998474121
+            },
+            {
+              "round": 5,
+              "variant": 2,
+              "ms": 485.32499980926514
+            },
+            {
+              "round": 5,
+              "variant": 1,
+              "ms": 586.9449996948242
+            },
+            {
+              "round": 5,
+              "variant": 0,
+              "ms": 557.3000001907349
+            },
+            {
+              "round": 6,
+              "variant": 0,
+              "ms": 555.7399997711182
+            },
+            {
+              "round": 6,
+              "variant": 1,
+              "ms": 582.25
+            },
+            {
+              "round": 6,
+              "variant": 2,
+              "ms": 480.26499938964844
+            },
+            {
+              "round": 7,
+              "variant": 2,
+              "ms": 477.38999938964844
+            },
+            {
+              "round": 7,
+              "variant": 1,
+              "ms": 589.0600004196167
+            },
+            {
+              "round": 7,
+              "variant": 0,
+              "ms": 551.6050004959106
+            }
+          ]
+        },
+        {
+          "pc": 1879129820,
+          "cycles": 7,
+          "calls": 5000000,
+          "comparisons": 384,
+          "timings": [
+            {
+              "round": 0,
+              "variant": 0,
+              "ms": 129.99499988555908
+            },
+            {
+              "round": 0,
+              "variant": 1,
+              "ms": 114.23500061035156
+            },
+            {
+              "round": 0,
+              "variant": 2,
+              "ms": 115.47500038146973
+            },
+            {
+              "round": 1,
+              "variant": 2,
+              "ms": 115.9350004196167
+            },
+            {
+              "round": 1,
+              "variant": 1,
+              "ms": 117.02500057220459
+            },
+            {
+              "round": 1,
+              "variant": 0,
+              "ms": 124.03999996185303
+            },
+            {
+              "round": 2,
+              "variant": 0,
+              "ms": 118.40999984741211
+            },
+            {
+              "round": 2,
+              "variant": 1,
+              "ms": 112
+            },
+            {
+              "round": 2,
+              "variant": 2,
+              "ms": 112.03999996185303
+            },
+            {
+              "round": 3,
+              "variant": 2,
+              "ms": 111.83500003814697
+            },
+            {
+              "round": 3,
+              "variant": 1,
+              "ms": 112.23000049591064
+            },
+            {
+              "round": 3,
+              "variant": 0,
+              "ms": 117.59000015258789
+            },
+            {
+              "round": 4,
+              "variant": 0,
+              "ms": 119.54999923706055
+            },
+            {
+              "round": 4,
+              "variant": 1,
+              "ms": 115.21500015258789
+            },
+            {
+              "round": 4,
+              "variant": 2,
+              "ms": 113.72499942779541
+            },
+            {
+              "round": 5,
+              "variant": 2,
+              "ms": 111.74499988555908
+            },
+            {
+              "round": 5,
+              "variant": 1,
+              "ms": 114.05499935150146
+            },
+            {
+              "round": 5,
+              "variant": 0,
+              "ms": 121.18000030517578
+            },
+            {
+              "round": 6,
+              "variant": 0,
+              "ms": 120.75500011444092
+            },
+            {
+              "round": 6,
+              "variant": 1,
+              "ms": 114.4399995803833
+            },
+            {
+              "round": 6,
+              "variant": 2,
+              "ms": 114.83500003814697
+            },
+            {
+              "round": 7,
+              "variant": 2,
+              "ms": 115.23500061035156
+            },
+            {
+              "round": 7,
+              "variant": 1,
+              "ms": 115.13999938964844
+            },
+            {
+              "round": 7,
+              "variant": 0,
+              "ms": 119.19999980926514
+            }
+          ]
+        }
+      ],
+      "wasm_sha256": "97f52acbccc001718777e0caec5f8288891ecf1cbd40b790839e216c32d7450d",
+      "browser": "Chrome/153.0.8010.52",
+      "inspection": false
+    }
+  ],
+  "native_batches": [
+    [
+      {
+        "pc": 1879455500,
+        "comparisons": 928,
+        "calls": 5000000,
+        "ms": [
+          525.537,
+          527.041,
+          524.071,
+          524.295,
+          529.835,
+          528.591,
+          524.445,
+          522.993
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "comparisons": 128,
+        "calls": 5000000,
+        "ms": [
+          97.9367,
+          98.0295,
+          98.0039,
+          98.6574,
+          99.8955,
+          98.3765,
+          100.275,
+          97.8025
+        ]
+      }
+    ],
+    [
+      {
+        "pc": 1879455500,
+        "comparisons": 928,
+        "calls": 5000000,
+        "ms": [
+          526.752,
+          540.05,
+          525.56,
+          526.02,
+          527.745,
+          525.117,
+          521.661,
+          581.628
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "comparisons": 128,
+        "calls": 5000000,
+        "ms": [
+          98.2195,
+          97.5533,
+          100.448,
+          98.5544,
+          98.2577,
+          97.1132,
+          97.2541,
+          97.2617
+        ]
+      }
+    ]
+  ],
+  "compiler_commands": {
+    "compile": [
+      "/home/claude/.scratch/eka-benchmark/emsdk/upstream/bin/clang++",
+      "-DSPDLOG_COMPILED_LIB",
+      "-DSPDLOG_FMT_EXTERNAL",
+      "-I/home/claude/code/EKA2L1/build/src/tests",
+      "-I/home/claude/code/EKA2L1/src/emu/cpu/include",
+      "-I/home/claude/code/EKA2L1/build/src/emu/common/include",
+      "-I/home/claude/code/EKA2L1/src/emu/common/include",
+      "-I/home/claude/code/EKA2L1/src/external/fmt/include",
+      "-I/home/claude/code/EKA2L1/src/external/spdlog/include",
+      "-I/home/claude/code/EKA2L1/src/external/zlib",
+      "-g",
+      "-DNDEBUG",
+      "-std=gnu++20",
+      "-O3",
+      "-o",
+      "/home/claude/.scratch/eka-benchmark/matched-clang-local/kernel.o",
+      "-c",
+      "/home/claude/code/EKA2L1/src/tests/benchmark/matched_kernel.cpp"
+    ],
+    "link": [
+      "/home/claude/.scratch/eka-benchmark/emsdk/upstream/bin/clang++",
+      "-O2",
+      "-g",
+      "-DNDEBUG",
+      "/home/claude/.scratch/eka-benchmark/matched-clang-local/kernel.o",
+      "-o",
+      "/home/claude/.scratch/eka-benchmark/matched-clang-local/matched-clang",
+      "src/emu/cpu/libcpu.a",
+      "src/external/dynarmic/src/dynarmic/libdynarmic.a",
+      "src/external/dynarmic/externals/zydis/libZydis.a",
+      "src/external/dynarmic/externals/zydis/zycore/libZycore.a",
+      "src/external/dynarmic/externals/mcl/src/libmcl.a",
+      "src/emu/common/libcommon.a",
+      "src/external/spdlog/libspdlog.a",
+      "src/external/fmt/libfmt.a",
+      "src/external/libarchive/libarchive/libarchive.a",
+      "src/external/libzlibstatic.a",
+      "src/external/xz/liblzma.a",
+      "/usr/lib/libmd.so",
+      "src/external/libpugixml.a",
+      "src/external/re2/libre2.a",
+      "src/external/miniupnp/miniupnpc/libminiupnpc.a",
+      "-lpthread"
+    ],
+    "compiler": "clang version 21.0.0git (https:/github.com/llvm/llvm-project 8f7e57485ee73205e108d74abb5565d5c63beaca)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /home/claude/.scratch/eka-benchmark/emsdk/upstream/bin\n"
+  },
+  "faults": {
+    "cases": 672,
+    "all_fields_match": 672,
+    "final_state_and_exact_memory_match": 672,
+    "mismatched_fields": {},
+    "categories": {},
+    "little_endian_unmapped_cases": 168,
+    "little_endian_unmapped_differences": 0,
+    "inputs": {
+      "/home/claude/.scratch/eka-benchmark/matched-fault-native-extended.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+      "/home/claude/.scratch/eka-benchmark/matched-fault-final.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+    },
+    "differences": []
+  },
+  "replay": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+      "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+      "writes": 2029,
+      "callbacks": 2029,
+      "gameplay_nonzero_samples": 6907266,
+      "gameplay_peak": 8191
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16261337499
+  },
+  "game_trials": [
+    {
+      "name": "before-1",
+      "build": "/home/claude/.scratch/eka-benchmark/matched-game-base",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 19.6035,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "after-1",
+      "build": "/home/claude/.scratch/eka-benchmark/matched-game-final",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 17.2213,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "after-2",
+      "build": "/home/claude/.scratch/eka-benchmark/matched-game-final",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 30.2768,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "before-2",
+      "build": "/home/claude/.scratch/eka-benchmark/matched-game-base",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 29.5235,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      }
+    }
+  ],
+  "machine_code": [
+    {
+      "name": "JS:wasm-function[933]-933-liftoff",
+      "code_bytes": 113216,
+      "assembly": "00.asm",
+      "instructions": 24507,
+      "stack_operands": 3794,
+      "conditional_branches": 849,
+      "calls": 2113
+    },
+    {
+      "name": "JS:wasm-function[934]-934-liftoff",
+      "code_bytes": 1856,
+      "assembly": "01.asm",
+      "instructions": 440,
+      "stack_operands": 61,
+      "conditional_branches": 19,
+      "calls": 24
+    },
+    {
+      "name": "JS:wasm-function[925]-925-liftoff",
+      "code_bytes": 256,
+      "assembly": "02.asm",
+      "instructions": 73,
+      "stack_operands": 3,
+      "conditional_branches": 4,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[924]-924-liftoff",
+      "code_bytes": 320,
+      "assembly": "03.asm",
+      "instructions": 75,
+      "stack_operands": 9,
+      "conditional_branches": 4,
+      "calls": 4
+    },
+    {
+      "name": "JS:wasm-function[525]-525-liftoff",
+      "code_bytes": 896,
+      "assembly": "04.asm",
+      "instructions": 241,
+      "stack_operands": 83,
+      "conditional_branches": 11,
+      "calls": 12
+    },
+    {
+      "name": "JS:wasm-function[249]-249-liftoff",
+      "code_bytes": 1024,
+      "assembly": "05.asm",
+      "instructions": 247,
+      "stack_operands": 39,
+      "conditional_branches": 22,
+      "calls": 7
+    },
+    {
+      "name": "JS:wasm-function[66]-66-liftoff",
+      "code_bytes": 832,
+      "assembly": "06.asm",
+      "instructions": 222,
+      "stack_operands": 49,
+      "conditional_branches": 16,
+      "calls": 9
+    },
+    {
+      "name": "JS:wasm-function[42]-42-liftoff",
+      "code_bytes": 10240,
+      "assembly": "07.asm",
+      "instructions": 2783,
+      "stack_operands": 821,
+      "conditional_branches": 159,
+      "calls": 43
+    },
+    {
+      "name": "JS:wasm-function[493]-493-liftoff",
+      "code_bytes": 448,
+      "assembly": "08.asm",
+      "instructions": 98,
+      "stack_operands": 12,
+      "conditional_branches": 4,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[67]-67-liftoff",
+      "code_bytes": 1152,
+      "assembly": "09.asm",
+      "instructions": 299,
+      "stack_operands": 67,
+      "conditional_branches": 29,
+      "calls": 19
+    },
+    {
+      "name": "JS:wasm-function[167]-167-liftoff",
+      "code_bytes": 448,
+      "assembly": "10.asm",
+      "instructions": 110,
+      "stack_operands": 18,
+      "conditional_branches": 8,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[529]-529-liftoff",
+      "code_bytes": 512,
+      "assembly": "11.asm",
+      "instructions": 135,
+      "stack_operands": 31,
+      "conditional_branches": 5,
+      "calls": 7
+    },
+    {
+      "name": "JS:wasm-function[23]-23-liftoff",
+      "code_bytes": 448,
+      "assembly": "12.asm",
+      "instructions": 106,
+      "stack_operands": 19,
+      "conditional_branches": 10,
+      "calls": 11
+    },
+    {
+      "name": "JS:wasm-function[53]-53-liftoff",
+      "code_bytes": 704,
+      "assembly": "13.asm",
+      "instructions": 198,
+      "stack_operands": 45,
+      "conditional_branches": 11,
+      "calls": 11
+    },
+    {
+      "name": "JS:wasm-function[578]-578-liftoff",
+      "code_bytes": 192,
+      "assembly": "14.asm",
+      "instructions": 45,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[577]-577-liftoff",
+      "code_bytes": 256,
+      "assembly": "15.asm",
+      "instructions": 69,
+      "stack_operands": 13,
+      "conditional_branches": 3,
+      "calls": 6
+    },
+    {
+      "name": "JS:wasm-function[576]-576-liftoff",
+      "code_bytes": 256,
+      "assembly": "16.asm",
+      "instructions": 60,
+      "stack_operands": 11,
+      "conditional_branches": 3,
+      "calls": 6
+    },
+    {
+      "name": "JS:wasm-function[52]-52-liftoff",
+      "code_bytes": 448,
+      "assembly": "17.asm",
+      "instructions": 124,
+      "stack_operands": 27,
+      "conditional_branches": 5,
+      "calls": 10
+    },
+    {
+      "name": "JS:wasm-function[930]-930-liftoff",
+      "code_bytes": 128,
+      "assembly": "18.asm",
+      "instructions": 36,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[855]-855-liftoff",
+      "code_bytes": 1088,
+      "assembly": "19.asm",
+      "instructions": 226,
+      "stack_operands": 16,
+      "conditional_branches": 4,
+      "calls": 7
+    },
+    {
+      "name": "JS:wasm-function[908]-908-liftoff",
+      "code_bytes": 6848,
+      "assembly": "20.asm",
+      "instructions": 1696,
+      "stack_operands": 597,
+      "conditional_branches": 77,
+      "calls": 97
+    },
+    {
+      "name": "JS:wasm-function[469]-469-liftoff",
+      "code_bytes": 9216,
+      "assembly": "21.asm",
+      "instructions": 2263,
+      "stack_operands": 704,
+      "conditional_branches": 111,
+      "calls": 124
+    },
+    {
+      "name": "JS:wasm-function[532]-532-liftoff",
+      "code_bytes": 1792,
+      "assembly": "22.asm",
+      "instructions": 414,
+      "stack_operands": 106,
+      "conditional_branches": 11,
+      "calls": 14
+    },
+    {
+      "name": "JS:wasm-function[69]-69-liftoff",
+      "code_bytes": 1088,
+      "assembly": "23.asm",
+      "instructions": 253,
+      "stack_operands": 2,
+      "conditional_branches": 36,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[78]-78-liftoff",
+      "code_bytes": 2176,
+      "assembly": "24.asm",
+      "instructions": 561,
+      "stack_operands": 115,
+      "conditional_branches": 46,
+      "calls": 53
+    },
+    {
+      "name": "JS:wasm-function[819]-819-liftoff",
+      "code_bytes": 128,
+      "assembly": "25.asm",
+      "instructions": 36,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[75]-75-liftoff",
+      "code_bytes": 128,
+      "assembly": "26.asm",
+      "instructions": 27,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[814]-814-liftoff",
+      "code_bytes": 128,
+      "assembly": "27.asm",
+      "instructions": 36,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[809]-809-liftoff",
+      "code_bytes": 128,
+      "assembly": "28.asm",
+      "instructions": 36,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[804]-804-liftoff",
+      "code_bytes": 128,
+      "assembly": "29.asm",
+      "instructions": 36,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[799]-799-liftoff",
+      "code_bytes": 128,
+      "assembly": "30.asm",
+      "instructions": 36,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[794]-794-liftoff",
+      "code_bytes": 128,
+      "assembly": "31.asm",
+      "instructions": 36,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[789]-789-liftoff",
+      "code_bytes": 128,
+      "assembly": "32.asm",
+      "instructions": 36,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[784]-784-liftoff",
+      "code_bytes": 128,
+      "assembly": "33.asm",
+      "instructions": 36,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[779]-779-liftoff",
+      "code_bytes": 128,
+      "assembly": "34.asm",
+      "instructions": 36,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[246]-246-liftoff",
+      "code_bytes": 132928,
+      "assembly": "35.asm",
+      "instructions": 34782,
+      "stack_operands": 14361,
+      "conditional_branches": 1513,
+      "calls": 1483
+    },
+    {
+      "name": "JS:wasm-function[137]-137-liftoff",
+      "code_bytes": 256,
+      "assembly": "36.asm",
+      "instructions": 68,
+      "stack_operands": 15,
+      "conditional_branches": 2,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[403]-403-liftoff",
+      "code_bytes": 1408,
+      "assembly": "37.asm",
+      "instructions": 397,
+      "stack_operands": 157,
+      "conditional_branches": 18,
+      "calls": 18
+    },
+    {
+      "name": "JS:wasm-function[150]-150-liftoff",
+      "code_bytes": 384,
+      "assembly": "38.asm",
+      "instructions": 117,
+      "stack_operands": 29,
+      "conditional_branches": 2,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[339]-339-liftoff",
+      "code_bytes": 192,
+      "assembly": "39.asm",
+      "instructions": 60,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[413]-413-liftoff",
+      "code_bytes": 448,
+      "assembly": "40.asm",
+      "instructions": 118,
+      "stack_operands": 18,
+      "conditional_branches": 5,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[298]-298-liftoff",
+      "code_bytes": 256,
+      "assembly": "41.asm",
+      "instructions": 60,
+      "stack_operands": 12,
+      "conditional_branches": 3,
+      "calls": 6
+    },
+    {
+      "name": "JS:wasm-function[299]-299-liftoff",
+      "code_bytes": 256,
+      "assembly": "42.asm",
+      "instructions": 60,
+      "stack_operands": 12,
+      "conditional_branches": 3,
+      "calls": 6
+    },
+    {
+      "name": "JS:wasm-function[300]-300-liftoff",
+      "code_bytes": 256,
+      "assembly": "43.asm",
+      "instructions": 60,
+      "stack_operands": 12,
+      "conditional_branches": 3,
+      "calls": 6
+    },
+    {
+      "name": "JS:wasm-function[207]-207-liftoff",
+      "code_bytes": 704,
+      "assembly": "44.asm",
+      "instructions": 185,
+      "stack_operands": 43,
+      "conditional_branches": 8,
+      "calls": 8
+    },
+    {
+      "name": "JS:wasm-function[280]-280-liftoff",
+      "code_bytes": 1024,
+      "assembly": "45.asm",
+      "instructions": 274,
+      "stack_operands": 83,
+      "conditional_branches": 15,
+      "calls": 9
+    },
+    {
+      "name": "JS:wasm-function[182]-182-liftoff",
+      "code_bytes": 1536,
+      "assembly": "46.asm",
+      "instructions": 418,
+      "stack_operands": 147,
+      "conditional_branches": 20,
+      "calls": 13
+    },
+    {
+      "name": "JS:wasm-function[161]-161-liftoff",
+      "code_bytes": 192,
+      "assembly": "47.asm",
+      "instructions": 46,
+      "stack_operands": 9,
+      "conditional_branches": 2,
+      "calls": 4
+    },
+    {
+      "name": "JS:wasm-function[22]-22-liftoff",
+      "code_bytes": 3392,
+      "assembly": "48.asm",
+      "instructions": 890,
+      "stack_operands": 243,
+      "conditional_branches": 57,
+      "calls": 14
+    },
+    {
+      "name": "JS:wasm-function[27]-27-liftoff",
+      "code_bytes": 1408,
+      "assembly": "49.asm",
+      "instructions": 386,
+      "stack_operands": 137,
+      "conditional_branches": 17,
+      "calls": 14
+    },
+    {
+      "name": "JS:wasm-function[26]-26-liftoff",
+      "code_bytes": 1344,
+      "assembly": "50.asm",
+      "instructions": 371,
+      "stack_operands": 141,
+      "conditional_branches": 16,
+      "calls": 14
+    },
+    {
+      "name": "JS:wasm-function[25]-25-liftoff",
+      "code_bytes": 1344,
+      "assembly": "51.asm",
+      "instructions": 371,
+      "stack_operands": 141,
+      "conditional_branches": 16,
+      "calls": 14
+    },
+    {
+      "name": "JS:wasm-function[28]-28-liftoff",
+      "code_bytes": 2112,
+      "assembly": "52.asm",
+      "instructions": 582,
+      "stack_operands": 203,
+      "conditional_branches": 30,
+      "calls": 22
+    },
+    {
+      "name": "JS:wasm-function[329]-329-liftoff",
+      "code_bytes": 768,
+      "assembly": "53.asm",
+      "instructions": 208,
+      "stack_operands": 63,
+      "conditional_branches": 14,
+      "calls": 8
+    },
+    {
+      "name": "JS:wasm-function[74]-74-liftoff",
+      "code_bytes": 960,
+      "assembly": "54.asm",
+      "instructions": 241,
+      "stack_operands": 34,
+      "conditional_branches": 21,
+      "calls": 4
+    },
+    {
+      "name": "JS:wasm-function[38]-38-liftoff",
+      "code_bytes": 2688,
+      "assembly": "55.asm",
+      "instructions": 739,
+      "stack_operands": 270,
+      "conditional_branches": 38,
+      "calls": 28
+    },
+    {
+      "name": "JS:wasm-function[32]-32-liftoff",
+      "code_bytes": 1152,
+      "assembly": "56.asm",
+      "instructions": 303,
+      "stack_operands": 106,
+      "conditional_branches": 14,
+      "calls": 13
+    },
+    {
+      "name": "JS:wasm-function[64]-64-liftoff",
+      "code_bytes": 832,
+      "assembly": "57.asm",
+      "instructions": 212,
+      "stack_operands": 68,
+      "conditional_branches": 9,
+      "calls": 10
+    },
+    {
+      "name": "JS:wasm-function[177]-177-liftoff",
+      "code_bytes": 768,
+      "assembly": "58.asm",
+      "instructions": 198,
+      "stack_operands": 72,
+      "conditional_branches": 9,
+      "calls": 11
+    },
+    {
+      "name": "JS:wasm-function[335]-335-liftoff",
+      "code_bytes": 1344,
+      "assembly": "59.asm",
+      "instructions": 372,
+      "stack_operands": 141,
+      "conditional_branches": 16,
+      "calls": 14
+    },
+    {
+      "name": "JS:wasm-function[125]-125-liftoff",
+      "code_bytes": 32960,
+      "assembly": "60.asm",
+      "instructions": 8956,
+      "stack_operands": 3371,
+      "conditional_branches": 386,
+      "calls": 315
+    },
+    {
+      "name": "JS:wasm-function[542]-542-liftoff",
+      "code_bytes": 1856,
+      "assembly": "61.asm",
+      "instructions": 511,
+      "stack_operands": 182,
+      "conditional_branches": 21,
+      "calls": 22
+    },
+    {
+      "name": "JS:wasm-function[29]-29-liftoff",
+      "code_bytes": 2688,
+      "assembly": "62.asm",
+      "instructions": 739,
+      "stack_operands": 270,
+      "conditional_branches": 38,
+      "calls": 28
+    },
+    {
+      "name": "JS:wasm-function[81]-81-liftoff",
+      "code_bytes": 256,
+      "assembly": "63.asm",
+      "instructions": 59,
+      "stack_operands": 8,
+      "conditional_branches": 5,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[24]-24-liftoff",
+      "code_bytes": 640,
+      "assembly": "64.asm",
+      "instructions": 164,
+      "stack_operands": 55,
+      "conditional_branches": 8,
+      "calls": 9
+    },
+    {
+      "name": "JS:wasm-function[49]-49-liftoff",
+      "code_bytes": 640,
+      "assembly": "65.asm",
+      "instructions": 165,
+      "stack_operands": 55,
+      "conditional_branches": 8,
+      "calls": 9
+    },
+    {
+      "name": "JS:wasm-function[539]-539-liftoff",
+      "code_bytes": 704,
+      "assembly": "66.asm",
+      "instructions": 203,
+      "stack_operands": 64,
+      "conditional_branches": 7,
+      "calls": 9
+    },
+    {
+      "name": "JS:wasm-function[538]-538-liftoff",
+      "code_bytes": 8192,
+      "assembly": "67.asm",
+      "instructions": 2308,
+      "stack_operands": 847,
+      "conditional_branches": 116,
+      "calls": 72
+    },
+    {
+      "name": "JS:wasm-function[284]-284-liftoff",
+      "code_bytes": 2560,
+      "assembly": "68.asm",
+      "instructions": 697,
+      "stack_operands": 265,
+      "conditional_branches": 38,
+      "calls": 26
+    },
+    {
+      "name": "JS:wasm-function[111]-111-liftoff",
+      "code_bytes": 256,
+      "assembly": "69.asm",
+      "instructions": 56,
+      "stack_operands": 14,
+      "conditional_branches": 3,
+      "calls": 6
+    },
+    {
+      "name": "JS:wasm-function[224]-224-liftoff",
+      "code_bytes": 256,
+      "assembly": "70.asm",
+      "instructions": 56,
+      "stack_operands": 14,
+      "conditional_branches": 3,
+      "calls": 6
+    },
+    {
+      "name": "JS:wasm-function[287]-287-liftoff",
+      "code_bytes": 320,
+      "assembly": "71.asm",
+      "instructions": 72,
+      "stack_operands": 21,
+      "conditional_branches": 4,
+      "calls": 7
+    },
+    {
+      "name": "JS:wasm-function[183]-183-liftoff",
+      "code_bytes": 256,
+      "assembly": "72.asm",
+      "instructions": 56,
+      "stack_operands": 14,
+      "conditional_branches": 3,
+      "calls": 6
+    },
+    {
+      "name": "JS:wasm-function[54]-54-liftoff",
+      "code_bytes": 640,
+      "assembly": "73.asm",
+      "instructions": 161,
+      "stack_operands": 39,
+      "conditional_branches": 8,
+      "calls": 8
+    },
+    {
+      "name": "JS:wasm-function[369]-369-liftoff",
+      "code_bytes": 768,
+      "assembly": "74.asm",
+      "instructions": 204,
+      "stack_operands": 75,
+      "conditional_branches": 10,
+      "calls": 11
+    },
+    {
+      "name": "JS:wasm-function[334]-334-liftoff",
+      "code_bytes": 25280,
+      "assembly": "75.asm",
+      "instructions": 7097,
+      "stack_operands": 2767,
+      "conditional_branches": 311,
+      "calls": 218
+    },
+    {
+      "name": "JS:wasm-function[223]-223-liftoff",
+      "code_bytes": 2944,
+      "assembly": "76.asm",
+      "instructions": 809,
+      "stack_operands": 332,
+      "conditional_branches": 42,
+      "calls": 26
+    },
+    {
+      "name": "JS:wasm-function[143]-143-liftoff",
+      "code_bytes": 1408,
+      "assembly": "77.asm",
+      "instructions": 397,
+      "stack_operands": 154,
+      "conditional_branches": 16,
+      "calls": 15
+    },
+    {
+      "name": "JS:wasm-function[154]-154-liftoff",
+      "code_bytes": 960,
+      "assembly": "78.asm",
+      "instructions": 277,
+      "stack_operands": 94,
+      "conditional_branches": 10,
+      "calls": 11
+    },
+    {
+      "name": "JS:wasm-function[245]-245-liftoff",
+      "code_bytes": 640,
+      "assembly": "79.asm",
+      "instructions": 172,
+      "stack_operands": 57,
+      "conditional_branches": 11,
+      "calls": 10
+    },
+    {
+      "name": "JS:wasm-function[472]-472-liftoff",
+      "code_bytes": 1472,
+      "assembly": "80.asm",
+      "instructions": 337,
+      "stack_operands": 58,
+      "conditional_branches": 8,
+      "calls": 18
+    },
+    {
+      "name": "JS:wasm-function[70]-70-liftoff",
+      "code_bytes": 320,
+      "assembly": "81.asm",
+      "instructions": 82,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[851]-851-liftoff",
+      "code_bytes": 30784,
+      "assembly": "82.asm",
+      "instructions": 7628,
+      "stack_operands": 2283,
+      "conditional_branches": 414,
+      "calls": 30
+    },
+    {
+      "name": "JS:run-6-liftoff",
+      "code_bytes": 50944,
+      "assembly": "83.asm",
+      "instructions": 12018,
+      "stack_operands": 5777,
+      "conditional_branches": 289,
+      "calls": 37
+    },
+    {
+      "name": "JS:wasm-function[65]-65-liftoff",
+      "code_bytes": 512,
+      "assembly": "84.asm",
+      "instructions": 158,
+      "stack_operands": 47,
+      "conditional_branches": 11,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[65]-65-turbofan",
+      "code_bytes": 576,
+      "assembly": "85.asm",
+      "instructions": 157,
+      "stack_operands": 16,
+      "conditional_branches": 22,
+      "calls": 2
+    },
+    {
+      "name": "JS:wasm-function[538]-538-turbofan",
+      "code_bytes": 9472,
+      "assembly": "86.asm",
+      "instructions": 2295,
+      "stack_operands": 571,
+      "conditional_branches": 176,
+      "calls": 110
+    },
+    {
+      "name": "JS:wasm-function[472]-472-turbofan",
+      "code_bytes": 2624,
+      "assembly": "87.asm",
+      "instructions": 479,
+      "stack_operands": 25,
+      "conditional_branches": 10,
+      "calls": 6
+    },
+    {
+      "name": "JS:wasm-function[51]-51-liftoff",
+      "code_bytes": 1280,
+      "assembly": "88.asm",
+      "instructions": 325,
+      "stack_operands": 88,
+      "conditional_branches": 21,
+      "calls": 21
+    },
+    {
+      "name": "JS:wasm-function[793]-793-liftoff",
+      "code_bytes": 448,
+      "assembly": "89.asm",
+      "instructions": 120,
+      "stack_operands": 19,
+      "conditional_branches": 3,
+      "calls": 7
+    },
+    {
+      "name": "JS:wasm-function[58]-58-liftoff",
+      "code_bytes": 768,
+      "assembly": "90.asm",
+      "instructions": 198,
+      "stack_operands": 72,
+      "conditional_branches": 9,
+      "calls": 11
+    },
+    {
+      "name": "JS:wasm-function[139]-139-liftoff",
+      "code_bytes": 2944,
+      "assembly": "91.asm",
+      "instructions": 799,
+      "stack_operands": 303,
+      "conditional_branches": 41,
+      "calls": 29
+    },
+    {
+      "name": "JS:wasm-function[304]-304-liftoff",
+      "code_bytes": 448,
+      "assembly": "92.asm",
+      "instructions": 103,
+      "stack_operands": 10,
+      "conditional_branches": 6,
+      "calls": 4
+    },
+    {
+      "name": "JS:wasm-function[42]-42-turbofan",
+      "code_bytes": 10432,
+      "assembly": "93.asm",
+      "instructions": 2455,
+      "stack_operands": 292,
+      "conditional_branches": 270,
+      "calls": 39
+    },
+    {
+      "name": "JS:wasm-function[43]-43-liftoff",
+      "code_bytes": 1344,
+      "assembly": "94.asm",
+      "instructions": 348,
+      "stack_operands": 90,
+      "conditional_branches": 22,
+      "calls": 21
+    },
+    {
+      "name": "JS:wasm-function[798]-798-liftoff",
+      "code_bytes": 448,
+      "assembly": "95.asm",
+      "instructions": 119,
+      "stack_operands": 19,
+      "conditional_branches": 3,
+      "calls": 7
+    },
+    {
+      "name": "JS:wasm-function[187]-187-liftoff",
+      "code_bytes": 384,
+      "assembly": "96.asm",
+      "instructions": 105,
+      "stack_operands": 15,
+      "conditional_branches": 6,
+      "calls": 4
+    },
+    {
+      "name": "JS:wasm-function[852]-852-liftoff",
+      "code_bytes": 6336,
+      "assembly": "97.asm",
+      "instructions": 1591,
+      "stack_operands": 529,
+      "conditional_branches": 90,
+      "calls": 9
+    },
+    {
+      "name": "JS:run-6-liftoff",
+      "code_bytes": 9280,
+      "assembly": "98.asm",
+      "instructions": 2232,
+      "stack_operands": 899,
+      "conditional_branches": 73,
+      "calls": 11
+    },
+    {
+      "name": "JS:run-6-liftoff",
+      "code_bytes": 50944,
+      "assembly": "99.asm",
+      "instructions": 12018,
+      "stack_operands": 5777,
+      "conditional_branches": 289,
+      "calls": 37
+    },
+    {
+      "name": "JS:wasm-function[851]-851-turbofan",
+      "code_bytes": 23296,
+      "assembly": "100.asm",
+      "instructions": 4944,
+      "stack_operands": 514,
+      "conditional_branches": 465,
+      "calls": 66
+    },
+    {
+      "name": "JS:wasm-function[906]-906-liftoff",
+      "code_bytes": 128,
+      "assembly": "101.asm",
+      "instructions": 28,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[850]-850-liftoff",
+      "code_bytes": 128,
+      "assembly": "102.asm",
+      "instructions": 28,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[856]-856-liftoff",
+      "code_bytes": 320,
+      "assembly": "103.asm",
+      "instructions": 82,
+      "stack_operands": 6,
+      "conditional_branches": 6,
+      "calls": 8
+    },
+    {
+      "name": "JS:wasm-function[907]-907-liftoff",
+      "code_bytes": 192,
+      "assembly": "104.asm",
+      "instructions": 48,
+      "stack_operands": 2,
+      "conditional_branches": 2,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[22]-22-turbofan",
+      "code_bytes": 2560,
+      "assembly": "105.asm",
+      "instructions": 587,
+      "stack_operands": 51,
+      "conditional_branches": 72,
+      "calls": 6
+    },
+    {
+      "name": "JS:run-6-turbofan",
+      "code_bytes": 38272,
+      "assembly": "106.asm",
+      "instructions": 8349,
+      "stack_operands": 2494,
+      "conditional_branches": 318,
+      "calls": 36
+    },
+    {
+      "name": "JS:run-6-liftoff",
+      "code_bytes": 39360,
+      "assembly": "107.asm",
+      "instructions": 9410,
+      "stack_operands": 4213,
+      "conditional_branches": 250,
+      "calls": 13
+    },
+    {
+      "name": "JS:wasm-function[246]-246-turbofan",
+      "code_bytes": 127744,
+      "assembly": "108.asm",
+      "instructions": 28833,
+      "stack_operands": 8832,
+      "conditional_branches": 1753,
+      "calls": 1601
+    },
+    {
+      "name": "JS:run-6-turbofan",
+      "code_bytes": 25216,
+      "assembly": "109.asm",
+      "instructions": 5811,
+      "stack_operands": 1534,
+      "conditional_branches": 254,
+      "calls": 12
+    },
+    {
+      "name": "JS:wasm-function[923]-923-liftoff",
+      "code_bytes": 1280,
+      "assembly": "110.asm",
+      "instructions": 318,
+      "stack_operands": 62,
+      "conditional_branches": 20,
+      "calls": 19
+    },
+    {
+      "name": "JS:wasm-function[923]-923-turbofan",
+      "code_bytes": 1152,
+      "assembly": "111.asm",
+      "instructions": 261,
+      "stack_operands": 44,
+      "conditional_branches": 19,
+      "calls": 14
+    },
+    {
+      "name": "JS:run-6-liftoff",
+      "code_bytes": 9280,
+      "assembly": "112.asm",
+      "instructions": 2232,
+      "stack_operands": 899,
+      "conditional_branches": 73,
+      "calls": 11
+    },
+    {
+      "name": "JS:run-6-liftoff",
+      "code_bytes": 3520,
+      "assembly": "113.asm",
+      "instructions": 837,
+      "stack_operands": 285,
+      "conditional_branches": 32,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[852]-852-turbofan",
+      "code_bytes": 4096,
+      "assembly": "114.asm",
+      "instructions": 877,
+      "stack_operands": 110,
+      "conditional_branches": 90,
+      "calls": 7
+    },
+    {
+      "name": "JS:run-6-turbofan",
+      "code_bytes": 6208,
+      "assembly": "115.asm",
+      "instructions": 1468,
+      "stack_operands": 301,
+      "conditional_branches": 76,
+      "calls": 10
+    },
+    {
+      "name": "JS:run-6-turbofan",
+      "code_bytes": 1856,
+      "assembly": "116.asm",
+      "instructions": 448,
+      "stack_operands": 83,
+      "conditional_branches": 27,
+      "calls": 1
+    }
+  ],
+  "artifacts": {
+    "/home/claude/.scratch/eka-benchmark/matched-tests-final.log": "6835a23e2551a8cb90dbe040994482a454ee0451388b0a4c517174751282e8a7",
+    "/home/claude/.scratch/eka-benchmark/matched-tests-native.log": "bc68db0c4f44b16715e7bec92b5d12095315ae0a7925145ab07d596e1b38887e",
+    "/home/claude/.scratch/eka-benchmark/matched-tests-frontend.log": "472e1a8a0ef7eee8460a01010be4433c971a414e9c8c642ad275bc077c7337e1",
+    "/home/claude/.scratch/eka-benchmark/matched-fault-final.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+    "/home/claude/.scratch/eka-benchmark/matched-fault-native-extended.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+    "/home/claude/.scratch/eka-benchmark/matched-reference-native-final.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+    "/home/claude/.scratch/eka-benchmark/matched-reference-wasm-final.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+    "/home/claude/.scratch/eka-benchmark/matched-final1600-comparison.json": "8d92457779aca5c0f1b6aed46d90a2257ac16faf39f04678712c2a00dd658dec",
+    "/home/claude/.scratch/eka-benchmark/matched-clang-local/commands.json": "8eb727ca9ff7b73f854f4d8aa445230937df3eb2a02f4523b8b2b32c87a436ea"
+  },
+  "builds": {
+    "matched-game-base": {
+      "path": "/home/claude/.scratch/eka-benchmark/matched-game-base",
+      "wasm_sha256": "9d2914ec702aed86379940bdb5c7f1d308581fe3aebe9d24084018c3b8ecc232"
+    },
+    "matched-game-final": {
+      "path": "/home/claude/.scratch/eka-benchmark/matched-game-final",
+      "wasm_sha256": "451090fe4a659127c4d5c4b96fd3f87a880f361c70c0e37c42e95d1c4a7f6c45"
+    }
+  },
+  "excluded_explorations": [
+    "Outlined reference and reference without SIMD: different source/build policy from final control",
+    "Initial GCC native run missing prefix oracle: incomplete",
+    "Initial zero code guard reference: replaced by nonzero guard before final timings",
+    "V8 inspection timings: debugger/JIT dumping and overlapping correctness work",
+    "Broad deferred writeback prototype: 176 callback-state mismatches, restricted before acceptance"
+  ],
+  "limitations": [
+    "Two captured kernels, one game; not a universal WASM overhead estimate",
+    "Native pointers and allocation layout differ from WASM",
+    "Same C++ reference retains our checks; native Qt Dynarmic uses a different execution policy",
+    "Whole-game trials retain shared-host outliers; no separate variance investigation",
+    "Static code sizes and stack operands do not measure executed cost"
+  ],
+  "live": {
+    "candidate": {
+      "start": {
+        "guest": 23427623,
+        "inputs": 26,
+        "frames": 924
+      },
+      "end": {
+        "guest": 145856519,
+        "inputs": 26,
+        "frames": 5784
+      },
+      "host_seconds": 120.493503454,
+      "resources": {
+        "startup": {
+          "tmp": [],
+          "worker_pool": {
+            "running": 19,
+            "unused": 13
+          },
+          "selected_files": [
+            0,
+            0,
+            0
+          ],
+          "linear_bytes": 322174976,
+          "allocator": {
+            "guest_us": 10000,
+            "instructions": 0,
+            "compiled_functions": 0,
+            "allocated_bytes": 290301280,
+            "free_bytes": 17142128
+          },
+          "pss_kib": 1579992
+        },
+        "final": {
+          "tmp": [],
+          "worker_pool": {
+            "running": 19,
+            "unused": 13
+          },
+          "selected_files": [
+            0,
+            0,
+            0
+          ],
+          "linear_bytes": 598278144,
+          "allocator": {
+            "guest_us": 146046899,
+            "instructions": 23098368502,
+            "compiled_functions": 15307,
+            "allocated_bytes": 573417264,
+            "free_bytes": 17420192
+          },
+          "pss_kib": 1602172
+        }
+      },
+      "auto_start": false,
+      "sampling": false,
+      "profile_window": {
+        "begin": null,
+        "end": null
+      },
+      "measurement": null,
+      "renderer": "See gpu.json for physical GPU details",
+      "realtime_ratio": 1.0160622148955845,
+      "input_delivery_ms": [
+        1.2416720000001078,
+        0.9206199999989622,
+        1.0510560000002442,
+        1.5122950000004494,
+        1.679749000000811,
+        4.005758999999671,
+        1.103624999999738,
+        1.3740470000011555,
+        1.0593279999993683,
+        1.0209020000002056,
+        0.9464360000019951,
+        0.9987359999977343
+      ],
+      "samples": [
+        {
+          "host_seconds": 1.0019410439999992,
+          "guest": 24385372,
+          "inputs": 26,
+          "frames": 962
+        },
+        {
+          "host_seconds": 2.0033477859999986,
+          "guest": 25175162,
+          "inputs": 26,
+          "frames": 994
+        },
+        {
+          "host_seconds": 3.0052312759999986,
+          "guest": 26091208,
+          "inputs": 26,
+          "frames": 1030
+        },
+        {
+          "host_seconds": 4.006204839999999,
+          "guest": 27158962,
+          "inputs": 26,
+          "frames": 1074
+        },
+        {
+          "host_seconds": 5.007195680999997,
+          "guest": 28232204,
+          "inputs": 26,
+          "frames": 1116
+        },
+        {
+          "host_seconds": 6.008547579999998,
+          "guest": 29414444,
+          "inputs": 26,
+          "frames": 1164
+        },
+        {
+          "host_seconds": 7.0091256540000035,
+          "guest": 30556456,
+          "inputs": 26,
+          "frames": 1210
+        },
+        {
+          "host_seconds": 8.011238577999997,
+          "guest": 31732064,
+          "inputs": 26,
+          "frames": 1256
+        },
+        {
+          "host_seconds": 9.012743664000002,
+          "guest": 32953214,
+          "inputs": 26,
+          "frames": 1306
+        },
+        {
+          "host_seconds": 10.014009683999998,
+          "guest": 34112878,
+          "inputs": 26,
+          "frames": 1352
+        },
+        {
+          "host_seconds": 11.015823121,
+          "guest": 35250087,
+          "inputs": 26,
+          "frames": 1398
+        },
+        {
+          "host_seconds": 12.018024550000002,
+          "guest": 36414166,
+          "inputs": 26,
+          "frames": 1444
+        },
+        {
+          "host_seconds": 13.019552445,
+          "guest": 37610625,
+          "inputs": 26,
+          "frames": 1492
+        },
+        {
+          "host_seconds": 14.020912202,
+          "guest": 38800011,
+          "inputs": 26,
+          "frames": 1540
+        },
+        {
+          "host_seconds": 15.022962923,
+          "guest": 39969129,
+          "inputs": 26,
+          "frames": 1586
+        },
+        {
+          "host_seconds": 16.024500853,
+          "guest": 41163438,
+          "inputs": 26,
+          "frames": 1634
+        },
+        {
+          "host_seconds": 17.026124999,
+          "guest": 42313652,
+          "inputs": 26,
+          "frames": 1680
+        },
+        {
+          "host_seconds": 18.027534112,
+          "guest": 43481594,
+          "inputs": 26,
+          "frames": 1726
+        },
+        {
+          "host_seconds": 19.029421457999998,
+          "guest": 44663695,
+          "inputs": 26,
+          "frames": 1774
+        },
+        {
+          "host_seconds": 20.030969567,
+          "guest": 45755809,
+          "inputs": 26,
+          "frames": 1818
+        },
+        {
+          "host_seconds": 21.101568383999997,
+          "guest": 46962126,
+          "inputs": 26,
+          "frames": 1866
+        },
+        {
+          "host_seconds": 22.102749904999996,
+          "guest": 48006234,
+          "inputs": 26,
+          "frames": 1908
+        },
+        {
+          "host_seconds": 23.104847425,
+          "guest": 48802879,
+          "inputs": 26,
+          "frames": 1940
+        },
+        {
+          "host_seconds": 24.106569772000004,
+          "guest": 49505358,
+          "inputs": 26,
+          "frames": 1968
+        },
+        {
+          "host_seconds": 25.108657999000002,
+          "guest": 50219473,
+          "inputs": 26,
+          "frames": 1996
+        },
+        {
+          "host_seconds": 26.109824013999997,
+          "guest": 51048063,
+          "inputs": 26,
+          "frames": 2029
+        },
+        {
+          "host_seconds": 27.112082884999996,
+          "guest": 51808246,
+          "inputs": 26,
+          "frames": 2060
+        },
+        {
+          "host_seconds": 28.114191794,
+          "guest": 52556357,
+          "inputs": 26,
+          "frames": 2090
+        },
+        {
+          "host_seconds": 29.115828781999998,
+          "guest": 53300299,
+          "inputs": 26,
+          "frames": 2120
+        },
+        {
+          "host_seconds": 30.117912707999995,
+          "guest": 54165917,
+          "inputs": 26,
+          "frames": 2154
+        },
+        {
+          "host_seconds": 31.119704264,
+          "guest": 55264714,
+          "inputs": 26,
+          "frames": 2198
+        },
+        {
+          "host_seconds": 32.120882599999995,
+          "guest": 56411668,
+          "inputs": 26,
+          "frames": 2244
+        },
+        {
+          "host_seconds": 33.122914663,
+          "guest": 57458423,
+          "inputs": 26,
+          "frames": 2286
+        },
+        {
+          "host_seconds": 34.124464237,
+          "guest": 58510068,
+          "inputs": 26,
+          "frames": 2328
+        },
+        {
+          "host_seconds": 35.126163598,
+          "guest": 59610314,
+          "inputs": 26,
+          "frames": 2372
+        },
+        {
+          "host_seconds": 36.12738263599999,
+          "guest": 60762393,
+          "inputs": 26,
+          "frames": 2418
+        },
+        {
+          "host_seconds": 37.129420173999996,
+          "guest": 61959882,
+          "inputs": 26,
+          "frames": 2466
+        },
+        {
+          "host_seconds": 38.130139783000004,
+          "guest": 63158637,
+          "inputs": 26,
+          "frames": 2514
+        },
+        {
+          "host_seconds": 39.132072478000005,
+          "guest": 64305850,
+          "inputs": 26,
+          "frames": 2560
+        },
+        {
+          "host_seconds": 40.132753898,
+          "guest": 65465181,
+          "inputs": 26,
+          "frames": 2606
+        },
+        {
+          "host_seconds": 41.17962408900001,
+          "guest": 66659019,
+          "inputs": 26,
+          "frames": 2654
+        },
+        {
+          "host_seconds": 42.181543145999996,
+          "guest": 67801520,
+          "inputs": 26,
+          "frames": 2700
+        },
+        {
+          "host_seconds": 43.182741680999996,
+          "guest": 68980574,
+          "inputs": 26,
+          "frames": 2746
+        },
+        {
+          "host_seconds": 44.18416783599999,
+          "guest": 70203887,
+          "inputs": 26,
+          "frames": 2796
+        },
+        {
+          "host_seconds": 45.186361227999996,
+          "guest": 71374645,
+          "inputs": 26,
+          "frames": 2842
+        },
+        {
+          "host_seconds": 46.18844855099999,
+          "guest": 72515781,
+          "inputs": 26,
+          "frames": 2888
+        },
+        {
+          "host_seconds": 47.189443432999994,
+          "guest": 73704763,
+          "inputs": 26,
+          "frames": 2936
+        },
+        {
+          "host_seconds": 48.190377129,
+          "guest": 74730344,
+          "inputs": 26,
+          "frames": 2976
+        },
+        {
+          "host_seconds": 49.191308183000004,
+          "guest": 75718671,
+          "inputs": 26,
+          "frames": 3016
+        },
+        {
+          "host_seconds": 50.19292007199999,
+          "guest": 76750079,
+          "inputs": 26,
+          "frames": 3058
+        },
+        {
+          "host_seconds": 51.195007106999995,
+          "guest": 77729421,
+          "inputs": 26,
+          "frames": 3098
+        },
+        {
+          "host_seconds": 52.196293217,
+          "guest": 78751243,
+          "inputs": 26,
+          "frames": 3140
+        },
+        {
+          "host_seconds": 53.19740678600001,
+          "guest": 79730365,
+          "inputs": 26,
+          "frames": 3180
+        },
+        {
+          "host_seconds": 54.198572434,
+          "guest": 80739456,
+          "inputs": 26,
+          "frames": 3218
+        },
+        {
+          "host_seconds": 55.200807325999996,
+          "guest": 81705437,
+          "inputs": 26,
+          "frames": 3254
+        },
+        {
+          "host_seconds": 56.201830917,
+          "guest": 82760000,
+          "inputs": 26,
+          "frames": 3294
+        },
+        {
+          "host_seconds": 57.20366611400001,
+          "guest": 83746936,
+          "inputs": 26,
+          "frames": 3330
+        },
+        {
+          "host_seconds": 58.20438393,
+          "guest": 84750368,
+          "inputs": 26,
+          "frames": 3368
+        },
+        {
+          "host_seconds": 59.206371352000005,
+          "guest": 85742499,
+          "inputs": 26,
+          "frames": 3402
+        },
+        {
+          "host_seconds": 60.20817060899999,
+          "guest": 86742359,
+          "inputs": 26,
+          "frames": 3438
+        },
+        {
+          "host_seconds": 61.252516126,
+          "guest": 87793666,
+          "inputs": 26,
+          "frames": 3476
+        },
+        {
+          "host_seconds": 62.253038981,
+          "guest": 88800884,
+          "inputs": 26,
+          "frames": 3514
+        },
+        {
+          "host_seconds": 63.254746813000004,
+          "guest": 89791522,
+          "inputs": 26,
+          "frames": 3550
+        },
+        {
+          "host_seconds": 64.256276999,
+          "guest": 90757095,
+          "inputs": 26,
+          "frames": 3584
+        },
+        {
+          "host_seconds": 65.25786407199999,
+          "guest": 91803914,
+          "inputs": 26,
+          "frames": 3620
+        },
+        {
+          "host_seconds": 66.259802427,
+          "guest": 92794186,
+          "inputs": 26,
+          "frames": 3660
+        },
+        {
+          "host_seconds": 67.261796851,
+          "guest": 93794506,
+          "inputs": 26,
+          "frames": 3700
+        },
+        {
+          "host_seconds": 68.262887678,
+          "guest": 94812874,
+          "inputs": 26,
+          "frames": 3740
+        },
+        {
+          "host_seconds": 69.265000606,
+          "guest": 95795620,
+          "inputs": 26,
+          "frames": 3780
+        },
+        {
+          "host_seconds": 70.266888967,
+          "guest": 96794355,
+          "inputs": 26,
+          "frames": 3820
+        },
+        {
+          "host_seconds": 71.26823036,
+          "guest": 97793916,
+          "inputs": 26,
+          "frames": 3860
+        },
+        {
+          "host_seconds": 72.269888038,
+          "guest": 98790876,
+          "inputs": 26,
+          "frames": 3900
+        },
+        {
+          "host_seconds": 73.27158891200001,
+          "guest": 99794767,
+          "inputs": 26,
+          "frames": 3940
+        },
+        {
+          "host_seconds": 74.273129137,
+          "guest": 100795964,
+          "inputs": 26,
+          "frames": 3980
+        },
+        {
+          "host_seconds": 75.274607843,
+          "guest": 101829909,
+          "inputs": 26,
+          "frames": 4022
+        },
+        {
+          "host_seconds": 76.275080361,
+          "guest": 102829481,
+          "inputs": 26,
+          "frames": 4062
+        },
+        {
+          "host_seconds": 77.276262892,
+          "guest": 103830608,
+          "inputs": 26,
+          "frames": 4102
+        },
+        {
+          "host_seconds": 78.27776259,
+          "guest": 104829165,
+          "inputs": 26,
+          "frames": 4141
+        },
+        {
+          "host_seconds": 79.27983675200001,
+          "guest": 105796343,
+          "inputs": 26,
+          "frames": 4180
+        },
+        {
+          "host_seconds": 80.28113021099999,
+          "guest": 106832373,
+          "inputs": 26,
+          "frames": 4222
+        },
+        {
+          "host_seconds": 81.331650096,
+          "guest": 107890000,
+          "inputs": 26,
+          "frames": 4264
+        },
+        {
+          "host_seconds": 82.333033656,
+          "guest": 108890639,
+          "inputs": 26,
+          "frames": 4304
+        },
+        {
+          "host_seconds": 83.33537509099999,
+          "guest": 109891235,
+          "inputs": 26,
+          "frames": 4344
+        },
+        {
+          "host_seconds": 84.337432757,
+          "guest": 110891954,
+          "inputs": 26,
+          "frames": 4384
+        },
+        {
+          "host_seconds": 85.33847810399999,
+          "guest": 111892466,
+          "inputs": 26,
+          "frames": 4424
+        },
+        {
+          "host_seconds": 86.339612018,
+          "guest": 112892692,
+          "inputs": 26,
+          "frames": 4464
+        },
+        {
+          "host_seconds": 87.340962791,
+          "guest": 113893109,
+          "inputs": 26,
+          "frames": 4504
+        },
+        {
+          "host_seconds": 88.34309730599999,
+          "guest": 114893980,
+          "inputs": 26,
+          "frames": 4544
+        },
+        {
+          "host_seconds": 89.344236213,
+          "guest": 115894361,
+          "inputs": 26,
+          "frames": 4584
+        },
+        {
+          "host_seconds": 90.345616043,
+          "guest": 116892796,
+          "inputs": 26,
+          "frames": 4624
+        },
+        {
+          "host_seconds": 91.347610254,
+          "guest": 117894722,
+          "inputs": 26,
+          "frames": 4664
+        },
+        {
+          "host_seconds": 92.349632713,
+          "guest": 118897348,
+          "inputs": 26,
+          "frames": 4704
+        },
+        {
+          "host_seconds": 93.35152682100001,
+          "guest": 119892858,
+          "inputs": 26,
+          "frames": 4744
+        },
+        {
+          "host_seconds": 94.35300023,
+          "guest": 120897612,
+          "inputs": 26,
+          "frames": 4784
+        },
+        {
+          "host_seconds": 95.35468791199999,
+          "guest": 121898301,
+          "inputs": 26,
+          "frames": 4824
+        },
+        {
+          "host_seconds": 96.356206001,
+          "guest": 122898566,
+          "inputs": 26,
+          "frames": 4864
+        },
+        {
+          "host_seconds": 97.357447514,
+          "guest": 123899092,
+          "inputs": 26,
+          "frames": 4904
+        },
+        {
+          "host_seconds": 98.35910123400001,
+          "guest": 124899744,
+          "inputs": 26,
+          "frames": 4944
+        },
+        {
+          "host_seconds": 99.36118529199999,
+          "guest": 125892673,
+          "inputs": 26,
+          "frames": 4984
+        },
+        {
+          "host_seconds": 100.362828978,
+          "guest": 126890985,
+          "inputs": 26,
+          "frames": 5024
+        },
+        {
+          "host_seconds": 101.411878526,
+          "guest": 127950530,
+          "inputs": 26,
+          "frames": 5066
+        },
+        {
+          "host_seconds": 102.41298498500001,
+          "guest": 128794092,
+          "inputs": 26,
+          "frames": 5100
+        },
+        {
+          "host_seconds": 103.415618492,
+          "guest": 129694716,
+          "inputs": 26,
+          "frames": 5136
+        },
+        {
+          "host_seconds": 104.41635537300002,
+          "guest": 130655038,
+          "inputs": 26,
+          "frames": 5174
+        },
+        {
+          "host_seconds": 105.41678485000001,
+          "guest": 131770108,
+          "inputs": 26,
+          "frames": 5220
+        },
+        {
+          "host_seconds": 106.418640517,
+          "guest": 132705654,
+          "inputs": 26,
+          "frames": 5258
+        },
+        {
+          "host_seconds": 107.419825916,
+          "guest": 133807099,
+          "inputs": 26,
+          "frames": 5302
+        },
+        {
+          "host_seconds": 108.42242998199998,
+          "guest": 134906280,
+          "inputs": 26,
+          "frames": 5345
+        },
+        {
+          "host_seconds": 109.42472617299998,
+          "guest": 135848742,
+          "inputs": 26,
+          "frames": 5384
+        },
+        {
+          "host_seconds": 110.42567521,
+          "guest": 136913854,
+          "inputs": 26,
+          "frames": 5426
+        },
+        {
+          "host_seconds": 111.42776429400001,
+          "guest": 137964744,
+          "inputs": 26,
+          "frames": 5468
+        },
+        {
+          "host_seconds": 112.42973379899999,
+          "guest": 138851722,
+          "inputs": 26,
+          "frames": 5504
+        },
+        {
+          "host_seconds": 113.43109982099999,
+          "guest": 139777742,
+          "inputs": 26,
+          "frames": 5540
+        },
+        {
+          "host_seconds": 114.432988093,
+          "guest": 140796899,
+          "inputs": 26,
+          "frames": 5581
+        },
+        {
+          "host_seconds": 115.435145997,
+          "guest": 141508319,
+          "inputs": 26,
+          "frames": 5610
+        },
+        {
+          "host_seconds": 116.436442542,
+          "guest": 142422146,
+          "inputs": 26,
+          "frames": 5646
+        },
+        {
+          "host_seconds": 117.43787193899999,
+          "guest": 143256368,
+          "inputs": 26,
+          "frames": 5680
+        },
+        {
+          "host_seconds": 118.439181953,
+          "guest": 144099068,
+          "inputs": 26,
+          "frames": 5714
+        },
+        {
+          "host_seconds": 119.44041363099998,
+          "guest": 144965874,
+          "inputs": 26,
+          "frames": 5748
+        },
+        {
+          "host_seconds": 120.442351079,
+          "guest": 145806667,
+          "inputs": 26,
+          "frames": 5782
+        }
+      ],
+      "browser": "Chrome/153.0.8010.52",
+      "wasm_sha256": "451090fe4a659127c4d5c4b96fd3f87a880f361c70c0e37c42e95d1c4a7f6c45",
+      "note": "Input latency measures DOM keydown to guest queue consumption, not display response.",
+      "guest_seconds": 122.428896,
+      "max_sampled_lag_seconds": 0.34164627599999875,
+      "scene_hashes": {
+        "/home/claude/.scratch/eka-benchmark/matched-live-candidate/gameplay-120.png": "ad8fb8915ec1e874bd2733985e8800aaf89be54e12698537f1d221cf956b8aea",
+        "/home/claude/.scratch/eka-benchmark/matched-live-candidate/gameplay-20.png": "1b5cacf9bde96dfa042938eca4de3db93651c46fbf3d11ecf9de06259d7a9857",
+        "/home/claude/.scratch/eka-benchmark/matched-live-candidate/gameplay-80.png": "ee50adf343f5b2ebfaf7d9c31bd8b9508532f577574e990dbcf0d7995f4c5f04",
+        "/home/claude/.scratch/eka-benchmark/matched-live-candidate/desktop-end.png": "4ee783b461b034abd4d9b72c437f5763cda8e2d889895a2b71119d97a540580c",
+        "/home/claude/.scratch/eka-benchmark/matched-live-candidate/gameplay-60.png": "5c9061b7a14e7251ef96944c87d3f5e83ef5202b3e3a5b6a617d27348f3a514e",
+        "/home/claude/.scratch/eka-benchmark/matched-live-candidate/gameplay-40.png": "a1225f49a79c364b6b74bd6f8486e65c9e4995f84e69868f4ed34e2918e018a5",
+        "/home/claude/.scratch/eka-benchmark/matched-live-candidate/gameplay-100.png": "0f54e6107030c960376904abf224097ac085604911b7570f647c31d628b2ccb3",
+        "/home/claude/.scratch/eka-benchmark/matched-live-candidate/mobile.png": "c9235d3eefe9fd5b1e717945f792088d7a5923e9dbde9554fa977282e4d57c82",
+        "/home/claude/.scratch/eka-benchmark/matched-live-candidate/desktop-gameplay.png": "e67da6039f2836f75694eefe3bdc76242920f43e7636f1066a97222d79501937"
+      }
+    },
+    "baseline": {
+      "start": {
+        "guest": 23469448,
+        "inputs": 26,
+        "frames": 928
+      },
+      "end": {
+        "guest": 136308045,
+        "inputs": 26,
+        "frames": 5404
+      },
+      "host_seconds": 120.70039939,
+      "resources": {
+        "startup": {
+          "tmp": [],
+          "worker_pool": {
+            "running": 19,
+            "unused": 13
+          },
+          "selected_files": [
+            0,
+            0,
+            0
+          ],
+          "linear_bytes": 322174976,
+          "allocator": {
+            "guest_us": 10000,
+            "instructions": 0,
+            "compiled_functions": 0,
+            "allocated_bytes": 290300360,
+            "free_bytes": 17143048
+          },
+          "pss_kib": 1450053
+        },
+        "final": {
+          "tmp": [],
+          "worker_pool": {
+            "running": 19,
+            "unused": 13
+          },
+          "selected_files": [
+            0,
+            0,
+            0
+          ],
+          "linear_bytes": 598278144,
+          "allocator": {
+            "guest_us": 136477874,
+            "instructions": 21597051786,
+            "compiled_functions": 15234,
+            "allocated_bytes": 574946200,
+            "free_bytes": 15891256
+          },
+          "pss_kib": 1671114
+        }
+      },
+      "auto_start": false,
+      "sampling": false,
+      "profile_window": {
+        "begin": null,
+        "end": null
+      },
+      "measurement": null,
+      "renderer": "See gpu.json for physical GPU details",
+      "realtime_ratio": 0.9348651501591356,
+      "input_delivery_ms": [
+        16.089270999998917,
+        0.9477559999995719,
+        1.000316000001476,
+        1.0901560000002064,
+        1.654344000000492,
+        1.2797499999978754,
+        1.0842400000001362,
+        1.0343279999979131,
+        0.9403739999979734,
+        1.3332379999992554,
+        0.951891999997315,
+        1.1694300000017392
+      ],
+      "samples": [
+        {
+          "host_seconds": 1.0015522750000019,
+          "guest": 24583540,
+          "inputs": 26,
+          "frames": 972
+        },
+        {
+          "host_seconds": 2.0016971410000006,
+          "guest": 25673458,
+          "inputs": 26,
+          "frames": 1016
+        },
+        {
+          "host_seconds": 3.002826137,
+          "guest": 26719610,
+          "inputs": 26,
+          "frames": 1058
+        },
+        {
+          "host_seconds": 4.004839754000001,
+          "guest": 27755799,
+          "inputs": 26,
+          "frames": 1100
+        },
+        {
+          "host_seconds": 5.0066602740000015,
+          "guest": 28766092,
+          "inputs": 26,
+          "frames": 1140
+        },
+        {
+          "host_seconds": 6.008475260999999,
+          "guest": 29804444,
+          "inputs": 26,
+          "frames": 1182
+        },
+        {
+          "host_seconds": 7.009680008000003,
+          "guest": 30800903,
+          "inputs": 26,
+          "frames": 1222
+        },
+        {
+          "host_seconds": 8.011589868000003,
+          "guest": 31669318,
+          "inputs": 26,
+          "frames": 1256
+        },
+        {
+          "host_seconds": 9.012983958000005,
+          "guest": 32369072,
+          "inputs": 26,
+          "frames": 1284
+        },
+        {
+          "host_seconds": 10.014780845,
+          "guest": 33009548,
+          "inputs": 26,
+          "frames": 1310
+        },
+        {
+          "host_seconds": 11.016249608999999,
+          "guest": 33767000,
+          "inputs": 26,
+          "frames": 1340
+        },
+        {
+          "host_seconds": 12.018201999000004,
+          "guest": 34513392,
+          "inputs": 26,
+          "frames": 1370
+        },
+        {
+          "host_seconds": 13.019957374000006,
+          "guest": 35214223,
+          "inputs": 26,
+          "frames": 1398
+        },
+        {
+          "host_seconds": 14.021957177000004,
+          "guest": 35967047,
+          "inputs": 26,
+          "frames": 1428
+        },
+        {
+          "host_seconds": 15.024227,
+          "guest": 36757290,
+          "inputs": 26,
+          "frames": 1460
+        },
+        {
+          "host_seconds": 16.02600374,
+          "guest": 37462751,
+          "inputs": 26,
+          "frames": 1488
+        },
+        {
+          "host_seconds": 17.028586618000002,
+          "guest": 38120645,
+          "inputs": 26,
+          "frames": 1514
+        },
+        {
+          "host_seconds": 18.029822149,
+          "guest": 39109584,
+          "inputs": 26,
+          "frames": 1554
+        },
+        {
+          "host_seconds": 19.031694500000004,
+          "guest": 40051011,
+          "inputs": 26,
+          "frames": 1592
+        },
+        {
+          "host_seconds": 20.033705958,
+          "guest": 41006248,
+          "inputs": 26,
+          "frames": 1630
+        },
+        {
+          "host_seconds": 21.074335847,
+          "guest": 42058400,
+          "inputs": 26,
+          "frames": 1672
+        },
+        {
+          "host_seconds": 22.07540904,
+          "guest": 42966689,
+          "inputs": 26,
+          "frames": 1708
+        },
+        {
+          "host_seconds": 23.077426456,
+          "guest": 43959281,
+          "inputs": 26,
+          "frames": 1748
+        },
+        {
+          "host_seconds": 24.079364989000002,
+          "guest": 45052008,
+          "inputs": 26,
+          "frames": 1792
+        },
+        {
+          "host_seconds": 25.081092919000003,
+          "guest": 46056215,
+          "inputs": 26,
+          "frames": 1832
+        },
+        {
+          "host_seconds": 26.08284536,
+          "guest": 47124912,
+          "inputs": 26,
+          "frames": 1874
+        },
+        {
+          "host_seconds": 27.084536283000002,
+          "guest": 48131408,
+          "inputs": 26,
+          "frames": 1914
+        },
+        {
+          "host_seconds": 28.086377160000005,
+          "guest": 49057110,
+          "inputs": 26,
+          "frames": 1952
+        },
+        {
+          "host_seconds": 29.088423287999998,
+          "guest": 49953225,
+          "inputs": 26,
+          "frames": 1988
+        },
+        {
+          "host_seconds": 30.089851358,
+          "guest": 50802346,
+          "inputs": 26,
+          "frames": 2022
+        },
+        {
+          "host_seconds": 31.091792835,
+          "guest": 51667448,
+          "inputs": 26,
+          "frames": 2056
+        },
+        {
+          "host_seconds": 32.093543546,
+          "guest": 52564564,
+          "inputs": 26,
+          "frames": 2092
+        },
+        {
+          "host_seconds": 33.09480255,
+          "guest": 53463634,
+          "inputs": 26,
+          "frames": 2128
+        },
+        {
+          "host_seconds": 34.09645422,
+          "guest": 54454253,
+          "inputs": 26,
+          "frames": 2168
+        },
+        {
+          "host_seconds": 35.098337754,
+          "guest": 55372065,
+          "inputs": 26,
+          "frames": 2204
+        },
+        {
+          "host_seconds": 36.099810545,
+          "guest": 56309459,
+          "inputs": 26,
+          "frames": 2242
+        },
+        {
+          "host_seconds": 37.101904031,
+          "guest": 57254089,
+          "inputs": 26,
+          "frames": 2280
+        },
+        {
+          "host_seconds": 38.103198981000006,
+          "guest": 58064344,
+          "inputs": 26,
+          "frames": 2312
+        },
+        {
+          "host_seconds": 39.10441370800001,
+          "guest": 58800917,
+          "inputs": 26,
+          "frames": 2342
+        },
+        {
+          "host_seconds": 40.10504979600001,
+          "guest": 59713528,
+          "inputs": 26,
+          "frames": 2378
+        },
+        {
+          "host_seconds": 41.156379826999995,
+          "guest": 60906337,
+          "inputs": 26,
+          "frames": 2426
+        },
+        {
+          "host_seconds": 42.157411064,
+          "guest": 62053119,
+          "inputs": 26,
+          "frames": 2472
+        },
+        {
+          "host_seconds": 43.158012688,
+          "guest": 63209829,
+          "inputs": 26,
+          "frames": 2518
+        },
+        {
+          "host_seconds": 44.159560419,
+          "guest": 64297970,
+          "inputs": 26,
+          "frames": 2562
+        },
+        {
+          "host_seconds": 45.161480012,
+          "guest": 65369865,
+          "inputs": 26,
+          "frames": 2604
+        },
+        {
+          "host_seconds": 46.163133554,
+          "guest": 66456252,
+          "inputs": 26,
+          "frames": 2648
+        },
+        {
+          "host_seconds": 47.164983802,
+          "guest": 67503192,
+          "inputs": 26,
+          "frames": 2690
+        },
+        {
+          "host_seconds": 48.16625507100001,
+          "guest": 68660618,
+          "inputs": 26,
+          "frames": 2736
+        },
+        {
+          "host_seconds": 49.168293676000005,
+          "guest": 69804716,
+          "inputs": 26,
+          "frames": 2782
+        },
+        {
+          "host_seconds": 50.168852331000004,
+          "guest": 70963806,
+          "inputs": 26,
+          "frames": 2828
+        },
+        {
+          "host_seconds": 51.170920914,
+          "guest": 72058790,
+          "inputs": 26,
+          "frames": 2872
+        },
+        {
+          "host_seconds": 52.172255498,
+          "guest": 73159659,
+          "inputs": 26,
+          "frames": 2916
+        },
+        {
+          "host_seconds": 53.174266747000004,
+          "guest": 74012466,
+          "inputs": 26,
+          "frames": 2950
+        },
+        {
+          "host_seconds": 54.175462276000005,
+          "guest": 74930336,
+          "inputs": 26,
+          "frames": 2986
+        },
+        {
+          "host_seconds": 55.176385274,
+          "guest": 75871055,
+          "inputs": 26,
+          "frames": 3024
+        },
+        {
+          "host_seconds": 56.178566202,
+          "guest": 76712374,
+          "inputs": 26,
+          "frames": 3058
+        },
+        {
+          "host_seconds": 57.179693128,
+          "guest": 77627269,
+          "inputs": 26,
+          "frames": 3096
+        },
+        {
+          "host_seconds": 58.181259231000006,
+          "guest": 78656442,
+          "inputs": 26,
+          "frames": 3138
+        },
+        {
+          "host_seconds": 59.18260446,
+          "guest": 79471606,
+          "inputs": 26,
+          "frames": 3172
+        },
+        {
+          "host_seconds": 60.184682118,
+          "guest": 80224016,
+          "inputs": 26,
+          "frames": 3200
+        },
+        {
+          "host_seconds": 61.24466675200001,
+          "guest": 81162053,
+          "inputs": 26,
+          "frames": 3236
+        },
+        {
+          "host_seconds": 62.24615953200001,
+          "guest": 82019618,
+          "inputs": 26,
+          "frames": 3268
+        },
+        {
+          "host_seconds": 63.247862997999995,
+          "guest": 82940038,
+          "inputs": 26,
+          "frames": 3302
+        },
+        {
+          "host_seconds": 64.24934777000001,
+          "guest": 83879978,
+          "inputs": 26,
+          "frames": 3336
+        },
+        {
+          "host_seconds": 65.250999733,
+          "guest": 84772469,
+          "inputs": 26,
+          "frames": 3370
+        },
+        {
+          "host_seconds": 66.25310543399999,
+          "guest": 85339110,
+          "inputs": 26,
+          "frames": 3390
+        },
+        {
+          "host_seconds": 67.254152944,
+          "guest": 85955325,
+          "inputs": 26,
+          "frames": 3412
+        },
+        {
+          "host_seconds": 68.255929244,
+          "guest": 86503557,
+          "inputs": 26,
+          "frames": 3432
+        },
+        {
+          "host_seconds": 69.440891042,
+          "guest": 87360176,
+          "inputs": 26,
+          "frames": 3462
+        },
+        {
+          "host_seconds": 70.44284841000001,
+          "guest": 88050019,
+          "inputs": 26,
+          "frames": 3488
+        },
+        {
+          "host_seconds": 71.444588608,
+          "guest": 88820247,
+          "inputs": 26,
+          "frames": 3516
+        },
+        {
+          "host_seconds": 72.445455775,
+          "guest": 89738375,
+          "inputs": 26,
+          "frames": 3550
+        },
+        {
+          "host_seconds": 73.44595444000001,
+          "guest": 90672581,
+          "inputs": 26,
+          "frames": 3582
+        },
+        {
+          "host_seconds": 74.447112855,
+          "guest": 91593379,
+          "inputs": 26,
+          "frames": 3614
+        },
+        {
+          "host_seconds": 75.44876836600001,
+          "guest": 92701182,
+          "inputs": 26,
+          "frames": 3658
+        },
+        {
+          "host_seconds": 76.450217141,
+          "guest": 93649363,
+          "inputs": 26,
+          "frames": 3696
+        },
+        {
+          "host_seconds": 77.45135737900002,
+          "guest": 94762876,
+          "inputs": 26,
+          "frames": 3740
+        },
+        {
+          "host_seconds": 78.45318647100001,
+          "guest": 95942572,
+          "inputs": 26,
+          "frames": 3788
+        },
+        {
+          "host_seconds": 79.45493560599999,
+          "guest": 96986911,
+          "inputs": 26,
+          "frames": 3830
+        },
+        {
+          "host_seconds": 80.456767662,
+          "guest": 97993677,
+          "inputs": 26,
+          "frames": 3870
+        },
+        {
+          "host_seconds": 81.521161812,
+          "guest": 99152886,
+          "inputs": 26,
+          "frames": 3916
+        },
+        {
+          "host_seconds": 82.522161838,
+          "guest": 100288547,
+          "inputs": 26,
+          "frames": 3962
+        },
+        {
+          "host_seconds": 83.52402665500001,
+          "guest": 101444579,
+          "inputs": 26,
+          "frames": 4008
+        },
+        {
+          "host_seconds": 84.526325185,
+          "guest": 102538786,
+          "inputs": 26,
+          "frames": 4052
+        },
+        {
+          "host_seconds": 85.52834175400001,
+          "guest": 103648642,
+          "inputs": 26,
+          "frames": 4096
+        },
+        {
+          "host_seconds": 86.528740484,
+          "guest": 104662480,
+          "inputs": 26,
+          "frames": 4137
+        },
+        {
+          "host_seconds": 87.52991745599999,
+          "guest": 105654763,
+          "inputs": 26,
+          "frames": 4176
+        },
+        {
+          "host_seconds": 88.53168084299999,
+          "guest": 106542708,
+          "inputs": 26,
+          "frames": 4212
+        },
+        {
+          "host_seconds": 89.533302746,
+          "guest": 107400270,
+          "inputs": 26,
+          "frames": 4246
+        },
+        {
+          "host_seconds": 90.534809839,
+          "guest": 108291086,
+          "inputs": 26,
+          "frames": 4282
+        },
+        {
+          "host_seconds": 91.536623823,
+          "guest": 109239716,
+          "inputs": 26,
+          "frames": 4320
+        },
+        {
+          "host_seconds": 92.538331832,
+          "guest": 110154316,
+          "inputs": 26,
+          "frames": 4356
+        },
+        {
+          "host_seconds": 93.539950811,
+          "guest": 110900272,
+          "inputs": 26,
+          "frames": 4386
+        },
+        {
+          "host_seconds": 94.5420264,
+          "guest": 111741872,
+          "inputs": 26,
+          "frames": 4420
+        },
+        {
+          "host_seconds": 95.54371991699999,
+          "guest": 112644022,
+          "inputs": 26,
+          "frames": 4456
+        },
+        {
+          "host_seconds": 96.545842947,
+          "guest": 113546324,
+          "inputs": 26,
+          "frames": 4492
+        },
+        {
+          "host_seconds": 97.548169385,
+          "guest": 114649214,
+          "inputs": 26,
+          "frames": 4536
+        },
+        {
+          "host_seconds": 98.54980941,
+          "guest": 115790415,
+          "inputs": 26,
+          "frames": 4582
+        },
+        {
+          "host_seconds": 99.55143453100001,
+          "guest": 116951683,
+          "inputs": 26,
+          "frames": 4628
+        },
+        {
+          "host_seconds": 100.55332808200001,
+          "guest": 118035492,
+          "inputs": 26,
+          "frames": 4672
+        },
+        {
+          "host_seconds": 101.617520606,
+          "guest": 118903830,
+          "inputs": 26,
+          "frames": 4706
+        },
+        {
+          "host_seconds": 102.619819295,
+          "guest": 119592532,
+          "inputs": 26,
+          "frames": 4734
+        },
+        {
+          "host_seconds": 103.62194722699999,
+          "guest": 120403936,
+          "inputs": 26,
+          "frames": 4766
+        },
+        {
+          "host_seconds": 104.62333233400001,
+          "guest": 121242812,
+          "inputs": 26,
+          "frames": 4800
+        },
+        {
+          "host_seconds": 105.62471506399999,
+          "guest": 122036021,
+          "inputs": 26,
+          "frames": 4832
+        },
+        {
+          "host_seconds": 106.62681895000001,
+          "guest": 122841482,
+          "inputs": 26,
+          "frames": 4864
+        },
+        {
+          "host_seconds": 107.62819062000001,
+          "guest": 123793621,
+          "inputs": 26,
+          "frames": 4902
+        },
+        {
+          "host_seconds": 108.629582872,
+          "guest": 124789058,
+          "inputs": 26,
+          "frames": 4942
+        },
+        {
+          "host_seconds": 109.631717931,
+          "guest": 125592603,
+          "inputs": 26,
+          "frames": 4974
+        },
+        {
+          "host_seconds": 110.633284587,
+          "guest": 126441127,
+          "inputs": 26,
+          "frames": 5008
+        },
+        {
+          "host_seconds": 111.635448382,
+          "guest": 127251429,
+          "inputs": 26,
+          "frames": 5040
+        },
+        {
+          "host_seconds": 112.63763402900001,
+          "guest": 127949330,
+          "inputs": 26,
+          "frames": 5068
+        },
+        {
+          "host_seconds": 113.63975324799999,
+          "guest": 128761516,
+          "inputs": 26,
+          "frames": 5100
+        },
+        {
+          "host_seconds": 114.64195954499999,
+          "guest": 129641152,
+          "inputs": 26,
+          "frames": 5136
+        },
+        {
+          "host_seconds": 115.644098398,
+          "guest": 130647044,
+          "inputs": 26,
+          "frames": 5176
+        },
+        {
+          "host_seconds": 116.64528540799999,
+          "guest": 131776008,
+          "inputs": 26,
+          "frames": 5222
+        },
+        {
+          "host_seconds": 117.647306496,
+          "guest": 132922108,
+          "inputs": 26,
+          "frames": 5268
+        },
+        {
+          "host_seconds": 118.648307157,
+          "guest": 134054337,
+          "inputs": 26,
+          "frames": 5314
+        },
+        {
+          "host_seconds": 119.64976311299999,
+          "guest": 135168148,
+          "inputs": 26,
+          "frames": 5358
+        },
+        {
+          "host_seconds": 120.651810555,
+          "guest": 136260550,
+          "inputs": 26,
+          "frames": 5402
+        }
+      ],
+      "browser": "Chrome/153.0.8010.52",
+      "wasm_sha256": "9d2914ec702aed86379940bdb5c7f1d308581fe3aebe9d24084018c3b8ecc232",
+      "note": "Input latency measures DOM keydown to guest queue consumption, not display response.",
+      "guest_seconds": 112.838597,
+      "max_sampled_lag_seconds": 8.470255544999986,
+      "scene_hashes": {
+        "/home/claude/.scratch/eka-benchmark/matched-live-baseline/gameplay-120.png": "e1efdd6f840c2e8edee05025cf6b9aa7aa34395f6427c4c5503b19e0485845e8",
+        "/home/claude/.scratch/eka-benchmark/matched-live-baseline/gameplay-20.png": "4df24fd0b2141b5540d0d448b5b705459e0e8436fc17dc392abe5b2858439ce7",
+        "/home/claude/.scratch/eka-benchmark/matched-live-baseline/gameplay-80.png": "4cca8c51c3a7764d576841edd1a643f834dbe9cbe6de2f8becde0aa5d90bd8d9",
+        "/home/claude/.scratch/eka-benchmark/matched-live-baseline/desktop-end.png": "75651a20dcedbe5ecfa991d1ed91060259b01ae6a3037126332b0c19ff88bfe5",
+        "/home/claude/.scratch/eka-benchmark/matched-live-baseline/gameplay-60.png": "bf179e7a93601af872fff717506e984a29be95fcee50ffd844891067a3743c69",
+        "/home/claude/.scratch/eka-benchmark/matched-live-baseline/gameplay-40.png": "2350096210e73388c7f6e658eacac91fca0fe366c5bd4ba1f1916eb7d36e34a6",
+        "/home/claude/.scratch/eka-benchmark/matched-live-baseline/gameplay-100.png": "43f6aff62757370fcc5cc8f6537092ce1adcc846d479c49597bd52d2c6d58b8a",
+        "/home/claude/.scratch/eka-benchmark/matched-live-baseline/mobile.png": "c9235d3eefe9fd5b1e717945f792088d7a5923e9dbde9554fa977282e4d57c82",
+        "/home/claude/.scratch/eka-benchmark/matched-live-baseline/desktop-gameplay.png": "e67da6039f2836f75694eefe3bdc76242920f43e7636f1066a97222d79501937"
+      }
+    }
+  },
+  "decision": {
+    "default": "OFF",
+    "deployed": false,
+    "reason": "Repeatable math-kernel gain; mixed heavy-window timings and a favorable single live pair do not establish dependable whole-game headroom",
+    "served_wasm_sha256": "e0c7bbd367e32fa6a6cf61983ea2bba2ec080fabe5a000e67c1df234e4118c62",
+    "launcher_checked_http_status": 200
+  },
+  "restored_default": {
+    "defer_memory": false,
+    "code_versions": false,
+    "code_lifecycle": false,
+    "faults": {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/matched-fault-native-extended.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+        "/home/claude/.scratch/eka-benchmark/matched-fault-restored.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+      },
+      "differences": []
+    },
+    "wasm_sha256": "143e2194a717c1387cc5473bade74ff7f61438e27024a3f1571f127217776c1b",
+    "wasm_tests": {
+      "passed": 133,
+      "failed": 0,
+      "log": "/home/claude/.scratch/eka-benchmark/matched-tests-restored.log",
+      "sha256": "6835a23e2551a8cb90dbe040994482a454ee0451388b0a4c517174751282e8a7"
+    }
+  },
+  "gpu": {
+    "before-1": {
+      "devices": [
+        {
+          "vendorId": 4318,
+          "deviceId": 8121,
+          "vendorString": "",
+          "deviceString": "",
+          "driverVendor": "NVIDIA",
+          "driverVersion": "610.43.3.0"
+        },
+        {
+          "vendorId": 32902,
+          "deviceId": 39876,
+          "vendorString": "",
+          "deviceString": "",
+          "driverVendor": "",
+          "driverVersion": ""
+        }
+      ],
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_VULKAN",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_image GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_logic_op GL_ANGLE_memory_object_flags GL_ANGLE_memory_size GL_ANGLE_multi_draw GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_read_only_depth_stencil_feedback_loops GL_ANGLE_relaxed_vertex_attribute_type GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_robust_fragment_shader_output GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_ANGLE_vulkan_image GL_ANGLE_yuv_internal_format GL_ARM_rgba8 GL_ARM_shader_framebuffer_fetch GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_array GL_EXT_EGL_image_external_wrap_modes GL_EXT_EGL_image_storage GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_fragment_shading_rate GL_EXT_fragment_shading_rate_primitive GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_multisample_compatibility GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_semaphore GL_EXT_semaphore_fd GL_EXT_separate_shader_objects GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shadow_samplers GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_lod_bias GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_KHR_debug GL_KHR_robustness GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_paletted_texture GL_OES_copy_image GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_border_clamp GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_vertex_type_10_10_10_2 GL_OVR_multiview GL_OVR_multiview2 GL_QCOM_shading_rate GL_QCOM_texture_lod_bias ",
+        "glImplementationParts": "(gl=egl-angle,angle=vulkan)",
+        "glRenderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.43.3.0)",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (NVIDIA)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.1 git hash: ed04c8113c65)",
+        "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_surface_orientation EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_EXT_image_gl_colorspace EGL_KHR_gl_colorspace EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_texture_3D_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_fence_sync EGL_KHR_wait_sync EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_KHR_swap_buffers_with_damage EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANDROID_native_fence_sync EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_IMG_context_priority EGL_KHR_create_context_no_error EGL_EXT_image_dma_buf_import EGL_EXT_image_dma_buf_import_modifiers EGL_KHR_reusable_sync EGL_EXT_buffer_age EGL_KHR_mutable_render_buffer EGL_ANGLE_create_surface_swap_interval EGL_ANGLE_vulkan_image EGL_KHR_partial_update EGL_ANGLE_global_fence_sync EGL_ANGLE_memory_usage_report ",
+        "glWsVendor": "Google Inc. (NVIDIA)",
+        "glWsVersion": "1.5 (ANGLE 2.1.1 git hash: ed04c8113c65)",
+        "hardwareSupportsVulkan": false,
+        "inProcessGpu": false,
+        "initializationTime": 0.416069,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "8",
+        "optimus": true,
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "3.00",
+        "processCrashCount": 0,
+        "sandboxed": false,
+        "skiaBackendType": "GaneshGL",
+        "subpixelFontRendering": true,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "3.00",
+        "visibilityCallbackCallCount": 0
+      },
+      "featureStatus": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "disabled_software",
+        "vulkan": "disabled_off",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webgpu_on_vk_via_gl_interop": "enabled",
+        "webnn": "disabled_off"
+      },
+      "driverBugWorkarounds": [
+        "enable_webgl_timer_query_extensions",
+        "exit_on_context_lost",
+        "disabled_extension_GL_KHR_blend_equation_advanced",
+        "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+      ],
+      "videoDecoding": [],
+      "videoEncoding": []
+    },
+    "after-1": {
+      "devices": [
+        {
+          "vendorId": 4318,
+          "deviceId": 8121,
+          "vendorString": "",
+          "deviceString": "",
+          "driverVendor": "NVIDIA",
+          "driverVersion": "610.43.3.0"
+        },
+        {
+          "vendorId": 32902,
+          "deviceId": 39876,
+          "vendorString": "",
+          "deviceString": "",
+          "driverVendor": "",
+          "driverVersion": ""
+        }
+      ],
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_VULKAN",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_image GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_logic_op GL_ANGLE_memory_object_flags GL_ANGLE_memory_size GL_ANGLE_multi_draw GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_read_only_depth_stencil_feedback_loops GL_ANGLE_relaxed_vertex_attribute_type GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_robust_fragment_shader_output GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_ANGLE_vulkan_image GL_ANGLE_yuv_internal_format GL_ARM_rgba8 GL_ARM_shader_framebuffer_fetch GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_array GL_EXT_EGL_image_external_wrap_modes GL_EXT_EGL_image_storage GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_fragment_shading_rate GL_EXT_fragment_shading_rate_primitive GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_multisample_compatibility GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_semaphore GL_EXT_semaphore_fd GL_EXT_separate_shader_objects GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shadow_samplers GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_lod_bias GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_KHR_debug GL_KHR_robustness GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_paletted_texture GL_OES_copy_image GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_border_clamp GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_vertex_type_10_10_10_2 GL_OVR_multiview GL_OVR_multiview2 GL_QCOM_shading_rate GL_QCOM_texture_lod_bias ",
+        "glImplementationParts": "(gl=egl-angle,angle=vulkan)",
+        "glRenderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.43.3.0)",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (NVIDIA)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.1 git hash: ed04c8113c65)",
+        "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_surface_orientation EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_EXT_image_gl_colorspace EGL_KHR_gl_colorspace EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_texture_3D_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_fence_sync EGL_KHR_wait_sync EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_KHR_swap_buffers_with_damage EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANDROID_native_fence_sync EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_IMG_context_priority EGL_KHR_create_context_no_error EGL_EXT_image_dma_buf_import EGL_EXT_image_dma_buf_import_modifiers EGL_KHR_reusable_sync EGL_EXT_buffer_age EGL_KHR_mutable_render_buffer EGL_ANGLE_create_surface_swap_interval EGL_ANGLE_vulkan_image EGL_KHR_partial_update EGL_ANGLE_global_fence_sync EGL_ANGLE_memory_usage_report ",
+        "glWsVendor": "Google Inc. (NVIDIA)",
+        "glWsVersion": "1.5 (ANGLE 2.1.1 git hash: ed04c8113c65)",
+        "hardwareSupportsVulkan": false,
+        "inProcessGpu": false,
+        "initializationTime": 0.379782,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "8",
+        "optimus": true,
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "3.00",
+        "processCrashCount": 0,
+        "sandboxed": false,
+        "skiaBackendType": "GaneshGL",
+        "subpixelFontRendering": true,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "3.00",
+        "visibilityCallbackCallCount": 0
+      },
+      "featureStatus": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "disabled_software",
+        "vulkan": "disabled_off",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webgpu_on_vk_via_gl_interop": "enabled",
+        "webnn": "disabled_off"
+      },
+      "driverBugWorkarounds": [
+        "enable_webgl_timer_query_extensions",
+        "exit_on_context_lost",
+        "disabled_extension_GL_KHR_blend_equation_advanced",
+        "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+      ],
+      "videoDecoding": [],
+      "videoEncoding": []
+    },
+    "after-2": {
+      "devices": [
+        {
+          "vendorId": 4318,
+          "deviceId": 8121,
+          "vendorString": "",
+          "deviceString": "",
+          "driverVendor": "NVIDIA",
+          "driverVersion": "610.43.3.0"
+        },
+        {
+          "vendorId": 32902,
+          "deviceId": 39876,
+          "vendorString": "",
+          "deviceString": "",
+          "driverVendor": "",
+          "driverVersion": ""
+        }
+      ],
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_VULKAN",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_image GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_logic_op GL_ANGLE_memory_object_flags GL_ANGLE_memory_size GL_ANGLE_multi_draw GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_read_only_depth_stencil_feedback_loops GL_ANGLE_relaxed_vertex_attribute_type GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_robust_fragment_shader_output GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_ANGLE_vulkan_image GL_ANGLE_yuv_internal_format GL_ARM_rgba8 GL_ARM_shader_framebuffer_fetch GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_array GL_EXT_EGL_image_external_wrap_modes GL_EXT_EGL_image_storage GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_fragment_shading_rate GL_EXT_fragment_shading_rate_primitive GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_multisample_compatibility GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_semaphore GL_EXT_semaphore_fd GL_EXT_separate_shader_objects GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shadow_samplers GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_lod_bias GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_KHR_debug GL_KHR_robustness GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_paletted_texture GL_OES_copy_image GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_border_clamp GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_vertex_type_10_10_10_2 GL_OVR_multiview GL_OVR_multiview2 GL_QCOM_shading_rate GL_QCOM_texture_lod_bias ",
+        "glImplementationParts": "(gl=egl-angle,angle=vulkan)",
+        "glRenderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.43.3.0)",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (NVIDIA)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.1 git hash: ed04c8113c65)",
+        "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_surface_orientation EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_EXT_image_gl_colorspace EGL_KHR_gl_colorspace EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_texture_3D_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_fence_sync EGL_KHR_wait_sync EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_KHR_swap_buffers_with_damage EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANDROID_native_fence_sync EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_IMG_context_priority EGL_KHR_create_context_no_error EGL_EXT_image_dma_buf_import EGL_EXT_image_dma_buf_import_modifiers EGL_KHR_reusable_sync EGL_EXT_buffer_age EGL_KHR_mutable_render_buffer EGL_ANGLE_create_surface_swap_interval EGL_ANGLE_vulkan_image EGL_KHR_partial_update EGL_ANGLE_global_fence_sync EGL_ANGLE_memory_usage_report ",
+        "glWsVendor": "Google Inc. (NVIDIA)",
+        "glWsVersion": "1.5 (ANGLE 2.1.1 git hash: ed04c8113c65)",
+        "hardwareSupportsVulkan": false,
+        "inProcessGpu": false,
+        "initializationTime": 0.408918,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "8",
+        "optimus": true,
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "3.00",
+        "processCrashCount": 0,
+        "sandboxed": false,
+        "skiaBackendType": "GaneshGL",
+        "subpixelFontRendering": true,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "3.00",
+        "visibilityCallbackCallCount": 0
+      },
+      "featureStatus": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "disabled_software",
+        "vulkan": "disabled_off",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webgpu_on_vk_via_gl_interop": "enabled",
+        "webnn": "disabled_off"
+      },
+      "driverBugWorkarounds": [
+        "enable_webgl_timer_query_extensions",
+        "exit_on_context_lost",
+        "disabled_extension_GL_KHR_blend_equation_advanced",
+        "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+      ],
+      "videoDecoding": [],
+      "videoEncoding": []
+    },
+    "before-2": {
+      "devices": [
+        {
+          "vendorId": 4318,
+          "deviceId": 8121,
+          "vendorString": "",
+          "deviceString": "",
+          "driverVendor": "NVIDIA",
+          "driverVersion": "610.43.3.0"
+        },
+        {
+          "vendorId": 32902,
+          "deviceId": 39876,
+          "vendorString": "",
+          "deviceString": "",
+          "driverVendor": "",
+          "driverVersion": ""
+        }
+      ],
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_VULKAN",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_image GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_logic_op GL_ANGLE_memory_object_flags GL_ANGLE_memory_size GL_ANGLE_multi_draw GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_read_only_depth_stencil_feedback_loops GL_ANGLE_relaxed_vertex_attribute_type GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_robust_fragment_shader_output GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_ANGLE_vulkan_image GL_ANGLE_yuv_internal_format GL_ARM_rgba8 GL_ARM_shader_framebuffer_fetch GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_array GL_EXT_EGL_image_external_wrap_modes GL_EXT_EGL_image_storage GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_fragment_shading_rate GL_EXT_fragment_shading_rate_primitive GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_multisample_compatibility GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_semaphore GL_EXT_semaphore_fd GL_EXT_separate_shader_objects GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shadow_samplers GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_lod_bias GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_KHR_debug GL_KHR_robustness GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_paletted_texture GL_OES_copy_image GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_border_clamp GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_vertex_type_10_10_10_2 GL_OVR_multiview GL_OVR_multiview2 GL_QCOM_shading_rate GL_QCOM_texture_lod_bias ",
+        "glImplementationParts": "(gl=egl-angle,angle=vulkan)",
+        "glRenderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.43.3.0)",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (NVIDIA)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.1 git hash: ed04c8113c65)",
+        "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_surface_orientation EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_EXT_image_gl_colorspace EGL_KHR_gl_colorspace EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_texture_3D_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_fence_sync EGL_KHR_wait_sync EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_KHR_swap_buffers_with_damage EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANDROID_native_fence_sync EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_IMG_context_priority EGL_KHR_create_context_no_error EGL_EXT_image_dma_buf_import EGL_EXT_image_dma_buf_import_modifiers EGL_KHR_reusable_sync EGL_EXT_buffer_age EGL_KHR_mutable_render_buffer EGL_ANGLE_create_surface_swap_interval EGL_ANGLE_vulkan_image EGL_KHR_partial_update EGL_ANGLE_global_fence_sync EGL_ANGLE_memory_usage_report ",
+        "glWsVendor": "Google Inc. (NVIDIA)",
+        "glWsVersion": "1.5 (ANGLE 2.1.1 git hash: ed04c8113c65)",
+        "hardwareSupportsVulkan": false,
+        "inProcessGpu": false,
+        "initializationTime": 0.538,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "8",
+        "optimus": true,
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "3.00",
+        "processCrashCount": 0,
+        "sandboxed": false,
+        "skiaBackendType": "GaneshGL",
+        "subpixelFontRendering": true,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "3.00",
+        "visibilityCallbackCallCount": 0
+      },
+      "featureStatus": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "disabled_software",
+        "vulkan": "disabled_off",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webgpu_on_vk_via_gl_interop": "enabled",
+        "webnn": "disabled_off"
+      },
+      "driverBugWorkarounds": [
+        "enable_webgl_timer_query_extensions",
+        "exit_on_context_lost",
+        "disabled_extension_GL_KHR_blend_equation_advanced",
+        "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+      ],
+      "videoDecoding": [],
+      "videoEncoding": []
+    }
+  }
+}

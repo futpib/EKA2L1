@@ -131,12 +131,16 @@ int device_install_dialog::on_firmware_variant_selects(const std::vector<std::st
 
 void device_install_dialog::on_install_triggered() {
     ui->installation_choose_widget->setVisible(false);
+    ui->isolate_drives_checkbox->setVisible(false);
     ui->install_progress_bar->setVisible(true);
     ui->confirmation_install_btn->setDisabled(true);
 
-    QFuture<eka2l1::device_installation_error> install_future = QtConcurrent::run([this]() {
+    const bool isolate_drives = ui->isolate_drives_checkbox->isChecked();
+
+    QFuture<eka2l1::device_installation_error> install_future = QtConcurrent::run([this, isolate_drives]() {
         eka2l1::device_install_params params;
         params.storage = conf_.storage;
+        params.isolate_drives = isolate_drives;
 
         if (ui->vpl_browse_widget->isVisible()) {
             params.method = eka2l1::device_install_method_firmware;

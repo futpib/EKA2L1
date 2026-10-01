@@ -66,6 +66,10 @@ namespace eka2l1 {
             std::vector<std::u16string> gathered_sis_paths;
 
             struct extract_target_info {
+                // The guest path, resolved to a host one only when the file is about to be
+                // written: a package may spell the same folder in two cases, and the resolver
+                // can only fold the second spelling onto a directory that already exists.
+                std::string install_path_;
                 std::string file_path_;
                 std::uint32_t data_unit_index_;
                 std::uint16_t data_unit_block_index_;
@@ -101,7 +105,13 @@ namespace eka2l1 {
             int gasp_true_form_of_integral_expression(const sis_expression &expr);
 
         protected:
-            bool interpret(sis_install_block &install_block, sis_registry_tree &parent_tree, std::uint16_t crr_blck_idx = 0);
+            // register_files tells whether the files in this block still have to be
+            // added to the package's file list. fill_controller_registeration has
+            // already registered the controller's own install block, but not the
+            // blocks nested in conditionals; leaving those unregistered leaves their
+            // files, an app's own _reg.rsc included, behind at uninstall time.
+            bool interpret(sis_install_block &install_block, sis_registry_tree &parent_tree, std::uint16_t crr_blck_idx = 0,
+                const bool register_files = false);
             bool interpret(sis_controller *controller, sis_registry_tree &tree, const std::uint16_t base_data_idx);
 
             /**

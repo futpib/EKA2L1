@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { buildDir, startServer } from "./server.ts";
+import { buildDir, startServer, compilerPolicyFromEnv } from "./server.ts";
 import { fetchCid } from "@futpib/fetch-cid";
 
 if (!fs.existsSync(path.join(buildDir, "eka2l1.html"))) {
@@ -50,7 +50,21 @@ const preloadFiles: Record<string, string> = {
   "/preload/sis": sisPath,
 };
 
-const { port: resolvedPort } = await startServer(port, preloadFiles, appName);
-console.log(`\nServing EKA2L1 WASM at http://127.0.0.1:${resolvedPort}/`);
+const host = process.env.EKA2L1_SERVE_HOST ?? "127.0.0.1";
+const certPath = process.env.EKA2L1_TLS_CERT;
+const keyPath = process.env.EKA2L1_TLS_KEY;
+if (Boolean(certPath) !== Boolean(keyPath)) {
+  throw new Error("Set both EKA2L1_TLS_CERT and EKA2L1_TLS_KEY for HTTPS");
+}
+const tls = certPath && keyPath
+  ? { cert: fs.readFileSync(certPath), key: fs.readFileSync(keyPath) }
+  : undefined;
+const { port: resolvedPort } = await startServer(port, preloadFiles, appName, { host, tls, compilerPolicy: compilerPolicyFromEnv() });
+const displayHost = process.env.EKA2L1_SERVE_NAME ?? host;
+const urlHost = displayHost.includes(":") ? `[${displayHost}]` : displayHost;
+console.log(`\nServing EKA2L1 WASM at ${tls ? "https" : "http"}://${urlHost}:${resolvedPort}/`);
+if (!tls && !["127.0.0.1", "::1", "localhost"].includes(host)) {
+  console.warn("LAN browsers require HTTPS with a trusted certificate for WASM threads.");
+}
 console.log(`App: ${appName}`);
 console.log("Press Ctrl+C to stop.");

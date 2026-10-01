@@ -423,9 +423,30 @@ namespace eka2l1::kernel {
 
         // Cleanup resources
         if (!kern->wipeout_in_progress()) {
+            // HLE state this process owns outside of the kernel (dispatcher audio players
+            // for instance) is released by the guest destructors, which never run when the
+            // process is killed or panics. Let the owners drop it now.
+            kern->call_process_exit_callbacks(this);
+
             finish_logons();
             process_handles.reset();
         }
+
+        // Break the parent/child links now, after the logons that may inspect the
+        // child list. A dead process must not linger in its parent's child list, nor
+        // keep children pointing back at it: launch-exit callbacks walk those raw
+        // pointers long after this object is freed.
+        while (!child_processes_.empty()) {
+            kernel::process *child = child_processes_.back();
+
+            if (child->parent_process_ == this) {
+                child->detatch_from_parent();
+            } else {
+                child_processes_.pop_back();
+            }
+        }
+
+        detatch_from_parent();
 
         kern->destroy(dll_lock);
 
@@ -450,6 +471,21 @@ namespace eka2l1::kernel {
         }
 
         return mem->get_control()->get_host_pointer(mm_impl_->address_space_id(), addr);
+    }
+
+    bool process::read_memory(address addr, void *destination, std::size_t size) {
+        if (!mm_impl_ || std::uint64_t(addr) + size > (std::uint64_t(1) << 32)) return false;
+        auto *control = mem->get_control();
+        auto *out = static_cast<std::uint8_t *>(destination);
+        while (size) {
+            const auto *page = control->get_page_info(mm_impl_->address_space_id(), addr);
+            if (!page || !page->host_addr) return false;
+            const auto offset = addr & control->offset_mask_;
+            const auto count = std::min<std::size_t>(size, control->offset_mask_ + 1 - offset);
+            std::memcpy(out, static_cast<const std::uint8_t *>(page->host_addr) + offset, count);
+            out += count; addr += count; size -= count;
+        }
+        return true;
     }
 
     // EKA2L1 doesn't use multicore yet, so rendezvous and logon
@@ -502,12 +538,22 @@ namespace eka2l1::kernel {
     }
 
     void process::finish_logons() {
+        // The thread that armed a Logon/Rendezvous lives in another process and may
+        // already have exited, leaving a dangling requester in the queues.
+        // notify_info::complete() dereferences that requester to translate the
+        // request status, so completing a stale entry faults on a half-torn thread.
+        // Signal only the requesters that are still alive; the queues are cleared
+        // below either way.
         for (auto &req : logon_requests) {
-            req.complete(exit_reason);
+            if (kern->is_thread_alive(req.requester)) {
+                req.complete(exit_reason);
+            }
         }
 
         for (auto &req : rendezvous_requests) {
-            req.complete(exit_reason);
+            if (kern->is_thread_alive(req.requester)) {
+                req.complete(exit_reason);
+            }
         }
 
         logon_requests.clear();

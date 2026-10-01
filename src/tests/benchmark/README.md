@@ -2,6 +2,8 @@
 
 The [verified audio replay results](RESULTS.md) record the four-run comparison and test limitations.
 
+The [four compiler-option experiments](COMPILER_OPTIONS_RESULTS.md) compare V8 tiering, connected regions, a validation-cost ceiling, and restricted Dynarmic-IR-to-WASM kernels.
+
 The benchmark is opt-in (`EKA2L1_BENCHMARK=1`). The default reference uses the DynCom interpreter on both targets. Browser runs can opt into repaired and extended compiled execution; see [AOT modes and reproduction](AOT.md) and [AOT validation and performance](AOT_RESULTS.md).
 
 - The guest clock advances from executed instructions (one synthetic cycle per instruction, 484 MHz at the default clock), with at most 4,840 instructions per dispatch. This is a reproducible clock model, not a hardware cycle-accuracy claim.
@@ -87,6 +89,30 @@ This fixed-replay gate requires at least 95% distinct 3D viewports, at least 1% 
 
 Guest timers, tick counters, UTC and display refresh use the same virtual clock. The emulated display refresh is 60 Hz; this Snakes replay produces about 21.3 changed images per virtual second, consistent with three 64 Hz guest ticks between game updates. Output images therefore need their recorded timestamps for playback, rather than being forced to 60 different game images per second. This verifies emulated time progression, not physical-handset FPS or cycle accuracy.
 
+Interactive browser play paces this clock against host time. If the guest falls
+more than 100 ms behind, the pacer rebases its host origin instead of accumulating
+a catch-up debt. Guest time, timers and instruction accounting are unchanged;
+unpaced replay does not use this branch. Delays above this tolerance delay play
+instead of creating seconds of catch-up.
+
+The Linux browser regression suspends only its own renderer processes for
+250 ms and 6 seconds, then checks every one-second recovery window as well as
+whole-window pacing, input and settled audio. It requires a host capable of
+sustaining real-time gameplay (within 2%). A whole-session average alone
+cannot detect a stall followed by compensating overspeed.
+
+```sh
+cd src/tests/wasm
+node pacing.ts /absolute/path/to/assets /absolute/path/to/new-pacing-results
+# Optionally test an already served build:
+node pacing.ts /absolute/path/to/assets /absolute/path/to/new-lan-results https://claude-laptop.lan:8188/
+```
+
+Use the same compiler-policy environment as the launcher being checked; the
+test verifies its readback. `EKA2L1_WASM_BUILD_DIR` selects a frozen build when
+the test starts its own server. See [PACING_RESULTS.md](PACING_RESULTS.md) for
+before/after browser measurements and native replay validation.
+
 ## Audio capture
 
 Each run exports `audio.wav` and `audio.jsonl` next to `frames.jsonl`. The WAV
@@ -107,3 +133,31 @@ The benchmark runs without host pacing and exports audio for playback afterwards
 it does not turn on real-time speaker playback in either frontend. The existing
 interactive audio paths are unchanged. This is a deterministic PCM reference,
 not a hardware DSP/filter or codec-fidelity claim.
+
+## Rebuilding the fault probes
+
+Both fault-probe executables are excluded from the default CMake build. Explicitly
+build `eka_cpu_fault_native` in `build` and `eka_cpu_fault_wasm` in `build-wasm`
+after compiler/runtime changes. Record the source state and executable hashes
+before claiming candidate-specific results. See
+[the rebuild commands and provenance audit](FAULT_PROBE_REBUILD_AUDIT.md).
+
+## WASM executable-byte policy
+
+WASM and the ordinary browser launcher default to `EKA2L1_UNSAFE_CODE=3`:
+loaded executable bytes are trusted until their mapping/image is retired or
+replaced. Primary and inlined-dependency byte scans, generated code-write overlap
+guards, code-overlap entry-proof checks and mutation tracking are omitted.
+This deliberately does not support runtime self-modifying executable code.
+Mapping/lifetime handling, address translation, access permissions, faults,
+instruction budgets, interrupts and guest scheduling remain unchanged.
+
+Set `EKA2L1_UNSAFE_CODE=0` before startup for mutation-compatible execution and
+reference comparisons. Modes 1 (scan removal only) and 2 (guard removal only)
+remain available for attribution. The launcher and browser harnesses report the
+actual selected mode and reject unsupported or mismatched configuration. Native
+execution retains its existing default. Mutation tests explicitly select mode 0;
+separate counterexamples document the stale-code behavior of modes 1/2/3.
+See `UNSAFE_CODE_RESULTS.md` and `UNSAFE_CODE_ATTRIBUTION_RESULTS.md` for the
+historical measurements; their diagnostic-only disposition is superseded by the
+user-authorized mode-3 default rollout.

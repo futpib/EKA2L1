@@ -190,14 +190,15 @@ namespace eka2l1::epoc {
     }
 
     gdi_command_builder::gdi_command_builder(drivers::graphics_driver *drv, drivers::graphics_command_builder &builder, bitmap_cache &bcache,
-        drivers::filter_option texture_filter, const eka2l1::vec2 &position, float scale_factor, const common::region &clip)
+        drivers::filter_option texture_filter, const eka2l1::vec2 &position, float scale_factor, const common::region &clip, bool premultiplied_target)
         : driver_(drv)
         , builder_(builder)
         , bcache_(bcache)
         , scale_factor_(scale_factor)
         , position_(position)
         , clip_(clip)
-        , texture_filter_(texture_filter) {
+        , texture_filter_(texture_filter)
+        , premultiplied_target_(premultiplied_target) {
     }
 
     void gdi_command_builder::build_segment(const gdi_store_command_segment &segment) {
@@ -206,7 +207,22 @@ namespace eka2l1::epoc {
         }
     }
 
+    void gdi_command_builder::build_texture_updates(const gdi_store_command_segment &segment) {
+        for (const auto &command : segment.commands_) {
+            if (command.opcode_ == gdi_store_command_update_texture) {
+                build_command_update_texture(command.get_data_struct_const<gdi_store_command_update_texture_data>());
+            }
+        }
+    }
+
     void gdi_command_builder::build_single_command(const gdi_store_command &command) {
+        // Retained UI stores premultiplied RGBA even for replacement-mode GDI writes.
+        if (premultiplied_target_) {
+            builder_.set_feature(drivers::graphics_feature::blend, true);
+            builder_.blend_formula(drivers::blend_equation::add, drivers::blend_equation::add,
+                drivers::blend_factor::frag_out_alpha, drivers::blend_factor::zero,
+                drivers::blend_factor::one, drivers::blend_factor::zero);
+        }
         switch (command.opcode_) {
         case gdi_store_command_draw_rect:
             build_command_draw_rect(command.get_data_struct_const<gdi_store_command_draw_rect_data>());
@@ -307,9 +323,11 @@ namespace eka2l1::epoc {
         
         std::int16_t scaled_font_size = text_font->of_info.metrics.max_height;
         std::uint32_t metric_identifier = text_font->of_info.metric_identifier;
+        std::uint32_t layout_metric_identifier = 0;
         float scale_to_pass = 1.0f;
 
         if (text_font->of_info.adapter->vectorizable()) {
+            layout_metric_identifier = metric_identifier;
             scaled_font_size = static_cast<std::int16_t>(scaled_font_size * scale_factor_);
             metric_identifier = scaled_font_size;       // Vectorizable font metric identifier is font size
 
@@ -331,7 +349,7 @@ namespace eka2l1::epoc {
         scale_rectangle(scaled_text_box, scale_factor_);
 
         text_font->atlas.draw_text(cmd.string_, scaled_text_box, static_cast<epoc::text_alignment>(cmd.alignment_),
-            driver_, builder_, scale_to_pass);
+            driver_, builder_, { scale_to_pass, scale_to_pass }, premultiplied_target_, layout_metric_identifier, scale_factor_);
     }
 
     void gdi_command_builder::build_command_draw_raw_texture(const gdi_store_command_draw_raw_texture_data &cmd) {
@@ -435,7 +453,15 @@ namespace eka2l1::epoc {
             builder_.blend_formula(drivers::blend_equation::add, drivers::blend_equation::add,
                 drivers::blend_factor::frag_out_alpha, drivers::blend_factor::one_minus_frag_out_alpha,
                 (alpha_blending ? drivers::blend_factor::one : drivers::blend_factor::one),
-                (alpha_blending ? drivers::blend_factor::one_minus_frag_out_alpha : drivers::blend_factor::one));
+                ((alpha_blending || premultiplied_target_) ? drivers::blend_factor::one_minus_frag_out_alpha : drivers::blend_factor::one));
+        } else if (premultiplied_target_) {
+            auto mode = source_bitmap_bw->settings_.current_display_mode();
+            if (mode == epoc::display_mode::none) {
+                mode = source_bitmap_bw->settings_.initial_display_mode();
+            }
+            if (mode == epoc::display_mode::color16map) {
+                builder_.set_feature(drivers::graphics_feature::blend, false);
+            }
         }
 
         if (mask_bitmap_bw && !alpha_blending && !epoc::is_display_mode_alpha(mask_bitmap_bw->settings_.current_display_mode())) {
@@ -473,11 +499,7 @@ namespace eka2l1::epoc {
         clipped.add_rect(rect_advanced);
         clipped = clipped.intersect(clip_);
 
-        if ((clipped.rects_.size() == 1) && (clipped.rects_[0].size == eka2l1::vec2(1, 1))) {
-            LOG_TRACE(KERNEL, "HI!");
-        }
-        
-        builder_.clip_bitmap_region(clipped, scale_factor_);
+        clip_to_region(clipped);
     }
 
     void gdi_command_builder::build_command_set_clip_rect_multiple(const gdi_store_command_set_clip_rect_multiple_data &cmd) {
@@ -485,6 +507,17 @@ namespace eka2l1::epoc {
         clipped.rects_.insert(clipped.rects_.begin(), cmd.rects_, cmd.rects_ + cmd.rect_count_);
         clipped.advance(position_);
         clipped = clipped.intersect(clip_);
+
+        clip_to_region(clipped);
+    }
+
+    void gdi_command_builder::clip_to_region(const common::region &clipped) {
+        if (clipped.empty()) {
+            builder_.set_feature(drivers::graphics_feature::stencil_test, false);
+            builder_.set_feature(drivers::graphics_feature::clipping, true);
+            builder_.clip_bitmap_rect(eka2l1::rect({ 0, 0 }, { 0, 0 }));
+            return;
+        }
 
         builder_.clip_bitmap_region(clipped, scale_factor_);
     }

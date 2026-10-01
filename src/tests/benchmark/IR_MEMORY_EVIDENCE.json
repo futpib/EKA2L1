@@ -1,0 +1,635 @@
+{
+  "base": "01376662fc073b9a155013adbec6631bdd70fd96",
+  "archive": "/home/claude/.scratch/eka-benchmark/ir-memory-portable-candidate",
+  "wasm_sha256": "c9d629ae1b13434e1b12e3807fa265403028794b09607074cb0294ed13baf461",
+  "compiler_tests": 142,
+  "intermediate_snapshot_cases": 4608,
+  "inlined_leaf_cases": 2560,
+  "fault_cases": 5472,
+  "fault_modes": [
+    "extended",
+    "deferred",
+    "entry-budget",
+    "entry-budget-deferred",
+    "read-spans",
+    "wide-snapshots",
+    "region-spans",
+    "region-spans-interpreter",
+    "entry-budget-interpreter",
+    "region-block-spans",
+    "ir-segments",
+    "ir-memory",
+    "ir-memory-chain"
+  ],
+  "comparison": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+      "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+      "writes": 0,
+      "callbacks": 10190,
+      "backend": "shared-dsp-cubeb-resampler",
+      "render_callbacks": 10190,
+      "gameplay_nonzero_samples": 7223662,
+      "gameplay_peak": 8449
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16263331210
+  },
+  "native_ctest_targets": 3,
+  "frontend_checks": 7,
+  "timing": [
+    {
+      "name": "fixed-1",
+      "build": "/home/claude/.scratch/eka-benchmark/region-ir-default-candidate",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 13.3618,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "memory-1",
+      "build": "/home/claude/.scratch/eka-benchmark/ir-memory-portable-candidate",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 16.3835,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "served-1",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 14.1635,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "served-2",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 13.4354,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "memory-2",
+      "build": "/home/claude/.scratch/eka-benchmark/ir-memory-portable-candidate",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 15.6843,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "fixed-2",
+      "build": "/home/claude/.scratch/eka-benchmark/region-ir-default-candidate",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 14.5303,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      }
+    }
+  ],
+  "source_and_binary_provenance": {
+    "git_head": "01376662fc073b9a155013adbec6631bdd70fd96",
+    "hashes": {
+      "eka2l1.js": "b6d1448c26a4d3ea9140844d6087c70a9d58e85f48e05a3d4c63558f449b7f3e",
+      "source.patch": "3404c628c0bfa171a711960dbc2dbcfe66544a74ba6ed022b442441a2861bf51",
+      "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "c9d629ae1b13434e1b12e3807fa265403028794b09607074cb0294ed13baf461",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_fault_native": "144d9e2a29e9b9dfc9690d5e13a6fb0f2ff15e6f6d6660edbc1682a3d7a272dd",
+      "tests/test_aot_wasm.wasm": "c9c00fa76689aac7e2475a7e96599c1e8d5100c8088cc33b5a3cf084256a64b2",
+      "tests/eka_cpu_fault_wasm.wasm": "f49850e842f5a4c6e7637c908ac83e9ea186411808b029937a71b98644a1e9fc",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+    },
+    "sources": {
+      "CMakeLists.txt": "e942844bb7bc18e615ff9400d55250ac9598b23299b4e8778d7b4fa8bc59a164",
+      "src/emu/cpu/CMakeLists.txt": "3778c83ef8bfc9c3cdc2c4c8a4a8bf25b7c187c7839393da9470910b6f92d13d",
+      "src/emu/cpu/include/cpu/aot/thumb_translator.h": "95ca93eebbfb96e3c5a50099e034ce5f4287e7e61468222f1c96b56fe34b2bad",
+      "src/emu/cpu/include/cpu/aot/region_ir.h": "7084994854b4a2404a10e7284e00bb539f50645709ddc723b4e7734a564e1f56",
+      "src/emu/cpu/src/aot/arm_translator.cpp": "e13228836fa6b24577b5eb6fd05cf097debdfc03cff0c23d55e3153a4b04f3ae",
+      "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "76f87cda16f82a8c9dfd45f10ff52ae16f493181835aaa5000710817728c5e0a",
+      "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "cf0a244589da5ca5d84da4590791ac763fd6fe63a78c9da1c9b5bc0e358f0a90",
+      "src/emu/cpu/src/aot/wasm_emitter.cpp": "ebb1f6c641a00d7f6766edce87f63d606ba9642babb462a6ecae5b0aadffd922",
+      "src/emu/cpu/include/cpu/dyncom/armstate.h": "e3125ce68715bcb2e46998738280c18c339fffdc46e83827e7c20e6d012adfff",
+      "src/emu/cpu/src/dyncom/armstate.cpp": "86693e9ce40170887bb6d556c797b6c87f66f7df3531426cfadbb191ac0a6a7a",
+      "src/tests/aot/test_aot_wasm.cpp": "77af9ee53237672d21b29f5228abaab753625726a9caf0127d554ca9b3a78199",
+      "src/tests/benchmark/cpu_fault_probe.cpp": "306f8ba53c4629237743f6ae9c0342d607a271a873e19467f6a4902ac35f7cd6",
+      "src/tests/cpu/aot.cpp": "53a11703ba12cb1b0dc168e91d479f9a0fb0f148d1fa3ba1841e6fcac42027e8"
+    },
+    "configuration": {
+      "EKA2L1_WASM_REGION_IR": false,
+      "EKA2L1_WASM_IR_SEGMENTS": true,
+      "EKA2L1_WASM_IR_MEMORY": true,
+      "EKA2L1_WASM_DEFER_MEMORY": true
+    },
+    "verified_identical_wasm_to": "ir-memory-candidate"
+  },
+  "means": {
+    "fixed": 13.94605,
+    "memory": 16.033900000000003,
+    "served": 13.79945
+  },
+  "throughput_vs_fixed": -0.1302147325354407,
+  "throughput_vs_served": -0.13935786053299581,
+  "decision": "not promoted",
+  "runtime_region_bodies": {
+    "0x70013edc": {
+      "original": 19852,
+      "candidate": 27681,
+      "segments": 17
+    },
+    "0x70014224": {
+      "original": 12083,
+      "candidate": 15484,
+      "segments": 10
+    }
+  },
+  "live_acceptance": "not attempted; no production gain established",
+  "deployed": false,
+  "evidence_files": {
+    "ir-memory-final-tests.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-final-tests.log",
+      "sha256": "1f4ac932de4d42b62de6176eafa4d7f5697ed5e3e12dfef4cb83741670f1354b"
+    },
+    "ir-memory-portable-native.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-portable-native.log",
+      "sha256": "a76097d5af824b3747a2ac6539bf9fad0a3ed1a9ff5fcebed0a4d1e36fe24377"
+    },
+    "ir-memory-frontend.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-frontend.log",
+      "sha256": "375372cd3a69d7e708b930b3dac23d74a933854bf5bf8c4a894732623677e61d"
+    },
+    "ir-memory-comparison.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-comparison.json",
+      "sha256": "a3ead4cda90609845adb7d73d821f149f1dd9035652be9dc1ceee6ece1391f40"
+    },
+    "ir-memory-gameplay.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-gameplay.json",
+      "sha256": "01aff283e36521dba711fac55bd34d127f5966527f3898bcbfe15f6a572668d7"
+    },
+    "ir-memory-fault-summary.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-summary.log",
+      "sha256": "0312a0435a514ac3bac7e37b05a34290d2621949637cfcc10d659efee14f0b86"
+    },
+    "ir-memory-hot-probe.log": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-hot-probe.log",
+      "sha256": "d2b4f80ca3a056117df449db400aa38a4895c683848f491077d80baea4668333"
+    },
+    "ir-memory-fault-extended.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-extended.json",
+      "sha256": "bde24be4371ec8330743ef91d85d28929ed9f3e6f702003045c14f26782cbf34"
+    },
+    "ir-memory-fault-deferred.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-deferred.json",
+      "sha256": "132ee88de474bed0314ef44dbd0a1b5f88fdb990aedb4e5c44391198c19e9997"
+    },
+    "ir-memory-fault-entry-budget.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-entry-budget.json",
+      "sha256": "aeebf9b18cab2d9ae0d24774573720eb0e17788d4ef380cded6c8fa429b542e4"
+    },
+    "ir-memory-fault-entry-budget-deferred.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-entry-budget-deferred.json",
+      "sha256": "f7be1a86ef151d14641f09a35372ee4c317ec0c128c801eda696d450c58e971f"
+    },
+    "ir-memory-fault-read-spans.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-read-spans.json",
+      "sha256": "e30128c57aa5dd610e128014f7cd887f1a179b7616b6f98b4dee3f01ff72848a"
+    },
+    "ir-memory-fault-wide-snapshots.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-wide-snapshots.json",
+      "sha256": "a167706a7a631133a826816b22c02f894f8167963006cd89e1b3641b154921ab"
+    },
+    "ir-memory-fault-region-spans.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-region-spans.json",
+      "sha256": "81932e8ee00f1ebb68da461b387394e1abd8c3737eec42f911d7f92ed275d8eb"
+    },
+    "ir-memory-fault-region-spans-interpreter.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-region-spans-interpreter.json",
+      "sha256": "86d2fdb85955c84931f4705af2e881b136f51a5d61c5d1d0e4ca61ba6ca62f7b"
+    },
+    "ir-memory-fault-entry-budget-interpreter.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-entry-budget-interpreter.json",
+      "sha256": "79059dc6a6aae323dbbfb8e6f5bdf4201dfb958a28ff01e60e453dd5c7a5ea48"
+    },
+    "ir-memory-fault-region-block-spans.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-region-block-spans.json",
+      "sha256": "ce4ea89956489cb32096bb32588daa8fdf452c85055709404add7806cd4c937d"
+    },
+    "ir-memory-fault-ir-segments.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-ir-segments.json",
+      "sha256": "4a8e209a53fee7103ad536903393586577a5431b7d4568783a37988b1f181d21"
+    },
+    "ir-memory-fault-ir-memory.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-ir-memory.json",
+      "sha256": "b84b9f6b7f789fad368b0168a7e757494380286f97c2065906122ce1c3cedcf3"
+    },
+    "ir-memory-fault-ir-memory-chain.json": {
+      "path": "/home/claude/.scratch/eka-benchmark/ir-memory-fault-ir-memory-chain.json",
+      "sha256": "784a0a1cfe327ad7e3c1e91d2fda51dbe39edca83565dde996a7ded054f736e5"
+    }
+  }
+}

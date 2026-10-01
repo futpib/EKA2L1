@@ -120,11 +120,20 @@ namespace eka2l1 {
     void etel_phone_subsession::get_network_caps(service::ipc_context *ctx) {
         LOG_TRACE(SERVICE_ETEL, "Get network caps hardcoded");
 
-        const std::uint32_t network_caps = epoc::etel_mobile_phone_network_cap_get_current_network
+        const std::uint32_t network_caps = epoc::etel_mobile_phone_network_cap_get_current_mode
+            | epoc::etel_mobile_phone_network_cap_get_current_network
             | epoc::etel_mobile_phone_network_cap_get_home_network;
 
         ctx->write_data_to_descriptor_argument<std::uint32_t>(0, network_caps);
 
+        ctx->complete(epoc::error_none);
+    }
+
+    void etel_phone_subsession::get_current_mode(service::ipc_context *ctx) {
+        LOG_TRACE(SERVICE_ETEL, "Get current network mode hardcoded");
+
+        ctx->write_data_to_descriptor_argument<std::uint32_t>(0,
+            static_cast<std::uint32_t>(phone_->network_info_.mode_));
         ctx->complete(epoc::error_none);
     }
 
@@ -165,7 +174,8 @@ namespace eka2l1 {
         phoneid.revision_id_.assign(nullptr, EXAMPLE_VALID_REVISION);
         phoneid.serial_num_.assign(nullptr, common::utf8_to_ucs2(conf_state->imei));
 
-        if (legacy_level_ == ETEL_LEGACY_LEVEL_LEGACY) {
+        // RBasicGsmPhone takes the bare TGsmPhoneId; RMobilePhone's V1 adds the extension header.
+        if (ctx->msg->function == epoc::etel_old_gsm_phone_get_phone_id) {
             ctx->write_data_to_descriptor_argument<epoc::etel_phone_id_v0>(0, phoneid);
         } else {
             epoc::etel_phone_id_v1 phoneid_new;
@@ -197,7 +207,6 @@ namespace eka2l1 {
     void etel_phone_subsession::get_current_network(eka2l1::service::ipc_context *ctx) {
         LOG_TRACE(SERVICE_ETEL, "Get current network hardcoded");
         std::optional<epoc::etel_phone_network_info> network_info = ctx->get_argument_data_from_descriptor<epoc::etel_phone_network_info>(0);
-        epoc::etel_phone_location_area *phone_location_area = reinterpret_cast<epoc::etel_phone_location_area *>(ctx->get_descriptor_argument_ptr(2));
 
         network_info->mode_ = phone_->network_info_.mode_;
         network_info->status_ = phone_->network_info_.status_;
@@ -230,12 +239,42 @@ namespace eka2l1 {
         network_registration_status_change_nof_ = epoc::notify_info(ctx->msg->request_sts, ctx->msg->own_thr);
     }
 
+    void etel_phone_subsession::notify_network_registration_status_change_cancel(eka2l1::service::ipc_context *ctx) {
+        network_registration_status_change_nof_.complete(epoc::error_cancel);
+        ctx->complete(epoc::error_none);
+    }
+
     void etel_phone_subsession::notify_signal_strength_change(eka2l1::service::ipc_context *ctx) {
         signal_strength_change_nof_ = epoc::notify_info(ctx->msg->request_sts, ctx->msg->own_thr);
     }
 
+    void etel_phone_subsession::notify_signal_strength_change_cancel(eka2l1::service::ipc_context *ctx) {
+        signal_strength_change_nof_.complete(epoc::error_cancel);
+        ctx->complete(epoc::error_none);
+    }
+
     void etel_phone_subsession::notify_current_network_change(eka2l1::service::ipc_context *ctx) {
         current_network_change_nof_ = epoc::notify_info(ctx->msg->request_sts, ctx->msg->own_thr);
+    }
+
+    void etel_phone_subsession::notify_current_network_change_cancel(eka2l1::service::ipc_context *ctx) {
+        current_network_change_nof_.complete(epoc::error_cancel);
+        ctx->complete(epoc::error_none);
+    }
+
+    void etel_phone_subsession::get_nitz_info(eka2l1::service::ipc_context *ctx) {
+        // Nothing here broadcasts a network time frame. A TSY reports that by failing
+        // the fetch, not by handing back an empty snapshot.
+        ctx->complete(epoc::error_not_found);
+    }
+
+    void etel_phone_subsession::notify_nitz_info_change(eka2l1::service::ipc_context *ctx) {
+        nitz_info_change_nof_ = epoc::notify_info(ctx->msg->request_sts, ctx->msg->own_thr);
+    }
+
+    void etel_phone_subsession::notify_nitz_info_change_cancel(eka2l1::service::ipc_context *ctx) {
+        nitz_info_change_nof_.complete(epoc::error_cancel);
+        ctx->complete(epoc::error_none);
     }
 
     void etel_phone_subsession::notify_indicator_change(eka2l1::service::ipc_context *ctx) {
@@ -342,6 +381,15 @@ namespace eka2l1 {
                 get_identity_caps(ctx);
                 break;
 
+            // Symbian 7.0 still ships the etelbgsm/etelagsm clients (Gsmbas.dll, Gsmadv.dll).
+            case epoc::etel_old_gsm_phone_get_phone_id:
+                get_phone_id(ctx);
+                break;
+
+            case epoc::etel_old_gsm_adv_phone_get_subscriber_id:
+                get_subscriber_id(ctx);
+                break;
+
             default:
                 LOG_ERROR(SERVICE_ETEL, "Unimplemented etel phone opcode {}", ctx->msg->function);
                 break;
@@ -380,6 +428,10 @@ namespace eka2l1 {
                 get_network_caps(ctx);
                 break;
 
+            case epoc::etel_mobile_phone_get_current_mode:
+                get_current_mode(ctx);
+                break;
+
             case epoc::etel_mobile_phone_get_network_registration_status:
                 get_network_registration_status(ctx);
                 break;
@@ -392,8 +444,16 @@ namespace eka2l1 {
                 notify_network_registration_status_change(ctx);
                 break;
 
+            case epoc::etel_mobile_phone_notify_network_registration_status_change_cancel:
+                notify_network_registration_status_change_cancel(ctx);
+                break;
+
             case epoc::etel_mobile_phone_notify_signal_strength_change:
                 notify_signal_strength_change(ctx);
+                break;
+
+            case epoc::etel_mobile_phone_notify_signal_strength_change_cancel:
+                notify_signal_strength_change_cancel(ctx);
                 break;
 
             case epoc::etel_mobile_phone_get_network_registration_status_cancel:
@@ -412,12 +472,31 @@ namespace eka2l1 {
                 get_phone_id(ctx);
                 break;
 
+            // The no-location variant is the same fetch without the location-area slot,
+            // which is never filled in here anyway.
             case epoc::etel_mobile_phone_get_current_network:
+            case epoc::etel_mobile_phone_get_current_network_no_location:
                 get_current_network(ctx);
+                break;
+
+            case epoc::etel_mobile_phone_get_nitz_info:
+                get_nitz_info(ctx);
+                break;
+
+            case epoc::etel_mobile_phone_notify_nitz_info_change:
+                notify_nitz_info_change(ctx);
+                break;
+
+            case epoc::etel_mobile_phone_notify_nitz_info_change_cancel:
+                notify_nitz_info_change_cancel(ctx);
                 break;
 
             case epoc::etel_mobile_phone_notify_current_network_change:
                 notify_current_network_change(ctx);
+                break;
+
+            case epoc::etel_mobile_phone_notify_current_network_change_cancel:
+                notify_current_network_change_cancel(ctx);
                 break;
 
             case epoc::etel_mobile_phone_get_current_network_cancel:

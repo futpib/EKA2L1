@@ -1,0 +1,339 @@
+{
+  "status": "Delivered: local and actual HTTPS keyboard/touch menu, audio/layout/shutdown checks pass; selected executable unchanged",
+  "candidate": {
+    "base_application_archive": "/home/claude/.scratch/eka-benchmark/deferred-counts-candidate",
+    "base_application_manifest": {
+      "git_head": "a0aaebf372e4dfcb957e469a32e04c512ba46c5c",
+      "hashes": {
+        "eka2l1.js": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+        "source.patch": "6a39fb9c112b6b28c177e9156398ac4c30e42a1c16b0cf95b8134620418b781d",
+        "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+        "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+        "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "eka2l1.wasm": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b",
+        "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+        "tests/eka_cpu_fault_native": "bf7c9b1927553a4cbc86f552bcfb395007b44b2bdbf35d1f1ecb659b347afd54",
+        "tests/test_aot_wasm.wasm": "dd8012629139d5a5ef747feef356f9b4cff1277b4ec3287f74aa3cc67ed4f184",
+        "tests/eka_compiler_probe": "365de7cf8d1e7fbb5f5ce6bb257f64be840f5fa494f314dc59ee103acd1728d6",
+        "tests/eka_cpu_fault_wasm.wasm": "a080c0bee76ef5e80980f0919c69c8f8ed6b8d73e5c4536471d236a9da587cb6",
+        "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+      },
+      "sources": {
+        "CMakeLists.txt": "27dae1b0f46165fb3fe097f8788bcfd9f83818b6f534092d8fe5dd1a1ec90752",
+        "src/emu/cpu/CMakeLists.txt": "bf21545c7acd8e328dfb8a1201ce2cdc2886ac5df006d18df04593d4a9247e81",
+        "src/emu/cpu/include/cpu/aot/thumb_translator.h": "241512d4e8666fa6b2995427d60cf70b754853e45eceaf17efb7e4ff8676f885",
+        "src/emu/cpu/include/cpu/aot/state_locals.h": "46b201a72f1dcc91df86ec030500477e8f400739931b0dc2c76d0b3c7b9d72d3",
+        "src/emu/cpu/include/cpu/aot/region_ir.h": "c9c8adbfd13c43d9bfd6d9906af44048bb8e054a3cf4fb571d91fe4258e2bbef",
+        "src/emu/cpu/src/aot/arm_translator.cpp": "866f42459edce5db3aaf5acc5a402bd7a93aa797fa38caf79a970cdc24ff30b5",
+        "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "76f87cda16f82a8c9dfd45f10ff52ae16f493181835aaa5000710817728c5e0a",
+        "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "a8b03653a705ab06c9d13a0284526f32de487d4907810d6dfe11440c53cf569d",
+        "src/emu/cpu/src/aot/wasm_emitter.cpp": "ff557b6bed576b5ea6645cfe1a440aa54b49b1ba6ee67bcfcfbfe1a0d7f1e3dc",
+        "src/emu/cpu/include/cpu/dyncom/armstate.h": "e3125ce68715bcb2e46998738280c18c339fffdc46e83827e7c20e6d012adfff",
+        "src/emu/cpu/src/dyncom/armstate.cpp": "86693e9ce40170887bb6d556c797b6c87f66f7df3531426cfadbb191ac0a6a7a",
+        "src/tests/aot/test_aot_wasm.cpp": "f453a8a485c98d5df7c1e1d0b23b37b455da22cd3916188d6f76601e8d346c78",
+        "src/tests/benchmark/cpu_fault_probe.cpp": "b23769198785874eba104e01b08b99f6f8998365af9876e8bcb8c22c902dcfbc",
+        "src/tests/cpu/aot.cpp": "53a11703ba12cb1b0dc168e91d479f9a0fb0f148d1fa3ba1841e6fcac42027e8",
+        "src/emu/cpu/include/cpu/aot/arm_translator.h": "c68681694256d76ecb21216ddc4bbf135c59e19bf6aad06448233e5cbc9d207e",
+        "src/emu/cpu/src/aot/aot_runtime.cpp": "61443cb148d15a80758b434bc56ced3456d1081004b9ab521907c11176ea78bf",
+        "src/emu/wasm/main.cpp": "f806c9c0770d2d7b41f4b126954fe59410490b9f539b8ee94f8180333f4bc549",
+        "src/tests/wasm/profile.ts": "2d864b27208911a3af8e4eff46f7f1ba4fbe934e85b0beb1c3619c13a69aee3d",
+        "src/tests/wasm/benchmark.ts": "c1d7bd6014ad1f2bd099bf6973db96d9974f835f609ff44b7bea66814bdc62e3",
+        "src/tests/wasm/test.ts": "ea6b6f7ec6e988df7e67840cd1e328f49723b2782f88dfa1747ab50c161b00d4",
+        "src/tests/benchmark/compiler_probe.cpp": "2d1d189e13138e80802cf91c40dece2fd8fc07e36f49f520ac90b3fe69911d63",
+        "src/tests/benchmark/serial_variants.py": "ddfd9158f6cb93537ae5d85d6bc999bf1bd10d65765e4072a71135d607bbd0ed",
+        "src/emu/system/src/aot_setup.cpp": "3387cfd51afdea1d677b18bc930ed0adb7e90408d89c83af43bbf5805ecffd9d"
+      }
+    },
+    "change": "HTML only: S60 softkeys use device0/device1 scan164/165",
+    "git_head": "de989db4df57ac53b11f70663955ff9e7cee76b9",
+    "hashes": {
+      "eka2l1.js": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+      "eka2l1.html": "8e0962709fa2a5cdff9d30125452c500123910e76bdee682092f9fd44a7aee69",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b"
+    }
+  },
+  "local": {
+    "target": "http://127.0.0.1:43811/",
+    "softkeys": [
+      {
+        "name": "f1-paused",
+        "expected_paused": true,
+        "seen": true,
+        "text": "Paused\n",
+        "state": {
+          "guest": 25680000,
+          "inputs": 26,
+          "frames": 1016
+        }
+      },
+      {
+        "name": "f2-resumed",
+        "expected_paused": false,
+        "seen": false,
+        "text": "\u2014\n",
+        "state": {
+          "guest": 26415610,
+          "inputs": 28,
+          "frames": 1044
+        }
+      },
+      {
+        "name": "escape-paused",
+        "expected_paused": true,
+        "seen": true,
+        "text": "Paused\n",
+        "state": {
+          "guest": 27210000,
+          "inputs": 30,
+          "frames": 1079
+        }
+      },
+      {
+        "name": "touch-left-resumed",
+        "expected_paused": false,
+        "seen": false,
+        "text": "'\n",
+        "state": {
+          "guest": 27904148,
+          "inputs": 32,
+          "frames": 1106
+        }
+      },
+      {
+        "name": "touch-right-paused",
+        "expected_paused": true,
+        "seen": true,
+        "text": "Paused\n",
+        "state": {
+          "guest": 28657485,
+          "inputs": 34,
+          "frames": 1138
+        }
+      },
+      {
+        "name": "escape-resumed",
+        "expected_paused": false,
+        "seen": false,
+        "text": "'\n",
+        "state": {
+          "guest": 29410901,
+          "inputs": 36,
+          "frames": 1168
+        }
+      }
+    ],
+    "compilerPolicy": {
+      "requested": {
+        "irMode": 7,
+        "eagerRegions": 0
+      },
+      "applied": true
+    },
+    "security": {
+      "secure": true,
+      "isolated": true
+    },
+    "audio": {
+      "state": "running",
+      "stats": {
+        "queued": 3552,
+        "resyncs": 0,
+        "underruns": 0,
+        "dropped": 0,
+        "played": 457728,
+        "nonzero": 455130
+      },
+      "rate": 48000
+    },
+    "first": {
+      "guest": 23902584,
+      "inputs": 20,
+      "frames": 942
+    },
+    "second": {
+      "guest": 24497692,
+      "inputs": 22,
+      "frames": 966
+    },
+    "last": {
+      "guest": 24841226,
+      "inputs": 24,
+      "frames": 980
+    },
+    "canvasSamples": [
+      211,
+      219,
+      220,
+      222,
+      233,
+      226,
+      237,
+      232,
+      233,
+      232,
+      232,
+      244
+    ],
+    "errors": [],
+    "browser": "Chrome/153.0.8010.52"
+  },
+  "original_reproduction": {
+    "path": "/home/claude/.scratch/eka-benchmark/growth-explore-1",
+    "observation": "Application0/1 codes180/181 did not pause; raw Device0 scan164 visibly opened Paused menu"
+  },
+  "validation_limitations": [
+    "Current frontend test expects later optional IR modes unsupported by unchanged served WASM; the first run failed its capability assertion. Matching test at026ffc82d passes all9 checks.",
+    "First OCR check missed the visibly present small Paused text. Cropping and enlarging the caption fixes recognition; original screenshot and failure log retained.",
+    "No compiler or WASM change, so previous exact replay/fault evidence applies to the unchanged executable; no claim of new full replay."
+  ],
+  "compatible_frontend": {
+    "path": "/home/claude/.scratch/eka-benchmark/softkeys-compatible-frontend.log",
+    "sha256": "823a798f82fb37ca363c31443570d10b3bdef08dca5e15f5f4438fbd92b1b603"
+  },
+  "first_frontend_failure": {
+    "path": "/home/claude/.scratch/eka-benchmark/softkeys-frontend.log",
+    "sha256": "191030eb395c3486bd532238ecb5494ecd5472f351ae08b02587abe02a14f547"
+  },
+  "first_ocr_failure": {
+    "path": "/home/claude/.scratch/eka-benchmark/softkeys-local-qa.log",
+    "sha256": "04a89c5ccb517c3d3a5c379427a05a36e08b87a58c23122449787e7db6dc3660"
+  },
+  "https": {
+    "target": "https://claude-laptop.lan:8188/",
+    "softkeys": [
+      {
+        "name": "f1-paused",
+        "expected_paused": true,
+        "seen": true,
+        "text": "Paused\n",
+        "state": {
+          "guest": 25680000,
+          "inputs": 26,
+          "frames": 1018
+        }
+      },
+      {
+        "name": "f2-resumed",
+        "expected_paused": false,
+        "seen": false,
+        "text": "",
+        "state": {
+          "guest": 26441891,
+          "inputs": 28,
+          "frames": 1048
+        }
+      },
+      {
+        "name": "escape-paused",
+        "expected_paused": true,
+        "seen": true,
+        "text": "Paused\n",
+        "state": {
+          "guest": 27280000,
+          "inputs": 30,
+          "frames": 1084
+        }
+      },
+      {
+        "name": "touch-left-resumed",
+        "expected_paused": false,
+        "seen": false,
+        "text": "\u00a3 8 8 R\n",
+        "state": {
+          "guest": 27998880,
+          "inputs": 32,
+          "frames": 1112
+        }
+      },
+      {
+        "name": "touch-right-paused",
+        "expected_paused": true,
+        "seen": true,
+        "text": "Paused\n",
+        "state": {
+          "guest": 28710000,
+          "inputs": 34,
+          "frames": 1142
+        }
+      },
+      {
+        "name": "escape-resumed",
+        "expected_paused": false,
+        "seen": false,
+        "text": "",
+        "state": {
+          "guest": 29454540,
+          "inputs": 36,
+          "frames": 1172
+        }
+      }
+    ],
+    "compilerPolicy": {
+      "requested": {
+        "irMode": 7,
+        "eagerRegions": 0
+      },
+      "applied": true
+    },
+    "security": {
+      "secure": true,
+      "isolated": true
+    },
+    "audio": {
+      "state": "running",
+      "stats": {
+        "queued": 4480,
+        "resyncs": 0,
+        "underruns": 0,
+        "dropped": 0,
+        "played": 458240,
+        "nonzero": 455608
+      },
+      "rate": 48000
+    },
+    "first": {
+      "guest": 23915710,
+      "inputs": 20,
+      "frames": 944
+    },
+    "second": {
+      "guest": 24535186,
+      "inputs": 22,
+      "frames": 970
+    },
+    "last": {
+      "guest": 24878289,
+      "inputs": 24,
+      "frames": 984
+    },
+    "canvasSamples": [
+      236,
+      248,
+      217,
+      218,
+      230,
+      219,
+      213,
+      223,
+      243,
+      257,
+      268,
+      266
+    ],
+    "errors": [],
+    "browser": "Chrome/153.0.8010.52"
+  },
+  "downloaded_hashes": {
+    "js": "e5f9165e91ad0f62f16b28025d6916e5e32bbca3e48e0e17ca170dddaa1fa041",
+    "wasm": "dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b"
+  },
+  "fault_policy_correction": {
+    "report": "FAULT_POLICY_AUDIT_RESULTS.md",
+    "scope": "Standalone host-env-selected WASM fault probes exercised configured policy -1; per-policy attribution withdrawn. Browser and direct-policy compiler observations are separate.",
+    "current_source_revalidation": "IR_LONG_SEGMENTS_EVIDENCE.json"
+  }
+}

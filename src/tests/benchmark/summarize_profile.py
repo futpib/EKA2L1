@@ -21,7 +21,7 @@ for path in sorted(a.directory.glob('*.cpuprofile')):
     generated_modules = set()
     for node in profile['nodes']:
         frame = node['callFrame']
-        if frame['url'].startswith('wasm://') and frame['functionName'].startswith('wasm-function['):
+        if frame['url'].startswith('wasm://') and (frame['functionName'].startswith('wasm-function[') or frame['functionName'].startswith(('f_', 'r_'))):
             generated_nodes.add(node['id'])
             generated_modules.add(frame['url'])
     inside_generated = {}

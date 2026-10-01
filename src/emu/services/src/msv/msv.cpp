@@ -75,7 +75,9 @@ namespace eka2l1 {
 
         drive_number drv_target = drive_z;
 
-        for (drive_number drv = drive_z; drv >= drive_a; drv--) {
+        // Stepping one below drive_a would leave the enum's value range.
+        for (int drv_index = drive_z; drv_index >= drive_a; drv_index--) {
+            const drive_number drv = static_cast<drive_number>(drv_index);
             auto drv_entry = io->get_drive_entry(drv);
 
             if (drv_entry && (drv_entry->media_type == drive_media::rom)) {
@@ -903,7 +905,8 @@ namespace eka2l1 {
                 epoc::absorb_des_string(comp->filename_, seri, true);
             }
 
-            if (kern->is_eka1() && (kern->get_epoc_version() >= epocver::epoc81a)) {
+            // EKA1's packed record grew these three 32-bit fields in Symbian 8.0.
+            if (kern->is_eka1() && (kern->get_epoc_version() >= epocver::epoc80)) {
                 std::uint32_t cap_send_32 = group->cap_send_;
                 std::uint32_t cap_body_32 = group->cap_body_;
                 std::uint32_t cap_avail_32 = group->cap_avail_;

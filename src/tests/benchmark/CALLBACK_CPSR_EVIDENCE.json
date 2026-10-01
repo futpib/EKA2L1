@@ -1,0 +1,275 @@
+{
+  "problem": "packed CPSR stale at callbacks after compiled arithmetic and before deferred interpreter accesses",
+  "baseline_expanded_fault_result": {
+    "cases": 672,
+    "all_fields_match": 104,
+    "final_state_and_exact_memory_match": 672,
+    "mismatched_fields": {
+      "events": 568
+    },
+    "categories": {
+      "other": 356,
+      "readonly_store": 168,
+      "big_endian_halfword_store": 12,
+      "big_endian_tlb_read": 32
+    },
+    "little_endian_unmapped_cases": 168,
+    "little_endian_unmapped_differences": 168,
+    "inputs": {
+      "/home/claude/.scratch/eka-benchmark/entry-budget-native-fault.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a",
+      "/home/claude/.scratch/eka-benchmark/entry-budget-baseline-fault.log": "12836d0ef8eb4ad04d506ef418f6af6ea659ab5a6b8326c9f466a04097d4d069"
+    },
+    "differences_artifact": "/home/claude/.scratch/eka-benchmark/entry-budget-baseline-fault.json",
+    "first_difference": {
+      "id": 0,
+      "category": "other",
+      "fields": [
+        "events"
+      ],
+      "native": {
+        "id": 0,
+        "opcode": 3851485184,
+        "policy": 0,
+        "address": 32768,
+        "endian": 0,
+        "tlb_readonly": 0,
+        "partial": 0,
+        "regs": [
+          2052403211,
+          32768,
+          7,
+          305397763,
+          305397764,
+          305397765,
+          305397766,
+          305397767,
+          305397768,
+          305397769,
+          305397770,
+          305397771,
+          305397772,
+          305397773,
+          305397774,
+          4104
+        ],
+        "cpsr": 536870928,
+        "count": 2,
+        "memory_hash": 384216527,
+        "calls": 2,
+        "faults": 1,
+        "events": [
+          "read:4:32768:fail",
+          {
+            "exception": 1,
+            "address": 32768,
+            "regs": [
+              2271560481,
+              32768,
+              7,
+              305397763,
+              305397764,
+              305397765,
+              305397766,
+              305397767,
+              305397768,
+              305397769,
+              305397770,
+              305397771,
+              305397772,
+              305397773,
+              305397774,
+              4100
+            ],
+            "cpsr": 536870928
+          },
+          "read:4:32768:ok"
+        ],
+        "memory_changes": []
+      },
+      "wasm": {
+        "id": 0,
+        "opcode": 3851485184,
+        "policy": 0,
+        "address": 32768,
+        "endian": 0,
+        "tlb_readonly": 0,
+        "partial": 0,
+        "regs": [
+          2052403211,
+          32768,
+          7,
+          305397763,
+          305397764,
+          305397765,
+          305397766,
+          305397767,
+          305397768,
+          305397769,
+          305397770,
+          305397771,
+          305397772,
+          305397773,
+          305397774,
+          4104
+        ],
+        "cpsr": 536870928,
+        "count": 2,
+        "memory_hash": 384216527,
+        "calls": 2,
+        "faults": 1,
+        "events": [
+          "read:4:32768:fail",
+          {
+            "exception": 1,
+            "address": 32768,
+            "regs": [
+              2271560481,
+              32768,
+              7,
+              305397763,
+              305397764,
+              305397765,
+              305397766,
+              305397767,
+              305397768,
+              305397769,
+              305397770,
+              305397771,
+              305397772,
+              305397773,
+              305397774,
+              4100
+            ],
+            "cpsr": 2684354576
+          },
+          "read:4:32768:ok"
+        ],
+        "memory_changes": []
+      }
+    }
+  },
+  "fixed_fault_modes": [
+    {
+      "mode": "extended",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/callback-cpsr-extended-native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+          "/home/claude/.scratch/eka-benchmark/callback-cpsr-extended-wasm.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+        },
+        "differences": []
+      }
+    },
+    {
+      "mode": "deferred",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/callback-cpsr-deferred-native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+          "/home/claude/.scratch/eka-benchmark/callback-cpsr-deferred-wasm.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+        },
+        "differences": []
+      }
+    },
+    {
+      "mode": "entry-budget",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/callback-cpsr-entry-budget-native.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a",
+          "/home/claude/.scratch/eka-benchmark/callback-cpsr-entry-budget-wasm.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a"
+        },
+        "differences": []
+      }
+    },
+    {
+      "mode": "entry-budget-deferred",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/callback-cpsr-entry-budget-deferred-native.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a",
+          "/home/claude/.scratch/eka-benchmark/callback-cpsr-entry-budget-deferred-wasm.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a"
+        },
+        "differences": []
+      }
+    }
+  ],
+  "source": {
+    "head": "44714dbfdc9c3d6d6b613b1c073c23ecaabf09ce",
+    "patch": "/home/claude/.scratch/eka-benchmark/callback-cpsr-fix.patch",
+    "hashes": {
+      "eka2l1.js": "74e1c652fd857325d5d41a63a048881ec1deebc70fc9ddf53638a3ab766a2df1",
+      "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "70c2902732272884dd3c04dd56d0258f8864aba2bed4e2b517d3f76492cca86d",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_fault_native": "c78b974bbb4a223fbc0ff85773dfdf1f2260427857327a26040d42f87f9267c8",
+      "tests/test_aot_wasm.wasm": "f550316be4a978cc6f6cc215427086d9e7f09998cce5aa40c36bb6bddb35f24e",
+      "tests/eka_cpu_fault_wasm.wasm": "87d2f2a35340288a0a6aef5f31a0ea05cb0712a096ce9963ed8a19bfb17fd8d6",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+    }
+  },
+  "wasm_tests": 135,
+  "native_targets": 3,
+  "frontend_checks": 7,
+  "checked_replay": {
+    "match": true,
+    "audio": {
+      "sample_frames": 4919249,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+      "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+      "writes": 0,
+      "callbacks": 10190,
+      "backend": "shared-dsp-cubeb-resampler",
+      "render_callbacks": 10190,
+      "gameplay_nonzero_samples": 7223662,
+      "gameplay_peak": 8449
+    },
+    "frames": 1600,
+    "unique_images": 1600,
+    "last_virtual_us": 102484363,
+    "instructions": 16263331210
+  },
+  "gameplay_heuristic": {
+    "frames": 1600,
+    "unique_images": 1600,
+    "unique_viewports": 1600,
+    "first_virtual_us": 21031559,
+    "last_virtual_us": 102484363,
+    "virtual_seconds": 81.452804,
+    "game_images_per_virtual_second": 19.631000057407476,
+    "median_interval_us": 47034,
+    "max_interval_us": 408561,
+    "min_viewport_changed_fraction": 0.002483333333333282,
+    "median_viewport_changed_fraction": 0.29761666666666664,
+    "pass": false
+  }
+}

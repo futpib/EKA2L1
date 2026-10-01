@@ -12,8 +12,26 @@ endif ()
 # Many of our code are optimized to utilize offsetof.
 # But it complains a lot with non-POD type, that's not what we want, so disable the warn flag.
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X version to target for deployment" FORCE)
+    # CMAKE_OSX_DEPLOYMENT_TARGET also applies to iOS builds, and the iOS
+    # toolchain sets it from EKA2L1_IOS_DEPLOYMENT_TARGET. Do not overwrite it
+    # there with the macOS default.
+    if (NOT EKA2L1_IOS)
+        if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+            set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum OS X version to target for deployment" FORCE)
+        endif ()
+    endif ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
+endif ()
+
+# Qt Multimedia backs the desktop camera. It is optional -- a build without it
+# keeps the null camera -- and is looked up here, the scope both drivers/ and
+# qt/ inherit the imported target from.
+if (EKA2L1_ENABLE_QT_CAMERA AND NOT ANDROID AND NOT EKA2L1_IOS AND NOT EMSCRIPTEN)
+    find_package(Qt6 COMPONENTS Multimedia QUIET)
+
+    if (NOT Qt6Multimedia_FOUND)
+        message(STATUS "Qt Multimedia was not found, the desktop camera backend will not be built")
+    endif ()
 endif ()
 
 add_subdirectory(bridge)
@@ -40,6 +58,8 @@ if (ANDROID)
     add_subdirectory(android/app/src/main/cpp)
 elseif(EMSCRIPTEN)
     add_subdirectory(wasm)
+elseif (EKA2L1_IOS)
+    add_subdirectory(ios)
 else()
     add_subdirectory(qt)
 endif()

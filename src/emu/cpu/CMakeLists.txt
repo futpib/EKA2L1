@@ -85,6 +85,7 @@ set(SOURCE_AOT
         include/cpu/aot/arm_translator.h
         include/cpu/aot/thumb_translator.h
         include/cpu/aot/wasm_emitter.h
+        src/aot/code_compare.cpp
         src/aot/aot_registry.cpp
         src/aot/aot_runtime.cpp
         src/aot/arm_translator.cpp
@@ -105,10 +106,41 @@ add_library(cpu
         ${SOURCE_DYNCOM}
         ${SOURCE_AOT})
 
+# Build the CPU module with the dyncom interpreter only (no dynarmic). Used by
+# the dyncom differential test harness, which only needs the interpreter and
+# otherwise would drag in dynarmic (which fails to build host-side against newer
+# libc++ via boost's removed std::unary_function). Default OFF.
+option(EKA2L1_CPU_DYNCOM_ONLY "Build the CPU module with the dyncom interpreter only (no dynarmic)" OFF)
+
+# Instrument the dyncom interpreter to log guest opcode / instruction-pair /
+# block-length frequencies (used to target super-instruction fusion). Opt-in,
+# default OFF -> zero overhead in normal builds.
+option(EKA2L1_DYNCOM_PROFILE "Profile guest instruction/pair frequencies in the dyncom interpreter" OFF)
+
+# VFP's instruction-level trace sites sit directly on dyncom's hottest path: one
+# log line per float loaded or stored, each synchronously flushed (spdlog
+# flush_on = debug). Float-heavy guest code drowns in them. Compile them out
+# unless a diagnostic build explicitly asks for them — including in Debug, whose
+# default log filter is "*:trace" and would otherwise enable them by default.
+option(EKA2L1_DYNCOM_VFP_TRACE "Keep dyncom VFP trace logging" OFF)
+if (NOT EKA2L1_DYNCOM_VFP_TRACE)
+    target_compile_definitions(cpu PRIVATE EKA2L1_DYNCOM_DISABLE_VFP_TRACE=1)
+endif()
+
 if (ARCHITECTURE_ARM32)
     target_sources(cpu PRIVATE ${SOURCE_12L1R})
     target_link_libraries(cpu PRIVATE Catch2)
-elseif(NOT EMSCRIPTEN)
+elseif (EMSCRIPTEN OR (EKA2L1_IOS AND NOT EKA2L1_IOS_DYNARMIC) OR EKA2L1_CPU_DYNCOM_ONLY)
+    # iOS builds without EKA2L1_IOS_DYNARMIC run the dyncom interpreter only.
+    # This is the App Store / TestFlight configuration: no JIT code is
+    # compiled in.
+    message(STATUS "cpu: linking without dynarmic (dyncom only)")
+    if (EKA2L1_CPU_DYNCOM_ONLY)
+        # On a non-iOS host the dynarmic-detection macro would otherwise pull in
+        # the dynarmic headers; force it off for the dyncom-only build.
+        target_compile_definitions(cpu PRIVATE EKA2L1_CPU_DYNCOM_ONLY_BUILD=1)
+    endif()
+else()
     target_sources(cpu PRIVATE
             include/cpu/arm_dynarmic.h
             src/arm_dynarmic.cpp)
@@ -117,10 +149,49 @@ elseif(NOT EMSCRIPTEN)
             dynarmic)
 endif()
 
+if (EKA2L1_DYNCOM_PROFILE)
+    # PUBLIC so the ARMul_State layout (which gains two profiling fields) is
+    # consistent in every TU that includes armstate.h, avoiding an ODR mismatch.
+    target_compile_definitions(cpu PUBLIC EKA2L1_DYNCOM_PROFILE=1)
+endif()
+
 target_include_directories(cpu PUBLIC include)
 target_include_directories(cpu PRIVATE ${capstone_INCLUDE_DIRS})
 
 target_link_libraries(cpu PUBLIC common)
 target_link_libraries(cpu
         PRIVATE
-        capstone_static)
+        capstone)
+
+# Differential test harness for the dyncom interpreter (self-A/B + golden ALU
+# oracle over randomized instruction streams). Standalone host tool, default OFF;
+# see scripts/cpu_difftest.sh.
+option(EKA2L1_BUILD_DYNCOM_DIFFTEST "Build the dyncom interpreter differential test harness" OFF)
+if (EKA2L1_BUILD_DYNCOM_DIFFTEST)
+    # The test-only VFP selector lets one process compare host-fast and
+    # reference-softfloat execution without changing production state.
+    target_compile_definitions(cpu PUBLIC EKA2L1_DYNCOM_DIFFTEST=1)
+    add_executable(dyncom_difftest src/dyncom/tests/dyncom_difftest.cpp)
+    target_link_libraries(dyncom_difftest PRIVATE cpu common dynarmic)
+
+endif()
+if (EMSCRIPTEN)
+    set_source_files_properties(src/aot/code_compare.cpp PROPERTIES COMPILE_OPTIONS "-msimd128")
+endif()
+
+if(EKA2L1_WASM_DEFER_MEMORY)
+    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_DEFER_MEMORY=1)
+endif()
+
+if(EKA2L1_WASM_REGION_IR)
+    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_REGION_IR=1)
+endif()
+if(EKA2L1_WASM_IR_SEGMENTS)
+    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_IR_SEGMENTS=1)
+endif()
+if(EKA2L1_WASM_IR_MEMORY)
+    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_IR_MEMORY=1)
+endif()
+if(EKA2L1_WASM_IR_OUTLINE)
+    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_IR_OUTLINE=1)
+endif()

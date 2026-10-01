@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/code_tracking.h>
 #include <common/log.h>
 #include <config/config.h>
 #include <cpu/arm_interface.h>
@@ -31,19 +32,22 @@ namespace eka2l1::mem {
         : manager_(manager)
         , cpu_(cpu)
         , conf_(conf) {
+        cpu->code_mapping_generation = &mapping_generation;
+        cpu->code_address_space = 0;
         // Set CPU read/write functions
         cpu->read_8bit = [this](const vm_address addr, std::uint8_t *data) { return read_8bit_data(addr, data); };
         cpu->read_16bit = [this](const vm_address addr, std::uint16_t *data) { return read_16bit_data(addr, data); };
         cpu->read_32bit = [this](const vm_address addr, std::uint32_t *data) { return read_32bit_data(addr, data); };
         cpu->read_64bit = [this](const vm_address addr, std::uint64_t *data) { return read_64bit_data(addr, data); };
         cpu->read_code = [this](const vm_address addr, std::uint32_t *data) { return read_code(addr, data); };
-        cpu->resolve_code = [this](const vm_address addr, arm::core::code_mapping &view) {
+        cpu->resolve_code = [this, cache = executable_mapping_cache{}](const vm_address addr, arm::core::code_mapping &view) mutable {
             view = {};
             view.address_space = current_addr_space();
-            auto *page = manager_->get_page_info(current_addr_space(), addr);
-            if (!page || !page->host_addr || !(page->perm & prot_exec)) return false;
+            const auto page = cache.lookup(view.address_space, addr & ~manager_->offset_mask_, manager_->page_size_bits_,
+                [&] { return manager_->get_page_info(view.address_space, addr); });
+            if (!page.host_addr || !(page.perm & prot_exec)) return false;
             const auto offset = addr & manager_->offset_mask_;
-            view.bytes = static_cast<const std::uint8_t *>(page->host_addr) + offset;
+            view.bytes = static_cast<const std::uint8_t *>(page.host_addr) + offset;
             view.size = manager_->page_size() - offset;
             return true;
         };
@@ -175,6 +179,7 @@ namespace eka2l1::mem {
         std::uint8_t *ptr = reinterpret_cast<std::uint8_t *>(inf->host_addr) + (addr & manager_->offset_mask_);
 
         *ptr = *data;
+        common::code_tracking::guest_write(ptr, sizeof(*ptr));
 
         if (conf_->log_write) {
             LOG_TRACE(MEMORY, "Write 1 byte to address 0x{:X}", addr);
@@ -195,6 +200,7 @@ namespace eka2l1::mem {
         std::uint16_t *ptr = reinterpret_cast<std::uint16_t *>(reinterpret_cast<std::uint8_t *>(inf->host_addr) + (addr & manager_->offset_mask_));
 
         *ptr = *data;
+        common::code_tracking::guest_write(ptr, sizeof(*ptr));
 
         if (conf_->log_write) {
             LOG_TRACE(MEMORY, "Write 2 bytes to address 0x{:X}", addr);
@@ -215,6 +221,7 @@ namespace eka2l1::mem {
         std::uint32_t *ptr = reinterpret_cast<std::uint32_t *>(reinterpret_cast<std::uint8_t *>(inf->host_addr) + (addr & manager_->offset_mask_));
 
         *ptr = *data;
+        common::code_tracking::guest_write(ptr, sizeof(*ptr));
 
         if (conf_->log_write) {
             LOG_TRACE(MEMORY, "Write 4 bytes to address 0x{:X}", addr);
@@ -235,6 +242,7 @@ namespace eka2l1::mem {
         std::uint64_t *ptr = reinterpret_cast<std::uint64_t *>(reinterpret_cast<std::uint8_t *>(inf->host_addr) + (addr & manager_->offset_mask_));
 
         *ptr = *data;
+        common::code_tracking::guest_write(ptr, sizeof(*ptr));
 
         if (conf_->log_write) {
             LOG_TRACE(MEMORY, "Write 8 bytes to address 0x{:X}", addr);
@@ -247,14 +255,22 @@ namespace eka2l1::mem {
     }
 
     bool mmu_base::read_code(const vm_address addr, std::uint32_t *data) {
-        std::uint32_t *code = reinterpret_cast<std::uint32_t *>(manager_->get_host_pointer(
-            current_addr_space(), addr));
-
-        if (!code) {
+        // Mirror the data readers: resolve via page_info and seed the CPU TLB so
+        // repeated fetches from the same code page (block translation, runtime
+        // re-reads) skip the page-directory walk. The TLB caches the host page
+        // pointer, not the instruction word, so reads stay current; SMC still
+        // invalidates the entry through make_dirty / imb_range.
+        page_info *inf = manager_->get_page_info(current_addr_space(), addr);
+        if (!inf || !inf->host_addr) {
             return false;
         }
 
-        *data = *code;
+        *data = *reinterpret_cast<std::uint32_t *>(
+            reinterpret_cast<std::uint8_t *>(inf->host_addr) + (addr & manager_->offset_mask_));
+
+        cpu_->set_tlb_page(addr & ~manager_->offset_mask_, reinterpret_cast<std::uint8_t *>(inf->host_addr),
+            inf->perm);
+
         return true;
     }
 }

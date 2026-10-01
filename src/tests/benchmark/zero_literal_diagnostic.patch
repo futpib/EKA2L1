@@ -1,0 +1,34 @@
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index daf220934..166d75609 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -272,7 +272,28 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+         }
+         if constexpr (Verify) validation_end(cpu, count);
+         if (count > cpu->aot_budget) std::abort(); // generated-code contract
+-        if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
++        if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !count) {
++            common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
++            // Bounded diagnostic only: inspect the mapping and TLB tags after a
++            // zero-progress return. Never read guest data or invoke its memory
++            // callbacks; these observations must not repair the failed access.
++            static std::uint64_t zero_samples = 0;
++            static unsigned zero_records = 0;
++            if (++zero_samples % common::guest_profile::state.stride == 0 && zero_records < 64 && !cpu->TFlag) {
++                core::code_mapping code;
++                if (cpu->parent()->resolve_code && cpu->parent()->resolve_code(cpu->Reg[15], code) && code.size >= 4) {
++                    std::uint32_t opcode; std::memcpy(&opcode, code.bytes, 4);
++                    if ((opcode & 0x0f7f0000u) == 0x051f0000u) {
++                        const auto address = cpu->Reg[15] + 8 + ((opcode & 0x00800000u) ? (opcode & 4095) : -(opcode & 4095));
++                        const auto &entry = tlb->entries[(address >> tlb->page_bits) & r12l1::TLB_ENTRY_MASK];
++                        fprintf(stderr, "AOT_ZERO_LITERAL pc=%08x opcode=%08x address=%08x read=%08x write=%08x execute=%08x host=%u tlb=%u budget=%u cpsr=%08x exit=%u\n",
++                            cpu->Reg[15], opcode, address, entry.read_addr, entry.write_addr, entry.execute_addr,
++                            unsigned(entry.host_base != nullptr), unsigned(cpu->aot_tlb != 0), cpu->aot_budget, cpu->Cpsr, cpu->aot_exit);
++                        ++zero_records;
++                    }
++                }
++            }
++        }
+         ++result.blocks;
+         result.instructions += count;
+         if (!count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;

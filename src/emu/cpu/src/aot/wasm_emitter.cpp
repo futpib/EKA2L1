@@ -67,6 +67,28 @@ namespace eka2l1::arm::aot {
 
         const std::uint32_t num_imports = static_cast<std::uint32_t>(imports.size());
         const std::uint32_t num_funcs = static_cast<std::uint32_t>(funcs.size());
+        std::vector<const wasm_func_def *> definitions;
+        std::vector<std::vector<std::pair<std::uint32_t, std::uint32_t>>> outlined_indices(num_funcs);
+        for (const auto &func : funcs) definitions.push_back(&func);
+        for (std::uint32_t i = 0; i < num_funcs; ++i) {
+            const auto &func = funcs[i];
+            auto append_private = [&](const std::shared_ptr<wasm_func_def> &callee, std::uint32_t offset) {
+                // One outlining level; malformed or duplicate relocations must
+                // never silently call another public/private function.
+                if (!callee || callee->outlined_callee || !callee->outlined_calls.empty()
+                    || offset == 0 || offset > func.body.size() || func.body.size() - offset < 5
+                    || func.body[offset - 1] != op_call) return false;
+                for (const auto &prior : outlined_indices[i])
+                    if (prior.first == offset) return false;
+                outlined_indices[i].emplace_back(offset, num_imports + static_cast<std::uint32_t>(definitions.size()));
+                definitions.push_back(callee.get());
+                return true;
+            };
+            if (func.outlined_callee && !append_private(func.outlined_callee, func.outlined_call_offset)) return {};
+            for (const auto &call : func.outlined_calls)
+                if (!append_private(call.callee, call.call_offset)) return {};
+        }
+        const auto num_definitions = static_cast<std::uint32_t>(definitions.size());
 
         // Type indices: 0..num_imports-1 for import types, then num_imports for the AOT func type
         // All AOT functions share the same type: (i32) -> (i32)
@@ -126,8 +148,8 @@ namespace eka2l1::arm::aot {
         // === Section 3: Function ===
         {
             std::vector<std::uint8_t> sec;
-            leb128(sec, num_funcs);
-            for (std::uint32_t i = 0; i < num_funcs; i++) {
+            leb128(sec, num_definitions);
+            for (std::uint32_t i = 0; i < num_definitions; i++) {
                 leb128(sec, aot_type_idx);
             }
             emit_section(module, 3, sec);
@@ -148,9 +170,10 @@ namespace eka2l1::arm::aot {
         // === Section 10: Code ===
         {
             std::vector<std::uint8_t> sec;
-            leb128(sec, num_funcs);
+            leb128(sec, num_definitions);
 
-            for (auto &func : funcs) {
+            for (std::uint32_t index = 0; index < num_definitions; ++index) {
+                const auto &func = *definitions[index];
                 std::vector<std::uint8_t> body;
 
                 // Locals: optional i64 prefix, then i32, f32, f64
@@ -160,6 +183,7 @@ namespace eka2l1::arm::aot {
                     if (func.num_locals > 0) num_groups++;
                     if (func.num_f32_locals > 0) num_groups++;
                     if (func.num_f64_locals > 0) num_groups++;
+                    if (func.num_suffix_i64_locals > 0) num_groups++;
                     leb128(body, num_groups);
                     if (func.num_prefix_i64_locals > 0) {
                         leb128(body, func.num_prefix_i64_locals);
@@ -177,10 +201,21 @@ namespace eka2l1::arm::aot {
                         leb128(body, func.num_f64_locals);
                         body.push_back(type_f64);
                     }
+                    if (func.num_suffix_i64_locals > 0) {
+                        leb128(body, func.num_suffix_i64_locals);
+                        body.push_back(type_i64);
+                    }
                 }
 
                 // Body bytecode
+                const auto bytecode_start = body.size();
                 body.insert(body.end(), func.body.begin(), func.body.end());
+                if (index < num_funcs) for (auto [offset, target] : outlined_indices[index]) {
+                    for (unsigned n = 0; n < 5; ++n) {
+                        body[bytecode_start + offset + n] = (target & 0x7f) | (n < 4 ? 0x80 : 0);
+                        target >>= 7;
+                    }
+                }
 
                 // End
                 body.push_back(op_end);
@@ -193,6 +228,19 @@ namespace eka2l1::arm::aot {
             emit_section(module, 10, sec);
         }
 
+        // Names carry guest entry PCs into browser CPU profiles without adding
+        // any instructions or runtime bookkeeping to generated execution.
+        {
+            std::vector<std::uint8_t> names, custom;
+            leb128(names, num_definitions);
+            for (std::uint32_t i = 0; i < num_definitions; ++i) {
+                leb128(names, num_imports + i);
+                emit_str(names, definitions[i]->export_name);
+            }
+            emit_str(custom, "name");
+            emit_section(custom, 1, names); // function-name subsection
+            emit_section(module, 0, custom);
+        }
         return module;
     }
 }

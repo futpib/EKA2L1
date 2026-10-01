@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/code_tracking.h>
 #include <common/algorithm.h>
 #include <common/chunkyseri.h>
 #include <common/cvt.h>
@@ -114,7 +115,10 @@ namespace eka2l1 {
 
             int err = 0;
 
-            if (own_process && own_process->get_mem_model()) {
+            // Multiple-model global mappings must survive the creator's address space.
+            const bool independent_global = (chnk_access == chunk_access::global)
+                && (mem->get_model_type() == mem::mem_model_type::multiple);
+            if (own_process && own_process->get_mem_model() && !independent_global) {
                 mmp = own_process->get_mem_model();
                 err = mmp->create_chunk(mmc_impl_, create_info);
 
@@ -151,6 +155,12 @@ namespace eka2l1 {
                     std::fill(base_ptr + bottom, base_ptr + top, clear_byte);
                 }
 
+                if (chnk_access == chunk_access::code && !force_host_map
+                    && mem->get_model_type() == mem::mem_model_type::multiple) {
+                    tracked_code_base_ = mmc_impl_->host_base(false);
+                    common::code_tracking::register_allocation(tracked_code_base_, mmc_impl_->max());
+                }
+
                 LOG_INFO(KERNEL, "Chunk created: {}, base (in parent): 0x{:x}, max size: 0x{:x} type: {}, access: {}{}", obj_name,
                     mmc_impl_->base(mmp), max_size, (type == chunk_type::normal ? "normal" : (type == chunk_type::disconnected ? "disconnected" : "double ended")),
                     (chnk_access == chunk_access::local ? "local" : (chnk_access == chunk_access::code ? "code " : "global")),
@@ -159,14 +169,20 @@ namespace eka2l1 {
         }
 
         int chunk::destroy() {
+            if (tracked_code_base_) {
+                common::code_tracking::retire_allocation(tracked_code_base_);
+                tracked_code_base_ = nullptr;
+            }
             kernel::process *own = get_own_process();
 
             if (!mmc_impl_unq_) {
-                if (own->get_mem_model())
+                if (mmc_impl_ && own && own->get_mem_model())
                     own->get_mem_model()->delete_chunk(mmc_impl_);
             } else {
                 mmc_impl_unq_.reset();
             }
+
+            mmc_impl_ = nullptr;
 
             if (own)
                 own->decrease_access_count();
@@ -175,33 +191,41 @@ namespace eka2l1 {
         }
 
         void chunk::open_to(process *own) {
-            if (own)
+            if (own && mmc_impl_ && own->get_mem_model())
                 own->get_mem_model()->attach_chunk(mmc_impl_);
         }
 
         ptr<uint8_t> chunk::base(process *pr) {
+            if (!mmc_impl_) {
+                return 0;
+            }
+
             return mmc_impl_->base(pr ? pr->get_mem_model() : nullptr);
         }
 
         const std::size_t chunk::max_size() const {
-            return mmc_impl_->max();
+            return mmc_impl_ ? mmc_impl_->max() : 0;
         }
 
         const std::size_t chunk::committed() const {
-            return mmc_impl_->committed();
+            return mmc_impl_ ? mmc_impl_->committed() : 0;
         }
 
         const std::uint32_t chunk::bottom_offset() const {
-            return mmc_impl_->bottom();
+            return mmc_impl_ ? mmc_impl_->bottom() : 0;
         }
 
         const std::uint32_t chunk::top_offset() const {
-            return mmc_impl_->top();
+            return mmc_impl_ ? mmc_impl_->top() : 0;
         }
 
         std::int32_t chunk::commit_symbian_compat(uint32_t offset, size_t size) {
             if (type != kernel::chunk_type::disconnected) {
                 return epoc::error_general;
+            }
+
+            if (!mmc_impl_) {
+                return epoc::error_no_memory;
             }
 
             std::size_t ret_value = mmc_impl_->commit(offset, size, false);
@@ -216,7 +240,7 @@ namespace eka2l1 {
         }
 
         bool chunk::commit(uint32_t offset, size_t size) {
-            if (type != kernel::chunk_type::disconnected) {
+            if ((type != kernel::chunk_type::disconnected) || (!mmc_impl_)) {
                 return false;
             }
 
@@ -228,7 +252,7 @@ namespace eka2l1 {
         }
 
         bool chunk::decommit(uint32_t offset, size_t size) {
-            if (type != kernel::chunk_type::disconnected) {
+            if ((type != kernel::chunk_type::disconnected) || (!mmc_impl_)) {
                 return false;
             }
 
@@ -237,7 +261,7 @@ namespace eka2l1 {
         }
 
         bool chunk::adjust(std::size_t adj_size) {
-            if (type == kernel::chunk_type::disconnected) {
+            if ((type == kernel::chunk_type::disconnected) || (!mmc_impl_)) {
                 return false;
             }
 
@@ -245,7 +269,7 @@ namespace eka2l1 {
         }
 
         bool chunk::adjust_de(size_t nbottom, size_t ntop) {
-            if (type != kernel::chunk_type::double_ended) {
+            if ((type != kernel::chunk_type::double_ended) || (!mmc_impl_)) {
                 return false;
             }
 
@@ -253,15 +277,19 @@ namespace eka2l1 {
         }
 
         std::int32_t chunk::allocate(size_t size) {
-            if (type != kernel::chunk_type::disconnected) {
+            if ((type != kernel::chunk_type::disconnected) || (!mmc_impl_)) {
                 return -1;
             }
 
             return mmc_impl_->allocate(size);
         }
 
+        void *chunk::host_base_for_loading() {
+            return mmc_impl_ ? mmc_impl_->host_base(false) : nullptr;
+        }
+
         void *chunk::host_base() {
-            return mmc_impl_->host_base();
+            return mmc_impl_ ? mmc_impl_->host_base() : nullptr;
         }
     }
 }

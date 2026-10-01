@@ -1,0 +1,90 @@
+# Deferred counts: marginal benefit not established
+
+> Correction (2026-09-30): standalone per-policy fault coverage is superseded by
+> [the explicit-policy audit](FAULT_POLICY_AUDIT_RESULTS.md). Original raw results remain below.
+
+Policy 8 defers counter updates within already-proved straight-line chunks and
+reconstructs exact counts at exits. It extends policy 7 without changing integer
+or memory lowering. See DEFERRED_COUNTS_DESIGN.md. This remains opt-in and unserved.
+
+Base `a0aaebf372e4dfcb957e469a32e04c512ba46c5c` plus archived source.patch produced
+`/home/claude/.scratch/eka-benchmark/deferred-counts-candidate`.
+WASM SHA-256:
+`dcceea4c30d544b55af11b79d403cabb342b2e5474c7afa41a84ecd6b216464b`.
+
+All 151 compiler tests pass, including 30,720 exact policy-8 budget comparisons
+and 16,896 write comparisons. New cases cover taken/untaken forward joins and
+short budgets in later chunks containing proved stores. Both explicitly rebuilt
+policies 7 and 8 match native in all 7,712 fault cases each (15,424 total), including
+callback remapping and precise partial state. Both checked replays match native
+across 1,600 images, guest records and 4,919,249 stereo PCM frames. All three native
+CTest targets and nine frontend checks pass. Existing crash-harness XFAIL and
+native-identical movement-heuristic limitations remain separate.
+
+Captured busy functions defer 47 and 64 emitted counter updates. Their hot bodies
+shrink from 19,088 to 18,890 and 9,431 to 9,010 bytes; complete modules shrink from
+51,883 to 51,685 and 29,065 to 28,644 bytes. Selected chunk/read/write counts are
+8/9/2 and 3/11/4. The policy-7 control modules are byte-identical to the previous
+archive. Size reductions are not performance evidence. Native probe timings
+were concurrent with correctness work and are not used for performance claims.
+
+Serial timing will compare policies 7 and 8 within one application binary and
+the exact served read-proof archive. No live acceptance or deployment yet.
+DEFERRED_COUNTS_EVIDENCE.json contains source/binary hashes and all acceptance
+records. Nothing pushed.
+
+## First serial batch
+
+Order and elapsed seconds: deferred-1 12.5772, combined-1 12.5934,
+served-1 13.2085, served-2 13.2596, combined-2 12.6404, deferred-2 12.5334.
+Means: deferred 12.5553s, same-binary combined 12.6169s, served 13.23405s.
+That is +0.49% throughput against the matching compiler and +5.41% against
+served. Both adjacent pairs favor the candidate by small amounts. This first
+batch alone does not establish a reliable marginal benefit from deferred counts.
+
+All six runs execute 3,975,618,624 instructions and 676 presentations in the same
+18 guest seconds, with shared audio, hardware GPU and no sampling. No owned
+heavy jobs overlap either warmup or measurement. All samples are retained.
+The reordered confirmation is running; no deployment or live acceptance yet.
+
+## Reordered confirmation
+
+Order and elapsed seconds: combined-1 12.6588, deferred-1 12.9991,
+served-1 14.2268, served-2 13.2777, deferred-2 12.4522, combined-2 12.5982.
+Means: deferred 12.72565s, matching combined 12.62850s, served 13.75225s.
+The marginal deferred-count throughput change is -0.76% versus matching
+combined, while it is +8.07% versus served. All twelve A/B samples are retained.
+The new count lowering itself has not shown a repeated gain over policy 7.
+
+Both policies in this archive beat the exact served build in these two batches.
+A third comparison adds read-only policy 4 inside the same application binary,
+alongside 7/8 and exact served, to distinguish policy effects from surrounding
+binary changes. Earlier policy-7 archived-build results remain negative and are
+not discarded. This newer archive does not establish a causal explanation for
+that difference. No deployment yet.
+
+## Expanded same-binary control and decision
+
+Batch C order/times: served-1 13.2178, reads-1 13.1304, combined-1 12.5967,
+deferred-1 12.6103, deferred-2 12.5484, combined-2 12.9869,
+reads-2 13.3512, served-2 15.0373 seconds.
+
+Means: deferred 12.57935s, combined 12.79180s, same-binary reads 13.24080s,
+served 14.12755s. The deferred-count change is +1.69% over combined in C,
+but only +0.47% pooled across A/B/C with mixed adjacent pairs. It is not
+selected for delivery. All twenty runs remain in the evidence, especially the
+15.0373s closing served outlier; no noise subtraction is applied.
+
+The exact newer archive with policy 7 has a 3.51% throughput lead over read-only
+policy 4 in the same binary in C. Against exact served, its three batch means
+improve by 4.89%, 8.90%, and 10.44%; pooled means are 12.67907s versus 13.70462s
+(+8.09%). Slow served outliers inflate that pooled percentage. This supports a
+modest repeatable archive-level gain on this host, not an 8% guarantee or proof
+of why earlier archived policy-7 results differed. Earlier negative results
+remain documented in COMBINED_PROOFS_RESULTS.md.
+
+Policy 7 in this exact archive is selected for normal native replay and two
+sustained live/audio routes before any deployment. It uses write-span and budget
+proofs, not deferred counters or general IR. All 151 compiler tests, policy-7/8
+fault comparisons and checked native replays above apply to the archived build.
+Further delivery evidence will be recorded separately in COMBINED_DELIVERY_RESULTS.md.

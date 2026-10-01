@@ -1,0 +1,129 @@
+diff --git a/src/emu/cpu/include/cpu/aot/code_cache.h b/src/emu/cpu/include/cpu/aot/code_cache.h
+index 4ee01fcb7..c966ae66a 100644
+--- a/src/emu/cpu/include/cpu/aot/code_cache.h
++++ b/src/emu/cpu/include/cpu/aot/code_cache.h
+@@ -36,6 +36,7 @@ namespace eka2l1::arm::aot {
+             std::vector<dependency> dependencies;
+             std::uintptr_t guard_begin = 0, guard_end = 0;
+             aot_func function = nullptr;
++            block *successor = nullptr; // Stable deque entry, revalidated before use.
+             bool live = true;
+             bool rejected = false;
+             std::uint64_t mapping_generation = 0;
+@@ -81,11 +82,16 @@ namespace eka2l1::arm::aot {
+             return entry;
+         }
+ 
+-        block *find(std::uint32_t pc_mode, core &cpu) {
++        block *find(std::uint32_t pc_mode, core &cpu, block *hint = nullptr) {
+             const auto generation = cpu.code_mapping_generation
+                 ? cpu.code_mapping_generation->load(std::memory_order_acquire) : 0;
+             const auto k = key(cpu.code_address_space, pc_mode);
+-            auto &recent = recent_[recent_index(k)];
++            // A per-exit successor avoids indexing/searching the shared recent
++            // cache. It only chooses a candidate: every ordinary validity check
++            // below still runs. Pointers are valid for this cache's lifetime.
++            auto *candidate = hint;
++            auto &recent = candidate && candidate->live && candidate->key == k
++                ? candidate : recent_[recent_index(k)];
+             // A recent-slot collision does not invalidate an entry's mapping.
+             // Recover the stable version first, then use the same generation
+             // guard as a recent hit. Exact bytes are still checked below.
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index 931356a3f..b4c2a7d36 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -190,7 +190,9 @@ void invalidate_ram_code(std::uint32_t address, std::size_t size) {
+     ram_cache.invalidate(address, size);
+ }
+ 
+-aot_func lookup_compiled(ARMul_State *cpu) {
++static aot_func lookup_successor(ARMul_State *cpu, validated_code_cache::block *previous,
++    validated_code_cache::block **selected) {
++    if (selected) *selected = nullptr;
+     if (validation_running) return nullptr;
+     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
+     // Existing ROM functions use immutable bytes and need no mapping lookup.
+@@ -203,8 +205,10 @@ aot_func lookup_compiled(ARMul_State *cpu) {
+     // The normal path avoids the resolver callback on a generation/space hit,
+     // while comparing the exact compiled bytes on every entry.
+     if (!(common::guest_profile::enabled && common::performance::counting())) {
+-        auto *entry = ram_cache.find(pc_mode, *cpu->parent());
++        auto *entry = ram_cache.find(pc_mode, *cpu->parent(), previous ? previous->successor : nullptr);
+         if (!entry) return nullptr;
++        if (selected) *selected = entry;
++        if (previous) previous->successor = entry;
+         cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
+         cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
+         return entry->function;
+@@ -224,10 +228,17 @@ aot_func lookup_compiled(ARMul_State *cpu) {
+     return entry->function;
+ }
+ 
++aot_func lookup_compiled(ARMul_State *cpu) {
++    return lookup_successor(cpu, nullptr, nullptr);
++}
++
+ template<bool Verify>
+ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+     const auto budget = cpu->aot_budget;
+     compiled_run result;
++    // The first entry came from the normal caller. Learn links after its first
++    // successor; never retain an entry across a runner/configuration lifetime.
++    validated_code_cache::block *current = nullptr;
+     while (function && result.instructions < budget && result.blocks < 512) {
+         cpu->aot_budget = budget - result.instructions;
+         count_ram_dispatch(cpu);
+@@ -259,7 +270,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+         cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
+         // This stays inside the compiled runner. Every RAM successor is validated;
+         // no stale function pointer is linked across a mapping/code change.
+-        function = lookup_compiled(cpu);
++        function = lookup_successor(cpu, current, &current);
+     }
+     return result;
+ }
+diff --git a/src/tests/cpu/aot.cpp b/src/tests/cpu/aot.cpp
+index 711dc3342..42b90e575 100644
+--- a/src/tests/cpu/aot.cpp
++++ b/src/tests/cpu/aot.cpp
+@@ -1253,3 +1253,39 @@ TEST_CASE("DynCom TLB accesses preserve permissions and endian conversion", "[cp
+     REQUIRE(denied == 2);
+     REQUIRE(bytes[0] == 0x12);
+ }
++
++TEST_CASE("Successor candidates retain byte mapping mode and address-space guards", "[aot]") {
++    using namespace eka2l1::arm;
++    aot_test_env env; auto cpu=env.make_cpu();
++    aot::validated_code_cache cache;
++    std::array<std::uint8_t,16> code{}, dependency{}, remap{};
++    std::atomic<std::uint64_t> generation{1};
++    cpu->code_mapping_generation=&generation; cpu->code_address_space=1;
++    bool mapped=true; const std::uint8_t *backing=code.data();
++    cpu->resolve_code=[&](address pc,core::code_mapping &view) {
++        if (!mapped) return false;
++        view={cpu->code_address_space,pc==0x2000?dependency.data():backing,16}; return true;
++    };
++    auto insert=[&]() {
++        auto &b=cache.insert(0x1000,{1,backing,16},8);
++        aot::validated_code_cache::add_dependency(b,0x2000,dependency.data(),{dependency.data(),dependency.data()+8});
++        return &b;
++    };
++    auto *hint=insert();
++    REQUIRE(cache.find(0x1000,*cpu,hint)==hint);
++    REQUIRE(cache.find(0x1000,*cpu,hint)==hint);
++    REQUIRE_FALSE(cache.find(0x1001,*cpu,hint));
++    cpu->code_address_space=2; REQUIRE_FALSE(cache.find(0x1000,*cpu,hint));
++    cpu->code_address_space=1;
++    code[7]=1; REQUIRE_FALSE(cache.find(0x1000,*cpu,hint));
++    auto *old=hint; hint=insert();
++    REQUIRE(cache.find(0x1000,*cpu,old)==hint); // dead candidate cannot resurrect
++    dependency[0]=1; REQUIRE_FALSE(cache.find(0x1000,*cpu,hint));
++    hint=insert(); REQUIRE(cache.find(0x1000,*cpu,hint));
++    remap=code; backing=remap.data(); ++generation;
++    REQUIRE_FALSE(cache.find(0x1000,*cpu,hint));
++    hint=insert(); REQUIRE(cache.find(0x1000,*cpu,hint));
++    mapped=false; ++generation; REQUIRE_FALSE(cache.find(0x1000,*cpu,hint));
++    mapped=true; ++generation; hint=insert(); REQUIRE(cache.find(0x1000,*cpu,hint));
++    cache.invalidate(0x2004,1); REQUIRE_FALSE(cache.find(0x1000,*cpu,hint));
++}

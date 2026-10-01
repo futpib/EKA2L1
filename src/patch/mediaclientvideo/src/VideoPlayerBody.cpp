@@ -2,6 +2,12 @@
 #include <dispatch.h>
 #include <Log.h>
 
+#ifndef EKA2
+EXPORT_C TInt E32Dll(TDllReason) {
+    return 0;
+}
+#endif
+
 CVideoPlayerFeedbackHandler::CVideoPlayerFeedbackHandler(MVideoPlayerUtilityObserver &aObserver)
     : iObserver(aObserver)
     , iCurrentState(EVideoPlayerStateIdle) {
@@ -41,6 +47,7 @@ CVideoPlayerUtility::CBody::CBody(MVideoPlayerUtilityObserver &aObserver, TInt a
         : CActive(CActive::EPriorityHigh)
         , iFeedbackHandler(aObserver)
         , iActiveWindow(NULL)
+        , iActiveWindowHandle(0)
         , iDispatchInstance(NULL)
         , iVideoFps(-1.0f)
         , iVideoBitRate(-1)
@@ -52,28 +59,28 @@ CVideoPlayerUtility::CBody::CBody(MVideoPlayerUtilityObserver &aObserver, TInt a
 }
 
 CVideoPlayerUtility::CBody::~CBody() {
-    iCompleteIdle->Deque();
-    Deque();
-    
+    Cancel();
     delete iCompleteIdle;
-    
-    EVideoPlayerDestroy(0, iDispatchInstance);
+    iWindowInfos.Close();
+    if (iDispatchInstance) {
+        EVideoPlayerDestroy(0, iDispatchInstance);
+    }
 }
 
-void CVideoPlayerUtility::CBody::ConstructL(RWsSession &aWsSession, RWindowBase &aWindow, const TRect &aClipRect) {
-    iDispatchInstance = EVideoPlayerCreate(0);
+void CVideoPlayerUtility::CBody::ConstructL(RWsSession &aWsSession, RWindowBase &aWindow, const TRect &aWindowRect, const TRect &aClipRect) {
+    iDispatchInstance = EVideoPlayerCreateForVersion(0, iVersion);
 
     User::LeaveIfNull(iDispatchInstance);
 
     SetOwnedWindowL(aWsSession, aWindow);
-    SetDisplayRectL(aClipRect);
+    SetDisplayRectL(aWindowRect, aClipRect);
     
     iCompleteIdle = CIdle::NewL(CActive::EPriorityHigh);
     CActiveScheduler::Add(this);
 }
 
 void CVideoPlayerUtility::CBody::Construct2L() {
-    iDispatchInstance = EVideoPlayerCreate(0);
+    iDispatchInstance = EVideoPlayerCreateForVersion(0, iVersion);
     User::LeaveIfNull(iDispatchInstance);
 
     iCompleteIdle = CIdle::NewL(CActive::EPriorityHigh);
@@ -84,65 +91,91 @@ void CVideoPlayerUtility::CBody::SetOwnedWindowL(RWsSession &aSession, RWindowBa
     if (iVersion >= 2) {
         User::Leave(KErrNotSupported);
     }
-    if ((iActiveWindow != NULL) && (iActiveWindow != &aWindow)) {
-        User::LeaveIfError(EVideoPlayerUnregisterWindow(0, iDispatchInstance, 1));
-    } else if (iActiveWindow == &aWindow) {
+    if (iActiveWindow == &aWindow) {
         return;
     }
+    TInt handle = EVideoPlayerRegisterWindow(0, iDispatchInstance, aSession.Handle(), aWindow.WsHandle());
+    User::LeaveIfError(handle);
+    if (iActiveWindow) {
+        EVideoPlayerUnregisterWindow(0, iDispatchInstance, iActiveWindowHandle);
+    }
     iActiveWindow = &aWindow;
-    User::LeaveIfError(EVideoPlayerRegisterWindow(0, iDispatchInstance, aSession.Handle(), aWindow.WsHandle()));
+    iActiveWindowHandle = handle;
 }
 
-void CVideoPlayerUtility::CBody::SetDisplayRectL(const TRect &aClipRect) {
+void CVideoPlayerUtility::CBody::SetDisplayRectL(const TRect &aWindowRect, const TRect &aClipRect) {
     if (iVersion >= 2) {
         User::Leave(KErrNotSupported);
     }
-    User::LeaveIfError(EVideoPlayerSetClipRect(0, iDispatchInstance, 1, &aClipRect));
+    TVideoWindowGeometry geometry;
+    geometry.iExtent = aWindowRect;
+    geometry.iClip = aClipRect;
+    const TPoint origin = iActiveWindow->AbsPosition();
+    geometry.iExtent.Move(-origin.iX, -origin.iY);
+    geometry.iClip.Move(-origin.iX, -origin.iY);
+    User::LeaveIfError(EVideoPlayerSetGeometry(0, iDispatchInstance, iActiveWindowHandle, &geometry));
     iActiveClipRect = aClipRect;
 }
 
-void CVideoPlayerUtility::CBody::AddDisplayWindowL(RWsSession &aSession, RWindowBase &aWindow) {
+void CVideoPlayerUtility::CBody::AddDisplayWindowL(RWsSession &aSession, RWindowBase &aWindow, const TRect &aExtent, const TRect &aClipRect) {
     if (iVersion < 2) {
         User::Leave(KErrNotSupported);
     }
-    // No lambda is too painful for me T_T
     for (TInt i = 0; i < iWindowInfos.Count(); i++) {
         if (iWindowInfos[i].iWindow == &aWindow) {
-            return;
+            User::Leave(KErrInUse);
         }
     }
-    TInt result = EVideoPlayerRegisterWindow(0, iDispatchInstance, aSession.Handle(), aWindow.WsHandle());
-    User::LeaveIfError(result);
-
     TDisplayWindowInfo info;
     info.iWindow = &aWindow;
-    info.iManagedHandle = result;
-
-    iWindowInfos.Append(info);
+    info.iGeometry.iExtent = aExtent;
+    info.iGeometry.iClip = aClipRect;
+    info.iManagedHandle = EVideoPlayerRegisterWindow(0, iDispatchInstance, aSession.Handle(), aWindow.WsHandle());
+    User::LeaveIfError(info.iManagedHandle);
+    TInt error = EVideoPlayerSetGeometry(0, iDispatchInstance, info.iManagedHandle, &info.iGeometry);
+    if (error == KErrNone) {
+        error = iWindowInfos.Append(info);
+    }
+    if (error != KErrNone) {
+        EVideoPlayerUnregisterWindow(0, iDispatchInstance, info.iManagedHandle);
+        User::Leave(error);
+    }
 }
 
 void CVideoPlayerUtility::CBody::SetDisplayRectForWindowL(const RWindow &aWindow, const TRect &aClipRect) {
     if (iVersion < 2) {
         User::Leave(KErrNotSupported);
     }
-    // No lambda is too painful for me T_T
     for (TInt i = 0; i < iWindowInfos.Count(); i++) {
         if (iWindowInfos[i].iWindow == &aWindow) {
-            User::LeaveIfError(EVideoPlayerSetClipRect(0, iDispatchInstance, iWindowInfos[i].iManagedHandle, &aClipRect));
+            TVideoWindowGeometry geometry = iWindowInfos[i].iGeometry;
+            geometry.iClip = aClipRect;
+            User::LeaveIfError(EVideoPlayerSetGeometry(0, iDispatchInstance, iWindowInfos[i].iManagedHandle, &geometry));
+            iWindowInfos[i].iGeometry = geometry;
             return;
         }
     }
-    User::Leave(KErrNotReady);
+    User::Leave(KErrNotFound);
+}
+
+void CVideoPlayerUtility::CBody::SetVideoExtentL(const RWindow &aWindow, const TRect &aExtent) {
+    for (TInt i = 0; i < iWindowInfos.Count(); i++) {
+        if (iWindowInfos[i].iWindow == &aWindow) {
+            TVideoWindowGeometry geometry = iWindowInfos[i].iGeometry;
+            geometry.iExtent = aExtent;
+            User::LeaveIfError(EVideoPlayerSetGeometry(0, iDispatchInstance, iWindowInfos[i].iManagedHandle, &geometry));
+            iWindowInfos[i].iGeometry = geometry;
+            return;
+        }
+    }
+    User::Leave(KErrNotFound);
 }
 
 void CVideoPlayerUtility::CBody::RemoveDisplayWindow(const RWindow &aWindow) {
-    if (iVersion < 2) {
-        User::Leave(KErrNotSupported);
-    }
-    // No lambda is too painful for me T_T
     for (TInt i = 0; i < iWindowInfos.Count(); i++) {
         if (iWindowInfos[i].iWindow == &aWindow) {
             EVideoPlayerUnregisterWindow(0, iDispatchInstance, iWindowInfos[i].iManagedHandle);
+            iWindowInfos.Remove(i);
             return;
         }
     }
@@ -189,7 +222,6 @@ void CVideoPlayerUtility::CBody::OpenFileL(const TDesC &aPath) {
         return;
     }
     
-    // Who are you? I don't know you!!!!
     User::Leave(result);
 }
 
@@ -212,13 +244,11 @@ void CVideoPlayerUtility::CBody::OpenDesL(const TDesC8 &aContent) {
         return;
     }
     
-    // Who are you? I don't know you!!!!
     User::Leave(result);
 }
 
 void CVideoPlayerUtility::CBody::Prepare() {
     if (iFeedbackHandler.CurrentState() >= EVideoPlayerStatePrepared) {
-        // No need ;)
         return;
     }
 
@@ -363,11 +393,11 @@ void CVideoPlayerUtility::CBody::DoCancel() {
     EVideoPlayerCancelPlayDoneNotification(0, iDispatchInstance);
 }
 
-CVideoPlayerUtility::CBody *CVideoPlayerUtility::CBody::NewL(MVideoPlayerUtilityObserver &aObserver, RWsSession &aWsSession, RWindowBase &aWindow, const TRect &aClipRect) {
+CVideoPlayerUtility::CBody *CVideoPlayerUtility::CBody::NewL(MVideoPlayerUtilityObserver &aObserver, RWsSession &aWsSession, RWindowBase &aWindow, const TRect &aWindowRect, const TRect &aClipRect) {
     CVideoPlayerUtility::CBody *self = new (ELeave) CVideoPlayerUtility::CBody(aObserver, 1);
 
     CleanupStack::PushL(self);
-    self->ConstructL(aWsSession, aWindow, aClipRect);
+    self->ConstructL(aWsSession, aWindow, aWindowRect, aClipRect);
     CleanupStack::Pop();
     
     return self;
@@ -394,12 +424,13 @@ EXPORT_C CVideoPlayerUtility* CVideoPlayerUtility::NewL(MVideoPlayerUtilityObser
     CVideoPlayerUtility *self = new (ELeave) CVideoPlayerUtility;
     CleanupStack::PushL(self);
 
-    self->iBody = CVideoPlayerUtility::CBody::NewL(aObserver, aWs, aWindow, aClipRect);
+    self->iBody = CVideoPlayerUtility::CBody::NewL(aObserver, aWs, aWindow, aScreenRect, aClipRect);
     CleanupStack::Pop();
     
     return self;
 }
 
+#ifndef MCV_EKA1
 EXPORT_C CVideoPlayerUtility2* CVideoPlayerUtility2::NewL(MVideoPlayerUtilityObserver& aObserver, TInt aPriority, TInt aPref) {
     CVideoPlayerUtility2 *self = new (ELeave) CVideoPlayerUtility2;
     CleanupStack::PushL(self);
@@ -410,21 +441,31 @@ EXPORT_C CVideoPlayerUtility2* CVideoPlayerUtility2::NewL(MVideoPlayerUtilityObs
     return self;
 }
 
+#endif
+
 EXPORT_C void CVideoPlayerUtility::OpenFileL(const TDesC& aFileName,TUid aControllerUid) {
     iBody->OpenFileL(aFileName);
 }
 
 EXPORT_C void CVideoPlayerUtility::OpenFileL(const RFile& aFileName, TUid aControllerUid) {
-    TBufC<512> nameFull;
-    TDes nameFullDesc = nameFull.Des();
-    aFileName.FullName(nameFullDesc);
-    
+#ifdef MCV_EKA1
+    // EKA1 RFile cannot report its full path.
+    LogOut(KMcvCat, _L("Video Player's open file through RFile is not supported on EKA1!"));
+    User::Leave(KErrNotSupported);
+#else
+    TFileName nameFull;
+    User::LeaveIfError(aFileName.FullName(nameFull));
+
     iBody->OpenFileL(nameFull);
+#endif
 }
 
+#ifndef MCV_EKA1
 EXPORT_C void CVideoPlayerUtility::OpenFileL(const TMMSource& aSource, TUid aControllerUid) {
     LogOut(KMcvCat, _L("Video Player's open file through MMSource is not yet implemented!"));
 }
+
+#endif
 
 EXPORT_C void CVideoPlayerUtility::OpenDesL(const TDesC8& aDescriptor,TUid aControllerUid) {
     iBody->OpenDesL(aDescriptor);
@@ -456,6 +497,7 @@ EXPORT_C void CVideoPlayerUtility::Play(const TTimeIntervalMicroSeconds& aStartP
 
 EXPORT_C TInt CVideoPlayerUtility::Stop() {
     iBody->Stop();
+    return KErrNone;
 }
 
 EXPORT_C void CVideoPlayerUtility::PauseL() {
@@ -472,6 +514,7 @@ EXPORT_C void CVideoPlayerUtility::PriorityL(TInt& aPriority, TMdaPriorityPrefer
 
 EXPORT_C void CVideoPlayerUtility::SetDisplayWindowL(RWsSession& aWs,CWsScreenDevice& aScreenDevice,RWindowBase& aWindow,const TRect& aWindowRect,const TRect& aClipRect) {
     iBody->SetOwnedWindowL(aWs, aWindow);
+    iBody->SetDisplayRectL(aWindowRect, aClipRect);
 }
 
 EXPORT_C void CVideoPlayerUtility::RegisterForVideoLoadingNotification(MVideoLoadingObserver& aCallback) {
@@ -576,11 +619,16 @@ EXPORT_C void CVideoPlayerUtility::GetScaleFactorL(TReal32& aWidthPercentage, TR
 }
 
 EXPORT_C void CVideoPlayerUtility::SetCropRegionL(const TRect& aCropRegion) {
-    iBody->SetDisplayRectL(aCropRegion);
+    iBody->SetCropRegionL(aCropRegion);
 }
 
 EXPORT_C void CVideoPlayerUtility::GetCropRegionL(TRect& aCropRegion) const {
-    iBody->GetDisplayRect(aCropRegion);
+    iBody->GetCropRegion(aCropRegion);
+}
+
+void CVideoPlayerUtility::CBody::SetCropRegionL(const TRect &aCrop) {
+    User::LeaveIfError(EVideoPlayerSetCropRegion(0, iDispatchInstance, &aCrop));
+    iCropRegion = aCrop;
 }
 
 EXPORT_C TInt CVideoPlayerUtility::NumberOfMetaDataEntriesL() const {
@@ -621,6 +669,7 @@ EXPORT_C void CVideoPlayerUtility::CustomCommandAsync(const TMMFMessageDestinati
     User::RequestComplete(statusPtr, KErrNone);
 }
 
+#ifndef MCV_EKA1
 EXPORT_C MMMFDRMCustomCommand* CVideoPlayerUtility::GetDRMCustomCommand() {
     LogOut(KMcvCat, _L("Video Player's get drm custom command is not yet implemented!"));
     return NULL;
@@ -690,22 +739,25 @@ EXPORT_C void CVideoPlayerUtility::SetAutoScaleL(TAutoScaleType aScaleType, TInt
     LogOut(KMcvCat, _L("Video Player's set video scale is not yet implemented!"));    
 }
 
+#endif
+
 CVideoPlayerUtility::~CVideoPlayerUtility() {
     delete iBody;
 }
 
+#ifndef MCV_EKA1
 CVideoPlayerUtility2::~CVideoPlayerUtility2() {
     
 }
 
 EXPORT_C void CVideoPlayerUtility2::AddDisplayWindowL(RWsSession& aWs, CWsScreenDevice& aScreenDevice, RWindow& aWindow, const TRect& aVideoExtent, 
     const TRect& aWindowClipRect) {
-    iBody->AddDisplayWindowL(aWs, aWindow);
-    iBody->SetDisplayRectForWindowL(aWindow, aWindowClipRect);
+    iBody->AddDisplayWindowL(aWs, aWindow, aVideoExtent, aWindowClipRect);
 }
 
 EXPORT_C void CVideoPlayerUtility2::AddDisplayWindowL(RWsSession& aWs, CWsScreenDevice& aScreenDevice, RWindow& aWindow) {
-    iBody->AddDisplayWindowL(aWs, aWindow);
+    const TRect bounds(TPoint(0, 0), aWindow.Size());
+    iBody->AddDisplayWindowL(aWs, aWindow, bounds, bounds);
 }
 
 EXPORT_C void CVideoPlayerUtility2::RemoveDisplayWindow(RWindow& aWindow) {
@@ -713,12 +765,14 @@ EXPORT_C void CVideoPlayerUtility2::RemoveDisplayWindow(RWindow& aWindow) {
 }
 
 EXPORT_C void CVideoPlayerUtility2::SetVideoExtentL(const RWindow& aWindow, const TRect& aVideoExtent) {
-    LogOut(KMcvCat, _L("Video Player 2's set video extent is not yet implemented!"));
+    iBody->SetVideoExtentL(aWindow, aVideoExtent);
 }
 
 EXPORT_C void CVideoPlayerUtility2::SetWindowClipRectL(const RWindow& aWindow, const TRect& aWindowClipRect) {
     iBody->SetDisplayRectForWindowL(aWindow, aWindowClipRect);
 }
+
+#endif
 
 EXPORT_C void Reserved1() {
     

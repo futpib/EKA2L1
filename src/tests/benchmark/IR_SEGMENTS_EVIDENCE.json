@@ -1,0 +1,752 @@
+{
+  "status": "No promotion: the first complete serial batch favors both controls. Retain only as opt-in research infrastructure. No deployment or new speedup claim.",
+  "acceptance": {
+    "source": {
+      "git_head": "551b59a68aa4e3fc358a6c6fa3cc4c42edae1340",
+      "hashes": {
+        "eka2l1.js": "becfb8d019c40ff445b1f3d7cdbdef5443cbe804ab6fcb5ef2422efb09539299",
+        "source.patch": "4b77399e9ed1023ff1c99a7355b2c42af5067e07565e0d618e3439a630e97954",
+        "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+        "eka2l1.data": "e2c9e4f7ae7062f5fdb91578bd22f01def4aa866225ec428b7153af3808b0382",
+        "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+        "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+        "eka2l1.wasm": "3f7206b0d152c9fe6a28d9ed2bac4bd17e725f92d76d089eacafdb885f36f1a0",
+        "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+        "tests/eka_cpu_fault_native": "a0b24f39dfc66dbee52d7dacf9e64768a28adfe8418602073e16424f1788bdcb",
+        "tests/test_aot_wasm.wasm": "4e827c4d47f46a23b5eecc2197016d3a2f741cc121ce18c61d0b58135bca3e2a",
+        "tests/eka_cpu_fault_wasm.wasm": "491b5754396dd94ed5be9e5499299701fea288fe12eb6e156bdbf550d0e98447",
+        "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+      },
+      "sources": {
+        "CMakeLists.txt": "6dde5d4973174295a5621cedde0bb20d4c26ea608aa826d30909d8bb69ec55fe",
+        "src/emu/cpu/CMakeLists.txt": "b33e25db1c90489a62473b255c0c1e2b89c885988b24e33eac9f56a02f7459a3",
+        "src/emu/cpu/include/cpu/aot/thumb_translator.h": "b5b55d6a1b74556cf482bdb5ffd4bcfe53e0af1dc4fc452b2f4f1f05fc6e9128",
+        "src/emu/cpu/include/cpu/aot/region_ir.h": "4bb5c916496998ffbbc0f157fa416c06e76541d7a14a002f6b5a42a220b23dae",
+        "src/emu/cpu/src/aot/arm_translator.cpp": "92acb60069e84b9d68c4ef414e69c9267299144204c1adc426c38d6216f83b69",
+        "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "76f87cda16f82a8c9dfd45f10ff52ae16f493181835aaa5000710817728c5e0a",
+        "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "cf0a244589da5ca5d84da4590791ac763fd6fe63a78c9da1c9b5bc0e358f0a90",
+        "src/emu/cpu/src/aot/wasm_emitter.cpp": "ebb1f6c641a00d7f6766edce87f63d606ba9642babb462a6ecae5b0aadffd922",
+        "src/emu/cpu/include/cpu/dyncom/armstate.h": "e3125ce68715bcb2e46998738280c18c339fffdc46e83827e7c20e6d012adfff",
+        "src/emu/cpu/src/dyncom/armstate.cpp": "86693e9ce40170887bb6d556c797b6c87f66f7df3531426cfadbb191ac0a6a7a",
+        "src/tests/aot/test_aot_wasm.cpp": "f93f19ee3b18062221b95d845a63b9c7d5f6ca1e8bf41108961e01f6d5bea8fd",
+        "src/tests/benchmark/cpu_fault_probe.cpp": "35809e733e8148fc042c74fa107289464ed01145e210e46eae7282800e0e882b",
+        "src/tests/cpu/aot.cpp": "53a11703ba12cb1b0dc168e91d479f9a0fb0f148d1fa3ba1841e6fcac42027e8"
+      },
+      "configuration": {
+        "EKA2L1_WASM_REGION_IR": false,
+        "EKA2L1_WASM_IR_SEGMENTS": true,
+        "EKA2L1_WASM_DEFER_MEMORY": true
+      }
+    },
+    "compiler_tests": {
+      "passed": 141,
+      "failed": 0,
+      "segment_comparisons": 15680
+    },
+    "fault_cases": 4944,
+    "replay": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+        "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+        "writes": 0,
+        "callbacks": 10190,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 10190,
+        "gameplay_nonzero_samples": 7223662,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16263331210
+    },
+    "native_targets": 3,
+    "frontend_tests": 7,
+    "notes": "Checks ran concurrently; their wall times are not performance measurements."
+  },
+  "source": {
+    "git_head": "551b59a68aa4e3fc358a6c6fa3cc4c42edae1340",
+    "hashes": {
+      "eka2l1.js": "becfb8d019c40ff445b1f3d7cdbdef5443cbe804ab6fcb5ef2422efb09539299",
+      "source.patch": "4b77399e9ed1023ff1c99a7355b2c42af5067e07565e0d618e3439a630e97954",
+      "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+      "eka2l1.data": "e2c9e4f7ae7062f5fdb91578bd22f01def4aa866225ec428b7153af3808b0382",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "3f7206b0d152c9fe6a28d9ed2bac4bd17e725f92d76d089eacafdb885f36f1a0",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_fault_native": "a0b24f39dfc66dbee52d7dacf9e64768a28adfe8418602073e16424f1788bdcb",
+      "tests/test_aot_wasm.wasm": "4e827c4d47f46a23b5eecc2197016d3a2f741cc121ce18c61d0b58135bca3e2a",
+      "tests/eka_cpu_fault_wasm.wasm": "491b5754396dd94ed5be9e5499299701fea288fe12eb6e156bdbf550d0e98447",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+    },
+    "sources": {
+      "CMakeLists.txt": "6dde5d4973174295a5621cedde0bb20d4c26ea608aa826d30909d8bb69ec55fe",
+      "src/emu/cpu/CMakeLists.txt": "b33e25db1c90489a62473b255c0c1e2b89c885988b24e33eac9f56a02f7459a3",
+      "src/emu/cpu/include/cpu/aot/thumb_translator.h": "b5b55d6a1b74556cf482bdb5ffd4bcfe53e0af1dc4fc452b2f4f1f05fc6e9128",
+      "src/emu/cpu/include/cpu/aot/region_ir.h": "4bb5c916496998ffbbc0f157fa416c06e76541d7a14a002f6b5a42a220b23dae",
+      "src/emu/cpu/src/aot/arm_translator.cpp": "92acb60069e84b9d68c4ef414e69c9267299144204c1adc426c38d6216f83b69",
+      "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "76f87cda16f82a8c9dfd45f10ff52ae16f493181835aaa5000710817728c5e0a",
+      "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "cf0a244589da5ca5d84da4590791ac763fd6fe63a78c9da1c9b5bc0e358f0a90",
+      "src/emu/cpu/src/aot/wasm_emitter.cpp": "ebb1f6c641a00d7f6766edce87f63d606ba9642babb462a6ecae5b0aadffd922",
+      "src/emu/cpu/include/cpu/dyncom/armstate.h": "e3125ce68715bcb2e46998738280c18c339fffdc46e83827e7c20e6d012adfff",
+      "src/emu/cpu/src/dyncom/armstate.cpp": "86693e9ce40170887bb6d556c797b6c87f66f7df3531426cfadbb191ac0a6a7a",
+      "src/tests/aot/test_aot_wasm.cpp": "f93f19ee3b18062221b95d845a63b9c7d5f6ca1e8bf41108961e01f6d5bea8fd",
+      "src/tests/benchmark/cpu_fault_probe.cpp": "35809e733e8148fc042c74fa107289464ed01145e210e46eae7282800e0e882b",
+      "src/tests/cpu/aot.cpp": "53a11703ba12cb1b0dc168e91d479f9a0fb0f148d1fa3ba1841e6fcac42027e8"
+    },
+    "configuration": {
+      "EKA2L1_WASM_REGION_IR": false,
+      "EKA2L1_WASM_IR_SEGMENTS": true,
+      "EKA2L1_WASM_DEFER_MEMORY": true
+    }
+  },
+  "tests": {
+    "path": "/home/claude/.scratch/eka-benchmark/ir-segments-final-tests.log",
+    "sha256": "20fb6dcda1a4c92bf8722b7c775268da4e69d842f42ce690699bb847fe3d6f01",
+    "tail": "sons)\n  PASS bounded_execution (464912 exact budget/state/memory comparisons)\n  PASS exact_code_compare (unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n  PASS outlined_callee_indices\n  PASS proved_read_spans (30976 exact state/memory/budget comparisons)\n  PASS region_ir (snapshot liveness/type checks; backend disabled)\n  PASS ir_segments (15680 exact state/memory/budget comparisons)\n  PASS memory_displacements (72 exact state/memory/budget checks)\n  PASS deferred_memory_exits (672 exact pre-instruction exits)\n  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS conditional_alu_select (229376 exact budget/state comparisons)\n  PASS compare_conditions (64512 exact budget/state comparisons)\n  PASS arm_long_multiply (92160 exact budget/state comparisons)\n  PASS cached_callback_state\n  PASS msr_privilege_guard\n  SKIP code validity generation tests (experimental build option disabled)\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n141 passed, 0 failed\n"
+  },
+  "faults": [
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-extended-native.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143",
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-extended-wasm.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-deferred-native.log": "4a7826c48b49f812145b486c28d4a36fbb27e9b15f636952cdc989a1d88f1143",
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-deferred-wasm.log": "462d9d799fe24e29653e35ab417de9febc4d0c1e69938bcba6ff686b42a4c1e7"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-entry-budget-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-entry-budget-wasm.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-entry-budget-deferred-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-entry-budget-deferred-wasm.log": "c81f0a45d01cfc2c05a31b482713187c68a3f985362dbeb34c1c403a8062efd3"
+      },
+      "differences": []
+    },
+    {
+      "cases": 48,
+      "all_fields_match": 48,
+      "final_state_and_exact_memory_match": 48,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 12,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-read-spans-native.log": "c5ae8fc01c7dc2a882d240b229a855cdd33e679f0935b7526531e25f90aa55d7",
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-read-spans-wasm.log": "0a2375c22647e2b666c404dec204a02a2efce3dea4266d42c46b0738d4dd23e3"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-wide-snapshots-native.log": "c8ac8f9493b24d7291ae1e65c71f33a1bad0af60cf3a80f1263e1d377b5814f5",
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-wide-snapshots-wasm.log": "1b78c36fd5bde8100bc6ac58902123f423709d9833e4f0c9c7feb8a981750722"
+      },
+      "differences": []
+    },
+    {
+      "cases": 48,
+      "all_fields_match": 48,
+      "final_state_and_exact_memory_match": 48,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 12,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-region-spans-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-region-spans-wasm.log": "630da5ffb62fdf6f2abfb173719016f1748e22d12192e7ae9b6ccf46161acba8"
+      },
+      "differences": []
+    },
+    {
+      "cases": 48,
+      "all_fields_match": 48,
+      "final_state_and_exact_memory_match": 48,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 12,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-region-spans-interpreter-native.log": "4799c46d8437a6f813b6e9c2b95ff99c2bf5ca175854134466dd6a19a77901dd",
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-region-spans-interpreter-wasm.log": "ced007453ce149421354aa00405e7954ec1ffaec9c82a4308c7716b2b4a18bf9"
+      },
+      "differences": []
+    },
+    {
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-entry-budget-interpreter-native.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92",
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-entry-budget-interpreter-wasm.log": "83b2dae2e11d5d2d2e861e3e120fd0d7a8b047816c8e1ce832b3b7a6e4402c92"
+      },
+      "differences": []
+    },
+    {
+      "cases": 96,
+      "all_fields_match": 96,
+      "final_state_and_exact_memory_match": 96,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 24,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-region-block-spans-native.log": "8bddfabf1b8c45f86a1adf80da88502e4ff739e56bed90f9ad6de7252d98ea8a",
+        "/home/claude/.scratch/eka-benchmark/ir-segments-fault-region-block-spans-wasm.log": "6ded304e58ed80eb524fb9d210cd23b5794adec5daa1030f97d9125033e4d0b1"
+      },
+      "differences": []
+    }
+  ],
+  "segment_faults": {
+    "cases": 672,
+    "all_fields_match": 672,
+    "final_state_and_exact_memory_match": 672,
+    "mismatched_fields": {},
+    "categories": {},
+    "little_endian_unmapped_cases": 168,
+    "little_endian_unmapped_differences": 0,
+    "inputs": {
+      "/home/claude/.scratch/eka-benchmark/ir-segments-fault-segments-native.log": "b61bb267fb1b3f13c4ee75fd6a42605abe7d462fe17db7ae3b92502243aa5f60",
+      "/home/claude/.scratch/eka-benchmark/ir-segments-fault-segments-wasm.log": "b61bb267fb1b3f13c4ee75fd6a42605abe7d462fe17db7ae3b92502243aa5f60"
+    },
+    "differences": []
+  },
+  "native": {
+    "path": "/home/claude/.scratch/eka-benchmark/ir-segments-final-native.log",
+    "sha256": "07686a4bf9723b92c1d028d660ca06466cf6be7559c89675307f928c47638db5",
+    "tail": "Test project /home/claude/code/EKA2L1/build\n    Start 1: ekatests\n1/3 Test #1: ekatests .........................   Passed    0.26 sec\n    Start 2: eka_cpu_tests\n2/3 Test #2: eka_cpu_tests ....................   Passed    0.01 sec\n    Start 3: bluetooth_netplay\n3/3 Test #3: bluetooth_netplay ................   Passed    0.05 sec\n\n100% tests passed out of 3\n\nTotal Test time (real) =   0.32 sec\n"
+  },
+  "frontend": {
+    "path": "/home/claude/.scratch/eka-benchmark/ir-segments-frontend.log",
+    "sha256": "06eb49e7c6792bf0e93b1444c98cb179335d922c8a4af529e05db4b7fd033f5f",
+    "tail": "npm notice run test\nnpm notice run node --experimental-strip-types test.ts\nServing WASM build at http://127.0.0.1:35989/\nTEST 1: Page loads...\n  PASS\nTEST 2: WASM Module object...\n  PASS\nTEST 3: Canvas element...\n  PASS\nTEST 4: Exported C functions...\n  PASS\nTEST 5: eka2l1_init...\n  PASS\nTEST 6: eka2l1_shutdown...\n  PASS\nTEST 7: No fatal page errors...\n  PASS\n\nAll tests passed!\n"
+  },
+  "gameplay_heuristic": {
+    "frames": 1600,
+    "unique_images": 1600,
+    "unique_viewports": 1600,
+    "first_virtual_us": 21031559,
+    "last_virtual_us": 102484363,
+    "virtual_seconds": 81.452804,
+    "game_images_per_virtual_second": 19.631000057407476,
+    "median_interval_us": 47034,
+    "max_interval_us": 408561,
+    "min_viewport_changed_fraction": 0.002483333333333282,
+    "median_viewport_changed_fraction": 0.29761666666666664,
+    "pass": false
+  },
+  "hot_regions": {
+    "path": "/home/claude/.scratch/eka-benchmark/ir-segments-hot-probe.log",
+    "sha256": "c97b80e3640f3320580df9faf9b942e4782f5d13bd6d1cfc54360bc0663e44db",
+    "tail": "1879129820 native_translate_optimize_us_median 8.528 min 8.411 max 14.76 samples 100 (excludes IO and WASM emission)\n1879129820 region_end 1879130108 body_bytes 20447 dependencies 5 guarded_ir 0 ir_segments 10\n1879130660 native_translate_optimize_us_median 1.87 min 1.806 max 11.149 samples 100 (excludes IO and WASM emission)\n1879130660 region_end 1879130976 body_bytes 13018 dependencies 2 guarded_ir 0 ir_segments 8\n"
+  },
+  "batches": [
+    [
+      {
+        "name": "fixed-1",
+        "build": "/home/claude/.scratch/eka-benchmark/region-ir-default-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 13.5013,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "segments-1",
+        "build": "/home/claude/.scratch/eka-benchmark/ir-segments-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 15.1109,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "served-1",
+        "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 15.1367,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "served-2",
+        "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 14.8491,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "segments-2",
+        "build": "/home/claude/.scratch/eka-benchmark/ir-segments-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 15.4766,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "name": "fixed-2",
+        "build": "/home/claude/.scratch/eka-benchmark/region-ir-default-candidate",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 78000000,
+          "last_virtual_us": 96000000,
+          "first_instructions": 11263760836,
+          "last_instructions": 15239379460,
+          "wall_seconds": 15.3741,
+          "presentations": 676,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      }
+    ]
+  ],
+  "means": {
+    "fixed": 14.4377,
+    "segments": 15.29375,
+    "served": 14.992899999999999
+  },
+  "timing_notes": "Warmup and measurement serial; no owned heavy work overlapped. Shared host; all outliers retained. Checked-replay wall times not performance evidence."
+}

@@ -234,7 +234,7 @@ namespace eka2l1 {
                 // FileWriteDirty does not exist
                 if (ctx->msg->function >= epoc::fs_msg_file_write_dirty)
                     ctx->msg->function++;
-            } else if (version == epocver::epoc93fp1) {
+            } else if ((version == epocver::epoc93fp1) || (version == epocver::epoc91)) {
                 // From SetSystemDrive to FileWriteDirty, does not exist
                 if (ctx->msg->function >= epoc::fs_msg_set_system_drive) {
                     ctx->msg->function += epoc::fs_msg_file_write_dirty - epoc::fs_msg_set_system_drive + 1;
@@ -327,8 +327,27 @@ namespace eka2l1 {
             ctx->complete(epoc::error_none);
             break;
 
+        // Free space never crosses the client's threshold here, since the emulator
+        // never reports one, so the request stays outstanding the way it would on a
+        // device with a quiet disk. Completing it instead makes a client that re-arms
+        // on completion spin. The cancel is the only thing that ends it.
+        case epoc::fs_msg_notify_disk_space:
+            disk_space_notify_.complete(epoc::error_cancel);
+            disk_space_notify_ = epoc::notify_info(ctx->msg->request_sts, ctx->msg->own_thr);
+            break;
+
+        case epoc::fs_msg_notify_disk_space_cancel:
+            disk_space_notify_.complete(epoc::error_cancel);
+            ctx->complete(epoc::error_none);
+            break;
+
         default: {
             LOG_ERROR(SERVICE_EFSRV, "Unknown FSServer client opcode {}!", ctx->msg->function);
+
+            // Every other request is one a real file server answers straight away, so
+            // dropping it wedges the client: the harvester mounts its file-system
+            // plugins with Fs::MountPlugin and waits for the reply that never came.
+            ctx->complete(epoc::error_not_supported);
             break;
         }
 
@@ -477,7 +496,9 @@ namespace eka2l1 {
             io_system *io = sys->get_io_system();
 
             // Ignore drive z.
-            for (drive_number drv = drive_y; drv >= drive_a; drv--) {
+            // Stepping one below drive_a would leave the enum's value range.
+            for (int drv_index = drive_y; drv_index >= drive_a; drv_index--) {
+                const drive_number drv = static_cast<drive_number>(drv_index);
                 if (io->get_drive_entry(drv)) {
                     system_apps_dir[0] = drive_to_char16(drv);
                     shared_data_dir[0] = drive_to_char16(drv);
@@ -493,7 +514,9 @@ namespace eka2l1 {
         io_system *io = sys->get_io_system();
 
         // Ignore drive z.
-        for (drive_number drv = drive_y; drv >= drive_a; drv--) {
+        // Stepping one below drive_a would leave the enum's value range.
+        for (int drv_index = drive_y; drv_index >= drive_a; drv_index--) {
+            const drive_number drv = static_cast<drive_number>(drv_index);
             if (io->get_drive_entry(drv)) {
                 temp_data_dir[0] = drive_to_char16(drv);
 
@@ -599,14 +622,14 @@ namespace eka2l1 {
         auto final_path = get_full_symbian_path(ss_path, path.value());
         symfile f = ctx->sys->get_io_system()->open_file(final_path, READ_MODE);
 
-        if (!f) {
-            ctx->complete(0);
-            return;
+        // The address must be written back even when the file does not exist at all: clients read it
+        // unconditionally on KErrNone, so leaving it untouched hands them uninitialised stack as a ROM address.
+        address addr = 0;
+
+        if (f) {
+            addr = f->rom_address();
+            f->close();
         }
-
-        address addr = f->rom_address();
-
-        f->close();
 
         ctx->write_data_to_descriptor_argument<address>(1, addr);
         ctx->complete(epoc::error_none);

@@ -31,6 +31,13 @@
 #include <cpu/aot/wasm_emitter.h>
 
 #include <cpu/dyncom/armstate.h>
+namespace {
+struct lookup_mode_scope {
+    bool saved = eka2l1::arm::aot::code_lookup_outline;
+    explicit lookup_mode_scope(bool value) { eka2l1::arm::aot::code_lookup_outline = value; }
+    ~lookup_mode_scope() { eka2l1::arm::aot::code_lookup_outline = saved; }
+};
+}
 #include <array>
 #include <cstring>
 #include <vector>
@@ -186,6 +193,31 @@ TEST_CASE("aot_registry_basic", "[aot]") {
     reg.unregister_function(0x1000);
     REQUIRE(reg.size() == 0);
     REQUIRE(reg.lookup(0x1000) == nullptr);
+}
+
+TEST_CASE("aot_registry_cache_tracks_replacement_removal_and_mode", "[aot]") {
+    using namespace eka2l1::arm::aot;
+    registry reg;
+    const auto one = +[](ARMul_State *) -> std::uint32_t { return 1; };
+    const auto two = +[](ARMul_State *) -> std::uint32_t { return 2; };
+    reg.register_function(0x1000, one);
+    reg.register_function(0x3000, two); // Same direct-cache slot.
+    reg.register_function(0x1001, two); // Thumb at the same aligned address.
+    for (int i = 0; i < 4; ++i) {
+        REQUIRE(reg.lookup(0x1000) == one);
+        REQUIRE(reg.lookup(0x3000) == two);
+        REQUIRE(reg.lookup(0x1001) == two);
+    }
+    reg.register_function(0x1000, two);
+    REQUIRE(reg.lookup(0x1000) == two);
+    reg.unregister_function(0x3000);
+    REQUIRE(reg.lookup(0x1000) == two);
+    REQUIRE(reg.lookup(0x3000) == nullptr);
+    reg.unregister_function(0x1000);
+    REQUIRE(reg.lookup(0x1000) == nullptr);
+    REQUIRE(reg.lookup(0x1001) == two);
+    reg.clear();
+    REQUIRE(reg.lookup(0x1001) == nullptr);
 }
 
 // --- Test: Simple ADD loop — interpreter vs AOT produce identical results ---
@@ -930,18 +962,18 @@ TEST_CASE("RAM recent lookup survives collisions, replacement and reset", "[aot]
     REQUIRE(cache.find(0x1000, view)->function == nullptr); // dead recent entry
     cache.attach(replacement, second);
     REQUIRE(cache.find(0x1000, view)->function == second); // attach after lookup
-    cache.attach(cache.insert(0x1200, view, 8).version, first); // same recent slot
+    cache.attach(cache.insert(0x3000, view, 8).version, first); // same recent slot
     for (unsigned i = 0; i < 4; ++i) {
-        REQUIRE(cache.find(0x1200, view)->function == first);
+        REQUIRE(cache.find(0x3000, view)->function == first);
         REQUIRE(cache.find(0x1000, view)->function == second);
     }
     cache.invalidate(0x1000, 1);
     REQUIRE(cache.find(0x1000, view) == nullptr); // invalidated recent pointer
-    REQUIRE(cache.find(0x1200, view)->function == first);
+    REQUIRE(cache.find(0x3000, view)->function == first);
     cache = aot::validated_code_cache{};
-    REQUIRE(cache.find(0x1200, view) == nullptr); // no pointer into freed deque
-    cache.attach(cache.insert(0x1200, view, 8).version, second);
-    REQUIRE(cache.find(0x1200, view)->function == second);
+    REQUIRE(cache.find(0x3000, view) == nullptr); // no pointer into freed deque
+    cache.attach(cache.insert(0x3000, view, 8).version, second);
+    REQUIRE(cache.find(0x3000, view)->function == second);
 }
 
 TEST_CASE("RAM translation dependencies end after the first store", "[aot]") {
@@ -996,9 +1028,9 @@ TEST_CASE("Compiled successor chains respect budgets, mode and interrupts", "[ao
     REQUIRE(result.instructions == 1);
     REQUIRE(result.blocks == 1);
     state.NirqSig = 1;
-    state.aot_budget = 100;
+    state.aot_budget = 600;
     result = aot::execute_chain(&state, first);
-    REQUIRE(result.blocks == 64); // bounded host runner even with a larger caller budget
+    REQUIRE(result.blocks == 512); // bounded host runner even with a larger caller budget
     registry.clear();
 }
 
@@ -1051,4 +1083,291 @@ TEST_CASE("Guest profile sampling preserves exact type totals and identities", "
     h.sample({0,0,1,5,0x1000,0,true,"process","second"});
     REQUIRE(h.samples.size() == 2);
     CHECK(gp::quote("a\n\"\\") == "\"a\\u000a\\\"\\\\\"");
+}
+
+TEST_CASE("Bounded unconditional calls do not retain unreachable continuation", "[aot]") {
+    using namespace eka2l1::arm::aot;
+    const std::uint32_t arm[] = {0xe2800001,0xeb000010,0xe2899001,0xe28aa001};
+    for (bool region : {false,true}) {
+        const auto t = translate_arm_block(reinterpret_cast<const std::uint8_t *>(arm),sizeof(arm),0x1000,nullptr,nullptr,true,true,true,region);
+        REQUIRE(t.end_address == 0x1008);
+        REQUIRE(t.entry_supported);
+    }
+    // A separate conditional branch still makes the continuation reachable.
+    const std::uint32_t branch[] = {0x0a000000,0xeb000010,0xe2899001};
+    const auto t = translate_arm_block(reinterpret_cast<const std::uint8_t *>(branch),sizeof(branch),0x1000,nullptr,nullptr,true,true,true,true);
+    REQUIRE(t.end_address == 0x100c);
+}
+
+TEST_CASE("Generation guarded RAM lookup still validates host writes and address spaces", "[aot]") {
+    lookup_mode_scope lookup_mode(GENERATE(false, true));
+    using namespace eka2l1::arm;
+    aot_test_env env;
+    auto cpu = env.make_cpu();
+    aot::validated_code_cache cache;
+    std::atomic<std::uint64_t> generation{1};
+    cpu->code_mapping_generation = &generation;
+    cpu->code_address_space = 1;
+    std::array<std::uint8_t,16> code{}, remap{};
+    core::code_mapping view{1,code.data(),code.size()};
+    unsigned resolutions = 0;
+    bool mapped = true;
+    cpu->resolve_code = [&](address, core::code_mapping &out) {
+        ++resolutions; out = view; out.address_space = cpu->code_address_space; return mapped;
+    };
+    cache.insert(0x1000,view,8);
+    REQUIRE(cache.find(0x1000,*cpu));
+    REQUIRE(cache.find(0x1000,*cpu));
+    CHECK(resolutions == 1);
+    code[0] = 1; // Host/alias writes do not need a mapping notification.
+    REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    cache.insert(0x1000,view,8);
+    REQUIRE(cache.find(0x1000,*cpu));
+    cpu->code_address_space = 2;
+    REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    cpu->code_address_space = 1;
+    REQUIRE(cache.find(0x1000,*cpu));
+    remap = code; view.bytes = remap.data(); ++generation;
+    REQUIRE_FALSE(cache.find(0x1000,*cpu)); // Identical bytes in different backing.
+    cache.insert(0x1000,view,8);
+    REQUIRE(cache.find(0x1000,*cpu));
+    mapped = false; ++generation; // Unmap or remove execute permission.
+    REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    mapped = true; ++generation;
+    REQUIRE(cache.find(0x1000,*cpu));
+    view.size = 4; ++generation;
+    REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    view.size = 16;
+    cache.insert(0x1000,view,8);
+    cpu->code_mapping_generation = nullptr; // Legacy cores resolve every entry.
+    const auto before = resolutions;
+    REQUIRE(cache.find(0x1000,*cpu)); REQUIRE(cache.find(0x1000,*cpu));
+    CHECK(resolutions == before + 2);
+}
+
+TEST_CASE("decoded_cache_separates_arm_thumb_contexts", "[aot][dyncom]") {
+    aot_test_env env;
+    // ARM MOV r2,#1; the same first halfword is Thumb MOV r0,#1.
+    env.write_code(0x1000, {0xE3A02001, 0xEAFFFFFE});
+    auto cpu = env.make_cpu();
+    cpu->set_asid(7);
+    for (bool thumb : {false, true, false, true}) {
+        eka2l1::arm::core::thread_context ctx{};
+        ctx.cpsr = thumb ? 0x30 : 0x10;
+        ctx.cpu_registers[15] = 0x1000;
+        cpu->load_context(ctx);
+        cpu->run(1);
+        CHECK(cpu->get_num_instruction_executed() == 1);
+        CHECK(cpu->get_reg(0) == (thumb ? 1 : 0));
+        CHECK(cpu->get_reg(2) == (thumb ? 0 : 1));
+        CHECK(cpu->get_pc() == (thumb ? 0x1002 : 0x1004));
+    }
+}
+
+TEST_CASE("Inlined code dependencies validate every mapping and exact byte", "[aot]") {
+    lookup_mode_scope lookup_mode(GENERATE(false, true));
+    const unsigned dependency_size=GENERATE(4u,8u);
+    using namespace eka2l1::arm;
+    aot_test_env env; auto cpu=env.make_cpu();
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t,16> caller{},leaf{},remap{};
+    std::atomic<std::uint64_t> generation{1};
+    cpu->code_mapping_generation=&generation;cpu->code_address_space=1;
+    bool mapped=true;const std::uint8_t *leaf_backing=leaf.data();
+    cpu->resolve_code=[&](address pc,core::code_mapping &out) {
+        if(pc==0x2000&&!mapped)return false;
+        out={cpu->code_address_space,pc==0x1000?caller.data():leaf_backing,16};return true;
+    };
+    auto insert=[&]() {
+        auto &b=cache.insert(0x1000,{1,caller.data(),16},8);
+        aot::validated_code_cache::add_dependency(b,0x2000,leaf_backing,{leaf_backing,leaf_backing+dependency_size});
+        return b.version;
+    };
+    insert();REQUIRE(cache.find(0x1000,*cpu));REQUIRE(cache.find(0x1000,*cpu));
+    leaf[3]=1;REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    insert();REQUIRE(cache.find(0x1000,*cpu));
+    remap=leaf;leaf_backing=remap.data();++generation;
+    REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    insert();REQUIRE(cache.find(0x1000,*cpu));
+    mapped=false;++generation;REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    mapped=true;++generation;insert();REQUIRE(cache.find(0x1000,*cpu));
+    cache.invalidate(0x2000+dependency_size-4,4);REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    insert();cpu->code_address_space=2;REQUIRE_FALSE(cache.find(0x1000,*cpu));
+    cpu->code_address_space=1;REQUIRE(cache.find(0x1000,*cpu));
+}
+
+TEST_CASE("Colliding recent entries retain generation guards but never skip byte validation", "[aot]") {
+    lookup_mode_scope lookup_mode(GENERATE(false, true));
+    using namespace eka2l1::arm;
+    aot_test_env env; auto cpu = env.make_cpu();
+    aot::validated_code_cache cache;
+    std::array<std::uint8_t, 16> code{}, other{};
+    std::atomic<std::uint64_t> generation{1}, replacement_source{1};
+    cpu->code_mapping_generation = &generation;
+    cpu->code_address_space = 1;
+    unsigned resolutions = 0;
+    cpu->resolve_code = [&](address pc, core::code_mapping &view) {
+        ++resolutions;
+        view = {cpu->code_address_space, pc == 0x1000 ? code.data() : other.data(), 16};
+        return true;
+    };
+    // These addresses collide in the direct-mapped recent index.
+    cache.insert(0x1000, {1, code.data(), 16}, 8);
+    cache.insert(0x3000, {1, other.data(), 16}, 8);
+    REQUIRE(cache.find(0x1000, *cpu)); REQUIRE(cache.find(0x3000, *cpu));
+    REQUIRE(resolutions == 2);
+    for (int i = 0; i < 8; ++i) {
+        REQUIRE(cache.find(0x1000, *cpu)); REQUIRE(cache.find(0x3000, *cpu));
+    }
+    CHECK(resolutions == 2);
+    code[0] = 1;
+    REQUIRE_FALSE(cache.find(0x1000, *cpu));
+    REQUIRE(cache.find(0x3000, *cpu));
+    // Identical generation values from another MMU cannot reuse old guards.
+    cpu->code_mapping_generation = &replacement_source;
+    REQUIRE(cache.find(0x3000, *cpu)); CHECK(resolutions == 3);
+    cache.invalidate(0x3000, 4);
+    REQUIRE_FALSE(cache.find(0x3000, *cpu));
+}
+
+TEST_CASE("DynCom TLB accesses preserve permissions and endian conversion", "[cpu][memory]") {
+    eka2l1::arm::r12l1::exclusive_monitor monitor(1);
+    eka2l1::arm::dyncom_core core(&monitor, 12);
+    auto state_owner = std::make_unique<ARMul_State>(&core, USER32MODE);
+    auto &state = *state_owner;
+    state.mem_cache_ = core.mem_cache();
+    std::array<std::uint8_t, 4096> bytes{};
+    auto &tlb = *state.mem_cache_;
+    tlb.add(0x8000, bytes.data(), prot_read);
+    REQUIRE(tlb.lookup_access<prot_read>(0x8000) == bytes.data());
+    REQUIRE(tlb.lookup_access<prot_write>(0x8000) == nullptr);
+    REQUIRE(tlb.lookup_access<prot_exec>(0x8000) == nullptr);
+    tlb.add(0, bytes.data(), prot_read);
+    REQUIRE(tlb.lookup_access<prot_write>(0) == nullptr);
+    tlb.add(0x8000, bytes.data(), prot_read);
+    bytes[0]=0x12; bytes[1]=0x34; bytes[2]=0x56; bytes[3]=0x78;
+    state.Cpsr = 0x210;
+    REQUIRE(state.ReadMemory16(0x8000) == 0x1234);
+    REQUIRE(state.ReadMemory32(0x8000) == 0x12345678);
+    ARMul_State::block_cursor cursor;
+    REQUIRE(state.ReadMemory32Block(0x8000, cursor) == 0x12345678);
+    REQUIRE(state.ReadMemory32Block(0x8000, cursor) == 0x12345678);
+    unsigned denied = 0;
+    core.write_32bit = [](std::uint32_t, std::uint32_t*) { return false; };
+    core.exception_handler = [&](eka2l1::arm::exception_type type, std::uint32_t address) {
+        REQUIRE(type == eka2l1::arm::exception_type_access_violation_write);
+        REQUIRE(address == 0x8000); ++denied; return false;
+    };
+    state.WriteMemory32(0x8000, 0x87654321);
+    cursor = {};
+    state.WriteMemory32Block(0x8000, 0x87654321, cursor);
+    REQUIRE(denied == 2);
+    REQUIRE(bytes[0] == 0x12);
+}
+
+TEST_CASE("DynCom memory callbacks observe flags within an interpreter block", "[cpu][memory]") {
+    for (const auto instruction : {0xe5910000u, 0xe5810000u, 0xe5d10000u,
+            0xe5c10000u, 0xe1d100b0u, 0xe1c100b0u}) {
+        aot_test_env env;
+        auto cpu = env.make_cpu();
+        const std::uint32_t code[] = {0xe3b02007u, instruction, 0xeafffffeu};
+        std::memcpy(env.memory.data() + 0x1000, code, sizeof(code));
+        cpu->set_pc(0x1000); cpu->set_reg(1, 0x8000); cpu->set_cpsr(0xa0000010);
+        unsigned calls = 0, faults = 0;
+        auto observe = [&](std::uint32_t address, auto *) {
+            CHECK(address == 0x8000);
+            CHECK(cpu->get_cpsr() == 0x20000010);
+            CHECK(cpu->get_reg(2) == 7);
+            CHECK(cpu->get_pc() == 0x1004);
+            ++calls; return false;
+        };
+        cpu->read_8bit = observe; cpu->read_16bit = observe; cpu->read_32bit = observe;
+        cpu->write_8bit = observe; cpu->write_16bit = observe; cpu->write_32bit = observe;
+        cpu->exception_handler = [&](eka2l1::arm::exception_type, std::uint32_t) {
+            CHECK(cpu->get_cpsr() == 0x20000010);
+            ++faults; return false;
+        };
+        cpu->run(2);
+        CHECK(calls == 1); CHECK(faults == 1);
+        CHECK(cpu->get_num_instruction_executed() == 2);
+    }
+}
+
+TEST_CASE("DynCom block writeback follows memory callbacks", "[cpu][memory]") {
+    for (const auto instruction : {0xe8b1000du,0xe8a1000du,0xe931000du,0xe921000du,
+            0xe831000du,0xe821000du,0xe9b1000du,0xe9a1000du}) {
+        aot_test_env env;
+        auto cpu = env.make_cpu();
+        const std::uint32_t code[] = {0xe3b02007u,instruction,0xeafffffeu};
+        std::memcpy(env.memory.data()+0x1000,code,sizeof(code));
+        cpu->set_pc(0x1000);cpu->set_reg(1,0x8000);cpu->set_cpsr(0xa0000010);
+        unsigned calls=0,faults=0;
+        auto observe = [&](std::uint32_t, auto *) {
+            CHECK(cpu->get_reg(1)==0x8000);
+            CHECK(cpu->get_cpsr()==0x20000010);
+            ++calls;return false;
+        };
+        cpu->read_32bit=observe;cpu->write_32bit=observe;
+        cpu->exception_handler = [&](eka2l1::arm::exception_type,std::uint32_t) {
+            CHECK(cpu->get_reg(1)==0x8000);
+            ++faults;return false;
+        };
+        cpu->run(2);
+        CHECK(calls==3);CHECK(faults==3);
+        CHECK(cpu->get_reg(1)==((instruction&(1u<<23))?0x800cu:0x7ff4u));
+        CHECK(cpu->get_num_instruction_executed()==2);
+    }
+}
+
+TEST_CASE("Folded DynCom TLB indexing preserves invalidation and permissions", "[aot][cpu][memory]") {
+    using namespace eka2l1::arm::r12l1;
+    std::array<std::uint8_t,4096> a{}, b{}, c{};
+    for (bool folded : {false,true}) {
+        tlb cache(12, folded);
+        const unsigned first=0x201000, second=0x401000;
+        cache.add(first,a.data(),prot_read);
+        cache.add(second,b.data(),prot_read_write);
+        CHECK(cache.lookup_access<prot_read>(second+12)==b.data()+12);
+        CHECK(cache.lookup_access<prot_write>(first)==nullptr);
+        CHECK(cache.lookup_access<prot_read>(first)==(folded?a.data():nullptr));
+        cache.make_dirty(first);
+        CHECK(cache.lookup_access<prot_read>(first)==nullptr);
+        CHECK(cache.lookup_access<prot_read>(second)==b.data());
+        cache.add(first,c.data(),prot_read);
+        CHECK(cache.lookup_access<prot_read>(first)==c.data());
+        cache.add(0,a.data(),prot_read_write);
+        CHECK(cache.lookup_access<prot_read>(0)==nullptr);
+        cache.flush();
+        CHECK(cache.lookup_access<prot_read>(first)==nullptr);
+        CHECK(cache.lookup_access<prot_read>(second)==nullptr);
+    }
+    // A true folded collision replaces all tags; invalidating its old page
+    // must not erase the replacement, regardless of its permissions.
+    tlb folded(12,true);
+    const unsigned first=0x201000;
+    unsigned collision=first+4096;
+    while (folded.index(collision)!=folded.index(first)) collision+=4096;
+    folded.add(first,a.data(),prot_read_write);
+    folded.add(collision,b.data(),prot_exec);
+    folded.make_dirty(first);
+    CHECK(folded.lookup_access<prot_read>(collision)==nullptr);
+    CHECK(folded.lookup_access<prot_exec>(collision)==b.data());
+    folded.make_dirty(collision);
+    CHECK(folded.lookup(collision)==nullptr);
+}
+
+TEST_CASE("Diagnostic code guard overlap excludes interval gaps", "[aot][cpu][diagnostic]") {
+    using namespace eka2l1::arm;
+    using namespace eka2l1::arm::aot;
+    std::array<std::uint8_t,128> bytes{};
+    validated_code_cache cache;
+    core::code_mapping view{1,bytes.data(),bytes.size()};
+    auto &entry=cache.insert(0x1000,view,8);
+    validated_code_cache::add_dependency(entry,0x2000,bytes.data()+64,{bytes.begin()+64,bytes.begin()+72});
+    const auto base=reinterpret_cast<std::uintptr_t>(bytes.data());
+    CHECK(entry.guard_begin==base);CHECK(entry.guard_end==base+72);
+    for(unsigned offset:{0u,4u,7u,63u,64u,68u,71u})CHECK(validated_code_cache::diagnostic_code_overlap(entry,base+offset,4));
+    for(unsigned offset:{8u,16u,32u,60u,72u,96u})CHECK_FALSE(validated_code_cache::diagnostic_code_overlap(entry,base+offset,4));
+    CHECK_FALSE(validated_code_cache::diagnostic_code_overlap(entry,base,0));
+    CHECK(validated_code_cache::diagnostic_code_overlap(entry,base+8,64));
 }

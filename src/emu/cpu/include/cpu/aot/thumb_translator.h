@@ -40,6 +40,12 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t TFLAG = 828;
         static constexpr std::uint32_t AOT_BUDGET = 848;
 
+        static constexpr std::uint32_t AOT_TLB = 852;
+        static constexpr std::uint32_t AOT_CODE_BEGIN = 856;
+        static constexpr std::uint32_t AOT_CODE_END = 860;
+        static constexpr std::uint32_t AOT_EXIT = 864;
+        static constexpr std::uint32_t NIRQ = 876;
+
         // VFP system registers (FPSID, FPSCR, FPEXC, ...)
         static constexpr std::uint32_t VFP_SYS = 496;
         static constexpr std::uint32_t FPSCR = VFP_SYS + 4; // VFP[1]
@@ -59,9 +65,22 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t SP = REG + 13 * 4;
     };
 
+    struct code_dependency {
+        std::uint32_t address;
+        std::vector<std::uint8_t> bytes;
+    };
+
     struct translate_result {
+        std::vector<code_dependency> dependencies;
         wasm_func_def func;
         bool entry_supported = true;
+        // Research coverage metadata; never used to select guest addresses.
+        unsigned ir_stack_values = 0;
+        unsigned ir_segments = 0, ir_max_segment_length = 0, ir_segment_instructions = 0;
+        unsigned ir_memory_guards = 0;
+        unsigned ir_proved_reads = 0, ir_proved_writes = 0, ir_flag_instructions = 0, ir_inline_transfers = 0, ir_conditional_instructions = 0;
+        unsigned ir_wide_products = 0, ir_cold_halves = 0, ir_cold_values = 0, proved_reads = 0, proved_writes = 0, budget_chunks = 0, deferred_count_updates = 0;
+        unsigned ir_outlined_segments = 0;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call
         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling

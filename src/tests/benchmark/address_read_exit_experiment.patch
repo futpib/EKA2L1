@@ -1,0 +1,46 @@
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index cadb45ae2..9f502a429 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -117,8 +117,12 @@ namespace eka2l1::arm::aot {
+             }
+         }
+         void call(std::uint32_t func_idx) {
+-            instruction_may_exit = true;
+             const bool write = func_idx == 1 || func_idx == 3 || func_idx == 5;
++            // A restartable read either completes inline without modifying
++            // AOT_EXIT, or returns before the guest instruction on a miss.
++            // There is no returning helper/callback on that emitted path.
++            instruction_may_exit = write || !region || func_idx > 5
++                || !defer_memory || !restartable_access;
+             if (write) memory_write = true;
+             if (!region || func_idx > 5) { slow_call(func_idx); return; }
+             const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
+@@ -158,10 +162,14 @@ namespace eka2l1::arm::aot {
+                 op(op_br); leb(b,2); // leave result block, preserving helper result
+             }
+             op(op_end);
+-            get_local(HOST); set_local(base_local);
++            // Cache the host/guest displacement. Once the page key matches,
++            // address + displacement is the backing address, including modulo
++            // i32 arithmetic for high guest pages. No offset mask is needed on
++            // each hit; permission/alignment/endian checks above are unchanged.
+             get_local(ADDRESS); i32_const(-4096); op(op_i32_and); set_local(page_local);
++            get_local(HOST); get_local(page_local); op(op_i32_sub); set_local(base_local);
+             op(op_end); // key miss
+-            get_local(base_local); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
++            get_local(base_local); get_local(ADDRESS);
+             op(op_i32_add); set_local(HOST);
+             get_local(HOST);
+             if (write) get_local(VALUE);
+@@ -755,8 +763,8 @@ namespace eka2l1::arm::aot {
+             const auto inst = instruction.opcode;
+             const auto insn_addr = instruction.address;
+ 
+-            // Only memory/helper paths can raise AOT_EXIT. Straight-line ALU
+-            // successors need just their budget guard; join/loop entries retain
++            // Stores and returning helpers can raise AOT_EXIT. Straight-line
++            // ALU/deferred-read successors need just their budget guard; join/loop entries retain
+             // the exit check independently of their lexical predecessor.
+             const bool check_exit = w.instruction_may_exit || insn_addr == start_address
+                 || (!instruction.leaf && forward_targets_set.count(insn_addr));

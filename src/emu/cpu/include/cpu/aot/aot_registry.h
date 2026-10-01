@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cstddef>
+#include <array>
 #include <cstdint>
 #include <map>
 #include <string>
@@ -53,6 +54,11 @@ namespace eka2l1::arm::aot {
     class registry {
     private:
         std::unordered_map<std::uint32_t, aot_func> functions_;
+        struct recent_function { std::uint32_t address = 0; aot_func function = nullptr; };
+        mutable std::array<recent_function, 4096> recent_{};
+        static std::size_t recent_index(std::uint32_t address) {
+            return ((address >> 1) ^ (address << 7)) & 4095;
+        }
 
     public:
         void register_function(std::uint32_t arm_address, aot_func func);

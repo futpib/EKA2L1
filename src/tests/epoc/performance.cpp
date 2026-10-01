@@ -29,3 +29,12 @@ TEST_CASE("Performance window pauses before measurement and stops at guest deadl
     perf::enabled = false;
     perf::phase = 0;
 }
+
+TEST_CASE("Wall timing can exclude detailed instrumentation", "performance") {
+    namespace perf = eka2l1::common::performance;
+    perf::enabled = true; perf::detailed = false; perf::phase = 2;
+    const auto before = perf::counters[perf::cpu_run].calls.load();
+    { perf::scope scope(perf::cpu_run); REQUIRE_FALSE(perf::counting()); }
+    REQUIRE(perf::counters[perf::cpu_run].calls.load() == before);
+    perf::enabled = false; perf::detailed = true; perf::phase = 0;
+}

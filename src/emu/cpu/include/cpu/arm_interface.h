@@ -20,6 +20,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <functional>
 #include <memory>
 
@@ -119,6 +120,11 @@ namespace eka2l1::arm {
             std::size_t size = 0;
         };
         std::function<bool(address, code_mapping &)> resolve_code;
+        // Optional mapping contract: the MMU updates the space on switches and
+        // advances the generation on every mapping/permission/lifetime change.
+        // Code contents are deliberately not covered and must still be checked.
+        const std::atomic<std::uint64_t> *code_mapping_generation = nullptr;
+        std::uint32_t code_address_space = 0;
         struct diagnostic_code { std::string process, module; };
         std::function<diagnostic_code(address)> describe_code;
 
@@ -206,6 +212,13 @@ namespace eka2l1::arm {
 
         virtual void clear_instruction_cache() = 0;
         virtual void imb_range(address addr, std::size_t size) = 0;
+
+        // Informs the core which address space (process) is about to run, so a
+        // backend can tag its translation cache per-process instead of throwing
+        // it away on every context switch. No-op for backends that don't care.
+        virtual void set_asid(const std::uint32_t asid) {
+            (void)asid;
+        }
 
         virtual bool should_clear_old_memory_map() const {
             return true;

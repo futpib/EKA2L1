@@ -1,0 +1,723 @@
+{
+  "decision": "No repeatable gain from instance co-location alone; no runtime integration",
+  "manifest": {
+    "scope": "Offline ordinary-memory kernels; not whole-game dispatch",
+    "kernels": [
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "source_sha256": "dc8607f9490f32bcca36f2c75a9854fe55e48b981ad873fa26e0b7014e5d18a9",
+        "module_sha256": "d6deb3549cfc27f236fcf98bd2548f847a84656c06852699810e05cb8a9262c4"
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "source_sha256": "a746d18b366cdb2d12072d0ee576f232be497c4f6899be76ba9eac9956c7ab74",
+        "module_sha256": "bc0b4b916ffdb48550b54adf0e7d77abfaa7c185ee80c78f1f44b921f70bf9a0"
+      }
+    ],
+    "build_head": "da1829d586b1481b0109b97823c82b5afe823f1a",
+    "runtime_parent": "18b450f735be81e06e2fd50f6674967b45220064",
+    "defer_memory": true,
+    "probe_sha256": "029f58f3b4818e7dd0e07ff5cbbe38d57bb556e3b73b6050d7e73807dad599b0",
+    "source_changes": "diff --git a/src/tests/benchmark/compiler_probe.cpp b/src/tests/benchmark/compiler_probe.cpp\nindex e43d6a206..659d9ed25 100644\n--- a/src/tests/benchmark/compiler_probe.cpp\n+++ b/src/tests/benchmark/compiler_probe.cpp\n@@ -23,7 +23,8 @@ struct Source : Dynarmic::A32::TranslateCallbacks {\n  std::uint64_t GetTicksForCode(bool,unsigned,unsigned) override {return 1;}\n };\n int main(int argc,char**argv) {\n- if(argc!=3) {std::cerr<<\"compiler_probe GAME_EXE NEW_DIRECTORY\\n\";return 1;}\n+ if(argc!=3 && !(argc==4 && std::string(argv[3])==\"--defer-memory\")) {std::cerr<<\"compiler_probe GAME_EXE NEW_DIRECTORY [--defer-memory]\\n\";return 1;}\n+ const bool defer_memory=argc==4;\n  if(!std::filesystem::create_directory(argv[2]))return 2;\n  std::ifstream input(argv[1],std::ios::binary);std::vector<unsigned char> compressed((std::istreambuf_iterator<char>(input)),{});\n  if(compressed.size()<0x9c)return 3;\n@@ -55,7 +56,7 @@ int main(int argc,char**argv) {\n   std::sort(samples.begin(),samples.end());\n   std::cout<<pc<<\" native_translate_optimize_us_median \"<<samples[50]<<\" min \"<<samples.front()<<\" max \"<<samples.back()<<\" samples 100 (excludes IO and WASM emission)\\n\";\n   using namespace eka2l1::arm::aot;\n-  auto t=translate_arm_block(src.bytes.data()+pc-0x70000000,size,pc,nullptr,nullptr,true,true,true,true);\n+  auto t=translate_arm_block(src.bytes.data()+pc-0x70000000,size,pc,nullptr,nullptr,true,true,true,true,nullptr,defer_memory);\n   t.func.export_name=\"run\";\n   auto wasm=build_wasm_module({t.func},{{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},{\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n   std::ofstream(prefix+\".wasm\",std::ios::binary).write((char*)wasm.data(),wasm.size());\n",
+    "native_fixtures_sha256": "ede080d99d73caee16e717534964b7c2d50987aaa960e71070273d714946ac89"
+  },
+  "batches": {
+    "a": [
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "same",
+        "width": 1,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          380.19999999925494,
+          356.445000000298,
+          355.0099999997765,
+          359.93999999947846,
+          356.875,
+          354.7999999988824,
+          356.6499999985099,
+          355.09999999962747
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "cross",
+        "width": 1,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          374.195000000298,
+          357.77500000037253,
+          366.72499999962747,
+          355.820000000298,
+          354.2099999990314,
+          355.43500000052154,
+          357.9950000010431,
+          357.160000000149
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "cross",
+        "width": 4,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          446.304999999702,
+          424.02500000037253,
+          423.7800000011921,
+          425.2900000009686,
+          423.9199999999255,
+          420.77500000037253,
+          421.8600000012666,
+          420.8600000012666
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "same",
+        "width": 4,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          434.3199999984354,
+          426.50500000081956,
+          422.98000000044703,
+          423.5149999987334,
+          429.2050000000745,
+          424,
+          423.02500000037253,
+          420.81499999947846
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "same",
+        "width": 8,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          456.2050000000745,
+          440.15000000037253,
+          439.160000000149,
+          439.77999999932945,
+          437.59500000067055,
+          446.6200000010431,
+          438.4050000011921,
+          440.16499999910593
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "cross",
+        "width": 8,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          446.9249999988824,
+          435.7949999999255,
+          435.09500000067055,
+          435.10999999940395,
+          435.3449999988079,
+          437.0249999985099,
+          436.3650000002235,
+          432.339999999851
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "cross",
+        "width": 32,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          579.5050000008196,
+          568.5449999999255,
+          562.1299999989569,
+          565.410000000149,
+          566.7050000000745,
+          570.9599999990314,
+          564.695000000298,
+          559.6900000013411
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "same",
+        "width": 32,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          627.3100000005215,
+          595.0399999991059,
+          594.25,
+          593.2200000006706,
+          595.3300000000745,
+          588.9600000008941,
+          590.7450000010431,
+          595.4700000006706
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "direct",
+        "width": 1,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          368.875,
+          346.9150000009686,
+          345.26500000059605,
+          343.6150000002235,
+          347.64000000059605,
+          342.9599999990314,
+          343.34999999962747,
+          344.660000000149
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "same",
+        "width": 1,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          131.7949999999255,
+          120.66500000096858,
+          121.54000000096858,
+          122.85500000044703,
+          121.93999999947846,
+          120.43500000052154,
+          119.57000000029802,
+          119.71499999985099
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "cross",
+        "width": 1,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          141.38000000081956,
+          130.24500000104308,
+          128.25500000081956,
+          127.57000000029802,
+          127.57500000111759,
+          128.55499999970198,
+          130.16499999910593,
+          131.33499999903142
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "cross",
+        "width": 4,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          140.47500000149012,
+          123.27499999850988,
+          124.5,
+          125.07000000029802,
+          125.92999999970198,
+          123.91000000014901,
+          123.64500000141561,
+          125.88499999977648
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "same",
+        "width": 4,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          134.67999999970198,
+          125.85500000044703,
+          123.55500000156462,
+          123.34999999962747,
+          128.0650000013411,
+          135.36500000022352,
+          127.61999999918044,
+          125.125
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "same",
+        "width": 8,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          151.69500000029802,
+          136.33500000089407,
+          136.6749999988824,
+          137.01999999955297,
+          136.56000000052154,
+          138.0800000000745,
+          137.08499999903142,
+          136.535000000149
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "cross",
+        "width": 8,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          146.88499999977648,
+          136.93999999947846,
+          138.089999999851,
+          136.90999999828637,
+          136.57000000029802,
+          137.2050000000745,
+          137.40499999932945,
+          137.20999999903142
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "cross",
+        "width": 32,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          171.81000000052154,
+          146.11499999836087,
+          146.42999999970198,
+          145.87999999895692,
+          147.89000000059605,
+          148.84500000067055,
+          146.0599999986589,
+          146.73999999836087
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "same",
+        "width": 32,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          166.8449999988079,
+          147.55499999970198,
+          146.25500000081956,
+          147.82499999925494,
+          145.82499999925494,
+          145.61499999836087,
+          148.3150000013411,
+          145.67500000074506
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "direct",
+        "width": 1,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          126.79000000096858,
+          110.06000000052154,
+          107.36499999836087,
+          106.88499999977648,
+          106.78500000014901,
+          107.07000000029802,
+          106.9400000013411,
+          107.02500000037253
+        ]
+      }
+    ],
+    "b": [
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "direct",
+        "width": 1,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          356.56499999947846,
+          348.179999999702,
+          342.714999999851,
+          342.2400000002235,
+          342.554999999702,
+          342.31000000052154,
+          345.375,
+          345.31000000052154
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "same",
+        "width": 32,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          613.0449999999255,
+          595.6549999993294,
+          600.019999999553,
+          597.8800000008196,
+          594.609999999404,
+          595.2449999991804,
+          594.5400000009686,
+          591.875
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "cross",
+        "width": 32,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          642.6450000014156,
+          616.0950000006706,
+          618.2249999996275,
+          618.9700000006706,
+          615.8499999996275,
+          614.625,
+          618.0999999996275,
+          625.5099999997765
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "cross",
+        "width": 8,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          462.9550000000745,
+          443.7450000010431,
+          448.0599999986589,
+          449.125,
+          445.2350000012666,
+          447.5800000000745,
+          444.15999999828637,
+          448.0449999999255
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "same",
+        "width": 8,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          449.40499999932945,
+          437.589999999851,
+          437.6550000011921,
+          439.785000000149,
+          440.20499999821186,
+          439.90499999932945,
+          437.34999999962747,
+          440.3650000002235
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "same",
+        "width": 4,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          432.7949999999255,
+          423.24499999918044,
+          421.26999999955297,
+          420.464999999851,
+          423.679999999702,
+          422.77999999932945,
+          421.34500000067055,
+          421.1349999997765
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "cross",
+        "width": 4,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          441.320000000298,
+          423.01999999955297,
+          424.48000000044703,
+          423.1499999985099,
+          421.07499999925494,
+          422.6699999999255,
+          422.804999999702,
+          422.18500000052154
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "cross",
+        "width": 1,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          371.839999999851,
+          360.464999999851,
+          356.78999999910593,
+          357.785000000149,
+          358.76999999955297,
+          354.820000000298,
+          357.31499999947846,
+          356.47000000067055
+        ]
+      },
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "layout": "same",
+        "width": 1,
+        "comparisons": 2352,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          370.2000000011176,
+          363.14000000059605,
+          359.0300000011921,
+          358.8950000014156,
+          360.9699999988079,
+          360.73499999940395,
+          360.06499999947846,
+          357.570000000298
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "direct",
+        "width": 1,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          124.625,
+          109.80499999970198,
+          107.41000000014901,
+          107.27999999932945,
+          107.21499999985099,
+          107.76500000059605,
+          107.76999999955297,
+          107.64500000141561
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "same",
+        "width": 32,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          162.9199999999255,
+          149.7949999999255,
+          146.24000000022352,
+          147.9850000012666,
+          145.82000000029802,
+          145.8549999985844,
+          149.40499999932945,
+          148.72499999962747
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "cross",
+        "width": 32,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          161.88000000081956,
+          145.19500000029802,
+          145.81499999947846,
+          146.80499999970198,
+          146.52999999932945,
+          147.98999999836087,
+          149.41499999910593,
+          148.09999999962747
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "cross",
+        "width": 8,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          153.91499999910593,
+          139.285000000149,
+          138.34999999962747,
+          140.97000000067055,
+          138.42999999970198,
+          137.464999999851,
+          137.01999999955297,
+          137.2199999988079
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "same",
+        "width": 8,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          164.77500000037253,
+          140.7050000000745,
+          140.160000000149,
+          140.31000000052154,
+          138.70999999903142,
+          137.0449999999255,
+          136.43999999947846,
+          139.90499999932945
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "same",
+        "width": 4,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          139.17999999970198,
+          123.6100000012666,
+          124.49500000104308,
+          123.68000000156462,
+          124.0449999999255,
+          124.25,
+          124.28999999910593,
+          124.02999999932945
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "cross",
+        "width": 4,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          142.26999999955297,
+          124.43999999947846,
+          126.91500000096858,
+          123.44500000029802,
+          123.46499999985099,
+          125.92499999888241,
+          123.78999999910593,
+          124.0599999986589
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "cross",
+        "width": 1,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          136.089999999851,
+          119.50499999895692,
+          122.99000000022352,
+          120.04999999888241,
+          119.81000000052154,
+          120.74500000104308,
+          123.82000000029802,
+          119.625
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "layout": "same",
+        "width": 1,
+        "comparisons": 752,
+        "calls": 5000000,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "timings": [
+          143.15499999932945,
+          126.49000000022352,
+          124.8300000000745,
+          125.52000000141561,
+          123.9550000000745,
+          123.3600000012666,
+          122.82499999925494,
+          122.79999999888241
+        ]
+      }
+    ]
+  },
+  "exact_state_comparisons": 55872,
+  "script_hashes": {
+    "src/tests/benchmark/module_layout_probe.py": "820b89bad475f0173a67acecbf7bf148a7b28ca91cfd43edfe486969a7ba2c3c",
+    "src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+    "src/tests/benchmark/compiler_probe.cpp": "c2c0e19ef3ec8163b72bef551f2fca5f79c5d72ed0cd18cdf189945a6779d96b"
+  },
+  "scope": "Uniform duplicate-kernel targets; no real code validation/lookup/dispatch; no whole-game estimate"
+}

@@ -1,0 +1,99 @@
+diff --git a/src/emu/common/include/common/guest_profile.h b/src/emu/common/include/common/guest_profile.h
+index 0f29e07f9..0da10f0f2 100644
+--- a/src/emu/common/include/common/guest_profile.h
++++ b/src/emu/common/include/common/guest_profile.h
+@@ -38,6 +38,9 @@ namespace eka2l1::common::guest_profile {
+         std::map<event_key, std::uint64_t> aot_samples;
+         std::uint64_t dropped_aot_samples = 0;
+         std::uint64_t compiled_blocks = 0, memory_calls[6]{};
++        std::uint64_t validation_calls = 0, validation_primary_bytes = 0;
++        std::uint64_t validation_dependency_bytes = 0, validation_duplicate_bytes = 0;
++        std::map<unsigned, std::uint64_t> validation_dependencies;
+         std::map<unsigned, std::uint64_t> block_lengths;
+         using edge_key = std::tuple<std::uint32_t,std::uint32_t,std::uint32_t,unsigned,std::uint32_t>;
+         std::map<edge_key,std::uint64_t> edges;
+@@ -106,6 +109,14 @@ namespace eka2l1::common::guest_profile {
+             }
+             out << "],\"compiled_blocks\":" << compiled_blocks << ",\"dropped_edges\":" << dropped_edges << ",\"memory_calls\":[";
+             for (unsigned i=0;i<6;++i) { if(i) out << ','; out << memory_calls[i]; }
++            out << "],\"validation_calls\":" << validation_calls
++                << ",\"validation_primary_bytes\":" << validation_primary_bytes
++                << ",\"validation_dependency_bytes\":" << validation_dependency_bytes
++                << ",\"validation_duplicate_bytes\":" << validation_duplicate_bytes
++                << ",\"validation_dependencies\":["; first=true;
++            for (const auto &[n,count] : validation_dependencies) {
++                if (!first) out << ','; first=false; out << '[' << n << ',' << count << ']';
++            }
+             out << "],\"block_lengths\":["; first=true;
+             for (const auto &[length,count] : block_lengths) {
+                 if(!first) out << ','; first=false;
+diff --git a/src/emu/cpu/include/cpu/aot/code_cache.h b/src/emu/cpu/include/cpu/aot/code_cache.h
+index c82719419..2271ed4ff 100644
+--- a/src/emu/cpu/include/cpu/aot/code_cache.h
++++ b/src/emu/cpu/include/cpu/aot/code_cache.h
+@@ -3,6 +3,7 @@
+ #include <cpu/aot/aot_registry.h>
+ #include <common/code_tracking.h>
+ #include <common/performance.h>
++#include <common/guest_profile.h>
+ #include <cpu/arm_interface.h>
+ #include <cstring>
+ #include <array>
+@@ -44,6 +45,8 @@ namespace eka2l1::arm::aot {
+             std::uint64_t mapping_generation = 0;
+             const std::atomic<std::uint64_t> *mapping_source = nullptr;
+             bool tracking_attempted = false;
++            bool diagnostic_measured = false;
++            std::uint64_t diagnostic_dependency_bytes = 0, diagnostic_duplicate_bytes = 0;
+ #if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+             std::uint64_t validation_epoch = 0;
+ #endif
+@@ -167,7 +170,9 @@ namespace eka2l1::arm::aot {
+         std::uint64_t invalidations = 0;
+ 
+     private:
++        static void measure_validation(block &entry);
+         static bool bytes_match(block &entry, bool force) {
++            if (common::guest_profile::enabled && common::performance::counting()) measure_validation(entry);
+ #if !defined(EKA2L1_WASM_CODE_VERSIONS)
+             return equal_code_bytes(entry.backing, entry.code.data(), entry.code.size()) && dependencies_equal(entry);
+ #else
+diff --git a/src/emu/cpu/src/aot/code_compare.cpp b/src/emu/cpu/src/aot/code_compare.cpp
+index 526bf1bdd..5b8bd8cc9 100644
+--- a/src/emu/cpu/src/aot/code_compare.cpp
++++ b/src/emu/cpu/src/aot/code_compare.cpp
+@@ -7,6 +7,34 @@ namespace eka2l1::arm::aot {
+     unsigned code_compare_mode = 0;
+     bool code_lookup_outline = false;
+ 
++    void validated_code_cache::measure_validation(block &entry) {
++        if (!entry.diagnostic_measured) {
++            std::vector<std::pair<std::uintptr_t,std::uintptr_t>> spans;
++            const auto begin = reinterpret_cast<std::uintptr_t>(entry.backing);
++            spans.push_back({begin,begin+entry.code.size()});
++            for (const auto &d : entry.dependencies) {
++                const auto start = reinterpret_cast<std::uintptr_t>(d.backing);
++                spans.push_back({start,start+d.code.size()});
++                entry.diagnostic_dependency_bytes += d.code.size();
++            }
++            std::sort(spans.begin(),spans.end());
++            std::uint64_t unique = 0;
++            std::uintptr_t end = 0;
++            for (const auto &[a,b] : spans) {
++                if (b > end) unique += b - std::max(a,end);
++                end = std::max(end,b);
++            }
++            entry.diagnostic_duplicate_bytes = entry.code.size()+entry.diagnostic_dependency_bytes-unique;
++            entry.diagnostic_measured = true;
++        }
++        auto &p = common::guest_profile::state;
++        ++p.validation_calls;
++        p.validation_primary_bytes += entry.code.size();
++        p.validation_dependency_bytes += entry.diagnostic_dependency_bytes;
++        p.validation_duplicate_bytes += entry.diagnostic_duplicate_bytes;
++        ++p.validation_dependencies[entry.dependencies.size()];
++    }
++
+     void validated_code_cache::reject_recent(std::uint64_t k, block &entry) {
+         entry.live = false;
+         current_.erase(k);

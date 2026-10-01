@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <drivers/audio/clocked.h>
 #include <common/deterministic.h>
 #include <common/algorithm.h>
 #include <common/cvt.h>
@@ -25,7 +26,6 @@
 #include <common/path.h>
 #include <common/version.h>
 #include <gdbstub/gdbstub.h>
-#include <system/aot_setup.h>
 
 #include <drivers/audio/audio.h>
 #include <drivers/graphics/graphics.h>
@@ -113,9 +113,7 @@ namespace eka2l1::desktop {
                 symsys->set_device(0);
             }
 
-            symsys->mount(drive_c, drive_media::physical, eka2l1::add_path(conf.storage, "/drives/c/"), io_attrib_internal);
-            symsys->mount(drive_d, drive_media::physical, eka2l1::add_path(conf.storage, "/drives/d/"), io_attrib_internal);
-            symsys->mount(drive_e, drive_media::physical, eka2l1::add_path(conf.storage, "/drives/e/"), io_attrib_removeable);
+            symsys->mount_device_drives();
 
             on_system_reset(symsys.get());
         }
@@ -157,6 +155,9 @@ namespace eka2l1::desktop {
             }
 
             // Create audio driver
+            if (common::benchmark::enabled() && std::getenv("EKA2L1_SHARED_AUDIO") &&
+                std::string(std::getenv("EKA2L1_SHARED_AUDIO")) == "1")
+                audio_driver = drivers::make_clocked_audio_driver(true, false);
             if (!common::benchmark::enabled())
                 audio_driver = drivers::make_audio_driver(drivers::audio_driver_backend::cubeb, conf.audio_master_volume,
                     player_be);
@@ -176,8 +177,6 @@ namespace eka2l1::desktop {
 
             symsys->set_sensor_driver(sensor_driver.get());
             symsys->initialize_user_parties();
-
-            eka2l1::arm::aot::initialize(symsys.get());
 
             io_system *io = symsys->get_io_system();
 

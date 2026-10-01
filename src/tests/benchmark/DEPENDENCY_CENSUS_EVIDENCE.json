@@ -1,0 +1,153 @@
+{
+  "census": {
+    "validation_calls": 154157420,
+    "validation_primary_bytes": 10133999836,
+    "validation_dependency_bytes": 321012804,
+    "validation_duplicate_bytes": 0,
+    "validation_dependencies": [
+      [
+        0,
+        140143787
+      ],
+      [
+        1,
+        12026943
+      ],
+      [
+        2,
+        1553123
+      ],
+      [
+        3,
+        8759
+      ],
+      [
+        4,
+        382658
+      ],
+      [
+        5,
+        42150
+      ]
+    ]
+  },
+  "report": {
+    "measurement": {
+      "detailed": true,
+      "capture_mode": 2,
+      "first_virtual_us": 42000000,
+      "last_virtual_us": 60000000,
+      "first_instructions": 6116295735,
+      "last_instructions": 9104126133,
+      "wall_seconds": 45.0492,
+      "presentations": 720,
+      "aot_dispatches": 184909283,
+      "aot_instructions": 2982627818,
+      "compiled_runner_calls": 1895252,
+      "ram_aot_dispatches": 154146156,
+      "ram_blocks_compiled": 298,
+      "decoded_instructions": 1278,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "cache_clears": 0,
+      "context_loads": 626047,
+      "code_version_hits": 0,
+      "code_byte_checks": 0,
+      "code_epoch_hits": 0,
+      "imb_calls": 0,
+      "scopes": {
+        "cpu_loop": {
+          "seconds": 44.6673,
+          "calls": 628251
+        },
+        "cpu_run": {
+          "seconds": 42.1336,
+          "calls": 626047
+        },
+        "timers": {
+          "seconds": 0.501472,
+          "calls": 628251
+        },
+        "scheduler": {
+          "seconds": 0.518696,
+          "calls": 628251
+        },
+        "graphics_dispatch": {
+          "seconds": 1.04596,
+          "calls": 1440
+        },
+        "graphics_wait": {
+          "seconds": 1.04501,
+          "calls": 1440
+        },
+        "display_hook": {
+          "seconds": 0.00126848,
+          "calls": 720
+        },
+        "readback": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "frame_capture": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "png_encode": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "audio": {
+          "seconds": 0.0928589,
+          "calls": 1800
+        }
+      }
+    },
+    "warmup_seconds": 33.146287234999996,
+    "shared_audio": true,
+    "guest_profile_stride": 1,
+    "monitor": false,
+    "monitor_cpu_start_us": 0,
+    "sampling": false,
+    "sample_interval_us": 1000,
+    "isolates": 33,
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+    "wasm_sha256": "2a57485d93a7aebab80889b2b1e78e6efbf8868320f140a2b21426c38a7cfeed",
+    "loader_sha256": "c4142fe068c09c9417782722a6b5715f289bd329f81e1e8c2a0dde6e80a7324f",
+    "gl_diagnostics": false,
+    "gl_diagnostics_configurable": true,
+    "aot": 5,
+    "aot_diagnostics": false,
+    "ir_mode": 7,
+    "tlb_hash": 1,
+    "code_compare": 2,
+    "code_lookup": 0,
+    "eager_regions": 0,
+    "verify_aot": 0,
+    "git_head": "7750cad7604c080e1f2c92b1e45c321ccfb5dae3",
+    "dirty_worktree": true,
+    "browser": "Chrome/153.0.8010.52",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+  },
+  "archive": {
+    "base_commit": "7750cad7604c080e1f2c92b1e45c321ccfb5dae3",
+    "files": {
+      "eka2l1.js": "c4142fe068c09c9417782722a6b5715f289bd329f81e1e8c2a0dde6e80a7324f",
+      "source.patch": "3f84c272c84d9a2e4411cef9f10100b09efe40e0f031169390e69fcbecf4dfcb",
+      "eka2l1.html": "8e0962709fa2a5cdff9d30125452c500123910e76bdee682092f9fd44a7aee69",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "2a57485d93a7aebab80889b2b1e78e6efbf8868320f140a2b21426c38a7cfeed"
+    },
+    "purpose": "diagnostic request census only; no promotion timings"
+  },
+  "raw_profile": "/home/claude/.scratch/eka-benchmark/dependency-census-long/guest-profile.json",
+  "raw_profile_sha256": "4cfd1ef9ae1fb84471e653b30b95c7b0d5d7dd56f017b53a4401454e5fd7928e",
+  "scope": "requested bytes, not actual read bytes or recoverable CPU time; diagnostic timings excluded"
+}

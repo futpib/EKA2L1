@@ -1,0 +1,48 @@
+diff --git a/src/emu/common/include/common/guest_profile.h b/src/emu/common/include/common/guest_profile.h
+index 0f29e07f9..74128e7db 100644
+--- a/src/emu/common/include/common/guest_profile.h
++++ b/src/emu/common/include/common/guest_profile.h
+@@ -38,6 +38,9 @@ namespace eka2l1::common::guest_profile {
+         std::map<event_key, std::uint64_t> aot_samples;
+         std::uint64_t dropped_aot_samples = 0;
+         std::uint64_t compiled_blocks = 0, memory_calls[6]{};
++        // Diagnostic-only: exact comparison requests, bucket 1025 means larger.
++        std::array<std::uint64_t, 1026> code_span_calls{};
++        std::uint64_t code_span_bytes = 0;
+         std::map<unsigned, std::uint64_t> block_lengths;
+         using edge_key = std::tuple<std::uint32_t,std::uint32_t,std::uint32_t,unsigned,std::uint32_t>;
+         std::map<edge_key,std::uint64_t> edges;
+@@ -106,6 +109,11 @@ namespace eka2l1::common::guest_profile {
+             }
+             out << "],\"compiled_blocks\":" << compiled_blocks << ",\"dropped_edges\":" << dropped_edges << ",\"memory_calls\":[";
+             for (unsigned i=0;i<6;++i) { if(i) out << ','; out << memory_calls[i]; }
++            out << "],\"code_span_bytes\":" << code_span_bytes << ",\"code_span_calls\":["; first=true;
++            for (unsigned i=0;i<code_span_calls.size();++i) if(code_span_calls[i]) {
++                if(!first) out << ','; first=false;
++                out << '[' << i << ',' << code_span_calls[i] << ']';
++            }
+             out << "],\"block_lengths\":["; first=true;
+             for (const auto &[length,count] : block_lengths) {
+                 if(!first) out << ','; first=false;
+diff --git a/src/emu/cpu/src/aot/code_compare.cpp b/src/emu/cpu/src/aot/code_compare.cpp
+index 217d4436f..2b7c183d6 100644
+--- a/src/emu/cpu/src/aot/code_compare.cpp
++++ b/src/emu/cpu/src/aot/code_compare.cpp
+@@ -1,4 +1,5 @@
+ #include <cpu/aot/code_cache.h>
++#include <common/guest_profile.h>
+ #ifdef __wasm_simd128__
+ #include <wasm_simd128.h>
+ #endif
+@@ -7,6 +8,11 @@ namespace eka2l1::arm::aot {
+     bool code_compare_overlap = false;
+ 
+     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size) {
++        if (common::guest_profile::enabled && common::performance::counting()) {
++            auto &profile = common::guest_profile::state;
++            ++profile.code_span_calls[std::min<std::size_t>(size, 1025)];
++            profile.code_span_bytes += size;
++        }
+ #ifdef __wasm_simd128__
+         if (code_compare_overlap && size >= 16) {
+             // Compare the last full vector instead of decomposing a short tail.

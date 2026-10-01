@@ -173,6 +173,8 @@ namespace eka2l1::kernel {
 
         void calculate_hash();
         void free_attached_data(attached_info &info);
+        void apply_relocations(std::uint8_t *code_base_ptr, std::uint8_t *data_base_ptr,
+            address code_run_addr, address data_run_addr, bool data_only);
 
     public:
         /*! \brief Create a new codeseg
@@ -190,7 +192,7 @@ namespace eka2l1::kernel {
         virtual ~codeseg() {}
         int destroy() override;
 
-        void queries_call_list(kernel::process *pr, std::vector<std::uint32_t> &call_list, const bool for_init = true);
+        void queries_call_list(kernel::process *pr, std::vector<std::uint32_t> &call_list, const bool for_init = true, const bool include_entry = true);
         void unmark();
 
         /**

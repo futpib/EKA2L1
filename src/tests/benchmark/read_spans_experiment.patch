@@ -1,0 +1,108 @@
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index 28379613e..2827afdb7 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -759,6 +759,73 @@ namespace eka2l1::arm::aot {
+             fwd_idx[fwd_sorted[k]] = k;
+         }
+ 
++        // A small data-flow pass groups unconditional word reads by an
++        // unchanged base-register value. Each basic-block entry needs its own
++        // proof; unknown instructions and stores end all groups conservatively.
++        struct read_span { unsigned local, bytes; int minimum, offset; bool first; };
++        std::unordered_map<const instruction *, read_span> read_spans;
++        if (w.defer_memory && w.cache.enabled) {
++            std::vector<std::pair<const instruction *, int>> pending[15];
++            std::map<unsigned, unsigned> span_locals;
++            auto finish = [&](unsigned reg) {
++                auto &uses = pending[reg];
++                if (uses.size() >= 2) {
++                    int low = uses.front().second, high = low;
++                    bool aligned = true;
++                    for (const auto &use : uses) {
++                        aligned &= (use.second - low) % 4 == 0;
++                        low = std::min(low, use.second); high = std::max(high, use.second);
++                    }
++                    if (aligned && high - low <= 4092) {
++                        if (!span_locals.count(reg)) {
++                            span_locals[reg] = result.num_prefix_i64_locals + result.num_locals + 1;
++                            ++result.num_locals;
++                        }
++                        for (std::size_t n = 0; n < uses.size(); ++n)
++                            read_spans.emplace(uses[n].first, read_span{span_locals[reg],
++                                static_cast<unsigned>(high - low + 4), low, uses[n].second, n == 0});
++                    }
++                }
++                uses.clear();
++            };
++            auto finish_all = [&] { for (unsigned r = 0; r < 15; ++r) finish(r); };
++            for (const auto &insn : instructions) {
++                const auto op = insn.opcode;
++                if (forward_targets_set.count(insn.address)) finish_all();
++                if (insn.leaf || (op >> 28) != 14) { finish_all(); continue; }
++                const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
++                unsigned definitions = 0;
++                // Immediate, pre-indexed LDR without writeback or a PC operand.
++                if ((op & 0x0f700000u) == 0x05100000u && rn != 15 && rd != 15) {
++                    const int offset = (op & (1u << 23)) ? int(op & 4095) : -int(op & 4095);
++                    pending[rn].push_back({&insn, offset});
++                    definitions = 1u << rd;
++                } else if (((op >> 25) & 7) == 4 && (op & (1u << 20))
++                    && !(op & ((1u << 22) | (1u << 21) | (1u << 15)))
++                    && (op & 0xffff) && rn != 15) {
++                    // A non-writeback LDM can only change its destination set.
++                    // Its failed deferred path exits before any memory effects.
++                    definitions = op & 0xffff;
++                } else if (((op >> 23) & 31) == 1 && ((op >> 4) & 15) == 9
++                    && rn != 15 && rd != 15) {
++                    definitions = (1u << rn) | (1u << rd); // long multiply
++                } else if (((op >> 22) & 63) == 0 && ((op >> 4) & 15) == 9 && rn != 15) {
++                    definitions = 1u << rn; // MUL/MLA destination is bits 19:16
++                } else if (((op >> 26) & 3) == 0
++                    && ((op & (1u << 25)) || (op & 0x90) != 0x90)) {
++                    const auto alu = (op >> 21) & 15;
++                    const bool compare = alu >= 8 && alu <= 11;
++                    if ((compare && !(op & (1u << 20))) || (!compare && rd == 15)) {
++                        finish_all(); continue; // special encodings or a PC write
++                    }
++                    if (!compare) definitions = 1u << rd;
++                } else { finish_all(); continue; }
++                for (unsigned r = 0; r < 15; ++r) if (definitions & (1u << r)) finish(r);
++            }
++            finish_all();
++            w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
++        }
++
+         // Initialize pc_idx = 0
+         w.i32_const(0);
+         w.set_local(PC_IDX);
+@@ -1789,9 +1856,26 @@ namespace eka2l1::arm::aot {
+                         w.get_local(ADDR_TMP);
+                         w.call(2); // tlb_read8
+                     } else {
+-                        w.state_ptr();
+-                        w.get_local(ADDR_TMP);
+-                        w.call(0); // tlb_read32
++                        const auto span = read_spans.find(&instruction);
++                        if (span == read_spans.end()) {
++                            w.state_ptr(); w.get_local(ADDR_TMP); w.call(0);
++                        } else {
++                            const auto &proof = span->second;
++                            if (proof.first) {
++                                w.load_reg(rn); w.i32_const(proof.minimum); w.op(op_i32_add);
++                                w.set_local(arm_emit::ADDRESS);
++                                w.block_transfer_host(arm_emit::ADDRESS, proof.bytes, false);
++                                w.get_local(arm_emit::HOST); w.op(op_i32_eqz); w.op(op_if); w.op(type_void);
++                                w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub);
++                                w.set_local(arm_emit::COUNT); w.bail(insn_addr, insn_idx);
++                                w.op(op_end);
++                                w.get_local(arm_emit::HOST); w.set_local(proof.local);
++                            }
++                            w.get_local(proof.local);
++                            w.op(op_i32_load); leb(result.body, 2); leb(result.body, proof.offset - proof.minimum);
++                            // Keep the existing successor exit check in this trial.
++                            w.instruction_may_exit = true;
++                        }
+                     }
+                     w.set_local(TMP1);
+                     if (rd == 15) {

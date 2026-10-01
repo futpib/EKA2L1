@@ -19,14 +19,19 @@
 
 #include <common/cvt.h>
 #include <common/frame_dumper.h>
+#include <cpu/12l1r/tlb.h>
 #include <common/performance.h>
 #include <common/guest_profile.h>
+#include <cpu/aot/exit_census.h>
+#include <cpu/aot/execution_limits.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
 #include <drivers/audio/deterministic.h>
+#include <drivers/audio/clocked.h>
 #include <common/deterministic.h>
 #include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/code_cache.h>
 #include <common/log.h>
 #include <common/path.h>
 #include <common/pystr.h>
@@ -57,12 +62,18 @@
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
 #include <emscripten/console.h>
+#include <emscripten/threading.h>
+#include <pthread.h>
 #include <GLES3/gl3.h>
 
-#include <future>
+#include <malloc.h>
+#include <sstream>
 #include <set>
 #include <memory>
 #include <thread>
+#include <chrono>
+#include <vector>
+#include <drivers/input/common.h>
 
 using namespace eka2l1;
 
@@ -82,7 +93,15 @@ namespace {
         int present_status = 0;
         std::size_t screen_redraw_cb_id = 0;
         std::unique_ptr<std::thread> emu_thread;
-        std::unique_ptr<std::thread> gfx_thread;
+        pthread_t gfx_thread{};
+        bool gfx_thread_started = false;
+        std::atomic<int> gfx_ready{0};
+        struct live_key { int code; bool down; unsigned serial; };
+        std::mutex input_mutex;
+        std::vector<live_key> input_queue;
+        unsigned input_created = 0;
+        std::atomic<unsigned> input_consumed{0};
+        std::atomic<unsigned> presentations{0};
 
         // Pixel readback buffer written by the gfx thread during display()
         std::mutex pixel_mutex;
@@ -96,6 +115,16 @@ namespace {
     };
 
     wasm_state *g_state = nullptr;
+
+    // Diagnostic route exploration only. Park between system-loop iterations;
+    // never rewrite guest time or enter the game's own pause menu.
+    struct route_control {
+        bool enabled = false; // Fixed before the emulation thread starts.
+        std::mutex mutex;
+        std::condition_variable changed;
+        std::atomic<bool> paused{false};
+        std::uint64_t target_us = 0; // Protected by mutex once running.
+    } g_route;
 
     bool ensure_system_started() {
         if (!g_state || !g_state->symsys) return false;
@@ -143,13 +172,23 @@ namespace {
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_graphics_diagnostics_configure(int enabled) {
+    if (g_state || (enabled != 0 && enabled != 1)) return -1;
+    if (enabled) setenv("EKA2L1_GL_DIAGNOSTICS", "1", 1);
+    else unsetenv("EKA2L1_GL_DIAGNOSTICS");
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
-    if (g_state || (enabled < 0 || enabled > 4) || verify < 0) return -1;
+    if (g_state || (enabled < 0 || enabled > 5) || verify < 0) return -1;
     eka2l1::arm::aot::diagnostics_enabled = diagnostics != 0;
     if (verify) setenv("EKA2L1_AOT_VERIFY", std::to_string(verify).c_str(), 1);
     else unsetenv("EKA2L1_AOT_VERIFY");
     if (enabled >= 2) setenv("EKA2L1_AOT_HOT", "1", 1);
     else unsetenv("EKA2L1_AOT_HOT");
+    if (enabled >= 5) setenv("EKA2L1_AOT_REGION", "1", 1);
+    else unsetenv("EKA2L1_AOT_REGION");
     if (enabled >= 4) setenv("EKA2L1_AOT_CHAIN", "1", 1);
     else unsetenv("EKA2L1_AOT_CHAIN");
     if (enabled >= 3) setenv("EKA2L1_AOT_RAM", "1", 1);
@@ -158,6 +197,211 @@ int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
     else unsetenv("EKA2L1_BENCHMARK_AOT");
     return 0;
 }
+
+// Compiler research control: select before initialization, never on a running
+// CPU. This changes translation only, not generated instruction checks.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_ir_configure(int mode) {
+    if (g_state || mode < -1 || mode > 16) return -1;
+#ifdef EKA2L1_WASM_CODE_VERSIONS
+#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+    if (mode >= 4 && !(mode == 7 && eka2l1::common::code_tracking::protect_writes)) return -2;
+#else
+    if (mode >= 4) return -2;
+#endif
+#endif
+#ifndef EKA2L1_WASM_IR_SEGMENTS
+    if ((mode > 0 && mode < 4) || (mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15 || mode == 16)) return -2;
+#endif
+#ifndef EKA2L1_WASM_IR_OUTLINE
+    if ((mode >= 2 && mode < 4) || (mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15 || mode == 16)) return -2;
+#endif
+#ifndef EKA2L1_WASM_IR_MEMORY
+    if ((mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15 || mode == 16)) return -2;
+#endif
+    if (mode < 0) unsetenv("EKA2L1_AOT_IR_MODE");
+    else setenv("EKA2L1_AOT_IR_MODE", std::to_string(mode).c_str(), 1);
+    return 0;
+}
+
+// DynCom and generated guards must select the same index before initialization.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_tlb_hash_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::r12l1::dyncom_folded_tlb = mode != 0;
+    return 0;
+}
+
+// Lookup layout research control, frozen before guest execution.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_code_write_protect_configure(int mode) {
+#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+    if (g_state || (mode != 0 && mode != 1) || common::code_tracking::skip_mutation_tracking()) return -1;
+    // Do not leave a selected proof policy without its required protection.
+    if (!mode) if (const char *policy=std::getenv("EKA2L1_AOT_IR_MODE"))
+        if (std::string(policy)=="7") return -2;
+    eka2l1::common::code_tracking::protect_writes = mode != 0;
+    return 0;
+#else
+    return -1;
+#endif
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_omit_guard_publication_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::omit_guard_publication = mode != 0;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_omit_guard_publication_report() {
+    return eka2l1::arm::aot::omit_guard_publication ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_code_lookup_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::code_lookup_outline = mode != 0;
+    return 0;
+}
+
+// WASM defaults to mode 3 (immutable executable bytes); explicit mode 0
+// restores mutation compatibility. The selection is frozen at CPU initialization.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_unsafe_code_configure(int mode) {
+    if (g_state || mode < 0 || mode > 3) return -1;
+    common::code_tracking::unsafe_code_mode = static_cast<unsigned>(mode);
+    if (mode == 3) common::code_tracking::protect_writes = false;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_unsafe_code_report() { return common::code_tracking::unsafe_code_mode; }
+
+// Exact byte-scanner research control, frozen before guest execution.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_code_compare_configure(int mode) {
+    if (g_state || mode < 0 || mode > 4) return -1;
+    eka2l1::arm::aot::code_compare_mode = static_cast<unsigned>(mode);
+    return 0;
+}
+
+// Eager ROM compilation research control. Ordinary startup keeps basic blocks.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_eager_regions_configure(int enabled) {
+    if (g_state || enabled < 0 || enabled > 1) return -1;
+    if (enabled) setenv("EKA2L1_AOT_EAGER_REGIONS", "1", 1);
+    else unsetenv("EKA2L1_AOT_EAGER_REGIONS");
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_audio_configure() {
+    if (g_state) return -1;
+    setenv("EKA2L1_SHARED_AUDIO", "1", 1);
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_audio_read(std::int16_t *out, int frames) {
+    return out && frames > 0 && frames <= 4096 ? drivers::read_clocked_audio(out, frames) : 0;
+}
+EMSCRIPTEN_KEEPALIVE
+const char *eka2l1_audio_stats() {
+    static std::string stats;
+    stats = drivers::clocked_audio_stats();
+    return stats.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_live_configure() {
+    if (g_state) return -1;
+    common::benchmark::interactive = true;
+    setenv("EKA2L1_BENCHMARK", "1", 1);
+    return eka2l1_aot_configure(5, 0, 0);
+}
+
+EMSCRIPTEN_KEEPALIVE
+double eka2l1_guest_time_us() { return static_cast<double>(common::benchmark::virtual_us.load()); }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_key_state(int code, int down) {
+    if (!g_state || !common::benchmark::interactive || !g_state->running) return -1;
+    if (code < 0 || code > 255 || (down != 0 && down != 1)) return -2;
+    const std::lock_guard<std::mutex> guard(g_state->input_mutex);
+    if (g_state->input_queue.size() >= 1024) return -3;
+    const auto serial = ++g_state->input_created;
+    g_state->input_queue.push_back({code, down != 0, serial});
+    return static_cast<int>(serial);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_input_consumed() { return g_state ? g_state->input_consumed.load() : 0; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_presentations() { return g_state ? g_state->presentations.load() : 0; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_route_configure(int stop_us) {
+    if (g_state || stop_us < -1 || stop_us > 1800000000) return -1;
+    g_route.enabled = stop_us >= 0;
+    g_route.target_us = stop_us >= 0 ? stop_us : 0;
+    g_route.paused = false;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_route_phase() {
+    if (!g_route.enabled || !g_state || !g_state->running) return -1;
+    return g_route.paused ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_route_step_to(int stop_us) {
+    const std::lock_guard<std::mutex> lock(g_route.mutex);
+    if (!g_route.enabled || !g_state || !g_state->running || !g_route.paused) return -1;
+    if (stop_us < 0 || stop_us > 1800000000
+        || static_cast<std::uint64_t>(stop_us) <= common::benchmark::virtual_us.load()) return -2;
+    g_route.target_us = stop_us;
+    g_route.paused = false;
+    g_route.changed.notify_one();
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_leaf_predication_configure(int enabled) {
+    if(g_state || (enabled!=0 && enabled!=1))return -1;
+    arm::aot::predicated_leaves=enabled;return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_leaf_features_configure(int features) {
+    if(g_state || features<0 || features>255)return -1;
+    arm::aot::leaf_features=static_cast<unsigned>(features);return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_leaf_features_report() {return arm::aot::leaf_features;}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_leaf_predication_report() {return arm::aot::predicated_leaves;}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_execution_limits_configure(int window,int leaf,int sites,int runner) {
+    if(g_state || window<0 || leaf<0 || sites<0 || runner<0)return -1;
+    return arm::aot::configure_execution_limits(window,leaf,sites,runner)?0:-1;
+}
+EMSCRIPTEN_KEEPALIVE
+const char *eka2l1_execution_limits_report() {
+    static std::string value;value=arm::aot::execution_limits_text();return value.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_exit_census_configure(int enabled) {
+    if(g_state || (enabled!=0 && enabled!=1))return -1;
+    arm::aot::exit_census::enabled=enabled;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_exit_census_report() { return arm::aot::exit_census::enabled ? 1 : 0; }
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_guest_profile_configure(int stride) {
@@ -173,16 +417,46 @@ const char *eka2l1_guest_profile_report() {
     static std::string result;
     if (common::performance::phase.load() != 3) return "{}";
     result = common::guest_profile::state.report(dyncom_instruction_name);
+    if(arm::aot::exit_census::enabled){result.pop_back();result+=",\"boundaries\":"+arm::aot::exit_census::report()+"}";}
     return result.c_str();
 }
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_profile_configure(int start_us, int end_us, int mode) {
-    if (g_state || start_us < 0 || end_us <= start_us || end_us > 120000000 || mode < 0 || mode > 2) return -1;
+    if (g_state || start_us < 0 || end_us <= start_us || end_us > 1800000000 || mode < 0 || mode > 2) return -1;
     common::performance::enabled = true;
     common::performance::start_us = start_us;
     common::performance::end_us = end_us;
     common::performance::capture_mode = mode;
+    return 0;
+}
+
+// Called before initialization; does not change guest audio consumption/callbacks.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_monitor_configure() {
+    if (g_state) return -1;
+    common::benchmark::retain_audio = false;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+const char *eka2l1_monitor_report() {
+    static std::string result;
+    const auto heap = mallinfo();
+    std::ostringstream out;
+    out << "{\"guest_us\":" << common::benchmark::virtual_us.load()
+        << ",\"instructions\":" << common::benchmark::instructions.load()
+        << ",\"compiled_functions\":" << arm::aot::compiled_function_count()
+        << ",\"allocated_bytes\":" << heap.uordblks
+        << ",\"free_bytes\":" << heap.fordblks << "}";
+    result = out.str();
+    return result.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_profile_detail_configure(int enabled) {
+    if (g_state || (enabled != 0 && enabled != 1)) return -1;
+    common::performance::detailed = enabled != 0;
     return 0;
 }
 
@@ -202,8 +476,9 @@ const char *eka2l1_profile_report() {
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_benchmark_configure(int frames, int start_us, int unique) {
-    if (g_state || frames < 1 || frames > 100000 || start_us < 0 || start_us > 120000000) return -1;
+    if (g_state || frames < 1 || frames > 100000 || start_us < 0 || start_us > 1800000000) return -1;
     setenv("EKA2L1_BENCHMARK", "1", 1);
+    common::benchmark::interactive = false;
     setenv("EKA2L1_BENCHMARK_FRAMES", std::to_string(frames).c_str(), 1);
     setenv("EKA2L1_BENCHMARK_INPUT", "/benchmark.input", 1);
     setenv("EKA2L1_BENCHMARK_START_US", std::to_string(start_us).c_str(), 1);
@@ -239,7 +514,10 @@ int eka2l1_init(const char *data_path) {
     g_state->app_settings = std::make_unique<config::app_settings>(&g_state->conf);
 
     system_create_components comp;
-    comp.audio_ = nullptr;
+    if (common::benchmark::interactive || (std::getenv("EKA2L1_SHARED_AUDIO") &&
+        std::string(std::getenv("EKA2L1_SHARED_AUDIO")) == "1"))
+        g_state->audio_driver = drivers::make_clocked_audio_driver(!common::benchmark::interactive, common::benchmark::interactive);
+    comp.audio_ = g_state->audio_driver.get();
     comp.graphics_ = nullptr;
     comp.conf_ = &g_state->conf;
     comp.settings_ = g_state->app_settings.get();
@@ -317,17 +595,20 @@ int eka2l1_install_sis(const char *sis_path) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_run(const char *app_name) {
+int eka2l1_prepare_graphics() {
     if (!ensure_system_started()) {
         return -1;
     }
 
-    // Create graphics driver on its own thread. With PROXY_TO_PTHREAD, GL calls
-    // from worker threads are properly proxied to the main browser thread.
-    std::promise<bool> gfx_ready_promise;
-    auto gfx_ready_future = gfx_ready_promise.get_future();
+    // Transfer the canvas before context creation. The caller polls readiness
+    // asynchronously so browser startup and worker messages can make progress.
+    if (g_state->gfx_thread_started) return g_state->gfx_ready.load();
 
-    g_state->gfx_thread = std::make_unique<std::thread>([&gfx_ready_promise]() {
+    pthread_attr_t graphics_attr;
+    pthread_attr_init(&graphics_attr);
+    if (emscripten_supports_offscreencanvas())
+        emscripten_pthread_attr_settransferredcanvases(&graphics_attr, "#canvas");
+    const int graphics_error = pthread_create(&g_state->gfx_thread, &graphics_attr, [](void *) -> void * {
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver thread started, creating context...");
 
         drivers::window_system_info wsi;
@@ -338,13 +619,15 @@ int eka2l1_run(const char *app_name) {
 
         if (!g_state->graphics_driver) {
             LOG_ERROR(FRONTEND_CMDLINE, "Failed to create graphics driver");
-            gfx_ready_promise.set_value(false);
-            return;
+            g_state->gfx_ready = -1;
+            return nullptr;
         }
 
         g_state->symsys->set_graphics_driver(g_state->graphics_driver.get());
         g_state->graphics_driver->set_display_hook([]() {
             common::performance::scope display_scope(common::performance::display_hook);
+            ++g_state->presentations;
+            if (common::benchmark::interactive) return;
             if (common::performance::enabled) {
                 if (common::performance::phase.load() == 2) ++common::performance::presentations;
                 if (common::performance::capture_mode == 2) return;
@@ -403,19 +686,37 @@ int eka2l1_run(const char *app_name) {
             }
         });
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver ready, entering command loop");
-        gfx_ready_promise.set_value(true);
+        g_state->gfx_ready = 1;
 
+        // WebGL resources must be destroyed on their owning worker, including
+        // when the asynchronous command loop exits through pthread_exit.
+        pthread_cleanup_push([](void *) { g_state->graphics_driver.reset(); }, nullptr);
         g_state->graphics_driver->run();
+        pthread_cleanup_pop(1);
         LOG_INFO(FRONTEND_CMDLINE, "Graphics driver thread exited");
-    });
-
-    if (!gfx_ready_future.get()) {
-        LOG_ERROR(FRONTEND_CMDLINE, "Graphics driver initialization failed");
+        return nullptr;
+    }, nullptr);
+    pthread_attr_destroy(&graphics_attr);
+    if (graphics_error != 0) {
+        LOG_ERROR(FRONTEND_CMDLINE, "Graphics thread creation failed: {}", graphics_error);
+        g_state->gfx_ready = -1;
         return -1;
     }
+    g_state->gfx_thread_started = true;
 
-    // Audio driver not available in WASM (Cubeb requires native audio APIs)
-    LOG_INFO(FRONTEND_CMDLINE, "Skipping audio driver (not available in WASM)");
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_graphics_ready() {
+    return g_state ? g_state->gfx_ready.load() : -1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_run(const char *app_name) {
+    if (!g_state || g_state->gfx_ready.load() != 1) return -1;
+
+    LOG_INFO(FRONTEND_CMDLINE, "Audio: {}", drivers::clocked_audio_active() ? "shared DSP / browser output" : "deterministic capture");
 
     // Launch the app via applist server (same as Qt frontend)
     LOG_INFO(FRONTEND_CMDLINE, "Launching: {}", app_name);
@@ -569,7 +870,10 @@ int eka2l1_run(const char *app_name) {
 
                     auto cmd_list = builder.retrieve_command_list();
                     g_state->graphics_driver->submit_command_list(cmd_list);
-                    if (common::benchmark::enabled())
+                    // Replay capture needs a completed frame at this guest instant.
+                    // Live play follows Qt: overlap rendering with guest execution,
+                    // then wait above before reusing the single presentation slot.
+                    if (common::benchmark::enabled() && !common::benchmark::interactive)
                         g_state->graphics_driver->wait_for(&g_state->present_status);
                 });
             LOG_INFO(FRONTEND_CMDLINE, "Screen redraw callback registered");
@@ -587,7 +891,53 @@ int eka2l1_run(const char *app_name) {
     g_state->emu_thread = std::make_unique<std::thread>([]() {
         LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
         int iterations = 0;
+        auto host_origin = std::chrono::steady_clock::now();
+        const auto guest_origin = common::benchmark::virtual_us.load();
+        std::uint64_t pacing_check = guest_origin;
         while (g_state && g_state->running) {
+            if (g_route.enabled) {
+                std::unique_lock<std::mutex> lock(g_route.mutex);
+                if (common::benchmark::virtual_us.load() >= g_route.target_us) {
+                    g_route.paused = true;
+                    g_route.changed.wait(lock, [] {
+                        return !g_state->running || common::benchmark::virtual_us.load() < g_route.target_us;
+                    });
+                    g_route.paused = false;
+                }
+                if (!g_state->running) break;
+            }
+            if (common::benchmark::interactive) {
+                std::vector<wasm_state::live_key> inputs;
+                {
+                    const std::lock_guard<std::mutex> guard(g_state->input_mutex);
+                    inputs.swap(g_state->input_queue);
+                }
+                for (const auto &key : inputs) {
+                    drivers::input_event event{};
+                    event.type_ = drivers::input_event_type::key_raw;
+                    event.key_.code_ = key.code;
+                    event.key_.state_ = key.down ? drivers::key_state::pressed : drivers::key_state::released;
+                    g_state->winserv->queue_input_from_driver(event);
+                    g_state->input_consumed = key.serial;
+                }
+                const auto guest_now = common::benchmark::virtual_us.load();
+                if (!g_route.enabled && guest_now >= pacing_check) {
+                    const auto host_now = std::chrono::steady_clock::now();
+                    const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
+                        host_now - host_origin).count();
+                    const auto ahead = static_cast<std::int64_t>(guest_now - guest_origin) - elapsed;
+                    if (ahead < -100000) {
+                        // Allow brief scheduler jitter, but discard host stalls
+                        // instead of fast-forwarding to repay them. Guest clocks
+                        // and pending events stay intact.
+                        host_origin = host_now - std::chrono::microseconds(guest_now - guest_origin);
+                    } else if (ahead > 2000) {
+                        std::this_thread::sleep_for(std::chrono::microseconds(std::min<std::int64_t>(ahead - 1000, 2000)));
+                        continue; // Host pacing never advances the guest clock.
+                    }
+                    pacing_check = guest_now + 1000;
+                }
+            }
             if (common::performance::checkpoint(common::benchmark::virtual_us.load(), common::benchmark::instructions.load())) {
                 g_state->running = false;
                 break;
@@ -662,18 +1012,30 @@ int eka2l1_frame_dump_captured() {
 
 EMSCRIPTEN_KEEPALIVE
 void eka2l1_shutdown() {
+    MAIN_THREAD_EM_ASM({ if(typeof window !== "undefined" && window.EkaAudio) window.EkaAudio.stop(); });
     if (g_state) {
-        g_state->running = false;
-        if (g_state->graphics_driver) {
-            g_state->graphics_driver->abort();
-        }
-        if (g_state->gfx_thread && g_state->gfx_thread->joinable()) {
-            g_state->gfx_thread->join();
+        {
+            const std::lock_guard<std::mutex> lock(g_route.mutex);
+            g_state->running = false;
+            g_route.changed.notify_all();
         }
         if (g_state->emu_thread && g_state->emu_thread->joinable()) {
             g_state->emu_thread->join();
         }
+        if (g_state->graphics_driver && g_state->winserv) {
+            // Drain prior display hooks before destroying their window server.
+            int drained = -100;
+            drivers::graphics_command_builder barrier;
+            barrier.present(&drained);
+            auto commands = barrier.retrieve_command_list();
+            g_state->graphics_driver->submit_command_list(commands);
+            g_state->graphics_driver->wait_for(&drained);
+        }
+        g_state->winserv = nullptr;
+        // Guest cleanup may still submit graphics resource destruction commands.
         g_state->symsys.reset();
+        if (g_state->graphics_driver) g_state->graphics_driver->abort();
+        if (g_state->gfx_thread_started) pthread_join(g_state->gfx_thread, nullptr);
         g_state->graphics_driver.reset();
         g_state->audio_driver.reset();
         delete g_state;

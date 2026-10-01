@@ -110,7 +110,8 @@ namespace eka2l1::drivers {
 
     enum graphics_driver_extension {
         graphics_driver_extension_anisotrophy_filtering = 1 << 0,
-        graphics_driver_extension_float_precision_qualifier = 1 << 1
+        graphics_driver_extension_float_precision_qualifier = 1 << 1,
+        graphics_driver_extension_glsl_es_100 = 1 << 2
     };
 
     enum graphics_driver_extension_query {
@@ -138,6 +139,19 @@ namespace eka2l1::drivers {
 
         virtual bool is_stricted() const {
             return false;
+        }
+
+        /**
+         * \brief Largest 2D texture dimension the backend can allocate.
+         *
+         * Used to keep dynamically-grown textures (e.g. the font glyph atlas)
+         * within what the GPU accepts — exceeding it makes texture creation
+         * fail and the texture sample as opaque black. The conservative default
+         * matches the GLES 3.0 minimum guarantee; backends override with the
+         * real queried value.
+         */
+        virtual std::uint32_t max_texture_size() const {
+            return 2048;
         }
 
         /**

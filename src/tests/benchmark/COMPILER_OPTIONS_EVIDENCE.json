@@ -1,0 +1,2590 @@
+{
+  "base_commit": "d50abf943c9cde68756fd413a055d140314f0cda",
+  "date_utc": "2026-09-27",
+  "artifact_root": "/home/claude/.scratch/eka-benchmark",
+  "production_emulator_changed": false,
+  "unsafe_variants": [
+    "validation-ceiling",
+    "whole-budget kernel control"
+  ],
+  "whole_game": [
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 17.9338,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 172.09277870100001,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "loader_sha256": "355eda96a5cde141ea395e228783d81926f1f5a1642550eddf21940c3cf67b72",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-whole-game/0-baseline",
+      "replacements": []
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 18.7347,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 170.01434973099998,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "b7ba9d3e8ec7deac63626143fab319995dccd52c4a7fa283ee2bccac34c0da5d",
+      "loader_sha256": "355e6c501cecd8de03bdca95616535e89eb197cdba03078eef4263e5bc25cd80",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-whole-game/1-connected",
+      "replacements": []
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 16.7347,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 155.533492124,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "048b3f697cf85d7bb86dd6cfbbe27ec6083c0813d1b3aa1559acd27f7c0a0a32",
+      "loader_sha256": "0b11c9d7e8c9e2aa6e810abafb030ee2d860c16d58585331052758036c402668",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-whole-game/2-validation-ceiling",
+      "replacements": []
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 17.6943,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 170.860750363,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "loader_sha256": "3faa58d9bb1d0fbcb34deee8a4f79cc6192f0b9d9a00f0bdc2ef9d428d042782",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-whole-game/3-post-optimizer",
+      "replacements": [
+        {
+          "index": 342,
+          "compile_ms": 0.7100000381469727,
+          "bytes": 85855,
+          "optimized": true,
+          "exports": [
+            {
+              "name": "f_2168561443",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152158415",
+              "kind": "function"
+            },
+            {
+              "name": "f_2168561341",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152196005",
+              "kind": "function"
+            },
+            {
+              "name": "r_976_pc_1879139888",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152224537",
+              "kind": "function"
+            },
+            {
+              "name": "f_2149144924",
+              "kind": "function"
+            },
+            {
+              "name": "r_977_pc_1879052328",
+              "kind": "function"
+            },
+            {
+              "name": "r_978_pc_1879129772",
+              "kind": "function"
+            },
+            {
+              "name": "r_979_pc_1879139520",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152019029",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152158243",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152178491",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152127173",
+              "kind": "function"
+            },
+            {
+              "name": "r_980_pc_1879350860",
+              "kind": "function"
+            },
+            {
+              "name": "r_981_pc_1879077128",
+              "kind": "function"
+            },
+            {
+              "name": "r_982_pc_1879453664",
+              "kind": "function"
+            },
+            {
+              "name": "r_983_pc_1879129820",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152205897",
+              "kind": "function"
+            },
+            {
+              "name": "f_2154578780",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152176535",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152204615",
+              "kind": "function"
+            },
+            {
+              "name": "r_984_pc_1879351140",
+              "kind": "function"
+            },
+            {
+              "name": "r_985_pc_1879348564",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152225577",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152225757",
+              "kind": "function"
+            },
+            {
+              "name": "f_2169075465",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152178357",
+              "kind": "function"
+            },
+            {
+              "name": "r_986_pc_1879221488",
+              "kind": "function"
+            },
+            {
+              "name": "r_987_pc_1879348040",
+              "kind": "function"
+            },
+            {
+              "name": "f_2159039761",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152178337",
+              "kind": "function"
+            }
+          ]
+        },
+        {
+          "index": 266,
+          "compile_ms": 1.1050004959106445,
+          "bytes": 208808,
+          "optimized": true,
+          "exports": [
+            {
+              "name": "r_255_pc_1879138044",
+              "kind": "function"
+            },
+            {
+              "name": "r_256_pc_1879139048",
+              "kind": "function"
+            },
+            {
+              "name": "r_257_pc_1879138008",
+              "kind": "function"
+            },
+            {
+              "name": "r_258_pc_1879138276",
+              "kind": "function"
+            },
+            {
+              "name": "r_259_pc_1879138236",
+              "kind": "function"
+            },
+            {
+              "name": "r_260_pc_1879068556",
+              "kind": "function"
+            },
+            {
+              "name": "r_261_pc_1879455500",
+              "kind": "function"
+            },
+            {
+              "name": "r_262_pc_1879457760",
+              "kind": "function"
+            },
+            {
+              "name": "r_263_pc_1879068628",
+              "kind": "function"
+            },
+            {
+              "name": "r_264_pc_1879069700",
+              "kind": "function"
+            },
+            {
+              "name": "r_265_pc_1879069832",
+              "kind": "function"
+            },
+            {
+              "name": "r_266_pc_1879069716",
+              "kind": "function"
+            },
+            {
+              "name": "r_267_pc_1879068652",
+              "kind": "function"
+            },
+            {
+              "name": "r_268_pc_1879457792",
+              "kind": "function"
+            },
+            {
+              "name": "r_269_pc_1879068004",
+              "kind": "function"
+            },
+            {
+              "name": "r_270_pc_1879138020",
+              "kind": "function"
+            },
+            {
+              "name": "r_271_pc_1879138612",
+              "kind": "function"
+            },
+            {
+              "name": "r_272_pc_1879138304",
+              "kind": "function"
+            },
+            {
+              "name": "r_273_pc_1879138432",
+              "kind": "function"
+            },
+            {
+              "name": "r_274_pc_1879069896",
+              "kind": "function"
+            },
+            {
+              "name": "r_275_pc_1879063676",
+              "kind": "function"
+            },
+            {
+              "name": "r_276_pc_1879068640",
+              "kind": "function"
+            },
+            {
+              "name": "r_277_pc_1879069816",
+              "kind": "function"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 18.7624,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 169.661492954,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "loader_sha256": "3faa58d9bb1d0fbcb34deee8a4f79cc6192f0b9d9a00f0bdc2ef9d428d042782",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-whole-game/4-post-optimizer",
+      "replacements": [
+        {
+          "index": 342,
+          "compile_ms": 1.260000228881836,
+          "bytes": 85855,
+          "optimized": true,
+          "exports": [
+            {
+              "name": "f_2168561443",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152158415",
+              "kind": "function"
+            },
+            {
+              "name": "f_2168561341",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152196005",
+              "kind": "function"
+            },
+            {
+              "name": "r_976_pc_1879139888",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152224537",
+              "kind": "function"
+            },
+            {
+              "name": "f_2149144924",
+              "kind": "function"
+            },
+            {
+              "name": "r_977_pc_1879052328",
+              "kind": "function"
+            },
+            {
+              "name": "r_978_pc_1879129772",
+              "kind": "function"
+            },
+            {
+              "name": "r_979_pc_1879139520",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152019029",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152158243",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152178491",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152127173",
+              "kind": "function"
+            },
+            {
+              "name": "r_980_pc_1879350860",
+              "kind": "function"
+            },
+            {
+              "name": "r_981_pc_1879077128",
+              "kind": "function"
+            },
+            {
+              "name": "r_982_pc_1879453664",
+              "kind": "function"
+            },
+            {
+              "name": "r_983_pc_1879129820",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152205897",
+              "kind": "function"
+            },
+            {
+              "name": "f_2154578780",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152176535",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152204615",
+              "kind": "function"
+            },
+            {
+              "name": "r_984_pc_1879351140",
+              "kind": "function"
+            },
+            {
+              "name": "r_985_pc_1879348564",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152225577",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152225757",
+              "kind": "function"
+            },
+            {
+              "name": "f_2169075465",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152178357",
+              "kind": "function"
+            },
+            {
+              "name": "r_986_pc_1879221488",
+              "kind": "function"
+            },
+            {
+              "name": "r_987_pc_1879348040",
+              "kind": "function"
+            },
+            {
+              "name": "f_2159039761",
+              "kind": "function"
+            },
+            {
+              "name": "f_2152178337",
+              "kind": "function"
+            }
+          ]
+        },
+        {
+          "index": 266,
+          "compile_ms": 2.72499942779541,
+          "bytes": 208808,
+          "optimized": true,
+          "exports": [
+            {
+              "name": "r_255_pc_1879138044",
+              "kind": "function"
+            },
+            {
+              "name": "r_256_pc_1879139048",
+              "kind": "function"
+            },
+            {
+              "name": "r_257_pc_1879138008",
+              "kind": "function"
+            },
+            {
+              "name": "r_258_pc_1879138276",
+              "kind": "function"
+            },
+            {
+              "name": "r_259_pc_1879138236",
+              "kind": "function"
+            },
+            {
+              "name": "r_260_pc_1879068556",
+              "kind": "function"
+            },
+            {
+              "name": "r_261_pc_1879455500",
+              "kind": "function"
+            },
+            {
+              "name": "r_262_pc_1879457760",
+              "kind": "function"
+            },
+            {
+              "name": "r_263_pc_1879068628",
+              "kind": "function"
+            },
+            {
+              "name": "r_264_pc_1879069700",
+              "kind": "function"
+            },
+            {
+              "name": "r_265_pc_1879069832",
+              "kind": "function"
+            },
+            {
+              "name": "r_266_pc_1879069716",
+              "kind": "function"
+            },
+            {
+              "name": "r_267_pc_1879068652",
+              "kind": "function"
+            },
+            {
+              "name": "r_268_pc_1879457792",
+              "kind": "function"
+            },
+            {
+              "name": "r_269_pc_1879068004",
+              "kind": "function"
+            },
+            {
+              "name": "r_270_pc_1879138020",
+              "kind": "function"
+            },
+            {
+              "name": "r_271_pc_1879138612",
+              "kind": "function"
+            },
+            {
+              "name": "r_272_pc_1879138304",
+              "kind": "function"
+            },
+            {
+              "name": "r_273_pc_1879138432",
+              "kind": "function"
+            },
+            {
+              "name": "r_274_pc_1879069896",
+              "kind": "function"
+            },
+            {
+              "name": "r_275_pc_1879063676",
+              "kind": "function"
+            },
+            {
+              "name": "r_276_pc_1879068640",
+              "kind": "function"
+            },
+            {
+              "name": "r_277_pc_1879069816",
+              "kind": "function"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 15.5242,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 155.075652951,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "048b3f697cf85d7bb86dd6cfbbe27ec6083c0813d1b3aa1559acd27f7c0a0a32",
+      "loader_sha256": "0b11c9d7e8c9e2aa6e810abafb030ee2d860c16d58585331052758036c402668",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-whole-game/5-validation-ceiling",
+      "replacements": []
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 17.2559,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 168.099267424,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "b7ba9d3e8ec7deac63626143fab319995dccd52c4a7fa283ee2bccac34c0da5d",
+      "loader_sha256": "355e6c501cecd8de03bdca95616535e89eb197cdba03078eef4263e5bc25cd80",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-whole-game/6-connected",
+      "replacements": []
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 18.2382,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 170.00151131,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "loader_sha256": "355eda96a5cde141ea395e228783d81926f1f5a1642550eddf21940c3cf67b72",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-whole-game/7-baseline",
+      "replacements": []
+    }
+  ],
+  "tier_controls": [
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 17.0755,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 66.54339143399999,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-tier-default1",
+      "flags": {
+        "flags": ""
+      }
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 17.0615,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 82.61349246399999,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-tier-optimized1",
+      "flags": {
+        "flags": "--no-liftoff"
+      }
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 33.0451,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 125.825217674,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-tier-baseline",
+      "flags": {
+        "flags": "--liftoff-only"
+      }
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 17.1214,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 82.866238022,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-tier-optimized2",
+      "flags": {
+        "flags": "--no-liftoff"
+      }
+    },
+    {
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11262071158,
+        "last_instructions": 15237271664,
+        "wall_seconds": 18.4465,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 69.052594396,
+      "guest_profile_stride": 0,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "verify_aot": 0,
+      "git_head": "d50abf943c9cde68756fd413a055d140314f0cda",
+      "dirty_worktree": true,
+      "browser": "Chrome/150.0.7871.186",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "artifact": "options-tier-default2",
+      "flags": {
+        "flags": ""
+      }
+    }
+  ],
+  "kernels": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "all": [
+      {
+        "pc": 1879455500,
+        "cycles": 57,
+        "comparisons": 256,
+        "compilation": {
+          "current": 0.41499996185302734,
+          "opt": 0.30500030517578125,
+          "ir": 0.1849994659423828,
+          "ir-opt": 0.27499961853027344,
+          "whole": 0.23999977111816406
+        },
+        "timings": [
+          {
+            "round": 0,
+            "name": "current",
+            "ms": 646.6500005722046
+          },
+          {
+            "round": 0,
+            "name": "opt",
+            "ms": 632.8100004196167
+          },
+          {
+            "round": 0,
+            "name": "ir",
+            "ms": 418.89499950408936
+          },
+          {
+            "round": 0,
+            "name": "ir-opt",
+            "ms": 418.23000049591064
+          },
+          {
+            "round": 0,
+            "name": "whole",
+            "ms": 482.85999965667725
+          },
+          {
+            "round": 1,
+            "name": "whole",
+            "ms": 481.4699993133545
+          },
+          {
+            "round": 1,
+            "name": "ir-opt",
+            "ms": 419.44999980926514
+          },
+          {
+            "round": 1,
+            "name": "ir",
+            "ms": 416.64000034332275
+          },
+          {
+            "round": 1,
+            "name": "opt",
+            "ms": 611.8900003433228
+          },
+          {
+            "round": 1,
+            "name": "current",
+            "ms": 615.0699996948242
+          },
+          {
+            "round": 2,
+            "name": "current",
+            "ms": 621.204999923706
+          },
+          {
+            "round": 2,
+            "name": "opt",
+            "ms": 611.1350002288818
+          },
+          {
+            "round": 2,
+            "name": "ir",
+            "ms": 413.45499992370605
+          },
+          {
+            "round": 2,
+            "name": "ir-opt",
+            "ms": 417.164999961853
+          },
+          {
+            "round": 2,
+            "name": "whole",
+            "ms": 482.585000038147
+          },
+          {
+            "round": 3,
+            "name": "whole",
+            "ms": 486.1499996185303
+          },
+          {
+            "round": 3,
+            "name": "ir-opt",
+            "ms": 420.67999935150146
+          },
+          {
+            "round": 3,
+            "name": "ir",
+            "ms": 413.9650001525879
+          },
+          {
+            "round": 3,
+            "name": "opt",
+            "ms": 609.25
+          },
+          {
+            "round": 3,
+            "name": "current",
+            "ms": 622.2700004577637
+          },
+          {
+            "round": 4,
+            "name": "current",
+            "ms": 615.7799997329712
+          },
+          {
+            "round": 4,
+            "name": "opt",
+            "ms": 609.1000003814697
+          },
+          {
+            "round": 4,
+            "name": "ir",
+            "ms": 417.05499935150146
+          },
+          {
+            "round": 4,
+            "name": "ir-opt",
+            "ms": 416.5050001144409
+          },
+          {
+            "round": 4,
+            "name": "whole",
+            "ms": 482.4449996948242
+          },
+          {
+            "round": 5,
+            "name": "whole",
+            "ms": 486.4300003051758
+          },
+          {
+            "round": 5,
+            "name": "ir-opt",
+            "ms": 417.5600004196167
+          },
+          {
+            "round": 5,
+            "name": "ir",
+            "ms": 416.76999950408936
+          },
+          {
+            "round": 5,
+            "name": "opt",
+            "ms": 608.5749998092651
+          },
+          {
+            "round": 5,
+            "name": "current",
+            "ms": 614.9799995422363
+          }
+        ]
+      },
+      {
+        "pc": 1879129820,
+        "cycles": 7,
+        "comparisons": 256,
+        "compilation": {
+          "current": 0.2950000762939453,
+          "opt": 0.19999980926513672,
+          "ir": 0.1399993896484375,
+          "ir-opt": 0.16499996185302734,
+          "whole": 0.1900005340576172
+        },
+        "timings": [
+          {
+            "round": 0,
+            "name": "current",
+            "ms": 125.875
+          },
+          {
+            "round": 0,
+            "name": "opt",
+            "ms": 126.57499980926514
+          },
+          {
+            "round": 0,
+            "name": "ir",
+            "ms": 110.07500076293945
+          },
+          {
+            "round": 0,
+            "name": "ir-opt",
+            "ms": 120.5
+          },
+          {
+            "round": 0,
+            "name": "whole",
+            "ms": 120.48499965667725
+          },
+          {
+            "round": 1,
+            "name": "whole",
+            "ms": 118.22500038146973
+          },
+          {
+            "round": 1,
+            "name": "ir-opt",
+            "ms": 118.30499935150146
+          },
+          {
+            "round": 1,
+            "name": "ir",
+            "ms": 108.43000030517578
+          },
+          {
+            "round": 1,
+            "name": "opt",
+            "ms": 125.92000007629395
+          },
+          {
+            "round": 1,
+            "name": "current",
+            "ms": 118.39500045776367
+          },
+          {
+            "round": 2,
+            "name": "current",
+            "ms": 118.05500030517578
+          },
+          {
+            "round": 2,
+            "name": "opt",
+            "ms": 126.14999961853027
+          },
+          {
+            "round": 2,
+            "name": "ir",
+            "ms": 108.63500022888184
+          },
+          {
+            "round": 2,
+            "name": "ir-opt",
+            "ms": 118.71999931335449
+          },
+          {
+            "round": 2,
+            "name": "whole",
+            "ms": 118.31999969482422
+          },
+          {
+            "round": 3,
+            "name": "whole",
+            "ms": 118.22000026702881
+          },
+          {
+            "round": 3,
+            "name": "ir-opt",
+            "ms": 122.74499988555908
+          },
+          {
+            "round": 3,
+            "name": "ir",
+            "ms": 108.34499931335449
+          },
+          {
+            "round": 3,
+            "name": "opt",
+            "ms": 126
+          },
+          {
+            "round": 3,
+            "name": "current",
+            "ms": 120.98999977111816
+          },
+          {
+            "round": 4,
+            "name": "current",
+            "ms": 118.52499961853027
+          },
+          {
+            "round": 4,
+            "name": "opt",
+            "ms": 125.89000034332275
+          },
+          {
+            "round": 4,
+            "name": "ir",
+            "ms": 108.44499969482422
+          },
+          {
+            "round": 4,
+            "name": "ir-opt",
+            "ms": 118.69499969482422
+          },
+          {
+            "round": 4,
+            "name": "whole",
+            "ms": 117.85500049591064
+          },
+          {
+            "round": 5,
+            "name": "whole",
+            "ms": 118.30499935150146
+          },
+          {
+            "round": 5,
+            "name": "ir-opt",
+            "ms": 118.77500057220459
+          },
+          {
+            "round": 5,
+            "name": "ir",
+            "ms": 108.80500030517578
+          },
+          {
+            "round": 5,
+            "name": "opt",
+            "ms": 126.09500026702881
+          },
+          {
+            "round": 5,
+            "name": "current",
+            "ms": 117.72499942779541
+          }
+        ]
+      }
+    ]
+  },
+  "kernel_medians": {
+    "1879455500": {
+      "ir-opt": 417.8950004577637,
+      "current": 618.4924998283386,
+      "ir": 416.70499992370605,
+      "whole": 482.7224998474121,
+      "opt": 610.1925001144409
+    },
+    "1879129820": {
+      "ir-opt": 118.74749994277954,
+      "current": 118.46000003814697,
+      "ir": 108.53999996185303,
+      "whole": 118.2649998664856,
+      "opt": 126.0475001335144
+    }
+  },
+  "kernel_files": {
+    "1879455500.ir-opt.wasm": {
+      "bytes": 1014,
+      "sha256": "7cb7f248a3559112f9edb5ce7a3ce81715e7d3f12cd789f43d326166fedbd4e6"
+    },
+    "1879129820.whole.wasm": {
+      "bytes": 3261,
+      "sha256": "dcefd52dbc8e7d92de75d15e9244d14118cf4d4777c7d4d38a9135f6f3485aa4"
+    },
+    "1879129820.ir-opt.wasm": {
+      "bytes": 374,
+      "sha256": "f271941ff4181e2a8c32972d524ce83adf98c00a7a617def8c917630ff9b1622"
+    },
+    "1879455500.whole.wasm": {
+      "bytes": 16834,
+      "sha256": "5d405fccaeec338d99b14d433aea1f965556b0b942440895d2bc77b4106bcb18"
+    },
+    "1879455500.ir.wasm": {
+      "bytes": 1887,
+      "sha256": "579189b81283886d94b36bf2d6af6b2b483ea9a86fe902cf19d661ba5c58f8b8"
+    },
+    "driver.wasm": {
+      "bytes": 289,
+      "sha256": "09c66dbba3b5e03bc84c2a45cac731825d7f8fc42ee8700d4e64d8d385da9cde"
+    },
+    "1879455500.opt.wasm": {
+      "bytes": 20675,
+      "sha256": "a9498bdfe95e44f337da68125040b1f178f94a9ecc1e24189a847eb390d92fbb"
+    },
+    "1879455500.wasm": {
+      "bytes": 23237,
+      "sha256": "d108415f5e42a42b073202d700412260c52c2e1574acb5f814d0944aac5385b9"
+    },
+    "1879129820.opt.wasm": {
+      "bytes": 3486,
+      "sha256": "acdc2b41e1c70569ce83e901c9c3d16dcda28c3ffbc0dfccfe1db8f73e5120cd"
+    },
+    "1879129820.ir.wasm": {
+      "bytes": 428,
+      "sha256": "3ac001822e222961e96188147cee95db52f760e1334bbd01610cc121da6060be"
+    },
+    "1879129820.wasm": {
+      "bytes": 4141,
+      "sha256": "d10d9648a6ecb4e691a4be7015fceeb0466fb93627eaa1d1886c4f7ca6905d02"
+    }
+  },
+  "kernel_driver_wat": "(module (import \"env\" \"memory\" (memory 256 32768 shared)) (import \"env\" \"run\" (func $run (param i32)(result i32)))\n(func (export \"loop\") (param $n i32)(result i32)(local $sum i32)\n(loop $again (i32.store offset=0 (i32.const 1024) (i32.load offset=0 (i32.const 4096)))(i32.store offset=4 (i32.const 1024) (i32.load offset=4 (i32.const 4096)))(i32.store offset=8 (i32.const 1024) (i32.load offset=8 (i32.const 4096)))(i32.store offset=12 (i32.const 1024) (i32.load offset=12 (i32.const 4096)))(i32.store offset=16 (i32.const 1024) (i32.load offset=16 (i32.const 4096)))(i32.store offset=20 (i32.const 1024) (i32.load offset=20 (i32.const 4096)))(i32.store offset=24 (i32.const 1024) (i32.load offset=24 (i32.const 4096)))(i32.store offset=28 (i32.const 1024) (i32.load offset=28 (i32.const 4096)))(i32.store offset=32 (i32.const 1024) (i32.load offset=32 (i32.const 4096)))(i32.store offset=36 (i32.const 1024) (i32.load offset=36 (i32.const 4096)))(i32.store offset=40 (i32.const 1024) (i32.load offset=40 (i32.const 4096)))(i32.store offset=44 (i32.const 1024) (i32.load offset=44 (i32.const 4096)))(i32.store offset=48 (i32.const 1024) (i32.load offset=48 (i32.const 4096)))(i32.store offset=52 (i32.const 1024) (i32.load offset=52 (i32.const 4096)))(i32.store offset=56 (i32.const 1024) (i32.load offset=56 (i32.const 4096)))(i32.store offset=60 (i32.const 1024) (i32.load offset=60 (i32.const 4096))) (local.set $sum (i32.add (local.get $sum)(call $run (i32.const 1024))))\n(local.set $n (i32.sub(local.get $n)(i32.const 1))) (br_if $again (local.get $n))) (local.get $sum)))",
+  "offline_optimization": [
+    {
+      "module": "worker-13-module-342.wasm",
+      "functions": [
+        "r_983_pc_1879129820"
+      ],
+      "before_bytes": 113708,
+      "after_bytes": 85855,
+      "optimization_seconds": 0.42584053706377745
+    },
+    {
+      "module": "worker-13-module-266.wasm",
+      "functions": [
+        "r_261_pc_1879455500"
+      ],
+      "before_bytes": 293383,
+      "after_bytes": 208808,
+      "optimization_seconds": 0.4412667602300644
+    }
+  ],
+  "native_code": [
+    {
+      "name": "JS:run-6-liftoff",
+      "code_bytes": 50304,
+      "assembly": "00.asm",
+      "instructions": 11865,
+      "stack_operands": 5776,
+      "conditional_branches": 289,
+      "calls": 37
+    },
+    {
+      "name": "JS:wasm-function[2]-2-liftoff",
+      "code_bytes": 40896,
+      "assembly": "01.asm",
+      "instructions": 10910,
+      "stack_operands": 5112,
+      "conditional_branches": 276,
+      "calls": 37
+    },
+    {
+      "name": "JS:wasm-function[3]-3-liftoff",
+      "code_bytes": 3648,
+      "assembly": "02.asm",
+      "instructions": 883,
+      "stack_operands": 389,
+      "conditional_branches": 3,
+      "calls": 37
+    },
+    {
+      "name": "JS:wasm-function[2]-2-liftoff",
+      "code_bytes": 256,
+      "assembly": "03.asm",
+      "instructions": 61,
+      "stack_operands": 10,
+      "conditional_branches": 3,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[0]-0-liftoff",
+      "code_bytes": 256,
+      "assembly": "04.asm",
+      "instructions": 71,
+      "stack_operands": 2,
+      "conditional_branches": 4,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[1]-1-liftoff",
+      "code_bytes": 128,
+      "assembly": "05.asm",
+      "instructions": 42,
+      "stack_operands": 6,
+      "conditional_branches": 2,
+      "calls": 4
+    },
+    {
+      "name": "JS:wasm-function[3]-3-liftoff",
+      "code_bytes": 2304,
+      "assembly": "06.asm",
+      "instructions": 655,
+      "stack_operands": 271,
+      "conditional_branches": 3,
+      "calls": 37
+    },
+    {
+      "name": "JS:wasm-function[2]-2-liftoff",
+      "code_bytes": 256,
+      "assembly": "07.asm",
+      "instructions": 61,
+      "stack_operands": 10,
+      "conditional_branches": 3,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[0]-0-liftoff",
+      "code_bytes": 256,
+      "assembly": "08.asm",
+      "instructions": 68,
+      "stack_operands": 2,
+      "conditional_branches": 4,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[1]-1-liftoff",
+      "code_bytes": 128,
+      "assembly": "09.asm",
+      "instructions": 42,
+      "stack_operands": 6,
+      "conditional_branches": 2,
+      "calls": 4
+    },
+    {
+      "name": "JS:wasm-function[1]-1-liftoff",
+      "code_bytes": 448,
+      "assembly": "10.asm",
+      "instructions": 105,
+      "stack_operands": 12,
+      "conditional_branches": 5,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[0]-0-turbofan",
+      "code_bytes": 192,
+      "assembly": "11.asm",
+      "instructions": 39,
+      "stack_operands": 0,
+      "conditional_branches": 2,
+      "calls": 2
+    },
+    {
+      "name": "JS:wasm-function[1]-1-turbofan",
+      "code_bytes": 448,
+      "assembly": "12.asm",
+      "instructions": 96,
+      "stack_operands": 14,
+      "conditional_branches": 4,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[1]-1-turbofan",
+      "code_bytes": 128,
+      "assembly": "13.asm",
+      "instructions": 28,
+      "stack_operands": 7,
+      "conditional_branches": 1,
+      "calls": 2
+    },
+    {
+      "name": "JS:wasm-function[2]-2-turbofan",
+      "code_bytes": 256,
+      "assembly": "14.asm",
+      "instructions": 52,
+      "stack_operands": 0,
+      "conditional_branches": 3,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[3]-3-turbofan",
+      "code_bytes": 4800,
+      "assembly": "15.asm",
+      "instructions": 1041,
+      "stack_operands": 137,
+      "conditional_branches": 61,
+      "calls": 69
+    },
+    {
+      "name": "JS:wasm-function[0]-0-turbofan",
+      "code_bytes": 192,
+      "assembly": "16.asm",
+      "instructions": 39,
+      "stack_operands": 0,
+      "conditional_branches": 2,
+      "calls": 2
+    },
+    {
+      "name": "JS:run-6-turbofan",
+      "code_bytes": 37760,
+      "assembly": "17.asm",
+      "instructions": 8245,
+      "stack_operands": 2493,
+      "conditional_branches": 318,
+      "calls": 36
+    },
+    {
+      "name": "JS:wasm-function[1]-1-turbofan",
+      "code_bytes": 128,
+      "assembly": "18.asm",
+      "instructions": 28,
+      "stack_operands": 7,
+      "conditional_branches": 1,
+      "calls": 2
+    },
+    {
+      "name": "JS:wasm-function[2]-2-turbofan",
+      "code_bytes": 256,
+      "assembly": "19.asm",
+      "instructions": 53,
+      "stack_operands": 0,
+      "conditional_branches": 3,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[3]-3-turbofan",
+      "code_bytes": 4864,
+      "assembly": "20.asm",
+      "instructions": 1036,
+      "stack_operands": 141,
+      "conditional_branches": 61,
+      "calls": 69
+    },
+    {
+      "name": "JS:wasm-function[2]-2-turbofan",
+      "code_bytes": 37120,
+      "assembly": "21.asm",
+      "instructions": 8073,
+      "stack_operands": 2503,
+      "conditional_branches": 307,
+      "calls": 35
+    },
+    {
+      "name": "JS:run-6-liftoff",
+      "code_bytes": 9088,
+      "assembly": "22.asm",
+      "instructions": 2190,
+      "stack_operands": 899,
+      "conditional_branches": 73,
+      "calls": 11
+    },
+    {
+      "name": "JS:wasm-function[2]-2-liftoff",
+      "code_bytes": 7488,
+      "assembly": "23.asm",
+      "instructions": 2013,
+      "stack_operands": 801,
+      "conditional_branches": 66,
+      "calls": 11
+    },
+    {
+      "name": "JS:wasm-function[3]-3-liftoff",
+      "code_bytes": 576,
+      "assembly": "24.asm",
+      "instructions": 163,
+      "stack_operands": 63,
+      "conditional_branches": 3,
+      "calls": 11
+    },
+    {
+      "name": "JS:wasm-function[1]-1-liftoff",
+      "code_bytes": 128,
+      "assembly": "25.asm",
+      "instructions": 42,
+      "stack_operands": 6,
+      "conditional_branches": 2,
+      "calls": 4
+    },
+    {
+      "name": "JS:wasm-function[0]-0-liftoff",
+      "code_bytes": 256,
+      "assembly": "26.asm",
+      "instructions": 71,
+      "stack_operands": 2,
+      "conditional_branches": 4,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[2]-2-liftoff",
+      "code_bytes": 256,
+      "assembly": "27.asm",
+      "instructions": 61,
+      "stack_operands": 10,
+      "conditional_branches": 3,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[3]-3-liftoff",
+      "code_bytes": 576,
+      "assembly": "28.asm",
+      "instructions": 148,
+      "stack_operands": 62,
+      "conditional_branches": 3,
+      "calls": 11
+    },
+    {
+      "name": "JS:wasm-function[1]-1-liftoff",
+      "code_bytes": 128,
+      "assembly": "29.asm",
+      "instructions": 42,
+      "stack_operands": 6,
+      "conditional_branches": 2,
+      "calls": 4
+    },
+    {
+      "name": "JS:wasm-function[0]-0-liftoff",
+      "code_bytes": 256,
+      "assembly": "30.asm",
+      "instructions": 68,
+      "stack_operands": 2,
+      "conditional_branches": 4,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[2]-2-liftoff",
+      "code_bytes": 256,
+      "assembly": "31.asm",
+      "instructions": 61,
+      "stack_operands": 10,
+      "conditional_branches": 3,
+      "calls": 5
+    },
+    {
+      "name": "JS:wasm-function[1]-1-turbofan",
+      "code_bytes": 448,
+      "assembly": "32.asm",
+      "instructions": 96,
+      "stack_operands": 14,
+      "conditional_branches": 4,
+      "calls": 3
+    },
+    {
+      "name": "JS:run-6-turbofan",
+      "code_bytes": 6144,
+      "assembly": "33.asm",
+      "instructions": 1449,
+      "stack_operands": 313,
+      "conditional_branches": 76,
+      "calls": 10
+    },
+    {
+      "name": "JS:wasm-function[0]-0-turbofan",
+      "code_bytes": 192,
+      "assembly": "34.asm",
+      "instructions": 39,
+      "stack_operands": 0,
+      "conditional_branches": 2,
+      "calls": 2
+    },
+    {
+      "name": "JS:wasm-function[2]-2-turbofan",
+      "code_bytes": 6016,
+      "assembly": "35.asm",
+      "instructions": 1420,
+      "stack_operands": 326,
+      "conditional_branches": 70,
+      "calls": 9
+    },
+    {
+      "name": "JS:wasm-function[2]-2-turbofan",
+      "code_bytes": 256,
+      "assembly": "36.asm",
+      "instructions": 52,
+      "stack_operands": 0,
+      "conditional_branches": 3,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[0]-0-turbofan",
+      "code_bytes": 192,
+      "assembly": "37.asm",
+      "instructions": 39,
+      "stack_operands": 0,
+      "conditional_branches": 2,
+      "calls": 2
+    },
+    {
+      "name": "JS:wasm-function[2]-2-turbofan",
+      "code_bytes": 256,
+      "assembly": "38.asm",
+      "instructions": 53,
+      "stack_operands": 0,
+      "conditional_branches": 3,
+      "calls": 3
+    },
+    {
+      "name": "JS:wasm-function[1]-1-turbofan",
+      "code_bytes": 128,
+      "assembly": "39.asm",
+      "instructions": 28,
+      "stack_operands": 7,
+      "conditional_branches": 1,
+      "calls": 2
+    },
+    {
+      "name": "JS:wasm-function[3]-3-turbofan",
+      "code_bytes": 1408,
+      "assembly": "40.asm",
+      "instructions": 291,
+      "stack_operands": 0,
+      "conditional_branches": 21,
+      "calls": 20
+    }
+  ],
+  "native_ir_compilation": "1879455500 native_translate_optimize_us_median 51.039 min 50.587 max 74.362 samples 100 (excludes IO and WASM emission)\n1879129820 native_translate_optimize_us_median 5.807 min 5.738 max 11.053 samples 100 (excludes IO and WASM emission)\n",
+  "source_patch_sha256": "fe04b909d925528dc1fa662d01cd67fd61c01c04c8270d5d8e4a1ba985f84ee6",
+  "comparisons": {
+    "post": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+        "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+        "writes": 2029,
+        "callbacks": 2029,
+        "gameplay_nonzero_samples": 6907266,
+        "gameplay_peak": 8191
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16261337499
+    },
+    "connected": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+        "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+        "writes": 2029,
+        "callbacks": 2029,
+        "gameplay_nonzero_samples": 6907266,
+        "gameplay_peak": 8191
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16261337499
+    }
+  },
+  "tests": {
+    "native": {
+      "path": "/home/claude/.scratch/eka-benchmark/options-native-tests.log",
+      "sha256": "3226466b2dfed1fdaa35a44477bd5672f5d7dc48fcbefc6b86a8b7ac31939c98",
+      "tail": "Test project /home/claude/code/EKA2L1/build\n    Start 1: ekatests\n1/3 Test #1: ekatests .........................   Passed    0.30 sec\n    Start 2: eka_cpu_tests\n2/3 Test #2: eka_cpu_tests ....................   Passed    0.01 sec\n    Start 3: bluetooth_netplay\n3/3 Test #3: bluetooth_netplay ................   Passed    0.05 sec\n\n100% tests passed out of 3\n\nTotal Test time (real) =   0.36 sec\n"
+    },
+    "connected_wasm": {
+      "path": "/home/claude/.scratch/eka-benchmark/options-connected-tests.log",
+      "sha256": "eb3b2110f69d063b25d98d0f1e9e7ec5a3081096ead1f9c9a21fb42900bdbd50",
+      "tail": "risons)\n  PASS exact_code_compare (unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (24 permission/endian/alignment/page cases)\n  PASS block_transfer_guards (48 permission/endian/alignment/page cases)\n  PASS region_code_alias (single and multiple stores)\n  PASS arm_long_multiply (46080 exact budget/state comparisons)\n  PASS cached_callback_state\n  PASS msr_privilege_guard\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n132 passed, 0 failed\n"
+    },
+    "restored_wasm": {
+      "path": "/home/claude/.scratch/eka-benchmark/options-restored-tests.log",
+      "sha256": "22c59f812694f5540140001fb3762746264283f316266e9e95c2bddf87a81e20",
+      "tail": "risons)\n  PASS exact_code_compare (unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (24 permission/endian/alignment/page cases)\n  PASS block_transfer_guards (48 permission/endian/alignment/page cases)\n  PASS region_code_alias (single and multiple stores)\n  PASS arm_long_multiply (46080 exact budget/state comparisons)\n  PASS cached_callback_state\n  PASS msr_privilege_guard\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n132 passed, 0 failed\n"
+    },
+    "frontend": {
+      "path": "/home/claude/.scratch/eka-benchmark/options-frontend-tests.log",
+      "sha256": "dc245cf800c138e88b561a11527143918256c020ca5bf3a78e520fa840ef24a0",
+      "tail": "npm notice run test\nnpm notice run node --experimental-strip-types test.ts\nServing WASM build at http://127.0.0.1:34519/\nTEST 1: Page loads...\n  PASS\nTEST 2: WASM Module object...\n  PASS\nTEST 3: Canvas element...\n  PASS\nTEST 4: Exported C functions...\n  PASS\nTEST 5: eka2l1_init...\n  PASS\nTEST 6: eka2l1_shutdown...\n  PASS\nTEST 7: No fatal page errors...\n  PASS\n\nAll tests passed!\n"
+    }
+  },
+  "limitations": [
+    "Two whole-game trials per variant; shared host; no confidence interval",
+    "Paused fixture residency varies as runs close; warmup concurrent and excluded",
+    "IR emitter supports only restricted ordinary-memory/full-budget kernels; no complete backend",
+    "Full-budget control removes budget checks unsafely and only supports full straightline calls",
+    "Profiler and native-disassembly runs excluded from speed timings",
+    "No additional game/device tested; no Qt rerun in this batch",
+    "Single submillisecond browser compile observations are not a cold compilation benchmark"
+  ],
+  "served_build_hashes": {
+    "js": "ed8ed3877fe78e7585496eb1fda1e9727ca0c8ad5822d13372d15ab256df1da9",
+    "wasm": "bfc863c672e141411c9f558af1fd8f86b010964344f614c1c83dc7270f3e3e66"
+  }
+}

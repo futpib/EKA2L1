@@ -37,6 +37,7 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <unordered_set>
 #include <vector>
 
 namespace eka2l1::loader {
@@ -56,18 +57,19 @@ namespace eka2l1::loader {
             return true;
         }
 
-        // Device information usually resides in ROFS. If it's in ROM likely there's no ROFS
-        std::optional<rom_entry> rentry = rom_parse->burn_tree_find_entry("z:\\system\\versions\\sw.txt");
-        if (rentry.has_value()) {
-            return false;
+        // A core-only EKA1 dump leaves the device naming files in ROFS.
+        for (const std::string &naming_file : device_naming_files()) {
+            if (rom_parse->burn_tree_find_entry("z:\\" + naming_file).has_value()) {
+                return false;
+            }
         }
 
         return true;
     }
 
-    static bool extract_file(const std::string &devices_rom_path, FILE *parent, rpkg_entry &ent, const std::size_t total, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb) {
-        auto t0 = std::chrono::steady_clock::now();
-
+    static bool extract_file(const std::string &devices_rom_path, FILE *parent, rpkg_entry &ent, const std::size_t total,
+        std::unordered_set<std::string> &created_directories, progress_changed_callback progress_cb,
+        cancel_requested_callback cancel_cb) {
         std::string file_full_relative = common::ucs2_to_utf8(ent.path.substr(3));
         std::transform(file_full_relative.begin(), file_full_relative.end(), file_full_relative.begin(),
             ::tolower);
@@ -75,17 +77,22 @@ namespace eka2l1::loader {
         std::string real_path = add_path(add_path(devices_rom_path, "/temp/"), file_full_relative);
 
         std::string dir = eka2l1::file_directory(real_path);
-
-        auto t1 = std::chrono::steady_clock::now();
-        common::create_directories(dir);
-        auto t2 = std::chrono::steady_clock::now();
+        const bool directory_is_cached = created_directories.find(dir) != created_directories.end();
+        if (!directory_is_cached) {
+            common::create_directories(dir);
+        }
 
         common::wo_std_file_stream wf(real_path, true);
-        auto t3 = std::chrono::steady_clock::now();
 
         if (!wf.valid()) {
             LOG_INFO(SYSTEM, "Skipping with real path: {}, dir: {}", real_path, dir);
             return false;
+        }
+
+        if (!directory_is_cached) {
+            // Opening the output proves the directory exists. Cache only after
+            // that succeeds so a transient creation failure can still be retried.
+            created_directories.emplace(dir);
         }
 
         int64_t left = ent.data_size;
@@ -94,24 +101,15 @@ namespace eka2l1::loader {
         std::array<char, 0x10000> temp;
         bool failed = false;
 
-        std::int64_t progress_us = 0;
-        std::int64_t cancel_us = 0;
-        std::int64_t fread_us = 0;
-        std::int64_t fwrite_us = 0;
-        int chunks = 0;
-
         while (left) {
-            auto tc0 = std::chrono::steady_clock::now();
             if (progress_cb) {
                 progress_cb(ftell(parent), total);
             }
-            auto tc1 = std::chrono::steady_clock::now();
 
             if (cancel_cb && cancel_cb()) {
                 failed = true;
                 break;
             }
-            auto tc2 = std::chrono::steady_clock::now();
 
             int64_t take = left < take_def ? left : take_def;
 
@@ -119,38 +117,19 @@ namespace eka2l1::loader {
                 failed = true;
                 break;
             }
-            auto tc3 = std::chrono::steady_clock::now();
 
             if (wf.write(temp.data(), take) != take) {
                 failed = true;
                 break;
             }
-            auto tc4 = std::chrono::steady_clock::now();
-
-            progress_us += std::chrono::duration_cast<std::chrono::microseconds>(tc1 - tc0).count();
-            cancel_us += std::chrono::duration_cast<std::chrono::microseconds>(tc2 - tc1).count();
-            fread_us += std::chrono::duration_cast<std::chrono::microseconds>(tc3 - tc2).count();
-            fwrite_us += std::chrono::duration_cast<std::chrono::microseconds>(tc4 - tc3).count();
-            chunks++;
 
             left -= take;
-        }
-
-        auto t4 = std::chrono::steady_clock::now();
-        auto mkdir_ms = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-        auto open_ms = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
-        auto write_ms = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t3).count();
-        auto total_ms = std::chrono::duration_cast<std::chrono::microseconds>(t4 - t0).count();
-
-        if (total_ms > 10000) { // log if > 10ms
-            LOG_INFO(SYSTEM, "extract_file: total={}us mkdir={}us open={}us loop={}us(progress={}us cancel={}us fread={}us fwrite={}us chunks={}) size={} path={}",
-                total_ms, mkdir_ms, open_ms, write_ms, progress_us, cancel_us, fread_us, fwrite_us, chunks, ent.data_size, common::ucs2_to_utf8(ent.path));
         }
 
         return !failed;
     }
 
-    device_installation_error install_rom(device_manager *dvcmngr, const std::string &path, const std::string &rom_resident_path, const std::string &drives_z_resident_path, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb) {
+    device_installation_error install_rom(device_manager *dvcmngr, const std::string &path, const std::string &rom_resident_path, const std::string &drives_z_resident_path, const bool isolate_drives, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb) {
         const std::string temp_z_path = eka2l1::add_path(drives_z_resident_path, "temp\\");
         common::ro_std_file_stream rom_file_stream(path, true);
         progress_changed_callback wrapped_cb_1 = nullptr;
@@ -192,11 +171,16 @@ namespace eka2l1::loader {
             return device_installation_already_exist;
         }
 
+        // Only an RPKG carries the machine UID in its header; a bare ROM has to be
+        // asked for it, or every guest that branches on the model sees a zero.
+        const std::uint32_t machine_uid = determine_rpkg_machine_uid(temp_z_path);
+
         auto firmcode_low = common::lowercase_string(firmcode);
 
         // Rename temp folder to its product code
         eka2l1::common::move_file(temp_z_path, add_path(drives_z_resident_path, firmcode_low + "\\"));
-        const add_device_error err_adddvc = dvcmngr->add_new_device(firmcode, model, manufacturer, ver, 0);
+        const add_device_error err_adddvc = dvcmngr->add_new_device(firmcode, model, manufacturer, ver,
+            machine_uid, isolate_drives);
 
         if (err_adddvc != add_device_none) {
             LOG_ERROR(SYSTEM, "This device ({}) failed to be install, revert all changes", firmcode);
@@ -221,8 +205,57 @@ namespace eka2l1::loader {
         return device_installation_none;
     }
 
+    device_installation_error install_rom_with_optional_rpkg(device_manager *dvcmngr, const std::string &rom_path,
+        const std::string &rpkg_path, const std::string &rom_resident_path, const std::string &drives_z_resident_path,
+        const bool isolate_drives, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb) {
+        if (!common::exists(rom_path)) {
+            return device_installation_not_exist;
+        }
+
+        if (!should_install_requires_additional_rpkg(rom_path)) {
+            return install_rom(dvcmngr, rom_path, rom_resident_path, drives_z_resident_path, isolate_drives, progress_cb, cancel_cb);
+        }
+
+        if (rpkg_path.empty() || !common::exists(rpkg_path)) {
+            return device_installation_rpkg_missing;
+        }
+
+        // The resident ROM copy below is on this path only, and it is a sizeable share of the wait -
+        // leave it the last tenth of the bar.
+        progress_changed_callback wrapped_cb = nullptr;
+
+        if (progress_cb) {
+            wrapped_cb = [progress_cb](const std::size_t done, const std::size_t total) {
+                progress_cb(done * 9 / 10, total);
+            };
+        }
+
+        std::string firmware_code;
+        const device_installation_error result = install_rpkg(dvcmngr, rpkg_path, drives_z_resident_path,
+            firmware_code, isolate_drives, wrapped_cb, cancel_cb);
+
+        if (result != device_installation_none) {
+            return result;
+        }
+
+        // Past the point of no return: the device is in devices.yml and its drive Z is populated, so a
+        // cancel arriving now is ignored rather than left half-installed.
+        const std::string rom_directory = add_path(rom_resident_path, common::lowercase_string(firmware_code) + "\\");
+        common::create_directories(rom_directory);
+
+        if (!common::copy_file(rom_path, add_path(rom_directory, "SYM.ROM"), true)) {
+            return device_installation_rom_fail_to_copy;
+        }
+
+        if (progress_cb) {
+            progress_cb(10, 10);
+        }
+
+        return device_installation_none;
+    }
+
     device_installation_error install_rpkg(device_manager *dvcmngr, const std::string &path, const std::string &devices_rom_path,
-        std::string &firmware_code_ret, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb) {
+        std::string &firmware_code_ret, const bool isolate_drives, progress_changed_callback progress_cb, cancel_requested_callback cancel_cb) {
         FILE *f = common::open_c_file(path.data(), "rb");
 
         if (!f) {
@@ -283,8 +316,10 @@ namespace eka2l1::loader {
             return device_installation_rpkg_corrupt;
         }
 
-        auto last_log_time = std::chrono::steady_clock::now();
-        int file_count = 0;
+        // An RPKG usually contains many files in the same directory. Keep this
+        // cache local to one extraction so repeated entries do not stat the same
+        // directory hierarchy again, without retaining stale filesystem state.
+        std::unordered_set<std::string> created_directories;
 
         while (!feof(f)) {
             total_read_size = 0;
@@ -310,18 +345,14 @@ namespace eka2l1::loader {
                 break;
             }
 
-            file_count++;
-            auto now = std::chrono::steady_clock::now();
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_log_time).count() >= 1000) {
-                LOG_INFO(SYSTEM, "Extracting ({} files so far): {}", file_count, common::ucs2_to_utf8(entry.path));
-                if (progress_cb) {
-                    progress_cb(ftell(f), total_size);
-                }
-                last_log_time = now;
+            LOG_INFO(SYSTEM, "Extracting: {}", common::ucs2_to_utf8(entry.path));
+
+            if (!extract_file(devices_rom_path, f, entry, total_size, created_directories, progress_cb, cancel_cb)) {
+                break;
             }
 
-            if (!extract_file(devices_rom_path, f, entry, total_size, nullptr, cancel_cb)) {
-                break;
+            if (progress_cb) {
+                progress_cb(ftell(f), total_size);
             }
         }
 
@@ -363,7 +394,7 @@ namespace eka2l1::loader {
 
         // Rename temp folder to its product code
         eka2l1::common::move_file(folder_extracted, add_path(devices_rom_path, firmcode_low + "\\"));
-        const add_device_error err_adddvc = dvcmngr->add_new_device(firmcode, model, manufacturer, ver, header.machine_uid);
+        const add_device_error err_adddvc = dvcmngr->add_new_device(firmcode, model, manufacturer, ver, header.machine_uid, isolate_drives);
 
         if (err_adddvc != add_device_none) {
             LOG_ERROR(SYSTEM, "This device ({}) failed to be install, revert all changes", firmcode);

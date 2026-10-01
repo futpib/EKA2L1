@@ -25,6 +25,8 @@
 
 #include <services/context.h>
 #include <utils/des.h>
+#include <utils/descriptor_copy.h>
+#include <utils/err.h>
 #include <utils/sec.h>
 
 #include <config/config.h>
@@ -101,13 +103,7 @@ namespace eka2l1 {
 
             if (sys->get_kernel_system()->is_eka1() || (is_descriptor && is_16_bit)) {
                 kernel::process *own_pr = msg->own_thr->owning_process();
-                eka2l1::epoc::desc16 *des = ptr<epoc::desc16>(msg->args.args[idx]).get(own_pr);
-
-                if (!des) {
-                    return std::nullopt;
-                }
-
-                return des->to_std_string(own_pr);
+                return epoc::copy_descriptor<char16_t>([&](address addr, void *out, std::size_t size) { return own_pr->read_memory(addr, out, size); }, msg->args.args[idx]);
             }
 
             return std::nullopt;
@@ -126,13 +122,7 @@ namespace eka2l1 {
             // If it has descriptor flag and it doesn't have an 16-bit flag, it should be 8-bit one.
             if (sys->get_kernel_system()->is_eka1() || (is_descriptor && !is_16_bit)) {
                 kernel::process *own_process = msg->own_thr->owning_process();
-                eka2l1::epoc::desc8 *des = ptr<epoc::desc8>(msg->args.args[idx]).get(own_process);
-
-                if (!des) {
-                    return std::nullopt;
-                }
-
-                return des->to_std_string(msg->own_thr->owning_process());
+                return epoc::copy_descriptor<char>([&](address addr, void *out, std::size_t size) { return own_process->read_memory(addr, out, size); }, msg->args.args[idx]);
             }
 
             return std::nullopt;
@@ -174,6 +164,10 @@ namespace eka2l1 {
             if (sys->get_kernel_system()->is_eka1() || ((int)arg_type & ((int)ipc_arg_type::flag_des | (int)ipc_arg_type::flag_16b))) {
                 eka2l1::epoc::desc16 *des = ptr<epoc::desc16>(msg->args.args[idx]).get(msg->own_thr->owning_process());
 
+                if (!des) {
+                    return false;
+                }
+
                 des->assign(msg->own_thr->owning_process(), data);
 
                 return true;
@@ -198,6 +192,17 @@ namespace eka2l1 {
                 if (!is_eka1 && ((int)arg_type & (int)ipc_arg_type::flag_16b)) {
                     eka2l1::epoc::desc16 *des = ptr<epoc::desc16>(msg->args.args[idx]).get(own_pr);
 
+                    // An argument the client left null, or pointed outside its own address
+                    // space, resolves to nothing. The rest of this file already answers that
+                    // with a failure rather than a dereference; these paths did not.
+                    if (!des) {
+                        if (err_code) {
+                            *err_code = epoc::error_bad_descriptor;
+                        }
+
+                        return false;
+                    }
+
                     // We can't handle odd length
                     assert(len % 2 == 0);
 
@@ -214,6 +219,14 @@ namespace eka2l1 {
                     des->assign(own_pr, data, write_size * 2);
                 } else {
                     eka2l1::epoc::des8 *des = ptr<epoc::des8>(msg->args.args[idx]).get(own_pr);
+
+                    if (!des) {
+                        if (err_code) {
+                            *err_code = epoc::error_bad_descriptor;
+                        }
+
+                        return false;
+                    }
 
                     std::uint32_t write_size = len;
                     const std::uint32_t des_to_write_size = des->get_max_length(own_pr);
@@ -271,6 +284,10 @@ namespace eka2l1 {
             kernel::process *own_pr = msg->own_thr->owning_process();
             epoc::des8 *descriptor = ptr<epoc::des8>(msg->args.args[idx]).get(own_pr);
 
+            if (!descriptor) {
+                return 0;
+            }
+
             if (!is_eka1 && (static_cast<int>(arg_type) & static_cast<int>(ipc_arg_type::flag_16b))) {
                 return descriptor->get_max_length(own_pr) * 2;
             }
@@ -297,6 +314,10 @@ namespace eka2l1 {
             kernel::process *own_pr = msg->own_thr->owning_process();
             epoc::des8 *descriptor = ptr<epoc::des8>(msg->args.args[idx]).get(own_pr);
 
+            if (!descriptor) {
+                return 0;
+            }
+
             if (!is_eka1 && (static_cast<int>(arg_type) & static_cast<int>(ipc_arg_type::flag_16b))) {
                 return descriptor->get_length() * 2;
             }
@@ -310,6 +331,10 @@ namespace eka2l1 {
             if (sys->get_kernel_system()->is_eka1() || ((int)arg_type & (int)ipc_arg_type::flag_des)) {
                 kernel::process *own_pr = msg->own_thr->owning_process();
                 eka2l1::epoc::des8 *des = ptr<epoc::des8>(msg->args.args[idx]).get(own_pr);
+
+                if (!des) {
+                    return false;
+                }
 
                 des->set_length(own_pr, len);
                 return true;
@@ -357,7 +382,20 @@ namespace eka2l1 {
                     return;
                 }
 
-                LOG_WARN(SERVICE_TRACK, "Unimplemented IPC call: 0x{:x} for server: {}", func, obj_name);
+                // Error level on purpose: the default log preset pins Service.Track at
+                // error, so a warning here is invisible in exactly the situation it
+                // exists for -- a guest wedged on an opcode nobody implemented.
+                LOG_ERROR(SERVICE_TRACK, "Unimplemented IPC call: 0x{:x} for server: {}", func, obj_name);
+
+                // A real server always completes the message. Dropping it wedges the
+                // client for good: a synchronous SendReceive never returns, and an
+                // asynchronous one keeps its active object armed forever.
+                ipc_context context;
+
+                context.sys = sys;
+                context.msg = process_msg;
+                context.complete(epoc::error_not_supported);
+
                 return;
             }
 

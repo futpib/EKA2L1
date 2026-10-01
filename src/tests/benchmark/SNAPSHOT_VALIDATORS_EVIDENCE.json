@@ -1,0 +1,2990 @@
+{
+  "source_base": "066070896",
+  "scope": "Offline exact byte comparison only. No cache mapping, dependencies, invalidation, guest execution or gameplay integration.",
+  "batches": {
+    "a": {
+      "provenance": {
+        "manifest": {
+          "assembler_sha256": "0c0bc8a459f675134973abf44060a36aa6fddab5014e71255a287460775b434a",
+          "cases": [
+            {
+              "size": 0,
+              "expected": "",
+              "wasm_sha256": "e0c6c606d35d111c6573f60b3ce07c69d9a8b4a4b76564c680e049243c758dea",
+              "bytes": 306,
+              "assembly_seconds": 0.0045865010033594444
+            },
+            {
+              "size": 1,
+              "expected": "75",
+              "wasm_sha256": "c967321720060d58dd0b1e1b0ca342452aed655c2f5fd4f88967753d36d8c2d3",
+              "bytes": 338,
+              "assembly_seconds": 0.004103243991266936
+            },
+            {
+              "size": 2,
+              "expected": "75be",
+              "wasm_sha256": "9bc4bdb483d3d045433d17311cefe164b766e42abdb04597fb29d69092f0b537",
+              "bytes": 339,
+              "assembly_seconds": 0.0037431469972943887
+            },
+            {
+              "size": 3,
+              "expected": "75be07",
+              "wasm_sha256": "377a7bb4c17cf9640ec736567bf574f786816f384c37ad9fce3df282022a642b",
+              "bytes": 370,
+              "assembly_seconds": 0.003504170002997853
+            },
+            {
+              "size": 4,
+              "expected": "75be0750",
+              "wasm_sha256": "7f2d0d534fa3438c047697c8c8fcadab76a38691fb421f30129a93eb1367235c",
+              "bytes": 341,
+              "assembly_seconds": 0.003423195012146607
+            },
+            {
+              "size": 5,
+              "expected": "75be0750ac",
+              "wasm_sha256": "815f1465db1ba21c1f4966c9f5051283187c1954922196f8227c587695585895",
+              "bytes": 373,
+              "assembly_seconds": 0.003626557008828968
+            },
+            {
+              "size": 6,
+              "expected": "75be0750acf5",
+              "wasm_sha256": "3ca1ab20c7f7b77a2fd41cc9fad9049eb72313c05cbbfa94f27a73aedd5f4715",
+              "bytes": 374,
+              "assembly_seconds": 0.003581380005925894
+            },
+            {
+              "size": 7,
+              "expected": "75be0750acf53e",
+              "wasm_sha256": "0a98d667db4763c6f94915aa8b89d57190d9f3af7893ef812ed8fc3e26692706",
+              "bytes": 405,
+              "assembly_seconds": 0.0034733520005829632
+            },
+            {
+              "size": 8,
+              "expected": "75be0750acf53e87",
+              "wasm_sha256": "62a51c8d8d619ed393e3c3b195051f45a4ab8a8acea1f2bc1d8d57d525b27625",
+              "bytes": 346,
+              "assembly_seconds": 0.0037211070011835545
+            },
+            {
+              "size": 9,
+              "expected": "75be0750acf53e87e3",
+              "wasm_sha256": "cb9e5217383efd9a02bff8a32ff9d9ed4cca878e0eedd6d060cb74a49f9d3d63",
+              "bytes": 378,
+              "assembly_seconds": 0.0038059490034356713
+            },
+            {
+              "size": 10,
+              "expected": "75be0750acf53e87e32c",
+              "wasm_sha256": "49cdbb0fee87d99cd42dd3ede290faafe9221d64a73823041e2544aa50a97dd9",
+              "bytes": 379,
+              "assembly_seconds": 0.0036802009999519214
+            },
+            {
+              "size": 11,
+              "expected": "75be0750acf53e87e32c75",
+              "wasm_sha256": "2d1572aac6b7a02a213c6c22477dd7ebd44b05206f947a752e8de1ae4ed01cce",
+              "bytes": 411,
+              "assembly_seconds": 0.003654519998235628
+            },
+            {
+              "size": 12,
+              "expected": "75be0750acf53e87e32c75be",
+              "wasm_sha256": "12f770ec3cde4f55ad7d2f92eaa0900d85961ac3cc94ce2001a53f4f511760df",
+              "bytes": 381,
+              "assembly_seconds": 0.003575127004296519
+            },
+            {
+              "size": 13,
+              "expected": "75be0750acf53e87e32c75be1a",
+              "wasm_sha256": "0eedfc77a07f961082f5b87968502931bef0e42d522d48824d33a63bdeaa7124",
+              "bytes": 412,
+              "assembly_seconds": 0.0034938669996336102
+            },
+            {
+              "size": 14,
+              "expected": "75be0750acf53e87e32c75be1a63",
+              "wasm_sha256": "ff8a5ecb7e6e9d91c1c03b2f73fdd2aef9305974dfae1f25a9642dfabcc5c6fd",
+              "bytes": 414,
+              "assembly_seconds": 0.0036191310064168647
+            },
+            {
+              "size": 15,
+              "expected": "75be0750acf53e87e32c75be1a63ac",
+              "wasm_sha256": "f2200fa2624aca73cde1aab60274e14179c5b37261a813ac9c8ffb4ff2c03981",
+              "bytes": 446,
+              "assembly_seconds": 0.0034699529933277518
+            },
+            {
+              "size": 16,
+              "expected": "75be0750acf53e87e32c75be1a63acf5",
+              "wasm_sha256": "73ded82fc97c24515fc39919aadb2a67ed9911dc42df7691154fab4607128600",
+              "bytes": 362,
+              "assembly_seconds": 0.0034731460036709905
+            },
+            {
+              "size": 17,
+              "expected": "75be0750acf53e87e32c75be1a63acf551",
+              "wasm_sha256": "6d1169d4c07ef2d2b0ff79a7b0fafd3e996c5f5783c9fe65a55437cf6d35ca37",
+              "bytes": 394,
+              "assembly_seconds": 0.003485192995867692
+            },
+            {
+              "size": 18,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519a",
+              "wasm_sha256": "307c0e7ae6c7f4aa3d38bb824afc913d1215b35727a591854564f645c7c8a548",
+              "bytes": 395,
+              "assembly_seconds": 0.0036267329996917397
+            },
+            {
+              "size": 19,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae3",
+              "wasm_sha256": "fd1d17f96470886eb0024e9aa406f4a1aef5bd4e6e2fb514c3ffdbd0256d5bcd",
+              "bytes": 427,
+              "assembly_seconds": 0.003614660003222525
+            },
+            {
+              "size": 20,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c",
+              "wasm_sha256": "f443e2143fe0e19d1d5f74fd25914aa42dbc48192e97d4ff88e79405fde39923",
+              "bytes": 397,
+              "assembly_seconds": 0.0038981639954727143
+            },
+            {
+              "size": 21,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88",
+              "wasm_sha256": "8f41e4e353cfadf9f718b9c89857e825ed6b161b4b388c04037bb672f690021c",
+              "bytes": 429,
+              "assembly_seconds": 0.003914323999197222
+            },
+            {
+              "size": 22,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d1",
+              "wasm_sha256": "b62bc33835fd3081313546c6697aebae25ef1f8a63e91bd6ecbbf801df231063",
+              "bytes": 430,
+              "assembly_seconds": 0.003706540010171011
+            },
+            {
+              "size": 23,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a",
+              "wasm_sha256": "f32405e27c7df76658d1aac21a1b0a0bfa86098ea97bfed0509d32e1a8de7f66",
+              "bytes": 461,
+              "assembly_seconds": 0.003840738005237654
+            },
+            {
+              "size": 24,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63",
+              "wasm_sha256": "9f26b5939929dfcd38e698fb18ef5994303f5da301b6b38d9550f9b3d6dc6df0",
+              "bytes": 402,
+              "assembly_seconds": 0.0036240339977666736
+            },
+            {
+              "size": 25,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf",
+              "wasm_sha256": "95719fd2151486804e940c844bbb104bf4145f195cb1b36412353b86cf54c7b4",
+              "bytes": 434,
+              "assembly_seconds": 0.0034678430092753842
+            },
+            {
+              "size": 26,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08",
+              "wasm_sha256": "fa036dcf636278af251de9b5b665774140bd90994db336f2907b03d046b52860",
+              "bytes": 434,
+              "assembly_seconds": 0.003525255000567995
+            },
+            {
+              "size": 27,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf0851",
+              "wasm_sha256": "fc2d21282b6f3dd408df26e071ac493d0f9162ca01fe7f1aca4b0391d5801f61",
+              "bytes": 466,
+              "assembly_seconds": 0.0038655009993817657
+            },
+            {
+              "size": 28,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519a",
+              "wasm_sha256": "028d3ade9b424ac8a976d82f2261871553902abc1f8befb45fbdc3e8db320c76",
+              "bytes": 437,
+              "assembly_seconds": 0.0040709530003368855
+            },
+            {
+              "size": 29,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af6",
+              "wasm_sha256": "94361ca83543ed7c6d4096aa03edc90bed99a0499a8560078dc57897785cd5e0",
+              "bytes": 469,
+              "assembly_seconds": 0.003963126000599004
+            },
+            {
+              "size": 30,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f",
+              "wasm_sha256": "686b20b2d76271062dcc62161bb31b104c6c54f51dbe2bddc98c0711a2a5faea",
+              "bytes": 470,
+              "assembly_seconds": 0.003662698989501223
+            },
+            {
+              "size": 31,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88",
+              "wasm_sha256": "989a13a3547077a9a6551da65e8aa9b010ce204f04d23e902f82596af38ad355",
+              "bytes": 502,
+              "assembly_seconds": 0.003518851997796446
+            },
+            {
+              "size": 32,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d1",
+              "wasm_sha256": "d068c58fca02f4a7a928ec13cdc16adef0889bc678cff3daee6100d1ca2f6abf",
+              "bytes": 418,
+              "assembly_seconds": 0.003571958004613407
+            },
+            {
+              "size": 47,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64",
+              "wasm_sha256": "6edd8faefcf8fdfcb0b6847ea1ec4b0f43c877b4f7fc0fc0774acbea8862c7b7",
+              "bytes": 557,
+              "assembly_seconds": 0.0036433310015127063
+            },
+            {
+              "size": 48,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad",
+              "wasm_sha256": "7a3d6edb1b257def8e3b444aa2d6e368684f674029fe1ff032115aa87c1532ea",
+              "bytes": 474,
+              "assembly_seconds": 0.003617553011281416
+            },
+            {
+              "size": 49,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09",
+              "wasm_sha256": "b8a41199116bf026d360e797bd9b0b899ef9fa1b0c185345fa288df299ae6e09",
+              "bytes": 505,
+              "assembly_seconds": 0.0037725660076830536
+            },
+            {
+              "size": 63,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef740",
+              "wasm_sha256": "e508dc9baba74b2705da84eb4b702833922437f6b042e185792270f33a2297ff",
+              "bytes": 615,
+              "assembly_seconds": 0.003951362014049664
+            },
+            {
+              "size": 64,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089",
+              "wasm_sha256": "db0b8705b501e1d2cb738d04d477c93ddcbcde82bf985272acc450b06639c3cc",
+              "bytes": 497,
+              "assembly_seconds": 0.0034981140051968396
+            },
+            {
+              "size": 65,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e5",
+              "wasm_sha256": "7969c1e60ff9cf007a42d85b64bd54cbd4a64d106cc0524b6a35eae42a5c617a",
+              "bytes": 530,
+              "assembly_seconds": 0.0035823090001940727
+            },
+            {
+              "size": 95,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8",
+              "wasm_sha256": "92d618d515d178bbd1af171cab30a7593f1ebd09a9830a7fe0f2ddfbaa516a9e",
+              "bytes": 694,
+              "assembly_seconds": 0.003684030001750216
+            },
+            {
+              "size": 96,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff841",
+              "wasm_sha256": "60014a7b1f7c058d8029b8108f25af8e09524695d9a9851b4f9ee866b9d5a06c",
+              "bytes": 610,
+              "assembly_seconds": 0.003894564986694604
+            },
+            {
+              "size": 97,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419d",
+              "wasm_sha256": "15131221a552fd5d727448f0ad98c4a75d198ac218f91950b47124d1721979a3",
+              "bytes": 643,
+              "assembly_seconds": 0.0035684300091816112
+            },
+            {
+              "size": 127,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0",
+              "wasm_sha256": "90eb8dd992288e95973e40cfbe21439b340e114df6ce69a8cb80c65fe3f03303",
+              "bytes": 807,
+              "assembly_seconds": 0.0036454200017033145
+            },
+            {
+              "size": 128,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9",
+              "wasm_sha256": "f91084756e8306e87f441a288c67e09c6a9759d97c048380741cedf5c099a38e",
+              "bytes": 687,
+              "assembly_seconds": 0.003575012000510469
+            },
+            {
+              "size": 129,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f955",
+              "wasm_sha256": "3a464ead9fd944e88474f7b1bba1b8f3170b0adacfd4ce5fd8f1ac2f8d3531a6",
+              "bytes": 722,
+              "assembly_seconds": 0.003624100994784385
+            },
+            {
+              "size": 191,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed720",
+              "wasm_sha256": "0c32243dbdf4d259233f9e5d3d946d82026b375066c0d604cb1291f9dd90902d",
+              "bytes": 1014,
+              "assembly_seconds": 0.0037468929949682206
+            },
+            {
+              "size": 192,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069",
+              "wasm_sha256": "6c86508d70400b2729e4b2f80a8be2ce241575a880fa3eb7ac83f1f18ced19e2",
+              "bytes": 887,
+              "assembly_seconds": 0.003892751003149897
+            },
+            {
+              "size": 193,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c5",
+              "wasm_sha256": "47c42244f0badb8f6d1ec3efe36e84ef998b4355783b7626fb45e9ea8c6ae747",
+              "bytes": 922,
+              "assembly_seconds": 0.0037645589909516275
+            },
+            {
+              "size": 228,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58",
+              "wasm_sha256": "64dafe809eb1063d594edaaf9a7871d6d2c7069634075258c42179a81bd595de",
+              "bytes": 1043,
+              "assembly_seconds": 0.00368410800001584
+            },
+            {
+              "size": 255,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790",
+              "wasm_sha256": "6ce730abdfe28272adb9c5afcfd282022a4b8a58ad307a0403a840871200c54e",
+              "bytes": 1216,
+              "assembly_seconds": 0.004147820989601314
+            },
+            {
+              "size": 256,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9",
+              "wasm_sha256": "9a5ba662c5615ac9de4ae82e1727bccea3cec93c9126a9140aad50079f37901b",
+              "bytes": 1087,
+              "assembly_seconds": 0.003973049999331124
+            },
+            {
+              "size": 257,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d935",
+              "wasm_sha256": "b2de490cfe821bc4242a0dc1b6dbf9420b1a729c4d87b207f83849d4f3213c14",
+              "bytes": 1121,
+              "assembly_seconds": 0.004009111988125369
+            },
+            {
+              "size": 511,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be0750",
+              "wasm_sha256": "59452c32e2e5ec5bea50cf2938b98ea5817dfcd3f0144378d6af49c924dd1b9a",
+              "bytes": 2014,
+              "assembly_seconds": 0.004104966996237636
+            },
+            {
+              "size": 512,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be075099",
+              "wasm_sha256": "a045a5d0dacadd3f9af3ae4a2aedff13e59b73499fc1b5f10c4019deaf2eca57",
+              "bytes": 1887,
+              "assembly_seconds": 0.004064859007485211
+            },
+            {
+              "size": 513,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be075099f5",
+              "wasm_sha256": "f7896e8ef580dcfbbc6d072b1251c7ecee1cbccf95a85668b9ccb660c6346242",
+              "bytes": 1922,
+              "assembly_seconds": 0.004426961997523904
+            }
+          ]
+        },
+        "helperWasm": "4ae4d68ac740fbeea8fb4f0b74c2fa70a997110765fdfb6e8fda56bab920a22a",
+        "helperJs": "5115b0f84b200cdaad0031c51fe2713138abb573cf8a259b0e0d369ac6793ce8",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "reverse": false,
+        "source": "721f37392863e7bbdda134d612a22b34ee4b160a740a1cb8f8fd11bba19aa3ee"
+      },
+      "checks": {
+        "comparisons": 232143,
+        "cases": 55,
+        "setupMs": 12.32999999821186,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "rows": [
+        {
+          "size": 8,
+          "kind": "production",
+          "setupMs": 11.844999998807907,
+          "compileMs": 0.19499999284744263,
+          "instantiateMs": 0.05500000715255737,
+          "firstMs": 0.07000000774860382,
+          "warmMs": 4.730000004172325,
+          "timings": [
+            37.87000000476837,
+            37.75499999523163,
+            34.599999994039536,
+            31.71000000834465,
+            31.49500000476837,
+            31.53499999642372,
+            31.87999999523163,
+            32.480000004172325
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 8,
+          "kind": "generic",
+          "setupMs": 12.774999991059303,
+          "compileMs": 0.14499999582767487,
+          "instantiateMs": 0.040000006556510925,
+          "firstMs": 0.03999999165534973,
+          "warmMs": 2.405000001192093,
+          "timings": [
+            6.010000005364418,
+            6.040000006556511,
+            6.064999997615814,
+            5.995000004768372,
+            6.030000001192093,
+            6.020000010728836,
+            5.99499998986721,
+            5.989999994635582
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 8,
+          "kind": "constant",
+          "setupMs": 13.520000010728836,
+          "compileMs": 0.19500000774860382,
+          "instantiateMs": 0.04999999701976776,
+          "firstMs": 0.040000006556510925,
+          "warmMs": 2.9100000113248825,
+          "timings": [
+            4.114999994635582,
+            3.820000007748604,
+            3.7549999952316284,
+            3.9149999916553497,
+            3.894999995827675,
+            3.8250000029802322,
+            3.9000000059604645,
+            3.7450000047683716
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "production",
+          "setupMs": 13.540000006556511,
+          "compileMs": 0.14000000059604645,
+          "instantiateMs": 0.050000011920928955,
+          "firstMs": 0.06499999761581421,
+          "warmMs": 5.364999994635582,
+          "timings": [
+            48.63500000536442,
+            45.65999999642372,
+            41.50499999523163,
+            37.68000000715256,
+            38.75499999523163,
+            38.74500000476837,
+            37.435000002384186,
+            38.26000000536442
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "generic",
+          "setupMs": 12.060000002384186,
+          "compileMs": 0.14999999105930328,
+          "instantiateMs": 0.06999999284744263,
+          "firstMs": 0.04500000178813934,
+          "warmMs": 2.894999995827675,
+          "timings": [
+            9.915000006556511,
+            9.939999997615814,
+            9.905000001192093,
+            9.924999997019768,
+            9.909999996423721,
+            9.890000000596046,
+            9.884999990463257,
+            9.66499999165535
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "constant",
+          "setupMs": 12.069999992847443,
+          "compileMs": 0.17000000178813934,
+          "instantiateMs": 0.04500000178813934,
+          "firstMs": 0.04500000178813934,
+          "warmMs": 2.810000002384186,
+          "timings": [
+            9.915000006556511,
+            10.310000002384186,
+            10.140000000596046,
+            10.084999993443489,
+            10.5,
+            10.075000002980232,
+            10.114999994635582,
+            9.729999989271164
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "production",
+          "setupMs": 11.974999994039536,
+          "compileMs": 0.2150000035762787,
+          "instantiateMs": 0.04999999701976776,
+          "firstMs": 0.07000000774860382,
+          "warmMs": 5.700000002980232,
+          "timings": [
+            43.40999999642372,
+            42.73999999463558,
+            41.44499999284744,
+            37.03999999165535,
+            34.95000000298023,
+            35.689999997615814,
+            35.12999999523163,
+            35.15499998629093
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "generic",
+          "setupMs": 12.120000004768372,
+          "compileMs": 0.20499999821186066,
+          "instantiateMs": 0.05499999225139618,
+          "firstMs": 0.04999999701976776,
+          "warmMs": 3.915000006556511,
+          "timings": [
+            27.74500000476837,
+            27.689999997615814,
+            27.29000000655651,
+            24.174999997019768,
+            23.71500000357628,
+            23.634999990463257,
+            23.78499999642372,
+            23.680000007152557
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "constant",
+          "setupMs": 12.660000011324883,
+          "compileMs": 0.20499999821186066,
+          "instantiateMs": 0.07500000298023224,
+          "firstMs": 0.06000000238418579,
+          "warmMs": 3.709999993443489,
+          "timings": [
+            27.905000001192093,
+            26.650000005960464,
+            27.030000001192093,
+            24.240000009536743,
+            21.569999992847443,
+            21.555000007152557,
+            21.91500000655651,
+            21.570000007748604
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "production",
+          "setupMs": 12.405000001192093,
+          "compileMs": 0.16499999165534973,
+          "instantiateMs": 0.050000011920928955,
+          "firstMs": 0.07000000774860382,
+          "warmMs": 8.724999994039536,
+          "timings": [
+            73.49500000476837,
+            63.53500001132488,
+            62.10999999940395,
+            62.394999995827675,
+            62.24000000953674,
+            62.41500000655651,
+            62.38499999046326,
+            60.92000000178814
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "generic",
+          "setupMs": 11.734999999403954,
+          "compileMs": 0.17000000178813934,
+          "instantiateMs": 0.05499999225139618,
+          "firstMs": 0.04999999701976776,
+          "warmMs": 5.935000002384186,
+          "timings": [
+            48.934999987483025,
+            47.16499999165535,
+            41.94999998807907,
+            40.62999999523163,
+            40.55000001192093,
+            41.31999999284744,
+            40.479999989271164,
+            40.64000000059605
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "constant",
+          "setupMs": 11.969999998807907,
+          "compileMs": 0.1550000011920929,
+          "instantiateMs": 0.0650000125169754,
+          "firstMs": 0.04499998688697815,
+          "warmMs": 7.564999997615814,
+          "timings": [
+            75.00500001013279,
+            64.48499999940395,
+            63.29999999701977,
+            63.12000000476837,
+            62.070000007748604,
+            62.20499999821186,
+            62.63500000536442,
+            62.08499999344349
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 512,
+          "kind": "production",
+          "setupMs": 12.679999992251396,
+          "compileMs": 0.20000000298023224,
+          "instantiateMs": 0.05500000715255737,
+          "firstMs": 0.07500000298023224,
+          "warmMs": 12.090000003576279,
+          "timings": [
+            107.29500000178814,
+            93.17499999701977,
+            93.6499999910593,
+            93.81999999284744,
+            92.73499999940395,
+            92.3049999922514,
+            92.89499999582767,
+            91.87999999523163
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 512,
+          "kind": "generic",
+          "setupMs": 15.325000002980232,
+          "compileMs": 0.17000000178813934,
+          "instantiateMs": 0.06000000238418579,
+          "firstMs": 0.06999999284744263,
+          "warmMs": 12.915000006556511,
+          "timings": [
+            82.43000000715256,
+            69.63500000536442,
+            69.23499999940395,
+            68.00500001013279,
+            68.17000000178814,
+            68.34000000357628,
+            67.01999999582767,
+            67.4750000089407
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 512,
+          "kind": "constant",
+          "setupMs": 13.114999994635582,
+          "compileMs": 0.19500000774860382,
+          "instantiateMs": 0.06499999761581421,
+          "firstMs": 0.06499999761581421,
+          "warmMs": 14.875,
+          "timings": [
+            138.34000000357628,
+            124.81499999761581,
+            122.61499999463558,
+            123.59999999403954,
+            121.68500000238419,
+            122.34999999403954,
+            124.00999999046326,
+            122.07999999821186
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        }
+      ]
+    },
+    "b": {
+      "provenance": {
+        "manifest": {
+          "assembler_sha256": "0c0bc8a459f675134973abf44060a36aa6fddab5014e71255a287460775b434a",
+          "cases": [
+            {
+              "size": 0,
+              "expected": "",
+              "wasm_sha256": "e0c6c606d35d111c6573f60b3ce07c69d9a8b4a4b76564c680e049243c758dea",
+              "bytes": 306,
+              "assembly_seconds": 0.0045865010033594444
+            },
+            {
+              "size": 1,
+              "expected": "75",
+              "wasm_sha256": "c967321720060d58dd0b1e1b0ca342452aed655c2f5fd4f88967753d36d8c2d3",
+              "bytes": 338,
+              "assembly_seconds": 0.004103243991266936
+            },
+            {
+              "size": 2,
+              "expected": "75be",
+              "wasm_sha256": "9bc4bdb483d3d045433d17311cefe164b766e42abdb04597fb29d69092f0b537",
+              "bytes": 339,
+              "assembly_seconds": 0.0037431469972943887
+            },
+            {
+              "size": 3,
+              "expected": "75be07",
+              "wasm_sha256": "377a7bb4c17cf9640ec736567bf574f786816f384c37ad9fce3df282022a642b",
+              "bytes": 370,
+              "assembly_seconds": 0.003504170002997853
+            },
+            {
+              "size": 4,
+              "expected": "75be0750",
+              "wasm_sha256": "7f2d0d534fa3438c047697c8c8fcadab76a38691fb421f30129a93eb1367235c",
+              "bytes": 341,
+              "assembly_seconds": 0.003423195012146607
+            },
+            {
+              "size": 5,
+              "expected": "75be0750ac",
+              "wasm_sha256": "815f1465db1ba21c1f4966c9f5051283187c1954922196f8227c587695585895",
+              "bytes": 373,
+              "assembly_seconds": 0.003626557008828968
+            },
+            {
+              "size": 6,
+              "expected": "75be0750acf5",
+              "wasm_sha256": "3ca1ab20c7f7b77a2fd41cc9fad9049eb72313c05cbbfa94f27a73aedd5f4715",
+              "bytes": 374,
+              "assembly_seconds": 0.003581380005925894
+            },
+            {
+              "size": 7,
+              "expected": "75be0750acf53e",
+              "wasm_sha256": "0a98d667db4763c6f94915aa8b89d57190d9f3af7893ef812ed8fc3e26692706",
+              "bytes": 405,
+              "assembly_seconds": 0.0034733520005829632
+            },
+            {
+              "size": 8,
+              "expected": "75be0750acf53e87",
+              "wasm_sha256": "62a51c8d8d619ed393e3c3b195051f45a4ab8a8acea1f2bc1d8d57d525b27625",
+              "bytes": 346,
+              "assembly_seconds": 0.0037211070011835545
+            },
+            {
+              "size": 9,
+              "expected": "75be0750acf53e87e3",
+              "wasm_sha256": "cb9e5217383efd9a02bff8a32ff9d9ed4cca878e0eedd6d060cb74a49f9d3d63",
+              "bytes": 378,
+              "assembly_seconds": 0.0038059490034356713
+            },
+            {
+              "size": 10,
+              "expected": "75be0750acf53e87e32c",
+              "wasm_sha256": "49cdbb0fee87d99cd42dd3ede290faafe9221d64a73823041e2544aa50a97dd9",
+              "bytes": 379,
+              "assembly_seconds": 0.0036802009999519214
+            },
+            {
+              "size": 11,
+              "expected": "75be0750acf53e87e32c75",
+              "wasm_sha256": "2d1572aac6b7a02a213c6c22477dd7ebd44b05206f947a752e8de1ae4ed01cce",
+              "bytes": 411,
+              "assembly_seconds": 0.003654519998235628
+            },
+            {
+              "size": 12,
+              "expected": "75be0750acf53e87e32c75be",
+              "wasm_sha256": "12f770ec3cde4f55ad7d2f92eaa0900d85961ac3cc94ce2001a53f4f511760df",
+              "bytes": 381,
+              "assembly_seconds": 0.003575127004296519
+            },
+            {
+              "size": 13,
+              "expected": "75be0750acf53e87e32c75be1a",
+              "wasm_sha256": "0eedfc77a07f961082f5b87968502931bef0e42d522d48824d33a63bdeaa7124",
+              "bytes": 412,
+              "assembly_seconds": 0.0034938669996336102
+            },
+            {
+              "size": 14,
+              "expected": "75be0750acf53e87e32c75be1a63",
+              "wasm_sha256": "ff8a5ecb7e6e9d91c1c03b2f73fdd2aef9305974dfae1f25a9642dfabcc5c6fd",
+              "bytes": 414,
+              "assembly_seconds": 0.0036191310064168647
+            },
+            {
+              "size": 15,
+              "expected": "75be0750acf53e87e32c75be1a63ac",
+              "wasm_sha256": "f2200fa2624aca73cde1aab60274e14179c5b37261a813ac9c8ffb4ff2c03981",
+              "bytes": 446,
+              "assembly_seconds": 0.0034699529933277518
+            },
+            {
+              "size": 16,
+              "expected": "75be0750acf53e87e32c75be1a63acf5",
+              "wasm_sha256": "73ded82fc97c24515fc39919aadb2a67ed9911dc42df7691154fab4607128600",
+              "bytes": 362,
+              "assembly_seconds": 0.0034731460036709905
+            },
+            {
+              "size": 17,
+              "expected": "75be0750acf53e87e32c75be1a63acf551",
+              "wasm_sha256": "6d1169d4c07ef2d2b0ff79a7b0fafd3e996c5f5783c9fe65a55437cf6d35ca37",
+              "bytes": 394,
+              "assembly_seconds": 0.003485192995867692
+            },
+            {
+              "size": 18,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519a",
+              "wasm_sha256": "307c0e7ae6c7f4aa3d38bb824afc913d1215b35727a591854564f645c7c8a548",
+              "bytes": 395,
+              "assembly_seconds": 0.0036267329996917397
+            },
+            {
+              "size": 19,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae3",
+              "wasm_sha256": "fd1d17f96470886eb0024e9aa406f4a1aef5bd4e6e2fb514c3ffdbd0256d5bcd",
+              "bytes": 427,
+              "assembly_seconds": 0.003614660003222525
+            },
+            {
+              "size": 20,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c",
+              "wasm_sha256": "f443e2143fe0e19d1d5f74fd25914aa42dbc48192e97d4ff88e79405fde39923",
+              "bytes": 397,
+              "assembly_seconds": 0.0038981639954727143
+            },
+            {
+              "size": 21,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88",
+              "wasm_sha256": "8f41e4e353cfadf9f718b9c89857e825ed6b161b4b388c04037bb672f690021c",
+              "bytes": 429,
+              "assembly_seconds": 0.003914323999197222
+            },
+            {
+              "size": 22,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d1",
+              "wasm_sha256": "b62bc33835fd3081313546c6697aebae25ef1f8a63e91bd6ecbbf801df231063",
+              "bytes": 430,
+              "assembly_seconds": 0.003706540010171011
+            },
+            {
+              "size": 23,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a",
+              "wasm_sha256": "f32405e27c7df76658d1aac21a1b0a0bfa86098ea97bfed0509d32e1a8de7f66",
+              "bytes": 461,
+              "assembly_seconds": 0.003840738005237654
+            },
+            {
+              "size": 24,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63",
+              "wasm_sha256": "9f26b5939929dfcd38e698fb18ef5994303f5da301b6b38d9550f9b3d6dc6df0",
+              "bytes": 402,
+              "assembly_seconds": 0.0036240339977666736
+            },
+            {
+              "size": 25,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf",
+              "wasm_sha256": "95719fd2151486804e940c844bbb104bf4145f195cb1b36412353b86cf54c7b4",
+              "bytes": 434,
+              "assembly_seconds": 0.0034678430092753842
+            },
+            {
+              "size": 26,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08",
+              "wasm_sha256": "fa036dcf636278af251de9b5b665774140bd90994db336f2907b03d046b52860",
+              "bytes": 434,
+              "assembly_seconds": 0.003525255000567995
+            },
+            {
+              "size": 27,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf0851",
+              "wasm_sha256": "fc2d21282b6f3dd408df26e071ac493d0f9162ca01fe7f1aca4b0391d5801f61",
+              "bytes": 466,
+              "assembly_seconds": 0.0038655009993817657
+            },
+            {
+              "size": 28,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519a",
+              "wasm_sha256": "028d3ade9b424ac8a976d82f2261871553902abc1f8befb45fbdc3e8db320c76",
+              "bytes": 437,
+              "assembly_seconds": 0.0040709530003368855
+            },
+            {
+              "size": 29,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af6",
+              "wasm_sha256": "94361ca83543ed7c6d4096aa03edc90bed99a0499a8560078dc57897785cd5e0",
+              "bytes": 469,
+              "assembly_seconds": 0.003963126000599004
+            },
+            {
+              "size": 30,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f",
+              "wasm_sha256": "686b20b2d76271062dcc62161bb31b104c6c54f51dbe2bddc98c0711a2a5faea",
+              "bytes": 470,
+              "assembly_seconds": 0.003662698989501223
+            },
+            {
+              "size": 31,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88",
+              "wasm_sha256": "989a13a3547077a9a6551da65e8aa9b010ce204f04d23e902f82596af38ad355",
+              "bytes": 502,
+              "assembly_seconds": 0.003518851997796446
+            },
+            {
+              "size": 32,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d1",
+              "wasm_sha256": "d068c58fca02f4a7a928ec13cdc16adef0889bc678cff3daee6100d1ca2f6abf",
+              "bytes": 418,
+              "assembly_seconds": 0.003571958004613407
+            },
+            {
+              "size": 47,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64",
+              "wasm_sha256": "6edd8faefcf8fdfcb0b6847ea1ec4b0f43c877b4f7fc0fc0774acbea8862c7b7",
+              "bytes": 557,
+              "assembly_seconds": 0.0036433310015127063
+            },
+            {
+              "size": 48,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad",
+              "wasm_sha256": "7a3d6edb1b257def8e3b444aa2d6e368684f674029fe1ff032115aa87c1532ea",
+              "bytes": 474,
+              "assembly_seconds": 0.003617553011281416
+            },
+            {
+              "size": 49,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09",
+              "wasm_sha256": "b8a41199116bf026d360e797bd9b0b899ef9fa1b0c185345fa288df299ae6e09",
+              "bytes": 505,
+              "assembly_seconds": 0.0037725660076830536
+            },
+            {
+              "size": 63,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef740",
+              "wasm_sha256": "e508dc9baba74b2705da84eb4b702833922437f6b042e185792270f33a2297ff",
+              "bytes": 615,
+              "assembly_seconds": 0.003951362014049664
+            },
+            {
+              "size": 64,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089",
+              "wasm_sha256": "db0b8705b501e1d2cb738d04d477c93ddcbcde82bf985272acc450b06639c3cc",
+              "bytes": 497,
+              "assembly_seconds": 0.0034981140051968396
+            },
+            {
+              "size": 65,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e5",
+              "wasm_sha256": "7969c1e60ff9cf007a42d85b64bd54cbd4a64d106cc0524b6a35eae42a5c617a",
+              "bytes": 530,
+              "assembly_seconds": 0.0035823090001940727
+            },
+            {
+              "size": 95,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8",
+              "wasm_sha256": "92d618d515d178bbd1af171cab30a7593f1ebd09a9830a7fe0f2ddfbaa516a9e",
+              "bytes": 694,
+              "assembly_seconds": 0.003684030001750216
+            },
+            {
+              "size": 96,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff841",
+              "wasm_sha256": "60014a7b1f7c058d8029b8108f25af8e09524695d9a9851b4f9ee866b9d5a06c",
+              "bytes": 610,
+              "assembly_seconds": 0.003894564986694604
+            },
+            {
+              "size": 97,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419d",
+              "wasm_sha256": "15131221a552fd5d727448f0ad98c4a75d198ac218f91950b47124d1721979a3",
+              "bytes": 643,
+              "assembly_seconds": 0.0035684300091816112
+            },
+            {
+              "size": 127,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0",
+              "wasm_sha256": "90eb8dd992288e95973e40cfbe21439b340e114df6ce69a8cb80c65fe3f03303",
+              "bytes": 807,
+              "assembly_seconds": 0.0036454200017033145
+            },
+            {
+              "size": 128,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9",
+              "wasm_sha256": "f91084756e8306e87f441a288c67e09c6a9759d97c048380741cedf5c099a38e",
+              "bytes": 687,
+              "assembly_seconds": 0.003575012000510469
+            },
+            {
+              "size": 129,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f955",
+              "wasm_sha256": "3a464ead9fd944e88474f7b1bba1b8f3170b0adacfd4ce5fd8f1ac2f8d3531a6",
+              "bytes": 722,
+              "assembly_seconds": 0.003624100994784385
+            },
+            {
+              "size": 191,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed720",
+              "wasm_sha256": "0c32243dbdf4d259233f9e5d3d946d82026b375066c0d604cb1291f9dd90902d",
+              "bytes": 1014,
+              "assembly_seconds": 0.0037468929949682206
+            },
+            {
+              "size": 192,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069",
+              "wasm_sha256": "6c86508d70400b2729e4b2f80a8be2ce241575a880fa3eb7ac83f1f18ced19e2",
+              "bytes": 887,
+              "assembly_seconds": 0.003892751003149897
+            },
+            {
+              "size": 193,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c5",
+              "wasm_sha256": "47c42244f0badb8f6d1ec3efe36e84ef998b4355783b7626fb45e9ea8c6ae747",
+              "bytes": 922,
+              "assembly_seconds": 0.0037645589909516275
+            },
+            {
+              "size": 228,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58",
+              "wasm_sha256": "64dafe809eb1063d594edaaf9a7871d6d2c7069634075258c42179a81bd595de",
+              "bytes": 1043,
+              "assembly_seconds": 0.00368410800001584
+            },
+            {
+              "size": 255,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790",
+              "wasm_sha256": "6ce730abdfe28272adb9c5afcfd282022a4b8a58ad307a0403a840871200c54e",
+              "bytes": 1216,
+              "assembly_seconds": 0.004147820989601314
+            },
+            {
+              "size": 256,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9",
+              "wasm_sha256": "9a5ba662c5615ac9de4ae82e1727bccea3cec93c9126a9140aad50079f37901b",
+              "bytes": 1087,
+              "assembly_seconds": 0.003973049999331124
+            },
+            {
+              "size": 257,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d935",
+              "wasm_sha256": "b2de490cfe821bc4242a0dc1b6dbf9420b1a729c4d87b207f83849d4f3213c14",
+              "bytes": 1121,
+              "assembly_seconds": 0.004009111988125369
+            },
+            {
+              "size": 511,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be0750",
+              "wasm_sha256": "59452c32e2e5ec5bea50cf2938b98ea5817dfcd3f0144378d6af49c924dd1b9a",
+              "bytes": 2014,
+              "assembly_seconds": 0.004104966996237636
+            },
+            {
+              "size": 512,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be075099",
+              "wasm_sha256": "a045a5d0dacadd3f9af3ae4a2aedff13e59b73499fc1b5f10c4019deaf2eca57",
+              "bytes": 1887,
+              "assembly_seconds": 0.004064859007485211
+            },
+            {
+              "size": 513,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be075099f5",
+              "wasm_sha256": "f7896e8ef580dcfbbc6d072b1251c7ecee1cbccf95a85668b9ccb660c6346242",
+              "bytes": 1922,
+              "assembly_seconds": 0.004426961997523904
+            }
+          ]
+        },
+        "helperWasm": "4ae4d68ac740fbeea8fb4f0b74c2fa70a997110765fdfb6e8fda56bab920a22a",
+        "helperJs": "5115b0f84b200cdaad0031c51fe2713138abb573cf8a259b0e0d369ac6793ce8",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "reverse": true,
+        "source": "721f37392863e7bbdda134d612a22b34ee4b160a740a1cb8f8fd11bba19aa3ee"
+      },
+      "checks": {
+        "comparisons": 232143,
+        "cases": 55,
+        "setupMs": 14.275000005960464,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "rows": [
+        {
+          "size": 512,
+          "kind": "constant",
+          "setupMs": 15.825000002980232,
+          "compileMs": 0.21000000834465027,
+          "instantiateMs": 0.08499999344348907,
+          "firstMs": 0.07500000298023224,
+          "warmMs": 16.200000002980232,
+          "timings": [
+            146.36499999463558,
+            127.06499999761581,
+            125.01999999582767,
+            122.84000000357628,
+            133.09999999403954,
+            122.25499999523163,
+            122.94499999284744,
+            124.90499998629093
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 512,
+          "kind": "generic",
+          "setupMs": 11.944999992847443,
+          "compileMs": 0.17000000178813934,
+          "instantiateMs": 0.06499999761581421,
+          "firstMs": 0.05499999225139618,
+          "warmMs": 9.084999993443489,
+          "timings": [
+            82.82999999821186,
+            71.79000000655651,
+            68.92000000178814,
+            69.59999999403954,
+            68.44499999284744,
+            68.81500001251698,
+            70.01500000059605,
+            69.39000000059605
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 512,
+          "kind": "production",
+          "setupMs": 11.259999990463257,
+          "compileMs": 0.20499999821186066,
+          "instantiateMs": 0.04500000178813934,
+          "firstMs": 0.07000000774860382,
+          "warmMs": 12.390000000596046,
+          "timings": [
+            105.79999999701977,
+            93.65000000596046,
+            94.01999999582767,
+            93.73499999940395,
+            93.94499999284744,
+            93.81000000238419,
+            94.06499999761581,
+            94.06000000238419
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "constant",
+          "setupMs": 12.54500000178814,
+          "compileMs": 0.20499999821186066,
+          "instantiateMs": 0.04500000178813934,
+          "firstMs": 0.04999999701976776,
+          "warmMs": 7.5250000059604645,
+          "timings": [
+            75.17499999701977,
+            63.060000002384186,
+            63.23499999940395,
+            63.04500000178814,
+            63.685000002384186,
+            64.56999999284744,
+            62.59499999880791,
+            63.429999992251396
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "generic",
+          "setupMs": 12.825000002980232,
+          "compileMs": 0.1599999964237213,
+          "instantiateMs": 0.04999999701976776,
+          "firstMs": 0.04999999701976776,
+          "warmMs": 5.720000013709068,
+          "timings": [
+            49.91499999165535,
+            48.195000007748604,
+            42.75500001013279,
+            42.01500000059605,
+            41.67000000178814,
+            41.50500001013279,
+            41.58499999344349,
+            40.69499999284744
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "production",
+          "setupMs": 12.935000002384186,
+          "compileMs": 0.19499999284744263,
+          "instantiateMs": 0.06000000238418579,
+          "firstMs": 0.08500000834465027,
+          "warmMs": 9.239999994635582,
+          "timings": [
+            99.70499999821186,
+            75.76000000536442,
+            67.44499999284744,
+            69.38999998569489,
+            74.35500000417233,
+            63.12000000476837,
+            63.07500000298023,
+            69.70000000298023
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "constant",
+          "setupMs": 12.339999988675117,
+          "compileMs": 0.14499999582767487,
+          "instantiateMs": 0.040000006556510925,
+          "firstMs": 0.04500000178813934,
+          "warmMs": 3.1599999964237213,
+          "timings": [
+            25.400000005960464,
+            25.67000000178814,
+            25.734999999403954,
+            26.5,
+            24.819999992847443,
+            24.714999988675117,
+            22.150000005960464,
+            22.069999992847443
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "generic",
+          "setupMs": 16.54500000178814,
+          "compileMs": 0.1899999976158142,
+          "instantiateMs": 0.06000000238418579,
+          "firstMs": 0.04999999701976776,
+          "warmMs": 4.6400000005960464,
+          "timings": [
+            35.53000000119209,
+            21.45499999821186,
+            18.61999998986721,
+            18.42000000178814,
+            18.530000001192093,
+            18.234999999403954,
+            18.40499998629093,
+            18.614999994635582
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "production",
+          "setupMs": 14.555000007152557,
+          "compileMs": 0.19499999284744263,
+          "instantiateMs": 0.04500000178813934,
+          "firstMs": 0.06999999284744263,
+          "warmMs": 5.665000006556511,
+          "timings": [
+            44.37000000476837,
+            60.019999995827675,
+            37.95499999821186,
+            36.70000000298023,
+            36.104999989271164,
+            36.19499999284744,
+            37.26500000059605,
+            36.62999999523163
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "constant",
+          "setupMs": 13.83500000834465,
+          "compileMs": 0.17000000178813934,
+          "instantiateMs": 0.04500000178813934,
+          "firstMs": 0.04500000178813934,
+          "warmMs": 2.739999994635582,
+          "timings": [
+            10.160000011324883,
+            10.239999994635582,
+            10.304999992251396,
+            9.99499998986721,
+            10.604999989271164,
+            9.844999998807907,
+            9.564999997615814,
+            9.185000002384186
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "generic",
+          "setupMs": 12.79500000178814,
+          "compileMs": 0.1850000023841858,
+          "instantiateMs": 0.06000000238418579,
+          "firstMs": 0.04500000178813934,
+          "warmMs": 3.135000005364418,
+          "timings": [
+            10.185000002384186,
+            10.044999986886978,
+            10.67000000178814,
+            10.04500000178814,
+            10.115000009536743,
+            10.059999987483025,
+            9.729999989271164,
+            9.385000005364418
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "production",
+          "setupMs": 14.019999995827675,
+          "compileMs": 0.18000000715255737,
+          "instantiateMs": 0.07499998807907104,
+          "firstMs": 0.07999999821186066,
+          "warmMs": 5.610000014305115,
+          "timings": [
+            45.95999999344349,
+            44.79500000178814,
+            50.019999995827675,
+            46.85999999940395,
+            42.5,
+            38.019999995827675,
+            37.96500000357628,
+            37.91500000655651
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 8,
+          "kind": "constant",
+          "setupMs": 16.155000001192093,
+          "compileMs": 0.19500000774860382,
+          "instantiateMs": 0.06499999761581421,
+          "firstMs": 0.06000000238418579,
+          "warmMs": 2.9650000035762787,
+          "timings": [
+            4.5,
+            6.0250000059604645,
+            6.1600000113248825,
+            6.075000002980232,
+            6.254999995231628,
+            3.814999997615814,
+            3.679999992251396,
+            3.665000006556511
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 8,
+          "kind": "generic",
+          "setupMs": 12.575000002980232,
+          "compileMs": 0.1600000113248825,
+          "instantiateMs": 0.04499998688697815,
+          "firstMs": 0.03999999165534973,
+          "warmMs": 2.875,
+          "timings": [
+            6,
+            6,
+            6.4000000059604645,
+            6.034999996423721,
+            6.3599999994039536,
+            6.064999997615814,
+            6,
+            6.319999992847443
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 8,
+          "kind": "production",
+          "setupMs": 13.21000000834465,
+          "compileMs": 0.19499999284744263,
+          "instantiateMs": 0.05500000715255737,
+          "firstMs": 0.07499998807907104,
+          "warmMs": 4.709999993443489,
+          "timings": [
+            34.94999998807907,
+            35.019999995827675,
+            33.29499998688698,
+            30.16500000655651,
+            29.805000007152557,
+            29.71000000834465,
+            30.484999999403954,
+            29.635000005364418
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        }
+      ]
+    },
+    "cross-a": {
+      "provenance": {
+        "manifest": {
+          "assembler_sha256": "0c0bc8a459f675134973abf44060a36aa6fddab5014e71255a287460775b434a",
+          "cases": [
+            {
+              "size": 0,
+              "expected": "",
+              "wasm_sha256": "e0c6c606d35d111c6573f60b3ce07c69d9a8b4a4b76564c680e049243c758dea",
+              "bytes": 306,
+              "assembly_seconds": 0.0045865010033594444
+            },
+            {
+              "size": 1,
+              "expected": "75",
+              "wasm_sha256": "c967321720060d58dd0b1e1b0ca342452aed655c2f5fd4f88967753d36d8c2d3",
+              "bytes": 338,
+              "assembly_seconds": 0.004103243991266936
+            },
+            {
+              "size": 2,
+              "expected": "75be",
+              "wasm_sha256": "9bc4bdb483d3d045433d17311cefe164b766e42abdb04597fb29d69092f0b537",
+              "bytes": 339,
+              "assembly_seconds": 0.0037431469972943887
+            },
+            {
+              "size": 3,
+              "expected": "75be07",
+              "wasm_sha256": "377a7bb4c17cf9640ec736567bf574f786816f384c37ad9fce3df282022a642b",
+              "bytes": 370,
+              "assembly_seconds": 0.003504170002997853
+            },
+            {
+              "size": 4,
+              "expected": "75be0750",
+              "wasm_sha256": "7f2d0d534fa3438c047697c8c8fcadab76a38691fb421f30129a93eb1367235c",
+              "bytes": 341,
+              "assembly_seconds": 0.003423195012146607
+            },
+            {
+              "size": 5,
+              "expected": "75be0750ac",
+              "wasm_sha256": "815f1465db1ba21c1f4966c9f5051283187c1954922196f8227c587695585895",
+              "bytes": 373,
+              "assembly_seconds": 0.003626557008828968
+            },
+            {
+              "size": 6,
+              "expected": "75be0750acf5",
+              "wasm_sha256": "3ca1ab20c7f7b77a2fd41cc9fad9049eb72313c05cbbfa94f27a73aedd5f4715",
+              "bytes": 374,
+              "assembly_seconds": 0.003581380005925894
+            },
+            {
+              "size": 7,
+              "expected": "75be0750acf53e",
+              "wasm_sha256": "0a98d667db4763c6f94915aa8b89d57190d9f3af7893ef812ed8fc3e26692706",
+              "bytes": 405,
+              "assembly_seconds": 0.0034733520005829632
+            },
+            {
+              "size": 8,
+              "expected": "75be0750acf53e87",
+              "wasm_sha256": "62a51c8d8d619ed393e3c3b195051f45a4ab8a8acea1f2bc1d8d57d525b27625",
+              "bytes": 346,
+              "assembly_seconds": 0.0037211070011835545
+            },
+            {
+              "size": 9,
+              "expected": "75be0750acf53e87e3",
+              "wasm_sha256": "cb9e5217383efd9a02bff8a32ff9d9ed4cca878e0eedd6d060cb74a49f9d3d63",
+              "bytes": 378,
+              "assembly_seconds": 0.0038059490034356713
+            },
+            {
+              "size": 10,
+              "expected": "75be0750acf53e87e32c",
+              "wasm_sha256": "49cdbb0fee87d99cd42dd3ede290faafe9221d64a73823041e2544aa50a97dd9",
+              "bytes": 379,
+              "assembly_seconds": 0.0036802009999519214
+            },
+            {
+              "size": 11,
+              "expected": "75be0750acf53e87e32c75",
+              "wasm_sha256": "2d1572aac6b7a02a213c6c22477dd7ebd44b05206f947a752e8de1ae4ed01cce",
+              "bytes": 411,
+              "assembly_seconds": 0.003654519998235628
+            },
+            {
+              "size": 12,
+              "expected": "75be0750acf53e87e32c75be",
+              "wasm_sha256": "12f770ec3cde4f55ad7d2f92eaa0900d85961ac3cc94ce2001a53f4f511760df",
+              "bytes": 381,
+              "assembly_seconds": 0.003575127004296519
+            },
+            {
+              "size": 13,
+              "expected": "75be0750acf53e87e32c75be1a",
+              "wasm_sha256": "0eedfc77a07f961082f5b87968502931bef0e42d522d48824d33a63bdeaa7124",
+              "bytes": 412,
+              "assembly_seconds": 0.0034938669996336102
+            },
+            {
+              "size": 14,
+              "expected": "75be0750acf53e87e32c75be1a63",
+              "wasm_sha256": "ff8a5ecb7e6e9d91c1c03b2f73fdd2aef9305974dfae1f25a9642dfabcc5c6fd",
+              "bytes": 414,
+              "assembly_seconds": 0.0036191310064168647
+            },
+            {
+              "size": 15,
+              "expected": "75be0750acf53e87e32c75be1a63ac",
+              "wasm_sha256": "f2200fa2624aca73cde1aab60274e14179c5b37261a813ac9c8ffb4ff2c03981",
+              "bytes": 446,
+              "assembly_seconds": 0.0034699529933277518
+            },
+            {
+              "size": 16,
+              "expected": "75be0750acf53e87e32c75be1a63acf5",
+              "wasm_sha256": "73ded82fc97c24515fc39919aadb2a67ed9911dc42df7691154fab4607128600",
+              "bytes": 362,
+              "assembly_seconds": 0.0034731460036709905
+            },
+            {
+              "size": 17,
+              "expected": "75be0750acf53e87e32c75be1a63acf551",
+              "wasm_sha256": "6d1169d4c07ef2d2b0ff79a7b0fafd3e996c5f5783c9fe65a55437cf6d35ca37",
+              "bytes": 394,
+              "assembly_seconds": 0.003485192995867692
+            },
+            {
+              "size": 18,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519a",
+              "wasm_sha256": "307c0e7ae6c7f4aa3d38bb824afc913d1215b35727a591854564f645c7c8a548",
+              "bytes": 395,
+              "assembly_seconds": 0.0036267329996917397
+            },
+            {
+              "size": 19,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae3",
+              "wasm_sha256": "fd1d17f96470886eb0024e9aa406f4a1aef5bd4e6e2fb514c3ffdbd0256d5bcd",
+              "bytes": 427,
+              "assembly_seconds": 0.003614660003222525
+            },
+            {
+              "size": 20,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c",
+              "wasm_sha256": "f443e2143fe0e19d1d5f74fd25914aa42dbc48192e97d4ff88e79405fde39923",
+              "bytes": 397,
+              "assembly_seconds": 0.0038981639954727143
+            },
+            {
+              "size": 21,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88",
+              "wasm_sha256": "8f41e4e353cfadf9f718b9c89857e825ed6b161b4b388c04037bb672f690021c",
+              "bytes": 429,
+              "assembly_seconds": 0.003914323999197222
+            },
+            {
+              "size": 22,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d1",
+              "wasm_sha256": "b62bc33835fd3081313546c6697aebae25ef1f8a63e91bd6ecbbf801df231063",
+              "bytes": 430,
+              "assembly_seconds": 0.003706540010171011
+            },
+            {
+              "size": 23,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a",
+              "wasm_sha256": "f32405e27c7df76658d1aac21a1b0a0bfa86098ea97bfed0509d32e1a8de7f66",
+              "bytes": 461,
+              "assembly_seconds": 0.003840738005237654
+            },
+            {
+              "size": 24,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63",
+              "wasm_sha256": "9f26b5939929dfcd38e698fb18ef5994303f5da301b6b38d9550f9b3d6dc6df0",
+              "bytes": 402,
+              "assembly_seconds": 0.0036240339977666736
+            },
+            {
+              "size": 25,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf",
+              "wasm_sha256": "95719fd2151486804e940c844bbb104bf4145f195cb1b36412353b86cf54c7b4",
+              "bytes": 434,
+              "assembly_seconds": 0.0034678430092753842
+            },
+            {
+              "size": 26,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08",
+              "wasm_sha256": "fa036dcf636278af251de9b5b665774140bd90994db336f2907b03d046b52860",
+              "bytes": 434,
+              "assembly_seconds": 0.003525255000567995
+            },
+            {
+              "size": 27,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf0851",
+              "wasm_sha256": "fc2d21282b6f3dd408df26e071ac493d0f9162ca01fe7f1aca4b0391d5801f61",
+              "bytes": 466,
+              "assembly_seconds": 0.0038655009993817657
+            },
+            {
+              "size": 28,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519a",
+              "wasm_sha256": "028d3ade9b424ac8a976d82f2261871553902abc1f8befb45fbdc3e8db320c76",
+              "bytes": 437,
+              "assembly_seconds": 0.0040709530003368855
+            },
+            {
+              "size": 29,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af6",
+              "wasm_sha256": "94361ca83543ed7c6d4096aa03edc90bed99a0499a8560078dc57897785cd5e0",
+              "bytes": 469,
+              "assembly_seconds": 0.003963126000599004
+            },
+            {
+              "size": 30,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f",
+              "wasm_sha256": "686b20b2d76271062dcc62161bb31b104c6c54f51dbe2bddc98c0711a2a5faea",
+              "bytes": 470,
+              "assembly_seconds": 0.003662698989501223
+            },
+            {
+              "size": 31,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88",
+              "wasm_sha256": "989a13a3547077a9a6551da65e8aa9b010ce204f04d23e902f82596af38ad355",
+              "bytes": 502,
+              "assembly_seconds": 0.003518851997796446
+            },
+            {
+              "size": 32,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d1",
+              "wasm_sha256": "d068c58fca02f4a7a928ec13cdc16adef0889bc678cff3daee6100d1ca2f6abf",
+              "bytes": 418,
+              "assembly_seconds": 0.003571958004613407
+            },
+            {
+              "size": 47,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64",
+              "wasm_sha256": "6edd8faefcf8fdfcb0b6847ea1ec4b0f43c877b4f7fc0fc0774acbea8862c7b7",
+              "bytes": 557,
+              "assembly_seconds": 0.0036433310015127063
+            },
+            {
+              "size": 48,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad",
+              "wasm_sha256": "7a3d6edb1b257def8e3b444aa2d6e368684f674029fe1ff032115aa87c1532ea",
+              "bytes": 474,
+              "assembly_seconds": 0.003617553011281416
+            },
+            {
+              "size": 49,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09",
+              "wasm_sha256": "b8a41199116bf026d360e797bd9b0b899ef9fa1b0c185345fa288df299ae6e09",
+              "bytes": 505,
+              "assembly_seconds": 0.0037725660076830536
+            },
+            {
+              "size": 63,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef740",
+              "wasm_sha256": "e508dc9baba74b2705da84eb4b702833922437f6b042e185792270f33a2297ff",
+              "bytes": 615,
+              "assembly_seconds": 0.003951362014049664
+            },
+            {
+              "size": 64,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089",
+              "wasm_sha256": "db0b8705b501e1d2cb738d04d477c93ddcbcde82bf985272acc450b06639c3cc",
+              "bytes": 497,
+              "assembly_seconds": 0.0034981140051968396
+            },
+            {
+              "size": 65,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e5",
+              "wasm_sha256": "7969c1e60ff9cf007a42d85b64bd54cbd4a64d106cc0524b6a35eae42a5c617a",
+              "bytes": 530,
+              "assembly_seconds": 0.0035823090001940727
+            },
+            {
+              "size": 95,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8",
+              "wasm_sha256": "92d618d515d178bbd1af171cab30a7593f1ebd09a9830a7fe0f2ddfbaa516a9e",
+              "bytes": 694,
+              "assembly_seconds": 0.003684030001750216
+            },
+            {
+              "size": 96,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff841",
+              "wasm_sha256": "60014a7b1f7c058d8029b8108f25af8e09524695d9a9851b4f9ee866b9d5a06c",
+              "bytes": 610,
+              "assembly_seconds": 0.003894564986694604
+            },
+            {
+              "size": 97,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419d",
+              "wasm_sha256": "15131221a552fd5d727448f0ad98c4a75d198ac218f91950b47124d1721979a3",
+              "bytes": 643,
+              "assembly_seconds": 0.0035684300091816112
+            },
+            {
+              "size": 127,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0",
+              "wasm_sha256": "90eb8dd992288e95973e40cfbe21439b340e114df6ce69a8cb80c65fe3f03303",
+              "bytes": 807,
+              "assembly_seconds": 0.0036454200017033145
+            },
+            {
+              "size": 128,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9",
+              "wasm_sha256": "f91084756e8306e87f441a288c67e09c6a9759d97c048380741cedf5c099a38e",
+              "bytes": 687,
+              "assembly_seconds": 0.003575012000510469
+            },
+            {
+              "size": 129,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f955",
+              "wasm_sha256": "3a464ead9fd944e88474f7b1bba1b8f3170b0adacfd4ce5fd8f1ac2f8d3531a6",
+              "bytes": 722,
+              "assembly_seconds": 0.003624100994784385
+            },
+            {
+              "size": 191,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed720",
+              "wasm_sha256": "0c32243dbdf4d259233f9e5d3d946d82026b375066c0d604cb1291f9dd90902d",
+              "bytes": 1014,
+              "assembly_seconds": 0.0037468929949682206
+            },
+            {
+              "size": 192,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069",
+              "wasm_sha256": "6c86508d70400b2729e4b2f80a8be2ce241575a880fa3eb7ac83f1f18ced19e2",
+              "bytes": 887,
+              "assembly_seconds": 0.003892751003149897
+            },
+            {
+              "size": 193,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c5",
+              "wasm_sha256": "47c42244f0badb8f6d1ec3efe36e84ef998b4355783b7626fb45e9ea8c6ae747",
+              "bytes": 922,
+              "assembly_seconds": 0.0037645589909516275
+            },
+            {
+              "size": 228,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58",
+              "wasm_sha256": "64dafe809eb1063d594edaaf9a7871d6d2c7069634075258c42179a81bd595de",
+              "bytes": 1043,
+              "assembly_seconds": 0.00368410800001584
+            },
+            {
+              "size": 255,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790",
+              "wasm_sha256": "6ce730abdfe28272adb9c5afcfd282022a4b8a58ad307a0403a840871200c54e",
+              "bytes": 1216,
+              "assembly_seconds": 0.004147820989601314
+            },
+            {
+              "size": 256,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9",
+              "wasm_sha256": "9a5ba662c5615ac9de4ae82e1727bccea3cec93c9126a9140aad50079f37901b",
+              "bytes": 1087,
+              "assembly_seconds": 0.003973049999331124
+            },
+            {
+              "size": 257,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d935",
+              "wasm_sha256": "b2de490cfe821bc4242a0dc1b6dbf9420b1a729c4d87b207f83849d4f3213c14",
+              "bytes": 1121,
+              "assembly_seconds": 0.004009111988125369
+            },
+            {
+              "size": 511,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be0750",
+              "wasm_sha256": "59452c32e2e5ec5bea50cf2938b98ea5817dfcd3f0144378d6af49c924dd1b9a",
+              "bytes": 2014,
+              "assembly_seconds": 0.004104966996237636
+            },
+            {
+              "size": 512,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be075099",
+              "wasm_sha256": "a045a5d0dacadd3f9af3ae4a2aedff13e59b73499fc1b5f10c4019deaf2eca57",
+              "bytes": 1887,
+              "assembly_seconds": 0.004064859007485211
+            },
+            {
+              "size": 513,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be075099f5",
+              "wasm_sha256": "f7896e8ef580dcfbbc6d072b1251c7ecee1cbccf95a85668b9ccb660c6346242",
+              "bytes": 1922,
+              "assembly_seconds": 0.004426961997523904
+            }
+          ]
+        },
+        "helperWasm": "4ae4d68ac740fbeea8fb4f0b74c2fa70a997110765fdfb6e8fda56bab920a22a",
+        "helperJs": "5115b0f84b200cdaad0031c51fe2713138abb573cf8a259b0e0d369ac6793ce8",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "reverse": false,
+        "crossControl": true,
+        "source": "5b053dd816ec60916a573535b692b4a2279ddd65510efc1517bbbfdbd0374994"
+      },
+      "checks": {
+        "comparisons": 232143,
+        "cases": 55,
+        "setupMs": 12.870000004768372,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "rows": [
+        {
+          "size": 8,
+          "kind": "production",
+          "setupMs": 12.465000003576279,
+          "compileMs": 0.16499999165534973,
+          "instantiateMs": 0.0599999874830246,
+          "crossInstantiateMs": 0,
+          "firstMs": 0.07500000298023224,
+          "warmMs": 4.9849999994039536,
+          "timings": [
+            35.275000005960464,
+            35,
+            33.41000001132488,
+            34.33999998867512,
+            29.575000002980232,
+            29.515000000596046,
+            29.644999995827675,
+            29.320000007748604
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 8,
+          "kind": "generic_cross",
+          "setupMs": 11.850000008940697,
+          "compileMs": 0.17500001192092896,
+          "instantiateMs": 0.04999999701976776,
+          "crossInstantiateMs": 0.02000001072883606,
+          "firstMs": 0.040000006556510925,
+          "warmMs": 3.0150000005960464,
+          "timings": [
+            22.34500001370907,
+            22.304999992251396,
+            22.29500000178814,
+            22.27999998629093,
+            19.57999999821186,
+            19.984999999403954,
+            19.234999999403954,
+            19.600000008940697
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 8,
+          "kind": "constant_cross",
+          "setupMs": 12.844999998807907,
+          "compileMs": 0.14499999582767487,
+          "instantiateMs": 0.05500000715255737,
+          "crossInstantiateMs": 0.030000001192092896,
+          "firstMs": 0.04500000178813934,
+          "warmMs": 2.9849999994039536,
+          "timings": [
+            21.125,
+            21.185000002384186,
+            21.064999997615814,
+            20.759999990463257,
+            20.474999994039536,
+            20.430000007152557,
+            19.349999994039536,
+            18.009999990463257
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "production",
+          "setupMs": 15.780000001192093,
+          "compileMs": 0.16499999165534973,
+          "instantiateMs": 0.06000000238418579,
+          "crossInstantiateMs": 0,
+          "firstMs": 0.06999999284744263,
+          "warmMs": 7.575000002980232,
+          "timings": [
+            51.35999999940395,
+            42.82999999821186,
+            39.79999999701977,
+            37.625,
+            37.73999999463558,
+            37.96000000834465,
+            38.03500001132488,
+            37.87000000476837
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "generic_cross",
+          "setupMs": 11.515000000596046,
+          "compileMs": 0.17499999701976776,
+          "instantiateMs": 0.05500000715255737,
+          "crossInstantiateMs": 0.024999991059303284,
+          "firstMs": 0.04499998688697815,
+          "warmMs": 3.8299999982118607,
+          "timings": [
+            27.230000004172325,
+            26.939999997615814,
+            26.060000002384186,
+            24.519999995827675,
+            22.88000001013279,
+            22.804999992251396,
+            22.864999994635582,
+            22.839999988675117
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "constant_cross",
+          "setupMs": 12.105000004172325,
+          "compileMs": 0.1600000113248825,
+          "instantiateMs": 0.04500000178813934,
+          "crossInstantiateMs": 0.030000001192092896,
+          "firstMs": 0.040000006556510925,
+          "warmMs": 3.7000000029802322,
+          "timings": [
+            27.28999999165535,
+            26.939999997615814,
+            27.20999999344349,
+            24.57999999821186,
+            23.314999997615814,
+            22.939999997615814,
+            22.635000005364418,
+            22.28499999642372
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "production",
+          "setupMs": 12.550000011920929,
+          "compileMs": 0.20999999344348907,
+          "instantiateMs": 0.05500000715255737,
+          "crossInstantiateMs": 0,
+          "firstMs": 0.06999999284744263,
+          "warmMs": 5.604999989271164,
+          "timings": [
+            42.729999989271164,
+            43.224999994039536,
+            36.89000000059605,
+            36.685000002384186,
+            36.26500000059605,
+            37.90999999642372,
+            35.729999989271164,
+            35.0249999910593
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "generic_cross",
+          "setupMs": 11.650000005960464,
+          "compileMs": 0.17499999701976776,
+          "instantiateMs": 0.04999999701976776,
+          "crossInstantiateMs": 0.024999991059303284,
+          "firstMs": 0.04500000178813934,
+          "warmMs": 4.010000005364418,
+          "timings": [
+            29.855000004172325,
+            30.305000007152557,
+            27.555000007152557,
+            25.024999991059303,
+            25.009999990463257,
+            25.03999999165535,
+            24.444999992847443,
+            24.375
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "constant_cross",
+          "setupMs": 12.20499999821186,
+          "compileMs": 0.14499999582767487,
+          "instantiateMs": 0.04999999701976776,
+          "crossInstantiateMs": 0.030000001192092896,
+          "firstMs": 0.04500000178813934,
+          "warmMs": 4.304999992251396,
+          "timings": [
+            50.21500000357628,
+            31.74500000476837,
+            29.33500000834465,
+            27.08499999344349,
+            26.944999992847443,
+            26.649999991059303,
+            26.67000000178814,
+            26.359999999403954
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "production",
+          "setupMs": 11.625,
+          "compileMs": 0.16500000655651093,
+          "instantiateMs": 0.06499999761581421,
+          "crossInstantiateMs": 0,
+          "firstMs": 0.07000000774860382,
+          "warmMs": 8.495000004768372,
+          "timings": [
+            73.23499999940395,
+            65.83500000834465,
+            61.690000012516975,
+            61.63499999046326,
+            60.96500000357628,
+            61.01000000536442,
+            61.22000001370907,
+            60.810000002384186
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "generic_cross",
+          "setupMs": 15.219999998807907,
+          "compileMs": 0.20000000298023224,
+          "instantiateMs": 0.06999999284744263,
+          "crossInstantiateMs": 0.034999996423721313,
+          "firstMs": 0.07000000774860382,
+          "warmMs": 9.53999999165535,
+          "timings": [
+            77.00500001013279,
+            60.67000000178814,
+            57.37000000476837,
+            57.39000000059605,
+            57.019999995827675,
+            57.21500000357628,
+            56.88499999046326,
+            56.83499999344349
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "constant_cross",
+          "setupMs": 12.825000002980232,
+          "compileMs": 0.1599999964237213,
+          "instantiateMs": 0.07500000298023224,
+          "crossInstantiateMs": 0.034999996423721313,
+          "firstMs": 0.07999999821186066,
+          "warmMs": 8.304999992251396,
+          "timings": [
+            76.72999998927116,
+            88.5700000077486,
+            65.0549999922514,
+            64.74500000476837,
+            63.84000000357628,
+            63.224999994039536,
+            63.26500000059605,
+            63.105000004172325
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 512,
+          "kind": "production",
+          "setupMs": 14.859999999403954,
+          "compileMs": 0.1900000125169754,
+          "instantiateMs": 0.05499999225139618,
+          "crossInstantiateMs": 0,
+          "firstMs": 0.07500000298023224,
+          "warmMs": 12.424999997019768,
+          "timings": [
+            110.11499999463558,
+            97.01000000536442,
+            97.26500000059605,
+            96.66999998688698,
+            97.56999999284744,
+            94.53999999165535,
+            94.16500000655651,
+            94.51500000059605
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 512,
+          "kind": "generic_cross",
+          "setupMs": 12.049999997019768,
+          "compileMs": 0.1850000023841858,
+          "instantiateMs": 0.05499999225139618,
+          "crossInstantiateMs": 0.024999991059303284,
+          "firstMs": 0.05499999225139618,
+          "warmMs": 10.304999992251396,
+          "timings": [
+            99.67500001192093,
+            86.23999999463558,
+            85.47499999403954,
+            84.01500000059605,
+            83.125,
+            82.94499999284744,
+            83.05500000715256,
+            82.88000001013279
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 512,
+          "kind": "constant_cross",
+          "setupMs": 12.365000009536743,
+          "compileMs": 0.17000000178813934,
+          "instantiateMs": 0.04999999701976776,
+          "crossInstantiateMs": 0.03500001132488251,
+          "firstMs": 0.09000000357627869,
+          "warmMs": 15.489999994635582,
+          "timings": [
+            134.74000000953674,
+            124.27500000596046,
+            125.5700000077486,
+            123.33500000834465,
+            122.70999999344349,
+            122.57500000298023,
+            122.5300000011921,
+            122.16500000655651
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        }
+      ]
+    },
+    "cross-b": {
+      "provenance": {
+        "manifest": {
+          "assembler_sha256": "0c0bc8a459f675134973abf44060a36aa6fddab5014e71255a287460775b434a",
+          "cases": [
+            {
+              "size": 0,
+              "expected": "",
+              "wasm_sha256": "e0c6c606d35d111c6573f60b3ce07c69d9a8b4a4b76564c680e049243c758dea",
+              "bytes": 306,
+              "assembly_seconds": 0.0045865010033594444
+            },
+            {
+              "size": 1,
+              "expected": "75",
+              "wasm_sha256": "c967321720060d58dd0b1e1b0ca342452aed655c2f5fd4f88967753d36d8c2d3",
+              "bytes": 338,
+              "assembly_seconds": 0.004103243991266936
+            },
+            {
+              "size": 2,
+              "expected": "75be",
+              "wasm_sha256": "9bc4bdb483d3d045433d17311cefe164b766e42abdb04597fb29d69092f0b537",
+              "bytes": 339,
+              "assembly_seconds": 0.0037431469972943887
+            },
+            {
+              "size": 3,
+              "expected": "75be07",
+              "wasm_sha256": "377a7bb4c17cf9640ec736567bf574f786816f384c37ad9fce3df282022a642b",
+              "bytes": 370,
+              "assembly_seconds": 0.003504170002997853
+            },
+            {
+              "size": 4,
+              "expected": "75be0750",
+              "wasm_sha256": "7f2d0d534fa3438c047697c8c8fcadab76a38691fb421f30129a93eb1367235c",
+              "bytes": 341,
+              "assembly_seconds": 0.003423195012146607
+            },
+            {
+              "size": 5,
+              "expected": "75be0750ac",
+              "wasm_sha256": "815f1465db1ba21c1f4966c9f5051283187c1954922196f8227c587695585895",
+              "bytes": 373,
+              "assembly_seconds": 0.003626557008828968
+            },
+            {
+              "size": 6,
+              "expected": "75be0750acf5",
+              "wasm_sha256": "3ca1ab20c7f7b77a2fd41cc9fad9049eb72313c05cbbfa94f27a73aedd5f4715",
+              "bytes": 374,
+              "assembly_seconds": 0.003581380005925894
+            },
+            {
+              "size": 7,
+              "expected": "75be0750acf53e",
+              "wasm_sha256": "0a98d667db4763c6f94915aa8b89d57190d9f3af7893ef812ed8fc3e26692706",
+              "bytes": 405,
+              "assembly_seconds": 0.0034733520005829632
+            },
+            {
+              "size": 8,
+              "expected": "75be0750acf53e87",
+              "wasm_sha256": "62a51c8d8d619ed393e3c3b195051f45a4ab8a8acea1f2bc1d8d57d525b27625",
+              "bytes": 346,
+              "assembly_seconds": 0.0037211070011835545
+            },
+            {
+              "size": 9,
+              "expected": "75be0750acf53e87e3",
+              "wasm_sha256": "cb9e5217383efd9a02bff8a32ff9d9ed4cca878e0eedd6d060cb74a49f9d3d63",
+              "bytes": 378,
+              "assembly_seconds": 0.0038059490034356713
+            },
+            {
+              "size": 10,
+              "expected": "75be0750acf53e87e32c",
+              "wasm_sha256": "49cdbb0fee87d99cd42dd3ede290faafe9221d64a73823041e2544aa50a97dd9",
+              "bytes": 379,
+              "assembly_seconds": 0.0036802009999519214
+            },
+            {
+              "size": 11,
+              "expected": "75be0750acf53e87e32c75",
+              "wasm_sha256": "2d1572aac6b7a02a213c6c22477dd7ebd44b05206f947a752e8de1ae4ed01cce",
+              "bytes": 411,
+              "assembly_seconds": 0.003654519998235628
+            },
+            {
+              "size": 12,
+              "expected": "75be0750acf53e87e32c75be",
+              "wasm_sha256": "12f770ec3cde4f55ad7d2f92eaa0900d85961ac3cc94ce2001a53f4f511760df",
+              "bytes": 381,
+              "assembly_seconds": 0.003575127004296519
+            },
+            {
+              "size": 13,
+              "expected": "75be0750acf53e87e32c75be1a",
+              "wasm_sha256": "0eedfc77a07f961082f5b87968502931bef0e42d522d48824d33a63bdeaa7124",
+              "bytes": 412,
+              "assembly_seconds": 0.0034938669996336102
+            },
+            {
+              "size": 14,
+              "expected": "75be0750acf53e87e32c75be1a63",
+              "wasm_sha256": "ff8a5ecb7e6e9d91c1c03b2f73fdd2aef9305974dfae1f25a9642dfabcc5c6fd",
+              "bytes": 414,
+              "assembly_seconds": 0.0036191310064168647
+            },
+            {
+              "size": 15,
+              "expected": "75be0750acf53e87e32c75be1a63ac",
+              "wasm_sha256": "f2200fa2624aca73cde1aab60274e14179c5b37261a813ac9c8ffb4ff2c03981",
+              "bytes": 446,
+              "assembly_seconds": 0.0034699529933277518
+            },
+            {
+              "size": 16,
+              "expected": "75be0750acf53e87e32c75be1a63acf5",
+              "wasm_sha256": "73ded82fc97c24515fc39919aadb2a67ed9911dc42df7691154fab4607128600",
+              "bytes": 362,
+              "assembly_seconds": 0.0034731460036709905
+            },
+            {
+              "size": 17,
+              "expected": "75be0750acf53e87e32c75be1a63acf551",
+              "wasm_sha256": "6d1169d4c07ef2d2b0ff79a7b0fafd3e996c5f5783c9fe65a55437cf6d35ca37",
+              "bytes": 394,
+              "assembly_seconds": 0.003485192995867692
+            },
+            {
+              "size": 18,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519a",
+              "wasm_sha256": "307c0e7ae6c7f4aa3d38bb824afc913d1215b35727a591854564f645c7c8a548",
+              "bytes": 395,
+              "assembly_seconds": 0.0036267329996917397
+            },
+            {
+              "size": 19,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae3",
+              "wasm_sha256": "fd1d17f96470886eb0024e9aa406f4a1aef5bd4e6e2fb514c3ffdbd0256d5bcd",
+              "bytes": 427,
+              "assembly_seconds": 0.003614660003222525
+            },
+            {
+              "size": 20,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c",
+              "wasm_sha256": "f443e2143fe0e19d1d5f74fd25914aa42dbc48192e97d4ff88e79405fde39923",
+              "bytes": 397,
+              "assembly_seconds": 0.0038981639954727143
+            },
+            {
+              "size": 21,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88",
+              "wasm_sha256": "8f41e4e353cfadf9f718b9c89857e825ed6b161b4b388c04037bb672f690021c",
+              "bytes": 429,
+              "assembly_seconds": 0.003914323999197222
+            },
+            {
+              "size": 22,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d1",
+              "wasm_sha256": "b62bc33835fd3081313546c6697aebae25ef1f8a63e91bd6ecbbf801df231063",
+              "bytes": 430,
+              "assembly_seconds": 0.003706540010171011
+            },
+            {
+              "size": 23,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a",
+              "wasm_sha256": "f32405e27c7df76658d1aac21a1b0a0bfa86098ea97bfed0509d32e1a8de7f66",
+              "bytes": 461,
+              "assembly_seconds": 0.003840738005237654
+            },
+            {
+              "size": 24,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63",
+              "wasm_sha256": "9f26b5939929dfcd38e698fb18ef5994303f5da301b6b38d9550f9b3d6dc6df0",
+              "bytes": 402,
+              "assembly_seconds": 0.0036240339977666736
+            },
+            {
+              "size": 25,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf",
+              "wasm_sha256": "95719fd2151486804e940c844bbb104bf4145f195cb1b36412353b86cf54c7b4",
+              "bytes": 434,
+              "assembly_seconds": 0.0034678430092753842
+            },
+            {
+              "size": 26,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08",
+              "wasm_sha256": "fa036dcf636278af251de9b5b665774140bd90994db336f2907b03d046b52860",
+              "bytes": 434,
+              "assembly_seconds": 0.003525255000567995
+            },
+            {
+              "size": 27,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf0851",
+              "wasm_sha256": "fc2d21282b6f3dd408df26e071ac493d0f9162ca01fe7f1aca4b0391d5801f61",
+              "bytes": 466,
+              "assembly_seconds": 0.0038655009993817657
+            },
+            {
+              "size": 28,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519a",
+              "wasm_sha256": "028d3ade9b424ac8a976d82f2261871553902abc1f8befb45fbdc3e8db320c76",
+              "bytes": 437,
+              "assembly_seconds": 0.0040709530003368855
+            },
+            {
+              "size": 29,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af6",
+              "wasm_sha256": "94361ca83543ed7c6d4096aa03edc90bed99a0499a8560078dc57897785cd5e0",
+              "bytes": 469,
+              "assembly_seconds": 0.003963126000599004
+            },
+            {
+              "size": 30,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f",
+              "wasm_sha256": "686b20b2d76271062dcc62161bb31b104c6c54f51dbe2bddc98c0711a2a5faea",
+              "bytes": 470,
+              "assembly_seconds": 0.003662698989501223
+            },
+            {
+              "size": 31,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88",
+              "wasm_sha256": "989a13a3547077a9a6551da65e8aa9b010ce204f04d23e902f82596af38ad355",
+              "bytes": 502,
+              "assembly_seconds": 0.003518851997796446
+            },
+            {
+              "size": 32,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d1",
+              "wasm_sha256": "d068c58fca02f4a7a928ec13cdc16adef0889bc678cff3daee6100d1ca2f6abf",
+              "bytes": 418,
+              "assembly_seconds": 0.003571958004613407
+            },
+            {
+              "size": 47,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64",
+              "wasm_sha256": "6edd8faefcf8fdfcb0b6847ea1ec4b0f43c877b4f7fc0fc0774acbea8862c7b7",
+              "bytes": 557,
+              "assembly_seconds": 0.0036433310015127063
+            },
+            {
+              "size": 48,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad",
+              "wasm_sha256": "7a3d6edb1b257def8e3b444aa2d6e368684f674029fe1ff032115aa87c1532ea",
+              "bytes": 474,
+              "assembly_seconds": 0.003617553011281416
+            },
+            {
+              "size": 49,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09",
+              "wasm_sha256": "b8a41199116bf026d360e797bd9b0b899ef9fa1b0c185345fa288df299ae6e09",
+              "bytes": 505,
+              "assembly_seconds": 0.0037725660076830536
+            },
+            {
+              "size": 63,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef740",
+              "wasm_sha256": "e508dc9baba74b2705da84eb4b702833922437f6b042e185792270f33a2297ff",
+              "bytes": 615,
+              "assembly_seconds": 0.003951362014049664
+            },
+            {
+              "size": 64,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089",
+              "wasm_sha256": "db0b8705b501e1d2cb738d04d477c93ddcbcde82bf985272acc450b06639c3cc",
+              "bytes": 497,
+              "assembly_seconds": 0.0034981140051968396
+            },
+            {
+              "size": 65,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e5",
+              "wasm_sha256": "7969c1e60ff9cf007a42d85b64bd54cbd4a64d106cc0524b6a35eae42a5c617a",
+              "bytes": 530,
+              "assembly_seconds": 0.0035823090001940727
+            },
+            {
+              "size": 95,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8",
+              "wasm_sha256": "92d618d515d178bbd1af171cab30a7593f1ebd09a9830a7fe0f2ddfbaa516a9e",
+              "bytes": 694,
+              "assembly_seconds": 0.003684030001750216
+            },
+            {
+              "size": 96,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff841",
+              "wasm_sha256": "60014a7b1f7c058d8029b8108f25af8e09524695d9a9851b4f9ee866b9d5a06c",
+              "bytes": 610,
+              "assembly_seconds": 0.003894564986694604
+            },
+            {
+              "size": 97,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419d",
+              "wasm_sha256": "15131221a552fd5d727448f0ad98c4a75d198ac218f91950b47124d1721979a3",
+              "bytes": 643,
+              "assembly_seconds": 0.0035684300091816112
+            },
+            {
+              "size": 127,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0",
+              "wasm_sha256": "90eb8dd992288e95973e40cfbe21439b340e114df6ce69a8cb80c65fe3f03303",
+              "bytes": 807,
+              "assembly_seconds": 0.0036454200017033145
+            },
+            {
+              "size": 128,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9",
+              "wasm_sha256": "f91084756e8306e87f441a288c67e09c6a9759d97c048380741cedf5c099a38e",
+              "bytes": 687,
+              "assembly_seconds": 0.003575012000510469
+            },
+            {
+              "size": 129,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f955",
+              "wasm_sha256": "3a464ead9fd944e88474f7b1bba1b8f3170b0adacfd4ce5fd8f1ac2f8d3531a6",
+              "bytes": 722,
+              "assembly_seconds": 0.003624100994784385
+            },
+            {
+              "size": 191,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed720",
+              "wasm_sha256": "0c32243dbdf4d259233f9e5d3d946d82026b375066c0d604cb1291f9dd90902d",
+              "bytes": 1014,
+              "assembly_seconds": 0.0037468929949682206
+            },
+            {
+              "size": 192,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069",
+              "wasm_sha256": "6c86508d70400b2729e4b2f80a8be2ce241575a880fa3eb7ac83f1f18ced19e2",
+              "bytes": 887,
+              "assembly_seconds": 0.003892751003149897
+            },
+            {
+              "size": 193,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c5",
+              "wasm_sha256": "47c42244f0badb8f6d1ec3efe36e84ef998b4355783b7626fb45e9ea8c6ae747",
+              "bytes": 922,
+              "assembly_seconds": 0.0037645589909516275
+            },
+            {
+              "size": 228,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58",
+              "wasm_sha256": "64dafe809eb1063d594edaaf9a7871d6d2c7069634075258c42179a81bd595de",
+              "bytes": 1043,
+              "assembly_seconds": 0.00368410800001584
+            },
+            {
+              "size": 255,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790",
+              "wasm_sha256": "6ce730abdfe28272adb9c5afcfd282022a4b8a58ad307a0403a840871200c54e",
+              "bytes": 1216,
+              "assembly_seconds": 0.004147820989601314
+            },
+            {
+              "size": 256,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9",
+              "wasm_sha256": "9a5ba662c5615ac9de4ae82e1727bccea3cec93c9126a9140aad50079f37901b",
+              "bytes": 1087,
+              "assembly_seconds": 0.003973049999331124
+            },
+            {
+              "size": 257,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d935",
+              "wasm_sha256": "b2de490cfe821bc4242a0dc1b6dbf9420b1a729c4d87b207f83849d4f3213c14",
+              "bytes": 1121,
+              "assembly_seconds": 0.004009111988125369
+            },
+            {
+              "size": 511,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be0750",
+              "wasm_sha256": "59452c32e2e5ec5bea50cf2938b98ea5817dfcd3f0144378d6af49c924dd1b9a",
+              "bytes": 2014,
+              "assembly_seconds": 0.004104966996237636
+            },
+            {
+              "size": 512,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be075099",
+              "wasm_sha256": "a045a5d0dacadd3f9af3ae4a2aedff13e59b73499fc1b5f10c4019deaf2eca57",
+              "bytes": 1887,
+              "assembly_seconds": 0.004064859007485211
+            },
+            {
+              "size": 513,
+              "expected": "75be0750acf53e87e32c75be1a63acf5519ae32c88d11a63bf08519af63f88d12d76bf0864adf63f9be42d76d21b64ad09529be44089d21b77c00952aef74089e52e77c01c65aef7539ce52e8ad31c65c10a539cf8418ad32f78c10a66aff8419de62f78d41d66af0b549de6428bd41d79c20b54b0f9428be73079c21e67b0f9559ee7308cd51e67c30c559efa438cd5317ac30c68b1fa439fe8317ad61f68b10d569fe8448dd61f7bc40d56b2fb448de9327bc42069b2fb57a0e9328ed72069c50e57a0fc458ed7337cc50e6ab3fc45a1ea337cd8216ab30f58a1ea468fd8217dc60f58b4fd468feb347dc6226bb4fd59a2eb3490d9226bc71059a2fe4790d9357ec7106cb5fe47a3ec357eda236cb5115aa3ec4891da237fc8115ab6ff4891ed367fc8246db6ff5ba4ed3692db246dc9125ba4004992db3780c9126eb70049a5ee3780dc256eb7135ca5ee4a93dc2581ca135cb8014a93ef3881ca266fb8015da6ef3894dd266fcb145da6024b94dd3982cb1470b9024ba7f03982de2770b9155ea7f04c95de2783cc155eba034c95f13a83cc2871ba035fa8f13a96df2871cd165fa8044d96df3b84cd1672bb044da9f23b84e02972bb1760a9f24e97e02985ce1760bc054e97f33c85ce2a73bc0561aaf33c98e12a73cf1861aa064f98e13d86cf1874bd064fabf43d86e22b74bd1962abf45099e22b87d01962be075099f5",
+              "wasm_sha256": "f7896e8ef580dcfbbc6d072b1251c7ecee1cbccf95a85668b9ccb660c6346242",
+              "bytes": 1922,
+              "assembly_seconds": 0.004426961997523904
+            }
+          ]
+        },
+        "helperWasm": "4ae4d68ac740fbeea8fb4f0b74c2fa70a997110765fdfb6e8fda56bab920a22a",
+        "helperJs": "5115b0f84b200cdaad0031c51fe2713138abb573cf8a259b0e0d369ac6793ce8",
+        "cpu": "Intel(R) Core(TM) i7-10875H CPU @ 2.30GHz",
+        "reverse": true,
+        "crossControl": true,
+        "source": "5b053dd816ec60916a573535b692b4a2279ddd65510efc1517bbbfdbd0374994"
+      },
+      "checks": {
+        "comparisons": 232143,
+        "cases": 55,
+        "setupMs": 14.239999994635582,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+      },
+      "rows": [
+        {
+          "size": 512,
+          "kind": "constant_cross",
+          "setupMs": 12.129999995231628,
+          "compileMs": 0.1850000023841858,
+          "instantiateMs": 0.04999999701976776,
+          "crossInstantiateMs": 0.025000005960464478,
+          "firstMs": 0.06499999761581421,
+          "warmMs": 15.450000002980232,
+          "timings": [
+            136.3699999898672,
+            126.62999999523163,
+            128.03500001132488,
+            126.1950000077486,
+            126.45000000298023,
+            126.95499999821186,
+            126.85999999940395,
+            126.56999999284744
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 512,
+          "kind": "generic_cross",
+          "setupMs": 13.090000003576279,
+          "compileMs": 0.2199999988079071,
+          "instantiateMs": 0.04999999701976776,
+          "crossInstantiateMs": 0.025000005960464478,
+          "firstMs": 0.04999999701976776,
+          "warmMs": 10.069999992847443,
+          "timings": [
+            96.04500000178814,
+            87.8999999910593,
+            84.90999999642372,
+            86.90000000596046,
+            87.1950000077486,
+            86.20999999344349,
+            84.73000000417233,
+            82.82500000298023
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 512,
+          "kind": "production",
+          "setupMs": 12.275000005960464,
+          "compileMs": 0.16499999165534973,
+          "instantiateMs": 0.050000011920928955,
+          "crossInstantiateMs": 0,
+          "firstMs": 0.06999999284744263,
+          "warmMs": 13.679999992251396,
+          "timings": [
+            105.98000000417233,
+            96.27500000596046,
+            93.95499999821186,
+            93.3200000077486,
+            91.82999999821186,
+            92.68999999761581,
+            95.36499999463558,
+            94.53999999165535
+          ],
+          "calls": 5000000,
+          "bytes": 1887,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "constant_cross",
+          "setupMs": 12.714999988675117,
+          "compileMs": 0.17000000178813934,
+          "instantiateMs": 0.04999999701976776,
+          "crossInstantiateMs": 0.025000005960464478,
+          "firstMs": 0.05500000715255737,
+          "warmMs": 7.920000001788139,
+          "timings": [
+            75.53499999642372,
+            66.33999998867512,
+            64.71499998867512,
+            64.56000000238419,
+            63.76000000536442,
+            63.769999995827675,
+            63.37000000476837,
+            64.73999999463558
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "generic_cross",
+          "setupMs": 12.009999990463257,
+          "compileMs": 0.15000000596046448,
+          "instantiateMs": 0.04999999701976776,
+          "crossInstantiateMs": 0.025000005960464478,
+          "firstMs": 0.040000006556510925,
+          "warmMs": 6.980000004172325,
+          "timings": [
+            67.51500000059605,
+            62.190000012516975,
+            57.13500000536442,
+            57.560000002384186,
+            57.25500001013279,
+            57.08500000834465,
+            57.650000005960464,
+            58.61999998986721
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 228,
+          "kind": "production",
+          "setupMs": 11.74499998986721,
+          "compileMs": 0.16999998688697815,
+          "instantiateMs": 0.05500000715255737,
+          "crossInstantiateMs": 0,
+          "firstMs": 0.06499999761581421,
+          "warmMs": 8.429999992251396,
+          "timings": [
+            74.98999999463558,
+            70.19499999284744,
+            62.9750000089407,
+            62.820000007748604,
+            62.900000005960464,
+            61.21500000357628,
+            60.83499999344349,
+            61.37999999523163
+          ],
+          "calls": 5000000,
+          "bytes": 1043,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "constant_cross",
+          "setupMs": 12.820000007748604,
+          "compileMs": 0.1599999964237213,
+          "instantiateMs": 0.040000006556510925,
+          "crossInstantiateMs": 0.019999995827674866,
+          "firstMs": 0.034999996423721313,
+          "warmMs": 4.0150000005960464,
+          "timings": [
+            31.765000000596046,
+            31.689999997615814,
+            30.37000000476837,
+            28.650000005960464,
+            26.405000001192093,
+            26.439999997615814,
+            26.58499999344349,
+            26.479999989271164
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "generic_cross",
+          "setupMs": 12.195000007748604,
+          "compileMs": 0.1550000011920929,
+          "instantiateMs": 0.04499998688697815,
+          "crossInstantiateMs": 0.024999991059303284,
+          "firstMs": 0.03999999165534973,
+          "warmMs": 4.105000004172325,
+          "timings": [
+            29.570000007748604,
+            29.29500000178814,
+            29.114999994635582,
+            34.144999995827675,
+            25.79500000178814,
+            24.96500000357628,
+            24.934999987483025,
+            25.030000001192093
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 64,
+          "kind": "production",
+          "setupMs": 12.114999994635582,
+          "compileMs": 0.1550000011920929,
+          "instantiateMs": 0.04999999701976776,
+          "crossInstantiateMs": 0,
+          "firstMs": 0.07500000298023224,
+          "warmMs": 5.549999997019768,
+          "timings": [
+            60.775000005960464,
+            41.90500000119209,
+            37.1000000089407,
+            36.185000002384186,
+            37.519999995827675,
+            36.179999992251396,
+            36.79999999701977,
+            36.730000004172325
+          ],
+          "calls": 5000000,
+          "bytes": 497,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "constant_cross",
+          "setupMs": 13.120000004768372,
+          "compileMs": 0.17000000178813934,
+          "instantiateMs": 0.06499999761581421,
+          "crossInstantiateMs": 0.019999995827674866,
+          "firstMs": 0.04999999701976776,
+          "warmMs": 4.66499999165535,
+          "timings": [
+            30.92000000178814,
+            29.945000007748604,
+            29.49499998986721,
+            27.519999995827675,
+            25.359999999403954,
+            23.599999994039536,
+            22.71000000834465,
+            22.730000004172325
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "generic_cross",
+          "setupMs": 12.555000007152557,
+          "compileMs": 0.1899999976158142,
+          "instantiateMs": 0.050000011920928955,
+          "crossInstantiateMs": 0.034999996423721313,
+          "firstMs": 0.04500000178813934,
+          "warmMs": 3.9949999898672104,
+          "timings": [
+            28.105000004172325,
+            27.384999990463257,
+            26.474999994039536,
+            24.294999986886978,
+            23.015000000596046,
+            22.87999999523163,
+            22.939999997615814,
+            22.825000002980232
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 28,
+          "kind": "production",
+          "setupMs": 12.564999997615814,
+          "compileMs": 0.15000000596046448,
+          "instantiateMs": 0.05500000715255737,
+          "crossInstantiateMs": 0,
+          "firstMs": 0.08499999344348907,
+          "warmMs": 7,
+          "timings": [
+            50.03999999165535,
+            41.09500001370907,
+            39.48499999940395,
+            38.57499998807907,
+            38.26000000536442,
+            38.269999995827675,
+            38.25499999523163,
+            37.21000000834465
+          ],
+          "calls": 5000000,
+          "bytes": 437,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 8,
+          "kind": "constant_cross",
+          "setupMs": 13.730000004172325,
+          "compileMs": 0.16499999165534973,
+          "instantiateMs": 0.04999999701976776,
+          "crossInstantiateMs": 0.025000005960464478,
+          "firstMs": 0.04500000178813934,
+          "warmMs": 3.1200000047683716,
+          "timings": [
+            21.070000007748604,
+            21.54500000178814,
+            21.484999999403954,
+            21.685000002384186,
+            18.805000007152557,
+            18.21000000834465,
+            18.304999992251396,
+            18.03999999165535
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 8,
+          "kind": "generic_cross",
+          "setupMs": 12.205000013113022,
+          "compileMs": 0.1550000011920929,
+          "instantiateMs": 0.050000011920928955,
+          "crossInstantiateMs": 0.019999995827674866,
+          "firstMs": 0.034999996423721313,
+          "warmMs": 2.9749999940395355,
+          "timings": [
+            23.17000000178814,
+            22.82999999821186,
+            22.859999999403954,
+            21.95999999344349,
+            19.605000004172325,
+            19.885000005364418,
+            20.195000007748604,
+            19.580000013113022
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        },
+        {
+          "size": 8,
+          "kind": "production",
+          "setupMs": 11.434999987483025,
+          "compileMs": 0.1599999964237213,
+          "instantiateMs": 0.050000011920928955,
+          "crossInstantiateMs": 0,
+          "firstMs": 0.0650000125169754,
+          "warmMs": 5.605000004172325,
+          "timings": [
+            36.03000000119209,
+            34.73499999940395,
+            31.049999997019768,
+            49.125,
+            29.804999992251396,
+            29.724999994039536,
+            29.405000001192093,
+            29.385000005364418
+          ],
+          "calls": 5000000,
+          "bytes": 346,
+          "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+        }
+      ]
+    }
+  },
+  "helper_archive": "/home/claude/.scratch/eka-benchmark/snapshot-validators-helper",
+  "modules": "/home/claude/.scratch/eka-benchmark/snapshot-validators-modules",
+  "checks_total": 928572,
+  "timed_rounds": 480
+}

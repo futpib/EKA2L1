@@ -1,0 +1,255 @@
+{
+  "candidate": "Outlined precise fallback for short-budget loop-free ARM regions",
+  "decision": "Rejected: mixed signs against both immediate and served controls",
+  "source": {
+    "head": "f7ee55bbc6cf33cbb89c1ca038e5535d6dbfa980",
+    "patch": "/home/claude/.scratch/eka-benchmark/outlined-budget-candidate.patch",
+    "hashes": {
+      "eka2l1.js": "484a18b0d4629470ae94ddf0ad82dd6f237293c85b22b90e0c60994a9a9a0b74",
+      "eka2l1.html": "b5d39c3304e5661232eb41b4615479282392c496ad0413eb6431459af5edc027",
+      "eka2l1.data": "2a98d4c4b50518e3aab27ac4a5f1c82bc1e279c8c1599ce0dd1a48a356dbad85",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "d80a9808603da911a45a1048913736d5e75d0a019faf78c0d04a5f31079aef11",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_fault_native": "643c9f4e621774f06a4fdc8c26debe5a1fa10c28e18e744120244b049b00b724",
+      "tests/test_aot_wasm.wasm": "5a1a5279fe34e5397eb9ff0c697ae75a0732f720e76a0f975e64b9bbcc701b2e",
+      "tests/eka_cpu_fault_wasm.wasm": "67503e916764aa446542490eaac9398e3c28f5022937a22520f84e913e3f3521",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+    }
+  },
+  "runs": [
+    {
+      "batch": "a",
+      "run": "direct-1",
+      "build": "/home/claude/.scratch/eka-benchmark/direct-loop-candidate",
+      "host_seconds": 13.5004,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "outlined-1",
+      "build": "/home/claude/.scratch/eka-benchmark/outlined-budget-candidate",
+      "host_seconds": 14.9492,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "served-1",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "host_seconds": 13.4855,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "served-2",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "host_seconds": 15.4,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "outlined-2",
+      "build": "/home/claude/.scratch/eka-benchmark/outlined-budget-candidate",
+      "host_seconds": 13.2031,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "a",
+      "run": "direct-2",
+      "build": "/home/claude/.scratch/eka-benchmark/direct-loop-candidate",
+      "host_seconds": 14.25,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "outlined-1",
+      "build": "/home/claude/.scratch/eka-benchmark/outlined-budget-candidate",
+      "host_seconds": 13.2878,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "served-1",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "host_seconds": 13.5049,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "direct-1",
+      "build": "/home/claude/.scratch/eka-benchmark/direct-loop-candidate",
+      "host_seconds": 14.7681,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "direct-2",
+      "build": "/home/claude/.scratch/eka-benchmark/direct-loop-candidate",
+      "host_seconds": 13.5617,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "served-2",
+      "build": "/home/claude/.scratch/eka-benchmark/addv-candidate",
+      "host_seconds": 13.8513,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "b",
+      "run": "outlined-2",
+      "build": "/home/claude/.scratch/eka-benchmark/outlined-budget-candidate",
+      "host_seconds": 14.7591,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    }
+  ],
+  "means": {
+    "a": {
+      "direct": 13.8752,
+      "outlined": 14.076149999999998,
+      "served": 14.44275
+    },
+    "b": {
+      "direct": 14.1649,
+      "outlined": 14.02345,
+      "served": 13.6781
+    }
+  },
+  "verification": {
+    "all-faults": [
+      {
+        "mode": "extended",
+        "comparison": {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/outlined-budget-extended-native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+            "/home/claude/.scratch/eka-benchmark/outlined-budget-extended-wasm.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+          },
+          "differences": []
+        }
+      },
+      {
+        "mode": "deferred",
+        "comparison": {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/outlined-budget-deferred-native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+            "/home/claude/.scratch/eka-benchmark/outlined-budget-deferred-wasm.log": "e316ccb0c8c581a3921c100340f41340240a0622df989902f475f32974a7dde9"
+          },
+          "differences": []
+        }
+      },
+      {
+        "mode": "entry-budget",
+        "comparison": {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/outlined-budget-entry-budget-native.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a",
+            "/home/claude/.scratch/eka-benchmark/outlined-budget-entry-budget-wasm.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a"
+          },
+          "differences": []
+        }
+      },
+      {
+        "mode": "entry-budget-deferred",
+        "comparison": {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/outlined-budget-entry-budget-deferred-native.log": "3d6ac19f88e3952b1ea8f3074eb1fc3e2e8c5b61998f4f2db905ecb494d3620a",
+            "/home/claude/.scratch/eka-benchmark/outlined-budget-entry-budget-deferred-wasm.log": "b2b06484fa7651168c6cd1663dd3c6694891d4cdc7b3f92211e8c060cc6be32d"
+          },
+          "differences": []
+        }
+      }
+    ],
+    "comparison": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+        "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+        "writes": 0,
+        "callbacks": 10190,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 10190,
+        "gameplay_nonzero_samples": 7223662,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16263331210
+    },
+    "gameplay": {
+      "frames": 1600,
+      "unique_images": 1600,
+      "unique_viewports": 1600,
+      "first_virtual_us": 21031559,
+      "last_virtual_us": 102484363,
+      "virtual_seconds": 81.452804,
+      "game_images_per_virtual_second": 19.631000057407476,
+      "median_interval_us": 47034,
+      "max_interval_us": 408561,
+      "min_viewport_changed_fraction": 0.002483333333333282,
+      "median_viewport_changed_fraction": 0.29761666666666664,
+      "pass": false
+    }
+  },
+  "logs": {
+    "tests": {
+      "path": "/home/claude/.scratch/eka-benchmark/outlined-budget-tests.log",
+      "sha256": "7c333c20ec27f2cc9b286672106ab2bc831b9140d3760be88057fdaa76c2a4f8"
+    },
+    "native-tests": {
+      "path": "/home/claude/.scratch/eka-benchmark/outlined-budget-native-tests.log",
+      "sha256": "4a9429c274b3635b3af88ad77159dd894fbdf9c9c7d4120a476971603ffbb19e"
+    },
+    "frontend": {
+      "path": "/home/claude/.scratch/eka-benchmark/outlined-budget-frontend.log",
+      "sha256": "ea9ea99a3c85681899c8474cb6bd7b77d23df117bcd2021fd34107cc467e27f9"
+    },
+    "replay": {
+      "path": "/home/claude/.scratch/eka-benchmark/outlined-budget-replay.log",
+      "sha256": "0eca8415d861a4345adf5378eb21c49d5e653fe03fc66cfca4758ffebc9f7af5"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index 28379613e..4dfacd7ea 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -275,10 +275,21 @@ namespace eka2l1::arm::aot {
+     // Returns true if a conditional block was opened (caller must arm_emit op_end).
+     // Returns false for AL/NV (unconditional).
+     static bool emit_cond_check(arm_emit &w, std::uint32_t cond,
+-                                std::uint32_t TMP1, std::uint32_t TMP2) {
++                                std::uint32_t TMP1, std::uint32_t TMP2, bool compare_operands = false) {
+         // AL (14) and NV (15) are unconditional
+         if (cond >= 0xE) return false;
+ 
++        // An immediately preceding unconditional CMP left its operands in
++        // TMP1/TMP2. Flags are still materialized for every precise exit, but
++        // compound unsigned/signed conditions can compare the inputs directly.
++        if (compare_operands && cond >= 8 && cond <= 13) {
++            static constexpr wasm_op comparisons[] = {op_i32_gt_u, op_i32_le_u,
++                op_i32_ge_s, op_i32_lt_s, op_i32_gt_s, op_i32_le_s};
++            w.get_local(TMP1); w.get_local(TMP2); w.op(comparisons[cond - 8]);
++            w.op(op_if); w.op(type_void);
++            return true;
++        }
++
+         // Evaluate condition based on flags
+         switch (cond) {
+         case 0: // EQ: Z==1
+@@ -792,6 +803,7 @@ namespace eka2l1::arm::aot {
+ 
+         std::uint32_t insn_idx = 0;
+         std::uint32_t decoded_end_offset = 0;
++        bool previous_compare = false;
+ 
+         for (const auto &instruction : instructions) {
+             const auto i = instruction.offset;
+@@ -805,6 +817,8 @@ namespace eka2l1::arm::aot {
+             // the exit check independently of their lexical predecessor.
+             const bool check_exit = w.instruction_may_exit || insn_addr == start_address
+                 || (!instruction.leaf && forward_targets_set.count(insn_addr));
++            const bool compare_operands = region && cache_registers && previous_compare && !check_exit;
++            previous_compare = false;
+             w.instruction_may_exit = false;
+             w.current_pc = insn_addr; w.pc_written = false; w.restartable_access = false;
+ 
+@@ -869,7 +883,7 @@ namespace eka2l1::arm::aot {
+             bool handled = true;
+ 
+             // Emit condition check
+-            bool cond_opened = emit_cond_check(w, cond, TMP1, TMP2);
++            bool cond_opened = emit_cond_check(w, cond, TMP1, TMP2, compare_operands);
+ 
+             // === B/BL: bits [27:25] = 101 ===
+             if (((inst >> 25) & 7) == 5) {
+@@ -1598,6 +1612,7 @@ namespace eka2l1::arm::aot {
+                     w.get_local(TMP1); w.get_local(TMP3); w.op(op_i32_xor);
+                     w.op(op_i32_and); w.i32_const(31); w.op(op_i32_shr_u);
+                     w.store_i32_from_stack(S::VFLAG, TMP4);
++                    previous_compare = cond == 14;
+                     break;
+                 case 0xB: // CMN (ADD without write)
+                     w.get_local(TMP1); w.get_local(TMP2);

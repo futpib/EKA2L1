@@ -37,6 +37,18 @@ namespace eka2l1::common::guest_profile {
         using event_key = std::tuple<std::string, std::uint32_t, std::uint32_t, std::uint32_t>;
         std::map<event_key, std::uint64_t> aot_samples;
         std::uint64_t dropped_aot_samples = 0;
+        std::uint64_t compiled_blocks = 0, memory_calls[6]{};
+        std::map<unsigned, std::uint64_t> block_lengths;
+        using edge_key = std::tuple<std::uint32_t,std::uint32_t,std::uint32_t,unsigned,std::uint32_t>;
+        std::map<edge_key,std::uint64_t> edges;
+        std::uint64_t dropped_edges = 0;
+        void edge(std::uint32_t from, std::uint32_t to, std::uint32_t asid, unsigned length, std::uint32_t last) {
+            edge_key k{from,to,asid,length,last};
+            auto it = edges.find(k);
+            if (it != edges.end()) ++it->second;
+            else if (edges.size() < 131072) edges.emplace(k,1);
+            else ++dropped_edges;
+        }
         void event(const char *reason, std::uint32_t pc_mode, std::uint32_t space = 0, std::uint32_t opcode = 0) {
             if (++aot_events[reason] % stride) return;
             event_key key{reason,pc_mode,space,opcode};
@@ -91,6 +103,20 @@ namespace eka2l1::common::guest_profile {
                 const auto &[reason,pc,space,opcode] = key;
                 out << "{\"reason\":" << quote(reason) << ",\"pc_mode\":" << pc
                     << ",\"asid\":" << space << ",\"opcode\":" << opcode << ",\"count\":" << count << '}';
+            }
+            out << "],\"compiled_blocks\":" << compiled_blocks << ",\"dropped_edges\":" << dropped_edges << ",\"memory_calls\":[";
+            for (unsigned i=0;i<6;++i) { if(i) out << ','; out << memory_calls[i]; }
+            out << "],\"block_lengths\":["; first=true;
+            for (const auto &[length,count] : block_lengths) {
+                if(!first) out << ','; first=false;
+                out << '[' << length << ',' << count << ']';
+            }
+            out << "],\"edges\":["; first=true;
+            for (const auto &[k,count] : edges) {
+                if(!first) out << ','; first=false;
+                const auto &[from,to,asid,length,last] = k;
+                out << "{\"from\":" << from << ",\"to\":" << to << ",\"asid\":" << asid
+                    << ",\"length\":" << length << ",\"last_opcode\":" << last << ",\"count\":" << count << '}';
             }
             out << "]}";
             return out.str();

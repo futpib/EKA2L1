@@ -1,0 +1,265 @@
+diff --git a/src/emu/cpu/include/cpu/aot/wasm_emitter.h b/src/emu/cpu/include/cpu/aot/wasm_emitter.h
+index ec2133be5..5cce08572 100644
+--- a/src/emu/cpu/include/cpu/aot/wasm_emitter.h
++++ b/src/emu/cpu/include/cpu/aot/wasm_emitter.h
+@@ -20,6 +20,7 @@
+ #pragma once
+ 
+ #include <cstdint>
++#include <memory>
+ #include <string>
+ #include <vector>
+ 
+@@ -144,6 +145,11 @@ namespace eka2l1::arm::aot {
+         std::uint32_t num_f32_locals = 0;     // f32 locals (after i32 locals)
+         std::uint32_t num_f64_locals = 0;     // f64 locals (after f32 locals)
+         std::uint32_t num_prefix_i64_locals = 0; // before i32 scratch/cache locals
++        // Optional private cold callee. The call operand at this body offset
++        // reserves five unsigned-LEB bytes; the module builder supplies its
++        // final index after all public functions, preserving sibling indices.
++        std::shared_ptr<wasm_func_def> outlined_callee;
++        std::uint32_t outlined_call_offset = 0;
+     };
+ 
+     // Describes an imported function.
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index 28379613e..30da6c3fb 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -622,12 +622,12 @@ namespace eka2l1::arm::aot {
+         return reachable;
+     }
+ 
+-    translate_result translate_arm_block(
++    static translate_result translate_arm_block_impl(
+         const std::uint8_t *code,
+         std::size_t code_size,
+         std::uint32_t start_address,
+         const sibling_map *siblings,
+-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory)
++        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool entry_budget_covers_region)
+     {
+         region = region && bounded;
+         // Bounded blocks exit on branches instead of recursively calling siblings.
+@@ -827,13 +827,20 @@ namespace eka2l1::arm::aot {
+ 
+             if (bounded) {
+                 if (!region) w.store_i32_const(S::PC, insn_addr);
+-                w.load_i32(S::AOT_BUDGET);
+-                if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
+-                w.op(op_i32_le_u);
+-                if (region && check_exit) { w.load_i32(S::AOT_EXIT); w.op(op_i32_or); }
+-                w.op(op_if); w.op(type_void);
+-                w.bail(insn_addr, insn_idx);
+-                w.op(op_end);
++                if (!entry_budget_covers_region || check_exit) {
++                    if (!entry_budget_covers_region) {
++                        w.load_i32(S::AOT_BUDGET);
++                        if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
++                        w.op(op_i32_le_u);
++                    }
++                    if (region && check_exit) {
++                        w.load_i32(S::AOT_EXIT);
++                        if (!entry_budget_covers_region) w.op(op_i32_or);
++                    }
++                    w.op(op_if); w.op(type_void);
++                    w.bail(insn_addr, insn_idx);
++                    w.op(op_end);
++                }
+                 if (region) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(arm_emit::COUNT); }
+                 // Match DynCom's PLD decode: an optional prefetch hint has no
+                 // architectural effect, but still consumes one guest instruction.
+@@ -1880,4 +1887,52 @@ namespace eka2l1::arm::aot {
+         tr.bail_count = w.bail_count;
+         return tr;
+     }
++
++    translate_result translate_arm_block(
++        const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
++        const sibling_map *siblings, const code_window *dll_code, bool bounded,
++        bool stop_after_store, bool cache_registers, bool region,
++        const leaf_resolver *leaves, bool defer_memory)
++    {
++        auto precise = translate_arm_block_impl(code, code_size, start_address,
++            siblings, dll_code, bounded, stop_after_store, cache_registers,
++            region, leaves, defer_memory, false);
++        if (!bounded || !region || !cache_registers || !precise.complete
++            || !precise.dependencies.empty()
++            || code_size > 0xffffffffu - start_address) return precise;
++        const auto extent = precise.end_address - start_address;
++        if (extent < 8 || extent > code_size) return precise;
++        // Without backward/self branches or inlined callees, each instruction
++        // executes at most once. The emitted extent is a conservative budget
++        // bound; trailing bytes after a return belong to other functions.
++        for (std::size_t i = 0; i + 3 < extent; i += 4) {
++            std::uint32_t inst; std::memcpy(&inst, code + i, 4);
++            if (((inst >> 25) & 7) != 5 || ((inst >> 24) & 1)) continue;
++            const auto displacement = static_cast<std::int32_t>(inst << 8) >> 6;
++            if (displacement <= -8) return precise;
++        }
++        auto full = translate_arm_block_impl(code, code_size, start_address,
++            siblings, dll_code, bounded, stop_after_store, cache_registers,
++            region, nullptr, defer_memory, true);
++        if (!full.complete || full.end_address != precise.end_address
++            || !full.dependencies.empty()) return precise;
++        std::vector<std::uint8_t> body;
++        arm_emit w{body};
++        w.load_i32(S::AOT_BUDGET);
++        w.i32_const(extent / 4);
++        w.op(op_i32_lt_u); w.op(op_if); w.op(type_void);
++        w.state_ptr(); w.op(op_call);
++        full.func.outlined_call_offset = static_cast<std::uint32_t>(body.size());
++        // Fixed-width unsigned LEB relocation, resolved by build_wasm_module.
++        body.insert(body.end(), {0x80, 0x80, 0x80, 0x80, 0});
++        w.op(op_return);
++        w.op(op_end);
++        body.insert(body.end(), full.func.body.begin(), full.func.body.end());
++        full.func.body = std::move(body);
++        precise.func.export_name += "_short_budget";
++        full.func.outlined_callee = std::make_shared<wasm_func_def>(std::move(precise.func));
++        precise.func = std::move(full.func);
++        precise.bail_count += full.bail_count;
++        return precise;
++    }
+ }
+diff --git a/src/emu/cpu/src/aot/wasm_emitter.cpp b/src/emu/cpu/src/aot/wasm_emitter.cpp
+index 5c0a37c17..f8bd17ffa 100644
+--- a/src/emu/cpu/src/aot/wasm_emitter.cpp
++++ b/src/emu/cpu/src/aot/wasm_emitter.cpp
+@@ -67,6 +67,23 @@ namespace eka2l1::arm::aot {
+ 
+         const std::uint32_t num_imports = static_cast<std::uint32_t>(imports.size());
+         const std::uint32_t num_funcs = static_cast<std::uint32_t>(funcs.size());
++        std::vector<const wasm_func_def *> definitions;
++        std::vector<std::uint32_t> outlined_indices(num_funcs);
++        for (const auto &func : funcs) definitions.push_back(&func);
++        for (std::uint32_t i = 0; i < num_funcs; ++i) {
++            const auto &func = funcs[i];
++            if (!func.outlined_callee) continue;
++            // Only one outlining level is supported. Invalid metadata must not
++            // silently produce a call to another public function.
++            if (func.outlined_callee->outlined_callee
++                || func.outlined_call_offset == 0
++                || func.outlined_call_offset > func.body.size()
++                || func.body.size() - func.outlined_call_offset < 5
++                || func.body[func.outlined_call_offset - 1] != op_call) return {};
++            outlined_indices[i] = num_imports + static_cast<std::uint32_t>(definitions.size());
++            definitions.push_back(func.outlined_callee.get());
++        }
++        const auto num_definitions = static_cast<std::uint32_t>(definitions.size());
+ 
+         // Type indices: 0..num_imports-1 for import types, then num_imports for the AOT func type
+         // All AOT functions share the same type: (i32) -> (i32)
+@@ -126,8 +143,8 @@ namespace eka2l1::arm::aot {
+         // === Section 3: Function ===
+         {
+             std::vector<std::uint8_t> sec;
+-            leb128(sec, num_funcs);
+-            for (std::uint32_t i = 0; i < num_funcs; i++) {
++            leb128(sec, num_definitions);
++            for (std::uint32_t i = 0; i < num_definitions; i++) {
+                 leb128(sec, aot_type_idx);
+             }
+             emit_section(module, 3, sec);
+@@ -148,9 +165,10 @@ namespace eka2l1::arm::aot {
+         // === Section 10: Code ===
+         {
+             std::vector<std::uint8_t> sec;
+-            leb128(sec, num_funcs);
++            leb128(sec, num_definitions);
+ 
+-            for (auto &func : funcs) {
++            for (std::uint32_t index = 0; index < num_definitions; ++index) {
++                const auto &func = *definitions[index];
+                 std::vector<std::uint8_t> body;
+ 
+                 // Locals: optional i64 prefix, then i32, f32, f64
+@@ -180,7 +198,16 @@ namespace eka2l1::arm::aot {
+                 }
+ 
+                 // Body bytecode
++                const auto bytecode_start = body.size();
+                 body.insert(body.end(), func.body.begin(), func.body.end());
++                if (func.outlined_callee) {
++                    auto target = outlined_indices[index];
++                    for (unsigned n = 0; n < 5; ++n) {
++                        body[bytecode_start + func.outlined_call_offset + n]
++                            = (target & 0x7f) | (n < 4 ? 0x80 : 0);
++                        target >>= 7;
++                    }
++                }
+ 
+                 // End
+                 body.push_back(op_end);
+@@ -197,10 +224,10 @@ namespace eka2l1::arm::aot {
+         // any instructions or runtime bookkeeping to generated execution.
+         {
+             std::vector<std::uint8_t> names, custom;
+-            leb128(names, num_funcs);
+-            for (std::uint32_t i = 0; i < num_funcs; ++i) {
++            leb128(names, num_definitions);
++            for (std::uint32_t i = 0; i < num_definitions; ++i) {
+                 leb128(names, num_imports + i);
+-                emit_str(names, funcs[i].export_name);
++                emit_str(names, definitions[i]->export_name);
+             }
+             emit_str(custom, "name");
+             emit_section(custom, 1, names); // function-name subsection
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+index 96312a4c2..8741d012a 100644
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -2032,6 +2032,45 @@ static bool test_arm_clz() {
+     return true;
+ }
+ 
++// Private callee relocation must not shift public sibling-call indices, even
++// when imports and enough public functions require a multi-byte callee index.
++static bool test_outlined_callee_indices() {
++    for (unsigned import_count : {0u, 6u}) for (unsigned public_count : {2u, 128u}) {
++        std::vector<wasm_func_def> functions(public_count);
++        for (unsigned i = 0; i < public_count; ++i) {
++            functions[i].export_name = "f_" + std::to_string(i);
++            functions[i].num_locals = 0;
++            functions[i].body = {op_i32_const, 13};
++        }
++        auto &caller = functions[0];
++        caller.body = {op_local_get, 0, op_call, static_cast<std::uint8_t>(import_count + 1),
++            op_local_get, 0, op_call, 0x80, 0x80, 0x80, 0x80, 0, op_i32_add};
++        caller.outlined_call_offset = 7;
++        caller.outlined_callee = std::make_shared<wasm_func_def>();
++        caller.outlined_callee->export_name = "private_seven";
++        caller.outlined_callee->num_locals = 0;
++        caller.outlined_callee->body = {op_i32_const, 7};
++        std::vector<wasm_import_func> imports;
++        if (import_count) imports = {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
++            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
++        const auto module = build_wasm_module(functions, imports);
++        if (module.empty()) return false;
++#ifdef __EMSCRIPTEN__
++        alignas(8) std::uint32_t state[256]{};
++        if (js_run_aot_wasm(module.data(), module.size(),
++                reinterpret_cast<std::uint8_t *>(state), sizeof(state)) != 20) {
++            printf("  FAIL outlined callee imports=%u public=%u\n", import_count, public_count);
++            return false;
++        }
++#endif
++        caller.outlined_call_offset = static_cast<std::uint32_t>(caller.body.size());
++        if (!build_wasm_module(functions, imports).empty()) return false;
++    }
++    printf("  PASS outlined_callee_indices\n");
++    return true;
++}
++
+ // Execute bounded blocks and compare all registers, flags and memory against
+ // exactly the same number of DynCom instructions, including partial budgets.
+ static bool test_bounded_execution() {
+@@ -3649,6 +3688,7 @@ int main(int argc, char **argv) {
+     printf("\nRunning ARM translator-level tests...\n\n");
+     if (test_inlined_leaves()) passed++; else failed++;
+     if (test_bounded_execution()) passed++; else failed++;
++    if (test_outlined_callee_indices()) passed++; else failed++;
+     if (test_exact_code_compare()) passed++; else failed++;
+     if (test_region_cpsr_callback()) passed++; else failed++;
+     if (test_block_transfer_callback_pc()) passed++; else failed++;

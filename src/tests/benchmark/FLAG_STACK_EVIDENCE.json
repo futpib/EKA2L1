@@ -1,0 +1,35 @@
+{
+  "candidate": "direct flag-result stores from WASM operand stack into cached guest-state locals",
+  "baseline_build": "/home/claude/.scratch/eka-benchmark/mov-unused-rn-candidate",
+  "candidate_build": "/home/claude/.scratch/eka-benchmark/flag-stack-candidate",
+  "candidate_wasm_sha256": "33c9af6d1bb1a2ea0389c7245e5e27291d2f59784d04c8078942faba6d922787",
+  "timing_window_guest_seconds": [78, 96],
+  "timing_runs": [
+    {"batch":"A","baseline_seconds":[14.8717,19.0003],"candidate_seconds":[14.3553,13.6994]},
+    {"batch":"B-reversed","baseline_seconds":[15.0854,15.1878],"candidate_seconds":[13.7194,13.6095]},
+    {"batch":"C","baseline_seconds":[13.6138,15.6583],"candidate_seconds":[13.8154,14.5064]},
+    {"batch":"D-reversed","baseline_seconds":[13.5787,14.9038],"candidate_seconds":[13.6077,13.8137]}
+  ],
+  "same_work_each_run": {"guest_instructions":3975618624,"presentations":676},
+  "aggregate_mean_seconds": {"baseline":15.2374,"candidate":13.89085},
+  "aggregate_throughput_change_percent": 9.7,
+  "correctness": {
+    "wasm_tests_passed":134,
+    "native_ctest_targets_passed":3,
+    "native_wasm_fault_cases_matched":480,
+    "checked_replay_images_matched":1600,
+    "replay_guest_audio_frames_matched":4919249,
+    "replay_last_guest_seconds":102.484363
+  },
+  "live_runs": [
+    {"route":"manual","guest_seconds":120.528528,"host_seconds":120.546498,"added_audio_underruns":0,"added_audio_drops":0},
+    {"route":"automatic","guest_seconds":120.599958,"host_seconds":120.581930,"added_audio_underruns":0,"added_audio_drops":0}
+  ],
+  "frontend_smoke_checks": 7,
+  "upload_install_e2e": "not_completed: CID asset fetch returned 188-byte error bodies; device installation failed",
+  "notes": [
+    "All batch means favor candidate; six of eight adjacent paired comparisons favor candidate.",
+    "Several slow baseline runs inflate the aggregate; report the measured aggregate with shared-host variability caveat.",
+    "Live acceptance confirms paced behavior and audio continuity, not unpaced headroom."
+  ]
+}

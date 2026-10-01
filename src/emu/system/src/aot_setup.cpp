@@ -31,6 +31,7 @@
 #include <common/log.h>
 #include <common/deterministic.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <set>
@@ -128,6 +129,20 @@ namespace eka2l1::arm::aot {
 
         const char *hot_env = std::getenv("EKA2L1_AOT_HOT");
         configure_hot_rom(rom_host, rom_base, rom_size, hot_env && hot_env[0] == '1');
+        // Eager exports otherwise never reach observe_hot_pc: the dispatcher
+        // already finds them. Opt in to the existing region compiler here.
+        const char *eager = std::getenv("EKA2L1_AOT_EAGER_REGIONS");
+        const bool eager_regions = chaining_enabled && eager && std::strcmp(eager, "1") == 0;
+        auto eager_ir_policy = arm_ir_policy::configured;
+        const char *ir = std::getenv("EKA2L1_AOT_IR_MODE");
+        parse_arm_ir_policy(ir, eager_ir_policy);
+#ifdef EKA2L1_WASM_DEFER_MEMORY
+        const bool eager_defer = true;
+#else
+        const bool eager_defer = false;
+#endif
+        fprintf(stderr, "AOT: eager_regions=%d ir_policy=%d\n", eager_regions, static_cast<int>(eager_ir_policy));
+        const auto eager_start = std::chrono::steady_clock::now();
         std::vector<wasm_func_def> all_funcs;
 
         for (std::uint32_t offset = 0; offset + sizeof(rom_image_header_raw) < rom_size; offset += 4) {
@@ -254,7 +269,9 @@ namespace eka2l1::arm::aot {
                 if (!visited.insert(key).second) continue;
                 const auto size = std::min(c.func_size, chaining_enabled ? 512u : 128u);
                 auto tr = c.is_arm
-                    ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled)
+                    ? (eager_regions
+                        ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled, true, nullptr, eager_defer, eager_ir_policy)
+                        : translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled))
                     : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled);
                 if (tr.func.body.empty() || !tr.entry_supported) continue;
                 tr.func.export_name = "f_" + std::to_string(key);
@@ -296,7 +313,13 @@ namespace eka2l1::arm::aot {
             {"env", "tlb_write16", 3, false},
         };
 
+        const auto emission_start = std::chrono::steady_clock::now();
         auto wasm_bytes = build_wasm_module(all_funcs, imports);
+        fprintf(stderr, "AOT: eager_regions=%d scan_translate_ms=%.3f emit_ms=%.3f bytes=%zu functions=%zu\n",
+            eager_regions,
+            std::chrono::duration<double, std::milli>(emission_start - eager_start).count(),
+            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - emission_start).count(),
+            wasm_bytes.size(), all_funcs.size());
         LOG_INFO(KERNEL, "AOT: built WASM module ({} bytes, {} functions)",
             wasm_bytes.size(), all_funcs.size());
 

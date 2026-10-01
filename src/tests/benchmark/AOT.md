@@ -122,3 +122,7 @@ Normal execution now imports raw WASM memory helpers through native function-tab
 access, retaining outer abort handling. Verifier runs select separate checked
 helpers. Recent RAM-block hits skip container lookup while preserving current
 mapping and exact byte checks on every entry. See [DISPATCH_RESULTS.md](DISPATCH_RESULTS.md).
+
+Browser log rendering is bounded and optional; WASM per-call GL diagnostics are
+opt-in before initialization. See [GRAPHICS_DIAGNOSTICS_RESULTS.md](GRAPHICS_DIAGNOSTICS_RESULTS.md)
+for the captured/no-capture comparisons, controls and original `wasm-port` branch.

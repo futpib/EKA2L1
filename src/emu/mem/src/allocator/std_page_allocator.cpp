@@ -46,6 +46,7 @@ namespace eka2l1::mem {
             return;
         }
 
+        mapping_changed();
         page_tabs_[id]->idx_ = static_cast<std::uint32_t>(-1);
     }
 }

@@ -1,0 +1,1719 @@
+{
+  "cpu": "Intel Core i7-10875H",
+  "gpu": "NVIDIA Quadro T1000 with Max-Q Design",
+  "browser": "Chrome/150.0.7871.186",
+  "runs": {
+    "exit-live-auto120": {
+      "start": {
+        "guest": 23433398,
+        "inputs": 26,
+        "frames": 928
+      },
+      "end": {
+        "guest": 143860129,
+        "inputs": 26,
+        "frames": 5708
+      },
+      "host_seconds": 120.45224078000001,
+      "auto_start": true,
+      "sampling": false,
+      "profile_window": {
+        "begin": null,
+        "end": null
+      },
+      "measurement": null,
+      "renderer": "See gpu.json for physical GPU details",
+      "realtime_ratio": 0.9997882166422574,
+      "input_delivery_ms": [
+        4.469538999999713,
+        0.8664220000009664,
+        7.250514999999723,
+        4.205818000000363,
+        3.932859999998982,
+        1.139855000001262,
+        0.8877719999982219,
+        1.2049500000030093,
+        1.2356669999971928,
+        1.1323520000005374,
+        1.3084920000001148,
+        0.9500650000009045
+      ],
+      "samples": [
+        {
+          "host_seconds": 1.0018732070000005,
+          "guest": 24433295,
+          "inputs": 26,
+          "frames": 968
+        },
+        {
+          "host_seconds": 2.0026096780000007,
+          "guest": 25430352,
+          "inputs": 26,
+          "frames": 1008
+        },
+        {
+          "host_seconds": 3.003637581999999,
+          "guest": 26434714,
+          "inputs": 26,
+          "frames": 1048
+        },
+        {
+          "host_seconds": 4.005583027000001,
+          "guest": 27442238,
+          "inputs": 26,
+          "frames": 1090
+        },
+        {
+          "host_seconds": 5.007279910000001,
+          "guest": 28442535,
+          "inputs": 26,
+          "frames": 1130
+        },
+        {
+          "host_seconds": 6.0090878330000015,
+          "guest": 29446752,
+          "inputs": 26,
+          "frames": 1170
+        },
+        {
+          "host_seconds": 7.009340832999999,
+          "guest": 30443751,
+          "inputs": 26,
+          "frames": 1210
+        },
+        {
+          "host_seconds": 8.010334601999999,
+          "guest": 31445457,
+          "inputs": 26,
+          "frames": 1250
+        },
+        {
+          "host_seconds": 9.012364806,
+          "guest": 32445506,
+          "inputs": 26,
+          "frames": 1290
+        },
+        {
+          "host_seconds": 10.013808824999996,
+          "guest": 33441138,
+          "inputs": 26,
+          "frames": 1330
+        },
+        {
+          "host_seconds": 11.014808105,
+          "guest": 34440139,
+          "inputs": 26,
+          "frames": 1370
+        },
+        {
+          "host_seconds": 12.016122748999999,
+          "guest": 35445319,
+          "inputs": 26,
+          "frames": 1410
+        },
+        {
+          "host_seconds": 13.018204178999996,
+          "guest": 36446540,
+          "inputs": 26,
+          "frames": 1450
+        },
+        {
+          "host_seconds": 14.019390103000001,
+          "guest": 37448336,
+          "inputs": 26,
+          "frames": 1490
+        },
+        {
+          "host_seconds": 15.020441507,
+          "guest": 38449488,
+          "inputs": 26,
+          "frames": 1530
+        },
+        {
+          "host_seconds": 16.022483409999996,
+          "guest": 39452033,
+          "inputs": 26,
+          "frames": 1570
+        },
+        {
+          "host_seconds": 17.024182894000003,
+          "guest": 40453192,
+          "inputs": 26,
+          "frames": 1610
+        },
+        {
+          "host_seconds": 18.026237190999996,
+          "guest": 41447859,
+          "inputs": 26,
+          "frames": 1650
+        },
+        {
+          "host_seconds": 19.027382762,
+          "guest": 42449682,
+          "inputs": 26,
+          "frames": 1690
+        },
+        {
+          "host_seconds": 20.029433894999997,
+          "guest": 43453188,
+          "inputs": 26,
+          "frames": 1730
+        },
+        {
+          "host_seconds": 21.075232464999996,
+          "guest": 44492617,
+          "inputs": 26,
+          "frames": 1772
+        },
+        {
+          "host_seconds": 22.075948418999996,
+          "guest": 45497886,
+          "inputs": 26,
+          "frames": 1812
+        },
+        {
+          "host_seconds": 23.077778427000002,
+          "guest": 46493612,
+          "inputs": 26,
+          "frames": 1852
+        },
+        {
+          "host_seconds": 24.079904032,
+          "guest": 47497413,
+          "inputs": 26,
+          "frames": 1892
+        },
+        {
+          "host_seconds": 25.081137615000003,
+          "guest": 48531442,
+          "inputs": 26,
+          "frames": 1934
+        },
+        {
+          "host_seconds": 26.082765710000004,
+          "guest": 49497184,
+          "inputs": 26,
+          "frames": 1972
+        },
+        {
+          "host_seconds": 27.083851355000004,
+          "guest": 50491914,
+          "inputs": 26,
+          "frames": 2012
+        },
+        {
+          "host_seconds": 28.085742538,
+          "guest": 51495081,
+          "inputs": 26,
+          "frames": 2052
+        },
+        {
+          "host_seconds": 29.087604036000002,
+          "guest": 52534031,
+          "inputs": 26,
+          "frames": 2094
+        },
+        {
+          "host_seconds": 30.088963799000002,
+          "guest": 53517241,
+          "inputs": 26,
+          "frames": 2134
+        },
+        {
+          "host_seconds": 31.090432965999998,
+          "guest": 54514957,
+          "inputs": 26,
+          "frames": 2174
+        },
+        {
+          "host_seconds": 32.091561294,
+          "guest": 55509871,
+          "inputs": 26,
+          "frames": 2214
+        },
+        {
+          "host_seconds": 33.093751342000004,
+          "guest": 56514020,
+          "inputs": 26,
+          "frames": 2254
+        },
+        {
+          "host_seconds": 34.09581796,
+          "guest": 57514062,
+          "inputs": 26,
+          "frames": 2294
+        },
+        {
+          "host_seconds": 35.097415938000005,
+          "guest": 58515380,
+          "inputs": 26,
+          "frames": 2334
+        },
+        {
+          "host_seconds": 36.099275943,
+          "guest": 59548797,
+          "inputs": 26,
+          "frames": 2376
+        },
+        {
+          "host_seconds": 37.09937114,
+          "guest": 60548502,
+          "inputs": 26,
+          "frames": 2416
+        },
+        {
+          "host_seconds": 38.100209594,
+          "guest": 61548281,
+          "inputs": 26,
+          "frames": 2456
+        },
+        {
+          "host_seconds": 39.102213804,
+          "guest": 62547523,
+          "inputs": 26,
+          "frames": 2495
+        },
+        {
+          "host_seconds": 40.103657924,
+          "guest": 63547458,
+          "inputs": 26,
+          "frames": 2535
+        },
+        {
+          "host_seconds": 41.138185962,
+          "guest": 64562682,
+          "inputs": 26,
+          "frames": 2576
+        },
+        {
+          "host_seconds": 42.138778494,
+          "guest": 65558680,
+          "inputs": 26,
+          "frames": 2616
+        },
+        {
+          "host_seconds": 43.139858733000004,
+          "guest": 66560852,
+          "inputs": 26,
+          "frames": 2656
+        },
+        {
+          "host_seconds": 44.141440984999996,
+          "guest": 67562072,
+          "inputs": 26,
+          "frames": 2696
+        },
+        {
+          "host_seconds": 45.143190825999994,
+          "guest": 68556850,
+          "inputs": 26,
+          "frames": 2736
+        },
+        {
+          "host_seconds": 46.145107923000005,
+          "guest": 69600000,
+          "inputs": 26,
+          "frames": 2778
+        },
+        {
+          "host_seconds": 47.14616718399999,
+          "guest": 70600000,
+          "inputs": 26,
+          "frames": 2818
+        },
+        {
+          "host_seconds": 48.148250409,
+          "guest": 71600000,
+          "inputs": 26,
+          "frames": 2858
+        },
+        {
+          "host_seconds": 49.15049130699999,
+          "guest": 72561298,
+          "inputs": 26,
+          "frames": 2896
+        },
+        {
+          "host_seconds": 50.15279347799999,
+          "guest": 73609375,
+          "inputs": 26,
+          "frames": 2938
+        },
+        {
+          "host_seconds": 51.154717877,
+          "guest": 74609375,
+          "inputs": 26,
+          "frames": 2978
+        },
+        {
+          "host_seconds": 52.15632609,
+          "guest": 75609375,
+          "inputs": 26,
+          "frames": 3018
+        },
+        {
+          "host_seconds": 53.158634897,
+          "guest": 76609409,
+          "inputs": 26,
+          "frames": 3058
+        },
+        {
+          "host_seconds": 54.160356936,
+          "guest": 77620000,
+          "inputs": 26,
+          "frames": 3100
+        },
+        {
+          "host_seconds": 55.162396159999986,
+          "guest": 78610377,
+          "inputs": 26,
+          "frames": 3140
+        },
+        {
+          "host_seconds": 56.164034056999995,
+          "guest": 79594614,
+          "inputs": 26,
+          "frames": 3180
+        },
+        {
+          "host_seconds": 57.165281273,
+          "guest": 80560040,
+          "inputs": 26,
+          "frames": 3216
+        },
+        {
+          "host_seconds": 58.166176615999994,
+          "guest": 81598710,
+          "inputs": 26,
+          "frames": 3256
+        },
+        {
+          "host_seconds": 59.166852629999994,
+          "guest": 82620000,
+          "inputs": 26,
+          "frames": 3293
+        },
+        {
+          "host_seconds": 60.168249714999995,
+          "guest": 83597902,
+          "inputs": 26,
+          "frames": 3330
+        },
+        {
+          "host_seconds": 61.206877627,
+          "guest": 84598602,
+          "inputs": 26,
+          "frames": 3366
+        },
+        {
+          "host_seconds": 62.207851188999996,
+          "guest": 85573221,
+          "inputs": 26,
+          "frames": 3400
+        },
+        {
+          "host_seconds": 63.21007975799999,
+          "guest": 86525627,
+          "inputs": 26,
+          "frames": 3434
+        },
+        {
+          "host_seconds": 64.212094772,
+          "guest": 87526187,
+          "inputs": 26,
+          "frames": 3470
+        },
+        {
+          "host_seconds": 65.212676831,
+          "guest": 88510404,
+          "inputs": 26,
+          "frames": 3506
+        },
+        {
+          "host_seconds": 66.214768677,
+          "guest": 89474195,
+          "inputs": 26,
+          "frames": 3542
+        },
+        {
+          "host_seconds": 67.216804397,
+          "guest": 90411599,
+          "inputs": 26,
+          "frames": 3576
+        },
+        {
+          "host_seconds": 68.218029883,
+          "guest": 91396523,
+          "inputs": 26,
+          "frames": 3610
+        },
+        {
+          "host_seconds": 69.21984454599999,
+          "guest": 92479662,
+          "inputs": 26,
+          "frames": 3651
+        },
+        {
+          "host_seconds": 70.221873397,
+          "guest": 93652176,
+          "inputs": 26,
+          "frames": 3698
+        },
+        {
+          "host_seconds": 71.223738391,
+          "guest": 94648456,
+          "inputs": 26,
+          "frames": 3738
+        },
+        {
+          "host_seconds": 72.225828156,
+          "guest": 95650342,
+          "inputs": 26,
+          "frames": 3778
+        },
+        {
+          "host_seconds": 73.227050247,
+          "guest": 96654106,
+          "inputs": 26,
+          "frames": 3818
+        },
+        {
+          "host_seconds": 74.22851889399999,
+          "guest": 97653684,
+          "inputs": 26,
+          "frames": 3858
+        },
+        {
+          "host_seconds": 75.23049313,
+          "guest": 98662720,
+          "inputs": 26,
+          "frames": 3898
+        },
+        {
+          "host_seconds": 76.23189520099999,
+          "guest": 99650280,
+          "inputs": 26,
+          "frames": 3938
+        },
+        {
+          "host_seconds": 77.23386503,
+          "guest": 100652116,
+          "inputs": 26,
+          "frames": 3978
+        },
+        {
+          "host_seconds": 78.235309117,
+          "guest": 101662600,
+          "inputs": 26,
+          "frames": 4018
+        },
+        {
+          "host_seconds": 79.237114116,
+          "guest": 102687524,
+          "inputs": 26,
+          "frames": 4059
+        },
+        {
+          "host_seconds": 80.23900703899999,
+          "guest": 103688249,
+          "inputs": 26,
+          "frames": 4100
+        },
+        {
+          "host_seconds": 81.29184629,
+          "guest": 104734379,
+          "inputs": 26,
+          "frames": 4141
+        },
+        {
+          "host_seconds": 82.29393308799999,
+          "guest": 105700279,
+          "inputs": 26,
+          "frames": 4180
+        },
+        {
+          "host_seconds": 83.29545691700001,
+          "guest": 106734448,
+          "inputs": 26,
+          "frames": 4222
+        },
+        {
+          "host_seconds": 84.29695360199999,
+          "guest": 107738216,
+          "inputs": 26,
+          "frames": 4262
+        },
+        {
+          "host_seconds": 85.29914328599999,
+          "guest": 108739642,
+          "inputs": 26,
+          "frames": 4302
+        },
+        {
+          "host_seconds": 86.30070013299999,
+          "guest": 109734585,
+          "inputs": 26,
+          "frames": 4342
+        },
+        {
+          "host_seconds": 87.302648588,
+          "guest": 110739838,
+          "inputs": 26,
+          "frames": 4382
+        },
+        {
+          "host_seconds": 88.303674241,
+          "guest": 111712198,
+          "inputs": 26,
+          "frames": 4421
+        },
+        {
+          "host_seconds": 89.305536125,
+          "guest": 112735144,
+          "inputs": 26,
+          "frames": 4462
+        },
+        {
+          "host_seconds": 90.30712609199999,
+          "guest": 113740403,
+          "inputs": 26,
+          "frames": 4502
+        },
+        {
+          "host_seconds": 91.308619164,
+          "guest": 114743509,
+          "inputs": 26,
+          "frames": 4542
+        },
+        {
+          "host_seconds": 92.309678712,
+          "guest": 115736244,
+          "inputs": 26,
+          "frames": 4582
+        },
+        {
+          "host_seconds": 93.311109351,
+          "guest": 116739900,
+          "inputs": 26,
+          "frames": 4622
+        },
+        {
+          "host_seconds": 94.31278409999999,
+          "guest": 117744619,
+          "inputs": 26,
+          "frames": 4662
+        },
+        {
+          "host_seconds": 95.31471597999999,
+          "guest": 118738236,
+          "inputs": 26,
+          "frames": 4702
+        },
+        {
+          "host_seconds": 96.316634838,
+          "guest": 119743452,
+          "inputs": 26,
+          "frames": 4742
+        },
+        {
+          "host_seconds": 97.318821733,
+          "guest": 120745281,
+          "inputs": 26,
+          "frames": 4782
+        },
+        {
+          "host_seconds": 98.319985443,
+          "guest": 121745040,
+          "inputs": 26,
+          "frames": 4822
+        },
+        {
+          "host_seconds": 99.32213197200001,
+          "guest": 122747804,
+          "inputs": 26,
+          "frames": 4862
+        },
+        {
+          "host_seconds": 100.32370087,
+          "guest": 123747548,
+          "inputs": 26,
+          "frames": 4902
+        },
+        {
+          "host_seconds": 101.374589066,
+          "guest": 124790958,
+          "inputs": 26,
+          "frames": 4944
+        },
+        {
+          "host_seconds": 102.37675872499999,
+          "guest": 125794273,
+          "inputs": 26,
+          "frames": 4984
+        },
+        {
+          "host_seconds": 103.37868619,
+          "guest": 126797326,
+          "inputs": 26,
+          "frames": 5024
+        },
+        {
+          "host_seconds": 104.38046810399999,
+          "guest": 127793638,
+          "inputs": 26,
+          "frames": 5064
+        },
+        {
+          "host_seconds": 105.38258714899999,
+          "guest": 128791457,
+          "inputs": 26,
+          "frames": 5104
+        },
+        {
+          "host_seconds": 106.383832916,
+          "guest": 129829160,
+          "inputs": 26,
+          "frames": 5146
+        },
+        {
+          "host_seconds": 107.38588328599998,
+          "guest": 130794484,
+          "inputs": 26,
+          "frames": 5184
+        },
+        {
+          "host_seconds": 108.387695269,
+          "guest": 131817211,
+          "inputs": 26,
+          "frames": 5226
+        },
+        {
+          "host_seconds": 109.38989396400001,
+          "guest": 132811984,
+          "inputs": 26,
+          "frames": 5266
+        },
+        {
+          "host_seconds": 110.39191491099999,
+          "guest": 133811812,
+          "inputs": 26,
+          "frames": 5306
+        },
+        {
+          "host_seconds": 111.39378272,
+          "guest": 134813931,
+          "inputs": 26,
+          "frames": 5346
+        },
+        {
+          "host_seconds": 112.395699866,
+          "guest": 135811665,
+          "inputs": 26,
+          "frames": 5386
+        },
+        {
+          "host_seconds": 113.39734396099999,
+          "guest": 136811269,
+          "inputs": 26,
+          "frames": 5426
+        },
+        {
+          "host_seconds": 114.398986285,
+          "guest": 137810125,
+          "inputs": 26,
+          "frames": 5466
+        },
+        {
+          "host_seconds": 115.399669015,
+          "guest": 138846395,
+          "inputs": 26,
+          "frames": 5508
+        },
+        {
+          "host_seconds": 116.40167897999999,
+          "guest": 139847230,
+          "inputs": 26,
+          "frames": 5548
+        },
+        {
+          "host_seconds": 117.403642015,
+          "guest": 140847749,
+          "inputs": 26,
+          "frames": 5588
+        },
+        {
+          "host_seconds": 118.40560864999999,
+          "guest": 141849257,
+          "inputs": 26,
+          "frames": 5628
+        },
+        {
+          "host_seconds": 119.406982465,
+          "guest": 142845209,
+          "inputs": 26,
+          "frames": 5668
+        },
+        {
+          "host_seconds": 120.40785306400001,
+          "guest": 143845567,
+          "inputs": 26,
+          "frames": 5708
+        }
+      ],
+      "browser": "Chrome/150.0.7871.186",
+      "wasm_sha256": "9b37d90057f481198c110d61c234dd074c2df0545b3d24cb2d9f2c5dfaa00698",
+      "note": "Input latency measures DOM keydown to guest queue consumption, not display response.",
+      "maximum_lag_from_start_seconds": 0.2549048829999947,
+      "minimum_single_sample_ratio": 0.9354995847852524,
+      "minimum_ten_sample_ratio": 0.9747270219478816
+    },
+    "exit-live-manual120": {
+      "start": {
+        "guest": 23384547,
+        "inputs": 26,
+        "frames": 924
+      },
+      "end": {
+        "guest": 143915594,
+        "inputs": 26,
+        "frames": 5708
+      },
+      "host_seconds": 120.51690839400001,
+      "auto_start": false,
+      "sampling": false,
+      "profile_window": {
+        "begin": null,
+        "end": null
+      },
+      "measurement": null,
+      "renderer": "See gpu.json for physical GPU details",
+      "realtime_ratio": 1.0001173163682042,
+      "input_delivery_ms": [
+        1.2104040000012901,
+        0.6828239999995276,
+        2.6053010000014183,
+        3.819326999999248,
+        1.3717539999997825,
+        1.5307539999994333,
+        0.809266000000207,
+        1.1676690000022063,
+        1.327556000000186,
+        0.9041510000024573,
+        0.8246049999979732,
+        0.7474780000011378
+      ],
+      "samples": [
+        {
+          "host_seconds": 1.001516493000003,
+          "guest": 24390415,
+          "inputs": 26,
+          "frames": 964
+        },
+        {
+          "host_seconds": 2.003426012,
+          "guest": 25421889,
+          "inputs": 26,
+          "frames": 1006
+        },
+        {
+          "host_seconds": 3.005126500000002,
+          "guest": 26383764,
+          "inputs": 26,
+          "frames": 1044
+        },
+        {
+          "host_seconds": 4.007121194000003,
+          "guest": 27364497,
+          "inputs": 26,
+          "frames": 1084
+        },
+        {
+          "host_seconds": 5.008195895000001,
+          "guest": 28414173,
+          "inputs": 26,
+          "frames": 1126
+        },
+        {
+          "host_seconds": 6.009537886999999,
+          "guest": 29409942,
+          "inputs": 26,
+          "frames": 1166
+        },
+        {
+          "host_seconds": 7.0114218440000045,
+          "guest": 30415650,
+          "inputs": 26,
+          "frames": 1206
+        },
+        {
+          "host_seconds": 8.013249312,
+          "guest": 31409325,
+          "inputs": 26,
+          "frames": 1246
+        },
+        {
+          "host_seconds": 9.014627410000001,
+          "guest": 32407717,
+          "inputs": 26,
+          "frames": 1286
+        },
+        {
+          "host_seconds": 10.015380046999999,
+          "guest": 33416745,
+          "inputs": 26,
+          "frames": 1326
+        },
+        {
+          "host_seconds": 11.016451243000002,
+          "guest": 34410758,
+          "inputs": 26,
+          "frames": 1366
+        },
+        {
+          "host_seconds": 12.018114211,
+          "guest": 35407170,
+          "inputs": 26,
+          "frames": 1406
+        },
+        {
+          "host_seconds": 13.020416749000004,
+          "guest": 36416686,
+          "inputs": 26,
+          "frames": 1446
+        },
+        {
+          "host_seconds": 14.021511883999999,
+          "guest": 37419088,
+          "inputs": 26,
+          "frames": 1486
+        },
+        {
+          "host_seconds": 15.022935054000001,
+          "guest": 38416532,
+          "inputs": 26,
+          "frames": 1526
+        },
+        {
+          "host_seconds": 16.02478211,
+          "guest": 39414115,
+          "inputs": 26,
+          "frames": 1566
+        },
+        {
+          "host_seconds": 17.027105860000002,
+          "guest": 40419628,
+          "inputs": 26,
+          "frames": 1606
+        },
+        {
+          "host_seconds": 18.028278333000003,
+          "guest": 41418397,
+          "inputs": 26,
+          "frames": 1646
+        },
+        {
+          "host_seconds": 19.030396297,
+          "guest": 42412531,
+          "inputs": 26,
+          "frames": 1686
+        },
+        {
+          "host_seconds": 20.031212884000002,
+          "guest": 43417211,
+          "inputs": 26,
+          "frames": 1726
+        },
+        {
+          "host_seconds": 21.088311147,
+          "guest": 44468524,
+          "inputs": 26,
+          "frames": 1768
+        },
+        {
+          "host_seconds": 22.089542151,
+          "guest": 45502614,
+          "inputs": 26,
+          "frames": 1810
+        },
+        {
+          "host_seconds": 23.091391483,
+          "guest": 46501356,
+          "inputs": 26,
+          "frames": 1850
+        },
+        {
+          "host_seconds": 24.093094044000004,
+          "guest": 47461522,
+          "inputs": 26,
+          "frames": 1888
+        },
+        {
+          "host_seconds": 25.094327849000003,
+          "guest": 48460022,
+          "inputs": 26,
+          "frames": 1928
+        },
+        {
+          "host_seconds": 26.096102753,
+          "guest": 49502308,
+          "inputs": 26,
+          "frames": 1970
+        },
+        {
+          "host_seconds": 27.096866152000004,
+          "guest": 50502117,
+          "inputs": 26,
+          "frames": 2010
+        },
+        {
+          "host_seconds": 28.098951921,
+          "guest": 51506876,
+          "inputs": 26,
+          "frames": 2050
+        },
+        {
+          "host_seconds": 29.101075149000003,
+          "guest": 52504229,
+          "inputs": 26,
+          "frames": 2090
+        },
+        {
+          "host_seconds": 30.102681742,
+          "guest": 53504949,
+          "inputs": 26,
+          "frames": 2130
+        },
+        {
+          "host_seconds": 31.104633481000004,
+          "guest": 54506597,
+          "inputs": 26,
+          "frames": 2170
+        },
+        {
+          "host_seconds": 32.105221019000005,
+          "guest": 55504645,
+          "inputs": 26,
+          "frames": 2210
+        },
+        {
+          "host_seconds": 33.106920841,
+          "guest": 56506607,
+          "inputs": 26,
+          "frames": 2250
+        },
+        {
+          "host_seconds": 34.108274827,
+          "guest": 57508670,
+          "inputs": 26,
+          "frames": 2290
+        },
+        {
+          "host_seconds": 35.109330006,
+          "guest": 58503048,
+          "inputs": 26,
+          "frames": 2330
+        },
+        {
+          "host_seconds": 36.111267052,
+          "guest": 59509480,
+          "inputs": 26,
+          "frames": 2370
+        },
+        {
+          "host_seconds": 37.112501383,
+          "guest": 60512081,
+          "inputs": 26,
+          "frames": 2410
+        },
+        {
+          "host_seconds": 38.114372700000004,
+          "guest": 61510939,
+          "inputs": 26,
+          "frames": 2450
+        },
+        {
+          "host_seconds": 39.11632205,
+          "guest": 62510286,
+          "inputs": 26,
+          "frames": 2490
+        },
+        {
+          "host_seconds": 40.117337971,
+          "guest": 63511799,
+          "inputs": 26,
+          "frames": 2530
+        },
+        {
+          "host_seconds": 41.170343376999995,
+          "guest": 64561759,
+          "inputs": 26,
+          "frames": 2572
+        },
+        {
+          "host_seconds": 42.171108407000006,
+          "guest": 65556480,
+          "inputs": 26,
+          "frames": 2612
+        },
+        {
+          "host_seconds": 43.173041061,
+          "guest": 66560348,
+          "inputs": 26,
+          "frames": 2652
+        },
+        {
+          "host_seconds": 44.17479788700001,
+          "guest": 67600000,
+          "inputs": 26,
+          "frames": 2694
+        },
+        {
+          "host_seconds": 45.176832188,
+          "guest": 68562905,
+          "inputs": 26,
+          "frames": 2732
+        },
+        {
+          "host_seconds": 46.17817609000001,
+          "guest": 69600000,
+          "inputs": 26,
+          "frames": 2774
+        },
+        {
+          "host_seconds": 47.179644897,
+          "guest": 70556114,
+          "inputs": 26,
+          "frames": 2812
+        },
+        {
+          "host_seconds": 48.181505636999994,
+          "guest": 71609375,
+          "inputs": 26,
+          "frames": 2854
+        },
+        {
+          "host_seconds": 49.182841113,
+          "guest": 72609375,
+          "inputs": 26,
+          "frames": 2894
+        },
+        {
+          "host_seconds": 50.185061476,
+          "guest": 73609375,
+          "inputs": 26,
+          "frames": 2933
+        },
+        {
+          "host_seconds": 51.186869659,
+          "guest": 74609375,
+          "inputs": 26,
+          "frames": 2974
+        },
+        {
+          "host_seconds": 52.188374882999994,
+          "guest": 75563058,
+          "inputs": 26,
+          "frames": 3012
+        },
+        {
+          "host_seconds": 53.190698963,
+          "guest": 76609375,
+          "inputs": 26,
+          "frames": 3054
+        },
+        {
+          "host_seconds": 54.192746956,
+          "guest": 77580230,
+          "inputs": 26,
+          "frames": 3094
+        },
+        {
+          "host_seconds": 55.194801250999994,
+          "guest": 78610417,
+          "inputs": 26,
+          "frames": 3136
+        },
+        {
+          "host_seconds": 56.196143267000004,
+          "guest": 79620000,
+          "inputs": 26,
+          "frames": 3178
+        },
+        {
+          "host_seconds": 57.19760740900001,
+          "guest": 80565754,
+          "inputs": 26,
+          "frames": 3214
+        },
+        {
+          "host_seconds": 58.198009469,
+          "guest": 81590437,
+          "inputs": 26,
+          "frames": 3252
+        },
+        {
+          "host_seconds": 59.200007092,
+          "guest": 82602861,
+          "inputs": 26,
+          "frames": 3290
+        },
+        {
+          "host_seconds": 60.201649934,
+          "guest": 83576265,
+          "inputs": 26,
+          "frames": 3326
+        },
+        {
+          "host_seconds": 61.269105829000004,
+          "guest": 84642218,
+          "inputs": 26,
+          "frames": 3366
+        },
+        {
+          "host_seconds": 62.2711253,
+          "guest": 85582455,
+          "inputs": 26,
+          "frames": 3398
+        },
+        {
+          "host_seconds": 63.27303888000001,
+          "guest": 86521518,
+          "inputs": 26,
+          "frames": 3432
+        },
+        {
+          "host_seconds": 64.27497206,
+          "guest": 87515753,
+          "inputs": 26,
+          "frames": 3468
+        },
+        {
+          "host_seconds": 65.277312961,
+          "guest": 88484641,
+          "inputs": 26,
+          "frames": 3504
+        },
+        {
+          "host_seconds": 66.278160122,
+          "guest": 89418906,
+          "inputs": 26,
+          "frames": 3538
+        },
+        {
+          "host_seconds": 67.28010098,
+          "guest": 90356818,
+          "inputs": 26,
+          "frames": 3572
+        },
+        {
+          "host_seconds": 68.281411245,
+          "guest": 91334279,
+          "inputs": 26,
+          "frames": 3606
+        },
+        {
+          "host_seconds": 69.28186234900001,
+          "guest": 92412970,
+          "inputs": 26,
+          "frames": 3647
+        },
+        {
+          "host_seconds": 70.28375713700001,
+          "guest": 93648473,
+          "inputs": 26,
+          "frames": 3696
+        },
+        {
+          "host_seconds": 71.28599241600001,
+          "guest": 94694043,
+          "inputs": 26,
+          "frames": 3738
+        },
+        {
+          "host_seconds": 72.28807286499999,
+          "guest": 95692018,
+          "inputs": 26,
+          "frames": 3778
+        },
+        {
+          "host_seconds": 73.289564547,
+          "guest": 96692431,
+          "inputs": 26,
+          "frames": 3818
+        },
+        {
+          "host_seconds": 74.290638525,
+          "guest": 97693362,
+          "inputs": 26,
+          "frames": 3858
+        },
+        {
+          "host_seconds": 75.292673265,
+          "guest": 98695054,
+          "inputs": 26,
+          "frames": 3898
+        },
+        {
+          "host_seconds": 76.29392797,
+          "guest": 99692808,
+          "inputs": 26,
+          "frames": 3938
+        },
+        {
+          "host_seconds": 77.296079457,
+          "guest": 100695506,
+          "inputs": 26,
+          "frames": 3978
+        },
+        {
+          "host_seconds": 78.298109438,
+          "guest": 101697102,
+          "inputs": 26,
+          "frames": 4018
+        },
+        {
+          "host_seconds": 79.30018184800001,
+          "guest": 102697764,
+          "inputs": 26,
+          "frames": 4058
+        },
+        {
+          "host_seconds": 80.302246021,
+          "guest": 103698416,
+          "inputs": 26,
+          "frames": 4098
+        },
+        {
+          "host_seconds": 81.356266099,
+          "guest": 104744867,
+          "inputs": 26,
+          "frames": 4140
+        },
+        {
+          "host_seconds": 82.35829936600001,
+          "guest": 105745606,
+          "inputs": 26,
+          "frames": 4180
+        },
+        {
+          "host_seconds": 83.359464567,
+          "guest": 106762396,
+          "inputs": 26,
+          "frames": 4220
+        },
+        {
+          "host_seconds": 84.361523413,
+          "guest": 107781250,
+          "inputs": 26,
+          "frames": 4262
+        },
+        {
+          "host_seconds": 85.363695524,
+          "guest": 108748225,
+          "inputs": 26,
+          "frames": 4300
+        },
+        {
+          "host_seconds": 86.36390979800001,
+          "guest": 109750096,
+          "inputs": 26,
+          "frames": 4340
+        },
+        {
+          "host_seconds": 87.365879155,
+          "guest": 110781923,
+          "inputs": 26,
+          "frames": 4382
+        },
+        {
+          "host_seconds": 88.367173673,
+          "guest": 111748254,
+          "inputs": 26,
+          "frames": 4420
+        },
+        {
+          "host_seconds": 89.368849282,
+          "guest": 112783148,
+          "inputs": 26,
+          "frames": 4462
+        },
+        {
+          "host_seconds": 90.37089792600001,
+          "guest": 113784097,
+          "inputs": 26,
+          "frames": 4502
+        },
+        {
+          "host_seconds": 91.373173232,
+          "guest": 114748591,
+          "inputs": 26,
+          "frames": 4540
+        },
+        {
+          "host_seconds": 92.375196349,
+          "guest": 115785625,
+          "inputs": 26,
+          "frames": 4582
+        },
+        {
+          "host_seconds": 93.37611078,
+          "guest": 116785380,
+          "inputs": 26,
+          "frames": 4622
+        },
+        {
+          "host_seconds": 94.378029366,
+          "guest": 117785359,
+          "inputs": 26,
+          "frames": 4662
+        },
+        {
+          "host_seconds": 95.379993079,
+          "guest": 118787797,
+          "inputs": 26,
+          "frames": 4702
+        },
+        {
+          "host_seconds": 96.38135499,
+          "guest": 119784925,
+          "inputs": 26,
+          "frames": 4742
+        },
+        {
+          "host_seconds": 97.383444931,
+          "guest": 120785843,
+          "inputs": 26,
+          "frames": 4782
+        },
+        {
+          "host_seconds": 98.38436705100001,
+          "guest": 121781353,
+          "inputs": 26,
+          "frames": 4822
+        },
+        {
+          "host_seconds": 99.38551043700001,
+          "guest": 122787774,
+          "inputs": 26,
+          "frames": 4862
+        },
+        {
+          "host_seconds": 100.38709567900001,
+          "guest": 123789986,
+          "inputs": 26,
+          "frames": 4902
+        },
+        {
+          "host_seconds": 101.434628271,
+          "guest": 124838601,
+          "inputs": 26,
+          "frames": 4944
+        },
+        {
+          "host_seconds": 102.436702497,
+          "guest": 125839120,
+          "inputs": 26,
+          "frames": 4984
+        },
+        {
+          "host_seconds": 103.438186796,
+          "guest": 126836746,
+          "inputs": 26,
+          "frames": 5024
+        },
+        {
+          "host_seconds": 104.44018069600001,
+          "guest": 127840417,
+          "inputs": 26,
+          "frames": 5064
+        },
+        {
+          "host_seconds": 105.44226839500001,
+          "guest": 128840493,
+          "inputs": 26,
+          "frames": 5104
+        },
+        {
+          "host_seconds": 106.44451192199999,
+          "guest": 129837930,
+          "inputs": 26,
+          "frames": 5144
+        },
+        {
+          "host_seconds": 107.44659565799999,
+          "guest": 130836760,
+          "inputs": 26,
+          "frames": 5184
+        },
+        {
+          "host_seconds": 108.44778658,
+          "guest": 131861099,
+          "inputs": 26,
+          "frames": 5226
+        },
+        {
+          "host_seconds": 109.449867424,
+          "guest": 132847351,
+          "inputs": 26,
+          "frames": 5266
+        },
+        {
+          "host_seconds": 110.45146359499999,
+          "guest": 133844802,
+          "inputs": 26,
+          "frames": 5306
+        },
+        {
+          "host_seconds": 111.45277787500001,
+          "guest": 134853878,
+          "inputs": 26,
+          "frames": 5346
+        },
+        {
+          "host_seconds": 112.45480220600001,
+          "guest": 135856055,
+          "inputs": 26,
+          "frames": 5386
+        },
+        {
+          "host_seconds": 113.45620181000001,
+          "guest": 136853856,
+          "inputs": 26,
+          "frames": 5426
+        },
+        {
+          "host_seconds": 114.457656982,
+          "guest": 137855332,
+          "inputs": 26,
+          "frames": 5466
+        },
+        {
+          "host_seconds": 115.459742385,
+          "guest": 138857995,
+          "inputs": 26,
+          "frames": 5506
+        },
+        {
+          "host_seconds": 116.461161649,
+          "guest": 139851010,
+          "inputs": 26,
+          "frames": 5546
+        },
+        {
+          "host_seconds": 117.46332722,
+          "guest": 140857392,
+          "inputs": 26,
+          "frames": 5586
+        },
+        {
+          "host_seconds": 118.464328983,
+          "guest": 141857400,
+          "inputs": 26,
+          "frames": 5626
+        },
+        {
+          "host_seconds": 119.46623996300002,
+          "guest": 142860974,
+          "inputs": 26,
+          "frames": 5666
+        },
+        {
+          "host_seconds": 120.467251893,
+          "guest": 143860912,
+          "inputs": 26,
+          "frames": 5706
+        }
+      ],
+      "browser": "Chrome/150.0.7871.186",
+      "wasm_sha256": "9b37d90057f481198c110d61c234dd074c2df0545b3d24cb2d9f2c5dfaa00698",
+      "note": "Input latency measures DOM keydown to guest queue consumption, not display response.",
+      "maximum_lag_from_start_seconds": 0.3316792450000037,
+      "minimum_single_sample_ratio": 0.9334741970657435,
+      "minimum_ten_sample_ratio": 0.9663248788907525
+    }
+  },
+  "replays": {
+    "exit-extended1600": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+        "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+        "writes": 2029,
+        "callbacks": 2029,
+        "gameplay_nonzero_samples": 6907266,
+        "gameplay_peak": 8191
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16261337499
+    },
+    "exit-extended1600-repeat": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2855b394dfb24352412c839adfdbcaeb9288ab0930c43dae0434b2afdddacac0",
+        "sha256_events": "1a6bda3babf6c05de5448cea05f2563fbdd266441cab97f5d66340f83171397d",
+        "writes": 2029,
+        "callbacks": 2029,
+        "gameplay_nonzero_samples": 6907266,
+        "gameplay_peak": 8191
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16261337499
+    }
+  },
+  "native_qt_workflow": {
+    "elapsed": 32.738901673816144,
+    "exit_code": 0,
+    "keys": [
+      {
+        "host_seconds": 2.0165501087903976,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 4.033473813906312,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 6.050524316728115,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 8.071973536163568,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 10.088413627818227,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 12.105478293262422,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 14.123472522944212,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 16.140523742884398,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 18.15698100440204,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 20.17436223756522,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 22.19313861988485,
+        "window": "2097179"
+      },
+      {
+        "host_seconds": 24.20942271221429,
+        "window": "2097179"
+      }
+    ],
+    "frames": [
+      {
+        "file": "frame-0000.png",
+        "mtime": 1790475630.6606948,
+        "size": 4866
+      },
+      {
+        "file": "frame-0001.png",
+        "mtime": 1790475630.6706948,
+        "size": 4866
+      },
+      {
+        "file": "frame-0002.png",
+        "mtime": 1790475630.7206948,
+        "size": 4984
+      },
+      {
+        "file": "frame-0003.png",
+        "mtime": 1790475630.7306948,
+        "size": 4984
+      },
+      {
+        "file": "frame-0005.png",
+        "mtime": 1790475630.784028,
+        "size": 5096
+      },
+      {
+        "file": "frame-0008.png",
+        "mtime": 1790475630.9073615,
+        "size": 5496
+      },
+      {
+        "file": "frame-0013.png",
+        "mtime": 1790475631.034028,
+        "size": 5603
+      },
+      {
+        "file": "frame-0021.png",
+        "mtime": 1790475631.284028,
+        "size": 5622
+      },
+      {
+        "file": "frame-0034.png",
+        "mtime": 1790475631.7273614,
+        "size": 6494
+      },
+      {
+        "file": "frame-0055.png",
+        "mtime": 1790475632.350695,
+        "size": 6494
+      },
+      {
+        "file": "frame-0089.png",
+        "mtime": 1790475633.4073615,
+        "size": 5786
+      },
+      {
+        "file": "frame-0144.png",
+        "mtime": 1790475635.1606948,
+        "size": 8960
+      },
+      {
+        "file": "frame-0233.png",
+        "mtime": 1790475638.1573615,
+        "size": 6608
+      },
+      {
+        "file": "frame-0377.png",
+        "mtime": 1790475642.7873614,
+        "size": 21039
+      },
+      {
+        "file": "frame-0610.png",
+        "mtime": 1790475650.2373612,
+        "size": 9623
+      },
+      {
+        "file": "frame-0987.png",
+        "mtime": 1790475661.9773612,
+        "size": 10532
+      }
+    ],
+    "configuration": "normal Qt dynarmic, Xvfb software GL; not same GPU as browser"
+  },
+  "actual_launcher": {
+    "url": "http://127.0.0.1:8188/",
+    "state": {
+      "guest": 24094621,
+      "frames": 948,
+      "status": "Running: Snakes \u00b7 Arrows/WASD to move, Enter to select \u00b7 Sound off"
+    },
+    "errors": []
+  }
+}

@@ -1,0 +1,94 @@
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index 45c34d415..8033b3887 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -622,12 +622,12 @@ namespace eka2l1::arm::aot {
+         return reachable;
+     }
+ 
+-    translate_result translate_arm_block(
++    static translate_result translate_arm_block_impl(
+         const std::uint8_t *code,
+         std::size_t code_size,
+         std::uint32_t start_address,
+         const sibling_map *siblings,
+-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory)
++        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool entry_budget_covers_region)
+     {
+         region = region && bounded;
+         // Bounded blocks exit on branches instead of recursively calling siblings.
+@@ -789,13 +789,20 @@ namespace eka2l1::arm::aot {
+ 
+             if (bounded) {
+                 if (!region) w.store_i32_const(S::PC, insn_addr);
+-                w.load_i32(S::AOT_BUDGET);
+-                if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
+-                w.op(op_i32_le_u);
+-                if (region && check_exit) { w.load_i32(S::AOT_EXIT); w.op(op_i32_or); }
+-                w.op(op_if); w.op(type_void);
+-                w.bail(insn_addr, insn_idx);
+-                w.op(op_end);
++                if (!entry_budget_covers_region || check_exit) {
++                    if (!entry_budget_covers_region) {
++                        w.load_i32(S::AOT_BUDGET);
++                        if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
++                        w.op(op_i32_le_u);
++                    }
++                    if (region && check_exit) {
++                        w.load_i32(S::AOT_EXIT);
++                        if (!entry_budget_covers_region) w.op(op_i32_or);
++                    }
++                    w.op(op_if); w.op(type_void);
++                    w.bail(insn_addr, insn_idx);
++                    w.op(op_end);
++                }
+                 if (region) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(arm_emit::COUNT); }
+                 // Match DynCom's PLD decode: an optional prefetch hint has no
+                 // architectural effect, but still consumes one guest instruction.
+@@ -1837,4 +1844,46 @@ namespace eka2l1::arm::aot {
+         tr.bail_count = w.bail_count;
+         return tr;
+     }
++
++    translate_result translate_arm_block(
++        const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
++        const sibling_map *siblings, const code_window *dll_code, bool bounded,
++        bool stop_after_store, bool cache_registers, bool region,
++        const leaf_resolver *leaves, bool defer_memory)
++    {
++        auto precise = translate_arm_block_impl(code, code_size, start_address,
++            siblings, dll_code, bounded, stop_after_store, cache_registers,
++            region, leaves, defer_memory, false);
++        if (!bounded || !region || !cache_registers || !precise.complete
++            || !precise.dependencies.empty()
++            || code_size > 0xffffffffu - start_address) return precise;
++        const auto extent = precise.end_address - start_address;
++        if (extent < 8 || extent > code_size) return precise;
++        // Without backward/self branches or inlined callees, each instruction
++        // executes at most once. The emitted extent is a conservative budget
++        // bound; trailing bytes after a return belong to other functions.
++        for (std::size_t i = 0; i + 3 < extent; i += 4) {
++            std::uint32_t inst; std::memcpy(&inst, code + i, 4);
++            if (((inst >> 25) & 7) != 5 || ((inst >> 24) & 1)) continue;
++            const auto displacement = static_cast<std::int32_t>(inst << 8) >> 6;
++            if (displacement <= -8) return precise;
++        }
++        auto full = translate_arm_block_impl(code, code_size, start_address,
++            siblings, dll_code, bounded, stop_after_store, cache_registers,
++            region, nullptr, defer_memory, true);
++        std::vector<std::uint8_t> body;
++        arm_emit w{body};
++        w.load_i32(S::AOT_BUDGET);
++        w.i32_const(extent / 4);
++        w.op(op_i32_ge_u); w.op(op_if); w.op(type_void);
++        body.insert(body.end(), full.func.body.begin(), full.func.body.end());
++        w.op(op_else);
++        body.insert(body.end(), precise.func.body.begin(), precise.func.body.end());
++        w.op(op_end);
++        w.op(op_unreachable); // Both finished bodies return their precise count.
++        precise.bail_count += full.bail_count;
++        precise.func.body = std::move(body);
++        precise.func.num_locals = std::max(precise.func.num_locals, full.func.num_locals);
++        return precise;
++    }
+ }

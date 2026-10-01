@@ -17,6 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <common/code_tracking.h>
 #include <mem/page.h>
 
 namespace eka2l1::mem {
@@ -60,6 +61,7 @@ namespace eka2l1::mem {
     }
 
     void page_directory::reset() {
+        mapping_changed();
         std::fill(page_tabs_.begin(), page_tabs_.end(), nullptr);
     }
 
@@ -76,7 +78,9 @@ namespace eka2l1::mem {
             return nullptr;
         }
 
-        return reinterpret_cast<std::uint8_t *>(pi->host_addr) + (addr & offset_mask_);
+        auto *ptr = reinterpret_cast<std::uint8_t *>(pi->host_addr) + (addr & offset_mask_);
+        common::code_tracking::escape_pointer(ptr);
+        return ptr;
     }
 
     page_info *page_directory::get_page_info(const vm_address addr) {
@@ -114,6 +118,7 @@ namespace eka2l1::mem {
         }
 
         page_tabs_[off] = tab;
+        mapping_changed();
         return true;
     }
 }

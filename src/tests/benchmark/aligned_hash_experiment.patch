@@ -1,0 +1,48 @@
+diff --git a/src/emu/cpu/include/cpu/aot/code_cache.h b/src/emu/cpu/include/cpu/aot/code_cache.h
+index 5d74863eb..426a0fdfe 100644
+--- a/src/emu/cpu/include/cpu/aot/code_cache.h
++++ b/src/emu/cpu/include/cpu/aot/code_cache.h
+@@ -223,7 +223,9 @@ namespace eka2l1::arm::aot {
+         }
+         static std::size_t recent_index(std::uint64_t k) {
+             const auto pc_mode = static_cast<std::uint32_t>(k);
+-            return ((pc_mode >> 1) ^ (pc_mode << 7) ^ (k >> 32)) & 4095;
++            // Mix the word index too: ARM alignment otherwise leaves half the
++            // slots unused within an address space. Full keys still guard hits.
++            return ((pc_mode >> 1) ^ (pc_mode >> 2) ^ (pc_mode << 7) ^ (k >> 32)) & 4095;
+         }
+         // deque entries stay allocated until reset; invalidation/replacement
+         // marks old entries dead before a cached pointer can be reused.
+diff --git a/src/tests/cpu/aot.cpp b/src/tests/cpu/aot.cpp
+index 711dc3342..fd3c9cb65 100644
+--- a/src/tests/cpu/aot.cpp
++++ b/src/tests/cpu/aot.cpp
+@@ -1202,21 +1202,21 @@ TEST_CASE("Colliding recent entries retain generation guards but never skip byte
+     };
+     // These addresses collide in the direct-mapped recent index.
+     cache.insert(0x1000, {1, code.data(), 16}, 8);
+-    cache.insert(0x3000, {1, other.data(), 16}, 8);
+-    REQUIRE(cache.find(0x1000, *cpu)); REQUIRE(cache.find(0x3000, *cpu));
++    cache.insert(0x5000, {1, other.data(), 16}, 8);
++    REQUIRE(cache.find(0x1000, *cpu)); REQUIRE(cache.find(0x5000, *cpu));
+     REQUIRE(resolutions == 2);
+     for (int i = 0; i < 8; ++i) {
+-        REQUIRE(cache.find(0x1000, *cpu)); REQUIRE(cache.find(0x3000, *cpu));
++        REQUIRE(cache.find(0x1000, *cpu)); REQUIRE(cache.find(0x5000, *cpu));
+     }
+     CHECK(resolutions == 2);
+     code[0] = 1;
+     REQUIRE_FALSE(cache.find(0x1000, *cpu));
+-    REQUIRE(cache.find(0x3000, *cpu));
++    REQUIRE(cache.find(0x5000, *cpu));
+     // Identical generation values from another MMU cannot reuse old guards.
+     cpu->code_mapping_generation = &replacement_source;
+-    REQUIRE(cache.find(0x3000, *cpu)); CHECK(resolutions == 3);
+-    cache.invalidate(0x3000, 4);
+-    REQUIRE_FALSE(cache.find(0x3000, *cpu));
++    REQUIRE(cache.find(0x5000, *cpu)); CHECK(resolutions == 3);
++    cache.invalidate(0x5000, 4);
++    REQUIRE_FALSE(cache.find(0x5000, *cpu));
+ }
+ 
+ TEST_CASE("DynCom TLB accesses preserve permissions and endian conversion", "[cpu][memory]") {

@@ -16,8 +16,14 @@
 
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/dyncom/arm_dyncom.h>
+#include <cpu/12l1r/tlb.h>
 #include <cpu/dyncom/armstate.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/exit_census.h>
+#include <cpu/aot/execution_limits.h>
+#include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/region_ir.h>
+#include <cpu/aot/code_cache.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 
@@ -133,21 +139,38 @@ static cpu_state capture_state(dyncom_core &cpu) {
 // The test memory — accessible from JS for the tlb imports
 static test_mem *g_test_mem = nullptr;
 static bool g_mutate_callback_state = false, g_callback_observed_state = false;
+static bool g_mutate_callback_cpsr = false;
+static unsigned g_expected_callback_pc = 0;
+static bool g_callback_pc_matches = true;
+static bool g_count_memory_helpers = false;
+static unsigned g_memory_helper_calls = 0;
+static std::function<void(std::uint32_t,std::uint32_t)> g_read32_observer;
+static std::function<void(std::uint32_t,std::uint32_t,std::uint32_t)> g_write16_observer;
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read32(std::uint32_t state_ptr, std::uint32_t addr) {
+        if (g_read32_observer) g_read32_observer(state_ptr, addr);
+        if (g_count_memory_helpers) ++g_memory_helper_calls;
+        if (g_expected_callback_pc)
+            g_callback_pc_matches &= reinterpret_cast<std::uint32_t *>(state_ptr)[15] == g_expected_callback_pc;
         if (g_mutate_callback_state) {
             auto *state = reinterpret_cast<std::uint32_t *>(state_ptr);
             g_callback_observed_state = state[2] == 7;
             state[3] = 11;
             state[state_offsets::CFLAG / 4] = 1;
         }
+        if (g_mutate_callback_cpsr) {
+            auto *state = reinterpret_cast<std::uint32_t *>(state_ptr);
+            g_callback_observed_state = state[state_offsets::CPSR / 4] == 0xF8000010u;
+            state[state_offsets::CPSR / 4] = 0x20000210u;
+        }
         return g_test_mem ? g_test_mem->read32(addr) : 0;
     }
     EMSCRIPTEN_KEEPALIVE
     void test_tlb_write32(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t val) {
         (void)state_ptr;
+        if (g_count_memory_helpers) ++g_memory_helper_calls;
         if (g_test_mem) g_test_mem->write32(addr, val);
     }
     EMSCRIPTEN_KEEPALIVE
@@ -162,7 +185,8 @@ extern "C" {
         return value;
     }
     EMSCRIPTEN_KEEPALIVE
-    void test_tlb_write16(std::uint32_t, std::uint32_t addr, std::uint32_t value) {
+    void test_tlb_write16(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t value) {
+        if (g_write16_observer) { g_write16_observer(state_ptr,addr,value); return; }
         if (g_test_mem) g_test_mem->write16(addr, value);
     }
     EMSCRIPTEN_KEEPALIVE
@@ -1755,6 +1779,8 @@ static_assert(offsetof(ARMul_State, NFlag) == state_offsets::NFLAG, "NFLAG offse
 static_assert(offsetof(ARMul_State, ZFlag) == state_offsets::ZFLAG, "ZFLAG offset mismatch");
 static_assert(offsetof(ARMul_State, CFlag) == state_offsets::CFLAG, "CFLAG offset mismatch");
 static_assert(offsetof(ARMul_State, VFlag) == state_offsets::VFLAG, "VFLAG offset mismatch");
+static_assert(offsetof(ARMul_State, aot_tlb) == state_offsets::AOT_TLB, "AOT TLB offset mismatch");
+static_assert(offsetof(ARMul_State, aot_exit) == state_offsets::AOT_EXIT, "AOT exit offset mismatch");
 static_assert(offsetof(ARMul_State, aot_budget) == state_offsets::AOT_BUDGET, "AOT budget offset mismatch");
 static_assert(offsetof(ARMul_State, TFlag) == state_offsets::TFLAG, "TFLAG offset mismatch");
 static_assert(offsetof(ARMul_State, VFP) == state_offsets::VFP_SYS, "VFP_SYS offset mismatch");
@@ -2030,6 +2056,36 @@ static bool test_bounded_execution() {
         return program{true, bytes};
     };
     std::vector<program> programs = {
+        // Natural loops: entry/interior headers, forward exits, multiple
+        // backedges, and shapes requiring the general entry dispatcher.
+        arm({0xe2822001,0xe2833001,0xe2500001,0x1afffffc,0xe2844001}),
+        arm({0xe3500002,0x0a000002,0xe2833001,0xe2500001,0x1afffffa,0xe2844001}),
+        arm({0xe2822001,0xe2833001,0xe3500002,0x0a000001,0xe2500001,0x1afffffa,0xe2844001}),
+        arm({0xe2833001,0xe3500002,0x0afffffc,0xe2500001,0x1afffffa,0xe2844001}),
+        arm({0xe3500002,0x0a000000,0xe2833001,0xe2500001,0x1afffffa,0xe2844001}),
+        arm({0xe2822001,0xe2833001,0xe3500002,0x0afffffb,0xe2500001,0x1afffffa,0xe2844001}),
+        arm({0xe3500002,0x0a000000,0xe2822001,0xe2833001,0xe2500001,0x1afffffc,0xe2844001}),
+        arm({0xe2822001,0xe5913000,0xe2500001,0x1afffffc,0xe2844001}),
+        // A join, intervening instruction, or conditional CMP must invalidate
+        // a lexical compare-operand shortcut.
+        arm({0xe3500000,0x0a000000,0xe1500001,0xa3a02001}),
+        arm({0xe1500001,0xa3a02001,0xe2500001,0x1afffffc}),
+        arm({0x11500001,0xa3a02001,0xe2a33000}),
+        arm({0xe1500001,0xe3a00007,0xc3a02001}),
+        // Alternate entries must not reuse a lexical predecessor's wide result.
+        arm({0xe3a04007,0xe3500000,0x0a000000,0xe0e54396,0xe0e54c97}),
+        arm({0xe3a00003,0xe0e54396,0xe0e54c97,0xe2844001,0xe2500001,0x1afffffb}),
+        arm({0xe5912000,0xe5913004,0xe5914008,0xe591500c}), // unchanged read span
+        arm({0xe5912000,0xe5913004,0xe5914008,0xe2811004,0xe591500c}), // clobbered base
+        arm({0xe5912000,0xe5913004,0xe5914008,0x02811004,0xe591500c}), // conditional clobber
+        arm({0xe5912000,0xe5913004,0xe5914008,0xe5911000,0xe591500c}), // load into base
+        arm({0xe2811001,0xe5912000,0xe5913004,0xe5914008}), // unaligned base
+        arm({0xe2811eff,0xe281100c,0xe5912000,0xe5913004,0xe5914008}), // page end
+        arm({0xe5912000,0xe5913004,0xe5914008,0xe2500001,0x1afffffa}), // cached loop
+        thumb({0xF000}), thumb({0xF001}), thumb({0xF400}), thumb({0xF7FF}),
+        thumb({0xF800}), thumb({0xF801}), thumb({0xFFFF}),
+        thumb({0xE800}), thumb({0xE801}), thumb({0xEFFF}),
+        thumb({0x2001,0xF000,0xF801}),
         arm({0xe3a00001, 0xe2800002, 0xe2400001}), // straight-line fallthrough
         arm({0xe49df004}), // post-indexed LDR PC and ARM/Thumb return
         arm({0xe128f000,0x02822001,0xe2a33000}), // MSR CPSR_f affects conditions/carry
@@ -2037,6 +2093,8 @@ static bool test_bounded_execution() {
 
         arm({0xf5d1f000,0xf551f040,0xf7d1f002,0xe2800001}), // PLD hints must consume budgets without memory access
         arm({0xe3500000, 0x0a000000, 0xe3a01007, 0xe3a02009}), // taken/not-taken B
+        arm({0xe3a00003,0xea000000,0xe2801001,0xe2500001,0x1afffffc}), // target is both forward and backward
+        arm({0xe4813004,0xe2500001,0x1afffffc}), // store loop from measured workload
         arm({0xe2500001, 0x1afffffd}), // backward B, must return not recurse
         arm({0xe8a18000}), // STM stores pipeline PC
         arm({0xe1c100d0}), // LDRD is not STRH
@@ -2077,6 +2135,19 @@ static bool test_bounded_execution() {
         thumb({0xbd00}), // POP PC mode switch
         thumb({0x3001, 0xf000, 0xf800}), // return before long call halfwords
     };
+    // Lazy arithmetic flag recipes must survive exact short budgets, reads,
+    // conditional writes, forward joins, loop backedges and helper callbacks.
+    for (unsigned cond = 0; cond < 15; ++cond) {
+        programs.push_back(arm({0xe3500001, (cond<<28)|0x03a02005, 0xe0a03000}));
+        programs.push_back(arm({0xe3500001, (cond<<28)|0x0a000000, 0xe2902001, 0xe0a03000}));
+        programs.push_back(arm({0xe3500001, (cond<<28)|0x02902001, 0xe0a03000}));
+        programs.push_back(arm({0xe3500001, (cond<<28)|0x0a000400, 0xe3700001, 0xe0a03000}));
+    }
+    programs.push_back(arm({0xe3500001,0xe3700001,0xe3a02000}));
+    programs.push_back(arm({0xe3500001,0xe1b02060,0xe0a03000})); // RRX consumes C
+    programs.push_back(arm({0xe3500001,0xe5912000,0xe0a03000})); // memory/helper boundary
+    programs.push_back(arm({0xe3500001,0xe5810000,0xe0a03000}));
+    programs.push_back(arm({0xe3a02003,0xe2522001,0x1afffffd,0xe0a03000}));
     // Exercise whole ALU families against the independent interpreter, not
     // just the operand values that happened to expose a live replay failure.
     for (unsigned opcode = 0; opcode < 16; ++opcode) {
@@ -2115,14 +2186,36 @@ static bool test_bounded_execution() {
         auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true);
         if (!tr.entry_supported) { printf("  FAIL test/compare %08X misclassified\n",inst); return false; }
     }
+    // Warm a page with byte accesses, then test wider aligned/unaligned
+    // hits, a different page, and flag-only MSR between cached accesses.
+    for (unsigned offset : {0u, 1u, 2u, 3u, 4u, 4095u, 4096u}) {
+        programs.push_back(arm({0xe5d12000, 0xe5913000u | offset}));
+        programs.push_back(arm({0xe5c12000, 0xe5810000u | offset}));
+        programs.push_back(arm({0xe5d12000, 0xe128f000, 0xe5913000u | offset}));
+    }
+    const auto existing_programs = programs.size();
+    // Block-transfer fast spans and fallbacks: modes, writeback, conditions,
+    // sparse/large lists, PC loads/stores, cross-page and unaligned bases.
+    for (unsigned load : {0u,1u}) for (unsigned up : {0u,1u})
+        for (unsigned pre : {0u,1u}) for (unsigned wb : {0u,1u})
+        for (unsigned list : {0xdu,0xfffdu,0x800du}) {
+            const unsigned inst = 0xe8010000u | (pre<<24) | (up<<23) | (wb<<21) | (load<<20) | list;
+            programs.push_back(arm({inst}));
+            programs.push_back(arm({0xe2811eff,0xe281100c,inst})); // page end
+            // Unaligned PC loads can synthesize an unmapped branch destination
+            // from this fixture; cover unaligned data transfers separately.
+            if (!(load && (list & 0x8000))) programs.push_back(arm({0xe2811001,inst}));
+        }
+    std::rotate(programs.begin(), programs.begin() + existing_programs, programs.end());
     int index = 0;
-    for (bool cache_registers : {false, true}) for (bool stop_after_store : {false, true}) for (const auto &p : programs) {
+    for (unsigned variant = 0; variant < 7; ++variant) for (const auto &p : programs) {
+        const bool region = variant >= 4, cache_registers = region || (variant & 2), stop_after_store = variant & 1;
         auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers)
-                          : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers);
+                          : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers, region);
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
             {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
             {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        for (unsigned carry : {0u, 1u}) for (unsigned r0 : {0u, 2u, 32u, 33u, 0xffffffffu, 0x7fffffffu, 0x80000000u}) for (unsigned budget = 0; budget <= 5; ++budget) {
+        for (unsigned carry : {0u, 1u}) for (unsigned r0 : {0u, 2u, 32u, 33u, 0xffffffffu, 0x7fffffffu, 0x80000000u}) for (unsigned budget : {0u,1u,2u,3u,4u,5u,16u,31u}) {
             test_mem actual, reference;
             actual.write_code(0x1000, p.bytes); reference.write_code(0x1000, p.bytes);
             actual.write32(0x8000, 0x000A8001); reference.write32(0x8000, 0x000A8001);
@@ -2139,7 +2232,15 @@ static bool test_bounded_execution() {
             set(state_offsets::CPSR,cpu->get_cpsr());
             set(state_offsets::MODE,16);
             set(state_offsets::CFLAG,carry); set(state_offsets::VFLAG,1);
-            set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget);
+            set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget); set(state_offsets::NIRQ,1);
+            r12l1::tlb direct(12,r12l1::dyncom_folded_tlb);
+            if (region && variant >= 5) {
+                for (unsigned a=0;a<test_mem::SIZE;a+=4096) direct.add(a,actual.data.data()+a,7);
+                set(state_offsets::AOT_TLB,reinterpret_cast<std::uintptr_t>(direct.entries));
+                set(state_offsets::AOT_CODE_BEGIN,reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000));
+                set(state_offsets::AOT_CODE_END,reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000+p.bytes.size()));
+                if (variant == 6) direct.flush(); // mapped view subsequently invalidated
+            }
             g_test_mem = &actual;
             const int count = js_run_aot_wasm(module.data(), module.size(), state, sizeof(state));
             g_test_mem = nullptr;
@@ -2167,7 +2268,1845 @@ static bool test_bounded_execution() {
         }
         ++index;
     }
-    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*336);
+    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*784);
+#endif
+    return true;
+}
+
+// Pending interrupts must exit at a taken loop backedge with precise state.
+static bool test_region_loop_interrupts() {
+#ifdef __EMSCRIPTEN__
+    const std::vector<std::vector<std::uint32_t>> programs = {
+        {0xe2800001,0xeafffffd},
+        {0xe2811001,0xe2800001,0xeafffffd},
+        {0xeafffffe}
+    };
+    for (unsigned kind = 0; kind < programs.size(); ++kind) {
+        const auto &words = programs[kind];
+        auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words.data()),
+            words.size()*4, 0x1000, nullptr, nullptr, true, true, true, true);
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
+            {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned masked : {0u, 0x80u}) for (unsigned budget : {0u,1u,2u,3u,4u,17u,32u}) {
+            alignas(8) std::uint32_t state[256]{};
+            state[15] = 0x1000;
+            state[state_offsets::CPSR/4] = 16 | masked;
+            state[state_offsets::AOT_BUDGET/4] = budget;
+            const unsigned expected = masked ? budget : std::min(budget, unsigned(words.size()));
+            const unsigned r0 = kind == 0 ? (expected+1)/2 : kind == 1 ? expected/2 : 0;
+            const unsigned r1 = kind == 1 && expected ? 1 : 0;
+            const unsigned pc = kind == 0 ? 0x1000 + 4*(expected%2)
+                : kind == 1 && expected ? 0x1004 + 4*((expected-1)%2) : 0x1000;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            if (count != expected || state[0] != r0 || state[1] != r1 || state[15] != pc) {
+                printf("  FAIL region_loop_interrupts kind=%u mask=%u budget=%u count=%d pc=%x\n",
+                    kind,masked,budget,count,state[15]); return false;
+            }
+        }
+    }
+#endif
+    printf("  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n");
+    return true;
+}
+
+// A guest alias must not let a region execute code overwritten by an inline store.
+static bool test_region_code_alias() {
+#ifdef __EMSCRIPTEN__
+    for (bool block_store : {false, true}) {
+    const std::uint32_t words[] = {block_store ? 0xe8a10009u : 0xe5810004u,0xe2822001,0xeafffffc};
+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
+    auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    for (unsigned address : {0x1000u,0x8000u}) {
+        test_mem memory;
+        std::memcpy(memory.data.data()+0x1000,words,sizeof(words));
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        tlb.add(address,memory.data.data()+0x1000,7);
+        alignas(8) std::uint32_t state[256]{};
+        state[0]=0xe3a04001; state[3]=state[0]; state[1]=address; state[15]=0x1000;
+        state[state_offsets::AOT_BUDGET/4]=31;
+        state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
+        state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(words);
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        if(count!=1 || state[15]!=0x1004 || state[2]!=0 || memory.read32(0x1004)!=state[0] || !state[state_offsets::AOT_EXIT/4]) {
+            printf("  FAIL region code alias %x count %d\n",address,count); return false;
+        }
+    }
+    }
+    // Four accesses qualify for the entry proof. Distinct guest pages alias
+    // the same physical bytes; stores must remain visible to later loads.
+    const std::uint32_t alias_words[] = {0xe5810000,0xe5952000,0xe5812004,0xe5953004};
+    auto alias_tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(alias_words),
+        sizeof(alias_words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+    auto alias_module = build_wasm_module({alias_tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    for (bool code_alias : {false,true}) for (unsigned budget=0;budget<=5;++budget) {
+        test_mem memory;
+        memory.write_code(0x1000,{reinterpret_cast<const std::uint8_t *>(alias_words),
+            reinterpret_cast<const std::uint8_t *>(alias_words)+sizeof(alias_words)});
+        const auto prior = memory.data;
+        const unsigned backing = code_alias ? 0x1000 : 0x8000;
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        tlb.add(0x8000,memory.data.data()+backing,prot_write);
+        tlb.add(0x9000,memory.data.data()+backing,prot_read);
+        alignas(8) std::uint32_t state[256]{};
+        state[0]=0xe3a04001;state[1]=0x8000;state[5]=0x9000;state[15]=0x1000;
+        state[state_offsets::AOT_BUDGET/4]=budget;
+        state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
+        state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(alias_words);
+        const int count=js_run_aot_wasm(alias_module.data(),alias_module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        const unsigned expected=std::min(budget,4u);
+        if(count<0 || unsigned(count)>expected || (code_alias ? count>1 : unsigned(count)!=expected)
+            || state[15]!=0x1000+4*count || (count==0 && memory.data!=prior)
+            || (count>=1 && memory.read32(backing)!=state[0])
+            || (count>=2 && state[2]!=state[0])
+            || (count>=3 && memory.read32(backing+4)!=state[0])
+            || (count>=4 && state[3]!=state[0])) {
+            printf("  FAIL proved physical alias code=%u budget=%u count=%d\n",code_alias,budget,count);return false;
+        }
+    }
+#endif
+    printf("  PASS region_code_alias (single, multiple and entry-proved alias stores)\n");
+    return true;
+}
+
+static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured) {
+#ifdef __EMSCRIPTEN__
+    // Repeated far calls in a loop, including real workload memory leaves.
+    const std::vector<std::uint32_t> caller = (policy == arm_ir_policy::inline_call_ir || policy == arm_ir_policy::invariant_write_ir)
+        ? std::vector<std::uint32_t>{0xe1a0800f,0xeb0003fd,0xe1a0900f,0xeb0003fb,0xe2566001,0x1afffff9}
+        : std::vector<std::uint32_t>{0xeb0003fe,0xeb0003fd,0xe2566001,0x1afffffb};
+    std::vector<std::vector<std::uint32_t>> leaves = {
+        {0xe2800001,0xe12fff1e},
+        {0xe3a03000,0xe5803000,0xe5911000,0xe5922000,0xe0411002,0xe5801000,0xe12fff1e},
+        {0xe3a03000,0xe5803000,0xe5803004,0xe5803008,0xe12fff1e},
+        {0xe12fff1e}
+    };
+    if ((policy == arm_ir_policy::inline_call_ir || policy == arm_ir_policy::invariant_write_ir)) {
+        leaves.push_back({0xe1a02000,0xe1a00001,0xe1a01002,0xe12fff1e}); // register cycle
+        leaves.push_back({0xe0900001,0xe2a02000,0xe12fff1e}); // flags across call
+    }
+    unsigned comparisons=0;
+    for (bool deferred : {false,true}) for (const auto &words : leaves) {
+        if ((policy == arm_ir_policy::inline_call_ir || policy == arm_ir_policy::invariant_write_ir) && !deferred) continue;
+        std::vector<std::uint8_t> leaf(words.size()*4); std::memcpy(leaf.data(),words.data(),leaf.size());
+        leaf_resolver resolve = [&](std::uint32_t pc) { return pc == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,true,true,true,&resolve,deferred,policy);
+        if ((policy == arm_ir_policy::inline_call_ir || policy == arm_ir_policy::invariant_write_ir) && !tr.ir_inline_transfers) {printf("  FAIL inline transfers not selected\n");return false;}
+        if (tr.dependencies.size()!=1 || tr.end_address!=0x1000+caller.size()*4) {printf("  FAIL leaf discovery\n");return false;}
+#if defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+        if (deferred && words.size() >= 5 && !tr.ir_memory_guards && !tr.ir_proved_writes) {
+            printf("  FAIL inlined memory leaf did not select IR guards\n"); return false;
+        }
+#endif
+        auto module=build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned fast : {0u,1u}) for(unsigned alias : {0u,1u}) for(unsigned budget=0;budget<80;++budget) {
+            test_mem actual, reference;
+            std::vector<std::uint8_t> bytes(caller.size()*4);std::memcpy(bytes.data(),caller.data(),bytes.size());
+            actual.write_code(0x1000,bytes); reference.write_code(0x1000,bytes);
+            actual.write_code(0x2000,leaf);reference.write_code(0x2000,leaf);
+            actual.write32(0x8000,0x8000);reference.write32(0x8000,0x8000);
+            alignas(8) std::uint32_t state[256]{};
+            r12l1::exclusive_monitor monitor(1);auto cpu=make_cpu(reference,monitor);
+            for(unsigned r=0;r<16;++r) {
+                unsigned v=r==0 ? (alias ? 0x2000 : 0x8000) : (r==1||r==2) ? 0x8000 : r==6 ? 3 : r==15 ? 0x1000 : 0;
+                state[r]=v;cpu->set_reg(r,v);
+            }
+            cpu->set_cpsr(0x10);state[state_offsets::CPSR/4]=0x10;state[state_offsets::MODE/4]=16;
+            state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NIRQ/4]=1;
+            r12l1::tlb direct(12,r12l1::dyncom_folded_tlb);
+            if(fast) {
+                for(unsigned a=0;a<test_mem::SIZE;a+=4096)direct.add(a,actual.data.data()+a,7);
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(direct.entries);
+                state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+                state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x2000+leaf.size());
+            }
+            g_test_mem=&actual;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr;
+            if(count<0 || count>static_cast<int>(budget) || ((policy==arm_ir_policy::inline_call_ir || policy==arm_ir_policy::invariant_write_ir) && budget && !count))return false;
+            if(count)cpu->run(count);
+            for(unsigned r=0;r<16;++r)if(state[r]!=cpu->get_reg(r)) {
+                printf("  FAIL leaf fast=%u alias=%u budget=%u count=%d R%u %x vs %x\n",fast,alias,budget,count,r,state[r],cpu->get_reg(r));return false;
+            }
+            for(auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},{state_offsets::ZFLAG,30},{state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if(state[pair.first/4]!=((cpu->get_cpsr()>>pair.second)&1))return false;
+            if(actual.data!=reference.data)return false;
+            ++comparisons;
+        }
+    }
+    printf("  PASS inlined_leaves policy=%d (%u exact budget/state/memory comparisons)\n",int(policy),comparisons);
+#endif
+    return true;
+}
+
+static bool test_region_cpsr_callback() {
+#ifdef __EMSCRIPTEN__
+    const std::uint32_t code[] = {0xE128F000u, 0xE5912000u, 0xE2833001u};
+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(code), sizeof(code),
+        0x1000, nullptr, nullptr, true, true, true, true);
+    auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
+        {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+        {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    alignas(8) std::uint32_t state[256]{};
+    state[0] = 0xF8000000u; state[1] = 0x8000;
+    state[state_offsets::PC/4] = 0x1000;
+    state[state_offsets::CPSR/4] = state[state_offsets::MODE/4] = 16;
+    state[state_offsets::AOT_BUDGET/4] = 3;
+    g_mutate_callback_cpsr = true; g_callback_observed_state = false;
+    const int count = js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+    g_mutate_callback_cpsr = false;
+    if (count != 2 || !g_callback_observed_state || state[state_offsets::CPSR/4] != 0x20000210u || state[3]) {
+        printf("  FAIL region_cpsr_callback count=%d observed=%d cpsr=%x\n", count,g_callback_observed_state,state[state_offsets::CPSR/4]);
+        return false;
+    }
+#endif
+    printf("  PASS region_cpsr_callback\n"); return true;
+}
+
+static bool test_deferred_memory_exits() {
+#ifdef __EMSCRIPTEN__
+    unsigned checks=0;
+    // Pure pre-indexed scalar accesses and spans without writeback/PC.
+    for (unsigned op : {0xe5910000u,0xe5810000u,0xe5d10000u,0xe5c10000u,
+                        0xe891000du,0xe881000du,0xe5910004u}) {
+        const bool load=op&(1u<<20), multi=((op>>25)&7)==4, byte=(op&(1u<<22))&&!multi;
+        const unsigned words[]={0xe3a05007u,op};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0x8000u,0x8001u,0x8ffcu,0u})for(unsigned budget:{0u,1u,2u}) {
+            test_mem memory;const auto before=memory.data;
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(address==0?0x200000:0x8000,memory.data.data()+0x8000,permission);
+            alignas(8) unsigned state[256]{};state[0]=17;state[1]=address;state[2]=19;state[3]=23;state[15]=0x1000;
+            state[state_offsets::CPSR/4]=16|endian;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            const unsigned effective=address+(op==0xe5910004u?4:0);
+            const bool fast=(permission&(load?1:2))&&!endian&&effective>=4096&&(byte||!(effective&3))&&((effective&~4095u)==0x8000)&&(!multi||(effective&4095)<=4084);
+            g_test_mem=&memory;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            const unsigned expected=budget<2?budget:fast?2:1;
+            if(count!=expected||g_memory_helper_calls||state[5]!=(budget?7u:0u)||
+               (expected<2&&(state[1]!=address||state[0]!=17||state[2]!=19||state[3]!=23||state[15]!=0x1000+expected*4||memory.data!=before))) {
+                printf("  FAIL deferred_memory op=%x perm=%u endian=%x address=%x budget=%u count=%d expected=%u\n",op,permission,endian,address,budget,count,expected);return false;
+            }++checks;
+        }
+    }
+    printf("  PASS deferred_memory_exits (%u exact pre-instruction exits)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_block_transfer_guards() {
+#ifdef __EMSCRIPTEN__
+    for (bool load : {false,true}) {
+        const std::uint32_t inst = load ? 0xe891000du : 0xe881000du; // r0,r2,r3
+        auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true,true);
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
+            for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0u}) {
+                test_mem memory;
+                r12l1::tlb direct(12,r12l1::dyncom_folded_tlb); direct.add(address == 0 ? 0x200000 : 0x8000,memory.data.data()+0x8000,permission);
+                alignas(8) std::uint32_t state[256]{};
+                state[0]=17; state[1]=address; state[2]=19; state[3]=23; state[15]=0x1000;
+                state[state_offsets::CPSR/4]=0x10|endian;
+                state[state_offsets::AOT_BUDGET/4]=1;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(direct.entries);
+                g_test_mem=&memory; g_count_memory_helpers=true; g_memory_helper_calls=0;
+                const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+                g_test_mem=nullptr; g_count_memory_helpers=false;
+                const bool fast = (permission & (load ? 1 : 2)) && !endian && address==0x8000;
+                if (count!=1 || (fast ? g_memory_helper_calls!=0 : g_memory_helper_calls==0)) {
+                    printf("  FAIL block_transfer_guards load=%d perm=%u endian=%x address=%x calls=%u\n",load,permission,endian,address,g_memory_helper_calls);return false;
+                }
+            }
+    }
+#endif
+    printf("  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n");return true;
+}
+
+// Private callee relocation must not shift public sibling-call indices, even
+// when imports and enough public functions require a multi-byte callee index.
+static bool test_outlined_callee_indices() {
+    for (unsigned import_count : {0u, 6u}) for (unsigned public_count : {2u, 128u}) {
+        std::vector<wasm_func_def> functions(public_count);
+        for (unsigned i = 0; i < public_count; ++i) {
+            functions[i].export_name = "f_" + std::to_string(i);
+            functions[i].num_locals = 0;
+            functions[i].body = {op_i32_const, 13};
+        }
+        auto &caller = functions[0];
+        caller.body = {op_local_get, 0, op_call, static_cast<std::uint8_t>(import_count + 1),
+            op_local_get, 0, op_call, 0x80, 0x80, 0x80, 0x80, 0, op_i32_add};
+        caller.outlined_call_offset = 7;
+        caller.outlined_callee = std::make_shared<wasm_func_def>();
+        caller.outlined_callee->export_name = "private_seven";
+        caller.outlined_callee->num_locals = 0;
+        caller.outlined_callee->body = {op_i32_const, 7};
+        auto add_private = [](wasm_func_def &parent, unsigned value) {
+            parent.body.insert(parent.body.end(), {op_local_get, 0, op_call});
+            const auto offset=static_cast<unsigned>(parent.body.size());
+            parent.body.insert(parent.body.end(), {0x80,0x80,0x80,0x80,0,op_i32_add});
+            auto child=std::make_shared<wasm_func_def>();child->num_locals=0;
+            child->body={op_i32_const,static_cast<std::uint8_t>(value)};
+            parent.outlined_calls.push_back({child,offset});
+        };
+        add_private(caller,3);add_private(caller,5);add_private(functions[1],0);
+        std::vector<wasm_import_func> imports;
+        if (import_count) imports = {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+        const auto module = build_wasm_module(functions, imports);
+        if (module.empty()) return false;
+#ifdef __EMSCRIPTEN__
+        alignas(8) std::uint32_t state[256]{};
+        if (js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state)) != 28) {
+            printf("  FAIL outlined callee imports=%u public=%u\n", import_count, public_count);
+            return false;
+        }
+#endif
+        const auto valid=caller.outlined_calls.front().call_offset;
+        caller.outlined_calls.front().call_offset=caller.outlined_call_offset;
+        if(!build_wasm_module(functions,imports).empty())return false;
+        caller.outlined_calls.front().call_offset=valid;
+        caller.outlined_calls.front().callee->outlined_callee=caller.outlined_callee;
+        if(!build_wasm_module(functions,imports).empty())return false;
+        caller.outlined_calls.front().callee->outlined_callee.reset();
+        caller.outlined_call_offset = static_cast<std::uint32_t>(caller.body.size());
+        if (!build_wasm_module(functions, imports).empty()) return false;
+    }
+    printf("  PASS outlined_callee_indices\n");
+    return true;
+}
+
+static bool test_proved_read_spans() {
+#ifdef __EMSCRIPTEN__
+    const std::vector<std::vector<std::uint32_t>> programs = {
+        {0xe5910000,0xe2844001,0xe5912004,0xe5913008},
+        {0xe5910000,0xe5956000,0xe5912004,0xe5957004},
+        {0xe5910000,0xe2811004,0xe5912000,0xe5913004},
+        {0xe5910000,0xe3560000,0x01a01005,0xe5912004},
+        {0xe3560000,0x0a000000,0xe5910000,0xe5912004,0xe5913008},
+        {0xe5910000,0xe5912004,0xe2566001,0x1afffffb},
+        {0xe5110004,0xe5912000,0xe5913004},
+        {0xe5910000,0xe5810004,0xe5912004,0xe5913008},
+        {0xe5910000,0xe89500c0,0xe5912004,0xe5913008},
+        {0xe5910000,0xe5911004,0xe5912000,0xe5913004},
+        {0xe5910000,0x15912004,0xe5913008},
+        {0xe5910000,0xe0c43996,0xe5912004,0xe5913008},
+        // Wide-value snapshots across memory, consumers, clobbers and entries.
+        {0xe0c32796,0xe5910000,0xe0e32796,0xe5918004},
+        {0xe0c32796,0xe0828003,0xe0e32796,0xe5910000},
+        {0xe0c32796,0xe1a02007,0xe0e32796,0xe5910000},
+        {0xe0c32796,0xe0854796,0xe0e32796,0xe5910000},
+        {0xe0c32796,0xe0d32796,0xe0e32796,0xe5910000},
+        {0xe0c32796,0x10e32796,0xe5910000},
+        {0xe3560000,0x0a000000,0xe0c32796,0xe0e32796,0xe5910000},
+        {0xe0c32796,0xe0e32796,0xe2599001,0x1afffffc},
+        {0xe0c32796,0xe5812000,0xe0e32796,0xe5910000},
+        {0xe0c32796,0xe89500c0,0xe0e32796,0xe5910000},
+        {0xe0c32796,0xe5912000,0xe0e32796,0xe5910004},
+        {0xe0c32796,0xe0e32392,0xe5910000},
+        // Whole-region affine proofs: scalar, block, writeback and aliases.
+        {0xe5910000,0xe5912004,0xe5913008,0xe591400c},
+        {0xe5910000,0xe2817004,0xe5972000,0xe5973004,0xe591400c},
+        {0xe5910000,0xe1a07001,0xe5972004,0xe5973008,0xe591400c},
+        {0xe5810000,0xe5912000,0xe5812004,0xe5913004},
+        {0xe4810004,0xe4912004,0xe5213004,0xe5914004},
+        {0xe5a10004,0xe5b12004,0xe5213004,0xe5114004},
+        {0xe881000d,0xe5914000,0xe89500c0,0xe5854000},
+        {0xe921000d,0xe5914000,0xe99500c0,0xe5854000},
+        {0xe801000d,0xe5914000,0xe81500c0,0xe5854000},
+        {0xe981000d,0xe5914000,0xe91500c0,0xe5854000},
+        {0xe92d000d,0xe5910000,0xe5912004,0xe8bd000d},
+        {0xe5910000,0xe5912004,0xe5913008,0xe8918010},
+        {0xe5910000,0xe0c32796,0xe5918004,0xe0e32796,0xe5919008,0xe591a00c},
+        // Pointer loss, conditional accesses and joins must retain generic code.
+        {0xe5910000,0xe5911004,0xe5912000,0xe5913004},
+        {0xe5910000,0x15912004,0xe5913008,0xe591400c},
+        {0xe5910000,0xe3560000,0x0a000000,0xe5912004,0xe5913008,0xe591400c},
+    };
+    unsigned checks = 0;
+    for (const auto &code : programs) {
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
+            nullptr, nullptr, true, true, true, true, nullptr, true);
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned address : {0x8000u,0x8004u,0x8080u,0x8001u,0x8ff4u,0x8ff8u,0x8ffcu,0u,0xfffffffcu,0x1000u})
+        for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
+        for (unsigned selector : {0u,2u})
+        for (unsigned budget : {0u,1u,2u,3u,4u,5u,8u,17u}) {
+            // New writeback/PC forms require production callbacks on proof
+            // failure; the separate native fault probe checks that route.
+            // These simple test imports are deliberately not that callback API.
+            if (&code - programs.data() >= 24 && (address != 0x8080 || permission != 3 || endian)) continue;
+            test_mem actual;
+            for (unsigned a = 0x8000; a < 0x9000; a += 4) actual.write32(a, a ^ 0x12345678u);
+            // Keep the loaded return PC inside this fixture's code mapping.
+            if (code.back() == 0xe8918010 && address < test_mem::SIZE - 8)
+                actual.write32(address + 4, 0x1000);
+            actual.write_code(0x1000, {bytes, bytes + code.size() * 4});
+            test_mem reference_memory = actual;
+            r12l1::exclusive_monitor monitor(1);
+            auto reference = make_cpu(reference_memory, monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            tlb.add(0x8000, actual.data.data() + 0x8000, permission);
+            tlb.add(0x1000, actual.data.data() + 0x1000, permission);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned r = 0; r < 16; ++r) {
+                const auto value = r == 15 ? 0x1000u : r == 1 ? address : r == 5 ? address + 64 : r == 13 ? address + 128
+                    : r == 6 ? selector : 0x120u + r;
+                state[r] = value; reference->set_reg(r, value);
+            }
+            reference->set_cpsr(16 | endian);
+            state[state_offsets::CPSR / 4] = 16 | endian;
+            state[state_offsets::MODE / 4] = 16;
+            state[state_offsets::NIRQ / 4] = 1;
+            state[state_offsets::AOT_BUDGET / 4] = budget;
+            state[state_offsets::AOT_TLB / 4] = reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN / 4] = reinterpret_cast<std::uintptr_t>(actual.data.data() + 0x1000);
+            state[state_offsets::AOT_CODE_END / 4] = state[state_offsets::AOT_CODE_BEGIN / 4] + code.size() * 4;
+            g_test_mem = &actual; g_count_memory_helpers = true; g_memory_helper_calls = 0;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            g_test_mem = nullptr; g_count_memory_helpers = false;
+            if (count < 0 || count > static_cast<int>(budget) || g_memory_helper_calls
+                || (budget && address == 0x8080 && permission == 3 && !endian && !count)) {
+                printf("  FAIL proved span progress/op=%08x address=%x budget=%u count=%d\n", code.front(), address, budget, count);
+                return false;
+            }
+            try { if (count) reference->run(count); }
+            catch (...) {
+                printf("  FAIL proved span reference exception program=%u address=%x budget=%u count=%d PC=%x\n",
+                    unsigned(&code-programs.data()),address,budget,count,reference->get_pc()); return false;
+            }
+            for (unsigned r = 0; r < 16; ++r) if (state[r] != reference->get_reg(r)) {
+                printf("  FAIL proved span R%u address=%x permission=%u endian=%u budget=%u count=%d\n",
+                    r,address,permission,endian,budget,count); return false;
+            }
+            for (auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},
+                    {state_offsets::ZFLAG,30},{state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if (state[pair.first / 4] != ((reference->get_cpsr() >> pair.second) & 1)) {
+                    printf("  FAIL proved span flags\n"); return false;
+                }
+            if (actual.data != reference_memory.data) { printf("  FAIL proved span memory\n"); return false; }
+            ++checks;
+        }
+    }
+    printf("  PASS proved_read_spans (%u exact state/memory/budget comparisons)\n", checks);
+#endif
+    return true;
+}
+
+
+static bool test_invariant_reads(arm_ir_policy policy = arm_ir_policy::invariant_reads) {
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    std::vector<std::vector<std::uint32_t>> programs = {
+        {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe2566001,0x1afffff9},
+        {0x05910000,0x05912004,0x05913008,0x0591400c},
+        {0xe5910000,0xe5817004,0xe5912004,0xe5913008,0xe591400c},
+        {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe2811004},
+        {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0x12811004},
+        {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe0010394},
+    };
+    if (policy == arm_ir_policy::invariant_read_ir) {
+        // Proved loads feed swaps and shared cold values before an unproved
+        // fault. Stores overwrite earlier source memory; recipes must retain
+        // the loaded value rather than rereading changed memory.
+        programs.push_back({0xe5910000,0xe5912004,0xe5913008,0xe591400c,
+            0xe1a07000,0xe1a00002,0xe1a02007,0xe5998000});
+        programs.push_back({0xe5910000,0xe5912004,0xe5913008,0xe591400c,
+            0xe0807002,0xe5817004,0xe5912004,0xe5998000});
+        programs.push_back({0xe5910000,0xe5912004,0xe5913008,0xe591400c,
+            0xe0807002,0xe0278003,0xe599a000,0xe3a07000,0xe3a08000});
+        programs.push_back({0xe5910000,0xe5912004,0xe5913008,0xe591400c,
+            0xe5810008,0xe0837000,0xe5998000});
+    }
+    unsigned checks = 0;
+    for (const auto &code : programs) {
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
+            nullptr, nullptr, true, true, true, true, nullptr, true, policy);
+        const auto index = &code - programs.data();
+        const bool selected = index < 3 || index >= 6;
+        if (bool(tr.proved_reads) != selected || (selected && !tr.func.outlined_callee) || (policy == arm_ir_policy::invariant_reads && tr.ir_segments)
+            || (policy == arm_ir_policy::invariant_read_ir && selected && index != 1 && !tr.ir_proved_reads)) {
+            printf("  FAIL invariant read selection program=%u proved=%u\n", unsigned(&code-programs.data()),tr.proved_reads); return false;
+        }
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        auto control = translate_arm_block(bytes, code.size()*4, 0x1000,
+            nullptr, nullptr, true, true, true, true, nullptr, true, arm_ir_policy::disabled);
+        auto control_module = build_wasm_module({control.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned address : {0x8000u,0x8004u,0x8080u,0x8001u,0x8ff4u,0x8ff8u,0x8ffcu,0u,0xfffffffcu,0x1000u})
+        for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
+        for (unsigned selector : {0u,2u}) for (unsigned pending : {0u,1u})
+        for (unsigned budget : {0u,1u,2u,3u,4u,5u,8u,17u}) {
+            test_mem actual;
+            for (unsigned a = 0x8000; a < 0x9000; a += 4) actual.write32(a, a ^ 0x12345678u);
+            // Keep the loaded return PC inside this fixture's code mapping.
+            if (code.back() == 0xe8918010 && address < test_mem::SIZE - 8)
+                actual.write32(address + 4, 0x1000);
+            actual.write_code(0x1000, {bytes, bytes + code.size() * 4});
+            test_mem reference_memory = actual;
+            r12l1::exclusive_monitor monitor(1);
+            auto reference = make_cpu(reference_memory, monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            tlb.add(0x8000, actual.data.data() + 0x8000, permission);
+            tlb.add(0x1000, actual.data.data() + 0x1000, permission);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned r = 0; r < 16; ++r) {
+                const auto value = r == 15 ? 0x1000u : r == 1 ? address : r == 5 ? address + 64 : r == 13 ? address + 128
+                    : r == 6 ? selector : 0x120u + r;
+                state[r] = value; reference->set_reg(r, value);
+            }
+            reference->set_cpsr(16 | endian);
+            state[state_offsets::CPSR / 4] = 16 | endian;
+            state[state_offsets::MODE / 4] = 16;
+            state[state_offsets::NIRQ / 4] = pending;
+            state[state_offsets::AOT_BUDGET / 4] = budget;
+            state[state_offsets::AOT_TLB / 4] = reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN / 4] = reinterpret_cast<std::uintptr_t>(actual.data.data() + 0x1000);
+            state[state_offsets::AOT_CODE_END / 4] = state[state_offsets::AOT_CODE_BEGIN / 4] + code.size() * 4;
+            alignas(8) std::uint32_t control_state[256];
+            std::copy(std::begin(state),std::end(state),std::begin(control_state));
+            const auto original_memory=actual.data;
+            g_test_mem = &actual; g_count_memory_helpers = true; g_memory_helper_calls = 0;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            // Mixed IR can exit before a faulting access; the independent
+            // interpreter below validates its exact returned prefix instead.
+            if (policy != arm_ir_policy::invariant_read_ir) {
+                const auto candidate_memory=actual.data;
+                std::copy(original_memory.begin(),original_memory.end(),actual.data.begin());
+                const int control_count=js_run_aot_wasm(control_module.data(),control_module.size(),
+                    reinterpret_cast<std::uint8_t *>(control_state),sizeof(control_state));
+                if(count!=control_count || actual.data!=candidate_memory) {
+                    printf("  FAIL invariant read original progress/memory count=%d control=%d\n",count,control_count);return false;
+                }
+                for(unsigned r=0;r<16;++r)if(state[r]!=control_state[r]) {
+                    printf("  FAIL invariant read original R%u\n",r);return false;
+                }
+            }
+            g_test_mem = nullptr; g_count_memory_helpers = false;
+            if (count < 0 || count > static_cast<int>(budget) || g_memory_helper_calls
+                || (budget && address == 0x8080 && permission == 3 && !endian && !count)) {
+                printf("  FAIL invariant read progress/op=%08x address=%x budget=%u count=%d\n", code.front(), address, budget, count);
+                return false;
+            }
+            try { if (count) reference->run(count); }
+            catch (...) {
+                printf("  FAIL invariant read reference exception program=%u address=%x budget=%u count=%d PC=%x\n",
+                    unsigned(&code-programs.data()),address,budget,count,reference->get_pc()); return false;
+            }
+            for (unsigned r = 0; r < 16; ++r) if (state[r] != reference->get_reg(r)) {
+                printf("  FAIL invariant read R%u address=%x permission=%u endian=%u budget=%u count=%d\n",
+                    r,address,permission,endian,budget,count); return false;
+            }
+            for (auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},
+                    {state_offsets::ZFLAG,30},{state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if (state[pair.first / 4] != ((reference->get_cpsr() >> pair.second) & 1)) {
+                    printf("  FAIL invariant read flags\n"); return false;
+                }
+            if (actual.data != reference_memory.data) { printf("  FAIL invariant read memory\n"); return false; }
+            ++checks;
+        }
+    }
+    printf("  PASS invariant_reads policy=%d (%u exact state/memory/budget comparisons)\n", int(policy), checks);
+#endif
+    return true;
+}
+
+
+static bool test_budget_chunks(arm_ir_policy policy = arm_ir_policy::budget_chunks) {
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    std::vector<std::vector<std::uint32_t>> programs = {
+        {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe2566001,0x1afffff9},
+        {0x05910000,0x05912004,0x05913008,0x0591400c},
+        {0xe5910000,0xe5817004,0xe5912004,0xe5913008,0xe591400c},
+        {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe2811004},
+        {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0x12811004},
+        {0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe0010394},
+    };
+    if (policy == arm_ir_policy::deferred_chunk_counts) {
+        // Taken and untaken forward edges must not inherit another path's
+        // pending count. Both arms contain proved chunks before their join.
+        programs.push_back({0xe2800001,0xe3560000,0x0a000003,
+            0xe2822001,0xe2833001,0xe2844001,0xe2877001,
+            0xe2888001,0xe2899001,0xe28aa001,0xe28bb001});
+    }
+    // Three chunks exercise multiple private callees and exact prefix counts.
+    std::vector<std::uint32_t> long_program;
+    for (unsigned n = 0; n < 24; ++n)
+        for (auto op : {0xe2800001u,0xe2922001u,0x00223004u,
+                policy == arm_ir_policy::deferred_chunk_counts ? 0xe581400cu : 0xe2844001u})
+            long_program.push_back(op);
+    programs.push_back(long_program);
+    if (policy == arm_ir_policy::budget_gaps_ir) {
+        // Three arithmetic instructions form IR; conditional memory stays in the
+        // original emitter and form a budget chunk on either side of that IR.
+        const std::vector<std::uint32_t> gap{0x05910000u,0x05812004u,0x05913008u,0x0581400cu};
+        const std::vector<std::uint32_t> arithmetic{0xe2800001u,0xe2922001u,0x00233004u};
+        std::vector<std::uint32_t> mixed=gap;
+        mixed.insert(mixed.end(),arithmetic.begin(),arithmetic.end());
+        mixed.insert(mixed.end(),gap.begin(),gap.end());
+        programs={mixed};
+        // A forward edge skips the IR and enters the following budget chunk.
+        mixed.insert(mixed.begin()+4,{0xe3560000u,0x0a000002u});
+        programs.push_back(mixed);
+    }
+    unsigned checks = 0;
+    for (const auto &code : programs) {
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
+            nullptr, nullptr, true, true, true, true, nullptr, true, policy);
+        if (!tr.budget_chunks || tr.func.outlined_calls.empty() || (policy == arm_ir_policy::budget_gaps_ir ? !tr.ir_segments : tr.ir_segments != 0)
+            || (policy == arm_ir_policy::deferred_chunk_counts && !tr.deferred_count_updates)
+            || (policy != arm_ir_policy::budget_gaps_ir && &code == &programs.back() && tr.budget_chunks != 3)) {
+            printf("  FAIL budget chunk selection program=%u chunks=%u\n", unsigned(&code-programs.data()),tr.budget_chunks); return false;
+        }
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        auto control = translate_arm_block(bytes, code.size()*4, 0x1000,
+            nullptr, nullptr, true, true, true, true, nullptr, true, arm_ir_policy::disabled);
+        auto control_module = build_wasm_module({control.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned address : {0x8000u,0x8004u,0x8080u,0x8001u,0x8ff4u,0x8ff8u,0x8ffcu,0u,0xfffffffcu,0x1000u})
+        for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
+        for (unsigned selector : {0u,2u}) for (unsigned pending : {0u,1u})
+        for (unsigned budget : {0u,1u,2u,3u,4u,5u,8u,17u,31u,32u,33u,65u}) {
+            test_mem actual;
+            for (unsigned a = 0x8000; a < 0x9000; a += 4) actual.write32(a, a ^ 0x12345678u);
+            // Keep the loaded return PC inside this fixture's code mapping.
+            if (code.back() == 0xe8918010 && address < test_mem::SIZE - 8)
+                actual.write32(address + 4, 0x1000);
+            actual.write_code(0x1000, {bytes, bytes + code.size() * 4});
+            test_mem reference_memory = actual;
+            r12l1::exclusive_monitor monitor(1);
+            auto reference = make_cpu(reference_memory, monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            tlb.add(0x8000, actual.data.data() + 0x8000, permission);
+            tlb.add(0x1000, actual.data.data() + 0x1000, permission);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned r = 0; r < 16; ++r) {
+                const auto value = r == 15 ? 0x1000u : r == 1 ? address : r == 5 ? address + 64 : r == 13 ? address + 128
+                    : r == 6 ? selector : 0x120u + r;
+                state[r] = value; reference->set_reg(r, value);
+            }
+            reference->set_cpsr(16 | endian | (selector ? 0x40000000u : 0));
+            state[state_offsets::CPSR / 4] = 16 | endian | (selector ? 0x40000000u : 0);
+            state[state_offsets::ZFLAG / 4] = selector ? 1 : 0;
+            state[state_offsets::MODE / 4] = 16;
+            state[state_offsets::NIRQ / 4] = pending;
+            state[state_offsets::AOT_BUDGET / 4] = budget;
+            state[state_offsets::AOT_TLB / 4] = reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN / 4] = reinterpret_cast<std::uintptr_t>(actual.data.data() + 0x1000);
+            state[state_offsets::AOT_CODE_END / 4] = state[state_offsets::AOT_CODE_BEGIN / 4] + code.size() * 4;
+            alignas(8) std::uint32_t control_state[256];
+            std::copy(std::begin(state),std::end(state),std::begin(control_state));
+            const auto original_memory=actual.data;
+            g_test_mem = &actual; g_count_memory_helpers = true; g_memory_helper_calls = 0;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            const auto candidate_memory=actual.data;
+            std::copy(original_memory.begin(),original_memory.end(),actual.data.begin());
+            const int control_count=js_run_aot_wasm(control_module.data(),control_module.size(),
+                reinterpret_cast<std::uint8_t *>(control_state),sizeof(control_state));
+            if(count!=control_count || actual.data!=candidate_memory) {
+                printf("  FAIL budget chunk original progress/memory count=%d control=%d\n",count,control_count);return false;
+            }
+            for(unsigned r=0;r<16;++r)if(state[r]!=control_state[r]) {
+                printf("  FAIL budget chunk original R%u\n",r);return false;
+            }
+            g_test_mem = nullptr; g_count_memory_helpers = false;
+            if (count < 0 || count > static_cast<int>(budget) || g_memory_helper_calls
+                || (budget && address == 0x8080 && permission == 3 && !endian && !count)) {
+                printf("  FAIL budget chunk progress/op=%08x address=%x budget=%u count=%d\n", code.front(), address, budget, count);
+                return false;
+            }
+            try { if (count) reference->run(count); }
+            catch (...) {
+                printf("  FAIL budget chunk reference exception program=%u address=%x budget=%u count=%d PC=%x\n",
+                    unsigned(&code-programs.data()),address,budget,count,reference->get_pc()); return false;
+            }
+            for (unsigned r = 0; r < 16; ++r) if (state[r] != reference->get_reg(r)) {
+                printf("  FAIL budget chunk R%u address=%x permission=%u endian=%u budget=%u count=%d\n",
+                    r,address,permission,endian,budget,count); return false;
+            }
+            for (auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},
+                    {state_offsets::ZFLAG,30},{state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if (state[pair.first / 4] != ((reference->get_cpsr() >> pair.second) & 1)) {
+                    printf("  FAIL budget chunk flags\n"); return false;
+                }
+            if (actual.data != reference_memory.data) { printf("  FAIL budget chunk memory\n"); return false; }
+            ++checks;
+        }
+    }
+    printf("  PASS budget_chunks policy=%d (%u exact state/memory/budget comparisons)\n", int(policy), checks);
+#endif
+    return true;
+}
+
+
+static bool test_invariant_writes(arm_ir_policy policy = arm_ir_policy::invariant_writes) {
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    const std::vector<std::vector<std::uint32_t>> programs = {
+        {0xe5810000,0xe5812004,0xe5813008,0xe581400c,0xe2566001,0x1afffff9},
+        {0x05810000,0x05812004,0x05813008,0x0581400c},
+        {0xe5810000,0xe5912000,0xe5812004,0xe5913004,0xe5813008,0xe5914008},
+        {0xe5810000,0xe5812004,0xe5813008,0xe581400c,0xe2811004},
+        {0xe5810000,0xe5812004,0xe5813008,0xe581400c,0x12811004},
+        {0xe5810000,0xe5812004,0xe5813008,0xe581400c,0xe0010394},
+    };
+    unsigned checks = 0;
+    for (const auto &code : programs) {
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr = translate_arm_block(bytes, code.size() * 4, 0x1000,
+            nullptr, nullptr, true, true, true, true, nullptr, true, policy);
+        if ((policy == arm_ir_policy::write_budget_chunks || policy == arm_ir_policy::deferred_chunk_counts)
+            && (!tr.budget_chunks || tr.func.outlined_calls.empty()
+                || (policy == arm_ir_policy::deferred_chunk_counts && !tr.deferred_count_updates))) {
+            printf("  FAIL combined write/budget chunk selection\n"); return false;
+        }
+        const bool selected = &code - programs.data() < 3;
+        if (bool(tr.proved_writes) != selected || (selected && !tr.func.outlined_callee) || (tr.ir_segments && policy != arm_ir_policy::invariant_write_ir)) {
+            printf("  FAIL invariant write selection program=%u proved=%u\n", unsigned(&code-programs.data()),tr.proved_writes); return false;
+        }
+        if (policy == arm_ir_policy::invariant_write_ir && selected && &code - programs.data() != 1 && !tr.ir_proved_writes) {
+            printf("  FAIL IR invariant write proof was not consumed\n"); return false;
+        }
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        auto control = translate_arm_block(bytes, code.size()*4, 0x1000,
+            nullptr, nullptr, true, true, true, true, nullptr, true, arm_ir_policy::disabled);
+        auto control_module = build_wasm_module({control.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned address : {0x8000u,0x8004u,0x8080u,0x8001u,0x8ff4u,0x8ff8u,0x8ffcu,0u,0xfffffffcu,0x1000u})
+        for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
+        for (unsigned selector : {0u,2u}) for (unsigned pending : {0u,1u})
+        for (unsigned alias : {0u,1u})
+        for (unsigned budget : {0u,1u,2u,3u,4u,5u,8u,17u}) {
+            if (alias && address != 0x8000) continue;
+            test_mem actual;
+            for (unsigned a = 0x8000; a < 0x9000; a += 4) actual.write32(a, a ^ 0x12345678u);
+            // Keep the loaded return PC inside this fixture's code mapping.
+            if (code.back() == 0xe8918010 && address < test_mem::SIZE - 8)
+                actual.write32(address + 4, 0x1000);
+            actual.write_code(0x1000, {bytes, bytes + code.size() * 4});
+            test_mem reference_memory = actual;
+            r12l1::exclusive_monitor monitor(1);
+            auto reference = make_cpu(reference_memory, monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            tlb.add(0x8000, actual.data.data() + (alias ? 0x1000 : 0x8000), permission);
+            tlb.add(0x1000, actual.data.data() + 0x1000, permission);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned r = 0; r < 16; ++r) {
+                const auto value = r == 15 ? 0x1000u : r == 1 ? address : r == 5 ? address + 64 : r == 13 ? address + 128
+                    : r == 6 ? selector : 0x120u + r;
+                state[r] = value; reference->set_reg(r, value);
+            }
+            reference->set_cpsr(16 | endian | (selector ? 0x40000000u : 0));
+            state[state_offsets::CPSR / 4] = 16 | endian | (selector ? 0x40000000u : 0);
+            state[state_offsets::ZFLAG / 4] = selector ? 1 : 0;
+            state[state_offsets::MODE / 4] = 16;
+            state[state_offsets::NIRQ / 4] = pending;
+            state[state_offsets::AOT_BUDGET / 4] = budget;
+            state[state_offsets::AOT_TLB / 4] = reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN / 4] = reinterpret_cast<std::uintptr_t>(actual.data.data() + 0x1000);
+            state[state_offsets::AOT_CODE_END / 4] = state[state_offsets::AOT_CODE_BEGIN / 4] + code.size() * 4;
+            alignas(8) std::uint32_t control_state[256];
+            std::copy(std::begin(state),std::end(state),std::begin(control_state));
+            const auto original_memory=actual.data;
+            g_test_mem = &actual; g_count_memory_helpers = true; g_memory_helper_calls = 0;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            const auto candidate_memory=actual.data;
+            std::copy(original_memory.begin(),original_memory.end(),actual.data.begin());
+            // An outlined IR fallback may return a shorter positive prefix.
+            // Compare that exact prefix against the independent original emitter.
+            if (policy == arm_ir_policy::invariant_write_ir) control_state[state_offsets::AOT_BUDGET / 4] = count;
+            const int control_count=js_run_aot_wasm(control_module.data(),control_module.size(),
+                reinterpret_cast<std::uint8_t *>(control_state),sizeof(control_state));
+            if(count!=control_count || actual.data!=candidate_memory) {
+                printf("  FAIL invariant write original progress/memory count=%d control=%d\n",count,control_count);return false;
+            }
+            for(unsigned r=0;r<16;++r)if(state[r]!=control_state[r]) {
+                printf("  FAIL invariant write original R%u\n",r);return false;
+            }
+            g_test_mem = nullptr; g_count_memory_helpers = false;
+            if (count < 0 || count > static_cast<int>(budget) || g_memory_helper_calls
+                || (budget && address == 0x8080 && permission == 3 && !endian && !alias && !count)) {
+                printf("  FAIL invariant write progress/op=%08x address=%x budget=%u count=%d\n", code.front(), address, budget, count);
+                return false;
+            }
+            // The interpreter fixture uses identity backing. Physical-alias
+            // cases instead compare the original emitter above and require an
+            // immediate code-write exit when the store condition is true.
+            if (alias) {
+                if (((code.front() >> 28) == 14 || selector) && count > 1) {
+                    printf("  FAIL invariant write alias did not exit\n"); return false;
+                }
+                ++checks; continue;
+            }
+            try { if (count) reference->run(count); }
+            catch (...) {
+                printf("  FAIL invariant write reference exception program=%u address=%x budget=%u count=%d PC=%x\n",
+                    unsigned(&code-programs.data()),address,budget,count,reference->get_pc()); return false;
+            }
+            for (unsigned r = 0; r < 16; ++r) if (state[r] != reference->get_reg(r)) {
+                printf("  FAIL invariant write R%u address=%x permission=%u endian=%u budget=%u count=%d\n",
+                    r,address,permission,endian,budget,count); return false;
+            }
+            for (auto pair : {std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},
+                    {state_offsets::ZFLAG,30},{state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if (state[pair.first / 4] != ((reference->get_cpsr() >> pair.second) & 1)) {
+                    printf("  FAIL invariant write flags\n"); return false;
+                }
+            if (actual.data != reference_memory.data) { printf("  FAIL invariant write memory\n"); return false; }
+            ++checks;
+        }
+    }
+    printf("  PASS invariant_writes policy=%d (%u exact state/memory/budget comparisons)\n", int(policy), checks);
+#endif
+    return true;
+}
+
+
+static bool test_region_ir() {
+    region_ir graph(0x1000);
+    const auto input = graph.snapshots[0].regs[0];
+    const auto sum = graph.binary(op_i32_add, input, graph.imm(7));
+    if (sum != graph.binary(op_i32_add, input, graph.imm(7))) return false;
+    auto middle = graph.snapshots.back(); middle.regs[2] = sum; middle.count = 1;
+    graph.snapshots.push_back(middle);
+    auto final = middle; final.regs[2] = graph.imm(42); final.count = 2;
+    graph.snapshots.push_back(final);
+    if (!graph.live_for({1,2})[sum] || graph.live_for({2})[sum]) return false;
+    const auto wide = graph.binary(region_ir::pack, graph.imm(0xffffffff), graph.imm(0x80000000));
+    if (graph.nodes[wide].immediate != 0x80000000ffffffffull) return false;
+    auto sx = graph.unary(op_i64_extend_i32_s, input);
+    if (graph.binary(region_ir::pack, graph.unary(region_ir::low,sx), graph.unary(region_ir::high,sx)) != sx) return false;
+    if (!graph.valid()) return false;
+    graph.nodes[sum].type = type_i64;
+    if (graph.valid()) return false;
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_REGION_IR)
+    std::vector<std::vector<std::uint32_t>> bodies;
+    for (unsigned opcode : {0u,1u,2u,3u,4u,5u,12u,13u,14u,15u}) {
+        bodies.push_back({0xe0002001u | (opcode << 21)});
+        bodies.push_back({0xe20020ffu | (opcode << 21) | (4u << 8)});
+        bodies.push_back({0xe3a00102u,0xe3e01000u,0xe0002001u | (opcode << 21)});
+    }
+    for (unsigned shift : {0u,1u,2u,3u}) for (unsigned amount : {0u,1u,31u})
+        bodies.push_back({0xe1a02001u | (shift << 5) | (amount << 7)});
+    for (unsigned form : {0u,2u,4u,6u}) for (bool overlap : {false,true}) {
+        const auto op = 0xe0800090u | (form << 20) | (3u << 16) | ((overlap ? 0u : 2u) << 12) | (1u << 8);
+        bodies.push_back({op, op | (1u << 21), 0xe1a02622u, 0xe1822a03u});
+    }
+    bodies.push_back({0xe0000190u,0xe0223190u}); // MUL then MLA
+    bodies.push_back({0xe3a02000u,0xe3a03000u,0xe0e32190u,0xe0e32190u});
+    bodies.push_back({0xe3a00102u,0xe3e01000u,0xe0c32190u,0xe0e32190u});
+    bodies.push_back({0xe0802001u,0xe0803001u,0xe3a02001u}); // CSE and overwritten value
+    bodies.push_back({0xe58a0000u,0xe59a2000u,0xe58a1000u,0xe59a3000u}); // ordered alias effects
+    // Snapshot assignment is parallel: entry values must survive writes to
+    // their architectural destinations, including the return-address input.
+    bodies.push_back({0xe1a08004u,0xe1a04005u,0xe1a05008u}); // swap untouched entry R4/R5
+    bodies.push_back({0xe1a04005u,0xe1a05008u,0xe1a08009u}); // forward chain
+    bodies.push_back({0xe1a09008u,0xe1a08005u,0xe1a05004u}); // reverse chain
+    bodies.push_back({0xe1a0800eu,0xe1a0e004u,0xe1a04008u,0xe1a0e004u}); // LR round trip
+    const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
+    unsigned comparisons = 0;
+    for (unsigned program = 0; program < bodies.size(); ++program) {
+        std::vector<std::uint32_t> code{0xe59a0000u,0xe59a1004u,0xe59a6008u,0xe59a700cu};
+        code.insert(code.end(),bodies[program].begin(),bodies[program].end());
+        code.insert(code.end(),{0xe58a2010u,0xe58a3014u,0xe12fff1eu});
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr = translate_arm_block(bytes,code.size()*4,0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+        if (!tr.func.outlined_callee || !tr.complete) {
+            printf("  FAIL IR program %u not selected\n",program); return false;
+        }
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned seed = 0; seed < 8; ++seed) for (unsigned flags : {0u,3u,12u,15u})
+        for (unsigned budget = 0; budget <= code.size()+1; ++budget) {
+            test_mem actual;
+            actual.write_code(0x1000,{bytes,bytes+code.size()*4});
+            for (unsigned a=0x8000;a<0x8040;a+=4) actual.write32(a,values[(seed+(a-0x8000)/4)%8]);
+            test_mem reference_memory = actual;
+            r12l1::exclusive_monitor monitor(1); auto reference = make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb); tlb.add(0x8000,actual.data.data()+0x8000,3);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned r=0;r<16;++r) {
+                auto value = r==15 || r==14 ? 0x1000u : r==10 ? 0x8000u : values[(seed+r*3)%8];
+                state[r]=value; reference->set_reg(r,value);
+            }
+            reference->set_cpsr(16|(flags<<28));
+            state[state_offsets::CPSR/4]=16|(flags<<28); state[state_offsets::MODE/4]=16;
+            state[state_offsets::NIRQ/4]=1; state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+code.size()*4;
+            for (unsigned f=0;f<4;++f) state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual; g_count_memory_helpers=true; g_memory_helper_calls=0;
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr; g_count_memory_helpers=false;
+            if (count != int(std::min<std::size_t>(budget,code.size())) || g_memory_helper_calls) {
+                printf("  FAIL IR progress p=%u budget=%u count=%d\n",program,budget,count); return false;
+            }
+            if (count) reference->run(count);
+            for (unsigned r=0;r<16;++r) if(state[r]!=reference->get_reg(r)) {
+                printf("  FAIL IR p=%u seed=%u flags=%u budget=%u R%u %08x vs %08x\n",program,seed,flags,budget,r,state[r],reference->get_reg(r));return false;
+            }
+            for (unsigned f=0;f<5;++f) if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1)) {
+                printf("  FAIL IR flags p=%u budget=%u\n",program,budget);return false;
+            }
+            if(actual.data!=reference_memory.data) {printf("  FAIL IR memory p=%u budget=%u\n",program,budget);return false;}
+            ++comparisons;
+        }
+    }
+    printf("  PASS region_ir (%u exact state/memory/budget comparisons, snapshot liveness/type checks)\n",comparisons);
+#else
+    printf("  PASS region_ir (snapshot liveness/type checks; backend disabled)\n");
+#endif
+    return true;
+}
+
+static bool test_ir_flags() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    const unsigned operands[] = {0x02000000u,0x020000ffu,0x02000102u,0x020004ffu,
+        1u,0x81u,0xf81u,0x21u,0xa1u,0xfa1u,0x41u,0xc1u,0xfc1u,0x61u,0xe1u,0xfe1u};
+    const unsigned inputs[][2] = {{0,0},{0xffffffffu,0},{0xffffffffu,1},{0x80000000u,0x80000000u},
+        {0x7fffffffu,1},{0,0xffffffffu},{0x80000000u,1},{0x7fffffffu,0xffffffffu},
+        {1,2},{2,1},{0x12345678u,0x87654321u},{0xffff0000u,0x0000ffffu}};
+    unsigned comparisons = 0;
+    for (unsigned opcode = 0; opcode < 16; ++opcode) for (unsigned operand : operands) {
+        const unsigned destination = (opcode >= 8 && opcode <= 11) || (opcode & 1) ? 0 : 2;
+        const unsigned operation = 0xe0100000u | (destination << 12) | (opcode << 21) | operand;
+        // The first S operation feeds ADC/RSC, and is overwritten by MOVS
+        // before exit. A failed intervening load must recover its earlier flags.
+        const unsigned code[] = {operation,0xe2a03000u | (destination << 16),0xe2e34000u,0xe59a5000u,
+            0xe1b06063u,0xe2a67000u,0xe58b7000u,0xe12fff1eu};
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code);
+        auto tr = translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,
+            nullptr,true,arm_ir_policy::invariant_read_flag_ir);
+        if (!tr.complete || !tr.ir_segments || tr.ir_flag_instructions != 2) {
+            printf("  FAIL IR flags selection %08x flags=%u\n",operation,tr.ir_flag_instructions);return false;
+        }
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (const auto &input : inputs) for (unsigned flags : {0u,1u,2u,15u})
+        for (unsigned budget = 0; budget <= 8; ++budget) for (bool mapped : {false,true}) {
+            test_mem actual; actual.write_code(0x1000,{bytes,bytes+sizeof(code)});
+            actual.write32(0x8000,0xfedcba98u); actual.write32(0x9000,0xfedcba98u);
+            test_mem reference_memory = actual; r12l1::exclusive_monitor monitor(1); auto reference = make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb); tlb.add(0x8000,actual.data.data()+0x8000,3);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned r = 0; r < 16; ++r) {
+                const unsigned value = r == 0 ? input[0] : r == 1 ? input[1] : r == 15 ? 0x1000u
+                    : r == 14 ? 0x2000u : r == 10 ? (mapped ? 0x8000u : 0x9000u) : r == 11 ? 0x8080u : 0x12340000u+r;
+                state[r]=value; reference->set_reg(r,value);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(code);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            if(count!=int(std::min(budget,mapped?8u:3u)) || g_memory_helper_calls) {
+                printf("  FAIL IR flags count %08x budget=%u mapped=%u count=%d\n",operation,budget,mapped,count);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r)) {
+                printf("  FAIL IR flags %08x input=%08x/%08x flags=%u budget=%u mapped=%u R%u actual=%08x expected=%08x\n",
+                    operation,input[0],input[1],flags,budget,mapped,r,state[r],reference->get_reg(r));return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1)) {
+                printf("  FAIL IR flags %08x input=%08x/%08x flags=%u budget=%u mapped=%u flag=%u actual=%u cpsr=%08x\n",
+                    operation,input[0],input[1],flags,budget,mapped,f,state[region_ir::flag_offsets[f]/4],reference->get_cpsr());return false;
+            }
+            if(actual.data!=reference_memory.data){printf("  FAIL IR flags memory\n");return false;}
+            ++comparisons;
+        }
+    }
+    printf("  PASS ir_flags (%u exact flags/state/memory/budget comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
+static bool test_ir_conditions(arm_ir_policy policy = arm_ir_policy::conditional_value_ir) {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    const unsigned operations[] = {0x00902001u,0x01b02081u,0x01500001u,0x00a02001u};
+    const unsigned inputs[][2]={{0,0},{0xffffffffu,1},{0x7fffffffu,1},{0x80000000u,0xffffffffu}};
+    unsigned comparisons=0;
+    for(unsigned condition=0;condition<14;++condition) for(unsigned operation:operations) {
+        const unsigned code[]={0xe1a08000u,operation|(condition<<28),0x01a04002u|(((condition+1)%14)<<28),
+            0xe59a5000u,0xe0956001u,0xe58b4000u,0xe12fff1eu};
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(code);
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,policy);
+        if(!tr.complete || tr.ir_conditional_instructions!=2 || !tr.ir_memory_guards) {
+            printf("  FAIL conditional IR selection cond=%u op=%x selected=%u\n",condition,operation,tr.ir_conditional_instructions);return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(const auto &input:inputs)for(unsigned flags=0;flags<16;++flags)
+        for(unsigned budget=0;budget<=7;++budget)for(bool mapped:{false,true}) {
+            test_mem actual;actual.write_code(0x1000,{bytes,bytes+sizeof(code)});
+            actual.write32(0x8000,0x87654321);actual.write32(0x9000,0x87654321);
+            test_mem reference_memory=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x8000,actual.data.data()+0x8000,3);
+            alignas(8) std::uint32_t state[256]{};
+            for(unsigned reg=0;reg<16;++reg) {
+                const unsigned value=reg==0?input[0]:reg==1?input[1]:reg==15?0x1000u:reg==14?0x2000u
+                    :reg==10?(mapped?0x8000u:0x9000u):reg==11?0x8080u:0xabc00000u+reg;
+                state[reg]=value;reference->set_reg(reg,value);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(code);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            if(count!=int(std::min(budget,mapped?7u:3u)) || g_memory_helper_calls) {
+                printf("  FAIL conditional IR count cond=%u budget=%u mapped=%u count=%d\n",condition,budget,mapped,count);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf("  FAIL conditional IR cond=%u op=%x flags=%u budget=%u R%u actual=%x expected=%x\n",condition,operation,flags,budget,reg,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1))return false;
+            if(actual.data!=reference_memory.data)return false;
+            ++comparisons;
+        }
+    }
+    // Rejected speculative effects remain original-emitter boundaries.
+    struct access {unsigned host, offset;};
+    const std::map<std::uint32_t, access> no_accesses;
+    for(unsigned opcode:{0x05902000u,0x05802000u,0x01a0f000u,0x0a000000u,0x012fff1eu}) {
+        region_ir trial(0x1000);
+        if(trial.append_conditional(opcode,0x1000,no_accesses,true,true))return false;
+    }
+    printf("  PASS ir_conditions policy=%d (%u exact predicate/flags/state/memory/budget comparisons)\n",static_cast<int>(policy),comparisons);
+#endif
+    return true;
+}
+
+// A longer graph must retain every intermediate fault snapshot and exact remainder.
+static bool test_ir_long_segments() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    unsigned comparisons=0;
+    for(auto policy:{arm_ir_policy::conditional_value_ir,arm_ir_policy::long_segments_ir,arm_ir_policy::stack_values_ir})
+    for(unsigned fault_at:{31u,63u,95u,127u}) {
+        std::vector<unsigned> code(133);
+        const unsigned pattern[]={0xe0900001u,0xe0222000u,0x20a33001u,0xe1a08004u};
+        for(unsigned n=0;n<code.size();++n)code[n]=pattern[n%4];
+        code[0]=0xe1a0b00cu; // Written root cannot use an entry invariant proof.
+        code[60]=0xe1a08004u;code[61]=0xe1a04005u;code[62]=0xe1a05008u;
+        code[70]=0xe0c54796u;code[71]=0xe0e54796u;
+        code[72]=0xe5894000u;code[73]=0xe5996000u;
+        code[fault_at]=0xe59ba000u;code.back()=0xe12fff1eu;
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(code.data());
+        const auto size=code.size()*4;
+        auto tr=translate_arm_block(bytes,size,0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,policy);
+        if(!tr.complete || tr.ir_max_segment_length!=(policy==arm_ir_policy::long_segments_ir?128u:32u)
+            || !tr.ir_memory_guards || !tr.ir_conditional_instructions || !tr.ir_wide_products
+            || (policy == arm_ir_policy::stack_values_ir && !tr.ir_stack_values)) {
+            printf("  FAIL long IR selection policy=%d max=%u\n",int(policy),tr.ir_max_segment_length);return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned seed:{0u,1u,0x7fffffffu,0xffffffffu})for(unsigned flags:{0u,5u,10u,15u})
+        for(unsigned budget=0;budget<=134;++budget)for(bool mapped:{false,true}) {
+            test_mem actual;actual.write_code(0x1000,{bytes,bytes+size});actual.write32(0x8000,seed);actual.write32(0x8004,~seed);
+            test_mem reference_memory=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x8000,actual.data.data()+0x8000,3);
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg) {
+                unsigned value=reg==15?0x1000u:reg==14?0x2000u:reg==9?0x8000u:reg==12?(mapped?0x8004u:0x9000u):seed+reg;
+                state[reg]=value;reference->set_reg(reg,value);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+size;
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            if(count!=int(std::min(budget,mapped?133u:fault_at)) || g_memory_helper_calls || state[state_offsets::AOT_BUDGET/4]!=budget) {
+                printf("  FAIL long IR count policy=%d fault=%u budget=%u mapped=%u count=%d\n",int(policy),fault_at,budget,mapped,count);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf("  FAIL long IR state policy=%d fault=%u budget=%u R%u\n",int(policy),fault_at,budget,reg);return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1))return false;
+            if(actual.data!=reference_memory.data)return false;
+            ++comparisons;
+        }
+    }
+    printf("  PASS ir_long_segments (%u exact long-graph state/flags/memory/budget comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
+static bool test_ir_segments() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_SEGMENTS)
+    struct program { std::vector<std::uint32_t> body; unsigned extra = 0; };
+    const std::vector<program> programs = {
+        {{0xe1a08004u,0xe1a04005u,0xe1a05008u}}, // parallel copy cycle
+        {{0xe0802001u,0xe0803001u,0xe3a02001u}}, // CSE and overwritten value
+        {{0xe3a02001u,0xe2823002u,0xe2834003u,0xe0244004u}},
+        {{0xe0000190u,0xe0223190u,0xe0822003u}}, // MUL/MLA
+        {{0xe0e32190u,0xe1a04622u,0xe1844a03u,0xe0244001u}}, // wide entry value
+        {{0xe0822001u,0xe0823001u,0xe0233002u,0xe0e32190u}}, // wide successor
+        {{0xe1a0400fu,0xe0844000u,0xe0244001u}}, // PC pipeline input
+        {{0xe3a04004u,0xe0800001u,0xe0202003u,0xe1a03002u,0xe2544001u,0x1afffffau},15},
+        // Branch into an integer sequence: the target must start a new segment.
+        {{0xe3510000u,0x0a000002u,0xe0802001u,0xe0222003u,0xe2822001u,
+          0xe0823001u,0xe0233000u,0xe2833001u}},
+#if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+        {{0xe0c20190u,0xe0e20190u,0xe0a20190u,0xe1a04002u}}, // source/destination overlap
+        {{0xe0810390u,0xe0a10390u,0xe0c10390u,0xe0e10390u}}, // all four wide forms
+        {{0xe3a04004u,0xe0e32190u,0xe59a0000u,0xe58a2010u,0xe2544001u,0x1afffffau},15},
+        {{0xeb0003f9u,0xe0c32190u,0xe59a0000u,0xe0e32190u},4}, // wide caller after inlined integer leaf
+#else
+        {{0xeb0003f9u,0xe0822001u,0xe0222003u,0xe2822001u},4}, // inlined integer leaf
+#endif
+    };
+    const std::vector<std::uint8_t> leaf{0x01,0x00,0x80,0xe0,0x03,0x20,0x20,0xe0,
+        0x02,0x30,0xa0,0xe1,0x1e,0xff,0x2f,0xe1};
+    leaf_resolver resolve = [&](std::uint32_t address) { return address == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
+    const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
+    unsigned comparisons = 0;
+    std::vector<arm_ir_policy> policies{arm_ir_policy::disabled, arm_ir_policy::inline_segments, arm_ir_policy::configured};
+#ifdef EKA2L1_WASM_IR_OUTLINE
+    policies.push_back(arm_ir_policy::outlined_recipes);
+#endif
+    for (auto policy : policies)
+    for (unsigned p = 0; p < programs.size(); ++p) {
+        // A branch to the next instruction excludes the whole-region IR even
+        // when both options are enabled, and exercises a real region label.
+        std::vector<std::uint32_t> code{0xe59a0000u,0xe59a1004u,0xe59a6008u,0xe59a700cu,0xeaffffffu};
+        code.insert(code.end(),programs[p].body.begin(),programs[p].body.end());
+        // Restore caller LR after the inlined BL before returning from fixture.
+        if (p == programs.size()-1) code.push_back(0xe1a0e00bu);
+        code.insert(code.end(),{0xe58a2010u,0xe58a3014u,0xe12fff1eu});
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr = translate_arm_block(bytes,code.size()*4,0x1000,nullptr,nullptr,true,true,true,true,&resolve,true,policy);
+        if (!tr.complete || (policy == arm_ir_policy::disabled ? tr.ir_segments != 0 : !tr.ir_segments) || tr.func.outlined_callee) {
+            printf("  FAIL IR segment program %u not selected\n",p); return false;
+        }
+#ifdef EKA2L1_WASM_IR_OUTLINE
+        const auto expected_private = (policy == arm_ir_policy::configured || policy == arm_ir_policy::outlined_recipes) ? tr.ir_segments : 0;
+        if(tr.ir_outlined_segments!=expected_private || tr.func.outlined_calls.size()!=expected_private) {
+            printf("  FAIL private IR remainder selection\n");return false;
+        }
+#endif
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned seed=0;seed<8;++seed) for(unsigned flags:{0u,3u,12u,15u})
+        for(unsigned budget=0;budget<=48;++budget) {
+            test_mem actual; actual.write_code(0x1000,{bytes,bytes+code.size()*4}); actual.write_code(0x2000,leaf);
+            for(unsigned a=0x8000;a<0x8040;a+=4) actual.write32(a,values[(seed+(a-0x8000)/4)%8]);
+            test_mem reference_memory=actual; r12l1::exclusive_monitor monitor(1); auto reference=make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x8000,actual.data.data()+0x8000,3);
+            alignas(8) std::uint32_t state[256]{};
+            for(unsigned r=0;r<16;++r) {
+                const auto value=r==15||r==14||r==11?0x1000u:r==10?0x8000u:values[(seed+r*3)%8];
+                state[r]=value;reference->set_reg(r,value);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);state[state_offsets::MODE/4]=16;
+            state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x2010);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            unsigned total=static_cast<unsigned>(code.size())+programs[p].extra;
+            if(p==8 && values[(seed+1)%8]==0)total-=3;
+            if(count!=int(std::min(budget,total))||g_memory_helper_calls || state[state_offsets::AOT_BUDGET/4]!=budget) {
+                printf("  FAIL IR segment count p=%u budget=%u count=%d expected=%u\n",p,budget,count,std::min(budget,total));return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r)) {
+                printf("  FAIL IR segment p=%u seed=%u flags=%u budget=%u R%u %08x vs %08x\n",p,seed,flags,budget,r,state[r],reference->get_reg(r));return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1)) {
+                printf("  FAIL IR segment flags p=%u budget=%u\n",p,budget);return false;
+            }
+            if(actual.data!=reference_memory.data){printf("  FAIL IR segment memory\n");return false;}
+            ++comparisons;
+        }
+    }
+    printf("  PASS ir_segments (%u exact state/memory/budget comparisons across enabled policies)\n",comparisons);
+#endif
+    return true;
+}
+
+// Failed dynamic guards must expose the pre-instruction snapshot, including
+// values overwritten later and a parallel register swap. Block transfers prove
+// their entire span before any effect, and code aliases exit before writes.
+static bool test_ir_memory_exits() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    const unsigned operations[] = {0xe59b2000u,0xe58b2000u,0xe49b2004u,0xe52b2004u,
+        0xe8bb0005u,0xe8ab0005u,0xe9bb0005u,0xe9ab0005u,
+        0xe83b0005u,0xe82b0005u,0xe93b0005u,0xe92b0005u};
+    unsigned comparisons=0;
+    for(auto policy:{arm_ir_policy::configured,arm_ir_policy::outlined_recipes})
+    for(bool wide:{false,true})for(bool dependent:{false,true})for(unsigned operation:operations) {
+        const unsigned code[]={wide?0xe0c54196u:0xe1a08004u,wide?0xe0e54196u:0xe1a04005u,wide?0xe0a54796u:0xe1a05008u,
+            0xe58a4020u,dependent?0xe59ab000u:0xe59a0000u,0xe2800001u,operation,0xe3a04000u,0xe3a05000u};
+        const auto *bytes=reinterpret_cast<const std::uint8_t *>(code);
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,policy);
+        if(!tr.complete || tr.ir_memory_guards!=3) {printf("  FAIL memory IR not selected %08x guards=%u\n",operation,tr.ir_memory_guards);return false;}
+        if(wide && (!tr.ir_wide_products || !tr.ir_cold_halves)) {
+            printf("  FAIL wide IR snapshot recipes not selected\n");return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0u,0x8001u,0x8ffcu,0x9000u,0x9001u,0x9004u,0x9ffcu,0xb000u})for(unsigned flags:{0u,3u,12u,15u}) {
+            test_mem actual;actual.write_code(0x1000,{bytes,bytes+sizeof(code)});
+            for(unsigned a=0x8000;a<0xc000;a+=4)actual.write32(a,a*37+11);
+            if(dependent)actual.write32(0x8000,address);
+            // Virtual B000 aliases current code for guard testing. Reads use
+            // identical bytes in the independent interpreter backing.
+            std::memcpy(actual.data.data()+0xb000,actual.data.data()+0x1000,4096);
+            test_mem reference_memory=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x8000,actual.data.data()+0x8000,3);
+            tlb.add(address==0xb000?0xb000:0x9000,actual.data.data()+(address==0xb000?0x1000:0x9000),permission);
+            alignas(8) std::uint32_t state[256]{};
+            for(unsigned r=0;r<16;++r) {
+                unsigned value=r==15?0x1000:r==10?0x8000:r==11?(dependent?0xdeadbeefu:address):0x12340000+r;
+                state[r]=value;reference->set_reg(r,value);
+            }
+            reference->set_cpsr(16|endian|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=9;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000+sizeof(code));
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            const bool load=operation&(1u<<20),block=((operation>>25)&7)==4;
+            const bool up=operation&(1u<<23),pre=operation&(1u<<24);
+            const unsigned size=block?8:4;
+            const unsigned start=address+(block?(up?(pre?4:0):(pre?-8:-4)):(pre?(up?int(operation&4095):-int(operation&4095)):0));
+            const unsigned page=address==0xb000?0xb000:0x9000;
+            const bool mapped=(start&~4095u)==0x8000 || ((start&~4095u)==page && (permission&(load?1:2)));
+            const bool safe=mapped && !(start&3) && (start&4095)<=4096-size
+                && (load || address!=0xb000);
+            const unsigned expected=endian?3:safe?9:6;
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            if(count!=int(expected)||g_memory_helper_calls) {printf("  FAIL memory IR exit op=%08x address=%x perm=%u endian=%u count=%d expected=%u\n",operation,address,permission,endian,count,expected);return false;}
+            reference->run(count);
+            for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r)) {printf("  FAIL memory IR R%u op=%08x address=%x got=%x want=%x\n",r,operation,address,state[r],reference->get_reg(r));return false;}
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1))return false;
+            if(actual.data!=reference_memory.data){printf("  FAIL memory IR effects op=%08x\n",operation);return false;}
+            ++comparisons;
+        }
+    }
+    // A cached read proof must not authorize a write, or vice versa.
+    for(bool write_first:{false,true})for(unsigned permission:{0u,1u,2u,3u}) {
+        const unsigned code[]={write_first?0xe58a1000u:0xe59a0000u,
+            write_first?0xe59a0000u:0xe58a1000u,0xe59a2000u};
+        const auto *bytes=reinterpret_cast<const std::uint8_t *>(code);
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+        if(tr.ir_memory_guards!=3)return false;
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem actual;actual.write_code(0x1000,{bytes,bytes+sizeof(code)});actual.write32(0x8000,0x12345678u);
+        test_mem reference_memory=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x8000,actual.data.data()+0x8000,permission);
+        alignas(8) unsigned state[256]{};
+        for(unsigned reg=0;reg<16;++reg){unsigned value=reg==15?0x1000:reg==10?0x8000:0x100+reg;state[reg]=value;reference->set_reg(reg,value);}
+        reference->set_cpsr(16);state[state_offsets::CPSR/4]=16;state[state_offsets::MODE/4]=16;
+        state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=3;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        const unsigned expected=!(permission&(write_first?2:1))?0:permission==3?3:1;
+        g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        g_test_mem=nullptr;g_count_memory_helpers=false;
+        if(count!=int(expected)||g_memory_helper_calls){printf("  FAIL IR cached permission write_first=%u permission=%u count=%d expected=%u\n",write_first,permission,count,expected);return false;}
+        if(count)reference->run(count);
+        for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg))return false;
+        if(actual.data!=reference_memory.data)return false;
+        ++comparisons;
+    }
+    printf("  PASS ir_memory_exits (%u exact intermediate snapshot/effect comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
+// Exit-only arithmetic must use preserved SSA loads, not reload memory after
+// an intervening store. A shared deep DAG also tests bounded recipe emission.
+static bool test_ir_exit_recipes() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    std::vector<std::vector<unsigned>> programs = {
+        {0xe59a2000u,0xe58a3000u,0xe0824005u,0xe59b0000u,0xe3a04000u,0xe3a02000u},
+        {0xe0c54796u,0xe0848005u,0xe59b0000u,0xe3a04000u,0xe3a05000u,0xe3a08000u},
+        {0xe0804001u,0xe1a08004u,0xe59b2000u,0xe3a04000u,0xe3a08000u},
+        std::vector<unsigned>(24,0xe0040494u)
+    };
+    programs.back().insert(programs.back().end(),{0xe59b0000u,0xe3a04000u});
+    const unsigned fault_at[]={3,2,2,24};
+    const unsigned seeds[]={0,1,0xffffffffu,0x80000000u,0x7fffffffu};
+    unsigned comparisons=0;
+    for(unsigned p=0;p<programs.size();++p) {
+        const auto &code=programs[p];const auto *bytes=reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr=translate_arm_block(bytes,code.size()*4,0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,arm_ir_policy::outlined_recipes);
+        if(!tr.complete || !tr.ir_outlined_segments || tr.ir_cold_values<=tr.ir_cold_halves) {
+            printf("  FAIL general exit recipes not selected p=%u\n",p);return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        if(module.empty() || module.size()>131072) {printf("  FAIL exit recipe DAG growth p=%u bytes=%zu\n",p,module.size());return false;}
+        for(auto seed:seeds)for(unsigned scenario=0;scenario<6;++scenario)
+        for(unsigned flags:{0u,3u,12u,15u})for(unsigned budget=0;budget<=code.size()+1;++budget) {
+            test_mem actual;actual.write_code(0x1000,{bytes,bytes+code.size()*4});
+            actual.write32(0x8000,seed^0xabcdef01u);actual.write32(0x9000,0x87654321u);
+            test_mem reference_memory=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x8000,actual.data.data()+0x8000,3);
+            if(scenario!=1)tlb.add(0x9000,actual.data.data()+0x9000,scenario==5?2:3);
+            const unsigned address=scenario==2?0x9001u:scenario==3?0x9ffeu:0x9000u;
+            const unsigned endian=scenario==4?0x200u:0;
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg) {
+                unsigned value=reg==15?0x1000u:reg==10?0x8000u:reg==11?address:seed+reg;
+                state[reg]=value;reference->set_reg(reg,value);
+            }
+            reference->set_cpsr(16|endian|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+code.size()*4;
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            const unsigned stop=scenario==0?code.size():(scenario==4&&p==0?0:fault_at[p]);
+            const auto expected=std::min(budget,stop);
+            g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+            auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr;g_count_memory_helpers=false;
+            if(count!=int(expected)||g_memory_helper_calls||state[state_offsets::AOT_BUDGET/4]!=budget) {
+                printf("  FAIL exit recipe progress p=%u scenario=%u budget=%u count=%d expected=%u\n",p,scenario,budget,count,expected);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf("  FAIL exit recipe R%u p=%u scenario=%u budget=%u got=%x want=%x\n",reg,p,scenario,budget,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1))return false;
+            if(actual.data!=reference_memory.data){printf("  FAIL exit recipe ordered memory\n");return false;}
+            ++comparisons;
+        }
+    }
+    printf("  PASS ir_exit_recipes (%u exact load-history/DAG/width/budget comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
+static bool test_ir_addressing() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    const unsigned operations[]={
+        0xe5d12000u,0xe5c12000u,0xe1d120b0u,0xe1c120b0u,0xe1d120d0u,0xe1d120f0u,
+        0xe7912106u,0xe7812106u,0xe7d12106u,0xe7c12106u,
+        0xe19120b6u,0xe18120b6u,0xe19120d6u,0xe19120f6u,
+        0xe7912026u,0xe7912046u,0xe7912066u, // LSR32 / ASR32 / RRX offsets
+        0xe4d12001u,0xe4c12001u,0xe1f120b2u,0xe0c120b2u,
+        0xe5112004u,0xe5312004u,0xe01120b6u,
+        0xe59f2004u,0xe1df20b4u};
+    unsigned comparisons=0;
+    for(unsigned operation:operations) {
+        const unsigned code[]={0xe1a08004u,0xe1a04005u,0xe1a05008u,
+            operation,0xe2822001u,0xe58a2000u,0xe3a04000u};
+        const auto *bytes=reinterpret_cast<const std::uint8_t *>(code);
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+        if(!tr.complete || tr.ir_memory_guards!=2) {printf("  FAIL addressing IR selection %08x guards=%u\n",operation,tr.ir_memory_guards);return false;}
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned address:{0u,0x8000u,0x8001u,0x8ffeu,0x8fffu,0x9000u,0xb000u})
+        for(unsigned offset:{0u,1u})for(unsigned permission:{0u,1u,2u,3u})
+        for(unsigned endian:{0u,0x200u})for(unsigned flags:{0u,3u,12u,15u}) {
+            const bool single=((operation>>26)&3)==1,load=operation&(1u<<20);
+            const bool up=operation&(1u<<23),pre=operation&(1u<<24),literal=((operation>>16)&15)==15;
+            unsigned width=single?(operation&(1u<<22)?1:4):(operation&(1u<<5)?2:1),delta=0;
+            if(single) {
+                if(operation&(1u<<25)) {
+                    const unsigned shift=(operation>>5)&3,amount=(operation>>7)&31;
+                    delta=shift==0?offset<<amount:shift==1?(amount?offset>>amount:0)
+                        :shift==2?unsigned(int(offset)>>(amount?amount:31))
+                        :amount?((offset>>amount)|(offset<<(32-amount))):((offset>>1)|(((flags>>1)&1)<<31));
+                } else delta=operation&4095;
+            } else delta=operation&(1u<<22)?((operation>>4)&0xf0)|(operation&15):offset;
+            const unsigned base=literal?0x1014:address;
+            const unsigned start=pre?base+(up?delta:0u-delta):base;
+            const unsigned page=literal?0x1000:address?address&~4095u:0x9000;
+            const bool mapped=page && (start&~4095u)==page && (permission&(load?1:2));
+            const bool safe=mapped && !endian && !(start&(width-1)) && (load || address!=0xb000);
+            for(unsigned budget=0;budget<=8;++budget) {
+                if(!safe && budget!=7)continue; // exact cold exits, plus all safe short budgets
+                test_mem actual;actual.write_code(0x1000,{bytes,bytes+sizeof(code)});
+                for(unsigned a=0x8000;a<0xd000;a+=4)actual.write32(a,a*37+0x89abcdefu);
+                std::memcpy(actual.data.data()+0xb000,actual.data.data()+0x1000,4096);
+                test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+                r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0xc000,actual.data.data()+0xc000,3);
+                tlb.add(page,actual.data.data()+(page==0xb000?0x1000:page),permission);
+                alignas(8) unsigned state[256]{};
+                for(unsigned r=0;r<16;++r) {
+                    const unsigned value=r==15?0x1000:r==1?address:r==6?offset:r==10?0xc000:0x12340000+r;
+                    state[r]=value;reference->set_reg(r,value);
+                }
+                reference->set_cpsr(16|endian|(flags<<28));state[state_offsets::CPSR/4]=reference->get_cpsr();
+                state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+                state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000+sizeof(code));
+                for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+                g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+                const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+                g_test_mem=nullptr;g_count_memory_helpers=false;
+                const unsigned want=safe?std::min(budget,7u):3;
+                if(count!=int(want)||g_memory_helper_calls){printf("  FAIL addressing exit op=%08x address=%x off=%u perm=%u endian=%u flags=%u budget=%u count=%d want=%u helpers=%u\n",operation,address,offset,permission,endian,flags,budget,count,want,g_memory_helper_calls);return false;}
+                if(count)reference->run(count);
+                for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r)){printf("  FAIL addressing state op=%08x address=%x off=%u budget=%u R%u got=%x want=%x\n",operation,address,offset,budget,r,state[r],reference->get_reg(r));return false;}
+                for(unsigned f=0;f<5;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1))return false;
+                if(actual.data!=expected.data){printf("  FAIL addressing memory op=%08x\n",operation);return false;}
+                ++comparisons;
+            }
+        }
+    }
+    // Narrow page proofs must retain each later access's alignment and width.
+    const unsigned chain[]={0xe5d10001u,0xe1d120b2u,0xe5913004u,0xe5c10003u,0xe1c120b6u,0xe5813008u};
+    const auto *bytes=reinterpret_cast<const std::uint8_t *>(chain);
+    auto tr=translate_arm_block(bytes,sizeof(chain),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+    if(tr.ir_memory_guards!=6)return false;
+    auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    for(unsigned address:{0x8000u,0x8001u,0x8002u,0x8ff8u,0x8ffeu,0xb000u})
+    for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u}) {
+        test_mem actual;actual.write_code(0x1000,{bytes,bytes+sizeof(chain)});
+        for(unsigned a=0x8000;a<0xc000;a+=4)actual.write32(a,a*37+0x89abcdefu);
+        std::memcpy(actual.data.data()+0xb000,actual.data.data()+0x1000,4096);
+        test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);const unsigned page=address==0xb000?0xb000:0x8000;
+        tlb.add(page,actual.data.data()+(page==0xb000?0x1000:page),permission);
+        alignas(8) unsigned state[256]{};
+        for(unsigned r=0;r<16;++r){const unsigned value=r==15?0x1000:r==1?address:0x12345678+r;state[r]=value;reference->set_reg(r,value);}
+        reference->set_cpsr(16|endian);state[state_offsets::CPSR/4]=reference->get_cpsr();
+        state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=6;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+        state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000+sizeof(chain));
+        unsigned want=0;const unsigned offsets[]={1,2,4,3,6,8},widths[]={1,2,4,1,2,4};
+        for(;want<6;++want) {
+            const unsigned at=address+offsets[want],width=widths[want];
+            if(endian || !(permission&(want<3?1:2)) || (at&~4095u)!=page
+                || (at&(width-1)) || (at&4095)>4096-width || (want>=3 && page==0xb000))break;
+        }
+        g_test_mem=&actual;g_count_memory_helpers=true;g_memory_helper_calls=0;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        g_test_mem=nullptr;g_count_memory_helpers=false;
+        if(count!=int(want)||g_memory_helper_calls){printf("  FAIL IR width transition address=%x perm=%u endian=%u count=%d want=%u\n",address,permission,endian,count,want);return false;}
+        if(count)reference->run(count);
+        for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r))return false;
+        if(actual.data!=expected.data)return false;
+        ++comparisons;
+    }
+    printf("  PASS ir_addressing (%u exact width/address/snapshot/budget comparisons)\n",comparisons);
+#endif
+    return true;
+}
+
+static bool test_repeated_read_guards() {
+#ifdef __EMSCRIPTEN__
+    const std::uint32_t words[] = {0xe5910000,0xe5912004,0xe5913008};
+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
+    auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
+        for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0u}) {
+            test_mem memory;
+            std::vector<std::uint8_t> code(sizeof(words)); std::memcpy(code.data(),words,sizeof(words));
+            memory.write_code(0x1000,code);
+            for (unsigned a=0x8000;a<0xa000;a+=4) { memory.write32(a,a*37); }
+            r12l1::tlb direct(12,r12l1::dyncom_folded_tlb); direct.add(address == 0 ? 0x200000 : 0x8000,memory.data.data()+0x8000,permission);
+            alignas(8) std::uint32_t state[256]{};
+            state[1]=address; state[15]=0x1000;
+            state[state_offsets::CPSR/4]=0x10|endian;
+            state[state_offsets::AOT_BUDGET/4]=3;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(direct.entries);
+            g_test_mem=&memory; g_count_memory_helpers=true; g_memory_helper_calls=0;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem=nullptr; g_count_memory_helpers=false;
+            const bool fast=(permission&1)&&!endian&&address==0x8000;
+            if(count<1||count>3||(fast ? count!=3||g_memory_helper_calls!=0 : g_memory_helper_calls==0)) return false;
+            // These test imports deliberately perform raw reads. For endian
+            // and unaligned cases assert helper routing, not CPU semantics.
+            // Full state comparisons for the eligible path are also covered
+            // by bounded_execution at every instruction budget.
+            if (fast && (state[0]!=memory.read32(address)||state[2]!=memory.read32(address+4)
+                ||state[3]!=memory.read32(address+8)||state[15]!=0x100c)) return false;
+        }
+#endif
+    printf("  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n");return true;
+}
+
+// Cached displacements must work for high virtual addresses, page changes,
+// separate read/write caches and two virtual pages sharing one backing page.
+static bool test_memory_displacements() {
+#ifdef __EMSCRIPTEN__
+    const unsigned words[]={0xe5910000u,0xe5912004u,0xe5830008u,0xe583200cu,
+        0xe5934008u,0xe593500cu,0xe5814010u,0xe5916010u};
+    auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+    auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    unsigned checks=0;
+    for(unsigned page:{0x1000u,0x70000000u,0x80000000u,0xfffff000u})
+    for(bool alias:{false,true})for(unsigned budget=0;budget<=8;++budget) {
+        test_mem memory;const unsigned other=page^0x1000u;
+        // The lowest test page uses 0x3000 for its second page (zero is denied).
+        const unsigned next=other?other:0x3000u;
+        auto *first=memory.data.data()+0x8000;
+        auto *second=memory.data.data()+(alias?0x8000:0x9000);
+        std::uint32_t a=0x87654321u,b=0xabcdef01u;
+        std::memcpy(first+0xfe0,&a,4);std::memcpy(first+0xfe4,&b,4);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(page,first,3);tlb.add(next,second,3);
+        alignas(8) unsigned state[256]{};state[1]=page+0xfe0;state[3]=next+0xfe0;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=16;state[state_offsets::AOT_BUDGET/4]=budget;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        auto expected=memory.data;unsigned regs[16]{};regs[1]=state[1];regs[3]=state[3];regs[15]=0x1000+4*budget;
+        for(unsigned i=0;i<budget;++i) {
+            const unsigned op=words[i],r=(op>>12)&15,base=((op>>16)&15)==1?0x8000:(alias?0x8000:0x9000),offset=base+0xfe0+(op&4095);
+            if(op&(1u<<20))std::memcpy(&regs[r],expected.data()+offset,4);
+            else std::memcpy(expected.data()+offset,&regs[r],4);
+        }
+        g_test_mem=&memory;g_count_memory_helpers=true;g_memory_helper_calls=0;
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        g_test_mem=nullptr;g_count_memory_helpers=false;
+        if(count!=budget||g_memory_helper_calls||memory.data!=expected||std::memcmp(state,regs,sizeof(regs))) {
+            printf("  FAIL memory_displacements page=%x alias=%d budget=%u count=%d\n",page,alias,budget,count);return false;
+        }++checks;
+    }
+    printf("  PASS memory_displacements (%u exact state/memory/budget checks)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_block_transfer_callback_pc() {
+#ifdef __EMSCRIPTEN__
+    const std::uint32_t words[] = {0xe3a02007,0xe8918009}; // MOV; LDM r1,{r0,r3,pc}
+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
+    auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    test_mem memory; memory.write32(0x8000,17); memory.write32(0x8004,19); memory.write32(0x8008,0x2001);
+    alignas(8) std::uint32_t state[256]{};
+    state[1]=0x8000; state[15]=0x1000; state[state_offsets::AOT_BUDGET/4]=2;
+    g_test_mem=&memory; g_expected_callback_pc=0x1004; g_callback_pc_matches=true;
+    const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+    g_test_mem=nullptr; g_expected_callback_pc=0;
+    if(count!=2 || !g_callback_pc_matches || state[0]!=17 || state[3]!=19 || state[15]!=0x2001 || state[state_offsets::TFLAG/4]!=1) {
+        printf("  FAIL block_transfer_callback_pc\n"); return false;
+    }
+#endif
+    printf("  PASS block_transfer_callback_pc\n"); return true;
+}
+
+static bool test_outlined_code_lookup() {
+    struct restore_mode {
+        bool old = code_lookup_outline;
+        unsigned old_compare = code_compare_mode;
+        ~restore_mode() { code_lookup_outline = old; code_compare_mode = old_compare; }
+    } restore;
+    for (const unsigned compare : {2u, 4u})
+    for (const unsigned snapshot_size : {28u, 128u})
+    for (const bool outlined : {false, true}) {
+        code_compare_mode = compare;
+        code_lookup_outline = outlined;
+        test_mem memory;
+        r12l1::exclusive_monitor monitor(1);
+        auto cpu = make_cpu(memory, monitor);
+        std::array<std::uint8_t, 256> primary{}, leaf{}, other{}, remap{};
+        std::atomic<std::uint64_t> generation{1}, replacement{1};
+        cpu->code_mapping_generation = &generation;
+        cpu->code_address_space = 1;
+        bool mapped = true;
+        unsigned resolutions = 0;
+        auto *primary_backing = primary.data();
+        auto *leaf_backing = leaf.data();
+        std::size_t extent = primary.size();
+        cpu->resolve_code = [&](std::uint32_t pc, core::code_mapping &out) {
+            ++resolutions;
+            if (!mapped) return false;
+            out = {cpu->code_address_space,
+                pc == 0x1000 ? primary_backing : pc == 0x2000 ? leaf_backing : other.data(), extent};
+            return true;
+        };
+        validated_code_cache cache;
+        auto install = [&]() -> validated_code_cache::block & {
+            auto &entry = cache.insert(0x1000, {1, primary_backing, extent}, snapshot_size);
+            validated_code_cache::add_dependency(entry, 0x2000, leaf_backing,
+                {leaf_backing, leaf_backing + snapshot_size});
+            return entry;
+        };
+        auto &initial = install();
+        if (compare == 4 && (initial.comparator != select_code_comparator(snapshot_size)
+            || initial.dependencies[0].comparator != select_code_comparator(snapshot_size))) return false;
+#ifdef __wasm_simd128__
+        if (compare == 4 && ((snapshot_size == 28 && initial.comparator == equal_code_bytes)
+            || (snapshot_size == 128 && initial.comparator != equal_code_bytes))) return false;
+#endif
+        if (!cache.find(0x1000, *cpu)) return false;
+        const auto first_resolutions = resolutions;
+        for (unsigned i = 0; i < 8; ++i) if (!cache.find(0x1000, *cpu)) return false;
+        if (resolutions != first_resolutions) return false;
+        // Direct host writes invalidate, including dependency bytes. Restoring
+        // bytes after rejection must never revive that compiled version.
+        for (auto *bytes : {primary.data(), leaf.data()}) {
+            for (unsigned offset : {0u, 15u, 16u, snapshot_size / 2, snapshot_size - 1}) {
+                auto &old = install();
+                if (!cache.find(0x1000, *cpu)) return false;
+                const auto before = cache.invalidations;
+                bytes[offset] ^= 1;
+                if (cache.find(0x1000, *cpu) || old.live || cache.invalidations != before + 1) return false;
+                bytes[offset] ^= 1;
+                if (cache.find(0x1000, *cpu) || cache.invalidations != before + 1) return false;
+            }
+        }
+        install(); if (!cache.find(0x1000, *cpu)) return false;
+        // Same-index collision recovers the existing generation guard.
+        cache.insert(0x3000, {1, other.data(), other.size()}, 8);
+        if (!cache.find(0x3000, *cpu)) return false;
+        if (compare == 4) {
+            auto *other_entry = cache.find(0x3000, *cpu);
+            if (!other_entry || other_entry->comparator != select_code_comparator(8)) return false;
+        }
+        const auto before_collision = resolutions;
+        if (!cache.find(0x1000, *cpu) || resolutions != before_collision) return false;
+        // Equal numerical generations from another source force refresh.
+        cpu->code_mapping_generation = &replacement;
+        if (!cache.find(0x1000, *cpu) || resolutions != before_collision + 2) return false;
+        primary_backing = remap.data(); ++replacement;
+        if (cache.find(0x1000, *cpu)) return false;
+        install(); if (!cache.find(0x1000, *cpu)) return false;
+        leaf_backing = other.data(); ++replacement;
+        if (cache.find(0x1000, *cpu)) return false;
+        install(); if (!cache.find(0x1000, *cpu)) return false;
+        mapped = false; ++replacement;
+        if (cache.find(0x1000, *cpu)) return false;
+        mapped = true; ++replacement;
+        if (!cache.find(0x1000, *cpu)) return false;
+        extent = snapshot_size - 1; ++replacement;
+        if (cache.find(0x1000, *cpu)) return false;
+        extent = 256; install();
+        cpu->code_address_space = 2;
+        if (cache.find(0x1000, *cpu)) return false;
+        cpu->code_address_space = 1;
+        if (!cache.find(0x1000, *cpu)) return false;
+        cache.invalidate(0x2004, 4);
+        if (cache.find(0x1000, *cpu)) return false;
+        install(); cpu->code_mapping_generation = nullptr;
+        const auto before_legacy = resolutions;
+        if (!cache.find(0x1000, *cpu) || !cache.find(0x1000, *cpu)
+            || resolutions != before_legacy + 4) return false;
+        cpu->code_mapping_generation = &replacement; replacement.store(0);
+        const auto before_zero = resolutions;
+        if (!cache.find(0x1000, *cpu) || !cache.find(0x1000, *cpu)
+            || resolutions != before_zero + 4) return false;
+    }
+    printf("  PASS outlined_code_lookup (both lookup modes, grouped/stored comparators, short/long snapshots, dependencies, mappings, rejection)\n");
+    return true;
+}
+
+static bool test_exact_code_compare() {
+    for (unsigned mode : {0u, 1u, 2u, 3u, 4u}) {
+    code_compare_mode = mode;
+    const auto compare = [mode](const std::uint8_t *x, const std::uint8_t *y, std::size_t size) {
+        return (mode == 4 ? select_code_comparator(size) : equal_code_bytes)(x, y, size);
+    };
+    std::array<std::uint8_t,577> a{},b{};
+    for(unsigned i=0;i<a.size();++i) a[i]=b[i]=i*37;
+    for(unsigned offset=0;offset<16;++offset) for(unsigned size=0;size<=512;++size) {
+        if(!compare(a.data()+offset,b.data()+offset,size)) return false;
+        for(unsigned at : {0u,size/2,size ? size-1 : 0u}) if(size) {
+            b[offset+at]^=1;
+            if(compare(a.data()+offset,b.data()+offset,size)) return false;
+            b[offset+at]^=1;
+        }
+    }
+    // Exercise every byte and independent alignment of the short snapshots.
+    for (unsigned left=0;left<16;++left) for(unsigned right=0;right<16;++right)
+        for(unsigned size=0;size<=192;++size) {
+            std::memcpy(b.data()+right,a.data()+left,size);
+            if(!compare(a.data()+left,b.data()+right,size)) return false;
+            for(unsigned at=0;at<size;++at) {
+                b[right+at]^=128;
+                if(compare(a.data()+left,b.data()+right,size)) return false;
+                b[right+at]^=128;
+            }
+        }
+    for (unsigned left=0;left<4;++left) for(unsigned right=0;right<4;++right)
+        for(unsigned size : {255u,256u,257u,511u,512u,513u}) {
+            std::memcpy(b.data()+right,a.data()+left,size);
+            if(!compare(a.data()+left,b.data()+right,size)) return false;
+            for(unsigned at=0;at<size;++at) {
+                b[right+at]^=64;
+                if(compare(a.data()+left,b.data()+right,size)) return false;
+                b[right+at]^=64;
+            }
+            // Equal mismatch bits in separate vectors must not cancel.
+            b[right]^=1; b[right+16]^=1;
+            if(compare(a.data()+left,b.data()+right,size)) return false;
+            b[right]^=1; b[right+16]^=1;
+        }
+    }
+    code_compare_mode = 0;
+    printf("  PASS exact_code_compare (five modes including selected functions, unaligned/tails/mutations)\n"); return true;
+}
+
+// Check every condition/flag combination against DynCom, including false moves,
+// source/destination overlap, PC reads, rotated immediates and unchanged flags.
+static bool test_conditional_alu_select() {
+#ifdef __EMSCRIPTEN__
+    std::vector<unsigned> forms = {0x01a02000u, 0x01a00000u, 0x01af2000u,
+        0x01a0200fu, 0x03a02001u, 0x03a02480u, 0x01b02000u, 0x01a02080u};
+    for (unsigned opcode = 0; opcode < 16; ++opcode) {
+        if (opcode >= 8 && opcode <= 11) continue; // Test/misc encodings require S.
+        forms.push_back((opcode << 21) | 0x00000001u); // Rd overlaps Rn.
+        forms.push_back((opcode << 21) | 0x02002180u); // Rotated immediate.
+    }
+    unsigned comparisons = 0;
+    for (unsigned variant = 0; variant < 4; ++variant)
+    for (unsigned cond = 0; cond < 14; ++cond) for (unsigned form : forms) {
+        const std::uint32_t code[] = {(cond << 28) | form, 0xe2a33000u}; // ADC consumes preserved C.
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code);
+        auto tr = translate_arm_block(bytes, sizeof(code), 0x1000, nullptr, nullptr,
+            true, true, variant & 1, variant >= 2);
+        if (!tr.entry_supported || !tr.complete) return false;
+        auto module = build_wasm_module({tr.func});
+        for (unsigned flags = 0; flags < 16; ++flags)
+        for (unsigned budget : {0u, 1u, 2u, 3u}) for (unsigned seed : {0u, 1u}) {
+            test_mem memory;
+            memory.write_code(0x1000, {bytes, bytes + sizeof(code)});
+            r12l1::exclusive_monitor monitor(1);
+            auto cpu = make_cpu(memory, monitor);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned reg = 0; reg < 16; ++reg) {
+                unsigned value = reg == 15 ? 0x1000 : (seed ? 0x80000000u : 0x7fffffffu) + reg;
+                state[state_offsets::reg(reg) / 4] = value;
+                cpu->set_reg(reg, value);
+            }
+            cpu->set_cpsr(0x10 | (flags << 28));
+            state[state_offsets::CPSR / 4] = cpu->get_cpsr();
+            state[state_offsets::MODE / 4] = 16;
+            state[state_offsets::NIRQ / 4] = 1;
+            for (auto pair : {std::pair<unsigned, unsigned>{state_offsets::NFLAG, 3},
+                    {state_offsets::ZFLAG, 2}, {state_offsets::CFLAG, 1}, {state_offsets::VFLAG, 0}})
+                state[pair.first / 4] = (flags >> pair.second) & 1;
+            state[state_offsets::AOT_BUDGET / 4] = budget;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            if (count != static_cast<int>(std::min(budget, 2u))) {
+                printf("  FAIL conditional MOV budget %u count %d\n", budget, count); return false;
+            }
+            if (count) cpu->run(count);
+            for (unsigned reg = 0; reg < 16; ++reg)
+                if (state[state_offsets::reg(reg) / 4] != cpu->get_reg(reg)) {
+                    printf("  FAIL conditional MOV %08X variant=%u flags=%u budget=%u R%u\n",
+                        code[0], variant, flags, budget, reg); return false;
+                }
+            for (auto pair : {std::pair<unsigned, unsigned>{state_offsets::NFLAG, 31},
+                    {state_offsets::ZFLAG, 30}, {state_offsets::CFLAG, 29},
+                    {state_offsets::VFLAG, 28}, {state_offsets::TFLAG, 5}})
+                if (state[pair.first / 4] != ((cpu->get_cpsr() >> pair.second) & 1)) {
+                    printf("  FAIL conditional MOV flags %08X variant=%u flags=%u budget=%u\n",
+                        code[0], variant, flags, budget); return false;
+                }
+            ++comparisons;
+        }
+    }
+    printf("  PASS conditional_alu_select (%u exact budget/state comparisons)\n", comparisons);
+#endif
+    return true;
+}
+
+// Preserve flags and exact exits when CMP feeds a subsequent condition.
+static bool test_compare_conditions() {
+#ifdef __EMSCRIPTEN__
+    const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
+    unsigned comparisons = 0;
+    for (unsigned variant = 0; variant < 4; ++variant)
+    for (unsigned cond = 0; cond < 14; ++cond)
+    for (unsigned form : {0x03a02001u, 0x02800001u, 0x0a000000u}) {
+        const std::uint32_t code[] = {0xe1500001u, (cond << 28) | form, 0xe2a33000u, 0xe2844001u};
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code);
+        auto tr = translate_arm_block(bytes, sizeof(code), 0x1000, nullptr, nullptr,
+            true, true, variant & 1, variant >= 2);
+        if (!tr.entry_supported || !tr.complete) return false;
+        auto module = build_wasm_module({tr.func});
+        for (unsigned left : values) for (unsigned right : values)
+        for (unsigned budget : {0u,1u,2u,3u,4u,7u}) {
+            const unsigned flags = 10;
+            test_mem memory;
+            memory.write_code(0x1000, {bytes, bytes + sizeof(code)});
+            r12l1::exclusive_monitor monitor(1);
+            auto cpu = make_cpu(memory, monitor);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned reg = 0; reg < 16; ++reg) {
+                unsigned value = reg == 15 ? 0x1000 : reg == 0 ? left : reg == 1 ? right : 0x12340000u + reg;
+                state[state_offsets::reg(reg) / 4] = value;
+                cpu->set_reg(reg, value);
+            }
+            cpu->set_cpsr(0x10 | (flags << 28));
+            state[state_offsets::CPSR / 4] = cpu->get_cpsr();
+            state[state_offsets::MODE / 4] = 16;
+            state[state_offsets::NIRQ / 4] = 1;
+            for (auto pair : {std::pair<unsigned, unsigned>{state_offsets::NFLAG, 3},
+                    {state_offsets::ZFLAG, 2}, {state_offsets::CFLAG, 1}, {state_offsets::VFLAG, 0}})
+                state[pair.first / 4] = (flags >> pair.second) & 1;
+            state[state_offsets::AOT_BUDGET / 4] = budget;
+            const int count = js_run_aot_wasm(module.data(), module.size(),
+                reinterpret_cast<std::uint8_t *>(state), sizeof(state));
+            if (count < 0 || count > static_cast<int>(budget) || (budget && !count)) {
+                printf("  FAIL compare condition budget %u count %d\n", budget, count); return false;
+            }
+            if (count) cpu->run(count);
+            for (unsigned reg = 0; reg < 16; ++reg)
+                if (state[state_offsets::reg(reg) / 4] != cpu->get_reg(reg)) {
+                    printf("  FAIL compare condition %08X variant=%u flags=%u budget=%u R%u\n",
+                        code[0], variant, flags, budget, reg); return false;
+                }
+            for (auto pair : {std::pair<unsigned, unsigned>{state_offsets::NFLAG, 31},
+                    {state_offsets::ZFLAG, 30}, {state_offsets::CFLAG, 29},
+                    {state_offsets::VFLAG, 28}, {state_offsets::TFLAG, 5}})
+                if (state[pair.first / 4] != ((cpu->get_cpsr() >> pair.second) & 1)) {
+                    printf("  FAIL compare condition flags %08X variant=%u flags=%u budget=%u\n",
+                        code[0], variant, flags, budget); return false;
+                }
+            ++comparisons;
+        }
+    }
+    printf("  PASS compare_conditions (%u exact budget/state comparisons)\n", comparisons);
 #endif
     return true;
 }
@@ -2182,13 +4121,16 @@ static bool test_arm_long_multiply() {
     }}; // lo, hi, rm, rs (including both destinations overlapping inputs)
     const unsigned values[] = {0,1,2,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u,0x12345678u};
     unsigned comparisons = 0;
+    for (bool consecutive : {false,true})
     for (bool cached : {false,true}) for (unsigned form = 0; form < 8; ++form)
     for (const auto &r : registers) for (unsigned cond : {0u,1u,14u}) {
         const unsigned instruction = (cond << 28) | 0x00800090u | (form << 20)
             | (r[1]<<16) | (r[0]<<12) | (r[3]<<8) | r[2];
-        const std::uint32_t code[] = {instruction, 0x02866001u, instruction}; // ADDEQ between products
+        const std::uint32_t code[] = {
+            consecutive ? instruction & ~(1u << 21) : instruction,
+            consecutive ? instruction : 0x02866001u, instruction};
         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code);
-        auto tr = translate_arm_block(bytes, sizeof(code), 0x1000, nullptr, nullptr, true, true, cached);
+        auto tr = translate_arm_block(bytes, sizeof(code), 0x1000, nullptr, nullptr, true, true, cached, consecutive);
         if (!tr.entry_supported || !tr.complete) { printf("  FAIL long multiply not compiled %08X\n",instruction); return false; }
         auto module = build_wasm_module({tr.func});
         for (unsigned seed = 0; seed < 8; ++seed) for (unsigned flags : {0u,3u,12u,15u})
@@ -2321,7 +4263,1257 @@ static bool test_cached_callback_state() {
     return true;
 }
 
-int main() {
+static bool test_code_write_protection() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+    namespace tracking = eka2l1::common::code_tracking;
+    struct restore_mode { bool saved=tracking::protect_writes,folded=r12l1::dyncom_folded_tlb; ~restore_mode(){tracking::protect_writes=saved;r12l1::dyncom_folded_tlb=folded;g_write16_observer={};} } restore;
+    tracking::protect_writes=true;
+    alignas(4096) static std::uint8_t backing[5*4096]{};
+    tracking::register_allocation(backing,sizeof(backing));
+    for(bool folded : {false,true}) {
+        r12l1::dyncom_folded_tlb=folded;
+        r12l1::tlb tlb(12,folded);
+        tlb.add(0x4000,backing,7);tlb.add(0x8000,backing,7);tlb.add(0x5000,backing+4096,7);
+        if(!folded && !tlb.lookup_access<prot_write>(0x4000)){printf("write protection failure line %d\n",__LINE__);return false;}
+        auto stamps=tracking::snapshot(backing,8);if(stamps.empty()){printf("write protection failure line %d\n",__LINE__);return false;}
+        tlb.sync_write_protection();
+        if(tlb.lookup_access<prot_write>(0x4000)||tlb.lookup_access<prot_write>(0x8000)){printf("write protection failure line %d\n",__LINE__);return false;}
+        if(tlb.lookup_access<prot_read>(0x4000)!=backing || tlb.lookup_access<prot_exec>(0x8000)!=backing){printf("write protection failure line %d\n",__LINE__);return false;}
+        if(tlb.lookup_access<prot_write>(0x5000)!=backing+4096){printf("write protection failure line %d\n",__LINE__);return false;}
+        tlb.add(0xc000,backing,7);if(tlb.lookup_access<prot_write>(0xc000)){printf("write protection failure line %d\n",__LINE__);return false;}
+        tlb.add(0xc000,backing+4096,7);if(!tlb.lookup_access<prot_write>(0xc000)){printf("write protection failure line %d\n",__LINE__);return false;}
+        // A partially overlapping host span must be denied too.
+        tlb.add(0x6000,backing+4094,7);if(tlb.lookup_access<prot_write>(0x6000)){printf("write protection failure line %d\n",__LINE__);return false;}
+        for(auto store : {0xe5c10000u,0xe1c100b0u,0xe5810000u,0xe8810009u}) {
+            const std::uint32_t words[]={store,0xe2822001,0xe12fff1e};
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+            auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+            alignas(8) std::uint32_t state[256]{};
+            state[0]=0x12345678;state[1]=0x4000;state[3]=0x11223344;state[14]=0x2000;
+            state[state_offsets::AOT_BUDGET/4]=3;state[state_offsets::NIRQ/4]=1;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            auto before=backing[0];
+            bool helper_seen=false,helper_precise=true;
+            auto write_stamp=tracking::snapshot(backing,8);
+            g_write16_observer=[&](std::uint32_t ptr,std::uint32_t address,std::uint32_t value){
+                auto *observed=reinterpret_cast<std::uint32_t*>(ptr);
+                helper_seen=true;helper_precise=address==0x4000 && value==0x12345678 && observed[1]==0x4000 && observed[2]==0 && observed[15]==0x1000;
+                const std::uint16_t half=value;
+                std::memcpy(backing,&half,2);tracking::guest_write(backing,2);
+            };
+            auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_write16_observer={};
+            if(store==0xe1c100b0u) {
+                // STRH deliberately uses the precise callback path, even when
+                // other direct stores defer after a denied writable TLB tag.
+                if(count!=1 || !helper_seen || !helper_precise || write_stamp.empty() || write_stamp[0].valid() || backing[0]!=0x78 || backing[1]!=0x56 || state[1]!=0x4000 || state[2] || state[15]!=0x1004){printf("write protection halfword callback failure\n");return false;}
+                continue;
+            }
+            if(count || helper_seen || state[1]!=0x4000 || state[2] || backing[0]!=before || state[15]!=0x1000){printf("write protection failure line %d store %x count %u r1 %x r2 %x pc %x mem %u/%u\n",__LINE__,store,count,state[1],state[2],state[15],backing[0],before);return false;}
+        }
+        // Delivered invariant read/write proofs may coexist with protection.
+        // A watched destination refuses its write proof and exits precisely;
+        // a remap to untracked data permits the same compiled function.
+        const std::uint32_t proof_words[]={0xe5910000,0xe5913004,0xe5914008,0xe5820000,0xe5823004,0xe5824008};
+        auto proof=translate_arm_block(reinterpret_cast<const std::uint8_t*>(proof_words),sizeof(proof_words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+        if(proof.proved_reads!=3 || proof.proved_writes!=3){printf("protected entry proofs not selected\n");return false;}
+        auto proof_module=build_wasm_module({proof.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        std::array<std::uint32_t,1024> input{};input[0]=7;input[1]=11;input[2]=19;
+        for(bool watched : {true,false}) for(unsigned budget : {0u,1u,2u,3u,4u,5u,6u,7u}) {
+            auto *destination=watched?backing:backing+4096;std::array<std::uint8_t,12> before{};std::memcpy(before.data(),destination,12);
+            tlb.add(0x201000,reinterpret_cast<std::uint8_t*>(input.data()),prot_read);
+            tlb.add(0x403000,destination,prot_read_write);tlb.sync_write_protection();
+            alignas(8) std::uint32_t state[256]{};state[1]=0x201000;state[2]=0x403000;state[15]=0x1000;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NIRQ/4]=1;
+            const auto count=js_run_aot_wasm(proof_module.data(),proof_module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            const unsigned expected=std::min(budget,watched?3u:6u);
+            std::array<std::uint8_t,12> expected_memory=before;
+            if(!watched && expected>3)std::memcpy(expected_memory.data(),input.data(),(expected-3)*4);
+            if(count!=expected || state[15]!=0x1000+expected*4 || state[1]!=0x201000 || state[2]!=0x403000 || state[0]!=(expected?7u:0u) || state[3]!=(expected>=2?11u:0u) || state[4]!=(expected>=3?19u:0u) || std::memcmp(destination,expected_memory.data(),12)) {printf("protected proof budget/alias failure watched=%d budget=%u count=%u\n",watched,budget,count);return false;}
+        }
+        // The checked write path still updates versions; refill stays protected.
+        backing[0]^=1;tracking::guest_write(backing,1);if(stamps[0].valid()){printf("write protection failure line %d\n",__LINE__);return false;}
+        tlb.add(0x4000,backing,7);if(tlb.lookup_access<prot_write>(0x4000)){printf("write protection failure line %d\n",__LINE__);return false;}
+    }
+    r12l1::tlb tlb(12,true);tlb.add(0x7000,backing+8192,7);tlb.sync_write_protection();
+    if(!tlb.lookup_access<prot_write>(0x7000)){printf("write protection failure line %d\n",__LINE__);return false;}
+    auto later=tracking::snapshot(backing+8192,4);if(later.empty()){printf("write protection failure line %d\n",__LINE__);return false;}
+    tlb.sync_write_protection();if(tlb.lookup_access<prot_write>(0x7000)){printf("write protection failure line %d\n",__LINE__);return false;}
+    const auto saved_generation=tracking::watch_generation;
+    tracking::watch_generation=UINT64_MAX;
+    if(tracking::snapshot(backing+12288,4).empty() || tracking::watch_generation){printf("write protection failure line %d\n",__LINE__);return false;}
+    tlb.add(0x9000,backing+16384,7);tlb.sync_write_protection();
+    if(!tlb.lookup_access<prot_write>(0x9000)){printf("write protection failure line %d\n",__LINE__);return false;}
+    if(tracking::snapshot(backing+16384,4).empty() || tracking::watch_generation){printf("write protection failure line %d\n",__LINE__);return false;}
+    tlb.sync_write_protection();if(tlb.lookup_access<prot_write>(0x9000)){printf("write protection failure line %d\n",__LINE__);return false;}
+    tracking::watch_generation=saved_generation; // No surviving compiled fixture.
+    tracking::escape_pointer(backing);
+    if(later[0].valid()){printf("write protection failure line %d\n",__LINE__);return false;}
+    tlb.flush();tlb.add(0x7000,backing+8192,7);
+    if(!tlb.lookup_access<prot_write>(0x7000)){printf("write protection failure line %d\n",__LINE__);return false;} // escaped code uses exact validation
+    tracking::retire_allocation(backing);
+    printf("  PASS code_write_protection (aliases, refills, remaps, partial spans, deferred stores, escapes, generation exhaustion)\n");
+#else
+    printf("  SKIP code_write_protection (build option off)\n");
+#endif
+    return true;
+}
+
+static bool test_generated_write_versions() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
+    namespace tracking = eka2l1::common::code_tracking;
+    alignas(4096) static std::uint8_t backing[8192]{};
+    tracking::register_allocation(backing,sizeof(backing));
+    for (auto store : {0xe5c10000u,0xe1c100b0u,0xe5810000u,0xe8a10009u}) {
+        for (auto alias : {0x4000u,0x8000u}) {
+            const std::uint32_t words[]={store,0xe2822001,0xe12fff1e};
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
+            auto module=build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(alias,backing,7);
+            alignas(8) std::uint32_t state[256]{};
+            state[0]=0x12345678;state[3]=0x11223344;state[1]=alias;state[14]=0x2000;
+            state[state_offsets::AOT_BUDGET/4]=3;state[state_offsets::NIRQ/4]=1;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            auto before=tracking::snapshot(backing,8);
+            if(before.empty())return false;
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            const bool overflow = store == 0xe8a10009u && alias == 0x8000u;
+            if (overflow) tracking::pages[reinterpret_cast<std::uintptr_t>(backing)>>12].version=UINT32_MAX;
+#endif
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            const auto epoch = tracking::validation_epoch();
+#endif
+            auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
+            if (tracking::validation_epoch() == epoch) return false;
+            if (overflow && !tracking::snapshot(backing,8).empty()) return false;
+#endif
+            if(count!=3 || state[2]!=1 || before[0].valid() || backing[0]!=0x78) return false;
+        }
+    }
+    tracking::retire_allocation(backing);
+#endif
+    printf("  PASS generated_write_versions (STRB/STRH/STR/STM through physical aliases)\n");
+    return true;
+}
+
+static bool test_code_validity_versions() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
+    namespace tracking = eka2l1::common::code_tracking;
+    alignas(4096) static std::uint8_t backing[16384]{};
+    tracking::register_allocation(backing, 8192);
+    test_mem memory;
+    r12l1::exclusive_monitor monitor(1);
+    auto cpu = make_cpu(memory, monitor);
+    std::atomic<std::uint64_t> mapping{1};
+    cpu->code_mapping_generation = &mapping; cpu->code_address_space = 1;
+    core::code_mapping view{1,backing,4096};
+    cpu->resolve_code = [&](std::uint32_t addr, core::code_mapping &out) {
+        out = view; if (addr == 0x2000) out.bytes = backing+4096; return true;
+    };
+    validated_code_cache cache;
+    auto install = [&]() {
+        auto &b = cache.insert(0x1000,view,8);
+        validated_code_cache::add_dependency(b,0x2000,backing+4096,{backing+4096,backing+4104});
+        return cache.find(0x1000,*cpu);
+    };
+    auto *entry = install();
+    if (!entry || entry->stamps.size()!=2 || !cache.find(0x1000,*cpu)) return false;
+    // Aliases use the host backing, and a changed dependency invalidates caller.
+    backing[4096]=1;tracking::guest_write(backing+4096,1);
+    if (cache.find(0x1000,*cpu)) return false;
+    entry=install();if(!entry) return false;
+    const auto version=entry->stamps[0].version;
+    tracking::guest_write(backing,4); // Same bytes still refresh their generation.
+    if (!cache.find(0x1000,*cpu) || entry->stamps[0].version==version) return false;
+    // A retained host pointer poisons the WHOLE allocation, including a later
+    // write through that pointer, after intervening successful lookups.
+    tracking::escape_pointer(backing+6000);
+    if(!cache.find(0x1000,*cpu) || !entry->stamps.empty()) return false;
+    backing[0]=2;
+    if(cache.find(0x1000,*cpu)) return false;
+    if(!install())return false;
+    view.bytes=backing+8192;++mapping;
+    if(cache.find(0x1000,*cpu))return false;
+    tracking::retire_allocation(backing);
+    tracking::register_allocation(backing,8192);
+    if(!tracking::snapshot(backing,8).empty()) return false; // no reuse resurrection
+    tracking::retire_allocation(backing);
+    tracking::register_allocation(backing+8192,8192);
+    auto stamps=tracking::snapshot(backing+8192,8);if(stamps.empty())return false;
+    tracking::pages[reinterpret_cast<std::uintptr_t>(backing+8192)>>12].version=UINT32_MAX;
+    tracking::guest_write(backing+8192,4);
+    if(!tracking::snapshot(backing+8192,8).empty())return false;
+    auto last=tracking::snapshot(backing+12288,8);
+    if(last.empty())return false;
+    tracking::retire_allocation(backing+8192);
+    if(last[0].valid())return false;
+#endif
+    printf("  PASS code_validity_versions (dependencies, aliases, escapes, remap, reuse, overflow)\n");
+    return true;
+}
+
+static bool test_code_lifecycle() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_LIFECYCLE)
+    namespace tracking = eka2l1::common::code_tracking;
+    alignas(4096) static std::uint8_t backing[16384]{};
+    tracking::register_allocation(backing, sizeof(backing));
+    auto epoch = tracking::validation_epoch();
+    // Loader/data writes on unwatched pages do not invalidate compiled code.
+    tracking::guest_write(backing, sizeof(backing));
+    if (tracking::validation_epoch() != epoch) return false;
+    test_mem memory;
+    r12l1::exclusive_monitor monitor(1);
+    auto cpu = make_cpu(memory, monitor);
+    std::atomic<std::uint64_t> mapping{1};
+    cpu->code_mapping_generation = &mapping; cpu->code_address_space = 1;
+    core::code_mapping view{1,backing,4096};
+    cpu->resolve_code = [&](std::uint32_t addr, core::code_mapping &out) {
+        out = view; if (addr == 0x2000) out.bytes = backing+4096; return true;
+    };
+    validated_code_cache cache;
+    auto install = [&]() {
+        auto &b = cache.insert(0x1000,view,8);
+        validated_code_cache::add_dependency(b,0x2000,backing+4096,{backing+4096,backing+4104});
+        return cache.find(0x1000,*cpu);
+    };
+    auto *entry = install();
+    if (!entry || entry->stamps.size()!=2 || entry->validation_epoch != epoch) return false;
+    if (!cache.find(0x1000,*cpu) || entry->validation_epoch != epoch) return false;
+    // Mapping refresh must still reject stale backing even in the same epoch.
+    view.bytes=backing+8192; ++mapping;
+    if (cache.find(0x1000,*cpu)) return false;
+    view.bytes=backing; ++mapping;
+    entry=install(); if(!entry) return false;
+    tracking::guest_write(backing+8192,4);
+    if (tracking::validation_epoch() != epoch) return false;
+    // Multiple writes coalesce; unchanged bytes refresh stamps once.
+    tracking::guest_write(backing,4); tracking::guest_write(backing,4);
+    if (!cache.find(0x1000,*cpu) || entry->validation_epoch != epoch+1) return false;
+    epoch = entry->validation_epoch;
+    auto other = tracking::snapshot(backing+8192,4);
+    if (other.empty()) return false;
+    tracking::guest_write(backing+8192,4);
+    if (!cache.find(0x1000,*cpu) || entry->validation_epoch != epoch+1) return false;
+    // Dependency writes through backing aliases invalidate the caller.
+    backing[4096]=7; tracking::guest_write(backing+4096,1);
+    if (cache.find(0x1000,*cpu)) return false;
+    entry=install(); if (!entry) return false;
+    // Host exposure forces exact checking even after successful epoch hits.
+    tracking::escape_pointer(backing+12288);
+    if (!cache.find(0x1000,*cpu) || !entry->stamps.empty()) return false;
+    backing[0]=3;
+    if (cache.find(0x1000,*cpu)) return false;
+    tracking::retire_allocation(backing);
+    tracking::register_allocation(backing,sizeof(backing));
+    if (!tracking::snapshot(backing,8).empty()) return false;
+    tracking::retire_allocation(backing);
+    const auto saved_epoch=tracking::epoch;
+    tracking::epoch=UINT64_MAX; tracking::dirty.store(1);
+    if(tracking::validation_epoch()!=0) return false;
+    tracking::dirty.store(1);
+    if(tracking::validation_epoch()!=0) return false;
+    tracking::epoch=saved_epoch; // Isolated fixture; no cache entries survive it.
+#endif
+    printf("  PASS code_lifecycle (lazy watch, coalesced changes, dependencies, host escape, reuse)\n");
+    return true;
+}
+
+#ifdef __EMSCRIPTEN__
+EM_JS(void, js_export_flag_probe, (const std::uint8_t *bytes, unsigned size), {
+    console.log('FLAG_MODULE ' + Buffer.from(HEAPU8.subarray(bytes, bytes + size)).toString('base64'));
+});
+#endif
+
+static bool test_folded_tlb_guards() {
+#ifdef __EMSCRIPTEN__
+    struct restore { bool old=r12l1::dyncom_folded_tlb; ~restore(){r12l1::dyncom_folded_tlb=old;} } restore_mode;
+    r12l1::dyncom_folded_tlb=true;
+    for (unsigned kind=0;kind<3;++kind) {
+        const bool block=kind==1, proof=kind==2;
+        const std::vector<std::uint32_t> words=proof
+            ? std::vector<std::uint32_t>{0xe5910000,0xe5913004,0xe5914008,0xe5820000,0xe5823004,0xe5824008}
+            : std::vector<std::uint32_t>{block?0xe8910009u:0xe5910000u,block?0xe8820009u:0xe5820000u};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(words.data()),words.size()*4,0x1000,
+            nullptr,nullptr,true,true,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        #ifdef EKA2L1_WASM_CODE_VERSIONS
+        const unsigned expected_proofs=0; // Deliberately incompatible research modes.
+#else
+        const unsigned expected_proofs=3;
+#endif
+        if(proof && (tr.proved_reads!=expected_proofs || tr.proved_writes!=expected_proofs)) {
+            printf("  FAIL folded TLB entry proof policy mismatch\n");return false;
+        }
+        for(unsigned budget=0;budget<=words.size()+1;++budget) {
+            std::array<std::uint32_t,1024> input{},output{};input[0]=0x12345678;input[1]=0xabcdef01;input[2]=0x31415926;
+            r12l1::tlb cache(12,true);cache.add(0x201000,reinterpret_cast<std::uint8_t*>(input.data()),prot_read);
+            cache.add(0x401000,reinterpret_cast<std::uint8_t*>(output.data()),prot_write);
+            alignas(8) std::uint32_t state[256]{};state[1]=0x201000;state[2]=0x401000;state[15]=0x1000;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(cache.entries);
+            state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NIRQ/4]=1;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            const unsigned expected=std::min(budget,unsigned(words.size()));
+            if(count!=expected || state[15]!=0x1000+4*expected || state[0]!=(expected?input[0]:0)
+                || state[3]!=(((block && expected)||(proof && expected>=2))?input[1]:0)
+                || state[4]!=((proof && expected>=3)?input[2]:0)
+                || output[0]!=((expected>=(proof?4u:2u))?input[0]:0)
+                || output[1]!=(((block && expected==2)||(proof && expected>=5))?input[1]:0)
+                || output[2]!=((proof && expected>=6)?input[2]:0)) {
+                printf("  FAIL folded TLB kind=%u budget=%u count=%d pc=%x\n",kind,budget,count,state[15]);return false;
+            }
+        }
+    }
+#endif
+    printf("  PASS folded TLB scalar/block/entry guards and exact budgets\n");return true;
+}
+
+
+
+static bool test_boundary_details() {
+#ifdef __EMSCRIPTEN__
+    using namespace exit_census;
+    struct restore {
+        bool census=enabled,predicates=predicated_leaves,perf=eka2l1::common::performance::enabled,detail=eka2l1::common::performance::detailed;
+        int phase=eka2l1::common::performance::phase.load();
+        ~restore(){enabled=census;predicated_leaves=predicates;eka2l1::common::performance::enabled=perf;eka2l1::common::performance::detailed=detail;eka2l1::common::performance::phase=phase;}
+    } saved;
+    enabled=true;eka2l1::common::performance::enabled=true;eka2l1::common::performance::detailed=true;eka2l1::common::performance::phase=2;
+    struct fixture {unsigned opcode,expected;bool predicates=true;};
+    const fixture cases[]={{0x03a00001,predicates_disabled,false},{0xf3a00001,reserved_predicate},
+        {0x15910000,conditional_memory},{0x1afffffe,conditional_transfer},{0xeafffffe,internal_branch},
+        {0xeb000000,nested_call},{0xe8bd8010,block_transfer},{0xef000000,coprocessor_or_supervisor},
+        {0xe59d0000,sp_operand},{0xe1a0e000,lr_operand},{0xe51ff004,pc_operand},
+        {0xe7910010,register_memory_shift},{0xe1000000,status_or_misc},
+        {0xe080000d,sp_index},{0xe080000e,lr_index},{0xe080000f,pc_index},
+        {0xe0800d10,sp_shift},{0xe0800e10,lr_shift},{0xe0800f10,pc_shift},
+        {0xe0000190,multiply},{0xe1d000b0,halfword_or_signed_transfer}};
+    const unsigned caller[]={0xeb0003feu,0xe2844001u};
+    unsigned checks=0;
+    for(auto f:cases) {
+        predicated_leaves=f.predicates;
+        const unsigned leaf[]={0xe1a00000u,f.opcode,0xe12fff1eu};
+        leaf_resolver resolver=[&](unsigned){const auto *p=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(p,p+sizeof(leaf));};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty())return false;
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        alignas(8) unsigned state[256]{};state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;
+        state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=16;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        if(count!=1 || state[15]!=0x2000 || last_constraint!=3 || last_restriction!=f.expected || last_rejected_pc!=0x2004 || last_rejected_opcode!=f.opcode) {
+            printf(" FAIL boundary detail op=%x got=%s expected=%s pc=%x count=%d\n",f.opcode,restriction_name(last_restriction),restriction_name(f.expected),last_rejected_pc,count);return false;
+        }
+        const auto before=call_restrictions[restriction_name(f.expected)];
+        record(0x1000,0x2000,7,count,16,0);
+        if(call_restrictions[restriction_name(f.expected)]!=before+1)return false;
+        ++checks;
+    }
+    for(unsigned address:{0x1000u,0x1800u,0x2000u,0x3000u}) {
+        test_mem memory;const unsigned code[]={0xe5810000u,0xe2822001u};
+        memory.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(code),reinterpret_cast<const std::uint8_t*>(code)+sizeof(code)});
+        memory.write32(0x2000,0xe12fff1e);
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        for(unsigned page:{0x1000u,0x2000u,0x3000u})tlb.add(page,memory.data.data()+page,3);
+        validated_code_cache cache;core::code_mapping view{1,memory.data.data()+0x1000,8};auto &entry=cache.insert(0x1000,view,8);
+        validated_code_cache::add_dependency(entry,0x2000,memory.data.data()+0x2000,{memory.data.begin()+0x2000,memory.data.begin()+0x2004});
+        alignas(8) unsigned state[256]{};state[0]=0xe1a00000;state[1]=address;state[15]=0x1000;
+        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=16;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=entry.guard_begin;state[state_offsets::AOT_CODE_END/4]=entry.guard_end;
+        guard_hits=0;last_guard_host=0;last_guard_size=0;g_test_mem=&memory;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+        const bool guarded=address!=0x3000;
+        if(count!=(guarded?1:2) || guard_hits!=unsigned(guarded) || state[2]!=unsigned(!guarded))return false;
+        if(guarded && (last_guard_host!=reinterpret_cast<std::uintptr_t>(memory.data.data()+address) || last_guard_size!=4 ||
+            validated_code_cache::diagnostic_code_overlap(entry,last_guard_host,last_guard_size)!=(address!=0x1800)))return false;
+        ++checks;
+    }
+    // Compare instrumented entry proofs with identical uninstrumented code.
+    // A gap can reject a proof before a store executes (even at budget zero).
+    // Missing/write-denied mappings must not be called interval overlaps.
+#ifndef EKA2L1_WASM_CODE_VERSIONS
+    for(unsigned address:{0x1000u,0x1800u,0x2000u,0x3000u})for(unsigned permission:{0u,1u,3u})for(unsigned budget=0;budget<=5;++budget) {
+        test_mem memory;const unsigned code[]={0xe5810000u,0xe5812004u,0xe5813008u,0xe581400cu};
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(code);
+        memory.write_code(0x1000,{bytes,bytes+sizeof(code)});memory.write32(0x2000,0xe12fff1e);
+        auto translate=[&](){return translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);};
+        enabled=false;auto control=translate();enabled=true;auto candidate=translate();
+        if(candidate.proved_writes!=4 || !candidate.func.outlined_callee) {printf(" FAIL entry-proof diagnostic fixture not selected\n");return false;}
+        const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+        auto module=build_wasm_module({candidate.func},imports),original=build_wasm_module({control.func},imports);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        for(unsigned page:{0x1000u,0x2000u,0x3000u})tlb.add(page,memory.data.data()+page,permission);
+        validated_code_cache cache;core::code_mapping view{1,memory.data.data()+0x1000,sizeof(code)};auto &entry=cache.insert(0x1000,view,sizeof(code));
+        validated_code_cache::add_dependency(entry,0x2000,memory.data.data()+0x2000,{memory.data.begin()+0x2000,memory.data.begin()+0x2004});
+        alignas(8) unsigned state[256]{};state[0]=0xe1a00000;state[1]=address;state[15]=0x1000;
+        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=entry.guard_begin;state[state_offsets::AOT_CODE_END/4]=entry.guard_end;
+        alignas(8) unsigned expected[256];std::copy(std::begin(state),std::end(state),std::begin(expected));const auto before=memory.data;
+        entry_proof_failed=0;entry_overlap_count=0;entry_other_failure=0;g_test_mem=&memory;
+        entry_proof_attempted=0;entry_read_spans=0;entry_write_spans=0;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        const bool overlap=permission==3 && address!=0x3000;
+        if(entry_proof_attempted!=1 || entry_read_spans || entry_write_spans!=1) {printf(" FAIL entry-proof attempt/span counters\n");return false;}
+        if(entry_proof_failed!=unsigned(permission!=3 || overlap) || entry_overlap_count!=unsigned(overlap) || entry_other_failure!=unsigned(permission!=3)) {
+            printf(" FAIL entry-proof addr=%x permission=%u budget=%u fallback=%u overlaps=%u other=%u\n",address,permission,budget,entry_proof_failed,entry_overlap_count,entry_other_failure);return false;
+        }
+        if(overlap && (entry_overlaps[0].host!=reinterpret_cast<std::uintptr_t>(memory.data.data()+address) || entry_overlaps[0].bytes!=16 ||
+            validated_code_cache::diagnostic_code_overlap(entry,entry_overlaps[0].host,entry_overlaps[0].bytes)!=(address!=0x1800)))return false;
+        const auto after=memory.data;std::copy(before.begin(),before.end(),memory.data.begin());
+        const auto original_count=js_run_aot_wasm(original.data(),original.size(),reinterpret_cast<std::uint8_t*>(expected),sizeof(expected));g_test_mem=nullptr;
+        if(count!=original_count || !std::equal(std::begin(state),std::end(state),std::begin(expected)) || after!=memory.data) {
+            printf(" FAIL instrumented entry-proof equivalence addr=%x permission=%u budget=%u count=%d original=%d\n",address,permission,budget,count,original_count);return false;
+        }
+        ++checks;
+    }
+#endif
+    printf(" PASS boundary details (%u exact rejection labels/counters and primary/dependency/gap/outside guards)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_branch_veneers() {
+#ifdef __EMSCRIPTEN__
+    struct restore {bool flag=predicated_leaves,hash=r12l1::dyncom_folded_tlb;unsigned features=leaf_features;std::string limits=execution_limits_text();
+        ~restore(){predicated_leaves=flag;leaf_features=features;r12l1::dyncom_folded_tlb=hash;parse_execution_limits(limits.c_str());}} saved;
+    configure_execution_limits(512,16,8,512);predicated_leaves=true;
+    unsigned checks=0;
+    for(bool hash:{false,true})for(unsigned target:{0x3000u,0x1800u,0x2000u,0x1000u,0x1008u})
+    for(unsigned layout=0;layout<3;++layout)for(unsigned features:{0u,32u}) {
+        r12l1::dyncom_folded_tlb=hash;leaf_features=features;
+        const std::vector<unsigned> caller=layout==1?std::vector<unsigned>{0x1a000002u,0xeb0003fdu,0xe28bb001u,0xe3a0c002u,0xe2888001u}:
+            std::vector<unsigned>{layout==2?0xe5802000u:0xe2844001u,0xeb0003fdu,0xe28bb001u};
+        const unsigned branch=0xea000000u|(((target-0x2008u)>>2)&0xffffffu);
+        const unsigned leaf[]={branch,0xe3a0c077u}; // unreachable bytes must not be a dependency
+        leaf_resolver resolver=[&](unsigned pc){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);
+            return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
+        auto translate=[&](arm_ir_policy policy=arm_ir_policy::write_budget_chunks){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        auto tr=translate();
+        if(tr.dependencies.size()!=unsigned(features==32) || (features &&
+            (tr.dependencies[0].bytes.size()!=4 || tr.dependencies[0].address!=0x2000 ||
+             std::find(tr.resume_points.begin(),tr.resume_points.end(),0x1008u)==tr.resume_points.end()))) {
+            printf(" FAIL branch veneer selection\n");return false;
+        }
+        if(features) {
+            predicated_leaves=false;if(!translate().dependencies.empty())return false;predicated_leaves=true;
+            inline_site_limit=0;if(!translate().dependencies.empty())return false;inline_site_limit=8;
+            if(!translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned flags=0;flags<16;++flags)for(unsigned alias=0;alias<(layout==2?3u:1u);++alias)for(unsigned budget=0;budget<8;++budget) {
+            test_mem actual;const auto *cb=reinterpret_cast<const std::uint8_t*>(caller.data());actual.write_code(0x1000,{cb,cb+caller.size()*4});
+            const auto *lb=reinterpret_cast<const std::uint8_t*>(leaf);actual.write_code(0x2000,{lb,lb+sizeof(leaf)});
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            const unsigned backing=alias==1?0x2000:alias==2?0x1000:0xa000;
+            r12l1::tlb tlb(12,hash);tlb.add(0xa000,actual.data.data()+backing,3);
+            if(alias)reference->set_tlb_page(0xa000,expected.data.data()+backing,prot_read_write);
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg){state[reg]=reg==0?0xa000:reg==2?0xe1a00000:reg==14?0x4001:reg==15?0x1000:reg;reference->set_reg(reg,state[reg]);}
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x2004);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+            if(count<0 || count>int(budget) || (!count && budget)){printf(" FAIL branch veneer count\n");return false;}
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf(" FAIL branch veneer target=%x layout=%u features=%u hash=%u alias=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",target,layout,features,hash,alias,flags,budget,count,reg,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<4;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
+            if(actual.data!=expected.data)return false;
+            if(features && !layout && budget>=3 && (count!=3 || state[15]!=target || state[14]!=0x1008 || state[11]!=11))return false;
+            ++checks;
+        }
+    }
+    // Conditional branches, BL/BLX and register/load veneers keep their path.
+    leaf_features=32;
+    for(unsigned op:{0x1a000000u,0xeb000000u,0xfa000000u,0xe12fff10u,0xe51ff004u}) {
+        const unsigned caller[]={0xeb0003feu};
+        leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(&op);return std::vector<std::uint8_t>(b,b+4);};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty()){printf(" FAIL unsupported veneer accepted %x\n",op);return false;}
+    }
+    printf(" PASS branch veneers (%u exact budget/state/alias/path comparisons)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_literal_pc_veneers() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        bool flag=predicated_leaves, hash=r12l1::dyncom_folded_tlb;
+        unsigned features=leaf_features; std::string limits=execution_limits_text();
+        ~restore(){predicated_leaves=flag;leaf_features=features;r12l1::dyncom_folded_tlb=hash;
+            parse_execution_limits(limits.c_str());g_test_mem=nullptr;g_read32_observer={};}
+    } saved;
+    configure_execution_limits(512,16,8,512);predicated_leaves=true;
+    unsigned checks=0;
+    for(bool hash:{false,true}) for(unsigned literal:{0x1ffcu,0x2004u,0x2010u,0x3000u})
+    for(unsigned features:{0u,128u}) {
+        r12l1::dyncom_folded_tlb=hash;leaf_features=features;
+        const unsigned caller[]={0xe2844001u,0xeb0003fdu,0xe28bb001u};
+        const unsigned op=(literal>=0x2008u?0xe59ff000u:0xe51ff000u) |
+            (literal>=0x2008u?literal-0x2008u:0x2008u-literal);
+        const unsigned leaf[]={op,0xe3a0c077u};
+        leaf_resolver resolver=[&](unsigned pc){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);
+            return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
+        auto translate=[&](arm_ir_policy policy=arm_ir_policy::write_budget_chunks){return translate_arm_block(
+            reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        auto tr=translate();
+        if(tr.dependencies.size()!=unsigned(features==128) || (features &&
+            (tr.dependencies[0].bytes.size()!=4 || tr.dependencies[0].address!=0x2000 ||
+             std::find(tr.resume_points.begin(),tr.resume_points.end(),0x1008u)==tr.resume_points.end()))) {
+            printf(" FAIL literal PC veneer selection\n");return false;
+        }
+        if(features) {
+            predicated_leaves=false;if(!translate().dependencies.empty())return false;predicated_leaves=true;
+            inline_site_limit=0;if(!translate().dependencies.empty())return false;inline_site_limit=8;
+            if(!translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        // Reuse identical translated bytes with changed literal contents and mappings.
+        // Neither the target nor the literal's backing page is a code dependency.
+        for(unsigned target:{0x4000u,0x4001u,0x5002u,0x1008u}) for(unsigned mapping=0;mapping<3;++mapping)
+        for(unsigned flags=0;flags<16;++flags) for(unsigned budget=0;budget<5;++budget) {
+            test_mem actual;
+            auto *cb=reinterpret_cast<const std::uint8_t*>(caller);actual.write_code(0x1000,{cb,cb+sizeof(caller)});
+            auto *lb=reinterpret_cast<const std::uint8_t*>(leaf);actual.write_code(0x2000,{lb,lb+sizeof(leaf)});
+            actual.write32(literal,target);
+            const unsigned page=literal&~4095u, backing=mapping==2?0x7000u:page;
+            if(mapping==2) {
+                std::memcpy(actual.data.data()+backing,actual.data.data()+page,4096);
+                actual.write32(literal,0x6000); // stale unmapped backing must not supply the target
+            }
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            r12l1::tlb tlb(12,hash);
+            if(mapping){tlb.add(page,actual.data.data()+backing,3);reference->set_tlb_page(page,expected.data.data()+backing,prot_read_write);}
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg){state[reg]=reg==14?0x6001:reg==15?0x1000:reg;reference->set_reg(reg,state[reg]);}
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x2004);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            unsigned callbacks=0;bool visible=true;
+            g_read32_observer=[&](unsigned ptr,unsigned address){auto *v=reinterpret_cast<unsigned*>(ptr);++callbacks;
+                visible &= address==literal && v[15]==0x2000 && v[14]==0x1008 && v[4]==5;};
+            g_test_mem=&actual;
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_test_mem=nullptr;g_read32_observer={};
+            if(count<0 || count>int(budget) || (!count && budget) || !visible){printf(" FAIL literal veneer count/callback\n");return false;}
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg) {
+                unsigned value=state[reg];
+                // The dispatcher aligns the raw loaded PC on the next entry.
+                if(reg==15)value &= state[state_offsets::TFLAG/4]?~1u:~3u;
+                if(value!=reference->get_reg(reg)) {
+                    printf(" FAIL literal veneer literal=%x target=%x features=%u hash=%u mapping=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",
+                        literal,target,features,hash,mapping,flags,budget,count,reg,value,reference->get_reg(reg));return false;
+                }
+            }
+            for(auto f:{std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},{state_offsets::ZFLAG,30},
+                {state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
+                if(state[f.first/4]!=((reference->get_cpsr()>>f.second)&1))return false;
+            if(actual.data!=expected.data)return false;
+            if(features && budget>=3 && (count!=3 || state[15]!=target || state[14]!=0x1008 || state[11]!=11 || callbacks!=unsigned(mapping==0)))return false;
+            ++checks;
+        }
+    }
+    leaf_features=128;
+    for(unsigned op:{0x159ff000u,0xe5dff000u,0xe49ff000u,0xe5bff000u,0xe79ff000u,0xe591f000u,0xe12fff10u}) {
+        const unsigned caller[]={0xeb0003feu};
+        leaf_resolver resolver=[&](unsigned){auto *b=reinterpret_cast<const std::uint8_t*>(&op);return std::vector<std::uint8_t>(b,b+4);};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty()){printf(" FAIL unsupported literal veneer accepted %x\n",op);return false;}
+    }
+    printf(" PASS literal PC veneers (%u exact state/budget/runtime-target/mapping comparisons)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_tail_prefixes() {
+#ifdef __EMSCRIPTEN__
+    struct restore {bool flag=predicated_leaves,hash=r12l1::dyncom_folded_tlb;unsigned features=leaf_features;std::string limits=execution_limits_text();
+        ~restore(){predicated_leaves=flag;leaf_features=features;r12l1::dyncom_folded_tlb=hash;parse_execution_limits(limits.c_str());}} saved;
+    configure_execution_limits(512,16,8,512);predicated_leaves=true;
+    unsigned checks=0;
+    for(bool hash:{false,true})for(unsigned target:{0x3000u,0x1800u,0x2000u,0x1000u,0x1008u})
+    for(unsigned layout=0;layout<3;++layout)for(unsigned pattern=0;pattern<3;++pattern)for(unsigned features:{0u,32u,64u}) {
+        r12l1::dyncom_folded_tlb=hash;leaf_features=features;
+        const std::vector<unsigned> caller=layout==1?std::vector<unsigned>{0x1a000002u,0xeb0003fdu,0xe28bb001u,0xe3a0c002u,0xe2888001u}:
+            std::vector<unsigned>{layout==2?0xe5802000u:0xe2844001u,0xeb0003fdu,0xe28bb001u};
+        std::vector<unsigned> leaf = pattern==0 ? std::vector<unsigned>{0xe1a03000u,0xe1a00001u,0xe1a01003u} :
+            pattern==1 ? std::vector<unsigned>{0x01b03000u,0x12900001u,0xe0b11002u} : std::vector<unsigned>{0xe08c3211u};
+        const unsigned branch_pc=0x2000+leaf.size()*4;
+        leaf.push_back(0xea000000u|(((target-(branch_pc+8))>>2)&0xffffffu));
+        const unsigned dependency_bytes=leaf.size()*4;
+        leaf.push_back(0xe3a0c077u); // Unreachable bytes must not become a dependency.
+        leaf_resolver resolver=[&](unsigned pc){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf.data());
+            return pc==0x2000?std::vector<std::uint8_t>(b,b+leaf.size()*4):std::vector<std::uint8_t>{};};
+        auto translate=[&](arm_ir_policy policy=arm_ir_policy::write_budget_chunks){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        auto tr=translate();
+        if(tr.dependencies.size()!=unsigned(features==64) || (features==64 &&
+            (tr.dependencies[0].bytes.size()!=dependency_bytes || tr.dependencies[0].address!=0x2000 ||
+             std::find(tr.resume_points.begin(),tr.resume_points.end(),0x1008u)==tr.resume_points.end()))) {
+            printf(" FAIL tail prefix selection\n");return false;
+        }
+        if(features==64) {
+            predicated_leaves=false;if(!translate().dependencies.empty())return false;predicated_leaves=true;
+            inline_site_limit=0;if(!translate().dependencies.empty())return false;inline_site_limit=8;
+            if(!translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
+        }
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned flags=0;flags<16;++flags)for(unsigned alias=0;alias<(layout==2?3u:1u);++alias)for(unsigned budget=0;budget<12;++budget) {
+            test_mem actual;const auto *cb=reinterpret_cast<const std::uint8_t*>(caller.data());actual.write_code(0x1000,{cb,cb+caller.size()*4});
+            const auto *lb=reinterpret_cast<const std::uint8_t*>(leaf.data());actual.write_code(0x2000,{lb,lb+leaf.size()*4});
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            const unsigned backing=alias==1?0x2000:alias==2?0x1000:0xa000;
+            r12l1::tlb tlb(12,hash);tlb.add(0xa000,actual.data.data()+backing,3);
+            if(alias)reference->set_tlb_page(0xa000,expected.data.data()+backing,prot_read_write);
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg){state[reg]=reg==0?0xa000:reg==2?0xe1a00000:reg==14?0x4001:reg==15?0x1000:reg;reference->set_reg(reg,state[reg]);}
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x2000+dependency_bytes);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+            if(count<0 || count>int(budget) || (!count && budget)){printf(" FAIL tail prefix count\n");return false;}
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf(" FAIL tail prefix target=%x layout=%u features=%u hash=%u alias=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",target,layout,features,hash,alias,flags,budget,count,reg,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<4;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
+            if(actual.data!=expected.data)return false;
+            if(features==64 && !layout && budget>=2+dependency_bytes/4 && (count!=int(2+dependency_bytes/4) || state[15]!=target || state[14]!=0x1008 || state[11]!=11))return false;
+            ++checks;
+        }
+    }
+    // Conditional branches, BL/BLX and register/load veneers keep their path.
+    leaf_features=64;
+    for(unsigned op:{0xea000000u,0x1a000000u,0xeb000000u,0xfa000000u,0xe12fff10u,0xe51ff004u}) {
+        const unsigned caller[]={0xeb0003feu};
+        leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(&op);return std::vector<std::uint8_t>(b,b+4);};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty()){printf(" FAIL unsupported veneer accepted %x\n",op);return false;}
+    }
+    // Reject unsafe prefixes even when an unconditional branch follows.
+    for(unsigned op:{0xe5801000u,0xe1a0000du,0xe1a0e000u,0xe1a0000fu,0xe0000192u,0xe10f0000u,0xf1a00000u}) {
+        const unsigned caller[]={0xeb0003feu}, leaf[]={op,0xea000000u};
+        leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty()){printf(" FAIL unsafe tail prefix accepted %x\n",op);return false;}
+    }
+    {
+        const unsigned caller[]={0xeb0003feu}, leaf[]={0xe1a03000u,0xe1a00001u,0xe1a01003u,0xea000000u};
+        leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
+        for(unsigned limit:{3u,4u,5u}) {
+            leaf_instruction_limit=limit;
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+            if(tr.dependencies.size()!=unsigned(limit>=4))return false;
+        }
+    }
+    printf(" PASS tail prefixes (%u exact budget/state/alias/path comparisons)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_call_prefixes() {
+#ifdef __EMSCRIPTEN__
+    struct restore {bool flag=predicated_leaves;unsigned features=leaf_features;std::string limits=execution_limits_text();
+        ~restore(){predicated_leaves=flag;leaf_features=features;parse_execution_limits(limits.c_str());}} saved;
+    configure_execution_limits(512,16,8,512);predicated_leaves=true;leaf_features=8;
+    unsigned checks=0;
+    for(unsigned cond=0;cond<15;++cond)for(unsigned layout=0;layout<2;++layout) {
+        const std::vector<unsigned> caller=layout?std::vector<unsigned>{0x1a000002u,0xeb0003fdu,0xe28bb001u,0xe3a0c002u,0xe2888001u}:
+            std::vector<unsigned>{0xeb0003feu,0xe28bb001u,0xe2888001u};
+        const unsigned leaf[]={0xe92d4010u,0xe1a04000u,0x05910000u|(cond<<28),0xe5842000u,0xe28dd008u,0xeb0003f9u,0xe3a0b077u};
+        leaf_resolver resolver=[&](unsigned pc){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);
+            return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
+        auto translate=[&](arm_ir_policy policy=arm_ir_policy::write_budget_chunks){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        leaf_features=0;if(!translate().dependencies.empty())return false;
+        leaf_features=8;predicated_leaves=false;if(!translate().dependencies.empty())return false;
+        predicated_leaves=true;if(!translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
+        leaf_instruction_limit=4;if(!translate().dependencies.empty())return false;leaf_instruction_limit=16;
+        auto tr=translate();
+        if(tr.dependencies.size()!=1 || tr.dependencies[0].bytes.size()!=24 ||
+            std::find(tr.resume_points.begin(),tr.resume_points.end(),layout?0x1008u:0x1004u)==tr.resume_points.end() ||
+            std::find(tr.resume_points.begin(),tr.resume_points.end(),0x2018u)==tr.resume_points.end()) {
+            printf(" FAIL prefix selection/continuations layout=%u\n",layout);return false;
+        }
+        if(!layout && tr.end_address!=0x1004){printf(" FAIL prefix reachable caller continuation\n");return false;}
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned flags=0;flags<16;++flags)for(unsigned mapping=0;mapping<7;++mapping)for(unsigned budget=0;budget<=10;++budget) {
+            test_mem actual;const auto *cb=reinterpret_cast<const std::uint8_t*>(caller.data());actual.write_code(0x1000,{cb,cb+caller.size()*4});
+            const auto *lb=reinterpret_cast<const std::uint8_t*>(leaf);actual.write_code(0x2000,{lb,lb+sizeof(leaf)});
+            actual.write32(0x8000,0x76543210);actual.write32(0xa000,0xabcdef01);
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            if(mapping!=1)tlb.add(0xb000,actual.data.data()+0xb000,3);
+            if(mapping!=2)tlb.add(0x8000,actual.data.data()+0x8000,3);
+            const unsigned store_page=mapping==4?0x1000:mapping==5?0x2000:0xa000;
+            if(mapping!=3)tlb.add(0xa000,actual.data.data()+store_page,mapping==6?1:3);
+            if(mapping==4 || mapping==5)reference->set_tlb_page(0xa000,expected.data.data()+store_page,prot_read_write);
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg){state[reg]=reg==0?0xa000:reg==1?0x8000:reg==2?0xe1a00000:reg==13?0xb020:reg==14?0x4000:reg==15?0x1000:reg;reference->set_reg(reg,state[reg]);}
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x2018);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+            if(count<0 || count>int(budget) || (!count && budget)){printf(" FAIL prefix count\n");return false;}
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf(" FAIL prefix R%u cond=%u layout=%u flags=%u map=%u budget=%u count=%d got=%x expected=%x\n",reg,cond,layout,flags,mapping,budget,count,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<4;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
+            if(actual.data!=expected.data){printf(" FAIL prefix memory cond=%u layout=%u flags=%u map=%u budget=%u\n",cond,layout,flags,mapping,budget);return false;}
+            if(!layout && mapping==0 && budget>=7 && (count!=7 || state[15]!=0x3000 || state[14]!=0x2018 || state[11]!=11)) {
+                printf(" FAIL prefix nested-call exit/continuation\n");return false;
+            }
+            ++checks;
+        }
+    }
+    for(unsigned op:{0xeafffffeu,0x1b000000u,0xe12fff1eu,0xe8bd8010u,0xe59ff000u,0xe10f0000u,0xe8900000u,0xe8b00001u,0xee000000u}) {
+        const unsigned caller[]={0xeb0003feu};const unsigned leaf[]={op,0xeb000000u};
+        leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        // A standalone BX LR is still a legitimate returning leaf.
+        if(op!=0xe12fff1eu && !tr.dependencies.empty()){printf(" FAIL unsafe prefix accepted %x\n",op);return false;}
+    }
+    // Prefix selection must preserve an eligible inner leaf, including a
+    // backward BL target. Probing that leaf must not recurse into prefixes.
+    unsigned selection_checks=0;
+    for(unsigned variant=0;variant<6;++variant)for(unsigned features:{0u,8u,16u,24u}) {
+        const unsigned inner_pc=variant==4?0x1800:0x3000;
+        const std::vector<unsigned> caller={0xeb0003feu,0xe28bb001u};
+        const std::vector<unsigned> outer={0xe92d4010u,0xe1a04000u,
+            0xeb000000u|(((inner_pc-0x2010u)>>2)&0xffffffu),0xe8bd4010u,0xe12fff1eu};
+        std::vector<unsigned> inner={0xe1500001u,0xa3a00000u,0xb3a00001u,0xe12fff1eu};
+        if(variant==1)inner={0xeafffffeu}; // unsupported returning leaf
+        if(variant==2)inner.clear(); // unavailable mapping
+        if(variant==3){inner.assign(16,0xe1a00000u);inner.push_back(0xe12fff1eu);}
+        if(variant==5)inner={0xebfffffeu,0xe12fff1eu}; // no recursive prefix probe
+        auto bytes=[](const std::vector<unsigned>& words){const auto *b=reinterpret_cast<const std::uint8_t*>(words.data());return words.empty()?std::vector<std::uint8_t>{}:std::vector<std::uint8_t>(b,b+words.size()*4);};
+        unsigned lookups=0;
+        leaf_resolver resolver=[&](unsigned pc){++lookups;return pc==0x2000?bytes(outer):pc==inner_pc?bytes(inner):std::vector<std::uint8_t>{};};
+        leaf_features=features;predicated_leaves=true;
+        for(unsigned entry:{0x1000u,0x2000u}) {
+            const auto code=entry==0x1000?bytes(caller):bytes(outer);
+            auto tr=translate_arm_block(code.data(),code.size(),entry,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+            const bool returning=variant==0 || variant==4;
+            if(entry==0x1000) {
+                const bool prefix=(features&8) && !((features&16) && returning);
+                if(tr.dependencies.size()!=unsigned(prefix)){printf(" FAIL preserve inner selection variant=%u features=%u\n",variant,features);return false;}
+            } else if(returning && (tr.dependencies.size()!=1 || tr.dependencies[0].address!=inner_pc)) {
+                printf(" FAIL standalone inner fusion missing\n");return false;
+            }
+            if(lookups>8){printf(" FAIL recursive inner eligibility probe\n");return false;}
+            auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+            for(unsigned budget=0;budget<=12;++budget)for(unsigned flags:{0u,5u,10u,15u}) {
+                test_mem actual;actual.write_code(0x1000,bytes(caller));actual.write_code(0x2000,bytes(outer));
+                if(!inner.empty())actual.write_code(inner_pc,bytes(inner));
+                test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+                r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0xb000,actual.data.data()+0xb000,3);
+                alignas(8) unsigned state[256]{};
+                for(unsigned reg=0;reg<16;++reg){state[reg]=reg==13?0xb020:reg==14?0x4000:reg==15?entry:reg;reference->set_reg(reg,state[reg]);}
+                reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+                state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+                g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+                if(count<0 || count>int(budget) || (!count && budget))return false;
+                if(count)reference->run(count);
+                for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)){printf(" FAIL preserve inner execution variant=%u mode=%u entry=%x budget=%u reg=%u\n",variant,features,entry,budget,reg);return false;}
+                for(unsigned f=0;f<4;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
+                if(actual.data!=expected.data)return false;
+                ++selection_checks;
+            }
+        }
+    }
+    printf(" PASS preserve inner fusion (%u exact selection/budget/state/stack comparisons)\n",selection_checks);
+    printf(" PASS call prefixes (%u exact budget/state/stack/memory/alias/continuation comparisons)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_expanded_leaves(bool always=false) {
+#ifdef __EMSCRIPTEN__
+    struct restore {bool flag=predicated_leaves;unsigned features=leaf_features;std::string limits=execution_limits_text();
+        ~restore(){predicated_leaves=flag;leaf_features=features;parse_execution_limits(limits.c_str());}} saved;
+    configure_execution_limits(512,16,8,512);leaf_features=7;
+    const unsigned caller[]={0xeb0003feu,0xe2844001u,0xe5967000u,0xe2888001u};
+    unsigned checks=0;
+    for(unsigned cond=always?14:0;cond<(always?15u:14u);++cond)for(unsigned variant=0;variant<6;++variant) {
+        const bool store=variant==0 || variant==5;
+        const unsigned leaf[]={0x0a000001u|(cond<<28),0x05902000u|((cond==14?0:cond^1)<<28),0xe0922003u,
+            0x03a05001u|(cond<<28),0xe1d130b0u,variant==0?0xe5865000u:variant==1?0xe0090392u:variant==2?0xe0c98392u:variant==3?0xe0998392u:variant==4?0xe0394392u:(0x05865000u|(cond<<28)),0xe12fff1eu};
+        leaf_resolver resolver=[&](unsigned pc) {const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);
+            return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
+        auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,
+            nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        predicated_leaves=false;if(!translate(arm_ir_policy::write_budget_chunks).dependencies.empty())return false;
+        predicated_leaves=true;auto tr=translate(arm_ir_policy::write_budget_chunks);
+        if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned flags=0;flags<16;++flags)for(unsigned mapping=0;mapping<5;++mapping)for(unsigned budget=0;budget<=12;++budget) {
+            test_mem actual;actual.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(caller),reinterpret_cast<const std::uint8_t*>(caller)+sizeof(caller)});
+            actual.write_code(0x2000,{reinterpret_cast<const std::uint8_t*>(leaf),reinterpret_cast<const std::uint8_t*>(leaf)+sizeof(leaf)});
+            const unsigned values[]={0,1,0x7fffffffu,0x80000000u,0xffffffffu};
+            actual.write32(0x8000,values[flags%5]);actual.write32(0x9000,values[(flags+2)%5]);actual.write32(0xa000,0x12345678);
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            if(mapping!=1)tlb.add(0x8000,actual.data.data()+0x8000,3);
+            if(mapping!=2)tlb.add(0x9000,actual.data.data()+0x9000,3);
+            if(mapping!=3)tlb.add(0xa000,actual.data.data()+(mapping==4?0x1000:0xa000),3);
+            if(mapping==4)reference->set_tlb_page(0xa000,expected.data.data()+0x1000,prot_read_write);
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg) {
+                state[reg]=reg==0?0x8000:reg==1?0x9000:reg==6?0xa000:reg==9?0x7fffffff:reg==14?0x3000:reg==15?0x1000:reg;
+                reference->set_reg(reg,state[reg]);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(caller);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+            if(count<0 || count>int(budget) || (!count && budget)) {
+                printf(" FAIL expanded leaf count cond=%u flags=%u map=%u store=%u budget=%u count=%d\n",cond,flags,mapping,store,budget,count);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf(" FAIL expanded leaf R%u cond=%u flags=%u map=%u store=%u budget=%u count=%d got=%x expected=%x\n",reg,cond,flags,mapping,store,budget,count,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<4;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
+            if(actual.data!=expected.data){printf(" FAIL expanded leaf memory cond=%u flags=%u map=%u store=%u budget=%u count=%d\n",cond,flags,mapping,store,budget,count);return false;}
+            ++checks;
+        }
+    }
+    for(unsigned op:{0xeafffffeu,0xea000004u,0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {
+        unsigned leaf[]={op,0xe12fff1e};leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty()){printf(" FAIL unsafe expanded leaf accepted %x\n",op);return false;}
+    }
+
+    // Captured lookup with two forward joins, flag updates and a halfword load.
+    // Relocation preserves the original ARM relative branches; no address is
+    // special-cased by the translator. Two call sites need distinct labels.
+    const unsigned lookup[]={0xe5922000u,0xe3a0300fu,0xe1530442u,0xba000002u,0xe1b0c442u,0x43a02000u,0x4a000002u,0xe1530442u,0xa1a02442u,0xb3a0200fu,0xe1a03a01u,0xe590026cu,0xe1a03a23u,0xe0832602u,0xe0800082u,0xe1d000b0u,0xe2011a0fu,0xe1800001u,0xe12fff1eu};
+    const unsigned twice[]={0xeb0003feu,0xe1a00006u,0xe1a02007u,0xeb0003fbu,0xe2888001u};
+    leaf_resolver lookup_resolver=[&](unsigned pc){const auto *p=reinterpret_cast<const std::uint8_t*>(lookup);
+        return pc==0x2000?std::vector<std::uint8_t>(p,p+sizeof(lookup)):std::vector<std::uint8_t>{};};
+    auto lookup_translate=[&](){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(twice),sizeof(twice),0x1000,nullptr,nullptr,true,false,true,true,&lookup_resolver,true,arm_ir_policy::write_budget_chunks);};
+    predicated_leaves=true;
+    for(unsigned limit:{16u,32u})for(unsigned mask=0;mask<8;++mask) {
+        leaf_instruction_limit=limit;leaf_features=mask;
+        if(lookup_translate().dependencies.size()!=unsigned(limit>=19 && (mask&6)==6)) {
+            printf(" FAIL captured leaf selection limit=%u mask=%u\n",limit,mask);return false;
+        }
+    }
+    leaf_instruction_limit=32;leaf_features=7;
+    auto lookup_tr=lookup_translate();
+    auto lookup_module=build_wasm_module({lookup_tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    for(unsigned input:{0xffffff00u,0u,0x100u,0xf00u,0x1000u})for(unsigned mapping=0;mapping<3;++mapping)for(unsigned budget=0;budget<=44;++budget) {
+        test_mem actual;
+        actual.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(twice),reinterpret_cast<const std::uint8_t*>(twice)+sizeof(twice)});
+        actual.write_code(0x2000,{reinterpret_cast<const std::uint8_t*>(lookup),reinterpret_cast<const std::uint8_t*>(lookup)+sizeof(lookup)});
+        actual.write32(0x826c,0xa000);actual.write32(0x9000,input);
+        for(unsigned p=0xa000;p<0x2a000;p+=4)actual.write32(p,p*37+0x1234);
+        test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        for(unsigned page=0x8000;page<0x2a000;page+=4096)if(!(mapping==1 && page==0x9000) && !(mapping==2 && page>=0xa000))tlb.add(page,actual.data.data()+page,3);
+        alignas(8) unsigned state[256]{};state[0]=0x8000;state[1]=0x3001;state[2]=0x9000;state[6]=0x8000;state[7]=0x9000;state[14]=0x3000;state[15]=0x1000;
+        for(unsigned reg=0;reg<16;++reg)reference->set_reg(reg,state[reg]);reference->set_cpsr(16);
+        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        g_test_mem=&actual;const auto count=js_run_aot_wasm(lookup_module.data(),lookup_module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+        if(count<0 || count>int(budget) || (!count && budget))return false;
+        if(count)reference->run(count);
+        for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+            printf(" FAIL captured branching leaf R%u input=%x map=%u budget=%u count=%d got=%x expected=%x\n",reg,input,mapping,budget,count,state[reg],reference->get_reg(reg));return false;
+        }
+        for(unsigned flag=0;flag<4;++flag)if(state[region_ir::flag_offsets[flag]/4]!=((reference->get_cpsr()>>(31-flag))&1))return false;
+        if(actual.data!=expected.data)return false;
+        ++checks;
+    }
+    printf(" PASS expanded leaves (%u exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_predicated_leaves() {
+#ifdef __EMSCRIPTEN__
+    struct restore {bool flag=predicated_leaves;std::string limits=execution_limits_text();
+        ~restore(){predicated_leaves=flag;parse_execution_limits(limits.c_str());}} saved;
+    configure_execution_limits(512,16,8,512);
+    const unsigned caller[]={0xeb0003feu,0xe2844001u,0xe5967000u,0xe2888001u};
+    unsigned checks=0;
+    for(unsigned cond=0;cond<14;++cond)for(bool store:{false,true}) {
+        const unsigned leaf[]={0x03a05001u|(cond<<28),0xe5902000u,0xe5913000u,0xe1520003u,
+            0x02999001u|(cond<<28),store?0xe5865000u:(0x03a0a002u|((cond^1)<<28)),0xe12fff1eu};
+        leaf_resolver resolver=[&](unsigned pc) {const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);
+            return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
+        auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,
+            nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        predicated_leaves=false;if(!translate(arm_ir_policy::write_budget_chunks).dependencies.empty())return false;
+        predicated_leaves=true;auto tr=translate(arm_ir_policy::write_budget_chunks);
+        if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned flags=0;flags<16;++flags)for(unsigned mapping=0;mapping<5;++mapping)for(unsigned budget=0;budget<=12;++budget) {
+            test_mem actual;actual.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(caller),reinterpret_cast<const std::uint8_t*>(caller)+sizeof(caller)});
+            actual.write_code(0x2000,{reinterpret_cast<const std::uint8_t*>(leaf),reinterpret_cast<const std::uint8_t*>(leaf)+sizeof(leaf)});
+            const unsigned values[]={0,1,0x7fffffffu,0x80000000u,0xffffffffu};
+            actual.write32(0x8000,values[flags%5]);actual.write32(0x9000,values[(flags+2)%5]);actual.write32(0xa000,0x12345678);
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            if(mapping!=1)tlb.add(0x8000,actual.data.data()+0x8000,3);
+            if(mapping!=2)tlb.add(0x9000,actual.data.data()+0x9000,3);
+            if(mapping!=3)tlb.add(0xa000,actual.data.data()+(mapping==4?0x1000:0xa000),3);
+            if(mapping==4)reference->set_tlb_page(0xa000,expected.data.data()+0x1000,prot_read_write);
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg) {
+                state[reg]=reg==0?0x8000:reg==1?0x9000:reg==6?0xa000:reg==9?0x7fffffff:reg==14?0x3000:reg==15?0x1000:reg;
+                reference->set_reg(reg,state[reg]);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(caller);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+            if(count<0 || count>int(budget) || (!count && budget) || (!mapping && count!=int(std::min(budget,11u)))) {
+                printf(" FAIL predicated leaf count cond=%u flags=%u map=%u store=%u budget=%u count=%d\n",cond,flags,mapping,store,budget,count);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf(" FAIL predicated leaf R%u cond=%u flags=%u map=%u store=%u budget=%u count=%d got=%x expected=%x\n",reg,cond,flags,mapping,store,budget,count,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<4;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
+            if(actual.data!=expected.data){printf(" FAIL predicated leaf memory cond=%u flags=%u map=%u store=%u budget=%u count=%d\n",cond,flags,mapping,store,budget,count);return false;}
+            ++checks;
+        }
+    }
+    for(unsigned op:{0x15910000u,0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {
+        unsigned leaf[]={op,0xe12fff1e};leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty()){printf(" FAIL unsafe predicated leaf accepted %x\n",op);return false;}
+    }
+    printf(" PASS predicated leaves (%u exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n",checks);
+#endif
+    return true;
+}
+
+static unsigned runner_test_action=0,runner_test_calls=0;
+static std::uint32_t runner_test_function(ARMul_State *cpu) {
+    ++runner_test_calls;
+    if(runner_test_action==1)return 0;
+    ++cpu->Reg[0];
+    if(runner_test_action==2)cpu->NumInstrsToExecute=0;
+    if(runner_test_action==3 || runner_test_action==4)cpu->NirqSig=0;
+    if(runner_test_action==5)cpu->Reg[15]=0x54320;
+    return 1;
+}
+static bool test_execution_limits() {
+    struct restore {std::string value=execution_limits_text();bool ram=ram_compilation_enabled;
+        ~restore(){parse_execution_limits(value.c_str());ram_compilation_enabled=ram;global_registry().unregister_function(0x54300);}} saved;
+    if(!parse_execution_limits("512,16,8,512"))return false;
+    for(const char *bad:{"512,16,8,512x","512,16,8","0512,16,8,512","+512,16,8,512",
+        "512,16,8,-1","0,16,8,512","2049,16,8,512","512,0,8,512","512,65,8,512",
+        "512,16,17,512","512,16,8,4097"}) {
+        if(parse_execution_limits(bad)||execution_limits_text()!="512,16,8,512")return false;
+    }
+    test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
+    ram_compilation_enabled=false;global_registry().register_function(0x54300,runner_test_function);
+    auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);
+    unsigned checks=0;
+    for(unsigned cap:{0u,1u,64u,512u,4096u})for(unsigned budget:{0u,1u,63u,64u,65u,511u,512u,513u,4840u})
+    for(unsigned action=0;action<6;++action) {
+        runner_region_limit=cap;runner_test_action=action;runner_test_calls=0;
+        auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54300;cpu.TFlag=0;
+        cpu.NumInstrsToExecute=budget;cpu.aot_budget=budget;cpu.NirqSig=1;cpu.Cpsr=16|(action==4?0x80:0);
+        const auto result=execute_chain(&cpu,runner_test_function);
+        const auto want=!budget?0u:action==1?0u:(action==2||action==3||action==5)?1u:cap?std::min(cap,budget):budget;
+        const auto calls=(!budget)?0u:action==1?1u:want;
+        if(result.instructions!=want || result.blocks!=calls || runner_test_calls!=calls || cpu.Reg[0]!=want) {
+            printf(" FAIL real runner cap=%u budget=%u action=%u instructions=%u/%u blocks=%u/%u\n",cap,budget,action,result.instructions,want,result.blocks,calls);return false;
+        }
+        ++checks;
+    }
+    printf(" PASS execution limits validation and %u real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor checks\n",checks);
+    return true;
+}
+
+
+static bool publication_test_omit=false,publication_test_ok=true;
+static unsigned publication_test_calls=0;
+static std::uint32_t publication_test_function(ARMul_State *cpu) {
+    const auto begin=publication_test_omit?0x12345678u:0u;
+    const auto end=publication_test_omit?0x23456789u:0u;
+    publication_test_ok &= cpu->aot_code_begin==begin && cpu->aot_code_end==end;
+    // Every subsequent lookup must either republish or leave these sentinels.
+    cpu->aot_code_begin=0x12345678;cpu->aot_code_end=0x23456789;
+    ++publication_test_calls;++cpu->Reg[0];return 1;
+}
+static bool test_guard_publication() {
+    namespace tracking=eka2l1::common::code_tracking;
+    namespace perf=eka2l1::common::performance;
+    namespace gp=eka2l1::common::guest_profile;
+    struct restore {
+        bool omit=omit_guard_publication,ram=ram_compilation_enabled;
+        bool enabled=perf::enabled,detailed=perf::detailed,guest=gp::enabled;
+        unsigned mode=tracking::unsafe_code_mode;
+        ~restore(){omit_guard_publication=omit;ram_compilation_enabled=ram;
+            perf::enabled=enabled;perf::detailed=detailed;gp::enabled=guest;
+            tracking::unsafe_code_mode=mode;global_registry().unregister_function(0x54340);}
+    } saved;
+    test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
+    ram_compilation_enabled=false;gp::enabled=false;
+    global_registry().register_function(0x54340,publication_test_function);
+    auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);
+    unsigned checks=0;
+    for(unsigned mode=0;mode<4;++mode)for(bool omit:{false,true})for(bool detailed:{false,true})
+    for(unsigned budget:{1u,2u,5u}) {
+        tracking::unsafe_code_mode=mode;omit_guard_publication=omit;
+        perf::enabled=detailed;perf::detailed=detailed;gp::enabled=detailed;
+        publication_test_omit=omit && (mode&2);publication_test_ok=true;publication_test_calls=0;
+        auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54340;cpu.TFlag=0;
+        cpu.NumInstrsToExecute=budget;cpu.aot_budget=budget;cpu.NirqSig=1;cpu.Cpsr=16;
+        cpu.aot_code_begin=0x12345678;cpu.aot_code_end=0x23456789;
+        auto function=lookup_compiled(&cpu);
+        if(function!=publication_test_function)return false;
+        const auto result=execute_chain(&cpu,function);
+        if(!publication_test_ok || publication_test_calls!=budget || result.instructions!=budget
+            || result.blocks!=budget || cpu.Reg[0]!=budget) {
+            printf(" FAIL guard publication mode=%u omit=%u detailed=%u budget=%u\n",mode,omit,detailed,budget);return false;
+        }
+        ++checks;
+    }
+    printf(" PASS guard publication: %u real lookup/runner sentinel checks; modes 0/1 always publish\n",checks);
+    return true;
+}
+
+static bool test_inline_limits() {
+#ifdef __EMSCRIPTEN__
+    struct restore {std::string value=execution_limits_text();~restore(){parse_execution_limits(value.c_str());}} saved;
+    unsigned checks=0;
+    for(unsigned limit:{8u,16u,32u,64u})for(unsigned sites:{0u,1u,8u,16u})for(unsigned length:{4u,16u,32u,64u,65u}) {
+        configure_execution_limits(512,limit,sites,512);
+        std::vector<unsigned> leaf(length,0xe2800001);leaf.back()=0xe12fff1e;
+        std::vector<unsigned> caller;
+        for(unsigned n=0;n<20;++n)caller.push_back(0xeb000000u|((0x2000u-(0x1000u+n*4+8))/4));
+        leaf_resolver resolver=[&](unsigned pc) {const auto *p=reinterpret_cast<const std::uint8_t*>(leaf.data());
+            return pc==0x2000?std::vector<std::uint8_t>(p,p+leaf.size()*4):std::vector<std::uint8_t>{};};
+        const auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller.data()),caller.size()*4,0x1000,
+            nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        const unsigned selected=length<=limit?sites:0;
+        if(tr.dependencies.size()!=unsigned(selected!=0)){printf(" FAIL inline selection leaf=%u limit=%u sites=%u dependencies=%zu\n",length,limit,sites,tr.dependencies.size());return false;}
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        const unsigned total=selected*(length+1)+1;
+        for(unsigned budget:{0u,1u,2u,length,length+1,total-1,total,total+1}) {
+            test_mem actual;actual.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(caller.data()),reinterpret_cast<const std::uint8_t*>(caller.data()+caller.size())});
+            actual.write_code(0x2000,{reinterpret_cast<const std::uint8_t*>(leaf.data()),reinterpret_cast<const std::uint8_t*>(leaf.data()+leaf.size())});
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            alignas(8) unsigned state[256]{};state[15]=0x1000;state[14]=0x3000;
+            state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            for(unsigned r=0;r<16;++r)reference->set_reg(r,state[r]);reference->set_cpsr(16);
+            g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+            if(count!=int(std::min(total,budget))){printf(" FAIL inline count limit=%u sites=%u length=%u budget=%u count=%d expected=%u\n",limit,sites,length,budget,count,std::min(total,budget));return false;}
+            if(count)reference->run(count);
+            for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r)){printf(" FAIL inline limits state R%u limit=%u sites=%u length=%u budget=%u got=%x expected=%x\n",r,limit,sites,length,budget,state[r],reference->get_reg(r));return false;}
+            if(actual.data!=expected.data)return false;
+            ++checks;
+        }
+    }
+    printf(" PASS inline leaf/site bounds and %u exact interpreter budget comparisons\n",checks);
+#endif
+    return true;
+}
+
+static bool test_exit_census() {
+#ifdef __EMSCRIPTEN__
+    const bool old=exit_census::enabled;exit_census::enabled=true;
+    struct fixture {std::uint32_t op;unsigned budget,count;const char *reason;bool thumb=false;};
+    for(const auto &f:std::vector<fixture>{{0xe2800001,8,1,"source_window_end"},
+        {0xe2800001,0,0,"budget"},{0xef000000,8,0,"unsupported"},
+        {0xe5910000,8,0,"memory_guard"},{0xeb000001,8,1,"call"},
+        {0xe12fff1e,8,1,"return_bx_lr"},{0xeafffffe,8,1,"interrupt"},
+        {0xe5810000,8,1,"code_write_guard"},{0xe4910004,8,1,"helper_exit"},
+        {0x2001,8,1,"source_window_end",true},{0x2001,0,0,"budget",true},
+        {0xdf00,8,0,"unsupported",true},{0x4770,8,1,"return_bx_lr",true}}) {
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(&f.op);
+        const auto tr=f.thumb?translate_thumb_block(bytes,2,0x1000,nullptr,nullptr,true,false,true)
+            :translate_arm_block(bytes,4,0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem memory;memory.write32(0x1000,f.op);memory.write32(0x8000,123);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x1000,memory.data.data()+0x1000,3);
+        alignas(8) std::uint32_t state[256]{};state[0]=0xe2800002;state[1]=f.op==0xe5810000?0x1000:0x8000;
+        state[14]=0x2000;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;
+        state[state_offsets::TFLAG/4]=f.thumb;state[state_offsets::NIRQ/4]=f.op==0xeafffffe?0:1;
+        state[state_offsets::AOT_BUDGET/4]=f.budget;state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
+        state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+4;
+        exit_census::last_reason=0;exit_census::effects=0;g_test_mem=&memory;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+        const auto actual=exit_census::classify(f.thumb,count,f.budget,state[state_offsets::AOT_EXIT/4]);
+        if(count!=int(f.count)||std::string(actual)!=f.reason||exit_census::last_pc!=(0x1000u|unsigned(f.thumb))||exit_census::last_opcode!=f.op) {
+            printf(" FAIL exit census op=%x count=%d/%u reason=%s/%s site=%x opcode=%x\n",f.op,count,f.count,actual,f.reason,exit_census::last_pc,exit_census::last_opcode);
+            exit_census::enabled=old;return false;
+        }
+    }
+    exit_census::enabled=old;printf(" PASS exit census actual ARM/Thumb exit labels, budgets, helpers and code aliases\n");
+#endif
+    return true;
+}
+
+// Deliberate semantic counterexamples are successes for this diagnostic test:
+// mode 3 must trust changed bytes and execute past an overlapping code store.
+static bool test_unsafe_code_diagnostic() {
+    namespace tracking=eka2l1::common::code_tracking;
+    struct restore {unsigned mode=tracking::unsafe_code_mode;bool outline=code_lookup_outline;
+        ~restore(){tracking::unsafe_code_mode=mode;code_lookup_outline=outline;}} saved;
+    unsigned checks=0;
+    for(unsigned mode:{0u,1u,2u,3u})for(bool outlined:{false,true})for(bool dependency:{false,true}) {
+        tracking::unsafe_code_mode=mode;code_lookup_outline=outlined;
+        test_mem memory;r12l1::exclusive_monitor monitor(1);auto cpu=make_cpu(memory,monitor);
+        std::array<std::uint8_t,32> primary{},leaf{},remap{};
+        std::atomic<std::uint64_t> generation{1};cpu->code_mapping_generation=&generation;cpu->code_address_space=1;
+        bool mapped=true;auto *backing=primary.data();auto *dep=leaf.data();unsigned extent=32;
+        cpu->resolve_code=[&](unsigned pc,core::code_mapping &view){view={1,pc==0x1000?backing:dep,extent};return mapped;};
+        validated_code_cache cache;
+        auto install=[&](){auto &entry=cache.insert(0x1000,{1,backing,extent},16);validated_code_cache::add_dependency(entry,0x2000,dep,{dep,dep+16});};
+        install();if(!cache.find(0x1000,*cpu))return false;
+        (dependency?leaf:primary)[4]^=1;
+        if(bool(cache.find(0x1000,*cpu))!=bool(mode&1))return false;
+        install();if(!cache.find(0x1000,*cpu))return false;
+        if(dependency)dep=remap.data();else backing=remap.data();++generation;
+        if(cache.find(0x1000,*cpu))return false;
+        install();if(!cache.find(0x1000,*cpu))return false;
+        mapped=false;++generation;if(cache.find(0x1000,*cpu))return false;
+        mapped=true;extent=4;++generation;if(cache.find(0x1000,*cpu))return false;
+        extent=32;install();cpu->code_address_space=2;if(cache.find(0x1000,*cpu))return false;
+        cpu->code_address_space=1;cache.invalidate(0x2000,16);if(cache.find(0x1000,*cpu))return false;
+        ++checks;
+    }
+    for(unsigned mode:{0u,1u,2u,3u})for(bool proof:{false,true})for(unsigned budget:{1u,2u,8u}) {
+        tracking::unsafe_code_mode=mode;
+        test_mem memory;const unsigned code[]={0xe5810000u,0xe2822001u};
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(code);
+        memory.write_code(0x1000,{bytes,bytes+sizeof(code)});
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,
+            proof?arm_ir_policy::write_budget_chunks:arm_ir_policy::disabled);
+        const auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x1000,memory.data.data()+0x1000,3);
+        alignas(8) unsigned state[256]{};state[0]=0xe2822007;state[1]=0x1004;state[15]=0x1000;
+        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
+        state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+8;
+        g_test_mem=&memory;
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+        const unsigned expected=(mode&2)&&budget>=2?2:1;
+        if(count!=expected || state[2]!=(expected==2?1u:0u) || memory.read32(0x1004)!=0xe2822007u) {
+            printf(" FAIL unsafe code store mode=%u proof=%d budget=%u count=%d r2=%u\n",mode,proof,budget,count,state[2]);return false;
+        }
+        if(budget==8) EM_ASM({const dir=process.env.EKA2L1_UNSAFE_MODULE_DIR;if(dir)require('fs').writeFileSync(dir+'/store-'+$0+'-'+$1+'.wasm', HEAPU8.slice($2,$2+$3));},mode,proof,module.data(),module.size());
+        printf(" UNSAFE_EMISSION mode=%u proof=%d budget=%u bytes=%zu count=%d exit=%u\n",mode,proof,budget,module.size(),count,state[state_offsets::AOT_EXIT/4]);
+        ++checks;
+    }
+    for(unsigned mode:{0u,3u}) {
+        tracking::unsafe_code_mode=mode;
+        const unsigned code[]={0xe5810000u,0xe5812004u,0xe5813008u,0xe581400cu};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+        if(tr.proved_writes!=4 || !tr.func.outlined_callee)return false;
+        const auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        EM_ASM({const dir=process.env.EKA2L1_UNSAFE_MODULE_DIR;if(dir)require('fs').writeFileSync(dir+'/proof-'+$0+'.wasm', HEAPU8.slice($1,$1+$2));},mode,module.data(),module.size());
+        printf(" UNSAFE_PROOF_EMISSION mode=%u proved_writes=%u bytes=%zu\n",mode,tr.proved_writes,module.size());++checks;
+    }
+    printf(" PASS unsafe_code_diagnostic (%u checks; expected stale primary/dependency bytes and stale post-store execution; mapping, lifetime and budget checks retained)\n",checks);
+    return true;
+}
+
+int main(int argc, char **argv) {
+#ifdef __EMSCRIPTEN__
+    if (eka2l1::common::code_tracking::unsafe_code_mode != 3) {
+        printf("FAIL WASM executable-byte default must be 3\n"); return 1;
+    }
+    printf("TEST_UNSAFE_CODE_DEFAULT 3\n");
+#endif
+    // This suite exercises precise code mutation semantics. Select that policy
+    // explicitly; test_unsafe_code_diagnostic separately tests all four modes
+    // and their intentional stale-code behavior.
+    eka2l1::common::code_tracking::unsafe_code_mode = 0;
+    if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
+    if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
+    if(argc==2 && std::string(argv[1])=="--tail-prefixes-only")return test_tail_prefixes()?0:1;
+    if(argc==2 && std::string(argv[1])=="--branch-veneers-only")return test_branch_veneers()?0:1;
+    if(argc==2 && std::string(argv[1])=="--expanded-leaves-always-only")return test_expanded_leaves(true)?0:1;
+    if(argc==2 && std::string(argv[1])=="--call-prefixes-only")return test_call_prefixes()?0:1;
+    if(argc==2 && std::string(argv[1])=="--expanded-leaves-only")return test_expanded_leaves()?0:1;
+    if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;
+    if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
+    if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
+    if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
+    if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
+    if(argc==2 && std::string(argv[1])=="--exit-census") {exit_census::enabled=true;argc=1;}
+    if(argc==2 && std::string(argv[1])=="--write-protection-only") return test_code_write_protection()?0:1;
+    if(argc==2 && std::string(argv[1])=="--lookup-only") return test_outlined_code_lookup()?0:1;
+    if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
+    if(argc==2 && std::string(argv[1])=="--folded-tlb-only") return test_folded_tlb_guards()?0:1;
+    if (argc == 2 && std::string(argv[1]).rfind("--tlb-hash=",0)==0) {
+        const std::string value=std::string(argv[1]).substr(11);
+        if(value!="0" && value!="1") {printf("Invalid TLB index mode\n");return 1;}
+        r12l1::dyncom_folded_tlb=value=="1";argc=1;
+    }
+    printf("TEST_TLB_HASH %u\n",unsigned(r12l1::dyncom_folded_tlb));
+#ifdef __EMSCRIPTEN__
+    if (argc == 2 && std::string(argv[1]) == "--emit-flags") {
+        // Generic flag-overwrite/consumer fixtures, unrelated to game PCs.
+        std::vector<wasm_func_def> funcs;
+        for (const auto &ops : std::vector<std::vector<std::uint32_t>>{
+            {0xe3500001,0xe3700001,0xe2522001,0x1afffffb},
+            {0xe3500001,0xe0a03000,0xe2522001,0x1afffffb}}) {
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(ops.data()),
+                ops.size()*4,0x1000,nullptr,nullptr,true,true,true,true);
+            tr.func.export_name="probe"+std::to_string(funcs.size());
+            funcs.push_back(std::move(tr.func));
+        }
+        auto bytes=build_wasm_module(funcs,{{"env","tlb_read32",2,true},
+            {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},
+            {"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        js_export_flag_probe(bytes.data(),bytes.size());
+        return 0;
+    }
+#endif
+
     std::array<std::uint32_t, 16> zero_regs = {};
     zero_regs[13] = 0x10000; // SP
 
@@ -2905,10 +6097,73 @@ int main() {
     if (test_sibling_bl_resume_point()) passed++; else failed++;
 
     printf("\nRunning ARM translator-level tests...\n\n");
+    if (test_inlined_leaves()) passed++; else failed++;
+#if defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && defined(EKA2L1_WASM_IR_OUTLINE) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    if (test_inlined_leaves(arm_ir_policy::inline_call_ir)) passed++; else failed++;
+    if (test_inlined_leaves(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
+    if (test_invariant_writes(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
+#endif
     if (test_bounded_execution()) passed++; else failed++;
+    if (test_folded_tlb_guards()) passed++; else failed++;
+    if (test_unsafe_code_diagnostic()) passed++; else failed++;
+    if (test_outlined_code_lookup()) passed++; else failed++;
+    if (test_exact_code_compare()) passed++; else failed++;
+    if (test_region_cpsr_callback()) passed++; else failed++;
+    if (test_block_transfer_callback_pc()) passed++; else failed++;
+    if (test_repeated_read_guards()) passed++; else failed++;
+    if (test_outlined_callee_indices()) passed++; else failed++;
+    if (test_proved_read_spans()) passed++; else failed++;
+    if (test_invariant_reads()) passed++; else failed++;
+    if (test_invariant_reads(arm_ir_policy::invariant_read_ir)) passed++; else failed++;
+    if (test_invariant_writes()) passed++; else failed++;
+    if (test_exit_census()) passed++; else failed++;
+    if (test_execution_limits()) passed++; else failed++;
+    if (test_guard_publication()) passed++; else failed++;
+    if (test_inline_limits()) passed++; else failed++;
+    if (test_predicated_leaves()) passed++; else failed++;
+    if (test_expanded_leaves()) passed++; else failed++;
+    if (test_call_prefixes()) passed++; else failed++;
+    if (test_branch_veneers()) passed++; else failed++;
+    if (test_tail_prefixes()) passed++; else failed++;
+    if (test_literal_pc_veneers()) passed++; else failed++;
+    if (test_boundary_details()) passed++; else failed++;
+    if (test_budget_chunks()) passed++; else failed++;
+    if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;
+    if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;
+    if (test_budget_chunks(arm_ir_policy::deferred_chunk_counts)) passed++; else failed++;
+    if (test_invariant_writes(arm_ir_policy::deferred_chunk_counts)) passed++; else failed++;
+    if (test_invariant_writes(arm_ir_policy::write_budget_chunks)) passed++; else failed++;
+    if (test_region_ir()) passed++; else failed++;
+    if (test_ir_flags()) passed++; else failed++;
+    if (test_ir_conditions()) passed++; else failed++;
+    if (test_ir_conditions(arm_ir_policy::long_segments_ir)) passed++; else failed++;
+    if (test_ir_conditions(arm_ir_policy::stack_values_ir)) passed++; else failed++;
+    if (test_ir_conditions(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;
+    if (test_ir_long_segments()) passed++; else failed++;
+    if (test_ir_segments()) passed++; else failed++;
+    if (test_ir_memory_exits()) passed++; else failed++;
+    if (test_ir_exit_recipes()) passed++; else failed++;
+    if (test_ir_addressing()) passed++; else failed++;
+    if (test_memory_displacements()) passed++; else failed++;
+    if (test_deferred_memory_exits()) passed++; else failed++;
+    if (test_block_transfer_guards()) passed++; else failed++;
+    if (test_region_loop_interrupts()) passed++; else failed++;
+    if (test_region_code_alias()) passed++; else failed++;
+    if (test_conditional_alu_select()) passed++; else failed++;
+    if (test_compare_conditions()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
+#ifdef EKA2L1_WASM_CODE_VERSIONS
+#ifdef EKA2L1_WASM_CODE_LIFECYCLE
+    if (test_code_write_protection()) passed++; else {printf("  FAIL code_write_protection\n");failed++;}
+    if (test_code_lifecycle()) passed++; else {printf("  FAIL code_lifecycle\n");failed++;}
+#endif
+    if (test_generated_write_versions()) passed++; else {printf("  FAIL generated_write_versions\n");failed++;}
+    if (test_code_validity_versions()) passed++; else {printf("  FAIL code_validity_versions\n");failed++;}
+#else
+    printf("  SKIP code validity generation tests (experimental build option disabled)\n");
+#endif
     if (test_arm_mov_imm()) passed++; else failed++;
     if (test_arm_add_sub_imm()) passed++; else failed++;
     if (test_arm_cmp_beq()) passed++; else failed++;

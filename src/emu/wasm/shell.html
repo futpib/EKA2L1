@@ -12,12 +12,18 @@
         #controls input[type=file] { font-size: 13px; }
         #controls button { padding: 4px 12px; cursor: pointer; font-family: monospace; }
         #canvas-container { flex: 1; display: flex; justify-content: center; align-items: center; background: #000; }
-        canvas { border: 1px solid #333; }
+        canvas { border: 1px solid #333; max-width: 100%; max-height: 100%; object-fit: contain; }
+        #canvas-container { min-height: 0; }
+        #game-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 6px; }
+        #game-controls button { min-width: 46px; min-height: 40px; touch-action: none; user-select: none; }
+        #game-controls[hidden] { display: none; }
+        #log-panel summary { padding: 4px 8px; cursor: pointer; background: #0f0f23; }
         #log { height: 150px; overflow-y: auto; padding: 4px 8px; background: #0f0f23; font-size: 12px; border-top: 1px solid #333; white-space: pre-wrap; }
         #status { padding: 4px 8px; background: #16213e; font-size: 12px; }
     </style>
 </head>
 <body>
+    <script src="audio.js"></script>
     <div id="controls">
         <label>ROM: <input type="file" id="rom-file"></label>
         <label>RPKG: <input type="file" id="rpkg-file"></label>
@@ -26,48 +32,76 @@
         <button id="btn-start" onclick="startEmulator()">Start</button>
     </div>
     <div id="canvas-container">
-        <canvas id="canvas" width="360" height="640" oncontextmenu="event.preventDefault()"></canvas>
+        <canvas id="canvas" tabindex="0" aria-label="Game display" width="360" height="640" oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+    <div id="game-controls" hidden aria-label="Game controls">
+        <button id="btn-sound" type="button" disabled aria-pressed="false" onclick="EkaAudio.toggle()">Enable sound</button>
+        <button data-scan="164">Left softkey</button>
+        <button data-scan="14" aria-label="Left">←</button>
+        <button data-scan="16" aria-label="Up">↑</button>
+        <button data-scan="167">Select</button>
+        <button data-scan="17" aria-label="Down">↓</button>
+        <button data-scan="15" aria-label="Right">→</button>
+        <button data-scan="165">Right softkey</button>
     </div>
     <div id="status">Ready</div>
-    <div id="log"></div>
+    <details id="log-panel"><summary>Log</summary><div id="log" role="log"></div></details>
 
     <script>
         var Module = window.Module || {async: true};
         Module.canvas = document.getElementById('canvas');
 
-        // Batched logging: buffer print output, flush every 200ms
-        var _logBuffer = [];
-        var _logTimer = null;
-        var _origPrint = Module.print;
-        function _flushLog() {
-            if (_logBuffer.length === 0) return;
-            var batch = _logBuffer.join('\n');
-            _logBuffer.length = 0;
-            console.log(batch);
-            var log = document.getElementById('log');
-            if (log) {
-                log.textContent += batch + '\n';
-                log.scrollTop = log.scrollHeight;
+        // Console output stays complete. The optional DOM view holds only a
+        // bounded tail and does no rendering/layout work while collapsed.
+        var _logBuffer = [], _logBytes = 0, _logTimer = null;
+        var _logTail = [], _logTailBytes = 0, _logTrimmed = false, _logPaint = null;
+        var _origPrint = Module.print, _origPrintErr = Module.printErr;
+        function _rememberLog(text) {
+            var lines = String(text).split('\n');
+            for (var line of lines) {
+                if (line.length > 32767) { line = line.slice(-32767); _logTrimmed = true; }
+                _logTail.push(line);
+                _logTailBytes += line.length + 1;
+                while (_logTail.length > 200 || _logTailBytes > 32768) {
+                    _logTailBytes -= _logTail.shift().length + 1;
+                    _logTrimmed = true;
+                }
             }
+            _scheduleLogPaint();
+        }
+        function _scheduleLogPaint() {
+            var panel = document.getElementById('log-panel');
+            if (!panel.open || _logPaint !== null) return;
+            _logPaint = requestAnimationFrame(function() {
+                _logPaint = null;
+                if (!panel.open) return;
+                var log = document.getElementById('log');
+                log.textContent = (_logTrimmed ? '[Earlier log entries omitted]\n' : '') + _logTail.join('\n');
+                log.scrollTop = 2147483647;
+            });
+        }
+        document.getElementById('log-panel').addEventListener('toggle', _scheduleLogPaint);
+        function _flushLog() {
+            if (_logTimer !== null) { clearTimeout(_logTimer); _logTimer = null; }
+            if (!_logBuffer.length) return;
+            var batch = _logBuffer.join('\n');
+            _logBuffer = []; _logBytes = 0;
+            console.log(batch);
+            _rememberLog(batch);
             if (_origPrint) _origPrint(batch);
         }
         Module.print = function(text) {
-            _logBuffer.push(text);
-            if (!_logTimer) {
-                _logTimer = setTimeout(function() { _logTimer = null; _flushLog(); }, 200);
-            }
+            text = String(text);
+            _logBuffer.push(text); _logBytes += text.length + 1;
+            if (_logBytes >= 32768) _flushLog();
+            else if (_logTimer === null) _logTimer = setTimeout(_flushLog, 200);
         };
-        // Expose flush for tests/cleanup
         window._flushLog = _flushLog;
-        var _origPrintErr = Module.printErr;
         Module.printErr = function(text) {
             if (text && text.indexOf('__syscall_mprotect') !== -1) return;
+            _flushLog();
             console.warn(text);
-            var log = document.getElementById('log');
-            if (log) {
-                log.textContent += '[ERR] ' + text + '\n';
-                log.scrollTop = log.scrollHeight;
-            }
+            _rememberLog('[ERR] ' + text);
             if (_origPrintErr) _origPrintErr(text);
         };
         var _origOnAbort = Module.onAbort;
@@ -104,6 +138,49 @@
             });
         }
 
+        var _gameRunning = false;
+        var _inputSources = new Map();
+        // S60 softkeys use Device0/Device1 scan codes.
+        var _keyScans = {ArrowLeft:14, ArrowRight:15, ArrowUp:16, ArrowDown:17,
+            KeyA:14, KeyD:15, KeyW:16, KeyS:17, Enter:167, NumpadEnter:167,
+            Space:167, F1:164, F2:165, Escape:165};
+        function _pressSource(source, scan) {
+            if (!_gameRunning || _inputSources.has(source)) return;
+            var alreadyDown = Array.from(_inputSources.values()).includes(scan);
+            _inputSources.set(source, scan);
+            if (!alreadyDown) Module._eka2l1_key_state(scan, 1);
+        }
+        function _releaseSource(source) {
+            if (!_inputSources.has(source)) return;
+            var scan = _inputSources.get(source);
+            _inputSources.delete(source);
+            if (!Array.from(_inputSources.values()).includes(scan)) Module._eka2l1_key_state(scan, 0);
+        }
+        function _releaseInputs() {
+            for (var source of Array.from(_inputSources.keys())) _releaseSource(source);
+        }
+        window.addEventListener('keydown', function(event) {
+            if (!_gameRunning || event.target instanceof HTMLInputElement || event.target.id === 'btn-sound' || !(_keyScans[event.code])) return;
+            event.preventDefault();
+            _pressSource('key:' + event.code, _keyScans[event.code]);
+        });
+        window.addEventListener('keyup', function(event) {
+            if (_inputSources.has('key:' + event.code)) event.preventDefault();
+            _releaseSource('key:' + event.code);
+        });
+        window.addEventListener('blur', _releaseInputs);
+        document.addEventListener('visibilitychange', function() { if (document.hidden) _releaseInputs(); });
+        for (var button of document.querySelectorAll('#game-controls button[data-scan]')) {
+            button.addEventListener('pointerdown', function(event) {
+                event.preventDefault();
+                this.setPointerCapture(event.pointerId);
+                _pressSource('pointer:' + event.pointerId, Number(this.dataset.scan));
+            });
+            for (var name of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+                button.addEventListener(name, function(event) { _releaseSource('pointer:' + event.pointerId); });
+            }
+        }
+
         async function startEmulator() {
             var btn = document.getElementById('btn-start');
             btn.disabled = true;
@@ -115,6 +192,14 @@
                 var sisInput = document.getElementById('sis-file');
                 var appName = document.getElementById('app-name').value;
 
+                // The runtime defaults to immutable executable bytes (mode 3).
+                // A launcher can select compatibility mode 0 before initialization.
+                window.ekaUnsafeCode = Module.ccall('eka2l1_unsafe_code_report', 'number', [], []);
+                if (![0,1,2,3].includes(window.ekaUnsafeCode))
+                    throw new Error('Executable-byte policy readback failed');
+                // Live play uses the same virtual clock and compiled CPU as replay.
+                if (Module.ccall('eka2l1_live_configure', 'number', [], []) !== 0)
+                    throw new Error('Live configuration failed');
                 // Initialize
                 await Module.ccall('eka2l1_init', 'number', ['string'], ['/data'], {async: true});
 
@@ -128,10 +213,19 @@
                         rpkgPath = await uploadFile(rpkgInput.files[0], '/tmp/' + rpkgInput.files[0].name);
                     }
                     Module.setStatus('Installing device...');
-                    var ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string'], [romPath, rpkgPath], {async: true});
+                    var ret;
+                    try {
+                        ret = await Module.ccall('eka2l1_install_device', 'number', ['string', 'string'], [romPath, rpkgPath], {async: true});
+                    } finally {
+                        // Installation copies/extracts into storage before returning.
+                        for (var uploaded of new Set([romPath, rpkgPath])) {
+                            if (uploaded) FS.unlink(uploaded);
+                        }
+                    }
                     if (ret !== 0) {
                         throw new Error('Device installation failed: ' + ret);
                     }
+                    romInput.value = ''; rpkgInput.value = '';
                 }
 
                 // Install SIS if provided
@@ -139,19 +233,37 @@
                     Module.setStatus('Uploading SIS...');
                     var sisPath = await uploadFile(sisInput.files[0], '/tmp/' + sisInput.files[0].name);
                     Module.setStatus('Installing SIS...');
-                    var ret = await Module.ccall('eka2l1_install_sis', 'number', ['string'], [sisPath], {async: true});
+                    var ret;
+                    try {
+                        ret = await Module.ccall('eka2l1_install_sis', 'number', ['string'], [sisPath], {async: true});
+                    } finally {
+                        FS.unlink(sisPath);
+                    }
+                    sisInput.value = '';
                     if (ret !== 0) {
                         Module.printErr('SIS install returned ' + ret + ' (may already be in ROM)');
                     }
                 }
 
-                // Run
+                // Transfer/initialize WebGL without blocking the browser event loop.
                 if (appName) {
+                    var graphicsRet = Module.ccall('eka2l1_prepare_graphics', 'number', [], []);
+                    if (graphicsRet < 0) throw new Error('Graphics initialization failed: ' + graphicsRet);
+                    var graphicsDeadline = performance.now() + 30000;
+                    while (Module._eka2l1_graphics_ready() === 0) {
+                        if (performance.now() > graphicsDeadline) throw new Error('Graphics initialization timeout');
+                        await new Promise(resolve => setTimeout(resolve, 10));
+                    }
+
                     var runRet = await Module.ccall('eka2l1_run', 'number', ['string'], [appName], {async: true});
                     if (runRet !== 0) {
                         throw new Error('eka2l1_run failed: ' + runRet);
                     }
-                    Module.setStatus('Running: ' + appName);
+                    _gameRunning = true;
+                    EkaAudio.attach(Module);
+                    document.getElementById('game-controls').hidden = false;
+                    Module.canvas.focus();
+                    Module.setStatus('Running: ' + appName + ' · Arrows/WASD to move, Enter to select · Use Enable sound for audio');
                 }
             } catch(e) {
                 Module.setStatus('Error: ' + e.message);

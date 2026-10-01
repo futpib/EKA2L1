@@ -1,0 +1,24 @@
+<!doctype html><meta charset="utf-8"><title>Bare metal QEMU probe</title>
+<script type="module">
+window.logs=[];window.failures=[];
+const log=x=>{logs.push({t:performance.now(),text:String(x)});console.log(x);};
+const which=new URLSearchParams(location.search).get('core')||'qemu';
+const cfg={
+ mainScriptUrlOrBlob:new URL(which==='qemu'?'/qemu/out.js':'/pebble-tci/qemu-system-arm.js',location.href).href,
+ arguments:['-M','virt','-cpu','cortex-a15','-m','32M','-smp','1','-nic','none','-nographic','-monitor','none','-serial','none','-semihosting-config','enable=on,target=native','-kernel','/guest.elf'],
+ print:log,printErr:log,onExit:x=>{if(!logs.some(x=>x.text.includes('CORE_DONE')))failures.push('exit '+x);},onAbort:x=>{failures.push(String(x));log(x);},
+ locateFile:p=>'/'+which+'/'+p,
+ pty:{onSignal:()=>({dispose(){}}),onReadable:()=>({dispose(){}}),read:()=>[],write:b=>log(new TextDecoder().decode(new Uint8Array(b))),readable:false,writable:true,ioctl:cmd=>cmd==='TIOCGWINSZ'?[80,24]:{iflag:0,oflag:0,cflag:0,lflag:0,cc:Array(32).fill(0)}},
+};
+if(new URLSearchParams(location.search).has('trace'))cfg.arguments.push('-d','in_asm','-D','/dev/stderr');
+try{
+ const guest=new Uint8Array(await(await fetch('/qemu_guest.elf')).arrayBuffer());
+ cfg.preRun=[()=>{cfg.FS_createDataFile('/','guest.elf',guest,true,false);}];
+ if(which==='qemu'){
+  const create=(await import('/qemu/out.js')).default;
+  window.module=await create(cfg);
+ }else{
+  window.Module=cfg;const script=document.createElement('script');script.src='/pebble-tci/qemu-system-arm.js';document.head.append(script);
+ }
+}catch(e){failures.push(String(e));log(String(e));}
+</script>

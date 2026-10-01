@@ -29,27 +29,35 @@ namespace eka2l1::epoc {
         evts_.emplace_back(evt, false);
     }
 
+    static void prepare_event_for_window(epoc::canvas_base *user, const eka2l1::vec2 &scr_coord, epoc::event &evt) {
+        evt.adv_pointer_evt_.pos = scr_coord - user->absolute_position();
+
+        if (user->parent->type == epoc::window_kind::top_client) {
+            evt.adv_pointer_evt_.parent_pos = scr_coord;
+        } else {
+            // It must be client kind
+            assert(user->parent->type == epoc::window_kind::client);
+            evt.adv_pointer_evt_.parent_pos = scr_coord - reinterpret_cast<epoc::canvas_base *>(user->parent)->absolute_position();
+        }
+
+        evt.handle = user->get_client_handle();
+    }
+
     void window_pointer_focus_walker::process_event_to_target_window(epoc::window *win, epoc::event &evt) {
         assert(win->type == epoc::window_kind::client);
 
         epoc::canvas_base *user = reinterpret_cast<epoc::canvas_base *>(win);
         // Stop, we found it!
         // Send it right now
-        evt.adv_pointer_evt_.pos = scr_coord_ - user->absolute_position();
-
-        if (user->parent->type == epoc::window_kind::top_client) {
-            evt.adv_pointer_evt_.parent_pos = scr_coord_;
-        } else {
-            // It must be client kind
-            assert(user->parent->type == epoc::window_kind::client);
-            evt.adv_pointer_evt_.parent_pos = scr_coord_ - reinterpret_cast<epoc::canvas_base *>(user->parent)->absolute_position();
-        }
-
-        evt.handle = win->get_client_handle();
+        prepare_event_for_window(user, scr_coord_, evt);
 
         kernel_system *kern = win->client->get_ws().get_kernel_system();
 
         kern->lock();
+        if ((evt.adv_pointer_evt_.evtype == epoc::event_type::button1down) && (user->flags & epoc::window::flags_allow_pointer_grab)) {
+            grab_windows_[evt.adv_pointer_evt_.ptr_num] = user;
+        }
+
         win->queue_event(evt);
         kern->unlock();
     }
@@ -112,6 +120,42 @@ namespace eka2l1::epoc {
         evts_.clear();
     }
 
+    bool window_pointer_focus_walker::deliver_to_grab_window(kernel_system *kern, epoc::event &evt) {
+        const std::lock_guard<kernel_system> guard(*kern);
+
+        auto grab_ite = grab_windows_.find(evt.adv_pointer_evt_.ptr_num);
+        if (grab_ite == grab_windows_.end()) {
+            return false;
+        }
+
+        epoc::canvas_base *grab_window = grab_ite->second;
+
+        // A down with the grab still held means the matching up was lost; hit-test afresh.
+        if (evt.adv_pointer_evt_.evtype == epoc::event_type::button1down) {
+            grab_windows_.erase(grab_ite);
+            return false;
+        }
+
+        if (evt.adv_pointer_evt_.evtype == epoc::event_type::button1up) {
+            grab_windows_.erase(grab_ite);
+        }
+
+        prepare_event_for_window(grab_window, evt.adv_pointer_evt_.pos, evt);
+        grab_window->queue_event(evt);
+
+        return true;
+    }
+
+    void window_pointer_focus_walker::release_grab(epoc::window *win) {
+        for (auto ite = grab_windows_.begin(); ite != grab_windows_.end();) {
+            if (ite->second == win) {
+                ite = grab_windows_.erase(ite);
+            } else {
+                ite++;
+            }
+        }
+    }
+
     window_key_shipper::window_key_shipper(window_server *serv)
         : serv_(serv) {
     }
@@ -156,11 +200,11 @@ namespace eka2l1::epoc {
             const std::uint32_t the_code = epoc::map_scancode_to_keycode(static_cast<std_scan_code>(
                 evt.key_evt_.scancode));
 
-            const std::uint64_t data_for_repeatable = extra_event.key_evt_.scancode | (static_cast<std::uint64_t>(extra_event.key_evt_.code) << 32);
+            const std::uint64_t data_for_repeatable = extra_event.key_evt_.scancode | (static_cast<std::uint64_t>(the_code) << 32);
 
             if (!dont_send_extra_key_event) {
                 extra_event.key_evt_.code = the_code;
-                extra_event.time = kern->home_time();
+                extra_event.time = kern->universal_time();
 
                 if (repeatable)
                     extra_event.key_evt_.modifiers = event_modifier_repeatable;

@@ -20,11 +20,13 @@
 #pragma once
 
 #include <common/container.h>
+#include <common/region.h>
 #include <common/vecx.h>
 
 #include <drivers/graphics/common.h>
 #include <services/window/classes/config.h>
 #include <services/window/common.h>
+#include <services/window/framebuffer.h>
 
 #include <cstdint>
 #include <functional>
@@ -42,6 +44,7 @@ namespace eka2l1 {
         struct app_setting;
     }
 
+    class kernel_system;
     class window_server;
     class ntimer;
 }
@@ -53,6 +56,9 @@ namespace eka2l1::drivers {
 
 namespace eka2l1::epoc {
     const std::uint32_t WORD_PALETTE_ENTRIES_COUNT = 16;
+
+    // The direct screen access buffer is handed to the guest pre-filled with this value.
+    const std::uint8_t SCREEN_BUFFER_UNTOUCHED_FILL = 255;
 
     struct window;
     struct window_group;
@@ -86,6 +92,11 @@ namespace eka2l1::epoc {
 
         epoc::display_mode disp_mode;
 
+        // Some EKA1 clients hardcode 16-bit writes despite a deeper reported mode.
+        // Keep the detected DSA format separate from the screen device's mode.
+        epoc::display_mode dsa_disp_mode;
+        epoc::display_mode dsa_disp_mode_initial;
+
         std::uint64_t last_vsync;
         std::uint64_t last_fps_check;
         std::uint64_t last_fps;
@@ -96,11 +107,18 @@ namespace eka2l1::epoc {
         std::uint8_t physical_mode; ///< Mode that orientation is normal.
 
         epoc::window_group *focus; ///< Current window group that is being focused
+        epoc::window_group *default_owning_group; ///< Group that adopts windows created without an owner
 
         screen *next;
 
         kernel::chunk *screen_buffer_chunk;
+        // Keeps redraw/window-tree access separate from callback registries.
+        // Focus callbacks can be fired while screen_mutex is already held during
+        // window teardown, so sharing that non-recursive mutex deadlocks.
         std::mutex screen_mutex;
+        std::mutex focus_callback_mutex;
+        std::mutex screen_redraw_callback_mutex;
+        std::mutex screen_mode_change_callback_mutex;
 
         // Position of this screen in graphics driver
         // Update in graphics driver thread and read in os thread
@@ -114,6 +132,9 @@ namespace eka2l1::epoc {
 
         bool sync_screen_buffer = false;
 
+        bool direct_framebuffer_mapped = false;
+        framebuffer_observer direct_framebuffer;
+
         enum {
             FLAG_NEED_RECALC_VISIBLE = 1 << 0,
             FLAG_ORIENTATION_LOCK = 1 << 1,
@@ -123,6 +144,10 @@ namespace eka2l1::epoc {
             FLAG_SCREEN_UPSCALE_FACTOR_LOCK = 1 << 5,
             FLAG_IS_SCREENPLAY = 1 << 6
         };
+
+        // Screen area to repaint without clearing it first, the way an NGA EndRedraw schedules one.
+        common::region server_redraw_region_;
+        bool region_redraw_active_ = false;
 
         using focus_change_callback = std::pair<void *, focus_change_callback_handler>;
         using screen_redraw_callback = std::pair<void *, screen_redraw_callback_handler>;
@@ -154,7 +179,13 @@ namespace eka2l1::epoc {
         void abort_all_dsas(const std::int32_t reason);
         void recalculate_visible_regions(bool dont_trigger_redraw = false);
 
-        void restore_from_config(drivers::graphics_driver *driver, const eka2l1::config::app_setting &setting);
+        // `winserv` is the server to notify when restoring the setting changes the
+        // screen mode. Pass null from callers that only want the scaling half of the
+        // setting re-applied (see the DSA upscale path); the mode is then left alone,
+        // since changing it without telling clients would leave them drawing for the
+        // old one.
+        void restore_from_config(drivers::graphics_driver *driver, const eka2l1::config::app_setting &setting,
+            window_server *winserv);
         void store_to_config(drivers::graphics_driver *driver, eka2l1::config::app_setting &setting);
         void try_change_display_rescale(drivers::graphics_driver *driver, const float scale_factor);
 
@@ -166,6 +197,15 @@ namespace eka2l1::epoc {
          * @returns     Pointer to the start of the screen data.
          */
         std::uint8_t *screen_buffer_ptr();
+
+        /**
+         * \brief Get the number of bytes between rows in the emulated framebuffer.
+         *
+         * Every writer has to agree on this: the display HAL reports it and the screen
+         * draw device is built with it.
+         */
+        std::uint32_t screen_buffer_byte_width() const;
+        std::uint32_t screen_buffer_byte_width(const epoc::display_mode mode) const;
 
         /**
          * \brief Get the size of this screen, in pixels.
@@ -188,6 +228,34 @@ namespace eka2l1::epoc {
         const void get_max_num_colors(int &colors, int &greys) const;
 
         void sync_screen_buffer_data(drivers::graphics_driver *driver);
+
+        /**
+         * @brief Widen the assumed direct screen access pixel depth once the guest proves
+         *        it writes deeper pixels than the conservative starting guess.
+         */
+        bool promote_dsa_depth_if_deep_pixels_written();
+
+        /**
+         * @brief Forget what the last direct screen access client wrote, so the next one
+         *        is measured on its own frames.
+         */
+        void reset_dsa_depth_guess();
+
+        /**
+         * @brief Remember that a client was given the raw framebuffer address.
+         */
+        void mark_direct_framebuffer_mapped();
+
+        // Caller holds the kernel lock. Rects are Symbian TRects in screen coordinates; with none
+        // the whole buffer is presented.
+        void present_framebuffer(drivers::graphics_driver *driver, kernel_system *kern,
+            const eka2l1::rect *symbian_rects = nullptr, const std::uint32_t rect_count = 0);
+
+        /**
+         * @brief Snapshot the directly mapped framebuffer. True if the guest wrote to it
+         *        since the last snapshot.
+         */
+        bool update_direct_framebuffer();
 
         /**
          * \brief Set screen mode.
@@ -258,6 +326,18 @@ namespace eka2l1::epoc {
 
         void set_server_redraw_pending() {
             flags_ |= FLAG_SERVER_REDRAW_PENDING;
+        }
+
+        bool region_redraw_supported() const {
+            return is_screenplay_architecture() && !auto_clear_enabled();
+        }
+
+        void add_server_redraw_region(const eka2l1::rect &area) {
+            server_redraw_region_.add_rect(area);
+        }
+
+        common::region server_redraw_clip(const common::region &visible) const {
+            return region_redraw_active_ ? visible.intersect(server_redraw_region_) : visible;
         }
         
         void set_is_screenplay_architecture(bool is_screenplay) {

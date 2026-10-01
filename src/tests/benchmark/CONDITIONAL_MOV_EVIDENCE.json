@@ -1,0 +1,143 @@
+{
+  "candidate": "simple conditional MOV via WASM select",
+  "decision": "not promoted: first batch improves, reversed confirmation regresses; aggregate too small and directions inconsistent",
+  "runs": [
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "flag-1",
+      "build": "flag-stack-candidate",
+      "host_seconds": 13.5347,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "select-1",
+      "build": "conditional-select-candidate",
+      "host_seconds": 13.3266,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "served-1",
+      "build": "addv-candidate",
+      "host_seconds": 13.6628,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "served-2",
+      "build": "addv-candidate",
+      "host_seconds": 13.4935,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "select-2",
+      "build": "conditional-select-candidate",
+      "host_seconds": 13.3756,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-a",
+      "run": "flag-2",
+      "build": "flag-stack-candidate",
+      "host_seconds": 13.5148,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-b",
+      "run": "before-1",
+      "build": "conditional-select-candidate",
+      "host_seconds": 13.491,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-b",
+      "run": "after-1",
+      "build": "addv-candidate",
+      "host_seconds": 13.3945,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-b",
+      "run": "after-2",
+      "build": "addv-candidate",
+      "host_seconds": 13.3881,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    },
+    {
+      "batch": "conditional-select-timing-b",
+      "run": "before-2",
+      "build": "conditional-select-candidate",
+      "host_seconds": 13.5609,
+      "guest_instructions": 3975618624,
+      "presentations": 676
+    }
+  ],
+  "wasm_sha256": "6c62082ce0953e17d978a02c4d9c5dcdb6fcd0f7d324760975825e8f5e83434c",
+  "correctness": {
+    "wasm_tests": 135,
+    "new_condition_budget_comparisons": 57344,
+    "fault_cases": 672,
+    "native_targets": 3,
+    "frontend_checks": 7,
+    "fresh_checked_replay": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+        "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+        "writes": 0,
+        "callbacks": 10190,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 10190,
+        "gameplay_nonzero_samples": 7223662,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16263331210
+    }
+  },
+  "patch": "/home/claude/.scratch/eka-benchmark/conditional-select-runtime.patch",
+  "next_experiment": "extend branchless selection to cheap non-flag-setting data operations",
+  "fault_probe_rebuild_correction": {
+    "reason": "original post-reboot probe was not rebuilt by default target; superseded by explicit candidate rebuild",
+    "audit": "FAULT_PROBE_REBUILD_AUDIT.json",
+    "variant": "conditional-mov",
+    "result": {
+      "variant": "conditional-mov",
+      "head": "2ed5c6383cff9728a6199a001a77814f947c7a14",
+      "source_sha256": "c9c1f00923527f5bf1b5313063565a077de8432eea0e52c08ee316fde528777e",
+      "header_sha256": "27b7b548680220104b2f24f4f96dd3f5a8e4c65185b37c9fb912d2cd18cfbb0c",
+      "probe_wasm_sha256": "3561ef687c1c16a38528b0664dc55a006d63147200c94979f29ae1e407c2df10",
+      "native_probe_sha256": "9faf00035cbee5fd2a70fefaf49e8894d83e9a938da5f5debdd1d91900820b7b",
+      "comparison": {
+        "cases": 672,
+        "all_fields_match": 672,
+        "final_state_and_exact_memory_match": 672,
+        "mismatched_fields": {},
+        "categories": {},
+        "little_endian_unmapped_cases": 168,
+        "little_endian_unmapped_differences": 0,
+        "inputs": {
+          "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/native.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1",
+          "/home/claude/.scratch/eka-benchmark/fault-rebuild-audit/conditional-mov.log": "d4db5c750b6788906107ce90c6830c1a4d282704b44a36ae953958589f9df5e1"
+        },
+        "differences": []
+      }
+    }
+  }
+}

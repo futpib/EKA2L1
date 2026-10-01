@@ -21,17 +21,19 @@ def audio_record(directory, first_us, last_us):
         raise RuntimeError('Audio events run backwards')
     if any(e['virtual_us'] > last_us for e in events):
         raise RuntimeError('Audio event after final frame')
+    shared = (directory / 'audio-backend.json').exists()
     writes = [e for e in events if e['event'] == 'write_bytes' and e['value']]
-    callbacks = [e for e in events if e['event'] == 'more_buffer']
+    callbacks = [e for e in events if e['event'] == ('render' if shared else 'more_buffer')]
     gameplay = pcm[first_us * 48000 // 1000000 * 4:]
     samples = [s[0] for s in struct.iter_unpack('<h', gameplay)]
     nonzero = sum(s != 0 for s in samples)
-    if not writes or not callbacks or not nonzero:
+    if (not shared and not writes) or not callbacks or not nonzero:
         raise RuntimeError('No active gameplay audio or buffer callbacks')
     return {'sample_frames': count, 'sample_rate': 48000, 'channels': 2,
             'sha256_pcm': hashlib.sha256(pcm).hexdigest(),
             'sha256_events': hashlib.sha256((directory / 'audio.jsonl').read_bytes()).hexdigest(),
             'writes': len(writes), 'callbacks': len(callbacks),
+            **({'backend': 'shared-dsp-cubeb-resampler', 'render_callbacks': len(callbacks)} if shared else {}),
             'gameplay_nonzero_samples': nonzero,
             'gameplay_peak': max(abs(s) for s in samples)}
 

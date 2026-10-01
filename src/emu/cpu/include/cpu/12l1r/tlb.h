@@ -20,6 +20,7 @@
 #pragma once
 
 #include <common/types.h>
+#include <common/code_tracking.h>
 #include <cpu/12l1r/common.h>
 
 #include <algorithm>
@@ -46,17 +47,46 @@ namespace eka2l1::arm::r12l1 {
     static constexpr std::uint32_t TLB_ENTRY_COUNT = 1 << TLB_LOOKUP_BIT_COUNT;
     static constexpr std::uint32_t TLB_ENTRY_MASK = TLB_ENTRY_COUNT - 1;
 
+    // Research configuration, frozen before DynCom cores/regions are created.
+    // Native 12l1r cores retain their fixed low-bit index contract.
+    inline bool dyncom_folded_tlb = false;
+
     struct tlb {
     public:
         tlb_entry entries[TLB_ENTRY_COUNT];
 
         std::size_t page_bits;
         std::size_t page_mask;
+        const bool folded_index;
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+        std::uint64_t protected_generation = 0;
+#endif
 
-        explicit tlb(std::size_t page_bits)
-            : page_bits(page_bits) {
+        explicit tlb(std::size_t page_bits, bool folded = false)
+            : page_bits(page_bits), folded_index(folded) {
             page_mask = (1 << page_bits) - 1;
             flush();
+        }
+
+        std::size_t index(vaddress addr) const {
+            const auto page = addr >> page_bits;
+            return (folded_index ? page ^ (page >> TLB_LOOKUP_BIT_COUNT) : page) & TLB_ENTRY_MASK;
+        }
+
+        // Called before every generated function, after lookup can start
+        // watching new code. Only this CPU's own TLB is changed. Generated
+        // per-function page/address proofs never survive that call boundary.
+        void sync_write_protection() {
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+            namespace tracking = eka2l1::common::code_tracking;
+            if (tracking::skip_mutation_tracking() || !tracking::protect_writes) return;
+            const auto generation = tracking::watch_generation;
+            if (generation && protected_generation == generation) return;
+            for (auto &entry : entries)
+                if (entry.write_addr && tracking::write_needs_callback(entry.host_base,page_mask+1))
+                    entry.write_addr = 0;
+            protected_generation = generation;
+#endif
         }
 
         void flush() {
@@ -65,8 +95,7 @@ namespace eka2l1::arm::r12l1 {
         }
 
         void add(vaddress addr, std::uint8_t *host, const std::uint32_t perm) {
-            const std::size_t page_index = addr >> page_bits;
-            const std::size_t tlb_index = page_index & (TLB_ENTRY_COUNT - 1);
+            const std::size_t tlb_index = index(addr);
             const std::size_t addr_mod = addr & page_mask;
             const vaddress addr_normed = addr & ~page_mask;
 
@@ -79,7 +108,13 @@ namespace eka2l1::arm::r12l1 {
                 entry.read_addr = 0;
             }
 
-            if (perm & prot_write) {
+            bool allow_write = (perm & prot_write) != 0;
+#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
+            // A refilled alias must not recover direct write access to watched
+            // physical backing. The MMU callback retains the real permission.
+            allow_write = allow_write && !eka2l1::common::code_tracking::write_needs_callback(entry.host_base,page_mask+1);
+#endif
+            if (allow_write) {
                 entry.write_addr = addr_normed;
             } else {
                 entry.write_addr = 0;
@@ -93,8 +128,7 @@ namespace eka2l1::arm::r12l1 {
         }
 
         void make_dirty(const vaddress addr) {
-            const std::size_t page_index = addr >> page_bits;
-            const std::size_t tlb_index = page_index & (TLB_ENTRY_COUNT - 1);
+            const std::size_t tlb_index = index(addr);
             const vaddress addr_normed = addr & ~page_mask;
 
             tlb_entry &entry = entries[tlb_index];
@@ -104,9 +138,21 @@ namespace eka2l1::arm::r12l1 {
             }
         }
 
+        // Permission-specific lookup. Zero tags mean absent, so page zero must
+        // use callbacks rather than accidentally matching an absent permission.
+        template<std::uint32_t Permission>
+        std::uint8_t *lookup_access(const vaddress addr) {
+            static_assert(Permission == prot_read || Permission == prot_write || Permission == prot_exec);
+            const vaddress page = addr & ~page_mask;
+            const auto &entry = entries[index(addr)];
+            const vaddress tag = Permission == prot_read ? entry.read_addr
+                : Permission == prot_write ? entry.write_addr : entry.execute_addr;
+            return page && entry.host_base && tag == page
+                ? entry.host_base + (addr & page_mask) : nullptr;
+        }
+
         std::uint8_t *lookup(const vaddress addr) {
-            const std::size_t page_index = addr >> page_bits;
-            const std::size_t tlb_index = page_index & (TLB_ENTRY_COUNT - 1);
+            const std::size_t tlb_index = index(addr);
             const vaddress addr_normed = addr & ~page_mask;
 
             tlb_entry &entry = entries[tlb_index];

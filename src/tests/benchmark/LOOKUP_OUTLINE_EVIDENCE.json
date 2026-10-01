@@ -1,0 +1,2144 @@
+{
+  "implementation_commit": "2fb326960",
+  "archive": {
+    "base_commit": "4fb2ad0cce8e1ca04dae3e97c91bc2cb8dcd16f0",
+    "patch_sha256": "fef650d9c246914239aef53e02eaa49e5874484761d25c5d665f1ec4adf26708",
+    "files": {
+      "eka2l1.js": "79ae34f6803ad02c99601916fb6129f007783025bb3fab14cc4991cff44cd4df",
+      "source.patch": "fef650d9c246914239aef53e02eaa49e5874484761d25c5d665f1ec4adf26708",
+      "eka2l1.html": "8e0962709fa2a5cdff9d30125452c500123910e76bdee682092f9fd44a7aee69",
+      "eka2l1.data": "e46db4b4bb8564cf2f93d3c94916d2b8a6ffc9368199b0518a21cf8b930dd468",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_tests": "9e01e13a193915807652f4791851b7bb58a20a57d72763c8dc2b1b9f55a51c62",
+      "tests/eka_cpu_fault_native": "33633accce7a216429bc3a947bd7a2318b0f28bd3998a67be9313da1ac58f150",
+      "tests/test_aot_wasm.wasm": "88e554f7fef8393c0f240dc7a7beb1dddd4cb10ce0c3c8f5d78cb4fcfb9fb1d3",
+      "tests/eka_cpu_fault_wasm.wasm": "1e17e49c8d5d0af3e68298f96c21dfe90a43e719e1d7a35320f6574c3a3c2a45",
+      "tests/test_aot_wasm.js": "18a9e597d03dfda5dd50ffeb0971ec52c4d4a9ff3a9bc714d29e2be74610b934"
+    },
+    "sources": {
+      "src/emu/cpu/include/cpu/aot/code_cache.h": "0e7112891dded70d19c525222042893efbfddafaa91b0dc57964b42a490b8d1d",
+      "src/emu/cpu/src/aot/code_compare.cpp": "7607c876d06aac97812866d5457414cba1ba84cfeb46ca9414c53e3f2d9ed9b4",
+      "src/emu/wasm/main.cpp": "37447fb45e5fa4bdf43a308d68550f8aa03762efeccf1898a22f55bd841c8e55",
+      "src/tests/aot/test_aot_wasm.cpp": "83386a54281c3df9819c71214c1ce555438d3e54fc6af38c10a9f39b3605ac44",
+      "src/tests/benchmark/compare_cpu_faults.py": "0398eb021ea8167406888322cf03d5662b9ba983ed5244623647df30ec7ddb90",
+      "src/tests/benchmark/cpu_fault_probe.cpp": "7f3fa6b08638fad31b1c4170f91168aefa84700e6f8a09c32d18526cd262673e",
+      "src/tests/benchmark/run_cpu_fault_matrix.py": "4ea83ba4fd032e0f59efc95fa06c6ea2c2770007992b90a568b1ef910f1915fc",
+      "src/tests/benchmark/serial_variants.py": "c7a6f614be62c0c0dcb8d03eb6826a3d85a0ed2e889e34a3e7b8b2ffe696f659",
+      "src/tests/cpu/aot.cpp": "71bc39213d1e2258e8d639b6b726092da1ad7ca86f6c6d6c54ca168760321138",
+      "src/tests/wasm/benchmark.ts": "191625ed2cf97e419396601c10b3c55f738aac8555cba0b22ed3300af9b013ec",
+      "src/tests/wasm/profile.ts": "d862d71a9be6e4bbd27337cdeb75f2a919e57774dc0395c34fd36a5d3f39213b",
+      "src/tests/wasm/test.ts": "df9b1a41191521227c1d8fff6880d81973bd3916cebf67ac8f6a839c080305ee"
+    },
+    "cmake_cache_hashes": {
+      "build": "9b6795c71de3f1fb06c5ebb9a38df1d142fcc8322c380c6910c8e6df7943fdb5",
+      "build-wasm": "8b823df2724af7a1e864a774c3cd0021358f408ad96748b3cb91b1fdc9caf00d"
+    }
+  },
+  "unit_log": "TEST_TLB_HASH 1\nRunning 74 AOT WASM correctness tests...\n\n  PASS MOVS R0, #42\n  PASS MOVS R0, #0 (zero flag)\n  PASS ADDS R0, R0, #1\n  PASS SUBS R0, R0, #1\n  PASS SUBS to zero\n  PASS CMP R0, R1 equal\n  PASS CMP R0, R1 greater\n  PASS CMP R0, R1 less\n  PASS CMP R0, #0\n  PASS CMP R0, #5 when R0=5\n  PASS MOVS R1, R0 (LSLS #0)\n  PASS LSLS R0, R1, #4\n  PASS LSRS R0, R1, #1\n  PASS ANDS R0, R1\n  PASS ORRS R0, R1\n  PASS EORS R0, R1\n  PASS MVNS R0, R1\n  PASS ADDS R0, #100\n  PASS SUBS R0, #1 to zero\n  PASS MOV R8, R0 (high reg)\n  PASS LDR R0, [R1, #0]\n  PASS LDR R0, [R1, #4]\n  PASS STR R0, [R1, #0]\n  PASS LDR R0, [R1, R2]\n  PASS LDR R0, [SP, #8]\n  PASS STR R0, [SP, #0]\n  PASS LDRB R0, [R1, #0]\n  PASS STRB R0, [R1, #0]\n  PASS LDRB R0, [R1, R2]\n  PASS LDRH R0, [R1, #0]\n  PASS SUBS R0, R1, R2\n  PASS ADDS R0, R1, R2\n  PASS ASRS R0, R1, #4\n  PASS ASRS R0, R1 (reg)\n  PASS MULS R0, R1\n  PASS BICS R0, R1\n  PASS NEGS R0, R1\n  PASS TST R0, R1 (nonzero)\n  PASS TST R0, R1 (zero)\n  PASS ADD R0, SP, #16\n  PASS SUB SP, #8\n  PASS ADD SP, #8\n  PASS LDR R0, [PC, #0]\n  PASS LDRSB R0, [R1, R2]\n  PASS CMN R0, R1\n  PASS CMP R8, R0\n  PASS LSLS R0, R1 (reg)\n  PASS LSRS R0, R1 (reg)\n  PASS MOVS+ADDS sequence\n  PASS MOVS+SUBS+SUBS\n  PASS PUSH+POP roundtrip\n  PASS PUSH {R4,LR} then BL bail\n  PASS MOVS + BL offset 0\n  PASS MOVS + BL +10\n  PASS ADD R5, R0 (T2)\n  PASS ADD R8, R0 (high Rdn)\n  PASS CMP R3, LR (T2 low Rn)\n  PASS LDRSH R0, [R1, R2]\n  PASS STRH R0, [R1, R2]\n  PASS LDRH R0, [R1, R2]\n  PASS STR R0, [R1, R2]\n  PASS STRB R0, [R1, R2]\n  PASS ADR R0, #0\n  PASS ADR R2, #20\n  PASS STMIA R1!, {R0,R2}\n  PASS LDMIA R1!, {R0,R2}\n  PASS BEQ forward not taken\n  PASS BEQ forward taken\n  PASS B forward\n  PASS Backward loop BNE\n  FAIL crash-repro 0x8046506E (harness limitation): Z=0 (wasm) vs 1 (interp)\n  XFAIL crash-repro 0x8046506E (harness limitation) (known failure, see test comment)\n  PASS crash-repro 0x80464BBE\n  PASS Backward branch to non-entry\n  PASS Forward target reused as backward\n\nRunning translator-level tests...\n\n  PASS resume_points_blx_rm\n  PASS resume_points_bl_imm\n  PASS blx_veneer_inlining\n  PASS function_end_stops_at_pop_pc\n  PASS function_end_stops_at_bx_lr\n  PASS branch_targets_include_bl_next_pc\n  PASS branch_targets_include_beq_target\n  PASS literal_pool_between_early_return_and_target\n  PASS wide_push_pop\n  PASS stop_at_wide_bail\n  PASS wide_movw_movt\n  PASS wide_ldr_str_imm12\n  PASS wide_add_sub_imm\n  PASS wide_and_orr_eor_bic_imm\n  PASS wide_ldr_str_reg\n  PASS wide_ldr_neg_offset\n  PASS wide_b_uncond\n  PASS wide_ldrd_strd\n  PASS wide_ubfx_sbfx\n  PASS wide_bfi_bfc\n  PASS wide_uxtb_sxth\n  PASS wide_clz\n  PASS wide_mul_mla_mls\n  PASS wide_sdiv_udiv\n  PASS wide_shifted_reg\n  PASS wide_addw_subw\n  PASS wide_mov_mvn_imm\n  PASS wide_strb_imm12\n  PASS vfp_vldr_vadd_vstr\n  PASS vfp_vcvt_vcmp_vmrs\n  PASS vfp_f64_instantiation\n  PASS resume_points_beyond_1024\n  PASS sibling_bl_resume_point\n\nRunning ARM translator-level tests...\n\n  PASS inlined_leaves policy=-1 (2560 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=11 (1920 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=12 (1920 exact budget/state/memory comparisons)\n  PASS invariant_writes policy=12 (16896 exact state/memory/budget comparisons)\n  PASS bounded_execution (464912 exact budget/state/memory comparisons)\n  PASS folded TLB scalar/block/entry guards and exact budgets\n  PASS outlined_code_lookup (both modes, exact bytes, dependencies, mappings, rejection)\n  PASS exact_code_compare (three modes, unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n  PASS outlined_callee_indices\n  PASS proved_read_spans (30976 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=4 (15360 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=9 (25600 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=5 (16896 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=6 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=7 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=8 (30720 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=8 (16896 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=7 (16896 exact state/memory/budget comparisons)\n  PASS region_ir (snapshot liveness/type checks; backend disabled)\n  PASS ir_flags (221184 exact flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=13 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=14 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=15 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_long_segments (51840 exact long-graph state/flags/memory/budget comparisons)\n  PASS ir_segments (81536 exact state/memory/budget comparisons across enabled policies)\n  PASS ir_memory_exits (24584 exact intermediate snapshot/effect comparisons)\n  PASS ir_exit_recipes (6120 exact load-history/DAG/width/budget comparisons)\n  PASS ir_addressing (24112 exact width/address/snapshot/budget comparisons)\n  PASS memory_displacements (72 exact state/memory/budget checks)\n  PASS deferred_memory_exits (672 exact pre-instruction exits)\n  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS conditional_alu_select (229376 exact budget/state comparisons)\n  PASS compare_conditions (64512 exact budget/state comparisons)\n  PASS arm_long_multiply (92160 exact budget/state comparisons)\n  PASS cached_callback_state\n  PASS msr_privilege_guard\n  SKIP code validity generation tests (experimental build option disabled)\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n162 passed, 0 failed\n",
+  "focused_log": "  PASS outlined_code_lookup (both modes, exact bytes, dependencies, mappings, rejection)\n",
+  "native_log": "  ARMul_State offsets:\n    Reg:   0\n    Cpsr:  784\n    NFlag: 804\n    ZFlag: 808\n    CFlag: 812\n    VFlag: 816\n    TFlag: 828\n===============================================================================\nAll tests passed (531 assertions in 32 test cases)\n\n",
+  "frontend_log": "Build: /home/claude/.scratch/eka-benchmark/lookup-outline-candidate\nWASM SHA-256: 8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3\nServing WASM build at http://127.0.0.1:33467/\nTEST 1: Page loads...\n  PASS\nTEST 2: WASM Module object...\n  PASS\nTEST 3: Canvas element...\n  PASS\nTEST 4: Exported C functions...\n  PASS\nTEST IR: pre-init compiler mode validation...\n  PASS\nTEST eager ROM: pre-init mode validation...\n  PASS\nTEST lookup layout: pre-init policy validation...\n  PASS\nTEST exact scanner: pre-init policy validation...\n  PASS\nTEST TLB hash: pre-init policy validation...\n  PASS\nTEST 5: eka2l1_init...\n  PASS\nTEST 6: eka2l1_shutdown...\n  PASS\nTEST 7: No fatal page errors...\n  PASS\n\nAll tests passed!\n",
+  "faults": {
+    "0": {
+      "code_lookup": 0,
+      "ir_policy": 7,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "completed_cases": 13760,
+      "results": [
+        {
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-conditions-native.log": "b0b195f0fea82e4ea6ff15df49d4acc77eddebaa41737dc1be07fee25c65c385",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-conditions-wasm.log": "070cc0a9967ee426f45ac0a37b8b4c92e4d27a82cdb4f089c8546470409601cd"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-calls-native.log": "38b5011431503e74406b55a3723ee90ec37f16011c5cf3817202b632b039ef23",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-calls-wasm.log": "5d47b68fa6f82c751ecdb310da379a1f89640ed038a47101877be10bf892770d"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-calls-short-native.log": "e8863c92648637b02d97d0c3daa5de7321a14ec029bec5422e6081fd5c4a5379",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-calls-short-wasm.log": "028f62b1619f710713cd0d7946aaef9ba37eb3a4f6c0edb3a1bbabc993a29624"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-flags-native.log": "88849e71117ef965c31409368788bd65526ff6f554c6374dfdc5576b1f5cdf2d",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-flags-wasm.log": "2b35ba2eca3cab7854fd58c67893d5106b3d717bc4d2e0f369ae1e5f073c0f16"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/invariant-write-remap-native.log": "37899d6739ee58ac226f62c8af833d57e4f0a724ed948d65fa07d2053f7ab52d",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/invariant-write-remap-wasm.log": "45fda8cf26ebc3decfeefd5c3d7cb4d4b7e2a8533236ad1bd419cb29de59a7a2"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/invariant-remap-native.log": "4b65f34c7634ee2fae94abaf1c066414478f1a288a6692849b72ceaec4ef592e",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/invariant-remap-wasm.log": "5a0b7c8512227c9d1479a07513c0f828e19532a9ee3e8fda29852dcdee0bc62f"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-segments-native.log": "3a536c6ff01eadd3b247a0601c262f8cfb65cfc4373aac65651649ab0269816a",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-segments-wasm.log": "989e55f2bd3625bac727d1e4bb755014c58dbdbe5e342790e17a17482ff31851"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-memory-native.log": "dcc68162bd43bd420f20dc2d874edde3d0d17a2cfedbccf75cec789e4f7a6697",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-memory-wasm.log": "10341784c571a1157f1baba5cd3612b7cffaececd8e8614ba485c23b357c7fc2"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-memory-chain-native.log": "2811ae4c088c86c152214b48c4c7c86f1f5788f44fe72651d8f5582dfff7f96d",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-memory-chain-wasm.log": "3af8eaa7cd6d118ce4d847b7a3bce09a2835c2fef05b7e439453d0f415e975ac"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-wide-native.log": "1d4a4ab5f1384f9c083899185de03040d9d3142a8c410d2c315702bb26c67b5e",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-wide-wasm.log": "d8e23d09be0649d9b156cfb9242f75a9970067898c9ed01c576f23bb25f5f6c6"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-addressing-native.log": "a7a9dcdaf90cab61b7a6a86d14c442485824f7a3195408dd69b9f0d74c340bd2",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-addressing-wasm.log": "9a006f17cf97d68239eefab357a06c31a6f3d65f503ab20dc0013a7b30ed7b14"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-short-native.log": "a8011316d0ee6ac48e31ea16bec63450e2c99862f87e124b0b2d8344c3d234f6",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-short-wasm.log": "c6673652f0b79794247d1a268dc302f2ebfce187fa851f34b9cda0e2f66eaf28"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-recipes-native.log": "713f349ef508c0635711b2373e409665d195644380650450e9db808943f8f94e",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-recipes-wasm.log": "82bf795285af1689611acd0bebebc97f39a00e225270aa1918ef596d13872650"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/extended-native.log": "7f525d6040ddbf82d7d20943195ed4e5ceb0062fc55f2293abfe3183dfaba47a",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/extended-wasm.log": "7f525d6040ddbf82d7d20943195ed4e5ceb0062fc55f2293abfe3183dfaba47a"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/deferred-native.log": "7f525d6040ddbf82d7d20943195ed4e5ceb0062fc55f2293abfe3183dfaba47a",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/deferred-wasm.log": "2c8fb04589909364158bedab9419ccaf4d52c7c59b49e0389e194eb1ae845096"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/entry-budget-native.log": "409ccf2f02a65be85338ccc8b1773cf255492aac96ec051aee8837b945fe8ba2",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/entry-budget-wasm.log": "409ccf2f02a65be85338ccc8b1773cf255492aac96ec051aee8837b945fe8ba2"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/entry-budget-deferred-native.log": "409ccf2f02a65be85338ccc8b1773cf255492aac96ec051aee8837b945fe8ba2",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/entry-budget-deferred-wasm.log": "a4451749dfa781a5888af9ebfbd0e60b6a68d57de671d4ba5d98b88d6d1c7e3b"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/read-spans-native.log": "ca3aff273a001634beec11cab525affce944d152c1cbd2b8c36f7781be99c5aa",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/read-spans-wasm.log": "02c904c1328223f62e92d83c5b9678daece36e200fbca7e349f8263e21d8c125"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/wide-snapshots-native.log": "f7d09424e52f2c88e4630b14d50b178d814bc58abb1fef4f68c97dc278f0d96b",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/wide-snapshots-wasm.log": "9d2396b93f3c0a89eec42c06a61d4abe07b3d4406f523046da662d0e6b1333f4"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/region-spans-native.log": "2811ae4c088c86c152214b48c4c7c86f1f5788f44fe72651d8f5582dfff7f96d",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/region-spans-wasm.log": "3af8eaa7cd6d118ce4d847b7a3bce09a2835c2fef05b7e439453d0f415e975ac"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/region-spans-interpreter-native.log": "2811ae4c088c86c152214b48c4c7c86f1f5788f44fe72651d8f5582dfff7f96d",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/region-spans-interpreter-wasm.log": "0bd9b338b32d166321aabff206ff856f40e1a553da427e1eec1f8eca8ad1dda7"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/entry-budget-interpreter-native.log": "409ccf2f02a65be85338ccc8b1773cf255492aac96ec051aee8837b945fe8ba2",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/entry-budget-interpreter-wasm.log": "409ccf2f02a65be85338ccc8b1773cf255492aac96ec051aee8837b945fe8ba2"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/region-block-spans-native.log": "f217c21b38bd731bcf6710ed904d49641f9611ef2774dc53019dae93279d0ca2",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault0/region-block-spans-wasm.log": "5974bd884938f597e04e6837ef6b43565d7fa94a66e7a71a1d08a757981481c2"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 0,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        }
+      ]
+    },
+    "1": {
+      "code_lookup": 1,
+      "ir_policy": 7,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "completed_cases": 13760,
+      "results": [
+        {
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-conditions-native.log": "237c4994c05d5eca76f4534529ff7de7da245d00b5be8ffc7289c81446b4c001",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-conditions-wasm.log": "e60d928d91ff7a5e7854c002152e429d2fda9652a7b7a2ebe336d3d6ac70a070"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-calls-native.log": "6ae26ff822888e311c4591a5fe470242ffc503347b9001e8192b5658061b1c3d",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-calls-wasm.log": "32f8f31e063cfba53a3c5110a09dde72b21cde8bdefae6daa62e0c4c607034a8"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-calls-short-native.log": "424d760faaff9462047625aad1eb6f20e50b8dff2a2cedc683548c874c3f719b",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-calls-short-wasm.log": "953ecec42fa53668d7b5c979110f144496ba7f4459e690125bc0f0e81515bd5e"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-flags-native.log": "9d18c26e7d8e9d3c257d23e1832ecd17f785b966a656be9b0cb8166286eebe29",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-flags-wasm.log": "aba7cc2ce8a8c759687565db2e4c5e886154ad42ce029214e553cec6d77397ff"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/invariant-write-remap-native.log": "56c4252c44c7c577fbf3bce3f3c8dc4990bc1dd05ffc0dbc7d0fdc3d87213a82",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/invariant-write-remap-wasm.log": "9fafca991419fa4aaa2afb711beeadd4a3e007d7342a43c3b32bbaa038af38d2"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/invariant-remap-native.log": "0d4124e48a6798776498f06235003ccb7776351f96e861012923aa802f9b6ca8",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/invariant-remap-wasm.log": "a108dd25beecb3abcd2177f7a98c3b1e7b2a545469050c03bf27995ce2b4cb8a"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-segments-native.log": "2cf243d2f94776882c6f67ac267ca0338c91f0a6fcffb94def87443e5b57b9eb",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-segments-wasm.log": "219b699f82ffb1d09d4a2df7b0b5b90856f28c8c1e4e95286992d79ca82c1a05"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-memory-native.log": "9ba2b3661aa2ebdbe9af5cad8aa8d4d4d7187b34a686d4669f87c3dc99dcc05e",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-memory-wasm.log": "66ddb672fa478a02a6c1095f09a9508e5a94d911ac034c14f4e0e7db21979fa9"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-memory-chain-native.log": "c0d5c690e90672f16907a62a9dcb7e4e8563e27bb7b99c27d50bcae030101266",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-memory-chain-wasm.log": "9e32b9b74dca3896219600eff387c39ee185996db084da06fc5af102a72debcf"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-wide-native.log": "b0ab4bbb98a8a65d558d4d81b03cb487c350c4e67d238c1acf41f7e52b4e47b6",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-wide-wasm.log": "df9957da70d12617fd7162c5d2a6c242c995748809b0594c8a1165f95034a45f"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-addressing-native.log": "a1db8c30af7476db01285c3e486d7ed2026ff331f787fb6412cec8270c27bb40",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-addressing-wasm.log": "349030cc947e28b7f131103b3e806aa8f9c680a90cc42d9efaf401a1a64ba512"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-short-native.log": "46d2aa87be796700213c0f398780a61d1e799fd814079e2fc5508a0b2515a60d",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-short-wasm.log": "bfac97b89789a55e454599b58040f11300b909dc86717f986092da8b1f920a0b"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-recipes-native.log": "01c0d875a43bf43b5582c35d666d822b47431597106e31549d4f8e1b968f915a",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/ir-recipes-wasm.log": "e7140d5fb9e6997dc25091c68b2a8053a3a08e5c8896fde98e7cc0711803a6a0"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/extended-native.log": "02b3367d73cc0086c88727f2aadfa82938e24174d36e8b4dab1b07f4a3cf94ce",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/extended-wasm.log": "02b3367d73cc0086c88727f2aadfa82938e24174d36e8b4dab1b07f4a3cf94ce"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/deferred-native.log": "02b3367d73cc0086c88727f2aadfa82938e24174d36e8b4dab1b07f4a3cf94ce",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/deferred-wasm.log": "569d6f947b2b3ba44641a74c307cd5e67373d2cb5199d16ecc1b1624abd3f98d"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/entry-budget-native.log": "74e3a24c2dfc2da0a07813640226b23e6cdfcb67f0726e1a3b1db992aa686add",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/entry-budget-wasm.log": "74e3a24c2dfc2da0a07813640226b23e6cdfcb67f0726e1a3b1db992aa686add"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/entry-budget-deferred-native.log": "74e3a24c2dfc2da0a07813640226b23e6cdfcb67f0726e1a3b1db992aa686add",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/entry-budget-deferred-wasm.log": "6dab64eca14d3c8ecb8854669539462a38ac40923eab6e452445d956975f473b"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/read-spans-native.log": "0700d3b9c4896d49b47482a97f6cf519d44c857b63df5f70ce0be31f2025c34a",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/read-spans-wasm.log": "3bb89f3ae1077e24711151dc7287b4beca90dd34d884f218b51f94eeebf56acf"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/wide-snapshots-native.log": "4479dc2f474bfd61eca501a3a7bc11d371b29a5b7d55e846951eea68d914c4cd",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/wide-snapshots-wasm.log": "6349768afa77168780ccb3404bf403b1f00de7e31f202f29fd9f196d8fb7b436"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/region-spans-native.log": "c0d5c690e90672f16907a62a9dcb7e4e8563e27bb7b99c27d50bcae030101266",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/region-spans-wasm.log": "9e32b9b74dca3896219600eff387c39ee185996db084da06fc5af102a72debcf"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/region-spans-interpreter-native.log": "c0d5c690e90672f16907a62a9dcb7e4e8563e27bb7b99c27d50bcae030101266",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/region-spans-interpreter-wasm.log": "7cdecc72945d412625180ed5e46140cf92476a97c77918aa6efeedc9b7054d61"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/entry-budget-interpreter-native.log": "74e3a24c2dfc2da0a07813640226b23e6cdfcb67f0726e1a3b1db992aa686add",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/entry-budget-interpreter-wasm.log": "74e3a24c2dfc2da0a07813640226b23e6cdfcb67f0726e1a3b1db992aa686add"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/region-block-spans-native.log": "be50a38cddf3cc545ff1d6645e0e8f758709386153821e867494c6365b9ea006",
+            "/home/claude/.scratch/eka-benchmark/lookup-outline-fault1/region-block-spans-wasm.log": "1f6deae845d362859a4e465ece5452a83aef63c5e51d598b2c96d1c064803340"
+          },
+          "differences": [],
+          "verified_tlb_hash": 1,
+          "verified_code_lookup": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        }
+      ]
+    }
+  },
+  "comparisons": {
+    "0": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+        "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+        "writes": 0,
+        "callbacks": 10190,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 10190,
+        "gameplay_nonzero_samples": 7223662,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16263331210
+    },
+    "1": {
+      "match": true,
+      "audio": {
+        "sample_frames": 4919249,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "2bb076a2733ef3a1d9cdc8c3e74d570b1cf649591d9a239260a71ec6a5100d67",
+        "sha256_events": "22dde3df03e2d048e5a8d0c00a10b27ed2956ca0bc452b6fa3e7fd25eda9d712",
+        "writes": 0,
+        "callbacks": 10190,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 10190,
+        "gameplay_nonzero_samples": 7223662,
+        "gameplay_peak": 8449
+      },
+      "frames": 1600,
+      "unique_images": 1600,
+      "last_virtual_us": 102484363,
+      "instructions": 16263331210
+    }
+  },
+  "long_comparison": {
+    "match": true,
+    "audio": {
+      "sample_frames": 2878534,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "1ea65320279c370ada5e63e4ecfeab4a9cf2f7eb7182ac1c598bbd0b38ca8cdc",
+      "sha256_events": "a075b1e7c093f9347d2059f4b2a2f27f3ff1a1cd62d9899d8f1fdeaf6a8c80d7",
+      "writes": 0,
+      "callbacks": 5938,
+      "backend": "shared-dsp-cubeb-resampler",
+      "render_callbacks": 5938,
+      "gameplay_nonzero_samples": 1707198,
+      "gameplay_peak": 554
+    },
+    "frames": 360,
+    "unique_images": 360,
+    "last_virtual_us": 59969476,
+    "instructions": 9104111697
+  },
+  "replays": {
+    "0": {
+      "frames": 1600,
+      "start_us": 21000000,
+      "unique": true,
+      "wall_seconds": 120.451718486,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "shared_audio": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "code_lookup": 0,
+      "eager_regions": 0,
+      "verify_aot": 1024,
+      "git_head": "2fb32696073b6df7a412207cf7b8d901b8945986",
+      "dirty_worktree": false
+    },
+    "1": {
+      "frames": 1600,
+      "start_us": 21000000,
+      "unique": true,
+      "wall_seconds": 117.80101087200002,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "shared_audio": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "code_lookup": 1,
+      "eager_regions": 0,
+      "verify_aot": 1024,
+      "git_head": "2fb32696073b6df7a412207cf7b8d901b8945986",
+      "dirty_worktree": false
+    }
+  },
+  "long_replay": {
+    "frames": 360,
+    "start_us": 42000000,
+    "unique": true,
+    "wall_seconds": 66.057542453,
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+    },
+    "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+    "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+    "gl_diagnostics": false,
+    "gl_diagnostics_configurable": true,
+    "shared_audio": true,
+    "aot": 5,
+    "aot_diagnostics": false,
+    "ir_mode": 7,
+    "tlb_hash": 1,
+    "code_compare": 2,
+    "code_lookup": 1,
+    "eager_regions": 0,
+    "verify_aot": 1024,
+    "git_head": "2fb32696073b6df7a412207cf7b8d901b8945986",
+    "dirty_worktree": false
+  },
+  "wrong_policy_rejection": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 44, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                   ~~~~^^^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 30, in load\n    raise ValueError(f'{path}: wrong code lookup policy {markers}')\nValueError: /home/claude/.scratch/eka-benchmark/lookup-outline-fault0/ir-calls-native.log: wrong code lookup policy ['PROBE_LOOKUP 0']\n",
+  "function_sizes": [
+    {
+      "index": 916,
+      "bytes": 157,
+      "name": "eka2l1::arm::aot::validated_code_cache::reject_recent(unsigned long long, eka2l1::arm::aot::validated_code_cache::block&)"
+    },
+    {
+      "index": 918,
+      "bytes": 1001,
+      "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)"
+    },
+    {
+      "index": 919,
+      "bytes": 1008,
+      "name": "eka2l1::arm::aot::validated_code_cache::bytes_match(eka2l1::arm::aot::validated_code_cache::block&, bool)"
+    },
+    {
+      "index": 998,
+      "bytes": 381,
+      "name": "std::__2::deque<eka2l1::arm::aot::validated_code_cache::block, std::__2::allocator<eka2l1::arm::aot::validated_code_cache::block>>::~deque[abi:ne200100]()"
+    },
+    {
+      "index": 1002,
+      "bytes": 301,
+      "name": "eka2l1::arm::aot::validated_code_cache::invalidate(unsigned int, unsigned long)"
+    },
+    {
+      "index": 1003,
+      "bytes": 974,
+      "name": "unsigned int (*eka2l1::arm::aot::lookup_compiled_impl<true>(ARMul_State*))(ARMul_State*)"
+    },
+    {
+      "index": 1004,
+      "bytes": 311,
+      "name": "unsigned int (*eka2l1::arm::aot::lookup_compiled_impl<false>(ARMul_State*))(ARMul_State*)"
+    },
+    {
+      "index": 1008,
+      "bytes": 1207,
+      "name": "eka2l1::arm::aot::validated_code_cache::insert(unsigned int, eka2l1::arm::core::code_mapping const&, unsigned long)"
+    },
+    {
+      "index": 1035,
+      "bytes": 164,
+      "name": "void std::__2::__destroy_at[abi:ne200100]<eka2l1::arm::aot::validated_code_cache::block, 0>(eka2l1::arm::aot::validated_code_cache::block*)"
+    },
+    {
+      "index": 1036,
+      "bytes": 309,
+      "name": "void std::__2::__split_buffer<eka2l1::arm::aot::validated_code_cache::block*, std::__2::allocator<eka2l1::arm::aot::validated_code_cache::block*>>::emplace_back<eka2l1::arm::aot::validated_code_cache::block*&>(eka2l1::arm::aot::validated_code_cache::block*&)"
+    },
+    {
+      "index": 1037,
+      "bytes": 314,
+      "name": "void std::__2::__split_buffer<eka2l1::arm::aot::validated_code_cache::block*, std::__2::allocator<eka2l1::arm::aot::validated_code_cache::block*>&>::emplace_front<eka2l1::arm::aot::validated_code_cache::block*&>(eka2l1::arm::aot::validated_code_cache::block*&)"
+    }
+  ],
+  "baseline_function_sizes": [
+    {
+      "index": 915,
+      "bytes": 461,
+      "name": "eka2l1::arm::aot::equal_code_bytes(unsigned char const*, unsigned char const*, unsigned long)"
+    },
+    {
+      "index": 994,
+      "bytes": 381,
+      "name": "std::__2::deque<eka2l1::arm::aot::validated_code_cache::block, std::__2::allocator<eka2l1::arm::aot::validated_code_cache::block>>::~deque[abi:ne200100]()"
+    },
+    {
+      "index": 998,
+      "bytes": 301,
+      "name": "eka2l1::arm::aot::validated_code_cache::invalidate(unsigned int, unsigned long)"
+    },
+    {
+      "index": 1000,
+      "bytes": 633,
+      "name": "unsigned int (*eka2l1::arm::aot::lookup_compiled_impl<true>(ARMul_State*))(ARMul_State*)"
+    },
+    {
+      "index": 1001,
+      "bytes": 1170,
+      "name": "eka2l1::arm::aot::validated_code_cache::find(unsigned int, eka2l1::arm::core&)"
+    },
+    {
+      "index": 1005,
+      "bytes": 1207,
+      "name": "eka2l1::arm::aot::validated_code_cache::insert(unsigned int, eka2l1::arm::core::code_mapping const&, unsigned long)"
+    },
+    {
+      "index": 1032,
+      "bytes": 164,
+      "name": "void std::__2::__destroy_at[abi:ne200100]<eka2l1::arm::aot::validated_code_cache::block, 0>(eka2l1::arm::aot::validated_code_cache::block*)"
+    },
+    {
+      "index": 1033,
+      "bytes": 309,
+      "name": "void std::__2::__split_buffer<eka2l1::arm::aot::validated_code_cache::block*, std::__2::allocator<eka2l1::arm::aot::validated_code_cache::block*>>::emplace_back<eka2l1::arm::aot::validated_code_cache::block*&>(eka2l1::arm::aot::validated_code_cache::block*&)"
+    },
+    {
+      "index": 1034,
+      "bytes": 314,
+      "name": "void std::__2::__split_buffer<eka2l1::arm::aot::validated_code_cache::block*, std::__2::allocator<eka2l1::arm::aot::validated_code_cache::block*>&>::emplace_front<eka2l1::arm::aot::validated_code_cache::block*&>(eka2l1::arm::aot::validated_code_cache::block*&)"
+    }
+  ],
+  "timing_batches": {
+    "long-a": {
+      "rows": [
+        {
+          "code_lookup": 0,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "original-1",
+          "build": "/home/claude/.scratch/eka-benchmark/lookup-outline-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+          "loader_sha256": "79ae34f6803ad02c99601916fb6129f007783025bb3fab14cc4991cff44cd4df",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 12.1869,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "code_lookup": 1,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "outline-1",
+          "build": "/home/claude/.scratch/eka-benchmark/lookup-outline-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+          "loader_sha256": "79ae34f6803ad02c99601916fb6129f007783025bb3fab14cc4991cff44cd4df",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 11.6255,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "code_lookup": -1,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "served-1",
+          "build": "/home/claude/.scratch/eka-benchmark/code-quad-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "bc2af76f19ec38ca8380c9eff84a1766084ba9982f50eec2863e03e7dfbd84aa",
+          "loader_sha256": "5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 11.9615,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "code_lookup": -1,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "served-2",
+          "build": "/home/claude/.scratch/eka-benchmark/code-quad-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "bc2af76f19ec38ca8380c9eff84a1766084ba9982f50eec2863e03e7dfbd84aa",
+          "loader_sha256": "5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 12.0484,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "code_lookup": 1,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "outline-2",
+          "build": "/home/claude/.scratch/eka-benchmark/lookup-outline-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+          "loader_sha256": "79ae34f6803ad02c99601916fb6129f007783025bb3fab14cc4991cff44cd4df",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 11.8767,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "code_lookup": 0,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "original-2",
+          "build": "/home/claude/.scratch/eka-benchmark/lookup-outline-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+          "loader_sha256": "79ae34f6803ad02c99601916fb6129f007783025bb3fab14cc4991cff44cd4df",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 12.2192,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        }
+      ],
+      "means_seconds": {
+        "original": 12.203050000000001,
+        "outline": 11.751100000000001,
+        "served": 12.004950000000001
+      },
+      "throughput_percent": {
+        "original": 3.8460229255133482,
+        "served": 2.1602232982444125
+      }
+    },
+    "long-b": {
+      "rows": [
+        {
+          "code_lookup": 1,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "outline-1",
+          "build": "/home/claude/.scratch/eka-benchmark/lookup-outline-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+          "loader_sha256": "79ae34f6803ad02c99601916fb6129f007783025bb3fab14cc4991cff44cd4df",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 11.7272,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "code_lookup": -1,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "served-1",
+          "build": "/home/claude/.scratch/eka-benchmark/code-quad-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "bc2af76f19ec38ca8380c9eff84a1766084ba9982f50eec2863e03e7dfbd84aa",
+          "loader_sha256": "5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 12.2098,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "code_lookup": 0,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "original-1",
+          "build": "/home/claude/.scratch/eka-benchmark/lookup-outline-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+          "loader_sha256": "79ae34f6803ad02c99601916fb6129f007783025bb3fab14cc4991cff44cd4df",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 12.1081,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "code_lookup": 0,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "original-2",
+          "build": "/home/claude/.scratch/eka-benchmark/lookup-outline-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+          "loader_sha256": "79ae34f6803ad02c99601916fb6129f007783025bb3fab14cc4991cff44cd4df",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 12.2941,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "code_lookup": -1,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "served-2",
+          "build": "/home/claude/.scratch/eka-benchmark/code-quad-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "bc2af76f19ec38ca8380c9eff84a1766084ba9982f50eec2863e03e7dfbd84aa",
+          "loader_sha256": "5ce9172048cc8fe85cb6ba6451f0cfaa963b87ac67edd19b602904e992fa74ec",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 12.1611,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        },
+        {
+          "code_lookup": 1,
+          "tlb_hash": 1,
+          "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+          "code_compare": 2,
+          "name": "outline-2",
+          "build": "/home/claude/.scratch/eka-benchmark/lookup-outline-candidate",
+          "ir_mode": 7,
+          "eager_regions": 0,
+          "wasm_sha256": "8214de26960ab6912921d9ae21b8d40561bc174916fde6b4dd3e7e84caeb29e3",
+          "loader_sha256": "79ae34f6803ad02c99601916fb6129f007783025bb3fab14cc4991cff44cd4df",
+          "measurement": {
+            "detailed": false,
+            "capture_mode": 2,
+            "first_virtual_us": 42000000,
+            "last_virtual_us": 60000000,
+            "first_instructions": 6116295735,
+            "last_instructions": 9104126133,
+            "wall_seconds": 12.7384,
+            "presentations": 720,
+            "aot_dispatches": 0,
+            "aot_instructions": 0,
+            "compiled_runner_calls": 0,
+            "ram_aot_dispatches": 0,
+            "ram_blocks_compiled": 0,
+            "decoded_instructions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "cache_clears": 0,
+            "context_loads": 0,
+            "code_version_hits": 0,
+            "code_byte_checks": 0,
+            "code_epoch_hits": 0,
+            "imb_calls": 0,
+            "scopes": {
+              "cpu_loop": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "cpu_run": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "timers": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "scheduler": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_dispatch": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "graphics_wait": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "display_hook": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "readback": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "frame_capture": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "png_encode": {
+                "seconds": 0,
+                "calls": 0
+              },
+              "audio": {
+                "seconds": 0,
+                "calls": 0
+              }
+            }
+          }
+        }
+      ],
+      "means_seconds": {
+        "original": 12.2011,
+        "outline": 12.232800000000001,
+        "served": 12.18545
+      },
+      "throughput_percent": {
+        "original": -0.259139363024008,
+        "served": -0.3870740958734076
+      }
+    }
+  },
+  "status": "not promoted: first longer-route gain reverses in reordered confirmation; all samples retained"
+}

@@ -23,6 +23,7 @@
 #include <services/window/classes/winbase.h>
 #include <services/window/classes/gstore.h>
 #include <services/window/common.h>
+#include <services/window/surface.h>
 
 #include <common/linked.h>
 #include <common/region.h>
@@ -49,6 +50,12 @@ namespace eka2l1::epoc {
     struct canvas_observer {
     public:
         virtual void on_window_size_changed(canvas_interface *obj) = 0;
+
+        // Observers hold raw pointers to the window; the canvas destructor
+        // fires this so they can drop theirs. The window may outlive its
+        // client (app exit destroys windows while EGL surfaces linger in the
+        // dispatcher), so an unnotified observer dangles.
+        virtual void on_window_destroyed(canvas_interface *obj) = 0;
     };
 
     struct canvas_interface : public epoc::window {
@@ -103,15 +110,29 @@ namespace eka2l1::epoc {
         std::unique_ptr<epoc::gdi_store_command_segment> pending_segment_;
         std::vector<canvas_observer*> observers_;
 
+        window_surface_attachment background_surface_;
+        // Pre-ScreenPlay direct rendering does not replace a GCE background.
+        window_surface_attachment direct_surface_;
+
         explicit canvas_base(window_server_client_ptr client, screen *scr, window *parent, const epoc::window_type type_of_window, const epoc::display_mode dmode, const std::uint32_t client_handle);
         virtual ~canvas_base() override;
 
         virtual bool draw(drivers::graphics_command_builder &builder) = 0;
 
         virtual void on_activate() = 0;
+        virtual void requeue_pending_redraw() {}
+        void on_shown();
         virtual void handle_extent_changed(const eka2l1::vec2 &new_size, const eka2l1::vec2 &new_pos) = 0;
         virtual void add_draw_command(gdi_store_command &command);
         virtual void prepare_for_draw() {}
+
+        void attach_surface(const std::shared_ptr<window_surface> &surface, const surface_configuration &config, bool direct = false);
+        void detach_surface(const std::shared_ptr<window_surface> &surface);
+        void configure_surface(const std::shared_ptr<window_surface> &surface, const surface_configuration &config);
+        bool draw_surface(drivers::graphics_command_builder &builder, window_surface_attachment &attachment);
+        bool surface_changed() const;
+        bool surface_streaming() const;
+        void surface_damage();
 
         virtual bool scroll(eka2l1::rect clip_space, const eka2l1::vec2 offset, eka2l1::rect source_rect) {
             return true;
@@ -176,6 +197,12 @@ namespace eka2l1::epoc {
          * @returns Usually the time in microseconds until next screen update.
          */
         virtual std::uint64_t try_update(kernel::thread *drawer);
+
+        /**
+         * @param recomposite_if_occluded Recomposite the whole screen when occluded, so this
+         *                                window's client draws cannot bleed over the windows above.
+         */
+        std::uint64_t schedule_update(kernel::thread *drawer, const bool recomposite_if_occluded);
 
         void queue_event(const epoc::event &evt) override;
 
@@ -252,6 +279,10 @@ namespace eka2l1::epoc {
     };
 
     struct redraw_msg_canvas : public canvas_base {
+        drivers::handle surface_ui_ = 0;
+        eka2l1::vec2 surface_ui_size_{ 0, 0 };
+        float surface_ui_scale_ = 1.0f;
+
         common::region redraw_region;
         common::region background_region;           // Region to paint background on screen
         eka2l1::rect redraw_rect_curr;
@@ -261,9 +292,13 @@ namespace eka2l1::epoc {
 
         explicit redraw_msg_canvas(window_server_client_ptr client, screen *scr, window *parent,
             const epoc::display_mode dmode, const std::uint32_t client_handle);
+        ~redraw_msg_canvas() override;
+        void update_surface_ui(drivers::graphics_command_builder &builder);
+        bool draw_surface_window(drivers::graphics_command_builder &builder);
 
         void invalidate(const eka2l1::rect &irect);
         void on_activate() override;
+        void requeue_pending_redraw() override;
         void handle_extent_changed(const eka2l1::vec2 &new_size, const eka2l1::vec2 &new_pos) override;
         void add_draw_command(gdi_store_command &command) override;
         bool scroll(eka2l1::rect clip_space, const eka2l1::vec2 offset, eka2l1::rect source_rect) override;

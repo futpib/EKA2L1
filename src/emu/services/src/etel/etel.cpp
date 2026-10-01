@@ -18,6 +18,7 @@
  */
 
 #include <common/cvt.h>
+#include <config/config.h>
 #include <kernel/kernel.h>
 #include <kernel/property.h>
 #include <services/etel/common.h>
@@ -26,6 +27,7 @@
 #include <services/sysagt/sysagt.h>
 #include <system/epoc.h>
 #include <utils/err.h>
+#include <vfs/vfs.h>
 
 namespace eka2l1 {
     std::string get_etel_server_name_by_epocver(const epocver ver) {
@@ -34,6 +36,23 @@ namespace eka2l1 {
         }
 
         return "!EtelServer";
+    }
+
+    void supply_plpvariant_machine_id(system *sys) {
+        io_system *io = sys->get_io_system();
+        if (!io->exist(u"Z:\\System\\Libs\\ConSvr.exe")) {
+            return;
+        }
+
+        const std::string &imei = sys->get_config()->imei;
+        symfile machine_id = io->open_file(u"C:\\System\\plpvar.ini", WRITE_MODE | BIN_MODE);
+        if (!machine_id) {
+            LOG_ERROR(SERVICE_ETEL, "Unable to write the PlpVariant machine ID file");
+            return;
+        }
+
+        machine_id->write_file(imei.data(), static_cast<std::uint32_t>(imei.size()), 1);
+        machine_id->close();
     }
 
     etel_server::etel_server(eka2l1::system *sys)
@@ -106,6 +125,16 @@ namespace eka2l1 {
         call_type_info_prop_->second = epoc::ETEL_CALL_INFO_CALL_TYPE_KEY;
 
         call_type_info_prop_->set_int(epoc::ETEL_CALL_INFO_PROP_CALL_NONE);
+
+        // PSVariables.h packet status accompanies the GSM network exposed by the host TSY.
+        for (const auto key : {epoc::ETEL_GPRS_STATUS_UID, epoc::ETEL_WCDMA_STATUS_UID}) {
+            auto *status = kern->create<service::property>();
+            status->define(service::property_type::int_data, 4);
+            status->first = eka2l1::SYSTEM_AGENT_PROPERTY_CATEGORY;
+            status->second = key;
+            status->set_int(key == epoc::ETEL_GPRS_STATUS_UID
+                ? epoc::etel_packet_network_attached : epoc::etel_packet_network_unattached);
+        }
     }
 
     void etel_server::init2(kernel_system *kern, io_system *io) {

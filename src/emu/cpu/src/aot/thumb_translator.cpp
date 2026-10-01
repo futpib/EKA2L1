@@ -19,6 +19,7 @@
 
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/state_locals.h>
+#include <cpu/aot/exit_census.h>
 
 #include <cstring>
 #include <map>
@@ -163,13 +164,32 @@ namespace eka2l1::arm::aot {
             cache.barrier_at(b.size(), true);
         }
 
-        void ret() { cache.barrier_at(b.size()); op(op_return); }
+        std::uint32_t census_pc=0,census_opcode=0;
+        void census_store(std::uint32_t *where,std::uint32_t value) {
+            if(!exit_census::enabled)return;
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(where)));
+            i32_const(value);op(op_i32_store);leb(b,2);leb(b,0);
+        }
+        void census_effect(unsigned flag) {
+            if(!exit_census::enabled)return;
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&exit_census::effects)));
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&exit_census::effects)));
+            op(op_i32_load);leb(b,2);leb(b,0);i32_const(flag);op(op_i32_or);
+            op(op_i32_store);leb(b,2);leb(b,0);
+        }
+        void census_exit(unsigned reason) {
+            census_store(&exit_census::last_reason,reason);
+            census_store(&exit_census::last_pc,census_pc);
+            census_store(&exit_census::last_opcode,census_opcode);
+        }
+        void ret(unsigned why=exit_census::control) {
+            census_exit(why); cache.barrier_at(b.size()); op(op_return); }
 
         // Bail: set PC, return instruction count (normal control flow exit)
-        void bail(std::uint32_t pc, std::uint32_t instr_count) {
+        void bail(std::uint32_t pc, std::uint32_t instr_count, unsigned why=exit_census::control) {
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
             i32_const(static_cast<std::int32_t>(instr_count));
-            ret();
+            ret(why);
             bail_count++;
         }
 
@@ -187,7 +207,7 @@ namespace eka2l1::arm::aot {
         void bail_unsupported(std::uint32_t pc, std::uint32_t instr_count) {
             unsupported = true;
             if (!instr_count) entry_supported = false;
-            bail(pc, instr_count);
+            bail(pc, instr_count, exit_census::unsupported);
         }
     };
 
@@ -708,6 +728,7 @@ namespace eka2l1::arm::aot {
             }
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
+            w.census_pc=insn_addr|1;w.census_opcode=insn;
 
             // Close any forward-target blocks whose end is at this address.
             // Emitting `end` here means: the instruction we're about to emit
@@ -724,7 +745,7 @@ namespace eka2l1::arm::aot {
                 w.i32_const(insn_idx);
                 w.op(op_i32_le_u);
                 w.op(op_if); w.op(type_void);
-                w.bail(insn_addr, insn_idx);
+                w.bail(insn_addr, insn_idx, exit_census::guard);
                 w.op(op_end);
                 // High-register PC operands require pipeline/control-flow semantics.
                 // Keep these rare forms in the interpreter until implemented fully.
@@ -734,9 +755,29 @@ namespace eka2l1::arm::aot {
                     decoded_end_offset = static_cast<std::uint32_t>(i);
                     break;
                 }
-                // The ARMv5/v6 interpreter executes long Thumb calls as two
-                // halfwords. Leave these and unsupported Thumb-2 to it so budget
-                // boundaries and instruction accounting stay exactly comparable.
+                // ARMv5/v6 long calls are two separately budgeted halfwords.
+                // Keep the intermediate LR visible even if execution stops between them.
+                const auto call_half = insn & 0xF800;
+                if (call_half == 0xF000) {
+                    const std::uint32_t displacement = ((insn & 0x7FF) << 12) | ((insn & 0x400) ? 0xFF800000u : 0u);
+                    w.store_i32_const(S::LR, insn_addr + 4 + displacement);
+                    w.bail(insn_addr + 2, insn_idx + 1);
+                    tr.resume_points.push_back(insn_addr + 2);
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                    ++insn_idx; break;
+                }
+                // Odd BLX suffix encodings are undefined in the guest decoder.
+                if (call_half == 0xF800 || (call_half == 0xE800 && !(insn & 1))) {
+                    w.load_reg(14); w.i32_const((insn & 0x7FF) << 1); w.op(op_i32_add);
+                    if (call_half == 0xE800) { w.i32_const(-4); w.op(op_i32_and); }
+                    w.set_local(TMP1); w.store_reg(15,TMP1);
+                    w.store_i32_const(S::LR,(insn_addr+2)|1);
+                    if (call_half == 0xE800) w.store_i32_const(S::TFLAG,0);
+                    w.bail_preserve_pc(insn_idx+1);
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                    ++insn_idx; break;
+                }
+                // Other Thumb-2 forms remain with the interpreter.
                 if ((insn & 0xF800) >= 0xE800) {
                     w.bail_unsupported(insn_addr, insn_idx);
                     decoded_end_offset = static_cast<std::uint32_t>(i);
@@ -4134,7 +4175,7 @@ namespace eka2l1::arm::aot {
         w.op(op_end); // end block
 
         // Return total instruction count
-        if (bounded) w.bail(start_address + decoded_end_offset, insn_idx);
+        if (bounded) w.bail(start_address + decoded_end_offset, insn_idx, decoded_end_offset>=code_size?exit_census::source_end:exit_census::emission_end);
         else { w.i32_const(num_insns); w.ret(); }
 
         w.cache.finish(result);

@@ -1,3 +1,4 @@
+#include <common/native_profile.h>
 /*
  * Copyright (c) 2019 EKA2L1 Team.
  * Copyright 2015 Dolphin Emulator Project.
@@ -28,6 +29,8 @@
 #include <common/frame_dumper.h>
 #include <drivers/audio/deterministic.h>
 #include <common/deterministic.h>
+#include <common/performance.h>
+#include <fstream>
 #include <system/deterministic.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <common/log.h>
@@ -206,6 +209,8 @@ namespace eka2l1::desktop {
         switch (state.graphics_driver->get_current_api()) {
         case drivers::graphic_api::opengl: {
             state.graphics_driver->set_display_hook([window, dumper, &state]() {
+                if (common::performance::phase.load() == 2)
+                    ++common::performance::presentations;
                 if (dumper && !dumper->done()) {
                     if (dumper->needs_pixel_data()) {
                         // Read from screen_texture FBO at native resolution
@@ -308,8 +313,13 @@ namespace eka2l1::desktop {
 
         if (!common::benchmark::enabled()) state.joystick_controller->start_polling();
 
+        // Do not reset graphics_event here. The initialization above set it to release the OS
+        // thread, which consumes the signal itself now that common::event is auto-reset. Clearing
+        // it before that waiter has re-acquired the event lock erases the wake, and the OS thread
+        // never leaves its startup wait -- no guest instruction ever runs, and the later shutdown
+        // handshake over the same event deadlocks with it.
+
         // Keep running. User which want to change the graphics backend will have to restart EKA2L1.
-        state.graphics_event.reset();
         state.graphics_driver->run();
 
         result = graphics_driver_thread_deinitialization(state);
@@ -342,7 +352,7 @@ namespace eka2l1::desktop {
             }
 
             const bool success = state.stage_two();
-            state.init_event.set();
+            state.init_done_event.set();
 
             if (first_time) {
                 if (common::benchmark::enabled()) state.benchmark_graphics_ready.wait();
@@ -354,13 +364,15 @@ namespace eka2l1::desktop {
                 break;
             }
 
-            // Try wait for initialization from other parties to make this success.
-            state.init_event.reset();
+            // Try wait for initialization from other parties to make this success. The wait
+            // consumes the signal by itself; resetting afterwards would drop a request raised
+            // between the wait returning and the reset.
             state.init_event.wait();
         }
 
         if (state.should_emu_quit) return;
 
+        const char *profile_output = common::benchmark::enabled() ? std::getenv("EKA2L1_QT_PROFILE_OUTPUT") : nullptr;
         if (common::benchmark::enabled()) {
             state.benchmark_ready.wait();
             start_benchmark_input(state.symsys.get(), state.winserv);
@@ -375,6 +387,25 @@ namespace eka2l1::desktop {
 #if ENABLE_SEH_HANDLER
             try {
 #endif
+                if (profile_output) {
+                    const auto us = common::benchmark::virtual_us.load();
+                    const auto instructions = common::benchmark::instructions.load();
+                    // No attach pause is needed for an unsampled serial run.
+                    if (common::performance::phase.load() == 0 && us >= common::performance::start_us) {
+                        common::performance::first_us = us;
+                        common::performance::first_instructions = instructions;
+                        common::performance::begin = std::chrono::steady_clock::now();
+                        common::performance::phase = 2;
+                        common::native_profile::start();
+                    }
+                    if (common::performance::checkpoint(us, instructions)) {
+                        common::native_profile::stop();
+                        std::ofstream out(profile_output);
+                        out << common::performance::report() << '\n';
+                        out.close();
+                        std::_Exit(out ? 0 : 3);
+                    }
+                }
                 state.symsys->loop();
 #if ENABLE_SEH_HANDLER
             } catch (std::exception &exc) {
@@ -388,7 +419,6 @@ namespace eka2l1::desktop {
 
             if (state.should_emu_pause && !state.should_emu_quit) {
                 state.pause_event.wait();
-                state.pause_event.reset();
             }
         }
 
@@ -435,7 +465,7 @@ namespace eka2l1::desktop {
         std::thread os_thread_obj;
         if (!install_only) {
             os_thread_obj = std::thread(os_thread, std::ref(state));
-            state.init_event.wait();
+            state.init_done_event.wait();
         }
 
         eka2l1::common::arg_parser parser(argc, argv);

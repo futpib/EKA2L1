@@ -30,7 +30,10 @@ namespace eka2l1::mem::flexible {
     mapping::mapping(address_space *owner)
         : owner_(owner)
         , region_flags_(0)
-        , off_start_in_page_quantity_(0) {
+        , off_start_in_page_quantity_(0)
+        , occupied_(0) {
+        // occupied_ is only assigned by a successful instantiate(), but the destructor uses it
+        // unconditionally -- and attach_chunk() destroys a mapping whose instantiate() failed.
     }
 
     mapping::~mapping() {
@@ -132,8 +135,7 @@ namespace eka2l1::mem::flexible {
             while (start_page_index < end_page_index) {
                 page_info *info = tbl->get_page_info(start_page_index & control->page_index_mask_);
                 if (info) {
-                    info->host_addr = starting_point_host;
-                    info->perm = permissions;
+                    info->assign(starting_point_host, permissions);
                 }
 
                 start_page_index++;
@@ -177,7 +179,7 @@ namespace eka2l1::mem::flexible {
                     page_info *info = tbl->get_page_info(start_page_index & control->page_index_mask_);
                     if (info) {
                         // Empty it out
-                        info->host_addr = nullptr;
+                        info->clear();
                     }
 
                     start_page_index++;

@@ -25,6 +25,7 @@
 #include <drivers/graphics/common.h>
 #include <drivers/itc.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 
@@ -48,6 +49,24 @@ namespace eka2l1::epoc {
         gdi_store_command_disable_clip,
         gdi_store_command_update_texture
     };
+
+    // Whether replaying this opcode puts any pixel on the target. The clipping
+    // opcodes only carry state along to the drawing commands after them, so a
+    // store holding nothing else can't reproduce what is on screen.
+    static inline bool gdi_store_command_draws_pixels(const gdi_store_command_opcode opcode) {
+        switch (opcode) {
+        case gdi_store_command_draw_rect:
+        case gdi_store_command_draw_line:
+        case gdi_store_command_draw_polygon:
+        case gdi_store_command_draw_bitmap:
+        case gdi_store_command_draw_text:
+        case gdi_store_command_update_texture:
+            return true;
+
+        default:
+            return false;
+        }
+    }
 
     struct gdi_store_command_draw_rect_data {
         eka2l1::vec4 color_;
@@ -129,7 +148,7 @@ namespace eka2l1::epoc {
 
     struct gdi_store_command {
         gdi_store_command_opcode opcode_ = gdi_store_command_invalid;
-        std::uint8_t data_[MAX_COMMAND_STORE_DATA_SIZE];
+        alignas(std::max_align_t) std::uint8_t data_[MAX_COMMAND_STORE_DATA_SIZE];
         std::shared_ptr<std::vector<std::uint8_t>> dynamic_data_;
 
         std::uint8_t *allocate_dynamic_data(const std::size_t size) {
@@ -143,11 +162,15 @@ namespace eka2l1::epoc {
 
         template <typename T>
         T &get_data_struct() {
+            static_assert(sizeof(T) <= MAX_COMMAND_STORE_DATA_SIZE);
+            static_assert(alignof(T) <= alignof(std::max_align_t));
             return *reinterpret_cast<T*>(data_);
         }
         
         template <typename T>
         const T &get_data_struct_const() const {
+            static_assert(sizeof(T) <= MAX_COMMAND_STORE_DATA_SIZE);
+            static_assert(alignof(T) <= alignof(std::max_align_t));
             return *reinterpret_cast<const T*>(data_);
         }
     };
@@ -210,10 +233,11 @@ namespace eka2l1::epoc {
         eka2l1::vec2 position_;
         common::region clip_;
         drivers::filter_option texture_filter_;
+        bool premultiplied_target_;
 
     public:
         explicit gdi_command_builder(drivers::graphics_driver *drv, drivers::graphics_command_builder &builder, bitmap_cache &bcache,
-            drivers::filter_option texture_filter, const eka2l1::vec2 &position, float scale_factor, const common::region &clip);
+            drivers::filter_option texture_filter, const eka2l1::vec2 &position, float scale_factor, const common::region &clip, bool premultiplied_target = false);
 
         void set_position(const eka2l1::vec2 &pos) {
             position_ = pos;
@@ -228,6 +252,7 @@ namespace eka2l1::epoc {
         }
 
         void build_segment(const gdi_store_command_segment &segment);
+        void build_texture_updates(const gdi_store_command_segment &segment);
         void build_single_command(const gdi_store_command &command);
         void build_command_draw_rect(const gdi_store_command_draw_rect_data &cmd);
         void build_command_draw_line(const gdi_store_command_draw_line_data &cmd);
@@ -237,6 +262,7 @@ namespace eka2l1::epoc {
         void build_command_draw_bitmap(const gdi_store_command_draw_bitmap_data &cmd);
         void build_command_set_clip_rect_single(const gdi_store_command_set_clip_rect_single_data &cmd);
         void build_command_set_clip_rect_multiple(const gdi_store_command_set_clip_rect_multiple_data &cmd);
+        void clip_to_region(const common::region &clipped);
         void build_command_disable_clip();
         void build_command_update_texture(const gdi_store_command_update_texture_data &cmd);
     };

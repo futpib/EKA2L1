@@ -82,7 +82,7 @@ namespace eka2l1::mem {
         virtual std::size_t commit(const vm_address offset, const std::size_t size, bool ignore_committed = true) = 0;
         virtual void decommit(const vm_address offset, const std::size_t size) = 0;
 
-        virtual void *host_base() = 0;
+        virtual void *host_base(bool expose = true) = 0;
 
         /**
          * \brief Unmap the committed chunk region from the CPU.

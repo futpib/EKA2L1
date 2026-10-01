@@ -56,12 +56,19 @@ namespace eka2l1::dispatch {
         }
 
         if (backed_window_) {
+            const std::lock_guard<std::mutex> guard(backed_screen_->screen_mutex);
+            presented_ = std::make_shared<epoc::window_surface>();
+            epoc::surface_configuration configuration;
+            configuration.native_orientation = true;
+            backed_window_->attach_surface(presented_, configuration);
             backed_window_->add_canvas_observer(this);
         }
     }
     
     egl_surface::~egl_surface() {
         if (backed_window_) {
+            const std::lock_guard<std::mutex> guard(backed_screen_->screen_mutex);
+            backed_window_->detach_surface(presented_);
             backed_window_->remove_canvas_observer(this);
         }
     }
@@ -69,6 +76,13 @@ namespace eka2l1::dispatch {
     void egl_surface::on_window_size_changed(epoc::canvas_interface *interface) {
         dimension_ = backed_window_->size_for_egl_surface();
         current_scale_ = 0.0f;
+    }
+
+    void egl_surface::on_window_destroyed(epoc::canvas_interface *interface) {
+        // The window dies before this surface does when its owner exits
+        // without eglDestroySurface; every other user of the pointer already
+        // handles it being null.
+        backed_window_ = nullptr;
     }
 
     void egl_surface::scale(egl_context *context, drivers::graphics_driver *drv) {
@@ -86,6 +100,10 @@ namespace eka2l1::dispatch {
 
             handle_ = new_surface;
             current_scale_ = backed_screen_->display_scale_factor;
+
+            if (context->draw_surface_ == this) {
+                context->on_draw_surface_resized(drv);
+            }
         }
     }
 

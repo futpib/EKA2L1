@@ -1,4 +1,5 @@
 #include <drivers/audio/deterministic.h>
+#include <drivers/audio/clocked.h>
 #include <common/deterministic.h>
 #include <common/log.h>
 
@@ -31,6 +32,7 @@ namespace eka2l1::drivers {
 
             void sync() { render_until(common::benchmark::virtual_us.load()); }
             void record(const char *event, std::uint64_t value = 0) {
+                if (common::benchmark::interactive || !common::benchmark::retain_audio) return;
                 events << "{\"virtual_us\":" << common::benchmark::virtual_us.load()
                        << ",\"stream\":" << id_ << ",\"event\":\"" << event
                        << "\",\"value\":" << value << "}\n";
@@ -144,7 +146,7 @@ namespace eka2l1::drivers {
                     if (!queue_.empty()) {
                         queue_.pop_front();
                         ++played_frames_;
-                        ++samples_played_;
+                        samples_played_ += channels_;
                         samples_copied_ += channels_;
                     }
                 }
@@ -157,13 +159,19 @@ namespace eka2l1::drivers {
                 record("more_buffer");
                 auto callback = more_buffer_callback_;
                 auto userdata = more_buffer_userdata_;
-                if (callback) callback(userdata); // May stop or destroy the stream.
+                const auto id = id_;
+                if (callback && !callback(userdata)) {
+                    // Upstream callbacks may decline delivery. Retry next guest
+                    // tick, but never touch a stream destroyed by the callback.
+                    if (std::find(streams.begin(), streams.end(), this) != streams.end() && id_ == id)
+                        requested_ = false;
+                }
             }
         };
 
         void render_until(std::uint64_t us) {
             const auto target = us * output_rate / 1000000;
-            if (target < output_frames || us > 120000000)
+            if (target < output_frames || (!common::benchmark::interactive && common::benchmark::retain_audio && us > 120000000))
                 throw std::runtime_error("Invalid benchmark audio clock");
             while (output_frames < target) {
                 std::array<std::int64_t, 2> sum{};
@@ -172,7 +180,7 @@ namespace eka2l1::drivers {
                     sum[0] += sample[0];
                     sum[1] += sample[1];
                 }
-                for (auto value : sum)
+                if (!common::benchmark::interactive && common::benchmark::retain_audio) for (auto value : sum)
                     mix.push_back(static_cast<std::int16_t>(std::clamp<std::int64_t>(value, -32768, 32767)));
                 ++output_frames;
             }
@@ -180,6 +188,8 @@ namespace eka2l1::drivers {
     }
 
     std::unique_ptr<dsp_stream> new_benchmark_dsp_out_stream() { return std::make_unique<pcm_stream>(); }
+
+    std::size_t benchmark_audio_buffered_frames() { return mix.size() / 2; }
 
     void reset_benchmark_audio() {
         if (!streams.empty()) throw std::runtime_error("Benchmark audio reset with live streams");
@@ -191,6 +201,7 @@ namespace eka2l1::drivers {
     }
 
     void pump_benchmark_audio(std::uint64_t us) {
+        if (clocked_audio_active()) { pump_clocked_audio(us); return; }
         render_until(us);
         const auto snapshot = streams;
         for (auto *stream : snapshot)
@@ -198,6 +209,7 @@ namespace eka2l1::drivers {
     }
 
     void export_benchmark_audio(const std::string &directory, std::uint64_t us) {
+        if (clocked_audio_active()) { export_clocked_audio(directory,us); return; }
         render_until(us); // Final partial block, without delivering new guest callbacks.
         std::ofstream wav(directory + "/audio.wav", std::ios::binary);
         auto le = [&wav](std::uint32_t value, int bytes) {

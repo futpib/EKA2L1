@@ -166,12 +166,12 @@ namespace eka2l1::loader {
         for (std::size_t i = 0; i < record_to_iterate->size(); i++) {
             switch (record_to_iterate->at(i)->file_record_type) {
             case file_record_type_block:
-                sis_old_evaluate_block(*reinterpret_cast<sis_old_block*>(record_to_iterate->at(i).get()), files, io, resolver_cb, choosen_lang);
+                sis_old_evaluate_block(*static_cast<sis_old_block*>(record_to_iterate->at(i).get()), files, io, resolver_cb, choosen_lang);
                 break;
 
             case file_record_type_simple_file:
             case file_record_type_multiple_lang_file:
-                files.push_back(reinterpret_cast<sis_old_file*>(record_to_iterate->at(i).get()));
+                files.push_back(static_cast<sis_old_file*>(record_to_iterate->at(i).get()));
                 break;
 
             default:
@@ -182,9 +182,9 @@ namespace eka2l1::loader {
 
     bool install_sis_old(const std::u16string &path, io_system *io, drive_number drive,
         package::object &info, choose_lang_func choose_lang_cb, var_value_resolver_func resolver_cb,
-        progress_changed_callback progress_cb, cancel_requested_callback cancel_cb) {
-        std::optional<sis_old> res = *loader::parse_sis_old(common::ucs2_to_utf8(path));
-        if (!res.has_value()) {
+        progress_changed_callback progress_cb, cancel_requested_callback cancel_cb, const bool stub) {
+        std::optional<sis_old> res = loader::parse_sis_old(common::ucs2_to_utf8(path));
+        if (!res.has_value() || res->comp_names.empty()) {
             return false;
         }
 
@@ -202,7 +202,8 @@ namespace eka2l1::loader {
         }
 
         info.current_drives = info.drives;
-        info.is_removable = true;
+        info.is_removable = !stub;
+        info.in_rom = stub;
 
         language choosen_language = language::en;
         std::size_t choosen_language_index = 0;
@@ -256,6 +257,19 @@ namespace eka2l1::loader {
                 continue;
             }
 
+            // ROM stubs describe files already in the image and contain no payload.
+            if (stub) {
+                package::file_description desc;
+                desc.operation = static_cast<std::int32_t>(loader::ss_op::install);
+                desc.target = file->dest;
+                desc.operation_options = 0;
+                desc.index = static_cast<std::uint32_t>(info.file_descriptions.size());
+                desc.sid = 0;
+                desc.uncompressed_length = file->file_infos[0].original_length;
+                info.file_descriptions.push_back(std::move(desc));
+                continue;
+            }
+
             std::u16string dest = file->dest;
             if (file->file_type == 2) {
                 static const char16_t *TEMP_SIS_FOLDER_PATH = u"E:\\system\\install\\temp\\";
@@ -279,6 +293,9 @@ namespace eka2l1::loader {
             desc.target = dest;
 
             symfile f = io->open_file(dest, WRITE_MODE | BIN_MODE);
+            if (!f) {
+                return false;
+            }
 
             LOG_TRACE(PACKAGE, "Installing file {}", common::ucs2_to_utf8(dest));
 
@@ -302,13 +319,13 @@ namespace eka2l1::loader {
             common::ro_std_file_stream sis_file(common::ucs2_to_utf8(path), true);
             sis_file.seek(data_info->position, common::seek_where::beg);
 
-            mz_stream stream;
+            z_stream stream;
 
             stream.zalloc = nullptr;
             stream.zfree = nullptr;
 
             if (!(res->header.op & 0x8)) {
-                if (inflateInit(&stream) != MZ_OK) {
+                if (inflateInit(&stream) != Z_OK) {
                     return false;
                 }
             }
@@ -389,7 +406,7 @@ namespace eka2l1::loader {
         }
 
         for (const std::u16string &path_more_sis: more_sis) {
-            if (!install_sis_old(path_more_sis, io, drive, info, choose_lang_cb, resolver_cb, progress_cb, cancel_cb)) {
+            if (!install_sis_old(path_more_sis, io, drive, info, choose_lang_cb, resolver_cb, progress_cb, cancel_cb, stub)) {
                 return false;
             }
 

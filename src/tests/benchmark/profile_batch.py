@@ -18,8 +18,14 @@ modes.add_argument('--compare-build', type=Path, help='Compare an archived front
 modes.add_argument('--compare-steps', type=Path, nargs=2, metavar=('BASELINE', 'STEP1'), help='Compare baseline, step 1 and current build serially in forward/reverse order')
 modes.add_argument('--compare-stages', action='store_true', help='Compare interpreter, hot ROM, RAM and chained/register-cached execution')
 p.add_argument('--capture-mode', type=int, choices=(0, 1, 2), default=0, help='Capture mode for comparison trials: 0 full, 1 hashes only, 2 no readback')
+p.add_argument('--before-aot', type=int, choices=range(6), default=4)
+p.add_argument('--after-aot', type=int, choices=range(6), default=4)
+p.add_argument('--start-us', type=int, default=21000000)
+p.add_argument('--end-us', type=int, default=25000000)
 p.add_argument('--measure-gate', type=Path, help='Wait for this new gate file after all fixtures are paused')
 a = p.parse_args()
+if not 0 <= a.start_us < a.end_us <= 120000000:
+    p.error("Require 0 <= start-us < end-us <= 120000000")
 if a.measure_gate:
     a.measure_gate = a.measure_gate.resolve()
     if a.measure_gate.exists() or Path(str(a.measure_gate) + '.ready').exists():
@@ -38,7 +44,7 @@ if a.compare_build:
     a.compare_build = a.compare_build.resolve()
     if not (a.compare_build / 'eka2l1.wasm').is_file():
         p.error('Archived build must contain eka2l1.wasm')
-    plan = [('before-1', 0, 4), ('after-1', 0, 4), ('after-2', 0, 4), ('before-2', 0, 4)]
+    plan = [('before-1', 0, a.before_aot), ('after-1', 0, a.after_aot), ('after-2', 0, a.after_aot), ('before-2', 0, a.before_aot)]
 if a.compare_steps:
     a.compare_steps = [path.resolve() for path in a.compare_steps]
     if not all((path / 'eka2l1.wasm').is_file() for path in a.compare_steps):
@@ -54,7 +60,7 @@ try:
         gate = a.output / f'{name}.release'
         log = (a.output / f'{name}.log').open('w')
         logs.append(log)
-        environment = {**os.environ, 'PROFILE_GATE': str(gate)}
+        environment = {**os.environ, 'PROFILE_GATE': str(gate), 'EKA2L1_PROFILE_START_US': str(a.start_us)}
         if a.compare_build:
             environment.pop('EKA2L1_GUEST_PROFILE', None)
             environment.pop('EKA2L1_WASM_BUILD_DIR', None)
@@ -74,7 +80,7 @@ try:
             environment.pop('EKA2L1_AOT_VERIFY', None)
             if not a.compare_diagnostics:
                 environment['EKA2L1_AOT_DIAGNOSTICS'] = '0'
-        process = subprocess.Popen(['node', 'profile.ts', str(a.assets.resolve()), str(a.output/name), str(mode), '0'],
+        process = subprocess.Popen(['node', 'profile.ts', str(a.assets.resolve()), str(a.output/name), str(mode), '0', str(a.end_us)],
             cwd=ROOT/'src/tests/wasm', env=environment, stdout=log, stderr=subprocess.STDOUT)
         processes.append((name, process, gate))
     deadline = time.monotonic() + 1800
@@ -95,7 +101,7 @@ try:
             if any(process.poll() is not None for _, process, _ in processes):
                 raise RuntimeError('A fixture exited while waiting for external gate')
             time.sleep(1)
-    print('All guests paused at 21 seconds. Starting serial measurements.', flush=True)
+    print(f'All guests paused at {a.start_us / 1e6:g} seconds. Starting serial measurements.', flush=True)
     for name, process, gate in processes:
         gate.touch()
         if process.wait(timeout=1800):
