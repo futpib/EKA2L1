@@ -15,3 +15,25 @@ Before this study starts timing, the host observer is extended with passive two-
 ## Correctness acceptance
 
 Sites 4 and 16 each pass 40,640 explicitly selected native fault comparisons (81,280 fresh comparisons total), exact 1,600-image standard and 360-image longer replays, with guest records and 4,656,051 / 2,832,756 stereo PCM frames matching native. Every replay reads back its actual limits and feature policy. Site 8 and the 172-test compiler suite reuse previously completed acceptance on this same archive; they are not reported as fresh runs.
+
+## Serial site-limit timing
+
+All 32 observations are retained. Values are mean elapsed seconds for identical guest work within each route; lower is faster. Each batch mirrors its first half, with a two-position rotation in batch B. The untouched live archive is separate from the matching binary control.
+
+| Route/batch | 8 sites matching | 4 sites | 16 sites | Live archive |
+| --- | ---: | ---: | ---: | ---: |
+| long a | 11.6669 | 12.6167 | 11.9736 | 11.4192 |
+| long b | 11.6524 | 11.7457 | 12.0469 | 11.6802 |
+| standard a | 11.1096 | 12.3893 | 11.1465 | 11.7896 |
+| standard b | 11.2126 | 12.2735 | 11.3231 | 11.9170 |
+
+- long a, sites4: vs control8: -7.53% throughput; half-pairs -14.01% / -0.39%; vs baseline: -9.49% throughput; half-pairs -11.68% / -7.09%.
+- long a, sites16: vs control8: -2.56% throughput; half-pairs -10.68% / +6.66%; vs baseline: -4.63% throughput; half-pairs -8.26% / -0.51%.
+- long b, sites4: vs control8: -0.79% throughput; half-pairs +5.69% / -6.95%; vs baseline: -0.56% throughput; half-pairs +5.89% / -6.68%.
+- long b, sites16: vs control8: -3.27% throughput; half-pairs +7.88% / -12.97%; vs baseline: -3.04% throughput; half-pairs +8.09% / -12.73%.
+- standard a, sites4: vs control8: -10.33% throughput; half-pairs -9.82% / -10.83%; vs baseline: -4.84% throughput; half-pairs +1.31% / -10.95%.
+- standard a, sites16: vs control8: -0.33% throughput; half-pairs +0.43% / -1.08%; vs baseline: +5.77% throughput; half-pairs +12.83% / -1.22%.
+- standard b, sites4: vs control8: -8.64% throughput; half-pairs -1.51% / -14.87%; vs baseline: -2.90% throughput; half-pairs -0.21% / -5.25%.
+- standard b, sites16: vs control8: -0.98% throughput; half-pairs -1.14% / -0.81%; vs baseline: +5.25% throughput; half-pairs +0.15% / +10.40%.
+
+Pairs associate corresponding halves and are not all adjacent. Host observers detect watched competing jobs, not all host activity. Startup includes guest work and is not isolated compilation time. These timings do not establish an optimum outside the tested range. Diagnostic cost counters and any normal/live/audio delivery checks remain separate.
