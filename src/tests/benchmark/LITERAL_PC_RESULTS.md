@@ -29,3 +29,23 @@ The preserved completion queue now includes metadata-only generated-module captu
 Both control and candidate pass 46,016 explicitly selected native fault comparisons (92,032 total), including the runtime literal-load fixture. Checked control/candidate and normal candidate standard replays match all 1,600 native images, guest records and 4,656,051 PCM frames. The checked longer route matches 360 images and 2,832,756 PCM frames. Actual compiler policy, feature mask, limits and archive hashes are verified. These full matrices include cases also reported by the focused runs; no extra distinct coverage is implied.
 
 No new timing or live/audio acceptance is claimed yet. The previous conditional-only archive stays served.
+
+## Serial gameplay timing
+
+All modes retain policy 7, conditional integer leaves and limits 512/16/8/512. The matching control uses feature 0 and the candidate feature 128 in the same frozen binary. The untouched delivered conditional-only archive is a separate baseline. Diagnostics and interpreter checking are off; guest work and scheduling are identical within each route.
+
+| Route/batch | Matching control | Literal PC veneers | Untouched live archive |
+| --- | ---: | ---: | ---: |
+| long a | 11.8977s | 11.9295s | 11.2860s |
+| long b | 11.6942s | 11.1486s | 11.3666s |
+| standard a | 11.1696s | 11.3590s | 11.3153s |
+| standard b | 11.6703s | 11.0264s | 11.2378s |
+
+Each cell averages two observations. All 24 samples remain, including slow runs. A uses control/candidate/live and its mirror; B uses candidate/live/control and its mirror, moving every mode between positions. Actual per-run orders are retained. Comparisons pair corresponding halves and are not all immediately adjacent. The two-second host observer watches competing test/profile jobs and records passive frequency/thermal context; it cannot exclude all host activity or assign a cause to slow samples. Startup includes guest work and is not an isolated compilation measure.
+
+- long a order control-1, candidate-1, baseline-1, baseline-2, candidate-2, control-2: versus control: -0.27% throughput, paired -1.05% / +0.43%; versus baseline: -5.39% throughput, paired +1.55% / -11.61%.
+- long b order candidate-1, baseline-1, control-1, control-2, baseline-2, candidate-2: versus control: +4.89% throughput, paired +0.65% / +9.25%; versus baseline: +1.95% throughput, paired -1.25% / +5.25%.
+- standard a order control-1, candidate-1, baseline-1, baseline-2, candidate-2, control-2: versus control: -1.67% throughput, paired +1.52% / -4.65%; versus baseline: -0.38% throughput, paired +1.69% / -2.33%.
+- standard b order candidate-1, baseline-1, control-1, control-2, baseline-2, candidate-2: versus control: +5.84% throughput, paired +1.10% / +10.57%; versus baseline: +1.92% throughput, paired +1.91% / +1.92%.
+
+No automatic default or delivery change follows. Separately checked diagnostics measure dispatch, dependency and guard costs; normal live/audio acceptance is required for any promotion.
