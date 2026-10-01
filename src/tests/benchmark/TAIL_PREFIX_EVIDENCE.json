@@ -1,5 +1,5 @@
 {
-  "status": "Opt-in implementation; focused checks pass; full compiler, fault and replay acceptance pending. No timing or deployment.",
+  "status": "173 instrumented compiler tests, 86,400 focused interpreter comparisons, 16,128 focused native fault comparisons, native/cache and frontend controls pass. Broader fault/replay acceptance pending; no timings/deployment.",
   "feature": 64,
   "control_feature": 0,
   "execution_limits": [
@@ -81,7 +81,171 @@
     "tail_prefix_focused_faults.py": {
       "source": "from pathlib import Path\nimport subprocess,json\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'tail-prefix-candidate';out=s/'tail-prefix-focused-faults';out.mkdir()\nfor features,census in [(0,0),(64,0),(64,1)]:\n name=f'f{features}-c{census}'\n args=['--tail-prefixes','--ir-policy=7','--code-compare=2','--tlb-hash=1','--execution-limits=512,16,8,512','--predicated-leaves=1',f'--exit-census={census}',f'--leaf-features={features}']\n for kind,cmd in [('native',[str(a/'tests/eka_cpu_fault_native')]),('wasm',['node',str(a/'tests/eka_cpu_fault_wasm.js')])]:\n  with(out/f'{name}-{kind}.log').open('w')as log:subprocess.run(cmd+args,cwd=r,stdout=log,stderr=subprocess.STDOUT,check=True)\n subprocess.run(['python3','src/tests/benchmark/compare_cpu_faults.py',str(out/f'{name}-native.log'),str(out/f'{name}-wasm.log'),str(out/f'{name}.json'),'--cases','5376','--ir-policy','7','--code-compare','2','--tlb-hash','1','--execution-limits','512,16,8,512','--predicated-leaves','1','--exit-census',str(census),'--leaf-features',str(features),'--require-equal'],cwd=r,check=True,stdout=subprocess.DEVNULL)\n print(name,'5376 exact native fault matches',flush=True)\n",
       "sha256": "64d5593ca6a07ae90d5d70f06ff28bc45c9857a0371393e144293f6e64512e94"
+    },
+    "run_tail_prefix_timing.py": {
+      "source": "from pathlib import Path\nimport os,subprocess,json,sys\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'tail-prefix-candidate';baseline=s/'predicated-leaf-candidate'\nscene,batch=sys.argv[1:];assert scene in ('long','standard') and batch in ('a','b')\nstart,end,route=(42000000,60000000,'snakes-length-long.input')if scene=='long'else(60000000,78000000,'snakes.input')\norder={'a':['control','candidate','baseline'],'b':['candidate','baseline','control']}[batch]\nargs=['python3','src/tests/benchmark/serial_variants.py',str(s/'assets'),str(s/f'tail-prefix-timing-{scene}-{batch}')]+[f'{n}={baseline if n==\"baseline\"else a}'for n in order]\nfor name in order:\n for option,value in [('ir-mode','7'),('eager-regions','0'),('tlb-hash','1'),('code-compare','2'),('code-lookup','0'),('execution-limits','512,16,8,512'),('predicated-leaves','1'),('leaf-features',str(64 if name=='candidate'else 0)),('input',str(r/'src/tests/benchmark'/route))]:args.extend(['--'+option,f'{name}={value}'])\nargs+=['--start-us',str(start),'--end-us',str(end)]\nsubprocess.run(args,cwd=r,env=dict(os.environ,EKA2L1_SHARED_AUDIO='1'),check=True)\nrows=json.loads((s/f'tail-prefix-timing-{scene}-{batch}/measurements.json').read_text());assert len(rows)==6\nassert len({(x['measurement']['first_instructions'],x['measurement']['last_instructions'],x['measurement']['presentations'])for x in rows})==1\nprint(scene,batch,'identical guest work verified',flush=True)\n",
+      "sha256": "e3fe0424a764abfdf25047e4de7a043c001d6d5e1374f2d11f6e3f67cb77230e"
+    },
+    "guarded_tail_prefix_timings.py": {
+      "source": "from pathlib import Path\nimport os,time,json,subprocess,sys\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1');state=s/'tail-prefix-timing-state.json'\ndef phase(name,**kw):\n state.write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ndef foreign():\n rows={}\n for p in Path('/proc').iterdir():\n  if not p.name.isdecimal():continue\n  try:\n   args=(p/'cmdline').read_bytes().split(b'\\0');args=[x.decode(errors='replace')for x in args if x]\n   fields=(p/'stat').read_text().rsplit(')',1)[1].split();parent=int(fields[1])\n  except (OSError,ValueError,IndexError):continue\n  rows[int(p.name)]=(parent,args)\n own={os.getpid()}\n while True:\n  add={pid for pid,(parent,_)in rows.items()if parent in own}\n  if add<=own:break\n  own|=add\n found=[]\n for pid,(parent,args)in rows.items():\n  if pid in own or not args:continue\n  exe=Path(args[0]).name\n  active=exe.startswith('node')and any(x.endswith('/profile.ts')or x=='profile.ts'or('service-overlap-'in x and x.endswith('.ts'))or Path(x).name in ('benchmark.ts','live.ts','softkeys.ts','route.ts')or x.endswith('/test_aot_wasm.js')or x.endswith('/eka_cpu_fault_wasm.js')for x in args[1:])\n  active|=exe.startswith('eka_cpu_fault_')\n  if active:found.append(dict(pid=pid,parent=parent,args=args))\n return found\ndef telemetry(scene,batch,start):\n read_start=time.perf_counter()\n sample=dict(seconds=time.time()-start,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),frequency_khz={},temperatures_millidegrees={})\n for path in sorted(Path('/sys/devices/system/cpu/cpufreq').glob('policy*/scaling_cur_freq')):\n  try:sample['frequency_khz'][path.parent.name]=int(path.read_text())\n  except (OSError,ValueError):pass\n for path in sorted(Path('/sys/class/thermal').glob('thermal_zone*/temp')):\n  try:sample['temperatures_millidegrees'][path.parent.name+':'+(path.parent/'type').read_text().strip()]=int(path.read_text())\n  except (OSError,ValueError):pass\n try:sample['loadavg']=Path('/proc/loadavg').read_text().strip()\n except OSError:pass\n try:sample['completed_rows']=len(json.loads((s/f'tail-prefix-timing-{scene}-{batch}/measurements.json').read_text()))\n except (OSError,ValueError):sample['completed_rows']=0\n sample['observer_duration_seconds']=time.perf_counter()-read_start\n return sample\ntry:\n assert json.loads((s/'tail-prefix-acceptance-complete.json').read_text())['accepted'] is True\n assert (r/'src/tests/benchmark/TAIL_PREFIX_EVIDENCE.json').exists()\n for scene,batch in [('long','a'),('standard','a'),('long','b'),('standard','b')]:\n  phase('waiting_for_quiet',scene=scene,batch=batch)\n  quiet=0\n  while quiet<15:\n   jobs=foreign();quiet=0 if jobs else quiet+1;time.sleep(2)\n  phase('timing',scene=scene,batch=batch)\n  observed={};start=time.time();host_samples=[]\n  with(s/f'tail-prefix-timing-{scene}-{batch}-driver.log').open('w')as log:\n   child=subprocess.Popen(['bash','-lc',f'source {s}/write-protection-gpu.env\\npython3 {s}/run_tail_prefix_timing.py {scene} {batch}'],cwd=r,stdout=log,stderr=subprocess.STDOUT)\n   while child.poll()is None:\n    host_samples.append(telemetry(scene,batch,start))\n    for job in foreign():\n     key=str(job['pid']);observed.setdefault(key,dict(**job,first_seconds=time.time()-start))['last_seconds']=time.time()-start\n    time.sleep(2)\n  evidence=dict(telemetry=host_samples,telemetry_note='Passive sysfs readings every two seconds across startup, warmup and measurement; not a cause attribution or exclusion criterion.',scene=scene,batch=batch,returncode=child.returncode,observer_interval_seconds=2,foreign_jobs=list(observed.values()),note='Host process observer excludes its own descendants; it does not measure all possible host contention or normalize timings.')\n  (s/f'tail-prefix-timing-{scene}-{batch}-host.json').write_text(json.dumps(evidence,indent=2)+'\\n')\n  if child.returncode:raise RuntimeError('Timing harness failed')\n  if observed:raise RuntimeError('Observed concurrent profiling; completed batch retained, queue held')\n phase('all_timing_complete')\nexcept Exception as e:phase('failure',error=str(e));raise\n",
+      "sha256": "0fe183d17cf01fb192971849c9f33b98f5bc5f849c3c1d26eab48c84c05c5f17"
+    },
+    "tail_prefix_replay_queue.py": {
+      "source": "from pathlib import Path\nimport json,subprocess,time\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1');state=s/'tail-prefix-replay-state.json'\ndef phase(name,**kw):\n state.write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ndef run(script,log):\n with(s/log).open('w')as f:subprocess.run(['python3',str(s/script)],cwd=r,stdout=f,stderr=subprocess.STDOUT,check=True)\ntry:\n phase('waiting_for_site_diagnostics')\n while True:\n  a=json.loads((s/'conditional-site-finish-state.json').read_text());b=json.loads((s/'conditional-site-module-state.json').read_text())\n  if a['phase']=='failure' or b['phase']=='failure':raise RuntimeError('Prior site diagnostics failed; replay held')\n  if a['phase']=='census_complete_pending_record' and b['phase']=='modules_complete':break\n  time.sleep(5)\n phase('recording_site_diagnostics')\n run('record_conditional_site_census.py','conditional-site-census-record.log')\n run('record_conditional_site_modules.py','conditional-site-module-record.log')\n run('finalize_conditional_site.py','conditional-site-finalize.log')\n phase('waiting_for_tail_acceptance')\n while True:\n  unit=(s/'tail-prefix-full-suite.log').read_text();fault=(s/'tail-prefix-fault-acceptance.log').read_text()\n  if 'Traceback (most recent call last)' in fault or '\\n FAIL ' in unit:raise RuntimeError('Tail acceptance failed; replay held')\n  if '173 passed, 0 failed' in unit and 'tail-prefix-fault-candidate.log PASS' in fault:break\n  time.sleep(5)\n phase('replay')\n with(s/'tail-prefix-replay-acceptance.log').open('w')as f:subprocess.run(['python3',str(s/'accept_tail_prefix.py'),'replay'],cwd=r,stdout=f,stderr=subprocess.STDOUT,check=True)\n phase('replay_complete_pending_record')\nexcept Exception as error:phase('failure',error=str(error));raise\n",
+      "sha256": "597932e15a455595ad908e98f98f22937083eda9d8b4cc6dfa0c739d5a792552"
     }
   },
-  "retained_initial_failure": "Frontend negative fixture still used 64 as first invalid mask; extended negative to128 and added explicit mask64 HTML/readback coverage."
+  "retained_initial_failure": "Frontend negative fixture still used 64 as first invalid mask; extended negative to128 and added explicit mask64 HTML/readback coverage.",
+  "compiler_suite": {
+    "instrumented": true,
+    "passed": 173,
+    "failed": 0,
+    "log": "TEST_TLB_HASH 0\nRunning 74 AOT WASM correctness tests...\n\n  PASS MOVS R0, #42\n  PASS MOVS R0, #0 (zero flag)\n  PASS ADDS R0, R0, #1\n  PASS SUBS R0, R0, #1\n  PASS SUBS to zero\n  PASS CMP R0, R1 equal\n  PASS CMP R0, R1 greater\n  PASS CMP R0, R1 less\n  PASS CMP R0, #0\n  PASS CMP R0, #5 when R0=5\n  PASS MOVS R1, R0 (LSLS #0)\n  PASS LSLS R0, R1, #4\n  PASS LSRS R0, R1, #1\n  PASS ANDS R0, R1\n  PASS ORRS R0, R1\n  PASS EORS R0, R1\n  PASS MVNS R0, R1\n  PASS ADDS R0, #100\n  PASS SUBS R0, #1 to zero\n  PASS MOV R8, R0 (high reg)\n  PASS LDR R0, [R1, #0]\n  PASS LDR R0, [R1, #4]\n  PASS STR R0, [R1, #0]\n  PASS LDR R0, [R1, R2]\n  PASS LDR R0, [SP, #8]\n  PASS STR R0, [SP, #0]\n  PASS LDRB R0, [R1, #0]\n  PASS STRB R0, [R1, #0]\n  PASS LDRB R0, [R1, R2]\n  PASS LDRH R0, [R1, #0]\n  PASS SUBS R0, R1, R2\n  PASS ADDS R0, R1, R2\n  PASS ASRS R0, R1, #4\n  PASS ASRS R0, R1 (reg)\n  PASS MULS R0, R1\n  PASS BICS R0, R1\n  PASS NEGS R0, R1\n  PASS TST R0, R1 (nonzero)\n  PASS TST R0, R1 (zero)\n  PASS ADD R0, SP, #16\n  PASS SUB SP, #8\n  PASS ADD SP, #8\n  PASS LDR R0, [PC, #0]\n  PASS LDRSB R0, [R1, R2]\n  PASS CMN R0, R1\n  PASS CMP R8, R0\n  PASS LSLS R0, R1 (reg)\n  PASS LSRS R0, R1 (reg)\n  PASS MOVS+ADDS sequence\n  PASS MOVS+SUBS+SUBS\n  PASS PUSH+POP roundtrip\n  PASS PUSH {R4,LR} then BL bail\n  PASS MOVS + BL offset 0\n  PASS MOVS + BL +10\n  PASS ADD R5, R0 (T2)\n  PASS ADD R8, R0 (high Rdn)\n  PASS CMP R3, LR (T2 low Rn)\n  PASS LDRSH R0, [R1, R2]\n  PASS STRH R0, [R1, R2]\n  PASS LDRH R0, [R1, R2]\n  PASS STR R0, [R1, R2]\n  PASS STRB R0, [R1, R2]\n  PASS ADR R0, #0\n  PASS ADR R2, #20\n  PASS STMIA R1!, {R0,R2}\n  PASS LDMIA R1!, {R0,R2}\n  PASS BEQ forward not taken\n  PASS BEQ forward taken\n  PASS B forward\n  PASS Backward loop BNE\n  FAIL crash-repro 0x8046506E (harness limitation): Z=0 (wasm) vs 1 (interp)\n  XFAIL crash-repro 0x8046506E (harness limitation) (known failure, see test comment)\n  PASS crash-repro 0x80464BBE\n  PASS Backward branch to non-entry\n  PASS Forward target reused as backward\n\nRunning translator-level tests...\n\n  PASS resume_points_blx_rm\n  PASS resume_points_bl_imm\n  PASS blx_veneer_inlining\n  PASS function_end_stops_at_pop_pc\n  PASS function_end_stops_at_bx_lr\n  PASS branch_targets_include_bl_next_pc\n  PASS branch_targets_include_beq_target\n  PASS literal_pool_between_early_return_and_target\n  PASS wide_push_pop\n  PASS stop_at_wide_bail\n  PASS wide_movw_movt\n  PASS wide_ldr_str_imm12\n  PASS wide_add_sub_imm\n  PASS wide_and_orr_eor_bic_imm\n  PASS wide_ldr_str_reg\n  PASS wide_ldr_neg_offset\n  PASS wide_b_uncond\n  PASS wide_ldrd_strd\n  PASS wide_ubfx_sbfx\n  PASS wide_bfi_bfc\n  PASS wide_uxtb_sxth\n  PASS wide_clz\n  PASS wide_mul_mla_mls\n  PASS wide_sdiv_udiv\n  PASS wide_shifted_reg\n  PASS wide_addw_subw\n  PASS wide_mov_mvn_imm\n  PASS wide_strb_imm12\n  PASS vfp_vldr_vadd_vstr\n  PASS vfp_vcvt_vcmp_vmrs\n  PASS vfp_f64_instantiation\n  PASS resume_points_beyond_1024\n  PASS sibling_bl_resume_point\n\nRunning ARM translator-level tests...\n\n  PASS inlined_leaves policy=-1 (2560 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=11 (1920 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=12 (1920 exact budget/state/memory comparisons)\n  PASS invariant_writes policy=12 (16896 exact state/memory/budget comparisons)\n  PASS bounded_execution (464912 exact budget/state/memory comparisons)\n  PASS folded TLB scalar/block/entry guards and exact budgets\n  PASS outlined_code_lookup (both lookup modes, grouped/stored comparators, short/long snapshots, dependencies, mappings, rejection)\n  PASS exact_code_compare (five modes including selected functions, unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n  PASS outlined_callee_indices\n  PASS proved_read_spans (30976 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=4 (15360 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=9 (25600 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=5 (16896 exact state/memory/budget comparisons)\nAOT: unsupported ARM insn 0xEF000000 at 0x00001000\n PASS exit census actual ARM/Thumb exit labels, budgets, helpers and code aliases\n PASS execution limits validation and 270 real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor checks\n PASS inline leaf/site bounds and 640 exact interpreter budget comparisons\n PASS predicated leaves (29120 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS expanded leaves (88035 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS preserve inner fusion (2496 exact selection/budget/state/stack comparisons)\n PASS call prefixes (36960 exact budget/state/stack/memory/alias/continuation comparisons)\n PASS branch veneers (12800 exact budget/state/alias/path comparisons)\n PASS tail prefixes (86400 exact budget/state/alias/path comparisons)\n PASS boundary details (97 exact rejection labels/counters and primary/dependency/gap/outside guards)\n  PASS budget_chunks policy=6 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=16 (7680 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=7 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=8 (30720 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=8 (16896 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=7 (16896 exact state/memory/budget comparisons)\n  PASS region_ir (snapshot liveness/type checks; backend disabled)\n  PASS ir_flags (221184 exact flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=13 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=14 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=15 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=16 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_long_segments (51840 exact long-graph state/flags/memory/budget comparisons)\n  PASS ir_segments (81536 exact state/memory/budget comparisons across enabled policies)\n  PASS ir_memory_exits (24584 exact intermediate snapshot/effect comparisons)\n  PASS ir_exit_recipes (6120 exact load-history/DAG/width/budget comparisons)\n  PASS ir_addressing (24112 exact width/address/snapshot/budget comparisons)\n  PASS memory_displacements (72 exact state/memory/budget checks)\n  PASS deferred_memory_exits (672 exact pre-instruction exits)\n  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS conditional_alu_select (229376 exact budget/state comparisons)\n  PASS compare_conditions (64512 exact budget/state comparisons)\n  PASS arm_long_multiply (92160 exact budget/state comparisons)\n  PASS cached_callback_state\n  PASS msr_privilege_guard\n  SKIP code validity generation tests (experimental build option disabled)\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n173 passed, 0 failed\n",
+    "sha256": "128a5fbe227ef70be4ecb2b843845ec6d224f449d7d9d6844b3eddf4019ce554"
+  },
+  "focused_faults": {
+    "f0-c0": {
+      "verified_leaf_features": 0,
+      "verified_exit_census": 0,
+      "verified_predicated_leaves": 1,
+      "cases": 5376,
+      "all_fields_match": 5376,
+      "final_state_and_exact_memory_match": 5376,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 1344,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/tail-prefix-focused-faults/f0-c0-native.log": "a296e002214c64f8a12112040ab1f8befbf4c3701c010cc4367e00dc971a97d7",
+        "/home/claude/.scratch/eka-benchmark/tail-prefix-focused-faults/f0-c0-wasm.log": "dcf5e9229942fa59abaceb0a255c06e8cceba1876470eafd9d9f2e83d979329f"
+      },
+      "differences": [],
+      "verified_execution_limits": "512,16,8,512",
+      "verified_tlb_hash": 1,
+      "verified_code_compare": 2,
+      "verified_ir_policy": 7
+    },
+    "f64-c0": {
+      "verified_leaf_features": 64,
+      "verified_exit_census": 0,
+      "verified_predicated_leaves": 1,
+      "cases": 5376,
+      "all_fields_match": 5376,
+      "final_state_and_exact_memory_match": 5376,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 1344,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/tail-prefix-focused-faults/f64-c0-native.log": "7bca710e7f4e9981abc1247ed2ad76a84763fffd94a1e6310bd7857ba9a4d296",
+        "/home/claude/.scratch/eka-benchmark/tail-prefix-focused-faults/f64-c0-wasm.log": "3a9f9cdc7cc2dc6445b7147afcc02f89c690d71781e479ba6652d55ebb26a5bf"
+      },
+      "differences": [],
+      "verified_execution_limits": "512,16,8,512",
+      "verified_tlb_hash": 1,
+      "verified_code_compare": 2,
+      "verified_ir_policy": 7
+    },
+    "f64-c1": {
+      "verified_leaf_features": 64,
+      "verified_exit_census": 1,
+      "verified_predicated_leaves": 1,
+      "cases": 5376,
+      "all_fields_match": 5376,
+      "final_state_and_exact_memory_match": 5376,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 1344,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-benchmark/tail-prefix-focused-faults/f64-c1-native.log": "c2aa8cb4e5939e6db56ade30f550ff6bd784ea5afd4c06299f1ab64dec34c5c8",
+        "/home/claude/.scratch/eka-benchmark/tail-prefix-focused-faults/f64-c1-wasm.log": "e9ec91186b94374feb682a7053f44854f847f16e614ef13172e0df066b450ff4"
+      },
+      "differences": [],
+      "verified_execution_limits": "512,16,8,512",
+      "verified_tlb_hash": 1,
+      "verified_code_compare": 2,
+      "verified_ir_policy": 7
+    }
+  },
+  "marker_negatives": [
+    {
+      "marker": "PROBE_LEAF_FEATURES 64",
+      "case": "missing",
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 30, in load\n    if markers != [f'PROBE_LEAF_FEATURES {a.leaf_features}']:raise ValueError(f'{path}: wrong leaf features {markers}')\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: /home/claude/.scratch/eka-benchmark/tail-prefix-marker-negatives/PROBE_LEAF_FEATURES-missing.log: wrong leaf features []\n"
+    },
+    {
+      "marker": "PROBE_LEAF_FEATURES 64",
+      "case": "wrong",
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 30, in load\n    if markers != [f'PROBE_LEAF_FEATURES {a.leaf_features}']:raise ValueError(f'{path}: wrong leaf features {markers}')\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: /home/claude/.scratch/eka-benchmark/tail-prefix-marker-negatives/PROBE_LEAF_FEATURES-wrong.log: wrong leaf features ['PROBE_LEAF_FEATURES 0']\n"
+    },
+    {
+      "marker": "PROBE_LEAF_FEATURES 64",
+      "case": "duplicate",
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 30, in load\n    if markers != [f'PROBE_LEAF_FEATURES {a.leaf_features}']:raise ValueError(f'{path}: wrong leaf features {markers}')\n                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: /home/claude/.scratch/eka-benchmark/tail-prefix-marker-negatives/PROBE_LEAF_FEATURES-duplicate.log: wrong leaf features ['PROBE_LEAF_FEATURES 64', 'PROBE_LEAF_FEATURES 64']\n"
+    },
+    {
+      "marker": "PROBE_POLICY 7",
+      "case": "missing",
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 43, in load\n    raise ValueError(f'{path}: requested policy {a.ir_policy}, observed {markers}')\nValueError: /home/claude/.scratch/eka-benchmark/tail-prefix-marker-negatives/PROBE_POLICY-missing.log: requested policy 7, observed []\n"
+    },
+    {
+      "marker": "PROBE_POLICY 7",
+      "case": "wrong",
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 43, in load\n    raise ValueError(f'{path}: requested policy {a.ir_policy}, observed {markers}')\nValueError: /home/claude/.scratch/eka-benchmark/tail-prefix-marker-negatives/PROBE_POLICY-wrong.log: requested policy 7, observed ['PROBE_POLICY 0']\n"
+    },
+    {
+      "marker": "PROBE_POLICY 7",
+      "case": "duplicate",
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 65, in <module>\n    native, wasm = load(a.native), load(a.wasm)\n                                   ~~~~^^^^^^^^\n  File \"/home/claude/code/EKA2L1/src/tests/benchmark/compare_cpu_faults.py\", line 43, in load\n    raise ValueError(f'{path}: requested policy {a.ir_policy}, observed {markers}')\nValueError: /home/claude/.scratch/eka-benchmark/tail-prefix-marker-negatives/PROBE_POLICY-duplicate.log: requested policy 7, observed ['PROBE_POLICY 7', 'PROBE_POLICY 7']\n"
+    }
+  ],
+  "timing_plan": {
+    "routes": [
+      "long",
+      "standard"
+    ],
+    "batches": [
+      "a",
+      "b"
+    ],
+    "a": [
+      "control",
+      "candidate",
+      "baseline",
+      "baseline",
+      "candidate",
+      "control"
+    ],
+    "b": [
+      "candidate",
+      "baseline",
+      "control",
+      "control",
+      "baseline",
+      "candidate"
+    ],
+    "feature_masks": {
+      "control": 0,
+      "candidate": 64,
+      "baseline": 0
+    },
+    "execution_limits": [
+      512,
+      16,
+      8,
+      512
+    ],
+    "samples": 24,
+    "acceptance_required_before_start": true,
+    "diagnostics_during_timing": false,
+    "retain_all_samples": true,
+    "passive_telemetry": true
+  }
 }

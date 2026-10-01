@@ -9,3 +9,9 @@ Guest values remain in WASM locals across the call and prefix. Every operation, 
 Focused tests pass 86,400 exact interpreter comparisons across flags, predicates, register shifts, short budgets, positive/negative/self/in-window branch targets and caller stores aliasing primary/dependency bytes. Selection tests cover exclusions and length boundaries. Native CPU/cache tests pass 570 assertions in33 cases. Native/WASM builds and browser configuration/readback checks pass. A stale frontend negative test initially rejected the newly valid mask64; that failure and correction are retained.
 
 Full compiler and explicit native fault checks are running. Browser replay and any timing follow the currently frozen site-limit diagnostic queue. Performance is unmeasured. No claim is made that removing an entry boundary outweighs the added dependency scan or generated code.
+
+## Compiler and focused fault gates
+
+All 173 instrumented compiler tests pass, including the new86,400 comparisons; the existing documented XFAIL remains. The new tail-prefix fault fixture passes 5,376 cases each in control, candidate and instrumented candidate modes (16,128 comparisons, with explicit compiler/feature/readback checks). Six missing/wrong/duplicate marker cases are rejected. These focused cases will also occur within the later full matrix; they must not be misreported as distinct coverage.
+
+The planned timing comparison uses control/candidate/live followed by its mirror, then candidate/live/control followed by its mirror, separately on both routes:24 total observations. All modes retain the same512/16/8/512 limits. Only feature64 differs in the matching binary; the untouched conditional-only live archive is separate. Passive host telemetry and all samples are retained. Timings start only after full faults and exact native replays pass and all diagnostic/build jobs finish.
