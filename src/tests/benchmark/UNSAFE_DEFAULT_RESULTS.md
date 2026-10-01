@@ -42,4 +42,23 @@ served exact archive, not the new mode-3 default. No new speed measurement is
 claimed by this default change; see UNSAFE_CODE_RESULTS.md and
 UNSAFE_CODE_ATTRIBUTION_RESULTS.md for all 56 prior measurements and uncertainty.
 
-Actual HTTPS delivery verification follows local acceptance. No Git push.
+## Verified LAN delivery
+
+https://claude-laptop.lan:8188/ now serves the tested archive from source commit
+fba7e89b7489cd95736ed1ff921dac015a2135d0. The service does not set EKA2L1_UNSAFE_CODE:
+the ordinary default selects 3. Direct post-startup runtime readback confirms 3
+on the HTTPS launcher, upgrade, reload and browser restart. Downloaded JS/WASM/
+data hashes match the accepted archive and content-versioned URLs. Actual HTTPS
+gesture audio, measured mute/unmute, keyboard/touch, pause/resume, mobile layout
+and shutdown pass. Gameplay and mobile screenshots are retained and reviewed.
+
+The existing browser profile reuses all 192,004,131 ROM/game asset bytes. It
+fetches changed runtime files on upgrade, then transfers zero runtime bodies on
+reload and restart. The prior profile is preserved. Maximum sampled lag on the
+two local 120-second live routes is 0.72 / 39.91 ms, with zero added measured audio
+underruns or drops. Full raw observations are in UNSAFE_DEFAULT_EVIDENCE.json.
+
+Runtime code mutation remains deliberately unsupported by default; mode 0 is
+available explicitly. This deployment uses both removals (mode 3), as requested,
+without substituting a tracking scheme or scan-only mode. No Git push.
+
