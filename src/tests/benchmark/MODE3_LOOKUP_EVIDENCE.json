@@ -19658,5 +19658,6 @@
     "reason": "Longer-route means reverse; three of four batches have opposing half-pairs. Large slow controls inflate positive means. No stable useful gain established.",
     "all_samples_retained": 16,
     "selected_lookup": 0
-  }
+  },
+  "policy_verification_scope": "Browser unsafe-code and feature getters are checked; code_lookup is the requested value following successful configure return. Native PROBE_LOOKUP markers independently report the actual lookup flag. No browser lookup getter exists in this archive."
 }
