@@ -52,27 +52,35 @@ namespace eka2l1::epoc {
     }
 
     bool is_panic_category_action_default(const std::string &panic_category) {
-        try {
-            const std::string action = panic_node[panic_category]["action"].as<std::string>();
-
-            if (action == "script") {
-                return false;
-            }
-        } catch (...) {
+        std::lock_guard<std::mutex> guard(panic_mut);
+        const YAML::Node &root = panic_node;
+        if (!root.IsMap()) {
             return true;
         }
-
-        return true;
+        const YAML::Node category = root[panic_category];
+        if (!category || !category.IsMap()) {
+            return true;
+        }
+        const YAML::Node action = category["action"];
+        return !action || !action.IsScalar() || action.Scalar() != "script";
     }
 
     std::optional<std::string> get_panic_description(const std::string &category, const int code) {
-        try {
-            const std::string description = panic_node[category][code].as<std::string>();
-            return description;
-        } catch (...) {
-            return std::optional<std::string>{};
+        std::lock_guard<std::mutex> guard(panic_mut);
+        const YAML::Node &root = panic_node;
+        // Missing descriptions are normal, including when panic.json is absent.
+        // Do not throw to detect them: WASM builds do not enable C++ catches.
+        if (!root.IsMap()) {
+            return std::nullopt;
         }
-
-        return std::optional<std::string>{};
+        const YAML::Node entries = root[category];
+        if (!entries || !entries.IsMap()) {
+            return std::nullopt;
+        }
+        const YAML::Node description = entries[code];
+        if (!description || !description.IsScalar()) {
+            return std::nullopt;
+        }
+        return description.Scalar();
     }
 }
