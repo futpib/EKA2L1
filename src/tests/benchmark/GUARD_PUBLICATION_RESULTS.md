@@ -27,3 +27,20 @@ The native instruction fault probe primarily exercises emitted operations and
 memory callbacks; it does not replace the dedicated real-runner publication
 test or browser replays. Timing follows the 24-observation plan only after
 acceptance. Current live mode 3, literal feature 128 and lookup 0 are unchanged.
+
+## Emitted runtime inspection
+
+Both omission specializations (normal and profiled lookup) contain zero stores
+to the code interval offsets 856/860. The corresponding compatibility functions
+retain three/five static stores across ROM and RAM paths. The ROM clear is one
+64-bit store, while the RAM interval is two 32-bit stores; two source fields do
+not always imply two machine instructions. Full function disassembly is retained.
+
+The static main WASM grows 10,846,767 -> 10,858,029 bytes: +11,262
+(+0.1038%). This includes the extra specializations and configuration
+API; it is not a generated guest-module size result.
+
+The acceptance watcher initially misclassified the suite's known crash-repro
+XFAIL as a new failure. The original script/traceback are retained; the corrected
+watcher checks the final nonzero failed total. The emulator was not changed in
+response to that harness mistake.
