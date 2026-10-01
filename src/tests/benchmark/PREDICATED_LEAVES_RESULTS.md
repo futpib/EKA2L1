@@ -1,6 +1,6 @@
 # Conditional integer leaf fusion
 
-This opt-in experiment uses the original instruction emitter (policy 7) to inline straight-line leaf functions containing conditional integer operations. The default remains disabled. Source window, leaf length, inline-site count, runner cap and guest scheduling are unchanged. No confirmed speed gain or deployment.
+This opt-in experiment uses the original instruction emitter (policy 7) to inline straight-line leaf functions containing conditional integer operations. The default remains disabled. Source window, leaf length, inline-site count, runner cap and guest scheduling are unchanged. Repeated matching-control gains are measured below; actual HTTPS delivery verification is pending.
 
 The exit census motivated this change: two six-instruction load/compare/conditional-MOV leaves account for 28.6% of sampled direct-call exits in the longer-snake window. Raising the 16-instruction leaf bound cannot make these leaves eligible. No guest address or captured opcode sequence is special-cased by the implementation.
 
@@ -57,3 +57,7 @@ Batch b: throughput difference +9.66% versus matching control and +1.49% versus 
 
 
 These timings do not by themselves authorize promotion. The follow-up census must establish which boundaries were removed, where unsupported callees still exit, and whether broader dependency intervals add conservative exits. Correctness gates above apply to the immutable timing archive. Any promotion additionally requires normal/live/audio/actual-launcher acceptance. The current live build remains unchanged.
+
+## Normal and live acceptance
+
+The normal 1,600-image replay exactly matches native guest records and 4,656,051 stereo PCM frames. Both 120-second manual/automatic live launches verify conditional fusion and the original limits by API readback, sustain realtime and add zero measured audio underruns or drops. Maximum sampled lag is 47.65 / 30.35 ms. Startup recovery events remain in the raw records. The routes include the known native-matching level restart and do not establish uninterrupted gameplay. Local gesture audio, measured mute/unmute, keyboard/touch, pause/resume, layout and shutdown pass. The two-second process observer sees no foreign watched profiling/test jobs; this does not exclude every source of host contention. Frontend policy/readback and persistent-cache tests pass. Actual HTTPS upgrade verification is pending.
