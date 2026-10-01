@@ -17,3 +17,15 @@ The focused interpreter matrix passes 29,120 comparisons across all fourteen con
 Acceptance passes: all 168 compiler tests, 32 native tests, frontend checks and 38,272 explicitly selected native fault comparisons. Both option-off/on checked replays exactly match 1,600 native images, guest records and 4,656,051 stereo PCM frames. The enabled-mode 360-image longer route also matches native. The new fault matrix includes 5,376 conditional-call cases in addition to the existing 13,760 cases per mode. Missing and wrong option markers are verified to fail. Probe and browser reports must verify the requested option; a claimed mode without its matching marker is rejected.
 
 The immutable archive and its source patch are under `/home/claude/.scratch/eka-benchmark/predicated-leaf-candidate`. Evidence is recorded in PREDICATED_LEAVES_EVIDENCE.json. Future timing compares enabled/disabled execution in that same binary and the untouched post-merge baseline, with every sample and identical guest work retained.
+
+## First longer-route timing batch
+
+At unchanged default limits, six serial observations execute identical guest work. Each number is seconds for the same eighteen guest seconds.
+
+| Mode | First | Reverse | Mean |
+| --- | ---: | ---: | ---: |
+| control | 14.6549 | 13.4966 | 14.0757 |
+| candidate | 14.4124 | 11.1062 | 12.7593 |
+| baseline | 15.6751 | 13.3453 | 14.5102 |
+
+Both adjacent enabled/disabled comparisons favor fusion. The enabled mean is 10.3% faster in throughput than its matching control and 13.7% ahead of the untouched archive, but the candidate itself varies from 11.1062 to 14.4124 seconds. These are initial observations, not a confirmed gain. Standard-route measurement and reordered confirmation remain pending. All observations are retained; nothing is promoted.

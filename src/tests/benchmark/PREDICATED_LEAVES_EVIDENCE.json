@@ -1037,5 +1037,794 @@
     ]
   },
   "diagnostics": {},
-  "timings": {}
+  "timings": {
+    "long-a": [
+      {
+        "predicated_leaves": 0,
+        "runtime_footprint": {
+          "guest_us": 60000000,
+          "instructions": 9476989025,
+          "compiled_functions": 14345,
+          "allocated_bytes": 590130672,
+          "free_bytes": 22043040
+        },
+        "warmup_seconds": 38.940808663,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "code_write_protect": -1,
+        "code_lookup": 0,
+        "tlb_hash": 1,
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "code_compare": 2,
+        "name": "control-1",
+        "build": "/home/claude/.scratch/eka-benchmark/predicated-leaf-candidate",
+        "ir_mode": 7,
+        "eager_regions": 0,
+        "wasm_sha256": "9871807870483eda5772dc7f971b0ff22fdba06559dd6a69c0fa256c6cc4670f",
+        "loader_sha256": "1afb5d55a734021a205b65804c7cb2c8c0862a36e5b426b881878d496aed397e",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 42000000,
+          "last_virtual_us": 60000000,
+          "first_instructions": 6445351805,
+          "last_instructions": 9476989025,
+          "wall_seconds": 14.6549,
+          "presentations": 380,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "predicated_leaves": 1,
+        "runtime_footprint": {
+          "guest_us": 60000000,
+          "instructions": 9476989025,
+          "compiled_functions": 14257,
+          "allocated_bytes": 590212520,
+          "free_bytes": 21961192
+        },
+        "warmup_seconds": 35.246678175,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "code_write_protect": -1,
+        "code_lookup": 0,
+        "tlb_hash": 1,
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "code_compare": 2,
+        "name": "candidate-1",
+        "build": "/home/claude/.scratch/eka-benchmark/predicated-leaf-candidate",
+        "ir_mode": 7,
+        "eager_regions": 0,
+        "wasm_sha256": "9871807870483eda5772dc7f971b0ff22fdba06559dd6a69c0fa256c6cc4670f",
+        "loader_sha256": "1afb5d55a734021a205b65804c7cb2c8c0862a36e5b426b881878d496aed397e",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 42000000,
+          "last_virtual_us": 60000000,
+          "first_instructions": 6445351805,
+          "last_instructions": 9476989025,
+          "wall_seconds": 14.4124,
+          "presentations": 380,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "predicated_leaves": 0,
+        "runtime_footprint": {
+          "guest_us": 60000000,
+          "instructions": 9476989025,
+          "compiled_functions": 14345,
+          "allocated_bytes": 590123424,
+          "free_bytes": 20871920
+        },
+        "warmup_seconds": 36.92796,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "code_write_protect": -1,
+        "code_lookup": 0,
+        "tlb_hash": 1,
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "code_compare": 2,
+        "name": "baseline-1",
+        "build": "/home/claude/.scratch/eka-benchmark/merge-20260930-candidate",
+        "ir_mode": 7,
+        "eager_regions": 0,
+        "wasm_sha256": "7226868cbcea8c82f22baeb14423d6c09a713a24ba95ed8405782c6de8b10f70",
+        "loader_sha256": "2aa8ec63beede93151a1577230ac42c8db3d5c120d97c82ae135e5683c927c7c",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 42000000,
+          "last_virtual_us": 60000000,
+          "first_instructions": 6445351805,
+          "last_instructions": 9476989025,
+          "wall_seconds": 15.6751,
+          "presentations": 380,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "predicated_leaves": 0,
+        "runtime_footprint": {
+          "guest_us": 60000000,
+          "instructions": 9476989025,
+          "compiled_functions": 14345,
+          "allocated_bytes": 590123632,
+          "free_bytes": 20871712
+        },
+        "warmup_seconds": 30.642072871000003,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "code_write_protect": -1,
+        "code_lookup": 0,
+        "tlb_hash": 1,
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "code_compare": 2,
+        "name": "baseline-2",
+        "build": "/home/claude/.scratch/eka-benchmark/merge-20260930-candidate",
+        "ir_mode": 7,
+        "eager_regions": 0,
+        "wasm_sha256": "7226868cbcea8c82f22baeb14423d6c09a713a24ba95ed8405782c6de8b10f70",
+        "loader_sha256": "2aa8ec63beede93151a1577230ac42c8db3d5c120d97c82ae135e5683c927c7c",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 42000000,
+          "last_virtual_us": 60000000,
+          "first_instructions": 6445351805,
+          "last_instructions": 9476989025,
+          "wall_seconds": 13.3453,
+          "presentations": 380,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "predicated_leaves": 1,
+        "runtime_footprint": {
+          "guest_us": 60000000,
+          "instructions": 9476989025,
+          "compiled_functions": 14257,
+          "allocated_bytes": 590212432,
+          "free_bytes": 21961280
+        },
+        "warmup_seconds": 30.390836266,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "code_write_protect": -1,
+        "code_lookup": 0,
+        "tlb_hash": 1,
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "code_compare": 2,
+        "name": "candidate-2",
+        "build": "/home/claude/.scratch/eka-benchmark/predicated-leaf-candidate",
+        "ir_mode": 7,
+        "eager_regions": 0,
+        "wasm_sha256": "9871807870483eda5772dc7f971b0ff22fdba06559dd6a69c0fa256c6cc4670f",
+        "loader_sha256": "1afb5d55a734021a205b65804c7cb2c8c0862a36e5b426b881878d496aed397e",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 42000000,
+          "last_virtual_us": 60000000,
+          "first_instructions": 6445351805,
+          "last_instructions": 9476989025,
+          "wall_seconds": 11.1062,
+          "presentations": 380,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "predicated_leaves": 0,
+        "runtime_footprint": {
+          "guest_us": 60000000,
+          "instructions": 9476989025,
+          "compiled_functions": 14345,
+          "allocated_bytes": 590130680,
+          "free_bytes": 22043032
+        },
+        "warmup_seconds": 31.398503690000002,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "code_write_protect": -1,
+        "code_lookup": 0,
+        "tlb_hash": 1,
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "code_compare": 2,
+        "name": "control-2",
+        "build": "/home/claude/.scratch/eka-benchmark/predicated-leaf-candidate",
+        "ir_mode": 7,
+        "eager_regions": 0,
+        "wasm_sha256": "9871807870483eda5772dc7f971b0ff22fdba06559dd6a69c0fa256c6cc4670f",
+        "loader_sha256": "1afb5d55a734021a205b65804c7cb2c8c0862a36e5b426b881878d496aed397e",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 42000000,
+          "last_virtual_us": 60000000,
+          "first_instructions": 6445351805,
+          "last_instructions": 9476989025,
+          "wall_seconds": 13.4966,
+          "presentations": 380,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      }
+    ],
+    "standard-a": [
+      {
+        "predicated_leaves": 0,
+        "runtime_footprint": {
+          "guest_us": 78000000,
+          "instructions": 11957513019,
+          "compiled_functions": 14621,
+          "allocated_bytes": 590154696,
+          "free_bytes": 22019016
+        },
+        "warmup_seconds": 43.193763085,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "code_write_protect": -1,
+        "code_lookup": 0,
+        "tlb_hash": 1,
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "code_compare": 2,
+        "name": "control-1",
+        "build": "/home/claude/.scratch/eka-benchmark/predicated-leaf-candidate",
+        "ir_mode": 7,
+        "eager_regions": 0,
+        "wasm_sha256": "9871807870483eda5772dc7f971b0ff22fdba06559dd6a69c0fa256c6cc4670f",
+        "loader_sha256": "1afb5d55a734021a205b65804c7cb2c8c0862a36e5b426b881878d496aed397e",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 60000000,
+          "last_virtual_us": 78000000,
+          "first_instructions": 8980877653,
+          "last_instructions": 11957513019,
+          "wall_seconds": 13.4562,
+          "presentations": 381,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      },
+      {
+        "predicated_leaves": 1,
+        "runtime_footprint": {
+          "guest_us": 78000000,
+          "instructions": 11957513019,
+          "compiled_functions": 14532,
+          "allocated_bytes": 590310104,
+          "free_bytes": 21863608
+        },
+        "warmup_seconds": 40.439316176,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "code_write_protect": -1,
+        "code_lookup": 0,
+        "tlb_hash": 1,
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "code_compare": 2,
+        "name": "candidate-1",
+        "build": "/home/claude/.scratch/eka-benchmark/predicated-leaf-candidate",
+        "ir_mode": 7,
+        "eager_regions": 0,
+        "wasm_sha256": "9871807870483eda5772dc7f971b0ff22fdba06559dd6a69c0fa256c6cc4670f",
+        "loader_sha256": "1afb5d55a734021a205b65804c7cb2c8c0862a36e5b426b881878d496aed397e",
+        "measurement": {
+          "detailed": false,
+          "capture_mode": 2,
+          "first_virtual_us": 60000000,
+          "last_virtual_us": 78000000,
+          "first_instructions": 8980877653,
+          "last_instructions": 11957513019,
+          "wall_seconds": 11.5099,
+          "presentations": 381,
+          "aot_dispatches": 0,
+          "aot_instructions": 0,
+          "compiled_runner_calls": 0,
+          "ram_aot_dispatches": 0,
+          "ram_blocks_compiled": 0,
+          "decoded_instructions": 0,
+          "cache_hits": 0,
+          "cache_misses": 0,
+          "cache_clears": 0,
+          "context_loads": 0,
+          "code_version_hits": 0,
+          "code_byte_checks": 0,
+          "code_epoch_hits": 0,
+          "imb_calls": 0,
+          "scopes": {
+            "cpu_loop": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "cpu_run": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "timers": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "scheduler": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_dispatch": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "graphics_wait": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "display_hook": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "readback": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "frame_capture": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "png_encode": {
+              "seconds": 0,
+              "calls": 0
+            },
+            "audio": {
+              "seconds": 0,
+              "calls": 0
+            }
+          }
+        }
+      }
+    ]
+  }
 }
