@@ -1,5 +1,5 @@
 {
-  "status": "All 32 site-limit observations retained; interpretation and counters pending; no deployment.",
+  "status": "32 timing observations retained; no site-limit promotion. Instrumented correctness and census/module analysis running.",
   "archive_path": "/home/claude/.scratch/eka-benchmark/branch-veneer-candidate",
   "archive": {
     "base": "871c89a38d9b5f3512d2663bca9efcb4f18b9f0a",
@@ -42380,6 +42380,74 @@
           ]
         }
       }
+    }
+  },
+  "decision": {
+    "promote": false,
+    "reason": "Neither changed bound improves matching-control batch means on either route. Four sites loses seven of eight half-pairs; sixteen sites loses five of eight, with opposing pairs in three batches. Eight remains the current useful tested bound, not a global optimum.",
+    "limits_unchanged": [
+      512,
+      16,
+      8,
+      512
+    ]
+  },
+  "telemetry_summary": {
+    "long-a": {
+      "samples": 184,
+      "observer_ms_median": 8.590331999585032,
+      "observer_ms_max": 14.121207990683615,
+      "all_policy_frequency_khz_min_max": [
+        800000,
+        4303990
+      ],
+      "package_millidegrees_min_max": [
+        49000,
+        85000
+      ],
+      "watched_foreign_jobs": 0
+    },
+    "long-b": {
+      "samples": 185,
+      "observer_ms_median": 8.430602989392355,
+      "observer_ms_max": 15.924169012578204,
+      "all_policy_frequency_khz_min_max": [
+        799983,
+        4313319
+      ],
+      "package_millidegrees_min_max": [
+        49000,
+        88000
+      ],
+      "watched_foreign_jobs": 0
+    },
+    "standard-a": {
+      "samples": 226,
+      "observer_ms_median": 8.63732500874903,
+      "observer_ms_max": 34.83234002487734,
+      "all_policy_frequency_khz_min_max": [
+        800000,
+        4303300
+      ],
+      "package_millidegrees_min_max": [
+        49000,
+        91000
+      ],
+      "watched_foreign_jobs": 0
+    },
+    "standard-b": {
+      "samples": 226,
+      "observer_ms_median": 8.576704494771548,
+      "observer_ms_max": 19.918903009966016,
+      "all_policy_frequency_khz_min_max": [
+        800000,
+        4309117
+      ],
+      "package_millidegrees_min_max": [
+        49000,
+        87000
+      ],
+      "watched_foreign_jobs": 0
     }
   }
 }

@@ -37,3 +37,11 @@ All 32 observations are retained. Values are mean elapsed seconds for identical 
 - standard b, sites16: vs control8: -0.98% throughput; half-pairs -1.14% / -0.81%; vs baseline: +5.25% throughput; half-pairs +0.15% / +10.40%.
 
 Pairs associate corresponding halves and are not all adjacent. Host observers detect watched competing jobs, not all host activity. Startup includes guest work and is not isolated compilation time. These timings do not establish an optimum outside the tested range. Diagnostic cost counters and any normal/live/audio delivery checks remain separate.
+
+## Timing decision
+
+Neither changed bound earns promotion. Four sites loses all four matching-control batch means and seven of eight corresponding-half comparisons; sixteen sites loses all four means and five of eight comparisons. Sixteen's apparent standard-route lead over the older live archive is not a marginal gain over eight in the same binary, and slow live controls contribute to that difference. All slow samples remain. Eight is the useful retained bound in this tested configuration; these observations do not establish a global optimum or settle the separate source, leaf and runner limits.
+
+No watched foreign benchmark job was observed. Passive frequency/temperature ranges and observer costs are retained in `telemetry_summary`, covering startup, warmup and measurement together. They are not assigned to individual measured windows and do not prove a thermal cause for slow runs. No sample is excluded or normalized.
+
+The separately gated instrumented census and module captures continue to measure the structural tradeoff. Diagnostic timings cannot reverse this no-promotion decision.
