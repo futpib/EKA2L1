@@ -8,7 +8,7 @@ import subprocess
 parser = argparse.ArgumentParser(__doc__)
 parser.add_argument('archive', type=Path)
 parser.add_argument('output', type=Path)
-parser.add_argument('--unsafe-code',type=int,choices=(0,1,2,3))
+parser.add_argument('--unsafe-code',type=int,choices=(0,1,2,3),default=3)
 parser.add_argument('--leaf-features',type=int,choices=range(256))
 parser.add_argument('--literal-pc-veneers',action='store_true',help='Include runtime literal LDR-PC veneer fixture (requires a matching archive)')
 parser.add_argument('--tail-prefixes',action='store_true',help='Include register-prefix tail-branch fixture (requires an archive containing it)')

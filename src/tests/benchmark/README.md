@@ -111,3 +111,23 @@ build `eka_cpu_fault_native` in `build` and `eka_cpu_fault_wasm` in `build-wasm`
 after compiler/runtime changes. Record the source state and executable hashes
 before claiming candidate-specific results. See
 [the rebuild commands and provenance audit](FAULT_PROBE_REBUILD_AUDIT.md).
+
+## WASM executable-byte policy
+
+WASM and the ordinary browser launcher default to `EKA2L1_UNSAFE_CODE=3`:
+loaded executable bytes are trusted until their mapping/image is retired or
+replaced. Primary and inlined-dependency byte scans, generated code-write overlap
+guards, code-overlap entry-proof checks and mutation tracking are omitted.
+This deliberately does not support runtime self-modifying executable code.
+Mapping/lifetime handling, address translation, access permissions, faults,
+instruction budgets, interrupts and guest scheduling remain unchanged.
+
+Set `EKA2L1_UNSAFE_CODE=0` before startup for mutation-compatible execution and
+reference comparisons. Modes 1 (scan removal only) and 2 (guard removal only)
+remain available for attribution. The launcher and browser harnesses report the
+actual selected mode and reject unsupported or mismatched configuration. Native
+execution retains its existing default. Mutation tests explicitly select mode 0;
+separate counterexamples document the stale-code behavior of modes 1/2/3.
+See `UNSAFE_CODE_RESULTS.md` and `UNSAFE_CODE_ATTRIBUTION_RESULTS.md` for the
+historical measurements; their diagnostic-only disposition is superseded by the
+user-authorized mode-3 default rollout.

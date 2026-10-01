@@ -10,10 +10,15 @@ namespace eka2l1::common::code_tracking {
     // Research mode is frozen before CPU startup; supported only in the
     // write-protection build. Interpreted/helper writes retain their barriers.
     inline bool protect_writes = false;
-    // Deliberately unsafe research setting, frozen before CPU initialization.
+    // Executable-byte policy, frozen before CPU initialization. WASM trusts
+    // loaded code by default; mode 0 restores mutation-compatible execution.
     // 1: trust instruction bytes; 2: omit code-write guards; 3: both, including
     // all mutation tracking. Mapping/lifetime invalidation remains independent.
+#ifdef __EMSCRIPTEN__
+    inline unsigned unsafe_code_mode = 3;
+#else
     inline unsigned unsafe_code_mode = 0;
+#endif
     inline bool skip_code_scans() { return (unsafe_code_mode & 1) != 0; }
     inline bool skip_code_write_guards() { return (unsafe_code_mode & 2) != 0; }
     inline bool skip_mutation_tracking() { return unsafe_code_mode == 3; }

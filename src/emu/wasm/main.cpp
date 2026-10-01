@@ -254,8 +254,8 @@ int eka2l1_code_lookup_configure(int mode) {
     return 0;
 }
 
-// No live launcher selects this deliberately unsafe diagnostic. A selected
-// mode is immutable once CPU initialization begins, including on worker threads.
+// WASM defaults to mode 3 (immutable executable bytes); explicit mode 0
+// restores mutation compatibility. The selection is frozen at CPU initialization.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_unsafe_code_configure(int mode) {
     if (g_state || mode < 0 || mode > 3) return -1;

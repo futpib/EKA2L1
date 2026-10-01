@@ -5412,6 +5412,16 @@ static bool test_unsafe_code_diagnostic() {
 }
 
 int main(int argc, char **argv) {
+#ifdef __EMSCRIPTEN__
+    if (eka2l1::common::code_tracking::unsafe_code_mode != 3) {
+        printf("FAIL WASM executable-byte default must be 3\n"); return 1;
+    }
+    printf("TEST_UNSAFE_CODE_DEFAULT 3\n");
+#endif
+    // This suite exercises precise code mutation semantics. Select that policy
+    // explicitly; test_unsafe_code_diagnostic separately tests all four modes
+    // and their intentional stale-code behavior.
+    eka2l1::common::code_tracking::unsafe_code_mode = 0;
     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
     if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--tail-prefixes-only")return test_tail_prefixes()?0:1;

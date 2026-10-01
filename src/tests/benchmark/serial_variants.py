@@ -139,7 +139,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         env.pop('EKA2L1_AOT_IR_MODE', None)
         if name in modes:
             env['EKA2L1_AOT_IR_MODE'] = str(modes[name])
-        env['EKA2L1_UNSAFE_CODE']=str(unsafe_modes.get(name,0))
+        env['EKA2L1_UNSAFE_CODE']=str(unsafe_modes.get(name,3))
         env['EKA2L1_LEAF_FEATURES']=str(features.get(name,0))
         env['EKA2L1_PREDICATED_LEAVES'] = str(predicates.get(name,0))
         env['EKA2L1_EXECUTION_LIMITS'] = ','.join(map(str,limits.get(name,[512,16,8,512])))
@@ -150,7 +150,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
                            cwd=root / 'src/tests/wasm', env=env, stdout=log,
                            stderr=subprocess.STDOUT, timeout=1800, check=True)
         report = json.loads((output / 'report.json').read_text())
-        if report.get('unsafe_code') != unsafe_modes.get(name,0):raise RuntimeError('Wrong unsafe code mode')
+        if report.get('unsafe_code') != unsafe_modes.get(name,3):raise RuntimeError('Wrong unsafe code mode')
         if report.get('leaf_features') != features.get(name,0):raise RuntimeError('Wrong leaf feature mask')
         if report.get('predicated_leaves') != predicates.get(name,0):
             raise RuntimeError('Wrong leaf predication mode')

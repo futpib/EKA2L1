@@ -21,7 +21,9 @@ if (![-1,0,1].includes(codeLookup)) throw new Error('Invalid code lookup policy'
 const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
 if (![-1,0,1,2,3,4].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
 const exitCensus = process.env.EKA2L1_EXIT_CENSUS === '1';
-const unsafeCode=Number(process.env.EKA2L1_UNSAFE_CODE || '0');
+const unsafeText=process.env.EKA2L1_UNSAFE_CODE ?? '3';
+if(!/^[0123]$/.test(unsafeText))throw Error('Invalid unsafe code mode');
+const unsafeCode=Number(unsafeText);
 if(![0,1,2,3].includes(unsafeCode))throw Error('Invalid unsafe code mode');
 const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES || '0');
 if(!Number.isInteger(leafFeatures) || leafFeatures<0 || leafFeatures>255)throw Error('Invalid leaf feature mask');
@@ -123,6 +125,7 @@ try {
       if(g.Module.ccall('eka2l1_leaf_predication_report','number',[],[])!==predicatedLeaves)throw Error('Leaf predication was not applied');
     } else if(predicatedLeaves)throw Error('Leaf predication API unavailable');
     if(typeof g.Module._eka2l1_unsafe_code_configure==='function') {
+      g.unsafeCodeInitial=g.Module.ccall('eka2l1_unsafe_code_report','number',[],[]);
       call('eka2l1_unsafe_code_configure',['number'],[unsafeCode]);
       const actual=g.Module.ccall('eka2l1_unsafe_code_report','number',[],[]);
       if(actual!==unsafeCode)throw Error('Unsafe code mode was not applied');
@@ -218,7 +221,7 @@ try {
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
+    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');
 } finally {
   await browser?.close();

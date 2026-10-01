@@ -192,6 +192,11 @@
                 var sisInput = document.getElementById('sis-file');
                 var appName = document.getElementById('app-name').value;
 
+                // The runtime defaults to immutable executable bytes (mode 3).
+                // A launcher can select compatibility mode 0 before initialization.
+                window.ekaUnsafeCode = Module.ccall('eka2l1_unsafe_code_report', 'number', [], []);
+                if (![0,1,2,3].includes(window.ekaUnsafeCode))
+                    throw new Error('Executable-byte policy readback failed');
                 // Live play uses the same virtual clock and compiled CPU as replay.
                 if (Module.ccall('eka2l1_live_configure', 'number', [], []) !== 0)
                     throw new Error('Live configuration failed');

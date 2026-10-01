@@ -10,11 +10,11 @@ process.env.EKA2L1_WASM_BUILD_DIR = temp;
 const { startServer, compilerPolicyFromEnv } = await import('./server.ts');
 const servers: any[] = [];
 try {
-  for (const name of ['EKA2L1_AOT_IR_MODE','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_TLB_HASH','EKA2L1_CODE_COMPARE','EKA2L1_CODE_LOOKUP','EKA2L1_PREDICATED_LEAVES','EKA2L1_LEAF_FEATURES','EKA2L1_EXECUTION_LIMITS']) delete process.env[name];
-  assert.equal(compilerPolicyFromEnv(), undefined);
+  for (const name of ['EKA2L1_AOT_IR_MODE','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_TLB_HASH','EKA2L1_CODE_COMPARE','EKA2L1_CODE_LOOKUP','EKA2L1_PREDICATED_LEAVES','EKA2L1_LEAF_FEATURES','EKA2L1_EXECUTION_LIMITS','EKA2L1_UNSAFE_CODE']) delete process.env[name];
+  assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3});
   for (const mode of [0,1,2,3,4]) {
     process.env.EKA2L1_CODE_COMPARE = String(mode);
-    assert.deepEqual(compilerPolicyFromEnv(), {codeCompare:mode});
+    assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,codeCompare:mode});
   }
   for (const value of ['-1','5','2.0','NaN','']) {
     process.env.EKA2L1_CODE_COMPARE = value;
@@ -23,7 +23,7 @@ try {
   delete process.env.EKA2L1_CODE_COMPARE;
   for (const mode of [0,1]) {
     process.env.EKA2L1_CODE_LOOKUP = String(mode);
-    assert.deepEqual(compilerPolicyFromEnv(), {codeLookup:mode});
+    assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,codeLookup:mode});
   }
   for (const value of ['-1','2','1.0','NaN','']) {
     process.env.EKA2L1_CODE_LOOKUP = value;
@@ -31,7 +31,7 @@ try {
   }
   delete process.env.EKA2L1_CODE_LOOKUP;
   process.env.EKA2L1_AOT_IR_MODE = '16';
-  assert.deepEqual(compilerPolicyFromEnv(), {irMode:16});
+  assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,irMode:16});
   process.env.EKA2L1_AOT_IR_MODE = '17';
   assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);
   delete process.env.EKA2L1_AOT_IR_MODE;
@@ -72,20 +72,21 @@ try {
   for (const invalid of [-1,5,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeCompare:invalid}}),/Invalid compiler policy/);
   for (const invalid of [-1,2,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeLookup:invalid}}),/Invalid compiler policy/);
   for (const [envName,key,valid,invalid] of [
+    ['EKA2L1_UNSAFE_CODE','unsafeCode',['0','1','2','3'],['','4','-1','3.0']],
     ['EKA2L1_PREDICATED_LEAVES','predicatedLeaves',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_LEAF_FEATURES','leafFeatures',['0','1','7','8','15','16','24','31','32','63','64','127','128','255'],['','256','-1','8.0','08']],
     ['EKA2L1_EXECUTION_LIMITS','executionLimits',['512,16,8,512','128,1,0,0','2048,64,16,4096'],['512,0,8,512','127,16,8,512','130,16,8,512','2049,16,8,512','512,65,8,512','512,16,17,512','512,16,8,4097','512,16,8,-1','512,16,8,0,0','0512,16,8,512','512,16,8,NaN','']]
   ] as const) {
     for (const value of valid) {
       process.env[envName] = value;
-      assert.deepEqual(compilerPolicyFromEnv(), {[key]:key === 'executionLimits' ? value.split(',').map(Number) : Number(value)});
+      assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,[key]:key === 'executionLimits' ? value.split(',').map(Number) : Number(value)});
     }
     for (const value of invalid) { process.env[envName] = value; assert.throws(compilerPolicyFromEnv, /Invalid .* policy/); }
     delete process.env[envName];
   }
   const fusionEtags: (string|null)[] = [];
   for (const policy of [
-    {predicatedLeaves:1,leafFeatures:0,executionLimits:[512,16,8,512]},
+    ...[0,1,2,3].map(unsafeCode=>({unsafeCode,predicatedLeaves:1,leafFeatures:0,executionLimits:[512,16,8,512]})),
     {predicatedLeaves:1,leafFeatures:8,executionLimits:[512,16,8,512]},
     {predicatedLeaves:1,leafFeatures:32,executionLimits:[512,16,8,512]},
     {predicatedLeaves:1,leafFeatures:64,executionLimits:[512,16,8,512]},
@@ -97,9 +98,9 @@ try {
     const response=await fetch(`http://127.0.0.1:${port}/`);fusionEtags.push(response.headers.get('etag'));
     const html=await response.text();
     const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('window.ekaCompilerPolicy ='))!;
-    const entries=['leaf_predication','leaf_features','execution_limits'];
-    const values=[policy.predicatedLeaves,policy.leafFeatures,policy.executionLimits.join(',')];
-    for (const failure of ['none','missing-config','reject-config','missing-report','wrong-report']) for (const target of failure==='none'?[0]:[0,1,2]) {
+    const entries=['leaf_predication','leaf_features','execution_limits',...('unsafeCode' in policy?['unsafe_code']:[])];
+    const values=[policy.predicatedLeaves,policy.leafFeatures,policy.executionLimits.join(','),...('unsafeCode' in policy?[policy.unsafeCode]:[])];
+    for (const failure of ['none','missing-config','reject-config','missing-report','wrong-report']) for (const target of failure==='none'?[0]:entries.map((_,i)=>i)) {
       const configured: Record<string,number[]>={};let starts=0;
       const exports=entries.flatMap(name=>['configure','report'].map(suffix=>'eka2l1_'+name+'_'+suffix));
       const absent='eka2l1_'+entries[target]+(failure==='missing-config'?'_configure':'_report');
@@ -117,7 +118,7 @@ try {
         await vm.runInContext('startEmulator()',context);
         assert.equal(context.window.ekaCompilerPolicy.applied,true);
         assert.deepEqual(JSON.parse(JSON.stringify(context.window.ekaCompilerPolicy.observed)),policy);
-        assert.deepEqual(configured,{eka2l1_leaf_predication_configure:[policy.predicatedLeaves],eka2l1_leaf_features_configure:[policy.leafFeatures],eka2l1_execution_limits_configure:policy.executionLimits});
+        assert.deepEqual(configured,{eka2l1_leaf_predication_configure:[policy.predicatedLeaves],eka2l1_leaf_features_configure:[policy.leafFeatures],eka2l1_execution_limits_configure:policy.executionLimits,...('unsafeCode' in policy?{eka2l1_unsafe_code_configure:[policy.unsafeCode]}:{})});
         await vm.runInContext('startEmulator()',context);assert.equal(starts,2);
       } else {
         await assert.rejects(vm.runInContext('startEmulator()',context),/Emulator compiler (configuration failed|readback unavailable|readback mismatch)/);
@@ -127,7 +128,7 @@ try {
   }
   assert.equal(new Set(fusionEtags).size,fusionEtags.length);
   for(const invalid of [
-    {predicatedLeaves:2},{leafFeatures:256},{leafFeatures:NaN},{leafFeatures:1.5},
+    {unsafeCode:4},{unsafeCode:-1},{unsafeCode:NaN},{predicatedLeaves:2},{leafFeatures:256},{leafFeatures:NaN},{leafFeatures:1.5},
     {executionLimits:[512,0,8,512]},{executionLimits:[512,16,8,-1]},{executionLimits:[512,16,8,4097]},
     {executionLimits:[512,16,8]},{executionLimits:'512,16,8,512'}
   ]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:invalid as any}),/Invalid compiler policy/);
