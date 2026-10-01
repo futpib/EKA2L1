@@ -57,3 +57,25 @@ Before timing starts, the quiet-host observer also waits for compiler, build and
 ## Correctness acceptance
 
 Caps 64 and zero each pass 40,640 explicitly selected native instruction-fault comparisons (81,280 fresh comparisons total), exact 1,600-image standard and 360-image longer replays, including guest records and 4,656,051 / 2,832,756 stereo PCM frames. All replays verify actual limits, feature policy and archive hash. The same archive's 173-test suite, including 270 actual-runner cases, and cap-512 control evidence are reused with attribution. Standalone fault comparisons do not replace actual-runner tests. Timing and any live/audio graduation remain pending.
+
+## Serial runner-limit timing
+
+All 32 observations are retained. Values are mean elapsed seconds for identical guest work within each route; lower is faster. Each batch mirrors its first half, with a two-position rotation in batch B. The untouched live archive is separate from the matching binary control.
+
+| Route/batch | 512 regions matching | 64 regions | Uncapped | Live archive |
+| --- | ---: | ---: | ---: | ---: |
+| long a | 11.6859 | 11.2894 | 11.2574 | 11.7975 |
+| long b | 11.2818 | 12.7374 | 11.6691 | 12.2812 |
+| standard a | 11.2317 | 11.6730 | 12.2647 | 11.4369 |
+| standard b | 12.1064 | 11.5310 | 11.1660 | 11.7951 |
+
+- long a, cap64: vs control512: +3.51% throughput; half-pairs -0.10% / +7.14%; vs baseline: +4.50% throughput; half-pairs -0.91% / +9.93%.
+- long a, uncapped: vs control512: +3.81% throughput; half-pairs -0.85% / +8.58%; vs baseline: +4.80% throughput; half-pairs -1.65% / +11.40%.
+- long b, cap64: vs control512: -11.43% throughput; half-pairs -9.26% / -13.53%; vs baseline: -3.58% throughput; half-pairs -2.05% / -5.06%.
+- long b, uncapped: vs control512: -3.32% throughput; half-pairs +1.84% / -8.05%; vs baseline: +5.25% throughput; half-pairs +9.92% / +0.96%.
+- standard a, cap64: vs control512: -3.78% throughput; half-pairs -1.26% / -6.19%; vs baseline: -2.02% throughput; half-pairs -1.46% / -2.56%.
+- standard a, uncapped: vs control512: -8.42% throughput; half-pairs -10.04% / -6.74%; vs baseline: -6.75% throughput; half-pairs -10.23% / -3.13%.
+- standard b, cap64: vs control512: +4.99% throughput; half-pairs +10.16% / -0.42%; vs baseline: +2.29% throughput; half-pairs +6.51% / -2.12%.
+- standard b, uncapped: vs control512: +8.42% throughput; half-pairs +16.17% / +0.66%; vs baseline: +5.63% throughput; half-pairs +12.31% / -1.06%.
+
+Pairs associate corresponding halves and are not all adjacent. Host observers detect watched competing jobs, not all host activity. Startup includes guest work and is not isolated compilation time. These timings do not establish an optimum outside the tested range. Diagnostic cost counters and any normal/live/audio delivery checks remain separate.
