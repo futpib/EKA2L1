@@ -99,6 +99,8 @@ try {
   const appliedPolicy = await page.evaluate(() => (window as any).ekaCompilerPolicy ?? null);
   if (compilerPolicy && (!appliedPolicy?.applied || JSON.stringify(appliedPolicy.requested) !== JSON.stringify(compilerPolicy)))
     throw new Error('Live run did not apply the requested compiler policy');
+  const unsafeCode = await page.evaluate(() => (window as any).Module._eka2l1_unsafe_code_report());
+  if (unsafeCode !== compilerPolicy.unsafeCode) throw Error('Live executable-byte mode mismatch');
   if (audioEnabled) {
     await page.click('#btn-sound');
     await page.waitForFunction(() => (window as any).EkaAudio.context?.state === 'running' && !(window as any).EkaAudio.muted);
@@ -187,7 +189,7 @@ try {
   if (audioEnabled && !await page.evaluate(() => !(window as any).EkaAudio.context && !(window as any).EkaAudio.timer)) throw Error('Audio shutdown failed');
   if (errors.length) throw new Error(errors.join('\n'));
   fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({start,end,host_seconds:elapsed,audio,audio_continuity:audioContinuity,audio_start:audioStart,
-    resources:{startup:startupResources,final:finalResources}, compiler_policy:appliedPolicy, auto_start:autoStart, sampling:!!profileStart, profile_window:{begin:profileBegin,end:profileFinish},
+    resources:{startup:startupResources,final:finalResources}, compiler_policy:appliedPolicy, unsafe_code:unsafeCode, auto_start:autoStart, sampling:!!profileStart, profile_window:{begin:profileBegin,end:profileFinish},
     measurement:profileBegin ? {first_virtual_us:profileBegin.guest,last_virtual_us:profileFinish.guest,wall_seconds:profileFinish.host_seconds-profileBegin.host_seconds} : null,
     renderer:'See gpu.json for physical GPU details',
     realtime_ratio:(end.guest-start.guest)/1e6/elapsed, input_delivery_ms:latencies, samples,

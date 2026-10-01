@@ -56,11 +56,12 @@ try {
         saved.push({ url: request.url, bytes: Number(response!.headers.get('content-length')) });
       }
       return { secure: isSecureContext, isolated: crossOriginIsolated, saved, urls: w.ekaAssetUrls,
-        policy: w.ekaCompilerPolicy, guest: w.Module._eka2l1_guest_time_us() };
+        policy: w.ekaCompilerPolicy, unsafeCode:w.Module._eka2l1_unsafe_code_report(), guest: w.Module._eka2l1_guest_time_us() };
     });
     if (!state.secure || !state.isolated || !state.policy?.applied) throw Error('Launch/security/policy');
     if (expectedPolicy && JSON.stringify(state.policy.requested) !== JSON.stringify(expectedPolicy))
       throw Error('Wrong compiler policy after cached launch');
+    if(state.unsafeCode !== expectedPolicy.unsafeCode) throw Error('Wrong active executable-byte mode after cached launch');
     const expectedWasm = process.env.EKA2L1_EXPECT_WASM_SHA256;
     if (expectedWasm && new URL(state.urls['/eka2l1.wasm'], url).searchParams.get('v') !== expectedWasm)
       throw Error('Cached launcher selected the wrong WASM version');

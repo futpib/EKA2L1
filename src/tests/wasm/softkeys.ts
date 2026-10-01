@@ -16,6 +16,7 @@ try {
  await page.setViewport({width:900,height:760,hasTouch:true});await page.goto(target,{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>window._gameRunning,{timeout:180000});
  const compilerPolicy=await page.evaluate(()=>window.ekaCompilerPolicy);if(!compilerPolicy?.applied || JSON.stringify(compilerPolicy.requested)!==JSON.stringify(expectedPolicy))throw Error('Wrong served compiler policy');
+ const unsafeCode=await page.evaluate(()=>Module._eka2l1_unsafe_code_report());if(unsafeCode!==expectedPolicy.unsafeCode)throw Error('Wrong active executable-byte mode');
  const security=await page.evaluate(()=>({secure:isSecureContext,isolated:crossOriginIsolated}));if(!security.secure||!security.isolated)throw Error('Context isolation');
  for(let t=2000000;t<=20000000;t+=2000000){await page.waitForFunction(t=>Module._eka2l1_guest_time_us()>=t,{timeout:120000},t);await page.keyboard.press('Enter',{delay:50});}
  await page.waitForFunction(()=>Module._eka2l1_guest_time_us()>=23000000,{timeout:120000});
@@ -51,5 +52,5 @@ try {
  const canvasSamples=[];for(let i=0;i<12;i++){const bytes=await(await page.$('#canvas')).screenshot();const pixels=png.PNG.sync.read(Buffer.from(bytes)).data;const colors=new Set();for(let j=0;j<pixels.length;j+=4)colors.add((pixels[j]<<16)|(pixels[j+1]<<8)|pixels[j+2]);canvasSamples.push(colors.size);await new Promise(r=>setTimeout(r,250));}
  const audio=await page.evaluate(()=>({state:EkaAudio.context.state,stats:EkaAudio.stats,rate:EkaAudio.context.sampleRate}));if(!audio.stats.nonzero || audio.stats.dropped || audio.stats.underruns)throw Error('LAN audio continuity');
  await page.evaluate(()=>{window._gameRunning=false;Module._eka2l1_shutdown();});if(errors.length)throw Error(errors.join('\n'));
- fs.writeFileSync(out+'/report.json',JSON.stringify({target,softkeys,compilerPolicy,security,audio,first,second,last,canvasSamples,errors,browser:await browser.version()},null,2));console.log('PASS softkeys open/resume the game menu; gesture audio, mute/unmute, keyboard/touch, layout and shutdown');
+ fs.writeFileSync(out+'/report.json',JSON.stringify({target,softkeys,compilerPolicy,unsafeCode,security,audio,first,second,last,canvasSamples,errors,browser:await browser.version()},null,2));console.log('PASS softkeys open/resume the game menu; gesture audio, mute/unmute, keyboard/touch, layout and shutdown');
 } finally {await browser.close();local?.server.close();}
