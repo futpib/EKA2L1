@@ -3,8 +3,11 @@
   "firmware": "5.0719.0.2",
   "language_image": "N80_rofx_5.0719.0.2-prd.V05",
   "machine_uid": "0x200005f9",
-  "screen": [352, 416],
-  "status": "Device installation succeeds; Snakes gameplay fails in the tested emulator build",
+  "screen": [
+    352,
+    416
+  ],
+  "status": "Snakes UID 0x2000730F passes native gameplay and audio at 352x416 output; unmodified game doubles 176x208 pixels",
   "source": {
     "filename": "Nokia_N80_RM-92_0542699_5.0719.0.2_V001.zip",
     "url": "https://androiddatahost.com/tryu5",

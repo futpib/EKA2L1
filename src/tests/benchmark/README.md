@@ -46,8 +46,10 @@ Retrieve using `ipfs cat CID > filename` with a running IPFS node. The old `@fut
 The experimental [Nokia N80 assets](N80_ASSETS.md) use the same ROM/RPKG convention
 with separate CIDs and a reproducible firmware converter. Select their manifest
 using `--asset-manifest src/tests/benchmark/n80-assets.json`. Device installation
-passes, but Snakes gameplay fails in the tested build; these are not the default
-reference assets.
+and deterministic Snakes gameplay/audio pass in the native build. The game selects
+a doubled 176×208 image on the 352×416 display; see the N80 notes for the rendering
+limit. These are not the default reference assets. The runner launches SIS game
+UID `0x2000730F` explicitly because N80 also bundles another game named Snakes.
 
 ## Browser build and comparison
 

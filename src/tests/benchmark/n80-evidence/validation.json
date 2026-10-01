@@ -89,5 +89,8 @@
         }
       ]
     }
-  }
+  },
+  "game_uid": "0x10208A45",
+  "game_executable": "6r45_1.exe",
+  "launch_warning": "Historical --run Snakes selected the ROM-bundled game, not the installed SIS. Use UID 0x2000730F for the benchmark."
 }

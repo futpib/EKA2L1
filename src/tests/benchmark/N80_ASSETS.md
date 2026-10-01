@@ -7,9 +7,38 @@ CIDs, SHA-256 hashes, sizes and source archive are recorded in
 
 The pair installs successfully as **Nokia N80 (05), RM-92, Symbian 9.1** with
 machine UID `0x200005f9`. Its original `wsini.ini` declares 352×416 portrait and
-416×352 landscape modes. The tested Snakes SIS **does not reach gameplay in the
-tested emulator build**: it encounters unimplemented system calls and panics.
-These assets are available for compatibility work, not a passing N80 benchmark.
+416×352 landscape modes. The tested Snakes SIS now **passes native gameplay and
+audio validation** after the Symbian 9.1 compatibility fixes below. The default
+game renders 176×208 and doubles both axes for the 352×416 display: this is a
+larger output image, but less rendering detail than the 5320's 240×320 mode.
+
+![Snakes running on N80](n80-evidence/gameplay-352x416.png)
+
+## Working native runtime
+
+The runtime includes upstream Symbian 9.1 support plus these corrections:
+
+- Enable the 9.1 screen-driver and audio-output-stream replacement mappings.
+  The audio mapping stops at the exports available in the N80 library.
+- Decode 9.1 Central Repository searches as four arguments: partial key, mask,
+  comparison value, and result descriptor. Later versions pack the filter into
+  a descriptor and reserve the fourth slot for a subsession handle. Reading
+  the newer layout on N80 broke the CommsDat lookup during game initialization.
+- Use screen zero for the old zero-length supported-colour-modes request.
+- Launch the installed game by UID `0x2000730F` (`6r45_1b.exe`). N80 already
+  includes another Snakes, UID `0x10208A45` (`6r45_1.exe`), which an ambiguous
+  `--run Snakes` selected before this correction.
+
+Two fresh 60-frame runs matched every pixel, guest timestamp, audio event, and
+PCM byte. Gameplay averaged 21.22 frames per virtual second, with 60 distinct
+scene captures and non-silent audio. The unchanged 5320 assets also passed a
+60-frame gameplay/audio regression. The native unit suite passed 330 cases and
+28,873 assertions. See [runtime evidence](n80-evidence/gameplay.json).
+
+All 60 N80 images consist of exact repeated 2×2 pixel blocks. The installed
+game explicitly recognizes 352×416 and chooses a doubled presentation mode.
+These results establish native-emulator compatibility; they do not establish
+a browser build or higher-detail rendering from the unmodified game.
 
 ## Pin and retrieve
 
@@ -68,7 +97,11 @@ The extraction procedure follows EKA2L1's ROM/ROFS layouts and the
 The repository converter independently reproduced the same ROM and RPKG hashes
 as the initial extraction and packaging.
 
-## Emulator validation, 2026-10-01
+## Original failed launch, 2026-10-01
+
+This historical test launched the ROM-bundled `6r45_1.exe`, not the installed
+SIS. Its evidence is retained to distinguish the earlier failure from the
+passing benchmark above. The current runner uses the installed game's UID.
 
 The native executable was frozen from an existing WASM-development checkout:
 embedded version `wasm-port-25792310e`, SHA-256
@@ -86,7 +119,7 @@ python3 src/tests/benchmark/run_native.py \
   --frames 60 --repeat 1 --timeout 180
 ```
 
-Device installation succeeds. The ordinary replay captures zero gameplay frames
+Before the compatibility fixes, device installation succeeded. The replay captured zero gameplay frames
 before failure. A diagnostic run with `--start-us 0 --all-presentations` captured
 one 352×416 startup image at virtual time 149,994 µs, then encountered the same
 failure. The image contains a partial background, not gameplay.

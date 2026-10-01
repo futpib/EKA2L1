@@ -924,7 +924,7 @@ namespace eka2l1::epoc {
     }
 
     void window_server_client::get_color_mode_list(service::ipc_context &ctx, ws_cmd &cmd) {
-        std::int32_t screen_num = *reinterpret_cast<std::int32_t *>(cmd.data_ptr);
+        const std::int32_t screen_num = (cmd.header.cmd_len == 0) ? 0 : *reinterpret_cast<std::int32_t *>(cmd.data_ptr);
         epoc::screen *scr = get_ws().get_screen(screen_num);
 
         if (!scr) {

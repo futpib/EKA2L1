@@ -107,7 +107,8 @@ def main():
         frames = directory / 'frames'
         frames.mkdir()
         env.update(XDG_DATA_HOME=str(directory / 'state/data'), XDG_CONFIG_HOME=str(directory / 'state/config'))
-        code, elapsed = run([a.binary, '--install', a.assets / 'Snakes.sis', '--run', 'Snakes',
+        # N80 firmware also registers a different built-in game named Snakes.
+        code, elapsed = run([a.binary, '--install', a.assets / 'Snakes.sis', '--run', '0x2000730F',
                              '--dump-frames', frames], env, directory / 'run.log', a.timeout)
         if code:
             raise RuntimeError(f'Run {i} exited {code}; see {directory}/run.log')

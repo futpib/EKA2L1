@@ -1,0 +1,122 @@
+{
+  "date": "2026-10-01",
+  "runtime_base": "d3e0ab73a",
+  "game_uid": "0x2000730F",
+  "game_executable": "6r45_1b.exe",
+  "output_resolution": [
+    352,
+    416
+  ],
+  "pixel_doubling": {
+    "every_2x2_block_identical": true,
+    "effective_resolution": [
+      176,
+      208
+    ]
+  },
+  "n80": {
+    "report": {
+      "shared_audio": false,
+      "git_head": "1b3d85ae660292d3b858792cb25f64e1b812f41a",
+      "dirty_worktree": true,
+      "binary_sha256": "fcb68d8355ce03e908f379de002f447adbfa0660af4efb48ffd49089eaab33c7",
+      "assets": {
+        "SYM.ROM": "99fc5d84bc66a4dfa00f66a967dcd817e344c9ac7eb7ee6124d40b1e75278698",
+        "SYM.RPKG": "be82cd991db95e2e9128b48dc7b9618f653813ec864c63db1952821de2178be0",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "frames": 60,
+      "start_us": 21000000,
+      "unique": true,
+      "runs": [
+        {
+          "wall_seconds": 25.31190969099407,
+          "last_virtual_us": 23811450
+        },
+        {
+          "wall_seconds": 28.12017204600852,
+          "last_virtual_us": 23811450
+        }
+      ]
+    },
+    "gameplay": {
+      "frames": 60,
+      "unique_images": 60,
+      "unique_viewports": 60,
+      "first_virtual_us": 21031054,
+      "last_virtual_us": 23811450,
+      "virtual_seconds": 2.780396,
+      "game_images_per_virtual_second": 21.219998877857687,
+      "median_interval_us": 46865,
+      "max_interval_us": 63020,
+      "min_viewport_changed_fraction": 0.2791316342616921,
+      "median_viewport_changed_fraction": 0.36235549132947975,
+      "pass": true
+    },
+    "audio": {
+      "sample_frames": 1142949,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "ffb2019080f07abc91d70f0f1707836dff253edc10bdc41fd5bed9daa93c0462",
+      "sha256_events": "0704a14e3429cf1b6473267186d2e9ab899663ea58630be8b72aa1ee4897896b",
+      "writes": 484,
+      "callbacks": 483,
+      "gameplay_nonzero_samples": 265466,
+      "gameplay_peak": 529
+    }
+  },
+  "control_5320": {
+    "report": {
+      "shared_audio": false,
+      "git_head": "1b3d85ae660292d3b858792cb25f64e1b812f41a",
+      "dirty_worktree": true,
+      "binary_sha256": "fcb68d8355ce03e908f379de002f447adbfa0660af4efb48ffd49089eaab33c7",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "frames": 60,
+      "start_us": 21000000,
+      "unique": true,
+      "runs": [
+        {
+          "wall_seconds": 28.018653676001122,
+          "last_virtual_us": 23812627
+        }
+      ]
+    },
+    "gameplay": {
+      "frames": 60,
+      "unique_images": 60,
+      "unique_viewports": 60,
+      "first_virtual_us": 21032223,
+      "last_virtual_us": 23812627,
+      "virtual_seconds": 2.780404,
+      "game_images_per_virtual_second": 21.21993782198558,
+      "median_interval_us": 46854,
+      "max_interval_us": 62969,
+      "min_viewport_changed_fraction": 0.25365000000000004,
+      "median_viewport_changed_fraction": 0.32981666666666665,
+      "pass": true
+    },
+    "audio": {
+      "sample_frames": 1143006,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "dfae62a0ed5a7d7d2b8168d50d0f87656d2330b561780caa5d7caa865fc0b260",
+      "sha256_events": "c44c0d4b51515879824f4029c231eed86171d5df418c4db9d0b57be44da889c6",
+      "writes": 483,
+      "callbacks": 483,
+      "gameplay_nonzero_samples": 264676,
+      "gameplay_peak": 382
+    }
+  },
+  "unit_tests": {
+    "passed_cases": 330,
+    "passed_assertions": 28873
+  },
+  "provenance": "Native build from merged master plus the N80 compatibility changes. Report HEAD was captured before committing the integration merge."
+}

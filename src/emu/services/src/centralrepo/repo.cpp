@@ -520,15 +520,26 @@ namespace eka2l1 {
         key_found_result.clear();
 
         // Get the filter
-        std::optional<central_repo_key_filter> filter = ctx->get_argument_data_from_descriptor<central_repo_key_filter>(0);
-        std::uint32_t *found_uid_result_array = reinterpret_cast<std::uint32_t *>(ctx->get_descriptor_argument_ptr(2));
-        const std::size_t found_uid_max_uids = (ctx->get_argument_max_data_size(2) / sizeof(std::uint32_t)) - 1;
+        const bool legacy = ctx->sys->get_symbian_version_use() == epocver::epoc91;
+        const int value_slot = legacy ? 2 : 1;
+        const int result_slot = legacy ? 3 : 2;
+        std::optional<central_repo_key_filter> filter;
+        if (legacy) {
+            // 9.1 has no subsession handle, so the filter occupies two integer slots.
+            filter = central_repo_key_filter{*ctx->get_argument_value<std::uint32_t>(0),
+                *ctx->get_argument_value<std::uint32_t>(1)};
+        } else {
+            filter = ctx->get_argument_data_from_descriptor<central_repo_key_filter>(0);
+        }
+        std::uint32_t *found_uid_result_array = reinterpret_cast<std::uint32_t *>(ctx->get_descriptor_argument_ptr(result_slot));
+        const std::size_t result_bytes = ctx->get_argument_max_data_size(result_slot);
 
-        if (!filter || !found_uid_result_array) {
+        if (!filter || !found_uid_result_array || result_bytes < sizeof(std::uint32_t)) {
             LOG_ERROR(SERVICE_CENREP, "Trying to find equal value in cenrep, but arguments are invalid!");
             ctx->complete(epoc::error_argument);
             return;
         }
+        const std::size_t found_uid_max_uids = (result_bytes / sizeof(std::uint32_t)) - 1;
 
         // Set found count to 0
         found_uid_result_array[0] = 0;
@@ -564,9 +575,9 @@ namespace eka2l1 {
                     break;
                 }
 
-                // Index 1 argument contains the value we should look for
+                // The value follows the filter in both IPC layouts.
                 // TODO: Signed/unsigned is dangerous
-                if (static_cast<std::int32_t>(entry.data.intd) == *ctx->get_argument_value<std::int32_t>(1)) {
+                if (static_cast<std::int32_t>(entry.data.intd) == *ctx->get_argument_value<std::int32_t>(value_slot)) {
                     if (!find_not_eq) {
                         key_found = entry.key;
                     }
@@ -584,7 +595,7 @@ namespace eka2l1 {
                 bool is_ok = false;
 
                 if (cache_arg.empty()) {
-                    auto ss = ctx->get_argument_value<std::string>(1);
+                    auto ss = ctx->get_argument_value<std::string>(value_slot);
 
                     if (!ss.has_value()) {
                         ctx->complete(epoc::error_argument);
