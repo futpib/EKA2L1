@@ -51,3 +51,5 @@ heap counts will still be retained. Any promotion requires repeatable gameplay
 results and normal/live/audio acceptance. No bound is claimed optimal in advance.
 
 Status: plan only; no new runner measurements or delivery.
+
+Before timing starts, the quiet-host observer also waits for compiler, build and linker processes. This keeps the separate literal-PC candidate build out of runner timing; the frozen runner archive and preplanned orders are unchanged.
