@@ -62,6 +62,13 @@ autoStart();
 
 export type CompilerPolicy = { irMode?: number; eagerRegions?: number; tlbHash?: number; codeCompare?: number; codeLookup?: number; omitGuardPublication?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; executionLimits?: [number,number,number,number] };
 
+export type LauncherGame = { id: string; title: string; uid: string; sis: string };
+
+function makeGameLauncherScript(games: LauncherGame[], defaultGame?: string): string {
+  const encode = (value: unknown) => JSON.stringify(value).replace(/</g, '\\u003c');
+  return `<script>configureGameLauncher(${encode(games)}, ${encode(defaultGame ?? null)});</script>`;
+}
+
 function validExecutionLimits(limits: unknown): limits is [number,number,number,number] {
   return Array.isArray(limits) && limits.length === 4 && limits.every(Number.isInteger)
     && limits[0] >= 128 && limits[0] <= 2048 && limits[0] % 4 === 0
@@ -178,7 +185,7 @@ export async function startServer(
   port = 0,
   preloadFiles: Record<string, string> = {},
   appName?: string,
-  options: { host?: string; tls?: https.ServerOptions; compilerPolicy?: CompilerPolicy } = {},
+  options: { host?: string; tls?: https.ServerOptions; compilerPolicy?: CompilerPolicy; games?: LauncherGame[]; defaultGame?: string } = {},
 ): Promise<{ server: http.Server; port: number }> {
   const assets = new Map<string, Asset>();
   const files: Record<string, string> = { ...preloadFiles };
@@ -188,7 +195,8 @@ export async function startServer(
   for (const [url, file] of Object.entries(files)) {
     if (fs.existsSync(file) && fs.statSync(file).isFile()) assets.set(url, await refreshAsset(file));
   }
-  const autoStartScript = makeCompilerPolicyScript(options.compilerPolicy ?? compilerPolicyFromEnv()) + makeAutoStartScript(appName);
+  const autoStartScript = makeCompilerPolicyScript(options.compilerPolicy ?? compilerPolicyFromEnv())
+    + (options.games?.length ? makeGameLauncherScript(options.games, options.defaultGame) : makeAutoStartScript(appName));
   return new Promise((resolve, reject) => {
     const handler: http.RequestListener = (req, res) => {
       void respond(req, res).catch(error => {

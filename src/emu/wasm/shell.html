@@ -11,6 +11,9 @@
         #controls label { font-size: 13px; }
         #controls input[type=file] { font-size: 13px; }
         #controls button { padding: 4px 12px; cursor: pointer; font-family: monospace; }
+        #game-picker { padding: 8px; background: #16213e; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        #game-picker select, #game-picker button { font: inherit; padding: 6px; }
+        #game-picker[hidden], #controls[hidden] { display: none; }
         #canvas-container { flex: 1; display: flex; justify-content: center; align-items: center; background: #000; }
         canvas { border: 1px solid #333; max-width: 100%; max-height: 100%; object-fit: contain; }
         #canvas-container { min-height: 0; }
@@ -24,6 +27,11 @@
 </head>
 <body>
     <script src="audio.js"></script>
+    <form id="game-picker" hidden>
+        <label>Game: <select id="game-select" aria-label="Game"></select></label>
+        <button type="submit" id="btn-play">Play</button>
+        <span>Starting a game begins a new session.</span>
+    </form>
     <div id="controls">
         <label>ROM: <input type="file" id="rom-file"></label>
         <label>RPKG: <input type="file" id="rpkg-file"></label>
@@ -161,7 +169,7 @@
             for (var source of Array.from(_inputSources.keys())) _releaseSource(source);
         }
         window.addEventListener('keydown', function(event) {
-            if (!_gameRunning || event.target instanceof HTMLInputElement || event.target.id === 'btn-sound' || !(_keyScans[event.code])) return;
+            if (!_gameRunning || event.target.closest('input, select, textarea, button') || !(_keyScans[event.code])) return;
             event.preventDefault();
             _pressSource('key:' + event.code, _keyScans[event.code]);
         });
@@ -179,6 +187,51 @@
             });
             for (var name of ['pointerup', 'pointercancel', 'lostpointercapture']) {
                 button.addEventListener(name, function(event) { _releaseSource('pointer:' + event.pointerId); });
+            }
+        }
+
+        async function configureGameLauncher(games, defaultGame) {
+            var picker = document.getElementById('game-picker');
+            var select = document.getElementById('game-select');
+            for (var game of games) select.add(new Option(game.title, game.id));
+            select.add(new Option('Load my own files', 'custom'));
+            var requested = new URL(location.href).searchParams.get('game');
+            var selected = games.find(game => game.id === (requested || defaultGame));
+            select.value = requested === 'custom' ? 'custom' : (selected || games[0]).id;
+            picker.hidden = false;
+            document.getElementById('controls').hidden = requested !== 'custom';
+            picker.addEventListener('submit', function(event) {
+                event.preventDefault();
+                _releaseInputs();
+                var url = new URL(location.href);
+                url.searchParams.set('game', select.value);
+                // Reload releases the previous workers, audio and guest memory.
+                location.assign(url.href);
+            });
+            if (requested === 'custom') return;
+            if (!selected) {
+                Module.setStatus(requested ? 'Unknown game. Choose a game and press Play.' : 'Choose a game and press Play.');
+                return;
+            }
+            try {
+                while (!Module.calledRun) await new Promise(resolve => setTimeout(resolve, 100));
+                Module.setStatus('Loading ' + selected.title + '...');
+                for (var [endpoint, selector, name] of [
+                    ['/preload/rom', 'rom-file', 'SYM.ROM'],
+                    ['/preload/rpkg', 'rpkg-file', 'SYM.RPKG'],
+                    [selected.sis, 'sis-file', selected.id + '.sis']]) {
+                    var response = await window.ekaDownload(endpoint);
+                    if (!response.ok) throw new Error('Download failed: HTTP ' + response.status);
+                    var transfer = new DataTransfer();
+                    transfer.items.add(new File([await response.blob()], name));
+                    document.getElementById(selector).files = transfer.files;
+                }
+                document.getElementById('app-name').value = selected.uid;
+                await startEmulator();
+                if (_gameRunning) Module.setStatus('Running: ' + selected.title + ' · Arrows/WASD to move, Enter to select · Use Enable sound for audio');
+            } catch (error) {
+                Module.setStatus('Error: ' + error.message);
+                Module.printErr(String(error));
             }
         }
 

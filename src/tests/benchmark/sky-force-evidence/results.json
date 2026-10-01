@@ -1,0 +1,323 @@
+{
+  "local": {
+    "url": "http://127.0.0.1:8189/",
+    "browser": "Chrome/153.0.8010.52",
+    "games": [
+      {
+        "id": "sky-force",
+        "launch": {
+          "app": "0xa020d913",
+          "secure": true,
+          "isolated": true,
+          "policy": {
+            "requested": {
+              "irMode": 7,
+              "eagerRegions": 0,
+              "tlbHash": 1,
+              "codeCompare": 2,
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ],
+              "unsafeCode": 3
+            },
+            "applied": true,
+            "observed": {
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "unsafeCode": 3,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ]
+            }
+          },
+          "sound": null,
+          "sources": 0,
+          "selectedFiles": [
+            0,
+            0,
+            0
+          ]
+        },
+        "start": {
+          "guestUs": 28035891,
+          "frames": 855,
+          "inputs": 10,
+          "audio": {}
+        },
+        "end": {
+          "guestUs": 39815782,
+          "frames": 1231,
+          "inputs": 16,
+          "audio": {
+            "queued": 3264,
+            "resyncs": 0,
+            "underruns": 96,
+            "dropped": 0,
+            "played": 559296,
+            "nonzero": 558931
+          }
+        },
+        "hostSeconds": 31.592925432999998,
+        "realtimeRatio": 0.3728648372554781,
+        "presentationsPerSecond": 11.901398646902571
+      },
+      {
+        "id": "snakes",
+        "launch": {
+          "app": "0x2000730f",
+          "secure": true,
+          "isolated": true,
+          "policy": {
+            "requested": {
+              "irMode": 7,
+              "eagerRegions": 0,
+              "tlbHash": 1,
+              "codeCompare": 2,
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ],
+              "unsafeCode": 3
+            },
+            "applied": true,
+            "observed": {
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "unsafeCode": 3,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ]
+            }
+          },
+          "sound": null,
+          "sources": 0,
+          "selectedFiles": [
+            0,
+            0,
+            0
+          ]
+        },
+        "start": {
+          "guestUs": 23060000,
+          "frames": 476,
+          "inputs": 20,
+          "audio": {}
+        },
+        "end": {
+          "guestUs": 54620000,
+          "frames": 1144,
+          "inputs": 26,
+          "audio": {
+            "queued": 3744,
+            "resyncs": 0,
+            "underruns": 0,
+            "dropped": 0,
+            "played": 1506816,
+            "nonzero": 1493855
+          }
+        },
+        "hostSeconds": 31.561218676999996,
+        "realtimeRatio": 0.9999613868839328,
+        "presentationsPerSecond": 21.165215666618096
+      }
+    ],
+    "errors": [],
+    "passed": true
+  },
+  "build": {
+    "base": "41825344d812976af0225d74e72a5c3c9c30b929",
+    "files": {
+      "eka2l1.html": "6e0bc8389d40ace63e748ee77599af4e8e9fb386afd1af2fbaec778a2c3b9d16",
+      "eka2l1.js": "27df024871ba57541e2fae1d645eded266926357095f616421f64c7b45d05857",
+      "eka2l1.wasm": "91c7d6f6b6df4c335eda2005fd671119a85c1fc57008f8bdf000e49a0825215e",
+      "eka2l1.data": "34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    }
+  },
+  "lan": {
+    "url": "https://claude-laptop.lan:8188/",
+    "started": "2026-10-01T23:40:15.265Z",
+    "browser": "Chrome/153.0.8010.52",
+    "games": [
+      {
+        "id": "sky-force",
+        "launch": {
+          "app": "0xa020d913",
+          "secure": true,
+          "isolated": true,
+          "policy": {
+            "requested": {
+              "irMode": 7,
+              "eagerRegions": 0,
+              "tlbHash": 1,
+              "codeCompare": 2,
+              "codeLookup": 0,
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ],
+              "unsafeCode": 3
+            },
+            "applied": true,
+            "observed": {
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "unsafeCode": 3,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ]
+            }
+          },
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+            "/eka2l1.js": "/eka2l1.js?v=27df024871ba57541e2fae1d645eded266926357095f616421f64c7b45d05857",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=91c7d6f6b6df4c335eda2005fd671119a85c1fc57008f8bdf000e49a0825215e"
+          },
+          "sound": null,
+          "sources": 0,
+          "selectedFiles": [
+            0,
+            0,
+            0
+          ]
+        },
+        "start": {
+          "guestUs": 28035136,
+          "frames": 855,
+          "inputs": 10,
+          "audio": {}
+        },
+        "end": {
+          "guestUs": 41162361,
+          "frames": 1275,
+          "inputs": 16,
+          "audio": {
+            "queued": 0,
+            "resyncs": 0,
+            "underruns": 104,
+            "dropped": 0,
+            "played": 628800,
+            "nonzero": 628410
+          }
+        },
+        "hostSeconds": 31.537408685000003,
+        "realtimeRatio": 0.41624298087127376,
+        "presentationsPerSecond": 13.31751775153812
+      },
+      {
+        "id": "snakes",
+        "launch": {
+          "app": "0x2000730f",
+          "secure": true,
+          "isolated": true,
+          "policy": {
+            "requested": {
+              "irMode": 7,
+              "eagerRegions": 0,
+              "tlbHash": 1,
+              "codeCompare": 2,
+              "codeLookup": 0,
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ],
+              "unsafeCode": 3
+            },
+            "applied": true,
+            "observed": {
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "unsafeCode": 3,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ]
+            }
+          },
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+            "/eka2l1.js": "/eka2l1.js?v=27df024871ba57541e2fae1d645eded266926357095f616421f64c7b45d05857",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=91c7d6f6b6df4c335eda2005fd671119a85c1fc57008f8bdf000e49a0825215e",
+            "/SYM.ROM": "/SYM.ROM?v=99fc5d84bc66a4dfa00f66a967dcd817e344c9ac7eb7ee6124d40b1e75278698",
+            "/SYM.RPKG": "/SYM.RPKG?v=be82cd991db95e2e9128b48dc7b9618f653813ec864c63db1952821de2178be0"
+          },
+          "sound": null,
+          "sources": 0,
+          "selectedFiles": [
+            0,
+            0,
+            0
+          ]
+        },
+        "start": {
+          "guestUs": 23050000,
+          "frames": 475,
+          "inputs": 20,
+          "audio": {}
+        },
+        "end": {
+          "guestUs": 54578125,
+          "frames": 1142,
+          "inputs": 26,
+          "audio": {
+            "queued": 3744,
+            "resyncs": 0,
+            "underruns": 0,
+            "dropped": 0,
+            "played": 1506816,
+            "nonzero": 1492265
+          }
+        },
+        "hostSeconds": 31.526866523000002,
+        "realtimeRatio": 1.0000399176048491,
+        "presentationsPerSecond": 21.156558629554862
+      }
+    ],
+    "errors": [],
+    "passed": true,
+    "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.57.4.0)"
+  }
+}

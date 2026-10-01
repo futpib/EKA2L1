@@ -1,0 +1,22 @@
+[
+  {
+    "id": "snakes",
+    "title": "Snakes",
+    "uid": "0x2000730f",
+    "file": "Snakes.sis",
+    "cid": "bafybeicuomcc2zhzi3vwfb5xihnlkikz3biaa43g4d22z2wptcmhvmp3di",
+    "sha256": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+  },
+  {
+    "id": "sky-force",
+    "title": "Sky Force",
+    "uid": "0xa020d913",
+    "file": "SkyForce.sis",
+    "cid": "bafybeie2g5e5ev5yaupq7czfeovdcg7oxygpjrxuncy2ypnxsnonliugbe",
+    "sha256": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+    "version": "1.22, S60 3rd Edition, 240x320",
+    "source": "https://www.myabandonware.com/game/sky-force-vxs",
+    "download": "https://www.myabandonware.com/download/pcqp-sky-force",
+    "archive_member": "Infinite Dreams SkyForce v1.22 (240x320) (S60 3rd)(Space).sisx"
+  }
+]

@@ -7,7 +7,8 @@ add_dependencies(eka2l1_wasm ${EKA2L1_WASM_PATCH_TARGET})
 file(GLOB_RECURSE EKA2L1_WASM_PATCH_FILES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/src/patch/*/group/*.dll"
     "${PROJECT_SOURCE_DIR}/src/patch/*/group/*.map")
-set_property(TARGET eka2l1_wasm APPEND PROPERTY LINK_DEPENDS ${EKA2L1_WASM_PATCH_FILES})
+set_property(TARGET eka2l1_wasm APPEND PROPERTY LINK_DEPENDS
+    ${EKA2L1_WASM_PATCH_FILES} "${CMAKE_CURRENT_SOURCE_DIR}/shell.html")
 
 set(EKA2L1_WASM_WORKER_POOL_SIZE 32 CACHE STRING "Number of prestarted browser workers")
 if(NOT EKA2L1_WASM_WORKER_POOL_SIZE MATCHES "^[1-9][0-9]*$")
