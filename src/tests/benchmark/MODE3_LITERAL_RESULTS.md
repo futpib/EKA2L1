@@ -32,3 +32,14 @@ The existing mode-3 browser profile reuses all 192,004,131 ROM/game bytes and tr
 Both live routes have zero added measured audio underruns/drops. Maximum sampled lag (manual / automatic) is 45.90 ms / 16.06 ms. The known native-matching level restart remains. Timing gains are specific to the two measured routes and retain all slow controls and candidates; no general emulator speed percentage is implied.
 
 The next independent lookup-layout experiment retains feature 128 in both modes. Existing optimization work continues. No Git push.
+
+## Mode-3 boundary counts
+
+Separate interpreter-checked diagnostic runs pass on both routes with stride 1024. Their cache clears and extra interpreter decoding perturb compiled-region formation, so their counts are retained as checked diagnostics and are not compared with the normal control. Two subsequent runs disable checking to match the original detailed control profiles. Detailed counters are enabled in these runs; their elapsed time is not acceptance timing. Guest instruction totals and presentations remain identical within each route.
+
+| Route | Control compiled invocations | Literal-PC invocations | Removed | Control/candidate compiled guest instructions |
+| --- | ---: | ---: | ---: | --- |
+| long | 140,994,669 | 131,883,365 | 9,111,304 | 3,027,181,324 / 3,026,988,987 |
+| standard | 140,626,048 | 131,572,108 | 9,053,940 | 2,972,237,245 / 2,972,188,093 |
+
+Both normal modes record zero code-byte/version checks. Removed region invocations are not a count of individual register stores or loads. The prior mode-0 module-size measurements are not relabeled as mode-3 evidence. This records the runtime mechanism alongside the 16 accepted mode-3 timing observations, without pooling either diagnostic wall time or older policy results.
