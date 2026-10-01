@@ -8,7 +8,7 @@ The exit census motivated this change: two six-instruction load/compare/conditio
 
 The existing integer lowering evaluates each predicate against the flags at that instruction. False predicates still consume their guest instruction budget. Inlined calls preserve real guest PC/LR values, ordered memory effects, callback-visible state, short-budget fallback and exact primary/dependency code validation. Conditional memory instructions, branches, status transfers, reserved encodings and LR/SP/PC operands remain outside the extension. Only an unconditional BX LR terminates an eligible leaf.
 
-Fusion can remove caller/callee/return dispatcher boundaries and keep guest registers in locals across them. It can also increase generated code and dependency snapshots, and may move work into compilation and validation. Removing boundaries alone is not a speed result. Dedicated diagnostic runs will measure actual exit counts and resource changes separately from acceptance timings.
+Fusion can remove caller/callee/return dispatcher boundaries and keep guest registers in locals across them. Each distinct fused callee adds an exact dependency snapshot. The existing cache extends its protected host-address interval using the minimum/maximum of primary and dependency backing spans; this can conservatively cover unrelated addresses between them. Fusion can therefore increase generated code, dependency validation and memory-guard exits, moving work into compilation and validation. Removing boundaries alone is not a speed result. Dedicated diagnostic runs will measure actual exit counts and resource changes separately from acceptance timings.
 
 ## Verification status
 
