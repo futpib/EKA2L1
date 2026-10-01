@@ -41,3 +41,7 @@ Each cell averages two observations. All 24 samples remain, including slow runs.
 - standard b order candidate-1, baseline-1, control-1, control-2, baseline-2, candidate-2: versus control: +10.78% throughput, paired +4.30% / +17.27%; versus baseline: +3.81% throughput, paired +5.19% / +2.42%.
 
 No automatic default or delivery change follows. Separately checked diagnostics measure dispatch, dependency and guard costs; normal live/audio acceptance is required for any promotion.
+
+## Timing decision
+
+No promotion. Against the matching conditional-only compiler, longer-route throughput changes by -5.46% and +2.90%; standard by +1.31% and +10.78%. Longer-route comparisons with the untouched live archive also reverse (-4.97% / +4.61%). Five of eight matching half-pairs favor the candidate, but the first longer batch loses both and standard A has opposing pairs. Slow candidate and control observations remain, including the closing standard-B control that inflates its mean advantage. All 24 preplanned samples and passive host readings are retained; no watched competing benchmark job was observed. These observations do not identify the cause of timing variability. The feature remains opt-in while separately checked diagnostics measure the structural tradeoff.
