@@ -68,3 +68,14 @@ veneer work runs concurrently. All prior work remains preserved.
 Status: implementation building; no new performance result yet.
 
 Checkpoint: all 175 normal-mode compiler tests and 40,640 explicitly selected native fault comparisons in mode 3 pass. Matching control faults, exact native replays and all timings remain pending. Frozen archive and executable queue sources are retained in the evidence file.
+
+### Retained initial replay configuration failure
+
+The first standard replay incorrectly passed start_us=0, whereas the existing
+native reference and normal harness default start at 21,000,000 us. All 1,600
+frames were captured, but the visible-canvas threshold failed on the wrong
+window. Comparing those captures to native differs from frame zero (723,785 vs
+21,032,065 us). The entire run, screenshot, log, comparison and original harness
+are retained. This is a configuration failure, not a measured unsafe-mode mismatch.
+The replay is repeated with the correct timestamp; completed 175-test and both
+40,640-case fault results are reused, not claimed as fresh runs.
