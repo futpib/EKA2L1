@@ -163,6 +163,7 @@ static constexpr bool defer_memory_enabled = true;
 static constexpr bool defer_memory_enabled = false;
 #endif
 static validated_code_cache ram_cache;
+static const validated_code_cache::block *census_entry = nullptr;
 static std::unordered_map<std::uint64_t, unsigned> ram_counts;
 static const std::uint8_t *hot_rom = nullptr;
 static std::uint64_t hot_dispatches = 0;
@@ -203,6 +204,7 @@ void invalidate_ram_code(std::uint32_t address, std::size_t size) {
 
 template<bool Profile>
 static aot_func lookup_compiled_impl(ARMul_State *cpu) {
+    if constexpr(Profile) if(exit_census::enabled)census_entry=nullptr;
     if (validation_running) return nullptr;
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
@@ -217,6 +219,7 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     if (!Profile || !(common::guest_profile::enabled && common::performance::counting())) {
         auto *entry = ram_cache.find(pc_mode, *cpu->parent());
         if (!entry) return nullptr;
+        if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
         cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
         cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
         return entry->function;
@@ -231,6 +234,7 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
         common::guest_profile::state.event(!mapped ? "ram_unmapped" : !entry ? "ram_missing" : entry->rejected ? "ram_rejected" : "ram_pending",pc_mode,view.address_space,opcode);
     }
     if (!mapped || !entry) return nullptr;
+    if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
     cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
     cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
     return entry->function;
@@ -262,8 +266,27 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         if constexpr(Profile) if(exit_census::enabled) {
             exit_census::last_reason=0;exit_census::effects=0;exit_census::last_constraint=0;
             exit_census::last_pc=0;exit_census::last_opcode=0;
+            exit_census::last_restriction=0;exit_census::last_rejected_pc=0;exit_census::last_rejected_opcode=0;
+            exit_census::guard_hits=0;exit_census::last_guard_host=0;exit_census::last_guard_size=0;
+        }
+        // Deque-backed entries remain stable across inserts/invalidation. Keep
+        // this invocation's entry even if a synchronous helper performs lookup.
+        const auto *guard_entry = Profile && exit_census::enabled ? census_entry : nullptr;
+        if constexpr(Profile) if(exit_census::counting() && guard_entry) {
+            ++exit_census::validated_entries;
+            exit_census::validated_primary_bytes += guard_entry->code.size();
+            exit_census::validated_dependency_spans += guard_entry->dependencies.size();
+            for(const auto &dependency:guard_entry->dependencies)
+                exit_census::validated_dependency_bytes += dependency.code.size();
+            exit_census::protected_interval_bytes += guard_entry->guard_end-guard_entry->guard_begin;
         }
         const auto count = function(cpu);
+        if constexpr(Profile) if(exit_census::counting() && (exit_census::effects&2)) {
+            const char *outcome=!exit_census::guard_hits?"uncaptured_guard":!guard_entry?"unavailable_entry":exit_census::guard_hits!=1?"multiple_guards":
+                validated_code_cache::diagnostic_code_overlap(*guard_entry,exit_census::last_guard_host,exit_census::last_guard_size)
+                    ?"snapshot_overlap":"interval_gap_only";
+            ++exit_census::code_guard_outcomes[outcome];
+        }
         if constexpr(Profile) exit_census::record(entry_pc,cpu->Reg[15]|cpu->TFlag,
             cpu->parent()->code_address_space,count,cpu->aot_budget,cpu->aot_exit);
         if (Profile && common::guest_profile::enabled && common::performance::counting()) {

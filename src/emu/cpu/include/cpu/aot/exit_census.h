@@ -12,7 +12,30 @@ namespace eka2l1::arm::aot::exit_census {
     enum reason : unsigned { unknown, control, guard, unsupported, memory,
         source_end, interrupt, status, emission_end };
     inline std::uint32_t last_reason=0, last_pc=0, last_opcode=0, effects=0, last_constraint=0;
-    inline std::map<std::string,std::uint64_t> exits, runners, compilation, invalidations, call_constraints;
+    // These identify the first rejecting validator filter, not a full ARM decode.
+    // Raw opcode/PC accompany counts so special encodings can be audited correctly.
+    enum leaf_restriction : unsigned { no_restriction, predicates_disabled, reserved_predicate,
+        conditional_memory, conditional_transfer, nested_call, internal_branch, block_transfer,
+        coprocessor_or_supervisor, sp_operand, lr_operand, pc_operand, register_memory_shift,
+        status_or_misc, sp_index, lr_index, pc_index, sp_shift, lr_shift, pc_shift,
+        multiply, halfword_or_signed_transfer, swap_or_exclusive, other_extra_transfer };
+    inline const char *restriction_name(unsigned value) {
+        static const char *names[]={"unrecorded","predicates_disabled","reserved_predicate",
+            "conditional_memory","conditional_transfer","nested_call","internal_branch","block_transfer",
+            "coprocessor_or_supervisor","sp_rn_or_rd_field","lr_rn_or_rd_field","pc_rn_or_rd_field","register_memory_shift",
+            "status_or_misc","sp_rm_field","lr_rm_field","pc_rm_field","sp_rs_field","lr_rs_field","pc_rs_field",
+            "multiply","halfword_or_signed_transfer","swap_or_exclusive","other_extra_transfer"};
+        return value<sizeof(names)/sizeof(names[0])?names[value]:"unrecorded";
+    }
+    struct leaf_refusal { unsigned constraint=0, detail=0; std::uint32_t pc=0, opcode=0; };
+    inline std::uint32_t last_restriction=0,last_rejected_pc=0,last_rejected_opcode=0;
+    inline std::uint32_t last_guard_host=0,last_guard_size=0,guard_hits=0;
+    inline std::map<std::string,std::uint64_t> exits, runners, compilation, invalidations, call_constraints,
+        call_restrictions, code_guard_outcomes;
+    using rejected_key=std::tuple<std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,unsigned>;
+    inline std::map<rejected_key,std::uint64_t> rejected_sites;
+    inline std::uint64_t dropped_rejected_calls=0;
+    inline std::uint64_t validated_entries=0,validated_primary_bytes=0,validated_dependency_spans=0,validated_dependency_bytes=0,protected_interval_bytes=0;
     using edge_key=std::tuple<std::string,std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t,std::uint32_t>;
     inline std::map<edge_key,std::uint64_t> edges;
     using site_key=std::tuple<std::uint32_t,std::uint32_t,std::string>;
@@ -69,6 +92,14 @@ namespace eka2l1::arm::aot::exit_census {
             const char *names[]={"unrecorded","inline_site_limit","leaf_instruction_limit","callee_unsupported",
                 "callee_mapping_extent","callee_unmapped_or_other_space","no_leaf_resolver","conditional_call"};
             ++call_constraints[names[last_constraint<8?last_constraint:0]];
+            if(last_constraint==3) {
+                ++call_restrictions[restriction_name(last_restriction)];
+                rejected_key key{asid,last_pc,last_rejected_pc,last_rejected_opcode,last_restriction};
+                auto found=rejected_sites.find(key);
+                if(found!=rejected_sites.end())++found->second;
+                else if(rejected_sites.size()<131072)rejected_sites.emplace(key,1);
+                else ++dropped_rejected_calls;
+            }
         }
         if(calls%common::guest_profile::state.stride)return;
         edge_key k{name,entry,to,asid,last_pc,last_opcode};auto it=edges.find(k);
@@ -78,9 +109,16 @@ namespace eka2l1::arm::aot::exit_census {
         std::ostringstream o;o<<"{\"calls\":"<<calls<<",\"zero_progress\":"<<zero<<",\"stride\":"<<common::guest_profile::state.stride
             <<",\"dropped_edges\":"<<dropped_edges<<",\"dropped_compile_sites\":"<<dropped_sites;
         const auto counts=[&](const char *name,const auto &values){o<<",\""<<name<<"\":{";bool first=true;for(const auto &[key,n]:values){if(!first)o<<',';first=false;o<<common::guest_profile::quote(key)<<':'<<n;}o<<'}';};
+        o<<",\"validated_snapshot_requests\":{\"entries\":"<<validated_entries<<",\"primary_bytes\":"<<validated_primary_bytes
+            <<",\"dependency_spans\":"<<validated_dependency_spans<<",\"dependency_bytes\":"<<validated_dependency_bytes<<",\"protected_interval_bytes\":"<<protected_interval_bytes<<'}';
+        counts("callee_restrictions",call_restrictions);counts("code_guard_outcomes",code_guard_outcomes);
         counts("region_exits",exits);counts("runner_returns",runners);counts("invalidations",invalidations);counts("call_constraints",call_constraints);counts("lifetime_compile_events",compilation);
         o<<",\"sampled_edges\":[";bool first=true;for(const auto &[k,n]:edges){if(!first)o<<',';first=false;const auto &[why,from,to,asid,site,op]=k;
             o<<"{\"reason\":"<<common::guest_profile::quote(why)<<",\"from\":"<<from<<",\"to\":"<<to<<",\"asid\":"<<asid<<",\"site\":"<<site<<",\"opcode\":"<<op<<",\"samples\":"<<n<<'}';}
+        o<<"],\"dropped_rejected_calls\":"<<dropped_rejected_calls<<",\"rejected_call_sites\":[";first=true;
+        for(const auto &[key,n]:rejected_sites){if(!first)o<<',';first=false;const auto &[space,caller,pc,opcode,detail]=key;
+            o<<"{\"address_space\":"<<space<<",\"caller_pc\":"<<caller<<",\"rejected_pc\":"<<pc<<",\"opcode\":"<<opcode
+             <<",\"restriction\":"<<common::guest_profile::quote(restriction_name(detail))<<",\"calls\":"<<n<<'}';}
         o<<"],\"compile_sites\":[";first=true;for(const auto &[k,n]:sites){if(!first)o<<',';first=false;const auto &[pc,op,why]=k;
             o<<"{\"pc\":"<<pc<<",\"opcode\":"<<op<<",\"reason\":"<<common::guest_profile::quote(why)<<",\"translations\":"<<n<<'}';}o<<"],\"leaf_probes\":[";first=true;for(const auto &[key,n]:probes){if(!first)o<<',';first=false;
             o<<"{\"address\":"<<key.first<<",\"bytes\":"<<common::guest_profile::quote(key.second)<<",\"probes\":"<<n<<'}';}o<<"]}";return o.str();

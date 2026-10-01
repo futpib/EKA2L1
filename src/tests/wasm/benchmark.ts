@@ -20,6 +20,7 @@ const codeLookup = process.env.EKA2L1_CODE_LOOKUP === undefined ? -1 : Number(pr
 if (![-1,0,1].includes(codeLookup)) throw new Error('Invalid code lookup policy');
 const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
 if (![-1,0,1,2,3,4].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
+const exitCensus = process.env.EKA2L1_EXIT_CENSUS === '1';
 const predicatedLeaves = Number(process.env.EKA2L1_PREDICATED_LEAVES || '0');
 if(![0,1].includes(predicatedLeaves))throw Error('Invalid leaf predication setting');
 const limitsText = process.env.EKA2L1_EXECUTION_LIMITS || '512,16,8,512';
@@ -76,7 +77,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, exitCensus, predicatedLeaves, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -107,6 +108,10 @@ try {
     if (irMode !== -1) {
       if (typeof g.Module._eka2l1_ir_configure !== 'function') throw new Error('Build lacks IR mode selection');
       call('eka2l1_ir_configure', ['number'], [irMode]);
+    }
+    if(exitCensus) {
+      call('eka2l1_exit_census_configure',['number'],[1]);
+      if(g.Module.ccall('eka2l1_exit_census_report','number',[],[])!==1)throw Error('Exit census was not applied');
     }
     if(typeof g.Module._eka2l1_leaf_predication_configure==='function') {
       call('eka2l1_leaf_predication_configure',['number'],[predicatedLeaves]);
@@ -142,7 +147,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+  }, {tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, exitCensus, predicatedLeaves, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -193,7 +198,7 @@ try {
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
+    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, exit_census:exitCensus, tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');
 } finally {
   await browser?.close();

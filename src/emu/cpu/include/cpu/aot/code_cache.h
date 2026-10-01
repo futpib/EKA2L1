@@ -153,6 +153,17 @@ namespace eka2l1::arm::aot {
             entry.guard_end = std::max(entry.guard_end, begin + bytes.size());
         }
 
+        static bool diagnostic_code_overlap(const block &entry, std::uintptr_t host, std::size_t size) {
+            const auto overlaps=[&](const std::uint8_t *backing,std::size_t bytes) {
+                const auto begin=static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(backing));
+                const auto start=static_cast<std::uint64_t>(host);
+                return size && bytes && start < begin+bytes && begin < start+size;
+            };
+            if(overlaps(entry.backing,entry.code.size()))return true;
+            for(const auto &dependency:entry.dependencies)if(overlaps(dependency.backing,dependency.code.size()))return true;
+            return false;
+        }
+
         void attach(std::uint32_t version, aot_func function) {
             if (version < versions_.size() && versions_[version].live)
                 versions_[version].function = function;

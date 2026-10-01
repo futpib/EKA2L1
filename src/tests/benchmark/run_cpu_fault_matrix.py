@@ -8,6 +8,7 @@ import subprocess
 parser = argparse.ArgumentParser(__doc__)
 parser.add_argument('archive', type=Path)
 parser.add_argument('output', type=Path)
+parser.add_argument('--exit-census',type=int,choices=(0,1))
 parser.add_argument('--predicated-leaves', type=int, choices=(0,1))
 parser.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
 parser.add_argument('--ir-policy', type=int, choices=range(17), required=True)
@@ -50,6 +51,9 @@ if a.execution_limits is not None:
 if a.predicated_leaves is not None:
     probe_compare += [f'--predicated-leaves={a.predicated_leaves}']
     compare_args += ['--predicated-leaves',str(a.predicated_leaves)]
+if a.exit_census is not None:
+    probe_compare += [f'--exit-census={a.exit_census}']
+    compare_args += ['--exit-census',str(a.exit_census)]
 results = []
 for name, count in cases:
     for kind, command in [('native',[str(archive/'tests/eka_cpu_fault_native')]),
@@ -63,6 +67,6 @@ for name, count in cases:
                     '--cases',str(count),'--ir-policy',str(a.ir_policy),'--require-equal']+compare_args,
                    check=True,stdout=subprocess.DEVNULL)
     results.append(json.loads(result.read_text()))
-    (a.output/'summary.json').write_text(json.dumps(dict(predicated_leaves=a.predicated_leaves,execution_limits=a.execution_limits,code_write_protect=a.code_write_protect,code_lookup=a.code_lookup, ir_policy=a.ir_policy, tlb_hash=a.tlb_hash, code_compare=a.code_compare,
+    (a.output/'summary.json').write_text(json.dumps(dict(exit_census=a.exit_census,predicated_leaves=a.predicated_leaves,execution_limits=a.execution_limits,code_write_protect=a.code_write_protect,code_lookup=a.code_lookup, ir_policy=a.ir_policy, tlb_hash=a.tlb_hash, code_compare=a.code_compare,
         completed_cases=sum(x['cases'] for x in results),results=results),indent=2)+'\n')
     print(name,'PASS',count,'policy',a.ir_policy,flush=True)

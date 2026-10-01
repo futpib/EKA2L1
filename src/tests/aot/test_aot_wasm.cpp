@@ -4570,6 +4570,73 @@ static bool test_folded_tlb_guards() {
 
 
 
+static bool test_boundary_details() {
+#ifdef __EMSCRIPTEN__
+    using namespace exit_census;
+    struct restore {
+        bool census=enabled,predicates=predicated_leaves,perf=eka2l1::common::performance::enabled,detail=eka2l1::common::performance::detailed;
+        int phase=eka2l1::common::performance::phase.load();
+        ~restore(){enabled=census;predicated_leaves=predicates;eka2l1::common::performance::enabled=perf;eka2l1::common::performance::detailed=detail;eka2l1::common::performance::phase=phase;}
+    } saved;
+    enabled=true;eka2l1::common::performance::enabled=true;eka2l1::common::performance::detailed=true;eka2l1::common::performance::phase=2;
+    struct fixture {unsigned opcode,expected;bool predicates=true;};
+    const fixture cases[]={{0x03a00001,predicates_disabled,false},{0xf3a00001,reserved_predicate},
+        {0x15910000,conditional_memory},{0x1afffffe,conditional_transfer},{0xeafffffe,internal_branch},
+        {0xeb000000,nested_call},{0xe8bd8010,block_transfer},{0xef000000,coprocessor_or_supervisor},
+        {0xe59d0000,sp_operand},{0xe1a0e000,lr_operand},{0xe51ff004,pc_operand},
+        {0xe7910010,register_memory_shift},{0xe1000000,status_or_misc},
+        {0xe080000d,sp_index},{0xe080000e,lr_index},{0xe080000f,pc_index},
+        {0xe0800d10,sp_shift},{0xe0800e10,lr_shift},{0xe0800f10,pc_shift},
+        {0xe0000190,multiply},{0xe1d000b0,halfword_or_signed_transfer}};
+    const unsigned caller[]={0xeb0003feu,0xe2844001u};
+    unsigned checks=0;
+    for(auto f:cases) {
+        predicated_leaves=f.predicates;
+        const unsigned leaf[]={0xe1a00000u,f.opcode,0xe12fff1eu};
+        leaf_resolver resolver=[&](unsigned){const auto *p=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(p,p+sizeof(leaf));};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty())return false;
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        alignas(8) unsigned state[256]{};state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;
+        state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=16;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        if(count!=1 || state[15]!=0x2000 || last_constraint!=3 || last_restriction!=f.expected || last_rejected_pc!=0x2004 || last_rejected_opcode!=f.opcode) {
+            printf(" FAIL boundary detail op=%x got=%s expected=%s pc=%x count=%d\n",f.opcode,restriction_name(last_restriction),restriction_name(f.expected),last_rejected_pc,count);return false;
+        }
+        const auto before=call_restrictions[restriction_name(f.expected)];
+        record(0x1000,0x2000,7,count,16,0);
+        if(call_restrictions[restriction_name(f.expected)]!=before+1)return false;
+        ++checks;
+    }
+    for(unsigned address:{0x1000u,0x1800u,0x2000u,0x3000u}) {
+        test_mem memory;const unsigned code[]={0xe5810000u,0xe2822001u};
+        memory.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(code),reinterpret_cast<const std::uint8_t*>(code)+sizeof(code)});
+        memory.write32(0x2000,0xe12fff1e);
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        for(unsigned page:{0x1000u,0x2000u,0x3000u})tlb.add(page,memory.data.data()+page,3);
+        validated_code_cache cache;core::code_mapping view{1,memory.data.data()+0x1000,8};auto &entry=cache.insert(0x1000,view,8);
+        validated_code_cache::add_dependency(entry,0x2000,memory.data.data()+0x2000,{memory.data.begin()+0x2000,memory.data.begin()+0x2004});
+        alignas(8) unsigned state[256]{};state[0]=0xe1a00000;state[1]=address;state[15]=0x1000;
+        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=16;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=entry.guard_begin;state[state_offsets::AOT_CODE_END/4]=entry.guard_end;
+        guard_hits=0;last_guard_host=0;last_guard_size=0;g_test_mem=&memory;
+        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+        const bool guarded=address!=0x3000;
+        if(count!=(guarded?1:2) || guard_hits!=unsigned(guarded) || state[2]!=unsigned(!guarded))return false;
+        if(guarded && (last_guard_host!=reinterpret_cast<std::uintptr_t>(memory.data.data()+address) || last_guard_size!=4 ||
+            validated_code_cache::diagnostic_code_overlap(entry,last_guard_host,last_guard_size)!=(address!=0x1800)))return false;
+        ++checks;
+    }
+    printf(" PASS boundary details (%u exact rejection labels/counters and primary/dependency/gap/outside guards)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_predicated_leaves() {
 #ifdef __EMSCRIPTEN__
     struct restore {bool flag=predicated_leaves;std::string limits=execution_limits_text();
@@ -4750,6 +4817,7 @@ static bool test_exit_census() {
 }
 
 int main(int argc, char **argv) {
+    if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;
     if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
@@ -5389,6 +5457,7 @@ int main(int argc, char **argv) {
     if (test_execution_limits()) passed++; else failed++;
     if (test_inline_limits()) passed++; else failed++;
     if (test_predicated_leaves()) passed++; else failed++;
+    if (test_boundary_details()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;

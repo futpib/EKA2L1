@@ -6,6 +6,7 @@
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/execution_limits.h>
+#include <cpu/aot/exit_census.h>
 #include <cpu/aot/wasm_emitter.h>
 #ifdef EKA_MATCHED_REFERENCE
 #include "matched_kernel_reference.h"
@@ -66,6 +67,12 @@ struct Fixture {
     }
 };
 int main(int argc, char **argv){
+    if(argc>1 && std::strncmp(argv[argc-1],"--exit-census=",14)==0) {
+        const std::string value(argv[argc-1]+14);
+        if(value!="0" && value!="1"){std::cerr<<"Invalid exit census policy\n";return 1;}
+        aot::exit_census::enabled=value=="1";--argc;
+    }
+    std::cout<<"PROBE_EXIT_CENSUS "<<aot::exit_census::enabled<<"\n";
     if(argc>1 && std::strncmp(argv[argc-1],"--predicated-leaves=",20)==0) {
         const std::string value(argv[argc-1]+20);
         if(value!="0" && value!="1"){std::cerr<<"Invalid leaf predication policy\n";return 1;}

@@ -1354,3 +1354,19 @@ TEST_CASE("Folded DynCom TLB indexing preserves invalidation and permissions", "
     folded.make_dirty(collision);
     CHECK(folded.lookup(collision)==nullptr);
 }
+
+TEST_CASE("Diagnostic code guard overlap excludes interval gaps", "[aot][cpu][diagnostic]") {
+    using namespace eka2l1::arm;
+    using namespace eka2l1::arm::aot;
+    std::array<std::uint8_t,128> bytes{};
+    validated_code_cache cache;
+    core::code_mapping view{1,bytes.data(),bytes.size()};
+    auto &entry=cache.insert(0x1000,view,8);
+    validated_code_cache::add_dependency(entry,0x2000,bytes.data()+64,{bytes.begin()+64,bytes.begin()+72});
+    const auto base=reinterpret_cast<std::uintptr_t>(bytes.data());
+    CHECK(entry.guard_begin==base);CHECK(entry.guard_end==base+72);
+    for(unsigned offset:{0u,4u,7u,63u,64u,68u,71u})CHECK(validated_code_cache::diagnostic_code_overlap(entry,base+offset,4));
+    for(unsigned offset:{8u,16u,32u,60u,72u,96u})CHECK_FALSE(validated_code_cache::diagnostic_code_overlap(entry,base+offset,4));
+    CHECK_FALSE(validated_code_cache::diagnostic_code_overlap(entry,base,0));
+    CHECK(validated_code_cache::diagnostic_code_overlap(entry,base+8,64));
+}

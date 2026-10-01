@@ -369,6 +369,9 @@ int eka2l1_exit_census_configure(int enabled) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_exit_census_report() { return arm::aot::exit_census::enabled ? 1 : 0; }
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_guest_profile_configure(int stride) {
     if (g_state || stride < 0) return -1;
     common::guest_profile::enabled = stride != 0;

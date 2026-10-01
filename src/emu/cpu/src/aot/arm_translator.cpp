@@ -249,7 +249,7 @@ namespace eka2l1::arm::aot {
                 get_local(HOST); load_i32(S::AOT_CODE_END); op(op_i32_lt_u);
                 get_local(HOST); i32_const(size); op(op_i32_add); load_i32(S::AOT_CODE_BEGIN); op(op_i32_gt_u);
                 op(op_i32_and); op(op_if); op(type_void);
-                store_i32_const(S::AOT_EXIT,1); census_effect(2); op(op_end);
+                store_i32_const(S::AOT_EXIT,1); census_effect(2); census_code_guard(size); op(op_end);
             }
             op(op_end); // result block
         }
@@ -329,6 +329,17 @@ namespace eka2l1::arm::aot {
 #endif
         }
         std::uint32_t census_pc=0,census_opcode=0,census_constraint=0;
+        std::uint32_t census_restriction=0,census_rejected_pc=0,census_rejected_opcode=0;
+        void census_code_guard(unsigned bytes) {
+            if(!exit_census::enabled)return;
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&exit_census::last_guard_host)));
+            get_local(HOST);op(op_i32_store);leb(b,2);leb(b,0);
+            census_store(&exit_census::last_guard_size,bytes);
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&exit_census::guard_hits)));
+            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&exit_census::guard_hits)));
+            op(op_i32_load);leb(b,2);leb(b,0);i32_const(1);op(op_i32_add);
+            op(op_i32_store);leb(b,2);leb(b,0);
+        }
         void census_store(std::uint32_t *where,std::uint32_t value) {
             if(!exit_census::enabled)return;
             i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(where)));
@@ -346,6 +357,9 @@ namespace eka2l1::arm::aot {
             census_store(&exit_census::last_pc,census_pc);
             census_store(&exit_census::last_opcode,census_opcode);
             census_store(&exit_census::last_constraint,census_constraint);
+            census_store(&exit_census::last_restriction,census_restriction);
+            census_store(&exit_census::last_rejected_pc,census_rejected_pc);
+            census_store(&exit_census::last_rejected_opcode,census_rejected_opcode);
         }
         void ret(unsigned why=exit_census::control) {
             census_exit(why);
@@ -754,7 +768,7 @@ namespace eka2l1::arm::aot {
 
     // Only short straight-line leaves with an unchanged LR can be inlined.
     // Memory instructions retain the normal region guards and helper exits.
-    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure, bool allow_predicates) {
+    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure, bool allow_predicates, exit_census::leaf_refusal &refusal) {
         failure="callee_unsupported";
         auto bytes = resolve(address);
         exit_census::probe(address,bytes.data(),bytes.size());
@@ -767,17 +781,29 @@ namespace eka2l1::arm::aot {
             // the original emitter. They do not alter the linear control path;
             // false predicates still consume an instruction. Keep conditional
             // memory, transfers and reserved encodings outside this experiment.
-            if ((op >> 28) != 14 && (!allow_predicates || (op >> 28) == 15 || group != 0)) return {};
-            if (group > 1 || ((op >> 16) & 15) >= 13 || ((op >> 12) & 15) >= 13) return {};
+            const auto reject = [&](unsigned detail) {
+                if(exit_census::enabled){refusal.detail=detail;refusal.pc=address+static_cast<std::uint32_t>(n);refusal.opcode=op;}
+                return std::vector<std::uint8_t>{};
+            };
+            using namespace exit_census;
+            if ((op >> 28) != 14 && (!allow_predicates || (op >> 28) == 15 || group != 0))
+                return reject(!allow_predicates?predicates_disabled:(op>>28)==15?reserved_predicate:group==1?conditional_memory:conditional_transfer);
+            if (group > 1) return reject(group==3?coprocessor_or_supervisor:
+                ((op>>25)&7)==5?(op&(1u<<24)?nested_call:internal_branch):block_transfer);
+            if (((op >> 16) & 15) >= 13) return reject(sp_operand+((op>>16)&15)-13);
+            if (((op >> 12) & 15) >= 13) return reject(sp_operand+((op>>12)&15)-13);
             if (group == 1) {
-                if ((op & (1u << 25)) && ((op & 15) >= 13 || (op & 16))) return {};
+                if ((op & (1u << 25)) && (op & 15) >= 13) return reject(sp_index+(op&15)-13);
+                if ((op & (1u << 25)) && (op & 16)) return reject(register_memory_shift);
             } else {
                 // Exclude status transfers, misc instructions, and halfword forms.
                 const auto alu = (op >> 21) & 15;
-                if (alu >= 8 && alu <= 11 && !(op & (1u << 20))) return {};
+                if (alu >= 8 && alu <= 11 && !(op & (1u << 20))) return reject(status_or_misc);
                 if (!(op & (1u << 25))) {
-                    if ((op & 15) >= 13 || ((op & 16) && ((op >> 8) & 15) >= 13)) return {};
-                    if ((op & 0x90) == 0x90) return {};
+                    if ((op & 15) >= 13) return reject(sp_index+(op&15)-13);
+                    if ((op & 16) && ((op >> 8) & 15) >= 13) return reject(sp_shift+((op>>8)&15)-13);
+                    if ((op & 0x90) == 0x90) return reject((op&0x0f0000f0u)==0x00000090u?multiply:
+                        (op&0x60)?halfword_or_signed_transfer:(op&0x01000000)?swap_or_exclusive:other_extra_transfer);
                 }
             }
         }
@@ -789,7 +815,7 @@ namespace eka2l1::arm::aot {
     static std::set<std::size_t> find_reachable_offsets_arm(
         const std::uint8_t *code, std::size_t code_size, bool bounded,
         std::uint32_t start_address, const leaf_resolver *leaves,
-        std::map<std::size_t, code_dependency> &inlined, std::map<std::size_t,unsigned> &refusals, bool allow_predicates)
+        std::map<std::size_t, code_dependency> &inlined, std::map<std::size_t,exit_census::leaf_refusal> &refusals, bool allow_predicates)
     {
         std::set<std::size_t> reachable;
         if (code_size < 4) return reachable;
@@ -813,16 +839,18 @@ namespace eka2l1::arm::aot {
                     std::int32_t target_off = static_cast<std::int32_t>(i) + offset;
                     bool is_link = (inst >> 24) & 1;
                     if (is_link) {
-                        if(exit_census::enabled)refusals[i]=cond!=14?7:!leaves?6:inlined.size()>=inline_site_limit?1:0;
+                        if(exit_census::enabled)refusals[i].constraint=cond!=14?7:!leaves?6:inlined.size()>=inline_site_limit?1:0;
                         // Bounded BL exits to the runner. Its return address is
                         // a separate entry, not reachable fallthrough in this region.
                         if (bounded && cond >= 0xE) {
                             if (cond == 14 && leaves && inlined.size() < inline_site_limit) {
                                 const auto address = start_address + static_cast<std::uint32_t>(target_off);
                                 const char *failure=nullptr;
-                                auto bytes = resolve_leaf(*leaves, address, failure, allow_predicates);
+                                exit_census::leaf_refusal refusal;
+                                auto bytes = resolve_leaf(*leaves, address, failure, allow_predicates, refusal);
+                                if(exit_census::enabled)refusals[i]=refusal;
                                 exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:"call_inlined");
-                                if(exit_census::enabled && bytes.empty())refusals[i]=
+                                if(exit_census::enabled && bytes.empty())refusals[i].constraint=
                                     std::strcmp(failure,"leaf_instruction_limit")==0?2:
                                     std::strcmp(failure,"callee_unsupported")==0?3:
                                     std::strcmp(failure,"callee_mapping_extent")==0?4:5;
@@ -940,7 +968,7 @@ namespace eka2l1::arm::aot {
         }
 
         std::map<std::size_t, code_dependency> inlined;
-        std::map<std::size_t,unsigned> refusals;
+        std::map<std::size_t,exit_census::leaf_refusal> refusals;
         auto reachable = find_reachable_offsets_arm(code, code_size, bounded,
             start_address, region ? leaves : nullptr, inlined, refusals, predicated_leaves && ir_policy == arm_ir_policy::write_budget_chunks);
         struct instruction { std::size_t offset; std::uint32_t address, opcode; bool leaf; };
@@ -1512,7 +1540,9 @@ namespace eka2l1::arm::aot {
             const auto inst = instruction.opcode;
             const auto insn_addr = instruction.address;
             w.census_pc=insn_addr;w.census_opcode=inst;
-            w.census_constraint=exit_census::enabled && !instruction.leaf && refusals.count(i)?refusals.at(i):0;
+            const auto refusal=exit_census::enabled && !instruction.leaf && refusals.count(i)?refusals.at(i):exit_census::leaf_refusal{};
+            w.census_constraint=refusal.constraint;w.census_restriction=refusal.detail;
+            w.census_rejected_pc=refusal.pc;w.census_rejected_opcode=refusal.opcode;
 
             const unsigned wide_hi = (inst >> 16) & 15, wide_lo = (inst >> 12) & 15;
             const bool lazy_multiply = region && cache_registers && !instruction.leaf
@@ -1951,7 +1981,7 @@ namespace eka2l1::arm::aot {
                         w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
                         w.get_local(arm_emit::HOST); w.i32_const(count * 4); w.op(op_i32_add);
                         w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and);
-                        w.op(op_if); w.op(type_void); w.store_i32_const(S::AOT_EXIT,1); w.census_effect(2); w.op(op_end);
+                        w.op(op_if); w.op(type_void); w.store_i32_const(S::AOT_EXIT,1); w.census_effect(2); w.census_code_guard(count*4); w.op(op_end);
                     }
                     if (!proved_span) w.op(op_else);
                     // Code generation visits both arms; a fast LDM PC store
