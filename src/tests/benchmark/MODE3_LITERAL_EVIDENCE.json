@@ -23725,7 +23725,11 @@
           "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
           "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
         },
-        "removed_invocations": 9111304
+        "removed_invocations": 9111304,
+        "footprint_delta": {
+          "allocated_bytes": -28912,
+          "compiled_functions": -22
+        }
       },
       "standard": {
         "control": {
@@ -24094,7 +24098,11 @@
           "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
           "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
         },
-        "removed_invocations": 9053940
+        "removed_invocations": 9053940,
+        "footprint_delta": {
+          "allocated_bytes": 4120,
+          "compiled_functions": -29
+        }
       }
     },
     "scripts": {

@@ -43,3 +43,14 @@ Separate interpreter-checked diagnostic runs pass on both routes with stride 102
 | standard | 140,626,048 | 131,572,108 | 9,053,940 | 2,972,237,245 / 2,972,188,093 |
 
 Both normal modes record zero code-byte/version checks. Removed region invocations are not a count of individual register stores or loads. The prior mode-0 module-size measurements are not relabeled as mode-3 evidence. This records the runtime mechanism alongside the 16 accepted mode-3 timing observations, without pooling either diagnostic wall time or older policy results.
+
+The boundary reduction has small countervailing costs. Compiled-region instruction coverage falls by 192,337 instructions on the longer route and 49,152 on standard (out of roughly three billion guest instructions per window); identical total guest work is retained. Thus the region-count reduction does not imply that every affected instruction becomes compiled.
+
+| End-of-run WASM footprint | Control | Literal-PC |
+| --- | ---: | ---: |
+| long allocated bytes | 590,210,272 | 590,181,360 |
+| long compiled functions | 14,257 | 14,235 |
+| standard allocated bytes | 590,307,376 | 590,311,496 |
+| standard compiled functions | 14,532 | 14,503 |
+
+This allocation snapshot covers the WASM heap at the route endpoint, including startup. It does not measure browser JIT machine code, generated-module byte size or total browser memory. Warmup is retained separately in the timing evidence and is not an isolated compilation-cost measurement.
