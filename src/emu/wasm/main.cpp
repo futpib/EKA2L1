@@ -891,7 +891,7 @@ int eka2l1_run(const char *app_name) {
     g_state->emu_thread = std::make_unique<std::thread>([]() {
         LOG_INFO(FRONTEND_CMDLINE, "Emulator thread started");
         int iterations = 0;
-        const auto host_origin = std::chrono::steady_clock::now();
+        auto host_origin = std::chrono::steady_clock::now();
         const auto guest_origin = common::benchmark::virtual_us.load();
         std::uint64_t pacing_check = guest_origin;
         while (g_state && g_state->running) {
@@ -922,10 +922,16 @@ int eka2l1_run(const char *app_name) {
                 }
                 const auto guest_now = common::benchmark::virtual_us.load();
                 if (!g_route.enabled && guest_now >= pacing_check) {
+                    const auto host_now = std::chrono::steady_clock::now();
                     const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
-                        std::chrono::steady_clock::now() - host_origin).count();
+                        host_now - host_origin).count();
                     const auto ahead = static_cast<std::int64_t>(guest_now - guest_origin) - elapsed;
-                    if (ahead > 2000) {
+                    if (ahead < -100000) {
+                        // Allow brief scheduler jitter, but discard host stalls
+                        // instead of fast-forwarding to repay them. Guest clocks
+                        // and pending events stay intact.
+                        host_origin = host_now - std::chrono::microseconds(guest_now - guest_origin);
+                    } else if (ahead > 2000) {
                         std::this_thread::sleep_for(std::chrono::microseconds(std::min<std::int64_t>(ahead - 1000, 2000)));
                         continue; // Host pacing never advances the guest clock.
                     }
