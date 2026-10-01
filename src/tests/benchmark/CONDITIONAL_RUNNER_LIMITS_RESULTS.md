@@ -151,3 +151,5 @@ standard, cap 64: +1,714,882 runner returns, -968 compiled invocations, combined
 standard, cap 0: -9,430 runner returns, +0 compiled invocations, combined primary/dependency requested bytes +0.0000%, cap returns 0.
 
 Compiled invocations are not individual state-load/store counts, and requested bytes are not physical memory traffic. Uncapping retains budget, interrupt, stop, zero-progress and successor-validity checks; it does not fuse compiled regions or change guest scheduling. The frozen conditional-only LAN archive remains served. The separate opt-in literal-PC veneer candidate proceeds to full correctness acceptance next; nothing is pushed or deployed.
+
+The tiny differences in compiled-invocation counts are entirely zero-progress attempts: `calls - zero_progress` is identical at all three caps on each route (139,850,758 longer; 139,487,243 standard). The same differences appear in memory-guard exits. Thus this census finds no reduction in compiled invocations that execute guest instructions from changing the runner cap. This accounting statement does not assign a wall-time cost to each exit.
