@@ -245,11 +245,13 @@ namespace eka2l1::arm::aot {
             leb(b, size==4 ? 2 : size==2 ? 1 : 0); leb(b,0);
             if (write) {
                 track_write();
+                if (!common::code_tracking::skip_code_write_guards()) {
                 // Backing-address guard catches writes through guest aliases.
                 get_local(HOST); load_i32(S::AOT_CODE_END); op(op_i32_lt_u);
                 get_local(HOST); i32_const(size); op(op_i32_add); load_i32(S::AOT_CODE_BEGIN); op(op_i32_gt_u);
                 op(op_i32_and); op(op_if); op(type_void);
                 store_i32_const(S::AOT_EXIT,1); census_effect(2); census_code_guard(size); op(op_end);
+                }
             }
             op(op_end); // result block
         }
@@ -303,6 +305,7 @@ namespace eka2l1::arm::aot {
         // All direct stores are aligned and confined to one physical page.
         // Helpers/interpreter writes use the same backing-indexed versions.
         void track_write() {
+            if (common::code_tracking::skip_mutation_tracking()) return;
 #if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
 #if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
             if (common::code_tracking::protect_writes) return;
@@ -341,7 +344,7 @@ namespace eka2l1::arm::aot {
             op(op_i32_store);leb(b,2);leb(b,0);
         }
         void census_entry_overlap(unsigned bytes) {
-            if(!exit_census::enabled)return;
+            if(!exit_census::enabled || common::code_tracking::skip_code_write_guards())return;
             // Ignore missing mappings and wrapping spans: those cannot be
             // attributed solely to overlap with the protected code interval.
             get_local(HOST);op(op_i32_eqz);op(op_i32_eqz);
@@ -524,11 +527,13 @@ namespace eka2l1::arm::aot {
                 w.ir_memory_host(bytes, write);
                 w.get_local(arm_emit::HOST); w.op(op_i32_eqz);
                 if (write) {
+                    if (!common::code_tracking::skip_code_write_guards()) {
                     // A store to translated code must return before effects,
                     // including writes through a different guest alias.
                     w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
                     w.get_local(arm_emit::HOST); w.i32_const(bytes); w.op(op_i32_add);
                     w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and); w.op(op_i32_or);
+                    }
                     w.get_local(arm_emit::HOST); w.i32_const(bytes); w.op(op_i32_add);
                     w.get_local(arm_emit::HOST); w.op(op_i32_lt_u); w.op(op_i32_or);
                 }
@@ -1267,6 +1272,7 @@ namespace eka2l1::arm::aot {
         bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || (ir_policy == arm_ir_policy::inline_call_ir || (ir_policy == arm_ir_policy::invariant_write_ir || ir_policy == arm_ir_policy::conditional_value_ir)) || include_writes || ir_policy == arm_ir_policy::budget_chunks)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
 #ifdef EKA2L1_WASM_CODE_VERSIONS
+        if (!common::code_tracking::skip_mutation_tracking()) {
 #if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
         // Only the original-emitter delivered proof policy is admitted. Its
         // entry checks consume writable TLB tags after runtime protection sync;
@@ -1276,6 +1282,7 @@ namespace eka2l1::arm::aot {
 #else
         invariant_reads = false;
 #endif
+        }
 #endif
         if (invariant_reads) {
             unsigned written = 0;
@@ -1655,9 +1662,11 @@ namespace eka2l1::arm::aot {
                     w.i32_const(static_cast<std::int32_t>(0xffffffffu - unsigned(span.high - span.low)));
                     w.op(op_i32_gt_u); w.op(op_i32_or);
                     w.census_entry_other();
+                    if (!common::code_tracking::skip_code_write_guards()) {
                     w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
                     w.get_local(arm_emit::HOST); w.i32_const(static_cast<std::int32_t>(span.high - span.low)); w.op(op_i32_add);
                     w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and); w.op(op_i32_or);
+                    }
                 } else w.census_entry_other();
                 w.get_local(TMP4); w.op(op_i32_or); w.set_local(TMP4);
                 w.get_local(arm_emit::HOST); w.set_local(span.host);
@@ -2209,10 +2218,12 @@ namespace eka2l1::arm::aot {
                     }
                     if (!load && !proved_span) {
                         w.track_write();
+                        if (!common::code_tracking::skip_code_write_guards()) {
                         w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
                         w.get_local(arm_emit::HOST); w.i32_const(count * 4); w.op(op_i32_add);
                         w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and);
                         w.op(op_if); w.op(type_void); w.store_i32_const(S::AOT_EXIT,1); w.census_effect(2); w.census_code_guard(count*4); w.op(op_end);
+                        }
                     }
                     if (!proved_span) w.op(op_else);
                     // Code generation visits both arms; a fast LDM PC store

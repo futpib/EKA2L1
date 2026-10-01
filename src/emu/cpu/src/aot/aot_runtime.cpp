@@ -417,7 +417,8 @@ void observe_hot_pc(ARMul_State *cpu) {
             core::code_mapping leaf;
             if (!cpu->parent()->resolve_code(dependency.address, leaf)
                 || leaf.address_space != view.address_space || leaf.size < dependency.bytes.size()
-                || !equal_code_bytes(leaf.bytes, dependency.bytes.data(), dependency.bytes.size())) {
+                || (!common::code_tracking::skip_code_scans()
+                    && !equal_code_bytes(leaf.bytes, dependency.bytes.data(), dependency.bytes.size()))) {
                 entry.live = false;
                 return;
             }

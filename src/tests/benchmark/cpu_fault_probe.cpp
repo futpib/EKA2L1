@@ -67,6 +67,12 @@ struct Fixture {
     }
 };
 int main(int argc, char **argv){
+    if(argc>1 && std::strncmp(argv[argc-1],"--unsafe-code=",14)==0) {
+        const std::string value(argv[argc-1]+14);
+        if(value!="0" && value!="1" && value!="2" && value!="3")return 1;
+        eka2l1::common::code_tracking::unsafe_code_mode=std::stoi(value);--argc;
+    }
+    std::cout<<"PROBE_UNSAFE_CODE "<<eka2l1::common::code_tracking::unsafe_code_mode<<"\n";
     if(argc>1 && std::strncmp(argv[argc-1],"--leaf-features=",16)==0) {
         const std::string value(argv[argc-1]+16);
         if(value.empty() || value.size()>3 || value.find_first_not_of("0123456789")!=std::string::npos || std::stoi(value)>255){std::cerr<<"Invalid leaf feature policy\n";return 1;}

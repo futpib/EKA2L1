@@ -79,7 +79,7 @@ namespace eka2l1::arm::r12l1 {
         void sync_write_protection() {
 #if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
             namespace tracking = eka2l1::common::code_tracking;
-            if (!tracking::protect_writes) return;
+            if (tracking::skip_mutation_tracking() || !tracking::protect_writes) return;
             const auto generation = tracking::watch_generation;
             if (generation && protected_generation == generation) return;
             for (auto &entry : entries)

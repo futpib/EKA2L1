@@ -5343,7 +5343,76 @@ static bool test_exit_census() {
     return true;
 }
 
+// Deliberate semantic counterexamples are successes for this diagnostic test:
+// mode 3 must trust changed bytes and execute past an overlapping code store.
+static bool test_unsafe_code_diagnostic() {
+    namespace tracking=eka2l1::common::code_tracking;
+    struct restore {unsigned mode=tracking::unsafe_code_mode;bool outline=code_lookup_outline;
+        ~restore(){tracking::unsafe_code_mode=mode;code_lookup_outline=outline;}} saved;
+    unsigned checks=0;
+    for(unsigned mode:{0u,1u,2u,3u})for(bool outlined:{false,true})for(bool dependency:{false,true}) {
+        tracking::unsafe_code_mode=mode;code_lookup_outline=outlined;
+        test_mem memory;r12l1::exclusive_monitor monitor(1);auto cpu=make_cpu(memory,monitor);
+        std::array<std::uint8_t,32> primary{},leaf{},remap{};
+        std::atomic<std::uint64_t> generation{1};cpu->code_mapping_generation=&generation;cpu->code_address_space=1;
+        bool mapped=true;auto *backing=primary.data();auto *dep=leaf.data();unsigned extent=32;
+        cpu->resolve_code=[&](unsigned pc,core::code_mapping &view){view={1,pc==0x1000?backing:dep,extent};return mapped;};
+        validated_code_cache cache;
+        auto install=[&](){auto &entry=cache.insert(0x1000,{1,backing,extent},16);validated_code_cache::add_dependency(entry,0x2000,dep,{dep,dep+16});};
+        install();if(!cache.find(0x1000,*cpu))return false;
+        (dependency?leaf:primary)[4]^=1;
+        if(bool(cache.find(0x1000,*cpu))!=bool(mode&1))return false;
+        install();if(!cache.find(0x1000,*cpu))return false;
+        if(dependency)dep=remap.data();else backing=remap.data();++generation;
+        if(cache.find(0x1000,*cpu))return false;
+        install();if(!cache.find(0x1000,*cpu))return false;
+        mapped=false;++generation;if(cache.find(0x1000,*cpu))return false;
+        mapped=true;extent=4;++generation;if(cache.find(0x1000,*cpu))return false;
+        extent=32;install();cpu->code_address_space=2;if(cache.find(0x1000,*cpu))return false;
+        cpu->code_address_space=1;cache.invalidate(0x2000,16);if(cache.find(0x1000,*cpu))return false;
+        ++checks;
+    }
+    for(unsigned mode:{0u,1u,2u,3u})for(bool proof:{false,true})for(unsigned budget:{1u,2u,8u}) {
+        tracking::unsafe_code_mode=mode;
+        test_mem memory;const unsigned code[]={0xe5810000u,0xe2822001u};
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(code);
+        memory.write_code(0x1000,{bytes,bytes+sizeof(code)});
+        auto tr=translate_arm_block(bytes,sizeof(code),0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,
+            proof?arm_ir_policy::write_budget_chunks:arm_ir_policy::disabled);
+        const auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x1000,memory.data.data()+0x1000,3);
+        alignas(8) unsigned state[256]{};state[0]=0xe2822007;state[1]=0x1004;state[15]=0x1000;
+        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
+        state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+8;
+        g_test_mem=&memory;
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+        const unsigned expected=(mode&2)&&budget>=2?2:1;
+        if(count!=expected || state[2]!=(expected==2?1u:0u) || memory.read32(0x1004)!=0xe2822007u) {
+            printf(" FAIL unsafe code store mode=%u proof=%d budget=%u count=%d r2=%u\n",mode,proof,budget,count,state[2]);return false;
+        }
+        if(budget==8) EM_ASM({const dir=process.env.EKA2L1_UNSAFE_MODULE_DIR;if(dir)require('fs').writeFileSync(dir+'/store-'+$0+'-'+$1+'.wasm', HEAPU8.slice($2,$2+$3));},mode,proof,module.data(),module.size());
+        printf(" UNSAFE_EMISSION mode=%u proof=%d budget=%u bytes=%zu count=%d exit=%u\n",mode,proof,budget,module.size(),count,state[state_offsets::AOT_EXIT/4]);
+        ++checks;
+    }
+    for(unsigned mode:{0u,3u}) {
+        tracking::unsafe_code_mode=mode;
+        const unsigned code[]={0xe5810000u,0xe5812004u,0xe5813008u,0xe581400cu};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+        if(tr.proved_writes!=4 || !tr.func.outlined_callee)return false;
+        const auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        EM_ASM({const dir=process.env.EKA2L1_UNSAFE_MODULE_DIR;if(dir)require('fs').writeFileSync(dir+'/proof-'+$0+'.wasm', HEAPU8.slice($1,$1+$2));},mode,module.data(),module.size());
+        printf(" UNSAFE_PROOF_EMISSION mode=%u proved_writes=%u bytes=%zu\n",mode,tr.proved_writes,module.size());++checks;
+    }
+    printf(" PASS unsafe_code_diagnostic (%u checks; expected stale primary/dependency bytes and stale post-store execution; mapping, lifetime and budget checks retained)\n",checks);
+    return true;
+}
+
 int main(int argc, char **argv) {
+    if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
     if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--tail-prefixes-only")return test_tail_prefixes()?0:1;
     if(argc==2 && std::string(argv[1])=="--branch-veneers-only")return test_branch_veneers()?0:1;
@@ -5976,6 +6045,7 @@ int main(int argc, char **argv) {
 #endif
     if (test_bounded_execution()) passed++; else failed++;
     if (test_folded_tlb_guards()) passed++; else failed++;
+    if (test_unsafe_code_diagnostic()) passed++; else failed++;
     if (test_outlined_code_lookup()) passed++; else failed++;
     if (test_exact_code_compare()) passed++; else failed++;
     if (test_region_cpsr_callback()) passed++; else failed++;

@@ -19,6 +19,7 @@ parser.add_argument('--tlb-hash', action='append', default=[], metavar='NAME=0/1
 parser.add_argument('--code-write-protect', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-lookup', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1/2/3/4')
+parser.add_argument('--unsafe-code',action='append',default=[],metavar='NAME=0/1/2/3')
 parser.add_argument('--leaf-features',action='append',default=[],metavar='NAME=MASK')
 parser.add_argument('--predicated-leaves', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--execution-limits', action='append', default=[], metavar='NAME=WINDOW,LEAF,SITES,RUNNER')
@@ -70,6 +71,11 @@ for item in args.tlb_hash:
     if not separator or name not in dict(variants) or name in hash_modes or value not in ('0', '1'):
         parser.error('TLB hash requires a unique known NAME=0/1')
     hash_modes[name] = int(value)
+unsafe_modes = {}
+for item in args.unsafe_code:
+    name,separator,value=item.partition('=')
+    if not separator or name not in dict(variants) or name in unsafe_modes or value not in ('0','1','2','3'):parser.error('Unsafe mode requires unique known NAME=0..3')
+    unsafe_modes[name]=int(value)
 features = {}
 for item in args.leaf_features:
     name,separator,value=item.partition('=')
@@ -133,6 +139,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         env.pop('EKA2L1_AOT_IR_MODE', None)
         if name in modes:
             env['EKA2L1_AOT_IR_MODE'] = str(modes[name])
+        env['EKA2L1_UNSAFE_CODE']=str(unsafe_modes.get(name,0))
         env['EKA2L1_LEAF_FEATURES']=str(features.get(name,0))
         env['EKA2L1_PREDICATED_LEAVES'] = str(predicates.get(name,0))
         env['EKA2L1_EXECUTION_LIMITS'] = ','.join(map(str,limits.get(name,[512,16,8,512])))
@@ -143,6 +150,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
                            cwd=root / 'src/tests/wasm', env=env, stdout=log,
                            stderr=subprocess.STDOUT, timeout=1800, check=True)
         report = json.loads((output / 'report.json').read_text())
+        if report.get('unsafe_code') != unsafe_modes.get(name,0):raise RuntimeError('Wrong unsafe code mode')
         if report.get('leaf_features') != features.get(name,0):raise RuntimeError('Wrong leaf feature mask')
         if report.get('predicated_leaves') != predicates.get(name,0):
             raise RuntimeError('Wrong leaf predication mode')
@@ -164,7 +172,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Profile did not use requested input route')
         if report['measurement']['first_virtual_us'] != args.start_us or report['measurement']['last_virtual_us'] != args.end_us:
             raise RuntimeError('Profile did not use requested guest window')
-        row = dict(leaf_features=report['leaf_features'],predicated_leaves=report['predicated_leaves'], runtime_footprint=report.get('runtime_footprint'), warmup_seconds=report['warmup_seconds'], execution_limits=report['execution_limits'], code_write_protect=report.get('code_write_protect', -1), code_lookup=report.get('code_lookup', -1), tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
+        row = dict(unsafe_code=report['unsafe_code'],leaf_features=report['leaf_features'],predicated_leaves=report['predicated_leaves'], runtime_footprint=report.get('runtime_footprint'), warmup_seconds=report['warmup_seconds'], execution_limits=report['execution_limits'], code_write_protect=report.get('code_write_protect', -1), code_lookup=report.get('code_lookup', -1), tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
                    eager_regions=report.get('eager_regions', -1),
                    wasm_sha256=report['wasm_sha256'], loader_sha256=report['loader_sha256'],
                    measurement=report['measurement'])

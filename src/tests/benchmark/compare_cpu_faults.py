@@ -12,6 +12,7 @@ p.add_argument('wasm', type=Path)
 p.add_argument('output', type=Path)
 p.add_argument('--require-equal', action='store_true', help='Exit nonzero on any semantic mismatch')
 p.add_argument('--cases', type=int, choices=(48,64,96,480,672,5376), default=480, help='Expected complete fixture count; read spans has 48, invariant remapping has 64, block spans has 96, extended has 672, conditional IR has 5376')
+p.add_argument('--unsafe-code',type=int,choices=(0,1,2,3))
 p.add_argument('--leaf-features',type=int,choices=range(256))
 p.add_argument('--exit-census',type=int,choices=(0,1))
 p.add_argument('--predicated-leaves', type=int, choices=(0,1))
@@ -25,6 +26,9 @@ a = p.parse_args()
 
 def load(path):
     lines = path.read_text().splitlines()
+    if a.unsafe_code is not None:
+        markers=[line for line in lines if line.startswith('PROBE_UNSAFE_CODE ')]
+        if markers != [f'PROBE_UNSAFE_CODE {a.unsafe_code}']:raise ValueError(f'{path}: wrong unsafe mode {markers}')
     if a.leaf_features is not None:
         markers=[line for line in lines if line.startswith('PROBE_LEAF_FEATURES ')]
         if markers != [f'PROBE_LEAF_FEATURES {a.leaf_features}']:raise ValueError(f'{path}: wrong leaf features {markers}')

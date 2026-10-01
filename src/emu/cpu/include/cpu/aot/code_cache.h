@@ -195,6 +195,7 @@ namespace eka2l1::arm::aot {
             return equal_code_bytes(snapshot.backing, snapshot.code.data(), snapshot.code.size());
         }
         static bool bytes_match(block &entry, bool force) {
+            if (common::code_tracking::skip_code_scans()) return true;
 #if !defined(EKA2L1_WASM_CODE_VERSIONS)
             return snapshot_equal(entry) && dependencies_equal(entry);
 #else

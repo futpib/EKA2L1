@@ -236,7 +236,7 @@ int eka2l1_tlb_hash_configure(int mode) {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_code_write_protect_configure(int mode) {
 #if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
-    if (g_state || (mode != 0 && mode != 1)) return -1;
+    if (g_state || (mode != 0 && mode != 1) || common::code_tracking::skip_mutation_tracking()) return -1;
     // Do not leave a selected proof policy without its required protection.
     if (!mode) if (const char *policy=std::getenv("EKA2L1_AOT_IR_MODE"))
         if (std::string(policy)=="7") return -2;
@@ -253,6 +253,18 @@ int eka2l1_code_lookup_configure(int mode) {
     eka2l1::arm::aot::code_lookup_outline = mode != 0;
     return 0;
 }
+
+// No live launcher selects this deliberately unsafe diagnostic. A selected
+// mode is immutable once CPU initialization begins, including on worker threads.
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_unsafe_code_configure(int mode) {
+    if (g_state || mode < 0 || mode > 3) return -1;
+    common::code_tracking::unsafe_code_mode = static_cast<unsigned>(mode);
+    if (mode == 3) common::code_tracking::protect_writes = false;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_unsafe_code_report() { return common::code_tracking::unsafe_code_mode; }
 
 // Exact byte-scanner research control, frozen before guest execution.
 EMSCRIPTEN_KEEPALIVE

@@ -38,6 +38,8 @@ const codeLookup = process.env.EKA2L1_CODE_LOOKUP === undefined ? -1 : Number(pr
 if (![-1,0,1].includes(codeLookup)) throw new Error('Invalid code lookup policy');
 const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
 if (![-1,0,1,2,3,4].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
+const unsafeCode=Number(process.env.EKA2L1_UNSAFE_CODE || '0');
+if(![0,1,2,3].includes(unsafeCode))throw Error('Invalid unsafe code mode');
 const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES || '0');
 if(!Number.isInteger(leafFeatures) || leafFeatures<0 || leafFeatures>255)throw Error('Invalid leaf feature mask');
 const predicatedLeaves = Number(process.env.EKA2L1_PREDICATED_LEAVES || '0');
@@ -109,7 +111,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -149,6 +151,13 @@ try {
       call('eka2l1_leaf_predication_configure',['number'],[predicatedLeaves]);
       if(g.Module.ccall('eka2l1_leaf_predication_report','number',[],[])!==predicatedLeaves)throw Error('Leaf predication was not applied');
     } else if(predicatedLeaves)throw Error('Leaf predication API unavailable');
+    if(typeof g.Module._eka2l1_unsafe_code_configure==='function') {
+      call('eka2l1_unsafe_code_configure',['number'],[unsafeCode]);
+      const actual=g.Module.ccall('eka2l1_unsafe_code_report','number',[],[]);
+      if(actual!==unsafeCode)throw Error('Unsafe code mode was not applied');
+      g.unsafeCodeActual=actual;
+    } else if(unsafeCode)throw Error('Unsafe code API unavailable');
+    else g.unsafeCodeActual=0;
     if(typeof g.Module._eka2l1_leaf_features_configure==='function') {
       call('eka2l1_leaf_features_configure',['number'],[leafFeatures]);
       if(g.Module.ccall('eka2l1_leaf_features_report','number',[],[])!==leafFeatures)throw Error('Leaf features were not applied');
@@ -164,6 +173,10 @@ try {
       call('eka2l1_graphics_diagnostics_configure', ['number'], [glDiagnostics ? 1 : 0]);
     else if (glDiagnostics) throw new Error('Build does not support graphics diagnostic configuration');
     call('eka2l1_init', ['string'], ['/data']);
+    if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
+      if(g.Module._eka2l1_unsafe_code_report()!==unsafeCode || g.Module._eka2l1_unsafe_code_configure(unsafeCode===3?0:3)!==-1)
+        throw Error('Unsafe mode changed or remained configurable after CPU initialization');
+    }
     for (const name of ['SYM.ROM', 'SYM.RPKG', 'Snakes.sis', 'input']) {
       const response = await fetch(`/preload/${name}`);
       if (!response.ok) throw new Error(`Asset HTTP ${response.status()}`);
@@ -184,7 +197,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], ['Snakes']);
-  }, {tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+  }, {tlbHash, codeCompare, codeLookup, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -315,7 +328,7 @@ try {
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({measurement: measured, warmup_seconds: warmupSeconds,
     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
+    aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     runtime_footprint: await page.evaluate(() => {
       const m=(window as any).Module;
       return typeof m._eka2l1_monitor_report==='function' ? JSON.parse(m.ccall('eka2l1_monitor_report','string',[],[])) : null;

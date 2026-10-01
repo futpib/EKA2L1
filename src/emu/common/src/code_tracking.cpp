@@ -18,6 +18,7 @@ namespace eka2l1::common::code_tracking {
     static std::map<std::uintptr_t, std::uintptr_t> allocations;
 
     void register_allocation(void *ptr, std::size_t size) {
+        if (skip_mutation_tracking()) return;
         if (!ptr || !size) return;
         const auto begin = reinterpret_cast<std::uintptr_t>(ptr);
         const auto end = std::uint64_t(begin) + size;
@@ -43,6 +44,7 @@ namespace eka2l1::common::code_tracking {
 #endif
     }
     void escape_pointer(const void *ptr) {
+        if (skip_mutation_tracking()) return;
         const auto address = reinterpret_cast<std::uintptr_t>(ptr);
         if (!ptr || !pages[address >> 12].flags.load(std::memory_order_acquire)) return;
         std::lock_guard<std::mutex> lock(mutex);
@@ -58,11 +60,13 @@ namespace eka2l1::common::code_tracking {
 #endif
     }
     void retire_allocation(void *ptr) {
+        if (skip_mutation_tracking()) return;
         escape_pointer(ptr);
         std::lock_guard<std::mutex> lock(mutex);
         allocations.erase(reinterpret_cast<std::uintptr_t>(ptr));
     }
     std::vector<stamp> snapshot(const void *ptr, std::size_t size) {
+        if (skip_mutation_tracking()) return {};
         std::vector<stamp> result;
         if (!ptr || !size) return result;
         const auto begin = reinterpret_cast<std::uintptr_t>(ptr);
