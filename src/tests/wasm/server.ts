@@ -60,7 +60,14 @@ autoStart();
 </script>`;
 }
 
-export type CompilerPolicy = { irMode?: number; eagerRegions?: number; tlbHash?: number; codeCompare?: number; codeLookup?: number };
+export type CompilerPolicy = { irMode?: number; eagerRegions?: number; tlbHash?: number; codeCompare?: number; codeLookup?: number; predicatedLeaves?: number; leafFeatures?: number; executionLimits?: [number,number,number,number] };
+
+function validExecutionLimits(limits: unknown): limits is [number,number,number,number] {
+  return Array.isArray(limits) && limits.length === 4 && limits.every(Number.isInteger)
+    && limits[0] >= 128 && limits[0] <= 2048 && limits[0] % 4 === 0
+    && limits[1] >= 1 && limits[1] <= 64 && limits[2] >= 0 && limits[2] <= 16
+    && limits[3] >= 0 && limits[3] <= 4096;
+}
 
 export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
   const ir = process.env.EKA2L1_AOT_IR_MODE;
@@ -68,7 +75,10 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
   const tlb = process.env.EKA2L1_TLB_HASH;
   const compare = process.env.EKA2L1_CODE_COMPARE;
   const lookup = process.env.EKA2L1_CODE_LOOKUP;
-  if (ir === undefined && eager === undefined && tlb === undefined && compare === undefined && lookup === undefined) return undefined;
+  const predicates = process.env.EKA2L1_PREDICATED_LEAVES;
+  const features = process.env.EKA2L1_LEAF_FEATURES;
+  const limits = process.env.EKA2L1_EXECUTION_LIMITS;
+  if ([ir,eager,tlb,compare,lookup,predicates,features,limits].every(value => value === undefined)) return undefined;
   const policy: CompilerPolicy = {};
   if (ir !== undefined) {
     if (!/^(?:-1|[0-9]|10|11|12|13|14|15|16)$/.test(ir)) throw new Error("Invalid compiler policy");
@@ -90,6 +100,19 @@ export function compilerPolicyFromEnv(): CompilerPolicy | undefined {
     if (!/^[01]$/.test(lookup)) throw new Error("Invalid code lookup policy");
     policy.codeLookup = Number(lookup);
   }
+  if (predicates !== undefined) {
+    if (!/^[01]$/.test(predicates)) throw new Error("Invalid leaf predication policy");
+    policy.predicatedLeaves = Number(predicates);
+  }
+  if (features !== undefined) {
+    if (!/^(?:[0-9]|1[0-5])$/.test(features)) throw new Error("Invalid leaf features policy");
+    policy.leafFeatures = Number(features);
+  }
+  if (limits !== undefined) {
+    const parsed = limits.split(',').map(Number);
+    if (!validExecutionLimits(parsed) || parsed.join(',') !== limits) throw new Error("Invalid execution limits policy");
+    policy.executionLimits = parsed;
+  }
   return policy;
 }
 
@@ -99,7 +122,10 @@ function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions))
       || (policy.tlbHash !== undefined && ![0,1].includes(policy.tlbHash))
       || (policy.codeCompare !== undefined && ![0,1,2,3,4].includes(policy.codeCompare))
-      || (policy.codeLookup !== undefined && ![0,1].includes(policy.codeLookup)))
+      || (policy.codeLookup !== undefined && ![0,1].includes(policy.codeLookup))
+      || (policy.predicatedLeaves !== undefined && ![0,1].includes(policy.predicatedLeaves))
+      || (policy.leafFeatures !== undefined && (!Number.isInteger(policy.leafFeatures) || policy.leafFeatures < 0 || policy.leafFeatures > 15))
+      || (policy.executionLimits !== undefined && !validExecutionLimits(policy.executionLimits)))
     throw new Error("Invalid compiler policy");
   return `<script>
 window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
@@ -108,11 +134,28 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
   startEmulator = async function() {
     const state = window.ekaCompilerPolicy;
     if (!state.applied) {
-      for (const [key, entry] of [['irMode','eka2l1_ir_configure'], ['eagerRegions','eka2l1_eager_regions_configure'], ['tlbHash','eka2l1_tlb_hash_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['codeLookup','eka2l1_code_lookup_configure']]) {
+      for (const [key, entry] of [['irMode','eka2l1_ir_configure'], ['eagerRegions','eka2l1_eager_regions_configure'], ['tlbHash','eka2l1_tlb_hash_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['codeLookup','eka2l1_code_lookup_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function'
             || Module.ccall(entry, 'number', ['number'], [state.requested[key]]) !== 0)
           throw new Error('Emulator compiler configuration failed: ' + key);
+      }
+      state.observed = {};
+      for (const [key, entry] of [['predicatedLeaves','eka2l1_leaf_predication_report'], ['leafFeatures','eka2l1_leaf_features_report']]) {
+        if (state.requested[key] === undefined) continue;
+        if (typeof Module['_' + entry] !== 'function') throw new Error('Emulator compiler readback unavailable: ' + key);
+        state.observed[key] = Module.ccall(entry, 'number', [], []);
+        if (state.observed[key] !== state.requested[key]) throw new Error('Emulator compiler readback mismatch: ' + key);
+      }
+      if (state.requested.executionLimits !== undefined) {
+        const limits = state.requested.executionLimits;
+        if (typeof Module._eka2l1_execution_limits_configure !== 'function'
+            || Module.ccall('eka2l1_execution_limits_configure', 'number', ['number','number','number','number'], limits) !== 0)
+          throw new Error('Emulator compiler configuration failed: executionLimits');
+        if (typeof Module._eka2l1_execution_limits_report !== 'function') throw new Error('Emulator compiler readback unavailable: executionLimits');
+        const observed = Module.ccall('eka2l1_execution_limits_report', 'string', [], []);
+        if (observed !== limits.join(',')) throw new Error('Emulator compiler readback mismatch: executionLimits');
+        state.observed.executionLimits = observed.split(',').map(Number);
       }
       state.applied = true;
     }
