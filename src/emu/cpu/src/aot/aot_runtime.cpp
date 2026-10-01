@@ -214,8 +214,8 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
         return function;
     }
-    // The normal path avoids the resolver callback on a generation/space hit,
-    // while comparing the exact compiled bytes on every entry.
+    // The normal path avoids the resolver callback on a generation/space hit.
+    // Mode 0 also compares compiled bytes; trusted-byte modes omit those scans.
     if (!Profile || !(common::guest_profile::enabled && common::performance::counting())) {
         auto *entry = ram_cache.find(pc_mode, *cpu->parent());
         if (!entry) return nullptr;
@@ -332,8 +332,9 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         result.instructions += count;
         if (!count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
         cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
-        // This stays inside the compiled runner. Every RAM successor is validated;
-        // no stale function pointer is linked across a mapping/code change.
+        // This stays inside the compiled runner. Every RAM successor retains
+        // mapping/lifetime validation. Byte-mutation detection is policy-dependent;
+        // trusted-byte modes intentionally permit stale code after guest writes.
         function = lookup_compiled_impl<Profile>(cpu);
     }
     if constexpr(Profile) if(exit_census::counting()) {

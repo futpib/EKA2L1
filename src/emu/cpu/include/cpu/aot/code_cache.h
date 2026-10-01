@@ -19,8 +19,9 @@ namespace eka2l1::arm::aot {
     using code_comparator = bool (*)(const std::uint8_t *, const std::uint8_t *, std::size_t);
     code_comparator select_code_comparator(std::size_t size);
 
-    // Known allocations use backing-page write versions. Raw host-pointer
-    // escapes permanently restore exact validation for their whole allocation.
+    // Mapping/lifetime checks apply in every mode. Instruction-byte validation
+    // follows the selected executable-byte policy. Optional write versions and
+    // host-pointer escape tracking apply only when mutation tracking is enabled.
     class validated_code_cache {
     public:
         validated_code_cache() = default;
@@ -80,8 +81,8 @@ namespace eka2l1::arm::aot {
                     || mapped.size < d.code.size()) { dependencies_mapped = false; break; }
             }
             // A recent hit only skips the container search. Resolve the mapping
-            // at the caller and check backing, extent and exact bytes after
-            // mapping changes, including address-space reuse.
+            // at the caller and check backing and extent after mapping changes,
+            // including address-space reuse. Byte checks follow the active policy.
             const bool mapping_invalid = !dependencies_mapped || !view.bytes
                 || view.bytes != entry->backing || view.size < entry->code.size();
             if (mapping_invalid || !bytes_match(*entry, true)) {
