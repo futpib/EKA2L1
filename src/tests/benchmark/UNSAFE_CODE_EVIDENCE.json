@@ -31055,5 +31055,26 @@
         "note": "Host process observer excludes its own descendants; it does not measure all possible host contention or normalize timings."
       }
     }
+  },
+  "interpretation": {
+    "matching_pairs_favor_full_unsafe": 7,
+    "matching_pairs_total": 8,
+    "decision": "Material cost with noisy longer-route effect; independently attribute scans and guards without claiming a stable universal gain.",
+    "slow_untouched_controls_retained_seconds": [
+      19.83,
+      21.292
+    ],
+    "timing_counters_disabled": true,
+    "attribution_plan": {
+      "modes": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "observations": 32,
+      "same_frozen_archive": true,
+      "new_deployment": false
+    }
   }
 }

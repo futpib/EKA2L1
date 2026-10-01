@@ -65,7 +65,7 @@ no repeatable advantage). Its remaining census and frozen literal-PC candidate
 b37918c9c are held behind the unsafe-experiment completion marker. No new
 veneer work runs concurrently. All prior work remains preserved.
 
-Status: implementation building; no new performance result yet.
+Initial status (superseded by acceptance and timing sections below): implementation building.
 
 Checkpoint: all 175 normal-mode compiler tests and 40,640 explicitly selected native fault comparisons in mode 3 pass. Matching control faults, exact native replays and all timings remain pending. Frozen archive and executable queue sources are retained in the evidence file.
 
@@ -103,7 +103,7 @@ retains store guards; mode 2 emits the same guard-free paths as mode 3. The bina
 has mutation-version/lifecycle/protection build options OFF; source also bypasses
 them in full unsafe mode when built in, but those optional builds were not tested.
 
-Full unsafe-versus-control measurements now follow; no performance claim yet.
+The completed full-mode measurements follow.
 
 ## Fully unsafe serial timings
 
@@ -125,3 +125,11 @@ standard a: versus control +22.73% throughput, corresponding-half pairs +7.63% /
 standard b: versus control +18.42% throughput, corresponding-half pairs +23.42% / +14.10%; versus baseline +20.49% throughput, corresponding-half pairs +40.19% / +3.49%; 
 
 These corresponding-half pairs are not all adjacent. Passive host readings and process observations accompany every batch; no observation is normalized or removed. Different older live compiler layout is a separate control. This deliberately unsafe semantic assumption is not suitable for promotion. No deployment or push.
+
+## Interpretation and attribution decision
+
+All four matching-control batch means favor full unsafe mode; seven of eight corresponding-half comparisons do. Standard-route means improve by 22.73% / 18.42% throughput. Longer-route means improve by 15.15% / 1.15%, with a reversed pair in confirmation. Thus removed code-mutation work has a material measured cost on these executions, but this small noisy sample does not establish a stable percentage for both routes.
+
+The 19.83-second standard-A and 21.292-second long-B untouched-control observations inflate those live-archive comparisons. They remain in the table and raw evidence; no observations are excluded or normalized. Passive observers recorded no watched competing benchmark/build/profiler process, which does not prove the host was contention-free or explain the slow samples. Performance counters were disabled during timings, so their zero fields cannot establish absence of mutation, invalidation or IMB activity.
+
+Attribution is useful given the standard-route result and uncertain longer-route effect. The next fixed panel measures scan-only (1), guard-only (2), both (3) and exact control (0) in this same archive, after independent component fault/replay acceptance. It adds 32 serial reordered observations, with every mode moved between inner and outer positions. No new compiler or scheduling change is mixed in; the earlier untouched archive remains a separate panel. Detailed plan and evidence are in UNSAFE_CODE_ATTRIBUTION_RESULTS.md / EVIDENCE.json once acceptance completes.
