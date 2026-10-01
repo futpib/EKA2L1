@@ -773,10 +773,42 @@ namespace eka2l1::arm::aot {
         auto bytes = resolve(address);
         exit_census::probe(address,bytes.data(),bytes.size());
         if(bytes.empty()) {failure="callee_unmapped_or_other_space";return {};}
+        const unsigned features = allow_predicates ? leaf_features : 0;
+        std::vector<std::uint32_t> leaf_targets;
         for (std::size_t n = 0; n < leaf_instruction_limit*4 && n + 4 <= bytes.size(); n += 4) {
             std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
-            if (op == 0xe12fff1e) { bytes.resize(n + 4); return bytes; }
+            if (op == 0xe12fff1e) {
+                // The first return must close every accepted forward path.
+                if(std::any_of(leaf_targets.begin(),leaf_targets.end(),[&](auto target) {
+                    return std::uint64_t(target)>std::uint64_t(address)+n;
+                })) return {};
+                bytes.resize(n + 4); return bytes;
+            }
             const auto group = (op >> 26) & 3;
+            const auto predicate = op >> 28;
+            if(predicate<=14 && (features&4) && ((op>>25)&7)==5 && !(op&(1u<<24))) {
+                const auto displacement=static_cast<std::int32_t>(op<<8)>>6;
+                const auto pc=std::uint64_t(address)+n;
+                const auto target=std::int64_t(pc)+8+displacement;
+                if(target>std::int64_t(pc) && target<=0xffffffffll &&
+                    target<std::int64_t(address)+std::int64_t(std::min(bytes.size(),std::size_t(leaf_instruction_limit*4)))) {
+                    leaf_targets.push_back(static_cast<std::uint32_t>(target)); continue;
+                }
+            }
+            if(predicate<=14 && (features&1)) {
+                const unsigned hi=(op>>16)&15,lo=(op>>12)&15,rs=(op>>8)&15,rm=op&15;
+                if((op&0x0f8000f0u)==0x00800090u && hi<13 && lo<13 && hi!=lo && rs<13 && rm<13)continue;
+                if((op&0x0fc000f0u)==0x00000090u && hi<13 && rs<13 && rm<13 && ((op&(1u<<21)) ? lo<13 : lo==0))continue;
+            }
+            if(predicate<=14 && (features&2) && (op&0x0e000090u)==0x00000090u && (op&0x60)) {
+                const unsigned rn=(op>>16)&15,rd=(op>>12)&15;
+                const bool load=op&(1u<<20),writeback=!(op&(1u<<24)) || (op&(1u<<21));
+                // Exclude doubleword, privileged addressing and overlapping
+                // load/writeback destinations; retain the normal fault path.
+                if(rn<13 && rd<13 && (load || (op&0x60)==0x20) &&
+                    ((op&(1u<<22)) || (op&15)<13) &&
+                    !(!(op&(1u<<24)) && (op&(1u<<21))) && !(load && writeback && rn==rd))continue;
+            }
             // Conditional integer operations already have precise lowering in
             // the original emitter. They do not alter the linear control path;
             // false predicates still consume an instruction. Keep conditional
@@ -786,7 +818,7 @@ namespace eka2l1::arm::aot {
                 return std::vector<std::uint8_t>{};
             };
             using namespace exit_census;
-            if ((op >> 28) != 14 && (!allow_predicates || (op >> 28) == 15 || group != 0))
+            if ((op >> 28) != 14 && (!allow_predicates || (op >> 28) == 15 || (group != 0 && !(group==1 && (features&2)))))
                 return reject(!allow_predicates?predicates_disabled:(op>>28)==15?reserved_predicate:group==1?conditional_memory:conditional_transfer);
             if (group > 1) return reject(group==3?coprocessor_or_supervisor:
                 ((op>>25)&7)==5?(op&(1u<<24)?nested_call:internal_branch):block_transfer);
@@ -1521,6 +1553,8 @@ namespace eka2l1::arm::aot {
         std::uint32_t insn_idx = 0;
         std::uint32_t decoded_end_offset = 0;
         std::size_t segment_end = 0, skip_segment_until = 0, budget_chunk_end = 0;
+        std::vector<std::uint32_t> leaf_forward_targets;
+        std::size_t leaf_closed = 0;
 
         for (const auto &instruction : instructions) {
             const auto instruction_index = static_cast<std::size_t>(&instruction - instructions.data());
@@ -1539,6 +1573,21 @@ namespace eka2l1::arm::aot {
             if (bounded && !region && stop_after_store && w.memory_write) break;
             const auto inst = instruction.opcode;
             const auto insn_addr = instruction.address;
+            if(instruction.leaf && !instructions[instruction_index-1].leaf) {
+                leaf_forward_targets.clear(); leaf_closed=0;
+                const auto &callee=inlined.at(i);
+                for(std::size_t n=0;n<callee.bytes.size();n+=4) {
+                    std::uint32_t op;std::memcpy(&op,callee.bytes.data()+n,4);
+                    if(((op>>25)&7)==5 && !(op&(1u<<24))) {
+                        const auto displacement=static_cast<std::int32_t>(op<<8)>>6;
+                        leaf_forward_targets.push_back(callee.address+static_cast<std::uint32_t>(n)+8+displacement);
+                    }
+                }
+                std::sort(leaf_forward_targets.begin(),leaf_forward_targets.end());
+                leaf_forward_targets.erase(std::unique(leaf_forward_targets.begin(),leaf_forward_targets.end()),leaf_forward_targets.end());
+                for(std::size_t n=0;n<leaf_forward_targets.size();++n){w.op(op_block);w.op(type_void);}
+            }
+            const bool leaf_join=instruction.leaf && std::binary_search(leaf_forward_targets.begin(),leaf_forward_targets.end(),insn_addr);
             w.census_pc=insn_addr;w.census_opcode=inst;
             const auto refusal=exit_census::enabled && !instruction.leaf && refusals.count(i)?refusals.at(i):exit_census::leaf_refusal{};
             w.census_constraint=refusal.constraint;w.census_restriction=refusal.detail;
@@ -1580,9 +1629,12 @@ namespace eka2l1::arm::aot {
             // successors need just their budget guard; join/loop entries retain
             // the exit check independently of their lexical predecessor.
             const bool check_exit = w.instruction_may_exit || insn_addr == start_address
-                || (!instruction.leaf && forward_targets_set.count(insn_addr));
+                || leaf_join || (!instruction.leaf && forward_targets_set.count(insn_addr));
             w.instruction_may_exit = false;
             w.current_pc = insn_addr; w.pc_written = false; w.restartable_access = false;
+            while(instruction.leaf && leaf_closed<leaf_forward_targets.size() && leaf_forward_targets[leaf_closed]==insn_addr) {
+                w.op(op_end); ++leaf_closed;
+            }
 
             if (inner_loop_open && !instruction.leaf && insn_addr > loop_last) {
                 w.op(op_end);
@@ -1773,6 +1825,14 @@ namespace eka2l1::arm::aot {
                 // Target = PC + 8 + offset (ARM pipeline: PC = insn_addr + 8)
                 std::uint32_t target = insn_addr + 8 + static_cast<std::uint32_t>(offset);
                 std::uint32_t next_pc = insn_addr + 4;
+
+                if(instruction.leaf && !is_link) {
+                    const auto target_index=static_cast<std::size_t>(std::lower_bound(leaf_forward_targets.begin(),leaf_forward_targets.end(),target)-leaf_forward_targets.begin());
+                    w.op(op_br);leb(result.body,static_cast<unsigned>(target_index-leaf_closed)+(cond_opened?1:0));
+                    if(cond_opened)w.op(op_end);
+                    ++insn_idx;decoded_end_offset=static_cast<std::uint32_t>(i)+4;
+                    continue;
+                }
 
                 if (is_link) {
                     // BL: set LR = next_pc, bail to target

@@ -4,6 +4,9 @@
 #include <string>
 namespace eka2l1::arm::aot {
     inline bool predicated_leaves = false; // Separate original-emitter experiment.
+    // Additional eligibility under the predicated original-emitter experiment:
+    // bit 0 multiply, bit 1 scalar extra/conditional memory, bit 2 forward B.
+    inline unsigned leaf_features = 0;
     // Translation/runner limits, fixed before guest execution. These do not
     // change the owning CPU run budget or guest scheduling quantum.
     inline unsigned primary_window_bytes=512, leaf_instruction_limit=16,

@@ -4637,6 +4637,114 @@ static bool test_boundary_details() {
     return true;
 }
 
+static bool test_expanded_leaves(bool always=false) {
+#ifdef __EMSCRIPTEN__
+    struct restore {bool flag=predicated_leaves;unsigned features=leaf_features;std::string limits=execution_limits_text();
+        ~restore(){predicated_leaves=flag;leaf_features=features;parse_execution_limits(limits.c_str());}} saved;
+    configure_execution_limits(512,16,8,512);leaf_features=7;
+    const unsigned caller[]={0xeb0003feu,0xe2844001u,0xe5967000u,0xe2888001u};
+    unsigned checks=0;
+    for(unsigned cond=always?14:0;cond<(always?15u:14u);++cond)for(unsigned variant=0;variant<6;++variant) {
+        const bool store=variant==0 || variant==5;
+        const unsigned leaf[]={0x0a000001u|(cond<<28),0x05902000u|((cond==14?0:cond^1)<<28),0xe0922003u,
+            0x03a05001u|(cond<<28),0xe1d130b0u,variant==0?0xe5865000u:variant==1?0xe0090392u:variant==2?0xe0c98392u:variant==3?0xe0998392u:variant==4?0xe0394392u:(0x05865000u|(cond<<28)),0xe12fff1eu};
+        leaf_resolver resolver=[&](unsigned pc) {const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);
+            return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
+        auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,
+            nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        predicated_leaves=false;if(!translate(arm_ir_policy::write_budget_chunks).dependencies.empty())return false;
+        predicated_leaves=true;auto tr=translate(arm_ir_policy::write_budget_chunks);
+        if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned flags=0;flags<16;++flags)for(unsigned mapping=0;mapping<5;++mapping)for(unsigned budget=0;budget<=12;++budget) {
+            test_mem actual;actual.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(caller),reinterpret_cast<const std::uint8_t*>(caller)+sizeof(caller)});
+            actual.write_code(0x2000,{reinterpret_cast<const std::uint8_t*>(leaf),reinterpret_cast<const std::uint8_t*>(leaf)+sizeof(leaf)});
+            const unsigned values[]={0,1,0x7fffffffu,0x80000000u,0xffffffffu};
+            actual.write32(0x8000,values[flags%5]);actual.write32(0x9000,values[(flags+2)%5]);actual.write32(0xa000,0x12345678);
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            if(mapping!=1)tlb.add(0x8000,actual.data.data()+0x8000,3);
+            if(mapping!=2)tlb.add(0x9000,actual.data.data()+0x9000,3);
+            if(mapping!=3)tlb.add(0xa000,actual.data.data()+(mapping==4?0x1000:0xa000),3);
+            if(mapping==4)reference->set_tlb_page(0xa000,expected.data.data()+0x1000,prot_read_write);
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg) {
+                state[reg]=reg==0?0x8000:reg==1?0x9000:reg==6?0xa000:reg==9?0x7fffffff:reg==14?0x3000:reg==15?0x1000:reg;
+                reference->set_reg(reg,state[reg]);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(caller);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+            if(count<0 || count>int(budget) || (!count && budget)) {
+                printf(" FAIL expanded leaf count cond=%u flags=%u map=%u store=%u budget=%u count=%d\n",cond,flags,mapping,store,budget,count);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf(" FAIL expanded leaf R%u cond=%u flags=%u map=%u store=%u budget=%u count=%d got=%x expected=%x\n",reg,cond,flags,mapping,store,budget,count,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<4;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
+            if(actual.data!=expected.data){printf(" FAIL expanded leaf memory cond=%u flags=%u map=%u store=%u budget=%u count=%d\n",cond,flags,mapping,store,budget,count);return false;}
+            ++checks;
+        }
+    }
+    for(unsigned op:{0xeafffffeu,0xea000004u,0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {
+        unsigned leaf[]={op,0xe12fff1e};leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty()){printf(" FAIL unsafe expanded leaf accepted %x\n",op);return false;}
+    }
+
+    // Captured lookup with two forward joins, flag updates and a halfword load.
+    // Relocation preserves the original ARM relative branches; no address is
+    // special-cased by the translator. Two call sites need distinct labels.
+    const unsigned lookup[]={0xe5922000u,0xe3a0300fu,0xe1530442u,0xba000002u,0xe1b0c442u,0x43a02000u,0x4a000002u,0xe1530442u,0xa1a02442u,0xb3a0200fu,0xe1a03a01u,0xe590026cu,0xe1a03a23u,0xe0832602u,0xe0800082u,0xe1d000b0u,0xe2011a0fu,0xe1800001u,0xe12fff1eu};
+    const unsigned twice[]={0xeb0003feu,0xe1a00006u,0xe1a02007u,0xeb0003fbu,0xe2888001u};
+    leaf_resolver lookup_resolver=[&](unsigned pc){const auto *p=reinterpret_cast<const std::uint8_t*>(lookup);
+        return pc==0x2000?std::vector<std::uint8_t>(p,p+sizeof(lookup)):std::vector<std::uint8_t>{};};
+    auto lookup_translate=[&](){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(twice),sizeof(twice),0x1000,nullptr,nullptr,true,false,true,true,&lookup_resolver,true,arm_ir_policy::write_budget_chunks);};
+    predicated_leaves=true;
+    for(unsigned limit:{16u,32u})for(unsigned mask=0;mask<8;++mask) {
+        leaf_instruction_limit=limit;leaf_features=mask;
+        if(lookup_translate().dependencies.size()!=unsigned(limit>=19 && (mask&6)==6)) {
+            printf(" FAIL captured leaf selection limit=%u mask=%u\n",limit,mask);return false;
+        }
+    }
+    leaf_instruction_limit=32;leaf_features=7;
+    auto lookup_tr=lookup_translate();
+    auto lookup_module=build_wasm_module({lookup_tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    for(unsigned input:{0xffffff00u,0u,0x100u,0xf00u,0x1000u})for(unsigned mapping=0;mapping<3;++mapping)for(unsigned budget=0;budget<=44;++budget) {
+        test_mem actual;
+        actual.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(twice),reinterpret_cast<const std::uint8_t*>(twice)+sizeof(twice)});
+        actual.write_code(0x2000,{reinterpret_cast<const std::uint8_t*>(lookup),reinterpret_cast<const std::uint8_t*>(lookup)+sizeof(lookup)});
+        actual.write32(0x826c,0xa000);actual.write32(0x9000,input);
+        for(unsigned p=0xa000;p<0x2a000;p+=4)actual.write32(p,p*37+0x1234);
+        test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        for(unsigned page=0x8000;page<0x2a000;page+=4096)if(!(mapping==1 && page==0x9000) && !(mapping==2 && page>=0xa000))tlb.add(page,actual.data.data()+page,3);
+        alignas(8) unsigned state[256]{};state[0]=0x8000;state[1]=0x3001;state[2]=0x9000;state[6]=0x8000;state[7]=0x9000;state[14]=0x3000;state[15]=0x1000;
+        for(unsigned reg=0;reg<16;++reg)reference->set_reg(reg,state[reg]);reference->set_cpsr(16);
+        state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        g_test_mem=&actual;const auto count=js_run_aot_wasm(lookup_module.data(),lookup_module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+        if(count<0 || count>int(budget) || (!count && budget))return false;
+        if(count)reference->run(count);
+        for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+            printf(" FAIL captured branching leaf R%u input=%x map=%u budget=%u count=%d got=%x expected=%x\n",reg,input,mapping,budget,count,state[reg],reference->get_reg(reg));return false;
+        }
+        for(unsigned flag=0;flag<4;++flag)if(state[region_ir::flag_offsets[flag]/4]!=((reference->get_cpsr()>>(31-flag))&1))return false;
+        if(actual.data!=expected.data)return false;
+        ++checks;
+    }
+    printf(" PASS expanded leaves (%u exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_predicated_leaves() {
 #ifdef __EMSCRIPTEN__
     struct restore {bool flag=predicated_leaves;std::string limits=execution_limits_text();
@@ -4817,6 +4925,8 @@ static bool test_exit_census() {
 }
 
 int main(int argc, char **argv) {
+    if(argc==2 && std::string(argv[1])=="--expanded-leaves-always-only")return test_expanded_leaves(true)?0:1;
+    if(argc==2 && std::string(argv[1])=="--expanded-leaves-only")return test_expanded_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;
     if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
@@ -5457,6 +5567,7 @@ int main(int argc, char **argv) {
     if (test_execution_limits()) passed++; else failed++;
     if (test_inline_limits()) passed++; else failed++;
     if (test_predicated_leaves()) passed++; else failed++;
+    if (test_expanded_leaves()) passed++; else failed++;
     if (test_boundary_details()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;

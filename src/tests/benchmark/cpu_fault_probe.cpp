@@ -67,6 +67,13 @@ struct Fixture {
     }
 };
 int main(int argc, char **argv){
+    if(argc>1 && std::strncmp(argv[argc-1],"--leaf-features=",16)==0) {
+        const std::string value(argv[argc-1]+16);
+        if(value.size()!=1 || value[0]<'0' || value[0]>'7'){std::cerr<<"Invalid leaf feature policy\n";return 1;}
+        aot::leaf_features=value[0]-'0';--argc;
+    }
+    std::cout<<"PROBE_LEAF_FEATURES "<<aot::leaf_features<<"\n";
+
     if(argc>1 && std::strncmp(argv[argc-1],"--exit-census=",14)==0) {
         const std::string value(argv[argc-1]+14);
         if(value!="0" && value!="1"){std::cerr<<"Invalid exit census policy\n";return 1;}
@@ -143,8 +150,9 @@ int main(int argc, char **argv){
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
     const bool ir_call_short=argc==2 && std::string(argv[1])=="--ir-calls-short";
+    const bool expanded_calls=argc==2 && std::string(argv[1])=="--expanded-calls";
     const bool predicated_calls=argc==2 && std::string(argv[1])=="--predicated-calls";
-    const bool ir_calls=predicated_calls || ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
+    const bool ir_calls=expanded_calls || predicated_calls || ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
     const bool ir_long=argc==2 && std::string(argv[1])=="--ir-long";
     const bool ir_conditions=argc==2 && std::string(argv[1])=="--ir-conditions";
     const bool ir_flags=argc==2 && std::string(argv[1])=="--ir-flags";
@@ -184,8 +192,8 @@ int main(int argc, char **argv){
         : read_spans
         ? std::vector<unsigned>{0x8000u,0x8ff8u,0x8ffcu}
         : std::vector<unsigned>{0x8000u,0x8ffdu,0x8ffcu};
-    const std::vector<unsigned> predicates=(ir_conditions || predicated_calls) ? std::vector<unsigned>{0,1,2,3,4,5,6,7,8,9,10,11,12,13} : std::vector<unsigned>{14};
-    const std::vector<unsigned> initial_flags=(ir_conditions || predicated_calls) ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
+    const std::vector<unsigned> predicates=(ir_conditions || predicated_calls || expanded_calls) ? std::vector<unsigned>{0,1,2,3,4,5,6,7,8,9,10,11,12,13} : std::vector<unsigned>{14};
+    const std::vector<unsigned> initial_flags=(ir_conditions || predicated_calls || expanded_calls) ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
     for(unsigned predicate:predicates)for(unsigned flags:initial_flags)
     for(unsigned op:instructions)for(unsigned policy=0;policy<4;++policy)
     for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u})for(unsigned partial=0;partial<(!invariant_remap && !region_spans && (op&0x0e000000u)==0x08000000u?2u:1u);++partial){
@@ -242,6 +250,12 @@ int main(int argc, char **argv){
                 called_words[0]=0x00944005u|(predicate<<28);
                 called_words[1]=0x00b46000u|((predicate^1)<<28);
             }
+            if(expanded_calls) {
+                program[0]=0xe3a02007u;
+                called_words[0]=0x0a000000u|(predicate<<28); // forward join at 0x2008
+                called_words[1]=op;
+                called_words[2]=0xe0944005u;
+            }
             std::memcpy(f.memory.data()+0x2000,called_words,sizeof(called_words));
         }
         std::memcpy(f.memory.data()+0x1000,program,(ir_long?135u:7u)*sizeof(unsigned));
@@ -266,6 +280,9 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
+            if(expanded_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&4))) {
+                std::cerr<<"Expanded call fusion selection mismatch\n";return 4;
+            }
             if(predicated_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves)) {
                 std::cerr<<"Predicated call fusion selection mismatch\n";return 4;
             }
@@ -363,7 +380,7 @@ int main(int argc, char **argv){
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
         if(deferred && compiled<(ir_calls?execution_count:instruction_count))++deferred_cases;
-        if(!interpreter && (ir_long ? (compiled<111 || compiled>135) : invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
+        if(!interpreter && (ir_long ? (compiled<111 || compiled>135) : invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : expanded_calls ? (compiled<3 || compiled>9) : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Unexpected generated instruction count at case "<<cases<<'\n';return 2;
         }
 #endif

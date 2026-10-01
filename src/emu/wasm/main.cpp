@@ -349,6 +349,14 @@ int eka2l1_leaf_predication_configure(int enabled) {
     arm::aot::predicated_leaves=enabled;return 0;
 }
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_leaf_features_configure(int features) {
+    if(g_state || features<0 || features>7)return -1;
+    arm::aot::leaf_features=static_cast<unsigned>(features);return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_leaf_features_report() {return arm::aot::leaf_features;}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_leaf_predication_report() {return arm::aot::predicated_leaves;}
 
 EMSCRIPTEN_KEEPALIVE
