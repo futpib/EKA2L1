@@ -1,5 +1,5 @@
 {
-  "status": "Prepared only; no site-limit job has run. Awaiting completion of branch-veneer timings and diagnostics.",
+  "status": "Both changed site bounds pass native fault and standard/longer checked replay gates; timing pending.",
   "archive_path": "/home/claude/.scratch/eka-benchmark/branch-veneer-candidate",
   "archive": {
     "base": "871c89a38d9b5f3512d2663bca9efcb4f18b9f0a",
@@ -69,9 +69,1458 @@
       "source": "from pathlib import Path\nimport os,subprocess,json,sys\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'branch-veneer-candidate';baseline=s/'predicated-leaf-candidate'\nscene,batch=sys.argv[1:];assert scene in ('long','standard') and batch in ('a','b')\nstart,end,route=(42000000,60000000,'snakes-length-long.input')if scene=='long'else(60000000,78000000,'snakes.input')\norder={'a':['control8','sites4','sites16','baseline'],'b':['sites16','baseline','control8','sites4']}[batch]\nargs=['python3','src/tests/benchmark/serial_variants.py',str(s/'assets'),str(s/f'conditional-site-timing-{scene}-{batch}')]+[f'{n}={baseline if n==\"baseline\" else a}'for n in order]\nfor name in order:\n sites={'sites4':4,'sites16':16}.get(name,8)\n for option,value in [('ir-mode','7'),('eager-regions','0'),('tlb-hash','1'),('code-compare','2'),('code-lookup','0'),('execution-limits',f'512,16,{sites},512'),('predicated-leaves','1'),('leaf-features','0'),('input',str(r/'src/tests/benchmark'/route))]:args.extend(['--'+option,f'{name}={value}'])\nargs+=['--start-us',str(start),'--end-us',str(end)]\nsubprocess.run(args,cwd=r,env=dict(os.environ,EKA2L1_SHARED_AUDIO='1'),check=True)\nrows=json.loads((s/f'conditional-site-timing-{scene}-{batch}/measurements.json').read_text());assert len(rows)==8\nassert len({tuple(x['measurement'][k]for k in ['first_instructions','last_instructions','presentations'])for x in rows})==1\nprint(scene,batch,'identical guest work verified',flush=True)\n"
     },
     "guarded_conditional_site_timings.py": {
-      "sha256": "b6086114f35193ab81eedc61e9e1cd3ccfae557def1e736243a67f16397da6cb",
-      "source": "from pathlib import Path\nimport os,time,json,subprocess,sys\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1');state=s/'conditional-site-timing-state.json'\ndef phase(name,**kw):\n state.write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ndef foreign():\n rows={}\n for p in Path('/proc').iterdir():\n  if not p.name.isdecimal():continue\n  try:\n   args=(p/'cmdline').read_bytes().split(b'\\0');args=[x.decode(errors='replace')for x in args if x]\n   fields=(p/'stat').read_text().rsplit(')',1)[1].split();parent=int(fields[1])\n  except (OSError,ValueError,IndexError):continue\n  rows[int(p.name)]=(parent,args)\n own={os.getpid()}\n while True:\n  add={pid for pid,(parent,_)in rows.items()if parent in own}\n  if add<=own:break\n  own|=add\n found=[]\n for pid,(parent,args)in rows.items():\n  if pid in own or not args:continue\n  exe=Path(args[0]).name\n  active=exe.startswith('node')and any(x.endswith('/profile.ts')or x=='profile.ts'or('service-overlap-'in x and x.endswith('.ts'))or Path(x).name in ('benchmark.ts','live.ts','softkeys.ts','route.ts')or x.endswith('/test_aot_wasm.js')or x.endswith('/eka_cpu_fault_wasm.js')for x in args[1:])\n  active|=exe.startswith('eka_cpu_fault_')\n  if active:found.append(dict(pid=pid,parent=parent,args=args))\n return found\ndef telemetry(scene,batch,start):\n sample=dict(seconds=time.time()-start,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),frequency_khz={},temperatures_millidegrees={})\n for path in sorted(Path('/sys/devices/system/cpu/cpufreq').glob('policy*/scaling_cur_freq')):\n  try:sample['frequency_khz'][path.parent.name]=int(path.read_text())\n  except (OSError,ValueError):pass\n for path in sorted(Path('/sys/class/thermal').glob('thermal_zone*/temp')):\n  try:sample['temperatures_millidegrees'][path.parent.name+':'+(path.parent/'type').read_text().strip()]=int(path.read_text())\n  except (OSError,ValueError):pass\n try:sample['loadavg']=Path('/proc/loadavg').read_text().strip()\n except OSError:pass\n try:sample['completed_rows']=len(json.loads((s/f'conditional-site-timing-{scene}-{batch}/measurements.json').read_text()))\n except (OSError,ValueError):sample['completed_rows']=0\n return sample\ntry:\n assert 'Conditional site bounds 4 and 16 accepted' in (s/'conditional-site-acceptance.log').read_text()\n assert (r/'src/tests/benchmark/CONDITIONAL_SITE_LIMITS_EVIDENCE.json').exists()\n for scene,batch in [('long','a'),('standard','a'),('long','b'),('standard','b')]:\n  phase('waiting_for_quiet',scene=scene,batch=batch)\n  quiet=0\n  while quiet<15:\n   jobs=foreign();quiet=0 if jobs else quiet+1;time.sleep(2)\n  phase('timing',scene=scene,batch=batch)\n  observed={};start=time.time();host_samples=[]\n  with(s/f'conditional-site-timing-{scene}-{batch}-driver.log').open('w')as log:\n   child=subprocess.Popen(['bash','-lc',f'source {s}/write-protection-gpu.env\\npython3 {s}/run_conditional_site_timing.py {scene} {batch}'],cwd=r,stdout=log,stderr=subprocess.STDOUT)\n   while child.poll()is None:\n    host_samples.append(telemetry(scene,batch,start))\n    for job in foreign():\n     key=str(job['pid']);observed.setdefault(key,dict(**job,first_seconds=time.time()-start))['last_seconds']=time.time()-start\n    time.sleep(2)\n  evidence=dict(telemetry=host_samples,telemetry_note='Passive sysfs readings every two seconds across startup, warmup and measurement; not a cause attribution or exclusion criterion.',scene=scene,batch=batch,returncode=child.returncode,observer_interval_seconds=2,foreign_jobs=list(observed.values()),note='Host process observer excludes its own descendants; it does not measure all possible host contention or normalize timings.')\n  (s/f'conditional-site-timing-{scene}-{batch}-host.json').write_text(json.dumps(evidence,indent=2)+'\\n')\n  if child.returncode:raise RuntimeError('Timing harness failed')\n  if observed:raise RuntimeError('Observed concurrent profiling; completed batch retained, queue held')\n phase('all_timing_complete')\nexcept Exception as e:phase('failure',error=str(e));raise\n"
+      "sha256": "862cca49db4ddf60c8d41a3f057c38bcfd768b0581252f00c2a3dc4d372192a6",
+      "source": "from pathlib import Path\nimport os,time,json,subprocess,sys\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1');state=s/'conditional-site-timing-state.json'\ndef phase(name,**kw):\n state.write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ndef foreign():\n rows={}\n for p in Path('/proc').iterdir():\n  if not p.name.isdecimal():continue\n  try:\n   args=(p/'cmdline').read_bytes().split(b'\\0');args=[x.decode(errors='replace')for x in args if x]\n   fields=(p/'stat').read_text().rsplit(')',1)[1].split();parent=int(fields[1])\n  except (OSError,ValueError,IndexError):continue\n  rows[int(p.name)]=(parent,args)\n own={os.getpid()}\n while True:\n  add={pid for pid,(parent,_)in rows.items()if parent in own}\n  if add<=own:break\n  own|=add\n found=[]\n for pid,(parent,args)in rows.items():\n  if pid in own or not args:continue\n  exe=Path(args[0]).name\n  active=exe.startswith('node')and any(x.endswith('/profile.ts')or x=='profile.ts'or('service-overlap-'in x and x.endswith('.ts'))or Path(x).name in ('benchmark.ts','live.ts','softkeys.ts','route.ts')or x.endswith('/test_aot_wasm.js')or x.endswith('/eka_cpu_fault_wasm.js')for x in args[1:])\n  active|=exe.startswith('eka_cpu_fault_')\n  if active:found.append(dict(pid=pid,parent=parent,args=args))\n return found\ndef telemetry(scene,batch,start):\n read_start=time.perf_counter()\n sample=dict(seconds=time.time()-start,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),frequency_khz={},temperatures_millidegrees={})\n for path in sorted(Path('/sys/devices/system/cpu/cpufreq').glob('policy*/scaling_cur_freq')):\n  try:sample['frequency_khz'][path.parent.name]=int(path.read_text())\n  except (OSError,ValueError):pass\n for path in sorted(Path('/sys/class/thermal').glob('thermal_zone*/temp')):\n  try:sample['temperatures_millidegrees'][path.parent.name+':'+(path.parent/'type').read_text().strip()]=int(path.read_text())\n  except (OSError,ValueError):pass\n try:sample['loadavg']=Path('/proc/loadavg').read_text().strip()\n except OSError:pass\n try:sample['completed_rows']=len(json.loads((s/f'conditional-site-timing-{scene}-{batch}/measurements.json').read_text()))\n except (OSError,ValueError):sample['completed_rows']=0\n sample['observer_duration_seconds']=time.perf_counter()-read_start\n return sample\ntry:\n assert 'Conditional site bounds 4 and 16 accepted' in (s/'conditional-site-acceptance.log').read_text()\n assert (r/'src/tests/benchmark/CONDITIONAL_SITE_LIMITS_EVIDENCE.json').exists()\n for scene,batch in [('long','a'),('standard','a'),('long','b'),('standard','b')]:\n  phase('waiting_for_quiet',scene=scene,batch=batch)\n  quiet=0\n  while quiet<15:\n   jobs=foreign();quiet=0 if jobs else quiet+1;time.sleep(2)\n  phase('timing',scene=scene,batch=batch)\n  observed={};start=time.time();host_samples=[]\n  with(s/f'conditional-site-timing-{scene}-{batch}-driver.log').open('w')as log:\n   child=subprocess.Popen(['bash','-lc',f'source {s}/write-protection-gpu.env\\npython3 {s}/run_conditional_site_timing.py {scene} {batch}'],cwd=r,stdout=log,stderr=subprocess.STDOUT)\n   while child.poll()is None:\n    host_samples.append(telemetry(scene,batch,start))\n    for job in foreign():\n     key=str(job['pid']);observed.setdefault(key,dict(**job,first_seconds=time.time()-start))['last_seconds']=time.time()-start\n    time.sleep(2)\n  evidence=dict(telemetry=host_samples,telemetry_note='Passive sysfs readings every two seconds across startup, warmup and measurement; not a cause attribution or exclusion criterion.',scene=scene,batch=batch,returncode=child.returncode,observer_interval_seconds=2,foreign_jobs=list(observed.values()),note='Host process observer excludes its own descendants; it does not measure all possible host contention or normalize timings.')\n  (s/f'conditional-site-timing-{scene}-{batch}-host.json').write_text(json.dumps(evidence,indent=2)+'\\n')\n  if child.returncode:raise RuntimeError('Timing harness failed')\n  if observed:raise RuntimeError('Observed concurrent profiling; completed batch retained, queue held')\n phase('all_timing_complete')\nexcept Exception as e:phase('failure',error=str(e));raise\n"
+    },
+    "conditional_site_diagnostic_acceptance.py": {
+      "sha256": "164ccf386022f82005b23a3d56f1665cbbd5561b379bb1bb3ac94276f15eac18",
+      "source": "from pathlib import Path\nimport json,os,subprocess\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'branch-veneer-candidate'\ne=dict(os.environ,PUPPETEER_EXECUTABLE_PATH='/usr/bin/chromium',EKA2L1_WASM_BUILD_DIR=str(a),EKA2L1_AOT_IR_MODE='7',EKA2L1_AOT_EAGER_REGIONS='0',EKA2L1_TLB_HASH='1',EKA2L1_SHARED_AUDIO='1',EKA2L1_BENCHMARK_AOT='5',EKA2L1_AOT_VERIFY='1024',EKA2L1_CODE_COMPARE='2',EKA2L1_CODE_LOOKUP='0',EKA2L1_PREDICATED_LEAVES='1',EKA2L1_LEAF_FEATURES='0',EKA2L1_EXIT_CENSUS='1')\nfor key in ['LD_LIBRARY_PATH','EKA2L1_CODE_WRITE_PROTECT','EKA2L1_GUEST_PROFILE','EKA2L1_AOT_DIAGNOSTICS']:e.pop(key,None)\ndef run(args,name,cwd=r,env=e):\n with(s/name).open('w')as log:subprocess.run(args,cwd=cwd,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=3600)\n print(name+' PASS',flush=True)\nfor sites in [4,16]:\n limits=f'512,16,{sites},512';prefix=f'conditional-sites-diagnostic-{sites}'\n run(['python3','src/tests/benchmark/run_cpu_fault_matrix.py',str(a),str(s/(prefix+'-fault')),'--ir-policy','7','--code-compare','2','--tlb-hash','1','--execution-limits',limits,'--predicated-leaves','1','--exit-census','1','--leaf-features','0'],prefix+'-fault.log')\n f=json.loads((s/(prefix+'-fault/summary.json')).read_text());assert f['completed_cases']==40640 and f['leaf_features']==0 and all(x['all_fields_match']==x['cases'] for x in f['results'])\n for scene,frames,route,start,ref,pcm in [('standard',1600,'snakes.input',21000000,'merge-20260930-native',4656051),('long',360,'snakes-length-long.input',42000000,'merge-20260930-long-native',2832756)]:\n  out=s/(prefix+'-'+scene)\n  run(['node','benchmark.ts',str(s/'assets'),str(out),str(frames),str(r/'src/tests/benchmark'/route),str(start)],prefix+'-'+scene+'.log',r/'src/tests/wasm',dict(e,EKA2L1_EXECUTION_LIMITS=limits))\n  run(['python3','src/tests/benchmark/compare.py',str(s/ref/'run-0/frames'),str(out)],prefix+'-'+scene+'-compare.json')\n  c=json.loads((s/(prefix+'-'+scene+'-compare.json')).read_text());assert c['match'] and c['frames']==frames and c['audio']['sample_frames']==pcm\n  q=json.loads((out/'report.json').read_text());assert q['ir_mode']==7 and q['leaf_features']==0 and q['predicated_leaves']==1 and q['execution_limits']==[512,16,sites,512] and q['verify_aot']==1024 and q['exit_census']\n  assert q['wasm_sha256']==json.loads((a/'source.json').read_text())['files']['eka2l1.wasm']\nprint('Instrumented conditional site bounds 4 and 16 accepted; existing site 8 controls retained',flush=True)\n"
+    },
+    "conditional_site_finish_queue.py": {
+      "sha256": "2a3f4aa041e089e8cb4e792f802647863afb68f0eb18f80b5d96e1059c267842",
+      "source": "from pathlib import Path\nimport json,time,subprocess\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1');state=s/'conditional-site-finish-state.json'\ndef phase(name,**kw):\n state.write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ndef run(script,logname,gpu=False):\n args=['bash','-lc',f'source {s}/write-protection-gpu.env\\npython3 {s}/{script}']if gpu else['python3',str(s/script)]\n with(s/logname).open('w')as log:subprocess.run(args,cwd=r,stdout=log,stderr=subprocess.STDOUT,check=True)\ndef commit(message):\n subprocess.run(['git','add','src/tests/benchmark/CONDITIONAL_SITE_LIMITS_RESULTS.md','src/tests/benchmark/CONDITIONAL_SITE_LIMITS_EVIDENCE.json'],cwd=r,check=True)\n subprocess.run(['git','commit','-m',message],cwd=r,check=True)\ntry:\n phase('waiting_for_veneer_analysis')\n while not(s/'branch-veneer-analysis-complete.json').exists():time.sleep(5)\n assert json.loads((s/'branch-veneer-module-state.json').read_text())['phase']=='modules_complete'\n phase('correctness')\n run('conditional_site_acceptance.py','conditional-site-acceptance.log')\n run('record_conditional_site_acceptance.py','conditional-site-acceptance-record.log')\n commit('Verify changed conditional-leaf site limits against native faults and replay')\n phase('serial_timing')\n run('guarded_conditional_site_timings.py','conditional-site-timing-driver.log')\n run('record_conditional_site_timings.py','conditional-site-timing-record.log')\n commit('Retain reordered serial conditional-leaf site-limit measurements')\n phase('census')\n run('run_conditional_site_census.py','conditional-site-census-driver.log',gpu=True)\n phase('census_complete_pending_record')\nexcept Exception as error:phase('failure',error=str(error));raise\n"
+    },
+    "run_conditional_site_census.py": {
+      "sha256": "c743c0eddd9619988c4b75f601258cb28beddd0adce212b25914fe28e2a7eadc",
+      "source": "from pathlib import Path\nimport os,json,subprocess\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'branch-veneer-candidate'\nchecklog=s/'conditional-site-diagnostic-acceptance.log'\nif not checklog.exists() or 'Instrumented conditional site bounds 4 and 16 accepted' not in checklog.read_text():\n with checklog.open('w')as log:subprocess.run(['python3',str(s/'conditional_site_diagnostic_acceptance.py')],cwd=r,stdout=log,stderr=subprocess.STDOUT,check=True)\ne=dict(os.environ,EKA2L1_WASM_BUILD_DIR=str(a),EKA2L1_AOT_IR_MODE='7',EKA2L1_AOT_EAGER_REGIONS='0',EKA2L1_TLB_HASH='1',EKA2L1_SHARED_AUDIO='1',EKA2L1_BENCHMARK_AOT='5',EKA2L1_AOT_VERIFY='0',EKA2L1_CODE_COMPARE='2',EKA2L1_CODE_LOOKUP='0',EKA2L1_EXIT_CENSUS='1',EKA2L1_GUEST_PROFILE='1021',EKA2L1_PROFILE_DETAIL='1',EKA2L1_GPU='hardware',EKA2L1_EXECUTION_LIMITS='512,16,8,512')\ne.pop('EKA2L1_CODE_WRITE_PROTECT',None)\nfor scene,start,end,route in [('long',42000000,60000000,'snakes-length-long.input'),('standard',60000000,78000000,'snakes.input')]:\n for mode,sites,leaf in [('sites4',4,16),('sites16',16,16)]:\n  out=s/f'conditional-site-census-{scene}-{mode}'\n  env=dict(e,EKA2L1_PREDICATED_LEAVES='1',EKA2L1_LEAF_FEATURES='0',EKA2L1_EXECUTION_LIMITS=f'512,{leaf},{sites},512',EKA2L1_PROFILE_START_US=str(start),EKA2L1_PROFILE_INPUT=str(r/'src/tests/benchmark'/route))\n  with out.with_suffix('.log').open('w')as log:\n   subprocess.run(['node','profile.ts',str(s/'assets'),str(out),'2','0',str(end)],cwd=r/'src/tests/wasm',env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=2400)\n  report=json.loads((out/'report.json').read_text());assert report['predicated_leaves']==1 and report['leaf_features']==0 and report['exit_census'] and report['ir_mode']==7 and report['execution_limits']==[512,leaf,sites,512]\n  assert report['tlb_hash']==1 and report['code_compare']==2 and report['code_lookup']==0 and report['eager_regions']==0 and report['shared_audio']\n  assert report['wasm_sha256']==json.loads((s/'branch-veneer-candidate/source.json').read_text())['files']['eka2l1.wasm']\n  guest=json.loads((out/'guest-profile.json').read_text());b=guest['boundaries']\n  assert bool(b['lifetime_compile_events'].get('branch_veneer_inlined',0))==False;assert sum(b['region_exits'].values())==guest['compiled_blocks']\n  assert sum(b['callee_restrictions'].values())==b['call_constraints'].get('callee_unsupported',0)\n  assert sum(x['calls']for x in b['rejected_call_sites'])+b['dropped_rejected_calls']==b['call_constraints'].get('callee_unsupported',0)\n  assert sum(b['code_guard_outcomes'].values())==sum(b['region_exits'].get(k,0)for k in ['code_write_guard','helper_and_code_write'])\n  assert sum(b['entry_proof_fallback_causes'].values())==b['entry_proof_fallbacks']<=b['entry_proof_attempts']<=b['calls']\n  assert sum(b['entry_proof_overlap_outcomes'].values())+b['entry_proof_overlap_dropped']<=b['entry_write_span_checks']\n  assert not b['entry_proof_overlap_dropped']\n  expected=(6445351805,9476989025,380)if scene=='long'else(8980877653,11957513019,381)\n  assert tuple(report['measurement'][k]for k in ['first_instructions','last_instructions','presentations'])==expected\n  print(scene,mode,'calls',guest['compiled_blocks'],'exits',b['region_exits'],'footprint',report.get('runtime_footprint'),flush=True)\n"
     }
   },
-  "telemetry_plan": "Passive two-second frequency, thermal and completed-run samples; no filtering or host-setting changes."
+  "telemetry_plan": "Passive two-second frequency, thermal and completed-run samples; no filtering or host-setting changes.",
+  "checks": {
+    "conditional-sites-4-fault": {
+      "leaf_features": 0,
+      "exit_census": 0,
+      "predicated_leaves": 1,
+      "execution_limits": "512,16,4,512",
+      "code_write_protect": null,
+      "code_lookup": null,
+      "ir_policy": 7,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "completed_cases": 40640,
+      "results": [
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/predicated-calls-native.log": "651fd235b84d8d89bafc12fa54b65a79f22c0640be80ffaf8d119fbf93995443",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/predicated-calls-wasm.log": "e0a24d7d5b584ec1b66ec3e3484ba5a98f07ad57e8208778757d1a1e39ded3ec"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/preserve-inner-native.log": "770c5b6d82b0b941f510371acaacea8533dfd252863eb5391488bf2a77e88187",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/preserve-inner-wasm.log": "406ec94a06cbb6277e4e1890a95b7baaaac5d818143592e5bf27c9e23fb76a80"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/prefix-calls-native.log": "2064ce464028fbab0f8e5774a5c3dc969a0e2c83d3efe52156fe44bfcd4a32a3",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/prefix-calls-wasm.log": "cd6f364da5c1cc7a3d4849140415402a8c14bfd7b66bed3666ec710bbb0a8e67"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/expanded-calls-native.log": "1c0a364df03da7a271d04de777d2dc104faf39869a346130f903a0f1f6a85b61",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/expanded-calls-wasm.log": "a18ca5359ab7ce2149340da557bec60a01bc52c76a66e75dd2cc29a4d9a98221"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/branch-veneers-native.log": "8f19012ca27c816cc557b5e5b113d528acd3d4a8872e6c60ebb5e01a25dd8661",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/branch-veneers-wasm.log": "7b9611770c961f6006e10e6013987131af968331ca9a0cac0738baf0932ccf77"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-conditions-native.log": "a3bf8a616421bda5bf915ae9a52d7588d3e03d27ac16b5e984398069e4d0fc17",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-conditions-wasm.log": "74d46a13e116283b414e0cc9f0d5ec2b71c170db949d871f1138ce0c0e30cffa"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-calls-native.log": "e703a3e1d95c9737a0631f6511023efd0e6e2f59af9bbc8aad944122b2eab5c7",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-calls-wasm.log": "3b5379c8e4a69a872aaa6f69e98bc8eadad0bf3d4b0424ec1ee7fa3c80baf79c"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-calls-short-native.log": "b1c8ff4b108cfe09aa1ede8955aaf18efb4c3f8f1f5a58d6b35330619066c28d",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-calls-short-wasm.log": "00bf3ed41325dd243cae8c64b0323757c920ca70f0fa64fde873163720e6dca1"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-flags-native.log": "83aaf389072c3d6d1d04f5584c4683af2e17a2719f65f32e487fa4a3c8f0413b",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-flags-wasm.log": "945463a5195747dbb74c3ababba2ef4dd6c17f3c5643e4ae0a4a90c88ee36371"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/invariant-write-remap-native.log": "608e0b959fbddabcb6eed75459dd540f7f6b2f442935b8d358ef380082543f3a",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/invariant-write-remap-wasm.log": "35ec3909adc9aba33b75d5696ff989d3e5d4880577f12f5309c3548eca095aac"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/invariant-remap-native.log": "afee76adcb47c5082030d37b64299dbedecc8d3e87ebb253b4dcd113237e1ed8",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/invariant-remap-wasm.log": "207d3b5af6cfe96004c85fa68a977377ca1300fcbe06494119e3b6de27948f74"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-segments-native.log": "ce8aee6d5e0bf8dda8c35580e4d7f9533cc32344591d60f939570a137c56e6c0",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-segments-wasm.log": "4ad85bc0461c2d76abf11bc72e07d2adbc3ebf8c345823e2a45e0f44807d99b3"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-memory-native.log": "49458727813ca9ef9d6372262d182180c14e104aa5772f360021840e06cc08e6",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-memory-wasm.log": "0b60d1e4f5ca7c1f2504e8e2abc4b34c1001986e340c14928d63761a4d7ac321"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-memory-chain-native.log": "f88e5e55fc7979acaf1d38e30105b3b01d42932c14fa2cad09f360c8527eeb70",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-memory-chain-wasm.log": "867ece5fde5abadb15371befa73fa579057452236056c0ce2f79529a3cafc34d"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-wide-native.log": "445fa45ad693757b2e6e347816aef5110c5fa4515ed661d8100762c1106f0024",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-wide-wasm.log": "0beefb78e880fe7daccebe0f5ef9f9c845f22fd72d45c6c6569c89a0e921b5bd"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-addressing-native.log": "c534db9e785f4f1375d8ea38ea90561ee62c57582d4466b3213aa19a99ac5f25",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-addressing-wasm.log": "8e0c688146f31a61b83f7d4e07441cf4bc32bc190b71c01bb09c96755c239463"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-short-native.log": "17ccbfb7476568fb3662cf8b9a2647a1f37cfe2507f7e94c40dae52f8105d84d",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-short-wasm.log": "cdeeb4f494a1d88727c9ac14fee15754226915e01cc4f7c4b0cd48a1477118db"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-recipes-native.log": "1b1f13125e7bbf0bfb59f531a868b48d34425a5f08e34934b9a7a6aa92154d74",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/ir-recipes-wasm.log": "911e5e8d2e91609f39d8f5884f523be1fa65b2a01730f4ab23497b7af649bc8a"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/extended-native.log": "2d4d01572564623e0a0bd7188c3e63c4d3b12f074e0d3f2f0f1d4b19f5221465",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/extended-wasm.log": "2d4d01572564623e0a0bd7188c3e63c4d3b12f074e0d3f2f0f1d4b19f5221465"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/deferred-native.log": "2d4d01572564623e0a0bd7188c3e63c4d3b12f074e0d3f2f0f1d4b19f5221465",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/deferred-wasm.log": "81296b5ec692e8ffcb61feed56fe2533bf2d562009091a4bbfd0b1a0fd98f2e1"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/entry-budget-native.log": "6c8384e6ea48178d68da86e5aeefd6a9864c497975d914a456b2f88b3b22823f",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/entry-budget-wasm.log": "6c8384e6ea48178d68da86e5aeefd6a9864c497975d914a456b2f88b3b22823f"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/entry-budget-deferred-native.log": "6c8384e6ea48178d68da86e5aeefd6a9864c497975d914a456b2f88b3b22823f",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/entry-budget-deferred-wasm.log": "b29077017f45b7ec03558f89b4328763ddf626577b6095f2226f42e8d50c2f8b"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/read-spans-native.log": "ad12486af8e0832d167b5c4374a6fada3b635e41e99b151d63d5cfdf3e0064a8",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/read-spans-wasm.log": "c9942c03735c70bd3ef0e97a25f0cded72e01e5f618ba6b559f3d4b7fcd4f5e2"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/wide-snapshots-native.log": "ac0611a13ed5e0dc70953757adee05c4bdc5477a156fcc341991d545ae25959d",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/wide-snapshots-wasm.log": "b41af3cc0e168f0ae8ba8d713f0dbd50a50e2f513a43211f729efb3fb8ccf58c"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/region-spans-native.log": "f88e5e55fc7979acaf1d38e30105b3b01d42932c14fa2cad09f360c8527eeb70",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/region-spans-wasm.log": "867ece5fde5abadb15371befa73fa579057452236056c0ce2f79529a3cafc34d"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/region-spans-interpreter-native.log": "f88e5e55fc7979acaf1d38e30105b3b01d42932c14fa2cad09f360c8527eeb70",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/region-spans-interpreter-wasm.log": "833e063e5ad479f24ddf4508e37dd880c4dab411aefebb6384bbf7df48b2fb3f"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/entry-budget-interpreter-native.log": "6c8384e6ea48178d68da86e5aeefd6a9864c497975d914a456b2f88b3b22823f",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/entry-budget-interpreter-wasm.log": "6c8384e6ea48178d68da86e5aeefd6a9864c497975d914a456b2f88b3b22823f"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/region-block-spans-native.log": "98fe5feb63176885fbfb682ca4026906118b52154170c3d1fc9b06bbba7317c5",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-4-fault/region-block-spans-wasm.log": "9a8c622577d1ff1e94581a94b563444191e801725837cb6da79860c176b7de84"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,4,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        }
+      ]
+    },
+    "conditional-sites-4-standard": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4656051,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+          "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+          "writes": 0,
+          "callbacks": 9648,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 9648,
+          "gameplay_nonzero_samples": 6784478,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 97001070,
+        "instructions": 16376387249
+      },
+      "configuration": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 118.80777068999998,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "549edb7572a8e04e1dfc586a8edcf37e7929bc12e151c4072bfcb871dc0c77d4",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          4,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 0,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "806bc969653295f96edd3b43f8e12c41495b9cf9",
+        "dirty_worktree": true
+      }
+    },
+    "conditional-sites-4-long": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2832756,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "cff3ae6616cdda70e86562cd63566fd809b125041a7b338afc66b36e77a8f5a8",
+          "sha256_events": "2a099f1ce470188019b5d06f67e05c5386ad0f16fd193bce211603bba3c053d1",
+          "writes": 0,
+          "callbacks": 5849,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 5849,
+          "gameplay_nonzero_samples": 1611214,
+          "gameplay_peak": 573
+        },
+        "frames": 360,
+        "unique_images": 360,
+        "last_virtual_us": 59015758,
+        "instructions": 9309923112
+      },
+      "configuration": {
+        "frames": 360,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 65.984116384,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "wasm_sha256": "549edb7572a8e04e1dfc586a8edcf37e7929bc12e151c4072bfcb871dc0c77d4",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          4,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 0,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "806bc969653295f96edd3b43f8e12c41495b9cf9",
+        "dirty_worktree": true
+      }
+    },
+    "conditional-sites-16-fault": {
+      "leaf_features": 0,
+      "exit_census": 0,
+      "predicated_leaves": 1,
+      "execution_limits": "512,16,16,512",
+      "code_write_protect": null,
+      "code_lookup": null,
+      "ir_policy": 7,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "completed_cases": 40640,
+      "results": [
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/predicated-calls-native.log": "4a133cac12f4329027086e49e004e83024660b14d683190706c8d25f01af281f",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/predicated-calls-wasm.log": "004611d9f8d1ab2b2c06767d48f4817bc0a1927fad38128a90ff3a2acac0e67c"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/preserve-inner-native.log": "ae4db38e17c1b2e3baf32b53d78a8e85b940eb85a7bde86b33de47fcc2146c9a",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/preserve-inner-wasm.log": "9594d29e418d97b46e45d023df65a402767bc81df71433998588555b363694a1"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/prefix-calls-native.log": "080cf436dd24222bdb1642a595f3e7c6a9b038d1928c6e673bcc94b9674ffb6b",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/prefix-calls-wasm.log": "330b7bf8d4aa544ccefcc11fd974ff4884aa7447b12f148dfcc95299b69b01e5"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/expanded-calls-native.log": "3db376032f312e4d14a91b34fd4805d587495a370c2aa7a72c8ceeafed92fb08",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/expanded-calls-wasm.log": "bdaee284a318344a2d611e52fb423dc736adf51862a05844e1edd24d646446a5"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/branch-veneers-native.log": "5684d2162077cdefc3a70b35c04af5e97e5a40acd5f30e1b6b22dd521eda0a2a",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/branch-veneers-wasm.log": "81f2a1bef63f0a2c4dae1c0f2509b8b2e2a16ca19661049dd2350fde8b199f17"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 5376,
+          "all_fields_match": 5376,
+          "final_state_and_exact_memory_match": 5376,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 1344,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-conditions-native.log": "3aecd5027823c3bddc268dbe2a0df1acbfd6c0815dae9849297357b6f72323fe",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-conditions-wasm.log": "e6c0001215d261070b603424005300a890c617e057c4397fcce302e591c7aa41"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-calls-native.log": "72f089eed4dceda022454a3078094d357e9f0c78afd6db1d5c5eb6574fa25698",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-calls-wasm.log": "40c68c1bc7551939e5b67175436de700e6303b2f220c908034d8355a85a937d3"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-calls-short-native.log": "b9c4c47a3f4d3390d9c844be8d0fa8094389d7a406c993690b4bb2bc96ebfdd7",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-calls-short-wasm.log": "62d97435cdb0af6ed9a70df99e040ff2bcd054d16889f0eb83793196f6c0ab34"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-flags-native.log": "edc43d4647b996e7bc7ed148885d2b8f698bdb16c3d3e37240ad55b57e2666d1",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-flags-wasm.log": "cddd676f93c476d76762bcb9a7aa0a2c7e4e0f8818cde77d54c9ae7b0156dc07"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/invariant-write-remap-native.log": "73b71d4283f2fada883eebdf54f3960416e25d9761ba0305dde20be1e24dd46a",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/invariant-write-remap-wasm.log": "456b2e3caa7caa946edce57bd79bb68d15190164ac2465ad45ae8948e833f93f"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 64,
+          "all_fields_match": 64,
+          "final_state_and_exact_memory_match": 64,
+          "mismatched_fields": {},
+          "categories": {},
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/invariant-remap-native.log": "44e73d3934af05ff4e119eb63370cf76cae7edfe1db446f3ee87da4767d53ffd",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/invariant-remap-wasm.log": "b286bd406df17bbb4dffbf347f9f2511a87dfdb4199f965544470989594b94de"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-segments-native.log": "e732349cd3a3cd089455abfabd948469f33b91e6849413b1aa62348a308d41e4",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-segments-wasm.log": "6f7d8870aeca0605f2882185a9b547586a9a6d59c915c970401b564fea4088c0"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-memory-native.log": "22360e79ea9a848094593a036db5a746e0b72c2cd317fbf47a9bf1474b7fbd3e",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-memory-wasm.log": "6bc9be39d90d5f5ebb951d75100bcf2e656e433917d9a3a5aac7f85d229dfb83"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-memory-chain-native.log": "a01cb1d9134a2c595b1a16edd9aca5e60f3bdc1b3a3b4ac369492f9842417e58",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-memory-chain-wasm.log": "260c1f1e56ae962a5ec9b5ca078d472d9ed873047e108cbc2a63dcd3f8e7846e"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-wide-native.log": "61ab3da773041034039c99f6c29334d2d54de9a0bd73ff853d07d5327dcb900f",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-wide-wasm.log": "8a8a20b0f68bcb2716027f7cd2d7c68f72a469e7ed643f523f4b98749e30a530"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-addressing-native.log": "abc5c7d9dfcb2c4332ffc70ce7b67a3ea0e3d1886e7c41b1b6138c9b1073d107",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-addressing-wasm.log": "c1b4e87155b14f681cf11ba5f0f6e959a27920320dd5ffdeb088127cb36ef67b"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-short-native.log": "3415299473821d5122da5a4d37ccd88834bd85405c6984433789e4543f4d6f1d",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-short-wasm.log": "5b5d8d0436671afd21fcde7d79df3f602927058e1ad8452dd32ea894602a9c4b"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 480,
+          "all_fields_match": 480,
+          "final_state_and_exact_memory_match": 480,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 120,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-recipes-native.log": "62ecc48ace8982a457b911d5534e904ed23b2c2742d9337a259a2f8469b9e936",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/ir-recipes-wasm.log": "42d3acf75f9dd3ef1d5e2e53a4988878ff10c19d8ac8302467e1e8e86f22532f"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/extended-native.log": "8236ee704528c2946145ae9925147414819942df193bf0d49ed6bd3ebb3968c2",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/extended-wasm.log": "8236ee704528c2946145ae9925147414819942df193bf0d49ed6bd3ebb3968c2"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/deferred-native.log": "8236ee704528c2946145ae9925147414819942df193bf0d49ed6bd3ebb3968c2",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/deferred-wasm.log": "aee32122b85e5cb04febcd6564ea6b7e4c5b9f0a89296269a4de3b7cb120a16b"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/entry-budget-native.log": "8b4a096c54227493f5b3887c05fba9ae36ebee6e184846616dbfaa22f8f252c2",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/entry-budget-wasm.log": "8b4a096c54227493f5b3887c05fba9ae36ebee6e184846616dbfaa22f8f252c2"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/entry-budget-deferred-native.log": "8b4a096c54227493f5b3887c05fba9ae36ebee6e184846616dbfaa22f8f252c2",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/entry-budget-deferred-wasm.log": "c34cc8775cf76a38dd90862c3c97e2fc8ea9a29753a2a9495ab89187645e9672"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/read-spans-native.log": "ccee87b760bdb479a06dec660b41535e449117762c46c38ec8624df662a93f8a",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/read-spans-wasm.log": "f7b07f9b467bd819823ed57e2343a39f55fa4e9675c425639f2991c2b73a6148"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/wide-snapshots-native.log": "eccf372685f80c5f89bc6841ccd7bb4fa3eec278c1c4b403a23afa0a90d6f4a9",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/wide-snapshots-wasm.log": "7922b0289d09b08a173f91607c8f7c67f612c653504b188ead3e1aab50c9e684"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/region-spans-native.log": "a01cb1d9134a2c595b1a16edd9aca5e60f3bdc1b3a3b4ac369492f9842417e58",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/region-spans-wasm.log": "260c1f1e56ae962a5ec9b5ca078d472d9ed873047e108cbc2a63dcd3f8e7846e"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 48,
+          "all_fields_match": 48,
+          "final_state_and_exact_memory_match": 48,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 12,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/region-spans-interpreter-native.log": "a01cb1d9134a2c595b1a16edd9aca5e60f3bdc1b3a3b4ac369492f9842417e58",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/region-spans-interpreter-wasm.log": "4c40cc33c30e8bbd1f651d4ad7fafc57f32b1a7752f6fa0befbb3d1ab822c224"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 672,
+          "all_fields_match": 672,
+          "final_state_and_exact_memory_match": 672,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 168,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/entry-budget-interpreter-native.log": "8b4a096c54227493f5b3887c05fba9ae36ebee6e184846616dbfaa22f8f252c2",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/entry-budget-interpreter-wasm.log": "8b4a096c54227493f5b3887c05fba9ae36ebee6e184846616dbfaa22f8f252c2"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        },
+        {
+          "verified_leaf_features": 0,
+          "verified_exit_census": 0,
+          "verified_predicated_leaves": 1,
+          "cases": 96,
+          "all_fields_match": 96,
+          "final_state_and_exact_memory_match": 96,
+          "mismatched_fields": {},
+          "categories": {},
+          "little_endian_unmapped_cases": 24,
+          "little_endian_unmapped_differences": 0,
+          "inputs": {
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/region-block-spans-native.log": "da5dc91eef4b3ea724678c38ecfbe4e3b8f6e97449a4af83292b5ad33ef0029e",
+            "/home/claude/.scratch/eka-benchmark/conditional-sites-16-fault/region-block-spans-wasm.log": "29f0cadde2a252cbf33e5ed7d43ab03a88d4b5c44918112d73054810722c6652"
+          },
+          "differences": [],
+          "verified_execution_limits": "512,16,16,512",
+          "verified_tlb_hash": 1,
+          "verified_code_compare": 2,
+          "verified_ir_policy": 7
+        }
+      ]
+    },
+    "conditional-sites-16-standard": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4656051,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+          "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+          "writes": 0,
+          "callbacks": 9648,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 9648,
+          "gameplay_nonzero_samples": 6784478,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 97001070,
+        "instructions": 16376387249
+      },
+      "configuration": {
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 113.226639264,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "549edb7572a8e04e1dfc586a8edcf37e7929bc12e151c4072bfcb871dc0c77d4",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          16,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 0,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "806bc969653295f96edd3b43f8e12c41495b9cf9",
+        "dirty_worktree": true
+      }
+    },
+    "conditional-sites-16-long": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2832756,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "cff3ae6616cdda70e86562cd63566fd809b125041a7b338afc66b36e77a8f5a8",
+          "sha256_events": "2a099f1ce470188019b5d06f67e05c5386ad0f16fd193bce211603bba3c053d1",
+          "writes": 0,
+          "callbacks": 5849,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 5849,
+          "gameplay_nonzero_samples": 1611214,
+          "gameplay_peak": 573
+        },
+        "frames": 360,
+        "unique_images": 360,
+        "last_virtual_us": 59015758,
+        "instructions": 9309923112
+      },
+      "configuration": {
+        "frames": 360,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 64.52514227,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "wasm_sha256": "549edb7572a8e04e1dfc586a8edcf37e7929bc12e151c4072bfcb871dc0c77d4",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          16,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 0,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "806bc969653295f96edd3b43f8e12c41495b9cf9",
+        "dirty_worktree": true
+      }
+    }
+  },
+  "reused_correctness": {
+    "source": "BRANCH_VENEER_EVIDENCE.json",
+    "commit": "3aad61fef",
+    "compiler_tests": 172,
+    "normal_site8_fault_cases": 40640,
+    "note": "Already completed on the same binary; these are not additional fresh tests."
+  }
 }

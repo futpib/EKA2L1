@@ -11,3 +11,7 @@ The planned timing order for each route is control8/sites4/sites16/baseline foll
 Afterward, separate counters will measure total compiled calls, site-limit exits, dependency checks and proof coverage. Results may establish only an unresolved range. No default change follows without repeatable timing and normal live/audio/HTTPS acceptance.
 
 Before this study starts timing, the host observer is extended with passive two-second CPU-frequency and thermal-zone samples, plus completed-run count. These cover startup and warmup as well as the measured window. They provide context for variation, not causal proof, normalization or a reason to remove observations. No host governor, fan, scheduling or browser setting is changed. A direct parser/read check succeeds for 16 frequency policies and 14 thermal zones.
+
+## Correctness acceptance
+
+Sites 4 and 16 each pass 40,640 explicitly selected native fault comparisons (81,280 fresh comparisons total), exact 1,600-image standard and 360-image longer replays, with guest records and 4,656,051 / 2,832,756 stereo PCM frames matching native. Every replay reads back its actual limits and feature policy. Site 8 and the 172-test compiler suite reuse previously completed acceptance on this same archive; they are not reported as fresh runs.
