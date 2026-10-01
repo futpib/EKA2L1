@@ -350,7 +350,7 @@ int eka2l1_leaf_predication_configure(int enabled) {
 }
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_leaf_features_configure(int features) {
-    if(g_state || features<0 || features>63)return -1;
+    if(g_state || features<0 || features>127)return -1;
     arm::aot::leaf_features=static_cast<unsigned>(features);return 0;
 }
 EMSCRIPTEN_KEEPALIVE

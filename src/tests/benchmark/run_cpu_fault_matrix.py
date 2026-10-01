@@ -8,7 +8,8 @@ import subprocess
 parser = argparse.ArgumentParser(__doc__)
 parser.add_argument('archive', type=Path)
 parser.add_argument('output', type=Path)
-parser.add_argument('--leaf-features',type=int,choices=range(64))
+parser.add_argument('--leaf-features',type=int,choices=range(128))
+parser.add_argument('--tail-prefixes',action='store_true',help='Include register-prefix tail-branch fixture (requires an archive containing it)')
 parser.add_argument('--exit-census',type=int,choices=(0,1))
 parser.add_argument('--predicated-leaves', type=int, choices=(0,1))
 parser.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
@@ -38,6 +39,9 @@ if a.leaf_features is not None:
     cases.insert(0,('preserve-inner',5376))
 if a.predicated_leaves is not None:
     cases.insert(0,('predicated-calls',5376))
+if a.tail_prefixes:
+    if a.leaf_features is None: parser.error('--tail-prefixes requires --leaf-features')
+    cases.insert(0,('tail-prefixes',5376))
 if a.long:
     cases.insert(0,('ir-long',96))
 probe_compare = [] if a.code_compare is None else [f'--code-compare={a.code_compare}']
@@ -76,6 +80,6 @@ for name, count in cases:
                     '--cases',str(count),'--ir-policy',str(a.ir_policy),'--require-equal']+compare_args,
                    check=True,stdout=subprocess.DEVNULL)
     results.append(json.loads(result.read_text()))
-    (a.output/'summary.json').write_text(json.dumps(dict(leaf_features=a.leaf_features,exit_census=a.exit_census,predicated_leaves=a.predicated_leaves,execution_limits=a.execution_limits,code_write_protect=a.code_write_protect,code_lookup=a.code_lookup, ir_policy=a.ir_policy, tlb_hash=a.tlb_hash, code_compare=a.code_compare,
+    (a.output/'summary.json').write_text(json.dumps(dict(tail_prefixes=a.tail_prefixes,leaf_features=a.leaf_features,exit_census=a.exit_census,predicated_leaves=a.predicated_leaves,execution_limits=a.execution_limits,code_write_protect=a.code_write_protect,code_lookup=a.code_lookup, ir_policy=a.ir_policy, tlb_hash=a.tlb_hash, code_compare=a.code_compare,
         completed_cases=sum(x['cases'] for x in results),results=results),indent=2)+'\n')
     print(name,'PASS',count,'policy',a.ir_policy,flush=True)

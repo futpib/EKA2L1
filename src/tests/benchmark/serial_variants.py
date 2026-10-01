@@ -73,7 +73,7 @@ for item in args.tlb_hash:
 features = {}
 for item in args.leaf_features:
     name,separator,value=item.partition('=')
-    if not separator or name not in dict(variants) or name in features or value not in tuple(map(str,range(64))):
+    if not separator or name not in dict(variants) or name in features or value not in tuple(map(str,range(128))):
         parser.error('Leaf features require unique known NAME=0..63')
     features[name]=int(value)
 predicates = {}

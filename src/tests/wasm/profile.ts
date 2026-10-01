@@ -39,7 +39,7 @@ if (![-1,0,1].includes(codeLookup)) throw new Error('Invalid code lookup policy'
 const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
 if (![-1,0,1,2,3,4].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
 const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES || '0');
-if(!Number.isInteger(leafFeatures) || leafFeatures<0 || leafFeatures>63)throw Error('Invalid leaf feature mask');
+if(!Number.isInteger(leafFeatures) || leafFeatures<0 || leafFeatures>127)throw Error('Invalid leaf feature mask');
 const predicatedLeaves = Number(process.env.EKA2L1_PREDICATED_LEAVES || '0');
 if(![0,1].includes(predicatedLeaves))throw Error('Invalid leaf predication setting');
 const limitsText = process.env.EKA2L1_EXECUTION_LIMITS || '512,16,8,512';

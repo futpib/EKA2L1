@@ -791,8 +791,8 @@ namespace eka2l1::arm::aot {
         w.store_i32_from_stack(S::ZFLAG, tmp);
     }
 
-    // Only short straight-line leaves with an unchanged LR can be inlined.
-    // Memory instructions retain the normal region guards and helper exits.
+    // Returning leaves preserve LR; separately gated prefixes retain a precise
+    // terminal exit. Memory instructions keep their normal guards and helpers.
     static bool ends_in_nested_call(const std::vector<std::uint8_t> &bytes) {
         if(bytes.size()<4)return false;
         std::uint32_t last;std::memcpy(&last,bytes.data()+bytes.size()-4,4);
@@ -805,8 +805,33 @@ namespace eka2l1::arm::aot {
         return (op&0xff000000u)==0xea000000u;
     }
 
+    static bool ends_in_tail_branch(const std::vector<std::uint8_t> &bytes) {
+        if (bytes.size() < 4) return false;
+        std::uint32_t last; std::memcpy(&last, bytes.data() + bytes.size() - 4, 4);
+        return (last & 0xff000000u) == 0xea000000u;
+    }
+
     static bool exits_inlined_callee(const std::vector<std::uint8_t> &bytes) {
-        return ends_in_nested_call(bytes) || is_branch_veneer(bytes);
+        return ends_in_nested_call(bytes) || ends_in_tail_branch(bytes);
+    }
+
+    // Admit a nonempty, register-only prefix followed by an unconditional B.
+    // Its destination still receives the ordinary precise runner exit. This
+    // neither recursively translates the target nor assumes that it returns.
+    static std::vector<std::uint8_t> resolve_tail_prefix(const std::vector<std::uint8_t> &bytes) {
+        for (std::size_t n = 0; n < leaf_instruction_limit * 4 && n + 4 <= bytes.size(); n += 4) {
+            std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
+            if ((op & 0xff000000u) == 0xea000000u)
+                return n ? std::vector<std::uint8_t>(bytes.begin(), bytes.begin() + n + 4)
+                         : std::vector<std::uint8_t>{};
+            if ((op >> 28) > 14 || ((op >> 26) & 3) != 0) return {};
+            const unsigned alu = (op >> 21) & 15;
+            if (alu >= 8 && alu <= 11 && !(op & (1u << 20))) return {};
+            if (((op >> 16) & 15) >= 13 || ((op >> 12) & 15) >= 13) return {};
+            if (!(op & (1u << 25)) && ((op & 0x90) == 0x90 || (op & 15) >= 13 ||
+                ((op & 16) && ((op >> 8) & 15) >= 13))) return {};
+        }
+        return {};
     }
 
     // A straight prefix need not return in this region. Its final unconditional
@@ -854,6 +879,10 @@ namespace eka2l1::arm::aot {
         if(allow_prefix && (features&32) && bytes.size()>=4) {
             std::vector<std::uint8_t> first(bytes.begin(),bytes.begin()+4);
             if(is_branch_veneer(first))return first;
+        }
+        if (allow_prefix && (features & 64)) {
+            auto prefix = resolve_tail_prefix(bytes);
+            if (!prefix.empty()) return prefix;
         }
         if(allow_prefix && (features&8)) {
             auto prefix=resolve_call_prefix(bytes);
@@ -986,7 +1015,7 @@ namespace eka2l1::arm::aot {
                                 exit_census::leaf_refusal refusal;
                                 auto bytes = resolve_leaf(*leaves, address, failure, allow_predicates, refusal);
                                 if(exit_census::enabled)refusals[i]=refusal;
-                                exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:is_branch_veneer(bytes)?"branch_veneer_inlined":ends_in_nested_call(bytes)?"call_prefix_inlined":"call_inlined");
+                                exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:is_branch_veneer(bytes)?"branch_veneer_inlined":ends_in_tail_branch(bytes)?"tail_prefix_inlined":ends_in_nested_call(bytes)?"call_prefix_inlined":"call_inlined");
                                 if(exit_census::enabled && bytes.empty())refusals[i].constraint=
                                     std::strcmp(failure,"leaf_instruction_limit")==0?2:
                                     std::strcmp(failure,"callee_unsupported")==0?3:
@@ -1698,7 +1727,7 @@ namespace eka2l1::arm::aot {
                 const auto &callee=inlined.at(i);
                 for(std::size_t n=0;n<callee.bytes.size();n+=4) {
                     std::uint32_t op;std::memcpy(&op,callee.bytes.data()+n,4);
-                    if(((op>>25)&7)==5 && !(op&(1u<<24)) && !is_branch_veneer(callee.bytes)) {
+                    if(((op>>25)&7)==5 && !(op&(1u<<24)) && !ends_in_tail_branch(callee.bytes)) {
                         const auto displacement=static_cast<std::int32_t>(op<<8)>>6;
                         leaf_forward_targets.push_back(callee.address+static_cast<std::uint32_t>(n)+8+displacement);
                     }
@@ -1948,9 +1977,9 @@ namespace eka2l1::arm::aot {
                 std::uint32_t next_pc = insn_addr + 4;
 
                 if(instruction.leaf && !is_link) {
-                    if(is_branch_veneer(inlined.at(i).bytes)) {
+                    if(ends_in_tail_branch(inlined.at(i).bytes)) {
                         // Even a target inside the primary window exits here.
-                        // This experiment removes only the veneer entry, and
+                        // This path removes only the callee entry, and
                         // retains the normal runner's target validation.
                         w.bail(target,insn_idx+1);
                         if(cond_opened)w.op(op_end);
