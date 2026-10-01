@@ -5,13 +5,18 @@ import puppeteer from 'puppeteer';
 import { startServer, compilerPolicyFromEnv } from './server.ts';
 const [assets, output, existingUrl, previousProfile] = process.argv.slice(2);
 if (!output) throw Error('cache-live.ts ASSETS NEW_OUTPUT [EXISTING_URL] [PREVIOUS_PROFILE]');
+const policyOnlyText = process.env.EKA2L1_CACHE_POLICY_ONLY ?? '0';
+if (!['0','1'].includes(policyOnlyText)) throw Error('EKA2L1_CACHE_POLICY_ONLY must be 0 or 1');
+const policyOnly = policyOnlyText === '1';
+if (policyOnly && !previousProfile) throw Error('Policy-only upgrade requires a previous profile');
 if (previousProfile && (!existingUrl || !process.env.EKA2L1_EXPECT_WASM_SHA256))
   throw Error('Upgrade check needs the same origin and expected new WASM hash');
 fs.mkdirSync(output);
 if (previousProfile) fs.cpSync(previousProfile, path.join(output, 'profile'), {recursive:true});
-const previousManifest = previousProfile
-  ? JSON.parse(fs.readFileSync(path.join(path.dirname(previousProfile), 'report.json'), 'utf8')).rows.at(-1)?.state?.urls
+const previousState = previousProfile
+  ? JSON.parse(fs.readFileSync(path.join(path.dirname(previousProfile), 'report.json'), 'utf8')).rows.at(-1)?.state
   : undefined;
+const previousManifest = previousState?.urls;
 if (previousProfile && !previousManifest?.['/eka2l1.wasm'])
   throw Error('Upgrade check requires the previous profile report and content manifest');
 const expectedPolicy = compilerPolicyFromEnv();
@@ -75,7 +80,13 @@ try {
       const downloaded = binary.filter(x => x.transferred > 1024);
       const changed = Object.keys(state.urls).filter(name => /\.(?:wasm|js|data)$/.test(name)
         && previousManifest[name] !== state.urls[name]);
-      if (!changed.includes('/eka2l1.wasm') || !downloaded.length
+      if (policyOnly) {
+        if (changed.length || binary.some(x => x.transferred === null || x.transferred > 1024))
+          throw Error('Policy-only upgrade changed or downloaded runtime files');
+        if (!previousState?.policy?.requested
+            || JSON.stringify(previousState.policy.requested) === JSON.stringify(expectedPolicy))
+          throw Error('Policy-only upgrade did not change the requested policy');
+      } else if (!changed.includes('/eka2l1.wasm') || !downloaded.length
           || downloaded.some(x => !changed.includes(new URL(x.url).pathname)))
         throw Error('Upgrade fetched an unchanged runtime file');
       for (const name of changed.filter(name => /^\/eka2l1\.(?:wasm|js|data)$/.test(name))) {
@@ -88,7 +99,7 @@ try {
       throw Error('Repeated runtime body transfer: ' + JSON.stringify(binary));
     if (transfers.some(x => x.status >= 400)) throw Error('HTTP failure');
     rows.push({ phase, elapsedToLaunchMs: Date.now() - start, state, transfers });
-    fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({ url, rows, errors }, null, 2));
+    fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({ url, policyOnly, rows, errors }, null, 2));
     await page.evaluate(() => { const w = window as any; w._gameRunning = false; w.Module._eka2l1_shutdown(); });
     page.off('pageerror', pageError); page.off('requestfailed', requestError); await client.detach();
     console.log(phase + ': launched, persistent assets ' + state.saved.reduce((n, x) => n + x.bytes, 0)

@@ -16395,7 +16395,7 @@
       ]
     }
   },
-  "status": "local_live_accepted_pending_https",
+  "status": "delivered_feature128_mode3",
   "fault_mode_marker_reextraction": {
     "verified_unsafe_code": 3,
     "verified_leaf_features": 128,
@@ -22653,5 +22653,707 @@
     "errors": [],
     "browser": "Chrome/153.0.8010.52"
   },
-  "live_harness": "from pathlib import Path\nimport os,json,subprocess,time\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1')\nq=json.loads((r/'src/tests/benchmark/MODE3_LITERAL_EVIDENCE.json').read_text())\nassert q['status']=='timing_complete_pending_review' and len(q['timings'])==4\nassert all(x['gain_percent']>0 and min(x['half_pairs_percent'])>0 for x in q['timings'].values()),'Mixed results; no automatic live acceptance'\ne=dict(os.environ,EKA2L1_WASM_BUILD_DIR=str(s/'unsafe-default-candidate'),EKA2L1_AOT_IR_MODE='7',EKA2L1_AOT_EAGER_REGIONS='0',EKA2L1_TLB_HASH='1',EKA2L1_SHARED_AUDIO='1',EKA2L1_BENCHMARK_AOT='5',EKA2L1_AOT_VERIFY='0',EKA2L1_CODE_COMPARE='2',EKA2L1_CODE_LOOKUP='0',EKA2L1_EXECUTION_LIMITS='512,16,8,512',EKA2L1_PREDICATED_LEAVES='1',EKA2L1_LEAF_FEATURES='128',EKA2L1_UNSAFE_CODE='3',EKA2L1_EXIT_CENSUS='0')\nfor k in ['LD_LIBRARY_PATH','EKA2L1_GUEST_PROFILE','EKA2L1_AOT_DIAGNOSTICS','EKA2L1_LIVE_AUTOSTART','EKA2L1_LIVE_PROFILE_START_US','EKA2L1_LIVE_PROFILE_END_US']:e.pop(k,None)\ndef phase(name,**kw):\n (s/'mode3-literal-live-state.json').write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw)));print(name,kw,flush=True)\ntry:\n for label,auto in [('manual',False),('auto',True)]:\n  phase('live_audio',route=label);env=dict(e,EKA2L1_LIVE_AUDIO='1')\n  if auto:env['EKA2L1_LIVE_AUTOSTART']='1'\n  with(s/f'mode3-literal-live-{label}.log').open('w')as log:subprocess.run(['node','live.ts',str(s/'assets'),str(s/f'mode3-literal-live-{label}'),'120'],cwd=r/'src/tests/wasm',env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=900)\n  q=json.loads((s/f'mode3-literal-live-{label}/report.json').read_text());policy=q['compiler_policy']['observed']\n  assert policy['unsafeCode']==3 and policy['leafFeatures']==128 and q['audio_continuity']['added_underruns']==0 and q['audio_continuity']['added_drops']==0 and q['realtime_ratio']>.99\n phase('local_controls')\n with(s/'mode3-literal-launcher.log').open('w')as log:subprocess.run(['node','softkeys.ts',str(s/'assets'),str(s/'mode3-literal-launcher')],cwd=r/'src/tests/wasm',env=e,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=900)\n q=json.loads((s/'mode3-literal-launcher/report.json').read_text());policy=q['compilerPolicy']['observed'];assert policy['unsafeCode']==3 and policy['leafFeatures']==128 and not q['errors']\n phase('local_live_complete')\nexcept Exception as error:phase('failure',error=str(error));raise\n"
+  "live_harness": "from pathlib import Path\nimport os,json,subprocess,time\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1')\nq=json.loads((r/'src/tests/benchmark/MODE3_LITERAL_EVIDENCE.json').read_text())\nassert q['status']=='timing_complete_pending_review' and len(q['timings'])==4\nassert all(x['gain_percent']>0 and min(x['half_pairs_percent'])>0 for x in q['timings'].values()),'Mixed results; no automatic live acceptance'\ne=dict(os.environ,EKA2L1_WASM_BUILD_DIR=str(s/'unsafe-default-candidate'),EKA2L1_AOT_IR_MODE='7',EKA2L1_AOT_EAGER_REGIONS='0',EKA2L1_TLB_HASH='1',EKA2L1_SHARED_AUDIO='1',EKA2L1_BENCHMARK_AOT='5',EKA2L1_AOT_VERIFY='0',EKA2L1_CODE_COMPARE='2',EKA2L1_CODE_LOOKUP='0',EKA2L1_EXECUTION_LIMITS='512,16,8,512',EKA2L1_PREDICATED_LEAVES='1',EKA2L1_LEAF_FEATURES='128',EKA2L1_UNSAFE_CODE='3',EKA2L1_EXIT_CENSUS='0')\nfor k in ['LD_LIBRARY_PATH','EKA2L1_GUEST_PROFILE','EKA2L1_AOT_DIAGNOSTICS','EKA2L1_LIVE_AUTOSTART','EKA2L1_LIVE_PROFILE_START_US','EKA2L1_LIVE_PROFILE_END_US']:e.pop(k,None)\ndef phase(name,**kw):\n (s/'mode3-literal-live-state.json').write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw)));print(name,kw,flush=True)\ntry:\n for label,auto in [('manual',False),('auto',True)]:\n  phase('live_audio',route=label);env=dict(e,EKA2L1_LIVE_AUDIO='1')\n  if auto:env['EKA2L1_LIVE_AUTOSTART']='1'\n  with(s/f'mode3-literal-live-{label}.log').open('w')as log:subprocess.run(['node','live.ts',str(s/'assets'),str(s/f'mode3-literal-live-{label}'),'120'],cwd=r/'src/tests/wasm',env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=900)\n  q=json.loads((s/f'mode3-literal-live-{label}/report.json').read_text());policy=q['compiler_policy']['observed']\n  assert policy['unsafeCode']==3 and policy['leafFeatures']==128 and q['audio_continuity']['added_underruns']==0 and q['audio_continuity']['added_drops']==0 and q['realtime_ratio']>.99\n phase('local_controls')\n with(s/'mode3-literal-launcher.log').open('w')as log:subprocess.run(['node','softkeys.ts',str(s/'assets'),str(s/'mode3-literal-launcher')],cwd=r/'src/tests/wasm',env=e,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=900)\n q=json.loads((s/'mode3-literal-launcher/report.json').read_text());policy=q['compilerPolicy']['observed'];assert policy['unsafeCode']==3 and policy['leafFeatures']==128 and not q['errors']\n phase('local_live_complete')\nexcept Exception as error:phase('failure',error=str(error));raise\n",
+  "delivery": {
+    "state": {
+      "complete": true,
+      "utc": "2026-10-01T15:10:01Z"
+    },
+    "https_controls": {
+      "target": "https://claude-laptop.lan:8188/",
+      "softkeys": [
+        {
+          "name": "f1-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 25640000,
+            "inputs": 26,
+            "frames": 530
+          }
+        },
+        {
+          "name": "f2-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "By B B e -\n",
+          "state": {
+            "guest": 26409947,
+            "inputs": 28,
+            "frames": 546
+          }
+        },
+        {
+          "name": "escape-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 27170000,
+            "inputs": 30,
+            "frames": 562
+          }
+        },
+        {
+          "name": "touch-left-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "",
+          "state": {
+            "guest": 27900000,
+            "inputs": 32,
+            "frames": 577
+          }
+        },
+        {
+          "name": "touch-right-paused",
+          "expected_paused": true,
+          "seen": true,
+          "text": "Paused\n",
+          "state": {
+            "guest": 28660000,
+            "inputs": 34,
+            "frames": 593
+          }
+        },
+        {
+          "name": "escape-resumed",
+          "expected_paused": false,
+          "seen": false,
+          "text": "",
+          "state": {
+            "guest": 29410000,
+            "inputs": 36,
+            "frames": 608
+          }
+        }
+      ],
+      "compilerPolicy": {
+        "requested": {
+          "irMode": 7,
+          "eagerRegions": 0,
+          "tlbHash": 1,
+          "codeCompare": 2,
+          "codeLookup": 0,
+          "predicatedLeaves": 1,
+          "leafFeatures": 128,
+          "executionLimits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "predicatedLeaves": 1,
+          "leafFeatures": 128,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            16,
+            8,
+            512
+          ]
+        }
+      },
+      "unsafeCode": 3,
+      "security": {
+        "secure": true,
+        "isolated": true
+      },
+      "audio": {
+        "state": "running",
+        "stats": {
+          "queued": 3456,
+          "resyncs": 0,
+          "underruns": 0,
+          "dropped": 0,
+          "played": 474624,
+          "nonzero": 472806
+        },
+        "rate": 48000
+      },
+      "first": {
+        "guest": 23894333,
+        "inputs": 20,
+        "frames": 493
+      },
+      "second": {
+        "guest": 24511243,
+        "inputs": 22,
+        "frames": 506
+      },
+      "last": {
+        "guest": 24847955,
+        "inputs": 24,
+        "frames": 513
+      },
+      "canvasSamples": [
+        223,
+        218,
+        228,
+        221,
+        227,
+        244,
+        253,
+        273,
+        267,
+        266,
+        270,
+        243
+      ],
+      "errors": [],
+      "browser": "Chrome/153.0.8010.52"
+    },
+    "cached_policy_upgrade": {
+      "url": "https://claude-laptop.lan:8188/",
+      "policyOnly": true,
+      "rows": [
+        {
+          "phase": "upgrade",
+          "elapsedToLaunchMs": 3309,
+          "state": {
+            "secure": true,
+            "isolated": true,
+            "saved": [
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+                "bytes": 69947392
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+                "bytes": 121092775
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+                "bytes": 963964
+              }
+            ],
+            "urls": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+              "/eka2l1.js": "/eka2l1.js?v=4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39"
+            },
+            "policy": {
+              "requested": {
+                "irMode": 7,
+                "eagerRegions": 0,
+                "tlbHash": 1,
+                "codeCompare": 2,
+                "codeLookup": 0,
+                "predicatedLeaves": 1,
+                "leafFeatures": 128,
+                "executionLimits": [
+                  512,
+                  16,
+                  8,
+                  512
+                ],
+                "unsafeCode": 3
+              },
+              "applied": true,
+              "observed": {
+                "predicatedLeaves": 1,
+                "leafFeatures": 128,
+                "unsafeCode": 3,
+                "executionLimits": [
+                  512,
+                  16,
+                  8,
+                  512
+                ]
+              }
+            },
+            "unsafeCode": 3,
+            "guest": 10000
+          },
+          "transfers": [
+            {
+              "url": "https://claude-laptop.lan:8188/",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "Content-Length": "14024",
+                "Content-Type": "text/html",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Date": "Thu, 01 Oct 2026 15:09:50 GMT",
+                "ETag": "\"a848899dd584577082560e60c356ca74ab03a1c8a741410c799cbd79370a108e\"",
+                "Keep-Alive": "timeout=5"
+              },
+              "transferred": 14359
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "4673",
+                "ETag": "\"1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8\"",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.js?v=4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "292230",
+                "ETag": "\"4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33\"",
+                "Date": "Thu, 01 Oct 2026 14:11:56 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.data?v=3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "332401",
+                "ETag": "\"3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516\"",
+                "Date": "Thu, 01 Oct 2026 04:17:13 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "10846767",
+                "ETag": "\"6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39\"",
+                "Date": "Thu, 01 Oct 2026 14:11:56 GMT",
+                "Content-Type": "application/wasm"
+              },
+              "transferred": 0
+            }
+          ]
+        },
+        {
+          "phase": "reload",
+          "elapsedToLaunchMs": 3236,
+          "state": {
+            "secure": true,
+            "isolated": true,
+            "saved": [
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+                "bytes": 69947392
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+                "bytes": 121092775
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+                "bytes": 963964
+              }
+            ],
+            "urls": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+              "/eka2l1.js": "/eka2l1.js?v=4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39"
+            },
+            "policy": {
+              "requested": {
+                "irMode": 7,
+                "eagerRegions": 0,
+                "tlbHash": 1,
+                "codeCompare": 2,
+                "codeLookup": 0,
+                "predicatedLeaves": 1,
+                "leafFeatures": 128,
+                "executionLimits": [
+                  512,
+                  16,
+                  8,
+                  512
+                ],
+                "unsafeCode": 3
+              },
+              "applied": true,
+              "observed": {
+                "predicatedLeaves": 1,
+                "leafFeatures": 128,
+                "unsafeCode": 3,
+                "executionLimits": [
+                  512,
+                  16,
+                  8,
+                  512
+                ]
+              }
+            },
+            "unsafeCode": 3,
+            "guest": 10000
+          },
+          "transfers": [
+            {
+              "url": "https://claude-laptop.lan:8188/",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Content-Length": "14024",
+                "Content-Type": "text/html",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Date": "Thu, 01 Oct 2026 15:09:54 GMT",
+                "ETag": "\"a848899dd584577082560e60c356ca74ab03a1c8a741410c799cbd79370a108e\""
+              },
+              "transferred": 322
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "4673",
+                "ETag": "\"1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8\"",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.js?v=4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "292230",
+                "ETag": "\"4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33\"",
+                "Date": "Thu, 01 Oct 2026 14:11:56 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.data?v=3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "332401",
+                "ETag": "\"3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516\"",
+                "Date": "Thu, 01 Oct 2026 04:17:13 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "10846767",
+                "ETag": "\"6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39\"",
+                "Date": "Thu, 01 Oct 2026 14:11:56 GMT",
+                "Content-Type": "application/wasm"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/favicon.ico",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "no-cache",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "104136",
+                "Date": "Thu, 01 Oct 2026 15:09:54 GMT",
+                "ETag": "\"0e4130093988c6f933b8afd3451e43da585d405584a1f8694bdb10a0f3f50c19\"",
+                "Content-Type": "image/x-icon"
+              },
+              "transferred": 325
+            }
+          ]
+        },
+        {
+          "phase": "restart",
+          "elapsedToLaunchMs": 3328,
+          "state": {
+            "secure": true,
+            "isolated": true,
+            "saved": [
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+                "bytes": 69947392
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+                "bytes": 121092775
+              },
+              {
+                "url": "https://claude-laptop.lan:8188/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+                "bytes": 963964
+              }
+            ],
+            "urls": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+              "/eka2l1.js": "/eka2l1.js?v=4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39"
+            },
+            "policy": {
+              "requested": {
+                "irMode": 7,
+                "eagerRegions": 0,
+                "tlbHash": 1,
+                "codeCompare": 2,
+                "codeLookup": 0,
+                "predicatedLeaves": 1,
+                "leafFeatures": 128,
+                "executionLimits": [
+                  512,
+                  16,
+                  8,
+                  512
+                ],
+                "unsafeCode": 3
+              },
+              "applied": true,
+              "observed": {
+                "predicatedLeaves": 1,
+                "leafFeatures": 128,
+                "unsafeCode": 3,
+                "executionLimits": [
+                  512,
+                  16,
+                  8,
+                  512
+                ]
+              }
+            },
+            "unsafeCode": 3,
+            "guest": 10000
+          },
+          "transfers": [
+            {
+              "url": "https://claude-laptop.lan:8188/",
+              "status": 200,
+              "fromDiskCache": false,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cache-Control": "no-cache",
+                "Content-Length": "14024",
+                "Content-Type": "text/html",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Date": "Thu, 01 Oct 2026 15:09:57 GMT",
+                "ETag": "\"a848899dd584577082560e60c356ca74ab03a1c8a741410c799cbd79370a108e\""
+              },
+              "transferred": 322
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "4673",
+                "ETag": "\"1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8\"",
+                "Date": "Wed, 30 Sep 2026 16:06:24 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.js?v=4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "292230",
+                "ETag": "\"4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33\"",
+                "Date": "Thu, 01 Oct 2026 14:11:56 GMT",
+                "Content-Type": "application/javascript"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.data?v=3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "332401",
+                "ETag": "\"3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516\"",
+                "Date": "Thu, 01 Oct 2026 04:17:13 GMT",
+                "Content-Type": "application/octet-stream"
+              },
+              "transferred": 0
+            },
+            {
+              "url": "https://claude-laptop.lan:8188/eka2l1.wasm?v=6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39",
+              "status": 200,
+              "fromDiskCache": true,
+              "fromServiceWorker": false,
+              "headers": {
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Content-Length": "10846767",
+                "ETag": "\"6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39\"",
+                "Date": "Thu, 01 Oct 2026 14:11:56 GMT",
+                "Content-Type": "application/wasm"
+              },
+              "transferred": 0
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    "served_hashes": {
+      "policy": {
+        "irMode": 7,
+        "eagerRegions": 0,
+        "tlbHash": 1,
+        "codeCompare": 2,
+        "codeLookup": 0,
+        "predicatedLeaves": 1,
+        "leafFeatures": 128,
+        "executionLimits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "unsafeCode": 3
+      },
+      "headers": {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Cache-Control": "no-cache",
+        "ETag": "\"a848899dd584577082560e60c356ca74ab03a1c8a741410c799cbd79370a108e\"",
+        "Content-Type": "text/html",
+        "Content-Length": "14024",
+        "Date": "Thu, 01 Oct 2026 15:09:12 GMT",
+        "Connection": "close"
+      },
+      "files": {
+        "eka2l1.js": {
+          "sha256": "4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33",
+          "bytes": 292230,
+          "url": "/eka2l1.js?v=4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"4e240a2a986dcbc25416c718e0782726d8422ea03b58f9430d031a9c760e1f33\"",
+            "Content-Type": "application/javascript",
+            "Content-Length": "292230",
+            "Date": "Thu, 01 Oct 2026 15:09:12 GMT",
+            "Connection": "close"
+          }
+        },
+        "eka2l1.wasm": {
+          "sha256": "6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39",
+          "bytes": 10846767,
+          "url": "/eka2l1.wasm?v=6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"6f086cfa7f0568369c2db6ee753bd3dc152358aab18daf6258a0357c45883f39\"",
+            "Content-Type": "application/wasm",
+            "Content-Length": "10846767",
+            "Date": "Thu, 01 Oct 2026 15:09:12 GMT",
+            "Connection": "close"
+          }
+        },
+        "eka2l1.data": {
+          "sha256": "3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+          "bytes": 332401,
+          "url": "/eka2l1.data?v=3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+          "headers": {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "ETag": "\"3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516\"",
+            "Content-Type": "application/octet-stream",
+            "Content-Length": "332401",
+            "Date": "Thu, 01 Oct 2026 15:09:12 GMT",
+            "Connection": "close"
+          }
+        }
+      },
+      "mode_environment": "unset; normal mode-3 default",
+      "feature_environment": "128"
+    },
+    "runtime_transfers": {
+      "upgrade": 0,
+      "reload": 0,
+      "restart": 0
+    },
+    "harness": "from pathlib import Path\nimport subprocess,json,time,ssl,urllib.request,hashlib,re,os\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1');a=s/'unsafe-default-candidate';base='https://claude-laptop.lan:8188'\nassert json.loads((s/'mode3-literal-live-state.json').read_text())['phase']=='local_live_complete'\np=r/'src/tests/benchmark/MODE3_LITERAL_EVIDENCE.json';e=json.loads(p.read_text());assert len(e['timings'])==4 and all(min(x['half_pairs_percent'])>0 and x['gain_percent']>0 for x in e['timings'].values())\ne['live']={}\nfor label in ['manual','auto']:\n q=json.loads((s/f'mode3-literal-live-{label}/report.json').read_text());policy=q['compiler_policy']['observed']\n assert policy['unsafeCode']==3 and policy['leafFeatures']==128 and q['audio_continuity']['added_underruns']==0 and q['audio_continuity']['added_drops']==0 and q['realtime_ratio']>.99\n e['live'][label]={'report':q,'max_sampled_lag_ms':max(0,max(1000*x['host_seconds']-(x['guest']-q['start']['guest'])/1000 for x in q['samples']))}\nq=json.loads((s/'mode3-literal-launcher/report.json').read_text());assert not q['errors'] and q['compilerPolicy']['observed']['leafFeatures']==128 and q['unsafeCode']==3;e['local_launcher']=q;e['status']='local_live_accepted_pending_https'\ne['live_harness']=(s/'live_mode3_literal.py').read_text();p.write_text(json.dumps(e,indent=2)+'\\n')\nwith(r/'src/tests/benchmark/MODE3_LITERAL_RESULTS.md').open('a')as f:f.write('\\n## Normal live acceptance\\n\\nAll eight timing pairs favor the candidate. The gain is modest and variable; the larger standard confirmation includes a slower control and faster closing candidate. Both two-minute live/audio routes sustain realtime with zero added measured underruns or drops. Desktop/mobile controls and gesture audio pass with actual mode 3 and feature 128 readback. The known native-matching level restart remains; no uninterrupted-gameplay claim is made. Actual HTTPS and existing-profile policy-only upgrade checks follow.\\n')\nsubprocess.run(['git','add','src/tests/benchmark/MODE3_LITERAL_RESULTS.md','src/tests/benchmark/MODE3_LITERAL_EVIDENCE.json'],cwd=r,check=True);subprocess.run(['git','commit','-m','Verify mode-3 literal veneer normal live and audio acceptance'],cwd=r,check=True)\n(s/'mode3-literal-previous-service.txt').write_text(subprocess.check_output(['systemctl','--user','cat','eka2l1-lan.service'],text=True))\nenv={'EKA2L1_WASM_BUILD_DIR':str(a),'EKA2L1_AOT_IR_MODE':'7','EKA2L1_AOT_EAGER_REGIONS':'0','EKA2L1_TLB_HASH':'1','EKA2L1_SERVE_HOST':'0.0.0.0','EKA2L1_SERVE_NAME':'claude-laptop.lan','EKA2L1_TLS_CERT':'/home/claude/.config/eka2l1/tls/server.crt','EKA2L1_TLS_KEY':'/home/claude/.config/eka2l1/tls/server.key','EKA2L1_CODE_COMPARE':'2','EKA2L1_CODE_LOOKUP':'0','EKA2L1_PREDICATED_LEAVES':'1','EKA2L1_LEAF_FEATURES':'128','EKA2L1_EXECUTION_LIMITS':'512,16,8,512'}\ndef restart(features):\n selected=dict(env,EKA2L1_LEAF_FEATURES=str(features));subprocess.run(['systemctl','--user','stop','eka2l1-lan.service'],check=True)\n for _ in range(40):\n  if subprocess.run(['systemctl','--user','show','eka2l1-lan.service','-p','LoadState','--value'],capture_output=True,text=True).stdout.strip()=='not-found':break\n  time.sleep(.25)\n subprocess.run(['systemd-run','--user','--unit=eka2l1-lan','--collect','--working-directory='+str(r/'src/tests/wasm'),*[f'--setenv={k}={v}'for k,v in selected.items()],'/usr/bin/node','serve.ts','8188','Snakes'],check=True)\ncontext=ssl.create_default_context(cafile='/home/claude/.config/eka2l1/tls/lan-ca.crt')\ndef fetch(url):\n with urllib.request.urlopen(url,context=context,timeout=60)as response:return response.read(),dict(response.headers)\ntry:\n restart(128)\n for _ in range(60):\n  try:html,headers=fetch(base+'/');break\n  except OSError:time.sleep(1)\n else:raise RuntimeError('LAN listener did not start')\n html=html.decode();urls=json.loads(re.search(r'window.ekaAssetUrls = (.*);',html).group(1));policy=json.loads(re.search(r'window.ekaCompilerPolicy = \\{requested:(.*), applied:false\\};',html).group(1))\n assert policy=={'irMode':7,'eagerRegions':0,'tlbHash':1,'codeCompare':2,'codeLookup':0,'predicatedLeaves':1,'leafFeatures':128,'executionLimits':[512,16,8,512],'unsafeCode':3}\n result={'policy':policy,'headers':headers,'files':{},'mode_environment':'unset; normal mode-3 default','feature_environment':'128'}\n for name in ['eka2l1.js','eka2l1.wasm','eka2l1.data']:\n  data,h=fetch(base+urls['/'+name]);sha=hashlib.sha256(data).hexdigest();assert sha==hashlib.sha256((a/name).read_bytes()).hexdigest()and urls['/'+name].endswith('?v='+sha)and'immutable'in h.get('Cache-Control','');result['files'][name]={'sha256':sha,'bytes':len(data),'url':urls['/'+name],'headers':h}\n (s/'mode3-literal-served-hashes.json').write_text(json.dumps(result,indent=2)+'\\n')\n runenv=dict(os.environ,**{k:v for k,v in env.items()if not k.startswith('EKA2L1_TLS')},EKA2L1_EXPECT_WASM_SHA256=result['files']['eka2l1.wasm']['sha256'],EKA2L1_CACHE_POLICY_ONLY='1');runenv.pop('EKA2L1_UNSAFE_CODE',None)\n for args,name in [(['node','softkeys.ts',str(s/'assets'),str(s/'mode3-literal-launcher-https'),base+'/'],'mode3-literal-launcher-https.log'),(['node','cache-live.ts',str(s/'assets'),str(s/'mode3-literal-cache-policy'),base+'/',str(s/'unsafe-default-cache-upgrade/profile')],'mode3-literal-cache-policy.log')]:\n  with(s/name).open('w')as log:subprocess.run(args,cwd=r/'src/tests/wasm',env=runenv,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=900)\n  print(name+' PASS',flush=True)\n (s/'mode3-literal-delivery-state.json').write_text(json.dumps({'complete':True,'utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())}))\nexcept Exception as error:\n restart(0);(s/'mode3-literal-delivery-state.json').write_text(json.dumps({'complete':False,'rolled_back':True,'error':str(error)}));raise\n",
+    "visual_review": "Actual HTTPS gameplay and 390x844 mobile screenshots viewed; game visible and controls fit."
+  }
 }

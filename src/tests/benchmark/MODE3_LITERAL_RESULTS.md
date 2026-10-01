@@ -22,3 +22,13 @@ All 16 observations are retained. These are within-route matching comparisons un
 ## Normal live acceptance
 
 All eight timing pairs favor the candidate. The gain is modest and variable; the larger standard confirmation includes a slower control and faster closing candidate. Both two-minute live/audio routes sustain realtime with zero added measured underruns or drops. Desktop/mobile controls and gesture audio pass with actual mode 3 and feature 128 readback. The known native-matching level restart remains; no uninterrupted-gameplay claim is made. Actual HTTPS and existing-profile policy-only upgrade checks follow.
+
+## Verified LAN selection
+
+Feature 128 is selected at https://claude-laptop.lan:8188/ after reload. The service still leaves EKA2L1_UNSAFE_CODE unset, selecting normal default 3. Application/archive hashes are unchanged; this is a policy update. Explicit feature 0 and mode 0 remain selectable. Actual HTTPS controls, gesture audio, keyboard/touch, pause/resume and mobile layout pass, with direct mode-3 and feature-128 readback. Screenshots were inspected.
+
+The existing mode-3 browser profile reuses all 192,004,131 ROM/game bytes and transfers zero runtime bytes on policy upgrade, reload and browser restart. The new explicit policy-only cache harness requires unchanged runtime hashes and a changed compiler policy; ordinary binary-upgrade checks remain intact.
+
+Both live routes have zero added measured audio underruns/drops. Maximum sampled lag (manual / automatic) is 45.90 ms / 16.06 ms. The known native-matching level restart remains. Timing gains are specific to the two measured routes and retain all slow controls and candidates; no general emulator speed percentage is implied.
+
+The next independent lookup-layout experiment retains feature 128 in both modes. Existing optimization work continues. No Git push.
