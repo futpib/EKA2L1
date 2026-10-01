@@ -4744,6 +4744,58 @@ static bool test_call_prefixes() {
         // A standalone BX LR is still a legitimate returning leaf.
         if(op!=0xe12fff1eu && !tr.dependencies.empty()){printf(" FAIL unsafe prefix accepted %x\n",op);return false;}
     }
+    // Prefix selection must preserve an eligible inner leaf, including a
+    // backward BL target. Probing that leaf must not recurse into prefixes.
+    unsigned selection_checks=0;
+    for(unsigned variant=0;variant<6;++variant)for(unsigned features:{0u,8u,16u,24u}) {
+        const unsigned inner_pc=variant==4?0x1800:0x3000;
+        const std::vector<unsigned> caller={0xeb0003feu,0xe28bb001u};
+        const std::vector<unsigned> outer={0xe92d4010u,0xe1a04000u,
+            0xeb000000u|(((inner_pc-0x2010u)>>2)&0xffffffu),0xe8bd4010u,0xe12fff1eu};
+        std::vector<unsigned> inner={0xe1500001u,0xa3a00000u,0xb3a00001u,0xe12fff1eu};
+        if(variant==1)inner={0xeafffffeu}; // unsupported returning leaf
+        if(variant==2)inner.clear(); // unavailable mapping
+        if(variant==3){inner.assign(16,0xe1a00000u);inner.push_back(0xe12fff1eu);}
+        if(variant==5)inner={0xebfffffeu,0xe12fff1eu}; // no recursive prefix probe
+        auto bytes=[](const std::vector<unsigned>& words){const auto *b=reinterpret_cast<const std::uint8_t*>(words.data());return words.empty()?std::vector<std::uint8_t>{}:std::vector<std::uint8_t>(b,b+words.size()*4);};
+        unsigned lookups=0;
+        leaf_resolver resolver=[&](unsigned pc){++lookups;return pc==0x2000?bytes(outer):pc==inner_pc?bytes(inner):std::vector<std::uint8_t>{};};
+        leaf_features=features;predicated_leaves=true;
+        for(unsigned entry:{0x1000u,0x2000u}) {
+            const auto code=entry==0x1000?bytes(caller):bytes(outer);
+            auto tr=translate_arm_block(code.data(),code.size(),entry,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+            const bool returning=variant==0 || variant==4;
+            if(entry==0x1000) {
+                const bool prefix=(features&8) && !((features&16) && returning);
+                if(tr.dependencies.size()!=unsigned(prefix)){printf(" FAIL preserve inner selection variant=%u features=%u\n",variant,features);return false;}
+            } else if(returning && (tr.dependencies.size()!=1 || tr.dependencies[0].address!=inner_pc)) {
+                printf(" FAIL standalone inner fusion missing\n");return false;
+            }
+            if(lookups>8){printf(" FAIL recursive inner eligibility probe\n");return false;}
+            auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+            for(unsigned budget=0;budget<=12;++budget)for(unsigned flags:{0u,5u,10u,15u}) {
+                test_mem actual;actual.write_code(0x1000,bytes(caller));actual.write_code(0x2000,bytes(outer));
+                if(!inner.empty())actual.write_code(inner_pc,bytes(inner));
+                test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+                r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0xb000,actual.data.data()+0xb000,3);
+                alignas(8) unsigned state[256]{};
+                for(unsigned reg=0;reg<16;++reg){state[reg]=reg==13?0xb020:reg==14?0x4000:reg==15?entry:reg;reference->set_reg(reg,state[reg]);}
+                reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+                state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+                g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+                if(count<0 || count>int(budget) || (!count && budget))return false;
+                if(count)reference->run(count);
+                for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)){printf(" FAIL preserve inner execution variant=%u mode=%u entry=%x budget=%u reg=%u\n",variant,features,entry,budget,reg);return false;}
+                for(unsigned f=0;f<4;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
+                if(actual.data!=expected.data)return false;
+                ++selection_checks;
+            }
+        }
+    }
+    printf(" PASS preserve inner fusion (%u exact selection/budget/state/stack comparisons)\n",selection_checks);
     printf(" PASS call prefixes (%u exact budget/state/stack/memory/alias/continuation comparisons)\n",checks);
 #endif
     return true;

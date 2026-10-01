@@ -69,7 +69,7 @@ struct Fixture {
 int main(int argc, char **argv){
     if(argc>1 && std::strncmp(argv[argc-1],"--leaf-features=",16)==0) {
         const std::string value(argv[argc-1]+16);
-        if(value.empty() || value.size()>2 || value.find_first_not_of("0123456789")!=std::string::npos || std::stoi(value)>15){std::cerr<<"Invalid leaf feature policy\n";return 1;}
+        if(value.empty() || value.size()>2 || value.find_first_not_of("0123456789")!=std::string::npos || std::stoi(value)>31){std::cerr<<"Invalid leaf feature policy\n";return 1;}
         aot::leaf_features=static_cast<unsigned>(std::stoi(value));--argc;
     }
     std::cout<<"PROBE_LEAF_FEATURES "<<aot::leaf_features<<"\n";
@@ -150,7 +150,8 @@ int main(int argc, char **argv){
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
     const bool ir_call_short=argc==2 && std::string(argv[1])=="--ir-calls-short";
-    const bool prefix_calls=argc==2 && std::string(argv[1])=="--prefix-calls";
+    const bool preserve_inner=argc==2 && std::string(argv[1])=="--preserve-inner";
+    const bool prefix_calls=preserve_inner || (argc==2 && std::string(argv[1])=="--prefix-calls");
     const bool expanded_calls=argc==2 && std::string(argv[1])=="--expanded-calls";
     const bool predicated_calls=argc==2 && std::string(argv[1])=="--predicated-calls";
     const bool ir_calls=prefix_calls || expanded_calls || predicated_calls || ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
@@ -262,7 +263,7 @@ int main(int argc, char **argv){
                 called_words[0]=0xe92d4010u; // preserve caller LR as a real stack store
                 called_words[1]=0x00944005u|(predicate<<28);
                 called_words[2]=op;called_words[3]=0xeb0003fbu; // nested call to 0x3000
-                const unsigned nested[]={0xe28aa001u,0xe2899001u,0xeafffffeu};
+                const unsigned nested[]={0xe28aa001u,0xe2899001u,preserve_inner?0xe12fff1eu:0xeafffffeu};
                 std::memcpy(f.memory.data()+0x3000,nested,sizeof(nested));
             }
             std::memcpy(f.memory.data()+0x2000,called_words,sizeof(called_words));
@@ -285,12 +286,13 @@ int main(int argc, char **argv){
         std::vector<aot::wasm_func_def> functions;
         aot::leaf_resolver call_resolver=[&](std::uint32_t pc) {
             const auto *begin=reinterpret_cast<const std::uint8_t *>(called_words);
+            if(preserve_inner && pc==0x3000)return std::vector<std::uint8_t>(f.memory.begin()+0x3000,f.memory.begin()+0x300c);
             return pc==0x2000 ? std::vector<std::uint8_t>(begin,begin+sizeof(called_words)) : std::vector<std::uint8_t>{};
         };
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
-            if(prefix_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&8))) {
+            if(prefix_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&8) && !(preserve_inner && (aot::leaf_features&16)))) {
                 std::cerr<<"Call-prefix fusion selection mismatch\n";return 4;
             }
             if(expanded_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&4))) {
@@ -349,7 +351,8 @@ int main(int argc, char **argv){
         }
         if(ir_calls) for(unsigned n=0;n<4;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<const unsigned char *>(called_words+n),
-                (4-n)*4,0x2000+n*4,nullptr,nullptr,true,false,true,true,nullptr,true,ir_policy);
+                (4-n)*4,0x2000+n*4,nullptr,nullptr,true,false,true,true,preserve_inner?&call_resolver:nullptr,true,ir_policy);
+            if(preserve_inner && n==0 && translated.dependencies.size()!=1){std::cerr<<"Preserved inner leaf not selected\n";return 4;}
             functions.push_back(std::move(translated.func));
         }
         if(prefix_calls)for(unsigned n=0;n<3;++n) {

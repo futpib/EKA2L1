@@ -832,15 +832,31 @@ namespace eka2l1::arm::aot {
         return {};
     }
 
-    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure, bool allow_predicates, exit_census::leaf_refusal &refusal) {
+    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure, bool allow_predicates, exit_census::leaf_refusal &refusal, bool allow_prefix = true) {
         failure="callee_unsupported";
         auto bytes = resolve(address);
         exit_census::probe(address,bytes.data(),bytes.size());
         if(bytes.empty()) {failure="callee_unmapped_or_other_space";return {};}
         const unsigned features = allow_predicates ? leaf_features : 0;
-        if(features&8) {
+        if(allow_prefix && (features&8)) {
             auto prefix=resolve_call_prefix(bytes);
-            if(!prefix.empty())return prefix;
+            if(!prefix.empty()) {
+                bool preserve_inner = false;
+                if(features&16) {
+                    // A prefix stops at this BL. Do not expose a call/return
+                    // boundary that the standalone callee could already fuse.
+                    // This is only a selection heuristic, not a validity proof;
+                    // every executed region retains its normal exact snapshots.
+                    std::uint32_t call;
+                    std::memcpy(&call,prefix.data()+prefix.size()-4,4);
+                    const auto displacement=static_cast<std::int32_t>(call<<8)>>6;
+                    const auto target=address+static_cast<std::uint32_t>(prefix.size())+4+displacement;
+                    const char *inner_failure=nullptr;
+                    exit_census::leaf_refusal inner_refusal{};
+                    preserve_inner=!resolve_leaf(resolve,target,inner_failure,allow_predicates,inner_refusal,false).empty();
+                }
+                if(!preserve_inner)return prefix;
+            }
         }
         std::vector<std::uint32_t> leaf_targets;
         for (std::size_t n = 0; n < leaf_instruction_limit*4 && n + 4 <= bytes.size(); n += 4) {
