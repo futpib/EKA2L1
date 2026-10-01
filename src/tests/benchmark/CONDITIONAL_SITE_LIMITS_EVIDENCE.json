@@ -1,0 +1,76 @@
+{
+  "status": "Prepared only; no site-limit job has run. Awaiting completion of branch-veneer timings and diagnostics.",
+  "archive_path": "/home/claude/.scratch/eka-benchmark/branch-veneer-candidate",
+  "archive": {
+    "base": "871c89a38d9b5f3512d2663bca9efcb4f18b9f0a",
+    "files": {
+      "eka2l1.js": "dd48a3a224ba43816448409b333bee4fdbcd9bca44e31b0430a42896620e3f1c",
+      "source.patch": "35c0b1a00f991de15b9f108a53f051e6671ddf408c142a62cfcdd122b7780b1c",
+      "eka2l1.html": "8e0962709fa2a5cdff9d30125452c500123910e76bdee682092f9fd44a7aee69",
+      "eka2l1.data": "3d227669b83759832702648be5de7e62437fc77ae036053722cb2d402f7d6516",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "549edb7572a8e04e1dfc586a8edcf37e7929bc12e151c4072bfcb871dc0c77d4",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/eka_cpu_tests": "6c436fe3b7176ce267767a0d332af8c8e056f42121e9f8e6b3eea27ea9a294ff",
+      "tests/eka_cpu_fault_native": "efca8fc25b401ec9aca5edce6dfec27d068edb4bc6950a4431da687cd5e3fa24",
+      "tests/test_aot_wasm.wasm": "1fcefddbe09f09a1ab2b3b7ce38f0404e27c89baed6728546a42ae2fd2767ba1",
+      "tests/eka_cpu_fault_wasm.wasm": "8a34e7dfea9c817e5c15a916538bfda0c4787ccc5f703668cbd8314f187ef22e",
+      "tests/test_aot_wasm.js": "bf3af8143d1f4e8c3eb2d0cb599e9cb8d2f2b2076caaf30895178b023fae0d16"
+    }
+  },
+  "limits": {
+    "sites4": [
+      512,
+      16,
+      4,
+      512
+    ],
+    "control8": [
+      512,
+      16,
+      8,
+      512
+    ],
+    "sites16": [
+      512,
+      16,
+      16,
+      512
+    ],
+    "baseline": [
+      512,
+      16,
+      8,
+      512
+    ]
+  },
+  "orders": {
+    "a": [
+      "control8",
+      "sites4",
+      "sites16",
+      "baseline"
+    ],
+    "b": [
+      "sites16",
+      "baseline",
+      "control8",
+      "sites4"
+    ]
+  },
+  "harness": {
+    "conditional_site_acceptance.py": {
+      "sha256": "51a69227c1ceab8349666ed43db537fd8ea629c5545c866f82cc15d82d4ec4b7",
+      "source": "from pathlib import Path\nimport json,os,subprocess\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'branch-veneer-candidate'\ne=dict(os.environ,PUPPETEER_EXECUTABLE_PATH='/usr/bin/chromium',EKA2L1_WASM_BUILD_DIR=str(a),EKA2L1_AOT_IR_MODE='7',EKA2L1_AOT_EAGER_REGIONS='0',EKA2L1_TLB_HASH='1',EKA2L1_SHARED_AUDIO='1',EKA2L1_BENCHMARK_AOT='5',EKA2L1_AOT_VERIFY='1024',EKA2L1_CODE_COMPARE='2',EKA2L1_CODE_LOOKUP='0',EKA2L1_PREDICATED_LEAVES='1',EKA2L1_LEAF_FEATURES='0',EKA2L1_EXIT_CENSUS='0')\nfor key in ['LD_LIBRARY_PATH','EKA2L1_CODE_WRITE_PROTECT','EKA2L1_GUEST_PROFILE','EKA2L1_AOT_DIAGNOSTICS']:e.pop(key,None)\ndef run(args,name,cwd=r,env=e):\n with(s/name).open('w')as log:subprocess.run(args,cwd=cwd,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=3600)\n print(name+' PASS',flush=True)\nfor sites in [4,16]:\n limits=f'512,16,{sites},512';prefix=f'conditional-sites-{sites}'\n run(['python3','src/tests/benchmark/run_cpu_fault_matrix.py',str(a),str(s/(prefix+'-fault')),'--ir-policy','7','--code-compare','2','--tlb-hash','1','--execution-limits',limits,'--predicated-leaves','1','--exit-census','0','--leaf-features','0'],prefix+'-fault.log')\n f=json.loads((s/(prefix+'-fault/summary.json')).read_text());assert f['completed_cases']==40640 and f['leaf_features']==0 and all(x['all_fields_match']==x['cases'] for x in f['results'])\n for scene,frames,route,start,ref,pcm in [('standard',1600,'snakes.input',21000000,'merge-20260930-native',4656051),('long',360,'snakes-length-long.input',42000000,'merge-20260930-long-native',2832756)]:\n  out=s/(prefix+'-'+scene)\n  run(['node','benchmark.ts',str(s/'assets'),str(out),str(frames),str(r/'src/tests/benchmark'/route),str(start)],prefix+'-'+scene+'.log',r/'src/tests/wasm',dict(e,EKA2L1_EXECUTION_LIMITS=limits))\n  run(['python3','src/tests/benchmark/compare.py',str(s/ref/'run-0/frames'),str(out)],prefix+'-'+scene+'-compare.json')\n  c=json.loads((s/(prefix+'-'+scene+'-compare.json')).read_text());assert c['match'] and c['frames']==frames and c['audio']['sample_frames']==pcm\n  q=json.loads((out/'report.json').read_text());assert q['ir_mode']==7 and q['leaf_features']==0 and q['predicated_leaves']==1 and q['execution_limits']==[512,16,sites,512] and q['verify_aot']==1024 and not q['exit_census']\n  assert q['wasm_sha256']==json.loads((a/'source.json').read_text())['files']['eka2l1.wasm']\nprint('Conditional site bounds 4 and 16 accepted; existing site 8 controls retained',flush=True)\n"
+    },
+    "run_conditional_site_timing.py": {
+      "sha256": "4c5f6f3f8e5ccaae9a15df00ef924fb3bc2d32f63624e4337404c50174e23640",
+      "source": "from pathlib import Path\nimport os,subprocess,json,sys\nr=Path('/home/claude/code/EKA2L1');s=Path('/home/claude/.scratch/eka-benchmark');a=s/'branch-veneer-candidate';baseline=s/'predicated-leaf-candidate'\nscene,batch=sys.argv[1:];assert scene in ('long','standard') and batch in ('a','b')\nstart,end,route=(42000000,60000000,'snakes-length-long.input')if scene=='long'else(60000000,78000000,'snakes.input')\norder={'a':['control8','sites4','sites16','baseline'],'b':['sites16','baseline','control8','sites4']}[batch]\nargs=['python3','src/tests/benchmark/serial_variants.py',str(s/'assets'),str(s/f'conditional-site-timing-{scene}-{batch}')]+[f'{n}={baseline if n==\"baseline\" else a}'for n in order]\nfor name in order:\n sites={'sites4':4,'sites16':16}.get(name,8)\n for option,value in [('ir-mode','7'),('eager-regions','0'),('tlb-hash','1'),('code-compare','2'),('code-lookup','0'),('execution-limits',f'512,16,{sites},512'),('predicated-leaves','1'),('leaf-features','0'),('input',str(r/'src/tests/benchmark'/route))]:args.extend(['--'+option,f'{name}={value}'])\nargs+=['--start-us',str(start),'--end-us',str(end)]\nsubprocess.run(args,cwd=r,env=dict(os.environ,EKA2L1_SHARED_AUDIO='1'),check=True)\nrows=json.loads((s/f'conditional-site-timing-{scene}-{batch}/measurements.json').read_text());assert len(rows)==8\nassert len({tuple(x['measurement'][k]for k in ['first_instructions','last_instructions','presentations'])for x in rows})==1\nprint(scene,batch,'identical guest work verified',flush=True)\n"
+    },
+    "guarded_conditional_site_timings.py": {
+      "sha256": "89fe7b9841b7346851953ec1902076ecf0b912b4f87e3f3d436e2871580ef457",
+      "source": "from pathlib import Path\nimport os,time,json,subprocess,sys\ns=Path('/home/claude/.scratch/eka-benchmark');r=Path('/home/claude/code/EKA2L1');state=s/'conditional-site-timing-state.json'\ndef phase(name,**kw):\n state.write_text(json.dumps(dict(phase=name,utc=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),**kw),indent=2)+'\\n');print(name,kw,flush=True)\ndef foreign():\n rows={}\n for p in Path('/proc').iterdir():\n  if not p.name.isdecimal():continue\n  try:\n   args=(p/'cmdline').read_bytes().split(b'\\0');args=[x.decode(errors='replace')for x in args if x]\n   fields=(p/'stat').read_text().rsplit(')',1)[1].split();parent=int(fields[1])\n  except (OSError,ValueError,IndexError):continue\n  rows[int(p.name)]=(parent,args)\n own={os.getpid()}\n while True:\n  add={pid for pid,(parent,_)in rows.items()if parent in own}\n  if add<=own:break\n  own|=add\n found=[]\n for pid,(parent,args)in rows.items():\n  if pid in own or not args:continue\n  exe=Path(args[0]).name\n  active=exe.startswith('node')and any(x.endswith('/profile.ts')or x=='profile.ts'or('service-overlap-'in x and x.endswith('.ts'))or Path(x).name in ('benchmark.ts','live.ts','softkeys.ts','route.ts')or x.endswith('/test_aot_wasm.js')or x.endswith('/eka_cpu_fault_wasm.js')for x in args[1:])\n  active|=exe.startswith('eka_cpu_fault_')\n  if active:found.append(dict(pid=pid,parent=parent,args=args))\n return found\ntry:\n assert 'Conditional site bounds 4 and 16 accepted' in (s/'conditional-site-acceptance.log').read_text()\n assert (r/'src/tests/benchmark/CONDITIONAL_SITE_LIMITS_EVIDENCE.json').exists()\n for scene,batch in [('long','a'),('standard','a'),('long','b'),('standard','b')]:\n  phase('waiting_for_quiet',scene=scene,batch=batch)\n  quiet=0\n  while quiet<15:\n   jobs=foreign();quiet=0 if jobs else quiet+1;time.sleep(2)\n  phase('timing',scene=scene,batch=batch)\n  observed={};start=time.time()\n  with(s/f'conditional-site-timing-{scene}-{batch}-driver.log').open('w')as log:\n   child=subprocess.Popen(['bash','-lc',f'source {s}/write-protection-gpu.env\\npython3 {s}/run_conditional_site_timing.py {scene} {batch}'],cwd=r,stdout=log,stderr=subprocess.STDOUT)\n   while child.poll()is None:\n    for job in foreign():\n     key=str(job['pid']);observed.setdefault(key,dict(**job,first_seconds=time.time()-start))['last_seconds']=time.time()-start\n    time.sleep(2)\n  evidence=dict(scene=scene,batch=batch,returncode=child.returncode,observer_interval_seconds=2,foreign_jobs=list(observed.values()),note='Host process observer excludes its own descendants; it does not measure all possible host contention or normalize timings.')\n  (s/f'conditional-site-timing-{scene}-{batch}-host.json').write_text(json.dumps(evidence,indent=2)+'\\n')\n  if child.returncode:raise RuntimeError('Timing harness failed')\n  if observed:raise RuntimeError('Observed concurrent profiling; completed batch retained, queue held')\n phase('all_timing_complete')\nexcept Exception as e:phase('failure',error=str(e));raise\n"
+    }
+  }
+}
