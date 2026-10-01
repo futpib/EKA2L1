@@ -39,3 +39,7 @@ Each cell averages two observations. All 36 samples remain, including slow runs.
 - standard c order candidate-1, baseline-1, control-1, control-2, baseline-2, candidate-2: versus control: +6.23% throughput, paired +0.33% / +12.10%; versus baseline: +0.10% throughput, paired +0.18% / +0.03%.
 
 No automatic default or delivery change follows. Separately checked diagnostics measure dispatch, dependency and guard costs; normal live/audio acceptance is required for any promotion.
+
+## Timing decision
+
+No promotion. Longer-route throughput versus the untouched live archive changes by -1.67%, +2.01% and -6.53% across A/B/C; standard changes by -0.88%, +0.38% and +0.10%. Matching-control signs also reverse, and several slow controls inflate apparent gains. The adaptive endpoint batches do not repair the inconsistency. All 36 observations and the ordering race remain visible. The independently checked census and module measurements explain costs; they cannot replace this timing result.

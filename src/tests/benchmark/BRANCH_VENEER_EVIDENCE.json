@@ -1,5 +1,5 @@
 {
-  "status": "correctness and all 36 timing observations retained; interpretation and diagnostic census pending; no deployment",
+  "status": "Timing does not support promotion; diagnostic census running; feature remains opt-in and live unchanged.",
   "archive_path": "/home/claude/.scratch/eka-benchmark/branch-veneer-candidate",
   "archive": {
     "base": "871c89a38d9b5f3512d2663bca9efcb4f18b9f0a",
@@ -10304,5 +10304,9 @@
         "control"
       ]
     }
+  },
+  "timing_decision": {
+    "promote": false,
+    "reason": "Long-route sign reverses across all three batches; standard-route gains against untouched live are absent or tiny, while matching controls include slow observations. No repeatable net gain established. All 36 observations retained, including adaptive ordering and its scheduling race."
   }
 }
