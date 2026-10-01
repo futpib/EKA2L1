@@ -1,6 +1,6 @@
 # Expanded original-emitter leaf prototype
 
-The paired census is retained as a9709c0d2 after all conditional-leaf timing batches (a8c0f5531). This opt-in prototype passes correctness acceptance below; gameplay timing and live/audio graduation are pending.
+The paired census is retained as a9709c0d2 after all conditional-leaf timing batches (a8c0f5531). This opt-in prototype passes correctness acceptance below, but its broader eligibility does not show a repeatable marginal gameplay gain. It remains disabled by default; live/audio graduation has not been performed.
 
 Use separate feature bits under original-emitter policy 7: multiply forms; scalar extra/conditional memory forms; forward internal branches. Preserve the existing conditional-integer switch as the matching control. No runtime scheduling changes and no default enablement.
 
@@ -20,8 +20,32 @@ The first new fault-fixture run stopped with features disabled because it inheri
 
 All 170 compiler tests pass, as do 33 native tests (548 assertions), the 88,035-case expanded focused matrix and 6,915-case unconditional-branch supplement. Both explicit feature modes pass 24,512 native fault comparisons each (49,024 total), including 5,376 new branching-call cases per mode. Missing, wrong and duplicate feature markers are rejected. Both checked standard replays match native for 1,600 images, records and 4,656,051 stereo PCM frames; both 16/32-instruction candidate longer replays match 360 images and audio. The initial fixture-bound failure remains in evidence.
 
-The application archive is unchanged between the original and corrected-probe archives; hashes verify that only test artifacts differ. All performance controls will use the same application bytes where applicable. Normal/live/audio graduation and all timing remain pending.
+The application archive is unchanged between the original and corrected-probe archives; hashes verify that only test artifacts differ. All performance controls will use the same application bytes where applicable. Normal/live/audio graduation remains pending; completed timing is recorded below.
 
 ## Retained contention-affected first batch
 
 The first longer-route batch completed all eight identical-work observations: control32 13.0863/12.9833 s; candidate32 11.1034/11.2068 s; candidate16 11.0222/12.9204 s; untouched baseline 22.9539/14.8035 s. A separate `service_overlap` browser profiling job was observed running concurrently. The entire batch is retained and excluded from promotion comparisons; individual slow samples are not selectively removed. No performance conclusion is drawn from it. Reordered replacement batches wait for the other profiling work to finish and record an external host-process observer; that observer does not rule out all possible host contention or normalize elapsed times.
+
+## Reordered serial timing after observed contention ended
+
+Both routes use identical guest work within each route. The same binary compares broader eligibility at a fixed 32-instruction leaf limit; its 16/32 extended variants separately vary that limit. The untouched post-merge archive is an additional control. All 32 replacement observations are retained; the eight observations affected by known concurrent profiling remain in the preceding section. No guest scheduling or diagnostic counters change in these timing runs.
+
+| Route/batch | Conditional-only, leaf 32 | Expanded, leaf 32 | Expanded, leaf 16 | Untouched merged archive |
+| --- | ---: | ---: | ---: | ---: |
+| long c | 11.2928s | 11.0973s | 11.5187s | 12.0534s |
+| long d | 11.1140s | 11.1097s | 11.0625s | 11.7840s |
+| standard c | 11.8136s | 11.4082s | 11.3877s | 12.4067s |
+| standard d | 11.1914s | 11.3819s | 11.8284s | 11.7646s |
+
+Means above include every observation. Matching-control pairs are adjacent within each half-batch; the expanded-32 versus archive observations have the expanded-16 variant between them. The host observer detected no concurrent jobs of the watched profiling/test types in these replacement batches. It does not rule out other host load or clock variation, and no times are normalized. Warmup durations, compiled-function counts and allocator footprint are retained; warmup includes startup work and is not an isolated compilation measurement.
+
+- long c: expanded32 versus matching control throughput +1.76%; versus merged archive +8.62%; adjacent eligibility pairs +3.76% / -0.24%.
+- long d: expanded32 versus matching control throughput +0.04%; versus merged archive +6.07%; adjacent eligibility pairs +0.43% / -0.34%.
+- standard c: expanded32 versus matching control throughput +3.55%; versus merged archive +8.75%; adjacent eligibility pairs -6.61% / +14.59%.
+- standard d: expanded32 versus matching control throughput -1.67%; versus merged archive +3.36%; adjacent eligibility pairs -3.98% / +0.77%.
+
+No default change or deployment follows these timings alone. A diagnostic census will quantify removed calls, changing site/length limits and entry-proof fallbacks, including overlap caused only by gaps between actual code snapshots. Live/audio graduation remains outstanding.
+
+## Decision
+
+Do not promote the broader eligibility mask or claim an optimal leaf bound. The fixed-32 marginal lead is +1.76% then +0.04% on the longer route, and +3.55% then -1.67% on standard. Each of the four batches has opposing adjacent eligibility pairs. All means favor expanded32 over the untouched merged archive, but the matching conditional-only control also favors that archive comparison; this does not attribute the combined gain to the newly added operations. The 16/32 choice also changes order across batches. Continue from the measured boundary census, retaining conditional-integer fusion as the preceding candidate and treating these extensions as opt-in research.
