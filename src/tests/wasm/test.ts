@@ -127,6 +127,15 @@ async function runTests(): Promise<void> {
     });
     console.log("  PASS");
 
+    console.log("TEST leaf predication: pre-init validation/readback...");
+    await page.evaluate(() => {
+      const m=(window as any).Module;
+      const set=(n:number)=>m.ccall('eka2l1_leaf_predication_configure','number',['number'],[n]);
+      if(set(-1)!==-1 || set(2)!==-1 || set(1)!==0 || m.ccall('eka2l1_leaf_predication_report','number',[],[])!==1 || set(0)!==0)
+        throw Error('Leaf predication control failed');
+    });
+    console.log("  PASS");
+
     console.log("TEST execution limits: pre-init bounds and readback...");
     await page.evaluate(() => {
       const m=(window as any).Module;
@@ -203,6 +212,8 @@ async function runTests(): Promise<void> {
         throw Error('Code lookup policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_tlb_hash_configure','number',['number'],[1]) !== -1)
         throw Error('TLB index policy changed after initialization');
+      if ((window as any).Module.ccall('eka2l1_leaf_predication_configure','number',['number'],[1]) !== -1)
+        throw Error('Leaf predication changed after initialization');
       if ((window as any).Module.ccall('eka2l1_execution_limits_configure','number',['number','number','number','number'],[1024,32,16,0]) !== -1)
         throw Error('Execution limits changed after initialization');
       if ((window as any).Module.ccall('eka2l1_ir_configure', 'number', ['number'], [0]) !== -1)

@@ -4569,6 +4569,71 @@ static bool test_folded_tlb_guards() {
 }
 
 
+
+static bool test_predicated_leaves() {
+#ifdef __EMSCRIPTEN__
+    struct restore {bool flag=predicated_leaves;std::string limits=execution_limits_text();
+        ~restore(){predicated_leaves=flag;parse_execution_limits(limits.c_str());}} saved;
+    configure_execution_limits(512,16,8,512);
+    const unsigned caller[]={0xeb0003feu,0xe2844001u,0xe5967000u,0xe2888001u};
+    unsigned checks=0;
+    for(unsigned cond=0;cond<14;++cond)for(bool store:{false,true}) {
+        const unsigned leaf[]={0x03a05001u|(cond<<28),0xe5902000u,0xe5913000u,0xe1520003u,
+            0x02999001u|(cond<<28),store?0xe5865000u:(0x03a0a002u|((cond^1)<<28)),0xe12fff1eu};
+        leaf_resolver resolver=[&](unsigned pc) {const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);
+            return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
+        auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,
+            nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
+        predicated_leaves=false;if(!translate(arm_ir_policy::write_budget_chunks).dependencies.empty())return false;
+        predicated_leaves=true;auto tr=translate(arm_ir_policy::write_budget_chunks);
+        if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned flags=0;flags<16;++flags)for(unsigned mapping=0;mapping<5;++mapping)for(unsigned budget=0;budget<=12;++budget) {
+            test_mem actual;actual.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(caller),reinterpret_cast<const std::uint8_t*>(caller)+sizeof(caller)});
+            actual.write_code(0x2000,{reinterpret_cast<const std::uint8_t*>(leaf),reinterpret_cast<const std::uint8_t*>(leaf)+sizeof(leaf)});
+            const unsigned values[]={0,1,0x7fffffffu,0x80000000u,0xffffffffu};
+            actual.write32(0x8000,values[flags%5]);actual.write32(0x9000,values[(flags+2)%5]);actual.write32(0xa000,0x12345678);
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            if(mapping!=1)tlb.add(0x8000,actual.data.data()+0x8000,3);
+            if(mapping!=2)tlb.add(0x9000,actual.data.data()+0x9000,3);
+            if(mapping!=3)tlb.add(0xa000,actual.data.data()+(mapping==4?0x1000:0xa000),3);
+            if(mapping==4)reference->set_tlb_page(0xa000,expected.data.data()+0x1000,prot_read_write);
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg) {
+                state[reg]=reg==0?0x8000:reg==1?0x9000:reg==6?0xa000:reg==9?0x7fffffff:reg==14?0x3000:reg==15?0x1000:reg;
+                reference->set_reg(reg,state[reg]);
+            }
+            reference->set_cpsr(16|(flags<<28));state[state_offsets::CPSR/4]=16|(flags<<28);
+            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+sizeof(caller);
+            for(unsigned f=0;f<4;++f)state[region_ir::flag_offsets[f]/4]=(flags>>(3-f))&1;
+            g_test_mem=&actual;const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+            if(count<0 || count>int(budget) || (!count && budget) || (!mapping && count!=int(std::min(budget,11u)))) {
+                printf(" FAIL predicated leaf count cond=%u flags=%u map=%u store=%u budget=%u count=%d\n",cond,flags,mapping,store,budget,count);return false;
+            }
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf(" FAIL predicated leaf R%u cond=%u flags=%u map=%u store=%u budget=%u count=%d got=%x expected=%x\n",reg,cond,flags,mapping,store,budget,count,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<4;++f)if(state[region_ir::flag_offsets[f]/4]!=((reference->get_cpsr()>>(31-f))&1))return false;
+            if(actual.data!=expected.data){printf(" FAIL predicated leaf memory cond=%u flags=%u map=%u store=%u budget=%u count=%d\n",cond,flags,mapping,store,budget,count);return false;}
+            ++checks;
+        }
+    }
+    for(unsigned op:{0x15910000u,0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {
+        unsigned leaf[]={op,0xe12fff1e};leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        if(!tr.dependencies.empty()){printf(" FAIL unsafe predicated leaf accepted %x\n",op);return false;}
+    }
+    printf(" PASS predicated leaves (%u exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n",checks);
+#endif
+    return true;
+}
+
 static unsigned runner_test_action=0,runner_test_calls=0;
 static std::uint32_t runner_test_function(ARMul_State *cpu) {
     ++runner_test_calls;
@@ -4685,6 +4750,7 @@ static bool test_exit_census() {
 }
 
 int main(int argc, char **argv) {
+    if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census") {exit_census::enabled=true;argc=1;}
@@ -5322,6 +5388,7 @@ int main(int argc, char **argv) {
     if (test_exit_census()) passed++; else failed++;
     if (test_execution_limits()) passed++; else failed++;
     if (test_inline_limits()) passed++; else failed++;
+    if (test_predicated_leaves()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;

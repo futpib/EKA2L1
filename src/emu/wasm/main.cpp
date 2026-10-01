@@ -344,6 +344,14 @@ int eka2l1_route_step_to(int stop_us) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_leaf_predication_configure(int enabled) {
+    if(g_state || (enabled!=0 && enabled!=1))return -1;
+    arm::aot::predicated_leaves=enabled;return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_leaf_predication_report() {return arm::aot::predicated_leaves;}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_execution_limits_configure(int window,int leaf,int sites,int runner) {
     if(g_state || window<0 || leaf<0 || sites<0 || runner<0)return -1;
     return arm::aot::configure_execution_limits(window,leaf,sites,runner)?0:-1;

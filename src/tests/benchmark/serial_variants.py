@@ -19,6 +19,7 @@ parser.add_argument('--tlb-hash', action='append', default=[], metavar='NAME=0/1
 parser.add_argument('--code-write-protect', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-lookup', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1/2/3/4')
+parser.add_argument('--predicated-leaves', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--execution-limits', action='append', default=[], metavar='NAME=WINDOW,LEAF,SITES,RUNNER')
 parser.add_argument('--input', action='append', default=[], metavar='NAME=INPUT', help='Optional per-variant guest input route')
 parser.add_argument('--start-us', type=int, default=78000000)
@@ -68,6 +69,12 @@ for item in args.tlb_hash:
     if not separator or name not in dict(variants) or name in hash_modes or value not in ('0', '1'):
         parser.error('TLB hash requires a unique known NAME=0/1')
     hash_modes[name] = int(value)
+predicates = {}
+for item in args.predicated_leaves:
+    name, separator, value = item.partition('=')
+    if not separator or name not in dict(variants) or name in predicates or value not in ('0','1'):
+        parser.error('Leaf predication requires unique known NAME=0/1')
+    predicates[name]=int(value)
 limits = {}
 for item in args.execution_limits:
     name, separator, value = item.partition('=')
@@ -119,6 +126,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         env.pop('EKA2L1_AOT_IR_MODE', None)
         if name in modes:
             env['EKA2L1_AOT_IR_MODE'] = str(modes[name])
+        env['EKA2L1_PREDICATED_LEAVES'] = str(predicates.get(name,0))
         env['EKA2L1_EXECUTION_LIMITS'] = ','.join(map(str,limits.get(name,[512,16,8,512])))
         output = args.output / label
         with (args.output / (label + '.log')).open('w') as log:
@@ -127,6 +135,8 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
                            cwd=root / 'src/tests/wasm', env=env, stdout=log,
                            stderr=subprocess.STDOUT, timeout=1800, check=True)
         report = json.loads((output / 'report.json').read_text())
+        if report.get('predicated_leaves') != predicates.get(name,0):
+            raise RuntimeError('Wrong leaf predication mode')
         if report.get('execution_limits') != limits.get(name,[512,16,8,512]) or report.get('exit_census'):
             raise RuntimeError('Wrong execution limits or diagnostic census active in timing')
         if report.get('ir_mode', -1) != modes.get(name, -1):
@@ -145,7 +155,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Profile did not use requested input route')
         if report['measurement']['first_virtual_us'] != args.start_us or report['measurement']['last_virtual_us'] != args.end_us:
             raise RuntimeError('Profile did not use requested guest window')
-        row = dict(runtime_footprint=report.get('runtime_footprint'), warmup_seconds=report['warmup_seconds'], execution_limits=report['execution_limits'], code_write_protect=report.get('code_write_protect', -1), code_lookup=report.get('code_lookup', -1), tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
+        row = dict(predicated_leaves=report['predicated_leaves'], runtime_footprint=report.get('runtime_footprint'), warmup_seconds=report['warmup_seconds'], execution_limits=report['execution_limits'], code_write_protect=report.get('code_write_protect', -1), code_lookup=report.get('code_lookup', -1), tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
                    eager_regions=report.get('eager_regions', -1),
                    wasm_sha256=report['wasm_sha256'], loader_sha256=report['loader_sha256'],
                    measurement=report['measurement'])

@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <string>
 namespace eka2l1::arm::aot {
+    inline bool predicated_leaves = false; // Separate original-emitter experiment.
     // Translation/runner limits, fixed before guest execution. These do not
     // change the owning CPU run budget or guest scheduling quantum.
     inline unsigned primary_window_bytes=512, leaf_instruction_limit=16,

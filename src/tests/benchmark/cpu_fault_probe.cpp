@@ -66,6 +66,12 @@ struct Fixture {
     }
 };
 int main(int argc, char **argv){
+    if(argc>1 && std::strncmp(argv[argc-1],"--predicated-leaves=",20)==0) {
+        const std::string value(argv[argc-1]+20);
+        if(value!="0" && value!="1"){std::cerr<<"Invalid leaf predication policy\n";return 1;}
+        aot::predicated_leaves=value=="1";--argc;
+    }
+    std::cout<<"PROBE_PREDICATED_LEAVES "<<aot::predicated_leaves<<"\n";
     if(argc>1 && std::strncmp(argv[argc-1],"--execution-limits=",19)==0) {
         if(!aot::parse_execution_limits(argv[argc-1]+19)){std::cerr<<"Invalid execution limits\n";return 1;}
         --argc;
@@ -130,7 +136,8 @@ int main(int argc, char **argv){
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
     const bool ir_call_short=argc==2 && std::string(argv[1])=="--ir-calls-short";
-    const bool ir_calls=ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
+    const bool predicated_calls=argc==2 && std::string(argv[1])=="--predicated-calls";
+    const bool ir_calls=predicated_calls || ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
     const bool ir_long=argc==2 && std::string(argv[1])=="--ir-long";
     const bool ir_conditions=argc==2 && std::string(argv[1])=="--ir-conditions";
     const bool ir_flags=argc==2 && std::string(argv[1])=="--ir-flags";
@@ -170,8 +177,8 @@ int main(int argc, char **argv){
         : read_spans
         ? std::vector<unsigned>{0x8000u,0x8ff8u,0x8ffcu}
         : std::vector<unsigned>{0x8000u,0x8ffdu,0x8ffcu};
-    const std::vector<unsigned> predicates=ir_conditions ? std::vector<unsigned>{0,1,2,3,4,5,6,7,8,9,10,11,12,13} : std::vector<unsigned>{14};
-    const std::vector<unsigned> initial_flags=ir_conditions ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
+    const std::vector<unsigned> predicates=(ir_conditions || predicated_calls) ? std::vector<unsigned>{0,1,2,3,4,5,6,7,8,9,10,11,12,13} : std::vector<unsigned>{14};
+    const std::vector<unsigned> initial_flags=(ir_conditions || predicated_calls) ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
     for(unsigned predicate:predicates)for(unsigned flags:initial_flags)
     for(unsigned op:instructions)for(unsigned policy=0;policy<4;++policy)
     for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u})for(unsigned partial=0;partial<(!invariant_remap && !region_spans && (op&0x0e000000u)==0x08000000u?2u:1u);++partial){
@@ -219,10 +226,15 @@ int main(int argc, char **argv){
             f.remap_root=address&~4095u;
             for(unsigned i=0xa000;i<0xb000;++i) f.memory[i]=(i*13+91)&255;
         }
-        const unsigned called_words[]={0xe0944005u,0xe0b46000u,op,0xe12fff1eu};
+        unsigned called_words[]={0xe0944005u,0xe0b46000u,op,0xe12fff1eu};
         if(ir_calls) {
             program[0]=0xe3b02007u;program[1]=0xeb0003fdu;program[2]=0xe0967005u;
             program[3]=0xe3a04000u;program[4]=0xe3a06000u;
+            if(predicated_calls) {
+                program[0]=0xe3a02007u;
+                called_words[0]=0x00944005u|(predicate<<28);
+                called_words[1]=0x00b46000u|((predicate^1)<<28);
+            }
             std::memcpy(f.memory.data()+0x2000,called_words,sizeof(called_words));
         }
         std::memcpy(f.memory.data()+0x1000,program,(ir_long?135u:7u)*sizeof(unsigned));
@@ -247,6 +259,9 @@ int main(int argc, char **argv){
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
                 (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
+            if(predicated_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves)) {
+                std::cerr<<"Predicated call fusion selection mismatch\n";return 4;
+            }
             const auto checked_policy = (ir_policy == aot::arm_ir_policy::long_segments_ir || ir_policy == aot::arm_ir_policy::stack_values_ir || ir_policy == aot::arm_ir_policy::budget_gaps_ir)
                 ? aot::arm_ir_policy::conditional_value_ir : ir_policy;
             if(ir_long && n==0 && translated.ir_max_segment_length != (ir_policy==aot::arm_ir_policy::long_segments_ir?128u:32u)) {

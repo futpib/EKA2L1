@@ -754,7 +754,7 @@ namespace eka2l1::arm::aot {
 
     // Only short straight-line leaves with an unchanged LR can be inlined.
     // Memory instructions retain the normal region guards and helper exits.
-    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure) {
+    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure, bool allow_predicates) {
         failure="callee_unsupported";
         auto bytes = resolve(address);
         exit_census::probe(address,bytes.data(),bytes.size());
@@ -762,8 +762,12 @@ namespace eka2l1::arm::aot {
         for (std::size_t n = 0; n < leaf_instruction_limit*4 && n + 4 <= bytes.size(); n += 4) {
             std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
             if (op == 0xe12fff1e) { bytes.resize(n + 4); return bytes; }
-            if ((op >> 28) != 14) return {};
             const auto group = (op >> 26) & 3;
+            // Conditional integer operations already have precise lowering in
+            // the original emitter. They do not alter the linear control path;
+            // false predicates still consume an instruction. Keep conditional
+            // memory, transfers and reserved encodings outside this experiment.
+            if ((op >> 28) != 14 && (!allow_predicates || (op >> 28) == 15 || group != 0)) return {};
             if (group > 1 || ((op >> 16) & 15) >= 13 || ((op >> 12) & 15) >= 13) return {};
             if (group == 1) {
                 if ((op & (1u << 25)) && ((op & 15) >= 13 || (op & 16))) return {};
@@ -785,7 +789,7 @@ namespace eka2l1::arm::aot {
     static std::set<std::size_t> find_reachable_offsets_arm(
         const std::uint8_t *code, std::size_t code_size, bool bounded,
         std::uint32_t start_address, const leaf_resolver *leaves,
-        std::map<std::size_t, code_dependency> &inlined, std::map<std::size_t,unsigned> &refusals)
+        std::map<std::size_t, code_dependency> &inlined, std::map<std::size_t,unsigned> &refusals, bool allow_predicates)
     {
         std::set<std::size_t> reachable;
         if (code_size < 4) return reachable;
@@ -816,7 +820,7 @@ namespace eka2l1::arm::aot {
                             if (cond == 14 && leaves && inlined.size() < inline_site_limit) {
                                 const auto address = start_address + static_cast<std::uint32_t>(target_off);
                                 const char *failure=nullptr;
-                                auto bytes = resolve_leaf(*leaves, address, failure);
+                                auto bytes = resolve_leaf(*leaves, address, failure, allow_predicates);
                                 exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:"call_inlined");
                                 if(exit_census::enabled && bytes.empty())refusals[i]=
                                     std::strcmp(failure,"leaf_instruction_limit")==0?2:
@@ -938,7 +942,7 @@ namespace eka2l1::arm::aot {
         std::map<std::size_t, code_dependency> inlined;
         std::map<std::size_t,unsigned> refusals;
         auto reachable = find_reachable_offsets_arm(code, code_size, bounded,
-            start_address, region ? leaves : nullptr, inlined, refusals);
+            start_address, region ? leaves : nullptr, inlined, refusals, predicated_leaves && ir_policy == arm_ir_policy::write_budget_chunks);
         struct instruction { std::size_t offset; std::uint32_t address, opcode; bool leaf; };
         std::vector<instruction> instructions;
         for (auto i : reachable) {
