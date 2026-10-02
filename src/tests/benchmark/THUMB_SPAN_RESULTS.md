@@ -28,3 +28,16 @@ Thumb memory enabled in both, original limits, shared audio, physical GPU,
 rendering without capture and no sampling or detailed counters. One pair per
 route is exploratory. Full comparison with the untouched live archive and
 normal live/audio acceptance remain necessary; the realtime target stays open.
+
+## Exploratory speed screen
+
+All six observations are retained. Sky Force is 12.4366s control versus
+11.9793s candidate for six guest seconds (+3.82% throughput, 0.501x realtime).
+Standard Snakes is 12.2531s versus 10.046s (+21.97%); longer is 11.5844s versus
+9.85194s (+17.58%). Both Snakes controls are slower than the immediately preceding
+call-stage screen, so those large percentages must not be presented as stable
+feature gains. One pair per route is exploratory; all guest instruction and
+presentation counts match within each route. No zero-loss or promotion claim
+follows. The next shared ROM-region comparison uses this untouched archive.
+A separate moving-and-firing Sky Force holdout is being established for broader
+acceptance, with its measurements kept distinct from the stationary baseline.
