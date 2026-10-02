@@ -42,6 +42,9 @@
 namespace eka2l1::arm::aot {
 #ifdef __EMSCRIPTEN__
 static_assert(offsetof(ARMul_State, NumInstrsToExecute) == state_offsets::NUM_INSTRS_TO_EXECUTE);
+static_assert(offsetof(ARMul_State, aot_rom_callback) == state_offsets::AOT_ROM_CALLBACK);
+static_assert(offsetof(ARMul_State, aot_regions_left) == state_offsets::AOT_REGIONS_LEFT);
+static_assert(offsetof(ARMul_State, aot_regions_used) == state_offsets::AOT_REGIONS_USED);
 #endif
 static std::atomic<std::uint64_t> completed_function_count{0};
 std::uint64_t compiled_function_count() { return completed_function_count.load(std::memory_order_relaxed); }
@@ -51,6 +54,7 @@ std::uint64_t compiled_function_count() { return completed_function_count.load(s
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 bool rom_inline_leaves = false;
 bool rom_bounded_calls = false;
+bool rom_dispatch_enabled = false;
 std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
     std::uint32_t base, std::uint32_t size, std::uint32_t target) {
     if (!host || (target & 3) || target < base) return {};
@@ -341,7 +345,7 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     return lookup_compiled_selected<true>(cpu);
 }
 
-template<bool Verify, bool Profile, bool PublishGuards>
+template<bool Verify, bool Profile, bool PublishGuards, bool ModuleDispatch>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     const auto budget = cpu->aot_budget;
     compiled_run result;
@@ -377,6 +381,11 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
             for(const auto &dependency:guard_entry->dependencies)
                 exit_census::validated_dependency_bytes += dependency.code.size();
             exit_census::protected_interval_bytes += guard_entry->guard_end-guard_entry->guard_begin;
+        }
+        if constexpr (ModuleDispatch) {
+            cpu->aot_regions_left = runner_region_limit ? runner_region_limit - result.blocks : UINT32_MAX;
+            cpu->aot_regions_used = 0;
+            cpu->aot_rom_callback = 0;
         }
         const auto count = function(cpu);
         if constexpr(Profile) if(exit_census::counting()) {
@@ -424,8 +433,12 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         if constexpr (Verify) validation_end(cpu, count);
         if (count > cpu->aot_budget) std::abort(); // generated-code contract
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
-        ++result.blocks;
+        if constexpr (ModuleDispatch) {
+            if (cpu->aot_regions_used > cpu->aot_regions_left) std::abort();
+            result.blocks += std::max(1u, cpu->aot_regions_used);
+        } else ++result.blocks;
         result.instructions += count;
+        if constexpr (ModuleDispatch) if (cpu->aot_rom_callback & 2) break;
         if ((compiled_svc_enabled && (cpu->aot_exit & svc_pending)) || !count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
         cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
         // This stays inside the compiled runner. Every RAM successor retains
@@ -442,18 +455,23 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     return result;
 }
 
-template<bool PublishGuards>
+template<bool PublishGuards, bool ModuleDispatch = false>
 static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
     // Diagnostic configuration is fixed before guest threads start. Preserve
     // phase-dependent counting in the diagnostic runner, but omit its branches
     // entirely in normal play and counter-free timing runs.
-    if (verification_stride()) return execute_chain_impl<true, true, PublishGuards>(cpu, function);
+    if (verification_stride()) return execute_chain_impl<true, true, PublishGuards, ModuleDispatch>(cpu, function);
     if (common::performance::enabled && common::performance::detailed)
-        return execute_chain_impl<false, true, PublishGuards>(cpu, function);
-    return execute_chain_impl<false, false, PublishGuards>(cpu, function);
+        return execute_chain_impl<false, true, PublishGuards, ModuleDispatch>(cpu, function);
+    return execute_chain_impl<false, false, PublishGuards, ModuleDispatch>(cpu, function);
 }
 
 compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+    if (rom_dispatch_enabled) {
+        if (omit_guard_publication && common::code_tracking::skip_code_write_guards())
+            return execute_chain_selected<false, true>(cpu, function);
+        return execute_chain_selected<true, true>(cpu, function);
+    }
     // Choose once per outer runner, not once per compiled region or guest store.
     if (omit_guard_publication && common::code_tracking::skip_code_write_guards())
         return execute_chain_selected<false>(cpu, function);
@@ -464,6 +482,9 @@ std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
     cpu->mem_cache_->sync_write_protection();
     cpu->aot_exit = 0;
     count_ram_dispatch(cpu);
+    if (rom_dispatch_enabled) {
+        cpu->aot_regions_left = 1; cpu->aot_regions_used = 0; cpu->aot_rom_callback = 0;
+    }
     if (!verification_stride()) return function(cpu);
     validation_begin(cpu);
     const auto count = function(cpu);
@@ -589,6 +610,7 @@ void observe_hot_pc(ARMul_State *cpu) {
 // after the emitter's state barrier and before a memory/exception callback reads
 // the owning core's CPSR. Direct mapped accesses do not call these trampolines.
 static void publish_callback_cpsr(ARMul_State *state) {
+    if (rom_dispatch_enabled) state->aot_rom_callback = 1;
     state->Cpsr = (state->Cpsr & 0x0fffffdfu) | (state->NFlag << 31)
         | (state->ZFlag << 30) | (state->CFlag << 29) | (state->VFlag << 28)
         | (state->TFlag << 5);
@@ -661,6 +683,7 @@ static std::uint32_t prof_read16(ARMul_State *s, std::uint32_t a) { count_memory
 static void prof_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<5>(); raw_write16(s,a,v); }
 
 static void raw_arm_exclusive(ARMul_State *s, std::uint32_t instruction) {
+    if (rom_dispatch_enabled) s->aot_rom_callback = 1;
     // DynCom's exclusive path calls the monitor directly: it does not repack
     // CPSR before the callback. The generated barrier publishes registers and
     // split flags, but must retain that existing packed-CPSR visibility.
@@ -729,16 +752,20 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
 struct staged_module {
     std::vector<std::uint8_t> wasm_bytes;
     std::string dll_name;
+    std::shared_ptr<void> keepalive;
 };
 static std::vector<staged_module> g_staged_modules;
+// Exported WASM functions currently live for the host table's lifetime. Their
+// private lookup maps must live equally long, including after registry clear.
+static std::vector<std::shared_ptr<void>> g_module_owners;
 
 void stage_aot_module(
     std::vector<std::uint8_t> wasm_bytes,
-    const std::string &dll_name)
+    const std::string &dll_name, std::shared_ptr<void> keepalive)
 {
     if (dll_name != "hot-rom") fprintf(stderr, "AOT: staging %zu-byte WASM module for %s\n",
         wasm_bytes.size(), dll_name.c_str());
-    g_staged_modules.push_back({std::move(wasm_bytes), dll_name});
+    g_staged_modules.push_back({std::move(wasm_bytes), dll_name, std::move(keepalive)});
 }
 
 static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
@@ -815,7 +842,8 @@ bool instantiate_staged_modules() {
 
 
     for (auto &mod : g_staged_modules) {
-        do_instantiate(mod.wasm_bytes, mod.dll_name);
+        if (do_instantiate(mod.wasm_bytes, mod.dll_name) && mod.keepalive)
+            g_module_owners.push_back(std::move(mod.keepalive));
     }
     g_staged_modules.clear();
     return true;
@@ -825,7 +853,7 @@ bool instantiate_staged_modules() {
 
 void stage_aot_module(
     std::vector<std::uint8_t>,
-    const std::string &)
+    const std::string &, std::shared_ptr<void>)
 {
 }
 

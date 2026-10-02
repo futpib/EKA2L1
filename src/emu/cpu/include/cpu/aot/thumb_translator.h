@@ -48,6 +48,9 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t AOT_CODE_END = 860;
         static constexpr std::uint32_t AOT_EXIT = 864;
         static constexpr std::uint32_t NIRQ = 876;
+        static constexpr std::uint32_t AOT_ROM_CALLBACK = 896;
+        static constexpr std::uint32_t AOT_REGIONS_LEFT = 900;
+        static constexpr std::uint32_t AOT_REGIONS_USED = 904;
 
         // VFP system registers (FPSID, FPSCR, FPEXC, ...)
         static constexpr std::uint32_t VFP_SYS = 496;

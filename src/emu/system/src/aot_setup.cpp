@@ -22,6 +22,7 @@
 
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/rom_dispatch.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
@@ -348,7 +349,19 @@ namespace eka2l1::arm::aot {
             rom_bounded_calls, linked_calls, base_targets.size());
         fprintf(stderr, "AOT: rom_inline_leaves=%d eager_leaf_dependencies=%zu\n", rom_inline_leaves, rom_leaf_dependencies);
         const auto emission_start = std::chrono::steady_clock::now();
-        auto wasm_bytes = build_wasm_module(all_funcs, imports);
+        std::vector<std::uint8_t> wasm_bytes;
+        std::shared_ptr<rom_dispatch_map> dispatch_map;
+        if (rom_dispatch_enabled && chaining_enabled && !rom_bounded_calls) {
+            dispatch_map = std::make_shared<rom_dispatch_map>(rom_base, rom_size, all_funcs.size());
+            bool valid = dispatch_map->valid;
+            for (std::size_t i = 0; valid && i < all_funcs.size(); ++i)
+                valid = dispatch_map->insert(std::stoul(all_funcs[i].export_name.substr(2)), i);
+            if (valid) wasm_bytes = build_rom_dispatch_module(all_funcs, imports, *dispatch_map);
+            if (wasm_bytes.empty()) dispatch_map.reset();
+        }
+        if (wasm_bytes.empty()) wasm_bytes = build_wasm_module(all_funcs, imports);
+        fprintf(stderr, "AOT: rom_dispatch=%d active=%d map_bytes=%zu\n",
+            rom_dispatch_enabled, bool(dispatch_map), dispatch_map ? dispatch_map->bytes() : 0);
         fprintf(stderr, "AOT: eager_regions=%d scan_translate_ms=%.3f emit_ms=%.3f bytes=%zu functions=%zu\n",
             eager_regions,
             std::chrono::duration<double, std::milli>(emission_start - eager_start).count(),
@@ -359,6 +372,6 @@ namespace eka2l1::arm::aot {
 
         // Stage for deferred instantiation on the worker thread.
         // addFunction must be called on the thread that will use the table.
-        stage_aot_module(std::move(wasm_bytes), "rom-aot");
+        stage_aot_module(std::move(wasm_bytes), "rom-aot", std::move(dispatch_map));
     }
 }

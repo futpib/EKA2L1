@@ -26,6 +26,8 @@
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
+#include <cpu/aot/rom_dispatch.h>
+#include <common/log.h>
 
 #include <cstdio>
 #include <thread>
@@ -4555,6 +4557,129 @@ static bool test_bounded_rom_calls() {
     return true;
 }
 
+static bool test_rom_dispatch() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        bool memory=thumb_direct_memory, dispatch=rom_dispatch_enabled, svc=compiled_svc_enabled;
+        unsigned cap=runner_region_limit;
+        ~restore(){thumb_direct_memory=memory;rom_dispatch_enabled=dispatch;compiled_svc_enabled=svc;runner_region_limit=cap;
+            g_read32_observer=nullptr;g_test_mem=nullptr;global_registry().clear();}
+    } saved;
+    thumb_direct_memory=true;compiled_svc_enabled=true;
+    unsigned extent_checks=0, checks=0;
+    for(unsigned base:{0u,0x1000u,0x80000000u,0xfffff000u})
+    for(unsigned size:{1u,2u,4095u,4096u,4097u}) {
+        rom_dispatch_map map(base,size,3);
+        const bool valid=std::uint64_t(base)+size<=(std::uint64_t{1}<<32);
+        if(map.valid!=valid)return false;
+        for(unsigned delta:{0u,1u,2u,3u,4u,4094u,4095u,4096u,4097u,0xffffffffu}) {
+            const unsigned key=base+delta;
+            const bool want=valid&&key>=base&&key-base<size&&((key&1)||!(key&3));
+            if(map.insert(key,1)!=want||map.lookup(key)!=(want?2u:0u))return false;
+            if(map.insert(key,3)||map.insert(key,0)) {if(want||map.lookup(key))return false;}
+            ++extent_checks;
+        }
+    }
+    if(rom_dispatch_map(3,4096,2).valid||rom_dispatch_map(0,0,2).valid)return false;
+    const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+    for(unsigned shape=0;shape<8;++shape) {
+        const std::uint16_t first[]={std::uint16_t(shape==2?0x6808:shape==5?0xdf20:0x3001),std::uint16_t(shape==1?0x4718:0xe07d)};
+        const std::uint16_t second[]={std::uint16_t(shape==3?0xde00:0x3201),std::uint16_t(shape==4?0x4770:0xe77d)};
+        const std::uint32_t arm[]={0xe2811001,0xe12fff14};
+        const std::uint32_t svc_first[]={shape==6?0xef000020u:0x0f000020u,0xe2800001u};
+        auto a=shape>=6?translate_arm_block(reinterpret_cast<const std::uint8_t *>(svc_first),sizeof(svc_first),0x1000,nullptr,nullptr,true,false,true)
+            :translate_thumb_block(reinterpret_cast<const std::uint8_t *>(first),sizeof(first),0x1000,nullptr,nullptr,true,false,true);
+        auto b=shape==1?translate_arm_block(reinterpret_cast<const std::uint8_t *>(arm),sizeof(arm),0x2000,nullptr,nullptr,true,false,true)
+            :translate_thumb_block(reinterpret_cast<const std::uint8_t *>(second),sizeof(second),0x1100,nullptr,nullptr,true,false,true);
+        const unsigned key1=shape>=6?0x1000:0x1001,key2=shape==1?0x2000:0x1101;
+        a.func.export_name="f_"+std::to_string(key1);b.func.export_name="f_"+std::to_string(key2);
+        auto map=std::make_shared<rom_dispatch_map>(0x1000,0x2000,2);
+        if(!map->insert(key1,0)||!map->insert(key2,1))return false;
+        auto module=build_rom_dispatch_module({a.func,b.func},imports,*map);
+        auto am=build_wasm_module({a.func},imports),bm=build_wasm_module({b.func},imports);
+        for(unsigned budget:{0u,1u,2u,3u,4u,5u,17u,65u}) for(unsigned cap:{0u,1u,2u,16u,512u})
+        for(unsigned stop:{0u,1u,2u})for(unsigned irq:{0u,1u,2u})for(bool mapped:{false,true}) {
+            test_mem memory;memory.write32(0x8000,0x12345678);const auto initial=memory.data;
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);if(mapped)tlb.add(0x8000,memory.data.data()+0x8000,3);
+            alignas(8) unsigned states[2][256]{};unsigned counts[2],helpers[2];
+            for(unsigned variant=0;variant<2;++variant) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());auto *state=states[variant];
+                state[0]=1;state[1]=0x8000;state[3]=0x2000;state[4]=0x1001;state[14]=0x9001;state[15]=0x1000;
+                state[state_offsets::TFLAG/4]=shape<6;state[state_offsets::CPSR/4]=0x10|(shape<6?0x20:0)|(irq==2?0x80:0);
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=stop==1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=stop==2;
+                state[state_offsets::NIRQ/4]=irq==0;state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_REGIONS_LEFT/4]=cap;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                g_read32_observer=[](unsigned ptr,unsigned) {auto *s=reinterpret_cast<unsigned *>(ptr);
+                    s[state_offsets::AOT_ROM_CALLBACK/4]=1;s[5]=0xfeed1234;};
+                if(variant) {
+                    int result=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[variant]));
+                    if(result<0)return false;counts[variant]=result;
+                } else {
+                    unsigned total=0,blocks=0;
+                    while(total<budget&&blocks<cap) {
+                        const unsigned key=(state[15]&(state[state_offsets::TFLAG/4]?~1u:~3u))|state[state_offsets::TFLAG/4];
+                        const auto slot=map->lookup(key);if(!slot)break;
+                        state[15]=key&~1u;state[state_offsets::AOT_BUDGET/4]=budget-total;state[state_offsets::AOT_EXIT/4]=0;
+                        const auto &base=slot==1?am:bm;
+                        const int count=js_run_aot_wasm(base.data(),base.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[0]));
+                        if(count<0||unsigned(count)>budget-total)return false;
+                        ++blocks;total+=count;
+                        if(!count){state[state_offsets::AOT_ROM_CALLBACK/4]=2;break;}
+                        if(state[state_offsets::AOT_ROM_CALLBACK/4]||state[state_offsets::AOT_EXIT/4]
+                            ||!(state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]||state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1])
+                            ||(!state[state_offsets::NIRQ/4]&&!(state[state_offsets::CPSR/4]&0x80)))break;
+                    }
+                    counts[0]=total;state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_REGIONS_USED/4]=blocks;
+                }
+                helpers[variant]=g_all_memory_helper_calls;
+            }
+            if(counts[0]!=counts[1]||helpers[0]!=helpers[1]||std::memcmp(states[0],states[1],sizeof(states[0]))) {
+                printf(" FAIL ROM dispatch shape=%u budget=%u cap=%u stop=%u irq=%u mapped=%d counts=%u/%u\n",shape,budget,cap,stop,irq,mapped,counts[0],counts[1]);return false;
+            }
+            ++checks;
+        }
+        if(shape==0) {
+            // Bad table slots and missing keys must return without invoking a
+            // private function, rather than trapping or fabricating progress.
+            auto *page=reinterpret_cast<std::uint32_t *>(static_cast<std::uintptr_t>(map->data()[0]));
+            const auto original=page[key1&4095];
+            for(unsigned value:{0u,3u,UINT32_MAX}) {
+                page[key1&4095]=value;
+                alignas(8) unsigned state[256]{};
+                state[15]=0x1000;state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=17;
+                state[state_offsets::AOT_REGIONS_LEFT/4]=16;
+                const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+                if(count!=0||state[15]!=0x1000||state[state_offsets::AOT_BUDGET/4]!=17
+                    ||state[state_offsets::AOT_REGIONS_USED/4])return false;
+                ++extent_checks;
+            }
+            page[key1&4095]=original;
+            // Exercise the actual outer runner, including its remaining cap.
+            rom_dispatch_enabled=true;global_registry().clear();stage_aot_module(module,"test-rom-dispatch",map);instantiate_staged_modules();
+            test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
+            auto cpu=std::make_unique<ARMul_State>(core.get(),USER32MODE);
+            for(unsigned cap:{0u,1u,2u,3u,64u,512u})for(unsigned budget:{1u,2u,5u,63u,512u,1025u,4096u}) {
+                runner_region_limit=cap;cpu->Reset();cpu->mem_cache_=core->mem_cache();
+                cpu->Reg[15]=0x1000;cpu->TFlag=1;cpu->Cpsr=0x30;
+                cpu->NirqSig=1;cpu->NumInstrsToExecute=budget;cpu->aot_budget=budget;
+                const auto result=execute_chain(cpu.get(),global_registry().lookup(key1));
+                const unsigned want=cap?std::min(budget,cap*2):budget;
+                if(result.instructions!=want||result.blocks!=(want+1)/2) {
+                    printf(" FAIL ROM runner cap=%u budget=%u got=%u/%u want=%u/%u\n",cap,budget,result.instructions,result.blocks,want,(want+1)/2);return false;
+                }
+            }
+            rom_dispatch_enabled=false;global_registry().clear();
+        }
+    }
+    printf(" PASS ROM dispatch (%u extent, %u state/budget/cap/mode/callback/SVC comparisons and 42 real-runner caps)\n",extent_checks,checks);
+#endif
+    return true;
+}
+
 static bool test_rom_leaf_extent() {
     const auto saved_limit = leaf_instruction_limit;
     std::vector<std::uint8_t> image(96);
@@ -6319,6 +6444,9 @@ static bool test_synchronous_compilation() {
 }
 
 int main(int argc, char **argv) {
+    // Production module staging logs its result; standalone tests have no sink.
+    eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
+    eka2l1::log::filterings->reset_all(spdlog::level::off);
 #ifdef __EMSCRIPTEN__
     if (eka2l1::common::code_tracking::unsafe_code_mode != 3) {
         printf("FAIL WASM executable-byte default must be 3\n"); return 1;
@@ -6965,6 +7093,7 @@ int main(int argc, char **argv) {
 #endif
     if (test_inlined_leaves(arm_ir_policy::write_budget_chunks, true)) passed++; else failed++;
     if (test_bounded_rom_calls()) passed++; else failed++;
+    if (test_rom_dispatch()) passed++; else failed++;
     if (test_rom_leaf_extent()) passed++; else failed++;
     if (test_registry_lookup_lifecycle()) passed++; else failed++;
     if (test_arm_short_block_memory()) passed++; else failed++;

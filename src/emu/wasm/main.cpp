@@ -363,12 +363,21 @@ int eka2l1_rom_leaves_report() { return eka2l1::arm::aot::rom_inline_leaves; }
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_rom_calls_configure(int enabled) {
-    if (g_state || enabled < 0 || enabled > 1) return -1;
+    if (g_state || enabled < 0 || enabled > 1 || (enabled && eka2l1::arm::aot::rom_dispatch_enabled)) return -1;
     eka2l1::arm::aot::rom_bounded_calls = enabled != 0;
     return 0;
 }
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_rom_calls_report() { return eka2l1::arm::aot::rom_bounded_calls; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_dispatch_configure(int enabled) {
+    if (g_state || enabled < 0 || enabled > 1 || (enabled && eka2l1::arm::aot::rom_bounded_calls)) return -1;
+    eka2l1::arm::aot::rom_dispatch_enabled = enabled != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_dispatch_report() { return eka2l1::arm::aot::rom_dispatch_enabled; }
 
 // Eager ROM compilation research control. Ordinary startup keeps basic blocks.
 EMSCRIPTEN_KEEPALIVE

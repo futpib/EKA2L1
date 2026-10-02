@@ -90,7 +90,9 @@ set(SOURCE_AOT
         src/aot/aot_runtime.cpp
         src/aot/arm_translator.cpp
         src/aot/thumb_translator.cpp
-        src/aot/wasm_emitter.cpp)
+        src/aot/wasm_emitter.cpp
+        src/aot/rom_dispatch.cpp
+        include/cpu/aot/rom_dispatch.h)
 
 add_library(cpu
         include/cpu/arm_analyser.h

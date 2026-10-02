@@ -159,6 +159,8 @@ namespace eka2l1::arm::aot {
             std::uint32_t call_offset;
         };
         std::vector<private_call> outlined_calls;
+        bool private_export = false;
+        std::vector<std::string> export_aliases;
     };
 
     // Describes an imported function.
@@ -174,5 +176,6 @@ namespace eka2l1::arm::aot {
     // The module imports shared memory from the host.
     std::vector<std::uint8_t> build_wasm_module(
         const std::vector<wasm_func_def> &funcs,
-        const std::vector<wasm_import_func> &imports = {});
+        const std::vector<wasm_import_func> &imports = {},
+        const std::vector<std::uint32_t> &private_table = {});
 }

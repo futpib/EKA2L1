@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <cpu/aot/aot_registry.h>
 #include <vector>
 #include <string>
@@ -42,6 +43,7 @@ namespace eka2l1::arm::aot {
     // Opt-in immutable ROM leaf fusion; frozen before CPU initialization.
     extern bool rom_inline_leaves;
     extern bool rom_bounded_calls;
+    extern bool rom_dispatch_enabled;
     std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
         std::uint32_t base, std::uint32_t size, std::uint32_t target);
     extern bool diagnostics_enabled;
@@ -66,7 +68,7 @@ namespace eka2l1::arm::aot {
     // the function table is accessible.
     void stage_aot_module(
         std::vector<std::uint8_t> wasm_bytes,
-        const std::string &dll_name);
+        const std::string &dll_name, std::shared_ptr<void> keepalive = {});
 
     // Called from the AOT dispatch path (on the worker thread) to
     // instantiate any staged modules. Returns true if modules were

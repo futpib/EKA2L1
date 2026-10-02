@@ -3,6 +3,7 @@
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/rom_dispatch.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/execution_limits.h>
@@ -225,6 +226,31 @@ static int thumb_call_probe() {
 // Same production exclusive monitor and callback contract on native DynCom and
 // generated WASM. Include failed reservations, another processor, changed data,
 // predicates, short budgets, callback stops and callback-visible state.
+
+#ifdef __EMSCRIPTEN__
+static void stage_boundary_probe(const std::vector<aot::wasm_func_def> &functions,
+    const std::vector<aot::wasm_import_func> &imports, const char *name) {
+    if (!aot::rom_dispatch_enabled) {
+        aot::stage_aot_module(aot::build_wasm_module(functions, imports), name);
+    } else {
+        unsigned low=UINT32_MAX;std::uint64_t high=0;
+        for(const auto &fn:functions) {
+            const auto key=std::stoul(fn.export_name.substr(2));
+            low=std::min(low,static_cast<unsigned>(key)&~4095u);
+            high=std::max(high,(std::uint64_t(key)+4096)&~std::uint64_t{4095});
+        }
+        if(high>UINT32_MAX||high<=low)std::abort();
+        auto map=std::make_shared<aot::rom_dispatch_map>(low,high-low,functions.size());
+        for(unsigned i=0;i<functions.size();++i)
+            if(!map->insert(std::stoul(functions[i].export_name.substr(2)),i))std::abort();
+        auto bytes=aot::build_rom_dispatch_module(functions,imports,*map);
+        if(bytes.empty())std::abort();
+        aot::stage_aot_module(std::move(bytes),name,map);
+    }
+    aot::instantiate_staged_modules();aot::chaining_enabled=true;
+}
+#endif
+
 static int arm_exclusive_probe() {
     aot::arm_exclusive_memory = true;
     unsigned cases = 0;
@@ -274,10 +300,9 @@ static int arm_exclusive_probe() {
             if(!tr.entry_supported||!tr.complete){std::cerr<<"Exclusive instruction rejected\n";return 2;}
             tr.func.export_name="f_"+std::to_string(0x1000+i*4);functions.push_back(std::move(tr.func));
         }
-        auto bytes=aot::build_wasm_module(functions,{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        stage_boundary_probe(functions,{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false},
-            {"env","arm_exclusive",2,false}});
-        aot::stage_aot_module(std::move(bytes),"exclusive-probe");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+            {"env","arm_exclusive",2,false}},"exclusive-probe");
         const auto compiled_before=eka2l1::common::performance::aot_instructions;
 #endif
         const auto before=memory;cpu.run(budget);const auto count=cpu.get_num_instruction_executed();
@@ -361,8 +386,7 @@ static int compiled_svc_probe() {
                 if(!tr.entry_supported||!tr.complete){std::cerr<<"SVC fixture rejected "<<thumb<<' '<<i<<'\n';return 2;}
                 tr.func.export_name="f_"+std::to_string(a|thumb);functions.push_back(std::move(tr.func));
             }
-            auto bytes=aot::build_wasm_module(functions,{});
-            aot::stage_aot_module(std::move(bytes),"svc-probe");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+            stage_boundary_probe(functions,{},"svc-probe");
             const auto compiled_before=eka2l1::common::performance::aot_instructions;
 #endif
             cpu.run(budget);const auto count=cpu.get_num_instruction_executed();
@@ -418,6 +442,10 @@ static int thumb_exchange_probe() {
 }
 
 int main(int argc, char **argv){
+    if(argc>1 && std::strcmp(argv[argc-1],"--rom-dispatch")==0) {
+        aot::rom_dispatch_enabled=true;--argc;
+    }
+    std::cout<<"PROBE_ROM_DISPATCH "<<aot::rom_dispatch_enabled<<"\n";
     if(argc>1 && std::strncmp(argv[argc-1],"--unsafe-code=",14)==0) {
         const std::string value(argv[argc-1]+14);
         if(value!="0" && value!="1" && value!="2" && value!="3")return 1;
