@@ -1,0 +1,628 @@
+{
+  "retrieved_utc": "2026-10-02",
+  "scope": "Original Nokia/IOMO Snakes: recovered official standalone installers and two separately identified firmware builds; not an exhaustive catalogue of all regional firmware revisions.",
+  "installers": [
+    {
+      "filename": "SNAKES.SIS",
+      "bytes": 927176,
+      "sha256": "fda4bdc7f77ae23d2c6b90a1cd4e0908d59957f4511be8502a7bfb9285a9c58c",
+      "format": "old-sis",
+      "uid": "0x101fd3f7",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "certificate_offset": 2274,
+      "names": [
+        "Snakes",
+        "Snakes",
+        "Snakes",
+        "Snakes",
+        "Snakes"
+      ],
+      "verified_payload_count": null,
+      "file_manifest_sha256": "c6932ac4d006f94c7f540f7de3bcc868ac97cfddd2af7fdc91a40d8d34b9e0e2",
+      "executables": [
+        {
+          "target": "!:\\system\\apps\\6R45\\6R45.APP",
+          "bytes": 36168,
+          "sha256": "9f9e41fc9e8587d0df5358e49bf90c70ce459e19bf4640987d036e18393765f2"
+        },
+        {
+          "target": "!:\\system\\apps\\6R45_1\\6R45_1.APP",
+          "bytes": 656804,
+          "sha256": "45e9205ac4a6cc538e7d0bf73f5299bb503b297e7050d031ac6df7a7bb362cdf"
+        }
+      ],
+      "game_build": "0.2.1.9",
+      "game_build_evidence": "Executable hash matches preserved N-Gage v0.2.1.9 distribution",
+      "code": [
+        {
+          "package": "SNAKES.SIS",
+          "executable": "6R45_1.APP",
+          "code_bytes": 643176,
+          "code_sha256": "c65c1785487083cbf515a8bc31a4fbe88be32c81f21e6f1020477edc524d910b",
+          "embedded_versions": []
+        },
+        {
+          "package": "SNAKES.SIS",
+          "executable": "6R45.APP",
+          "code_bytes": 32484,
+          "code_sha256": "3add81f1141348f69819c620047642c2d977b7a9ec34d76c8f40420663ee2738",
+          "embedded_versions": []
+        }
+      ],
+      "source": "https://web.archive.org/web/20050312153157id_/http://arena.n-gage.com:80/n-gage/web/en/snakes_demo/SNAKES.SIS",
+      "download_path": "official-installers/SNAKES.SIS",
+      "cid": "bafybeiaeh3fpsh5tjavzlp2saskltdviurweou4adisf5yqoazaqnnueh4",
+      "signature_note": "Official Nokia/N-Gage Wayback source; old-SIS certificate is present but its signature was not verified."
+    },
+    {
+      "filename": "Nokia_3250_snakes.SIS",
+      "bytes": 871132,
+      "sha256": "aa630be8306e7bccc29cc1c4d63b0261a93d9e18f1eb55ecc13fc66f5a428be0",
+      "format": "sisx",
+      "uid": "0x10208a45",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "vendor": "Nokia",
+      "created": "2006-02-20T17:20:59",
+      "controller_sha256": "5fa7203b5eaf16e3c9acb88c19957286086a09a59b7fff83ad696e2db1643215",
+      "signatures": [
+        {
+          "subject": "CN=Nokia Content,O=Nokia",
+          "issuer": "CN=Nokia Content Signing CA,O=Nokia",
+          "verified": true,
+          "signed_controller_range": [
+            8,
+            6936
+          ],
+          "certificate_sha256": "769a7b942db150a0e789092cd2de3c4ebe6dc53b734b97829bf96881badc6256"
+        }
+      ],
+      "payload_count": 43,
+      "verified_payload_count": 43,
+      "file_manifest_sha256": "43bb5a655f3fc72a8014c218907a87cc9ce1d9b365cfad8c4a0fcc55bc782e1f",
+      "executables": [
+        {
+          "target": "!:\\sys\\bin\\6r45_1.exe",
+          "bytes": 228368,
+          "sha256": "95f6b4775a75e7d8c43f9e5bd874babb2b47080aef7cf916a12bd844d1f2cd2b",
+          "sha1": "4388112234fd8b7e7d3fb52fa78b0405c8237ef0",
+          "signed_hash_matches": true
+        }
+      ],
+      "game_build": "0.6.0.4 a3",
+      "game_build_evidence": "Embedded string in decompressed executable",
+      "code": [
+        {
+          "package": "Nokia_3250_snakes.SIS",
+          "executable": "6r45_1.exe",
+          "code_bytes": 490804,
+          "code_sha256": "1eb0c7a7eca6c123025672b042b51b1f40b7d6fb6763c4437458fe1eea030a12",
+          "embedded_versions": [
+            "0.6.0.4 a3"
+          ]
+        }
+      ],
+      "source": "https://web.archive.org/web/20100118132003id_/http://nds1.nokia.com:80/phones/files/software/Nokia_3250_snakes.SIS",
+      "download_path": "official-installers/Nokia_3250_snakes.SIS",
+      "cid": "bafybeih4hc3ubbmysqjfjhzbon5zi3s4pfevj3u3kfhojb7baqzdmio2py",
+      "signature_note": "RSA/SHA-1 controller signature verified using embedded Nokia Content certificate; all payload hashes verified. Independent certificate-chain root validation not performed."
+    },
+    {
+      "filename": "Nokia_N95_Snakes.sis",
+      "bytes": 963240,
+      "sha256": "3398435fc459cc113874ea9cde4b5eee0f5aa2c0b76b17d2e41c211f1e132271",
+      "format": "sisx",
+      "uid": "0x2000730f",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "vendor": "Nokia",
+      "created": "2007-01-18T23:07:42",
+      "controller_sha256": "634f9d20399fff2760b9331c773e40f1533f18eb6ba502f460a939647a4d84cd",
+      "signatures": [
+        {
+          "subject": "CN=Nokia Content,O=Nokia",
+          "issuer": "CN=Nokia Content Signing CA,O=Nokia",
+          "verified": true,
+          "signed_controller_range": [
+            8,
+            21020
+          ],
+          "certificate_sha256": "36b320b06cd36c858d5f3882f33655a88ee9ca6822beddfd9110da83e52e0631"
+        }
+      ],
+      "payload_count": 104,
+      "verified_payload_count": 104,
+      "file_manifest_sha256": "069972f8e93d32128c2bbfe310b83a7dfbe139a163a05d4e39a9be9b2e85bb0f",
+      "executables": [
+        {
+          "target": "!:\\sys\\bin\\6r45_1b.exe",
+          "bytes": 237629,
+          "sha256": "7d546b6b3a6f54be730df216efecd9923cb596a1469241d18e1bc987d3d29369",
+          "sha1": "5cb835d99a57ed196a673ce25e8aec864ca9b7e7",
+          "signed_hash_matches": true
+        }
+      ],
+      "game_build": "0.6.0.19 a3",
+      "game_build_evidence": "Embedded string in decompressed executable",
+      "code": [
+        {
+          "package": "Nokia_N95_Snakes.sis",
+          "executable": "6r45_1b.exe",
+          "code_bytes": 485908,
+          "code_sha256": "23dec1c3fe2831b2faf02fa0577eddb180cf33642c74e9d8ee78070a925c38f4",
+          "embedded_versions": [
+            "0.6.0.19 a3"
+          ]
+        }
+      ],
+      "source": "https://web.archive.org/web/20090420153055id_/http://nds1.nokia.com:80/phones/files/software/Nokia_N95_Snakes.sis",
+      "download_path": "official-installers/Nokia_N95_Snakes.sis",
+      "cid": "bafybeib5sreuatda7xjcvky3hjeamhf4pljp27v7r4yvvell3xkxxe44mq",
+      "signature_note": "RSA/SHA-1 controller signature verified using embedded Nokia Content certificate; all payload hashes verified. Independent certificate-chain root validation not performed."
+    },
+    {
+      "filename": "snakes60all.sis",
+      "bytes": 965420,
+      "sha256": "0611ef2c851294028dfc85f9e6c07a9c1022d77d0b51095ff57dd358dfdafb7d",
+      "format": "sisx",
+      "uid": "0x2000730f",
+      "version": [
+        1,
+        0,
+        0
+      ],
+      "vendor": "Nokia",
+      "created": "2007-03-13T00:02:17",
+      "controller_sha256": "8eb346b9b727c9b511f7a4bfe3d9611b1fffccf82c8f2ec5e90b60362545f8a0",
+      "signatures": [
+        {
+          "subject": "CN=Nokia Content,O=Nokia",
+          "issuer": "CN=Nokia Content Signing CA,O=Nokia",
+          "verified": true,
+          "signed_controller_range": [
+            8,
+            21020
+          ],
+          "certificate_sha256": "36b320b06cd36c858d5f3882f33655a88ee9ca6822beddfd9110da83e52e0631"
+        }
+      ],
+      "payload_count": 104,
+      "verified_payload_count": 104,
+      "file_manifest_sha256": "53834a850d526e1772edfccbcdde31ce4a5e98e6eeb78affc44cc0815af168fe",
+      "executables": [
+        {
+          "target": "!:\\sys\\bin\\6r45_1b.exe",
+          "bytes": 237918,
+          "sha256": "7c45c40877e1b0ad0b43001f7b58ad76a0d091148d21c281ea1a4eb097d84b70",
+          "sha1": "d618d310158400d732aabe49ccaaea1e780e971a",
+          "signed_hash_matches": true
+        }
+      ],
+      "game_build": "0.6.0.20",
+      "game_build_evidence": "Embedded string in decompressed executable",
+      "code": [
+        {
+          "package": "snakes60all.sis",
+          "executable": "6r45_1b.exe",
+          "code_bytes": 504388,
+          "code_sha256": "47e6e1e35fd957639ef90b804b1eb248ce099c8f31ae8240f1b1c5a8ee2e4944",
+          "embedded_versions": [
+            "0.6.0.20"
+          ]
+        }
+      ],
+      "source": "https://web.archive.org/web/20090507145931id_/http://nds1.nokia.com:80/phones/files/software/snakes60all.sis",
+      "download_path": "official-installers/snakes60all.sis",
+      "cid": "bafybeidv7gkizrdislpflysmwz64jn45f4zkinivvvhkfguaudysck363y",
+      "signature_note": "RSA/SHA-1 controller signature verified using embedded Nokia Content certificate; all payload hashes verified. Independent certificate-chain root validation not performed."
+    }
+  ],
+  "firmware_extracts": [
+    {
+      "source_archive_sha256": "1617ae4c1dbd2d57a94de02045c8898f0af2126d8ec831ed390c7b2074a7ab08",
+      "rpkg_sha256": "c40beb14d3ca4a530b7d59133b52ed28b650d1a12dd07a982df14a22d6ee1aa4",
+      "files": [
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45-ZZ01.PAK",
+          "bytes": 13251,
+          "sha256": "fb4d721e1209685588ba59d77a109b4ab1881debb60119e08f93de44d54ace04"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45-ZZ02.PAK",
+          "bytes": 57510,
+          "sha256": "d7b2db12156b5613a90968ef15c548831b2eb0cc6eeee683d23434143eea1be4"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45-ZZ03.PAK",
+          "bytes": 106538,
+          "sha256": "68493b715ffc36d6c1921caf504abbf40f2af5ec9b5115ccd97ff0d5dca63b17"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45-ZZ04.PAK",
+          "bytes": 72733,
+          "sha256": "30867b76b1a92cc0fc6716be86e56decfcb142f60ae0fb0855af3e83b6c9d25c"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45-ZZ05.PAK",
+          "bytes": 196387,
+          "sha256": "63ddddf27530171257426c169cb34a2a120d67922c206f3e23420784040d5b02"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1.AIF",
+          "bytes": 2759,
+          "sha256": "0fdf1da8dc5f6c2dd5aeb72c21e85620fe6cc106f7a4512783aa3b7ff42b7005"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1.APP",
+          "bytes": 483800,
+          "sha256": "a20931e92176c317b359be94a6603137575a52586d4b348348ba64d6b63567df"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1.R01",
+          "bytes": 8426,
+          "sha256": "68a8cb147adb968885096c48dedb50176f4a296dce12ebb34210f5a01f6328cb"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1.R03",
+          "bytes": 8941,
+          "sha256": "2986811a0f1e77dc6f03acec92d76fedea7b0fa9ee8954ae2c3f7f5b7e429010"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1.R16",
+          "bytes": 9053,
+          "sha256": "1c77e3b6b68dfb0c0767a5bf5e6229126b524fc5e8c8b72b864c3d63de528fb0"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1.R42",
+          "bytes": 9321,
+          "sha256": "3006a5780607e4668a18d78c3ca3813f57b7d417616269239ac560f25f9e9ca0"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1.R78",
+          "bytes": 9476,
+          "sha256": "5fa8cdbdab58c408e037bf0563c280a1b664f6e0cdf34e97417a324594cf3148"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1.R93",
+          "bytes": 9290,
+          "sha256": "27d7fdf1cdc8ff91c7b05a6c2ccde155f1e27757ee953e79f06101daa30abe3b"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1_CAPTION.R01",
+          "bytes": 37,
+          "sha256": "ae2550f86291c157ab19bfd37418d029bf7f86e3c8b91a55ac44df27fb932b83"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1_CAPTION.R03",
+          "bytes": 37,
+          "sha256": "ae2550f86291c157ab19bfd37418d029bf7f86e3c8b91a55ac44df27fb932b83"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1_CAPTION.R16",
+          "bytes": 43,
+          "sha256": "1439fbeed558d841a7164295301fc93057ba818d05c85194340cc1d5aaecc4bf"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1_CAPTION.R42",
+          "bytes": 43,
+          "sha256": "1439fbeed558d841a7164295301fc93057ba818d05c85194340cc1d5aaecc4bf"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1_CAPTION.R78",
+          "bytes": 43,
+          "sha256": "1439fbeed558d841a7164295301fc93057ba818d05c85194340cc1d5aaecc4bf"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\6R45_1_CAPTION.R93",
+          "bytes": 43,
+          "sha256": "1439fbeed558d841a7164295301fc93057ba818d05c85194340cc1d5aaecc4bf"
+        },
+        {
+          "target": "Z:\\System\\Apps\\6R45_1\\game.id",
+          "bytes": 23,
+          "sha256": "c5f47c7c45171dda84a83445119ae8c360d05eccdf1907c96df65496f487b1fb"
+        }
+      ],
+      "device": "N70",
+      "filename": "N70-Snakes-ROM-files.zip",
+      "download_path": "firmware-extracts/N70-Snakes-ROM-files.zip",
+      "bytes": 967247,
+      "sha256": "437a772faa11ee7cb05adee80191e84c730b22da697236b790eeee77354a0d74",
+      "cid": "bafybeie25evne5srclguw6dnnvm2apkrjdpfhmm7ixjbjprt7ldeh6m6ya",
+      "packaging": "Locally created ZIP containing unchanged files from a preserved firmware RPKG. Not an official downloadable installer; not tested as a standalone install.",
+      "source": "https://archive.org/download/images-1_202601/Symbian%20OS%20rom.zip/Symbian%20OS%20rom%20dump%20%28for%20eka2l1%20emulator%29%2Fs60v2%2FN70%20%28S60v2%20-%20FP3%29%20%5BRecommended%5D.7z",
+      "game_build": null,
+      "game_build_note": "Community calls the N70/S60v2 family Snake60 0.5.1.4; an internal build string was not independently decoded here."
+    },
+    {
+      "rpkg_sha256": "be82cd991db95e2e9128b48dc7b9618f653813ec864c63db1952821de2178be0",
+      "files": [
+        {
+          "target": "Z:\\private\\10003a3f\\apps\\6r45_1_reg.r01",
+          "bytes": 91,
+          "sha256": "48adda5175184e9f8a6c984c692edf08119be2051b7dfa90a05ea1ce8eae65f2"
+        },
+        {
+          "target": "Z:\\private\\10003a3f\\apps\\6r45_1_reg.r03",
+          "bytes": 91,
+          "sha256": "48adda5175184e9f8a6c984c692edf08119be2051b7dfa90a05ea1ce8eae65f2"
+        },
+        {
+          "target": "Z:\\private\\10003a3f\\apps\\6r45_1_reg.r16",
+          "bytes": 91,
+          "sha256": "48adda5175184e9f8a6c984c692edf08119be2051b7dfa90a05ea1ce8eae65f2"
+        },
+        {
+          "target": "Z:\\private\\10003a3f\\apps\\6r45_1_reg.r17",
+          "bytes": 91,
+          "sha256": "48adda5175184e9f8a6c984c692edf08119be2051b7dfa90a05ea1ce8eae65f2"
+        },
+        {
+          "target": "Z:\\private\\10003a3f\\apps\\6r45_1_reg.r42",
+          "bytes": 91,
+          "sha256": "48adda5175184e9f8a6c984c692edf08119be2051b7dfa90a05ea1ce8eae65f2"
+        },
+        {
+          "target": "Z:\\private\\10003a3f\\apps\\6r45_1_reg.r78",
+          "bytes": 91,
+          "sha256": "48adda5175184e9f8a6c984c692edf08119be2051b7dfa90a05ea1ce8eae65f2"
+        },
+        {
+          "target": "Z:\\private\\10003a3f\\apps\\6r45_1_reg.r93",
+          "bytes": 91,
+          "sha256": "48adda5175184e9f8a6c984c692edf08119be2051b7dfa90a05ea1ce8eae65f2"
+        },
+        {
+          "target": "Z:\\private\\10208a45\\6r45-zz01.pak",
+          "bytes": 13261,
+          "sha256": "f32da8506a28c9dc24d2d671b3110e4d2ed3f54626c0b7f11e3a602d987a4cd5"
+        },
+        {
+          "target": "Z:\\private\\10208a45\\6r45-zz02.pak",
+          "bytes": 57587,
+          "sha256": "d54199e9ba3888fb956ecc5fd76bc34fd079e9617a9bb41f0ef922b260b01e7c"
+        },
+        {
+          "target": "Z:\\private\\10208a45\\6r45-zz03.pak",
+          "bytes": 106047,
+          "sha256": "ff3027c77ce94ddc7f64befdba798ed503fde137928d8f831fea00e3c95ff690"
+        },
+        {
+          "target": "Z:\\private\\10208a45\\6r45-zz04.pak",
+          "bytes": 72789,
+          "sha256": "b415b69feed158a75c8cc467b348c076eadbf9145d5d38804f0ee45676dec5d4"
+        },
+        {
+          "target": "Z:\\private\\10208a45\\6r45-zz05.pak",
+          "bytes": 196575,
+          "sha256": "90d3fbd9cf0c70fe9821d32d8d680d9b1238704777ac5c0b6d1ff57844b29547"
+        },
+        {
+          "target": "Z:\\resource\\apps\\6r45_1.mbm",
+          "bytes": 15556,
+          "sha256": "08d171371493f41dccf98ed3c0053c885ca97860ab6efd34531b20600baa0667"
+        },
+        {
+          "target": "Z:\\resource\\apps\\6r45_1.mif",
+          "bytes": 16,
+          "sha256": "9cbd1ee1c027d35e2ad6a93874533b901265871d640ee0027de956c2b5624e69"
+        },
+        {
+          "target": "Z:\\resource\\apps\\6r45_1.r01",
+          "bytes": 9123,
+          "sha256": "844307fde9f32c4437285c5a39e4d97d00a2122d8c0657b5fef93e11e7b699e9"
+        },
+        {
+          "target": "Z:\\resource\\apps\\6r45_1.r03",
+          "bytes": 9645,
+          "sha256": "ae929a504c456f4ef2bfce501117205e75bb629bdb0095f4f52ede2ce9a86ded"
+        },
+        {
+          "target": "Z:\\resource\\apps\\6r45_1.r16",
+          "bytes": 9135,
+          "sha256": "2dcadbbffdc3a80a04845d937661fbd6770e9dc54dcaa5f490caedebfd64e72e"
+        },
+        {
+          "target": "Z:\\resource\\apps\\6r45_1.r17",
+          "bytes": 9187,
+          "sha256": "3bc759ba0c10d6aa3c83d7273e38eb53981e286bbf8127f0d416ab4b82722077"
+        },
+        {
+          "target": "Z:\\resource\\apps\\6r45_1.r42",
+          "bytes": 9403,
+          "sha256": "790489b70344e8820faf5469bc0171eef7a48337bf1bd0c0a83bc4de11b39cb4"
+        },
+        {
+          "target": "Z:\\resource\\apps\\6r45_1.r78",
+          "bytes": 9558,
+          "sha256": "ae7adc79ab94147364ca8b4d5b51b9c7aaf59b4c9a591768bea3e0862b1fe282"
+        },
+        {
+          "target": "Z:\\resource\\apps\\6r45_1.r93",
+          "bytes": 9372,
+          "sha256": "5dd329f5cab8f748dba4cd8c763c68f35b850e60f70430a41283489f80464c7c"
+        },
+        {
+          "target": "Z:\\sys\\bin\\6r45_1.exe",
+          "bytes": 228747,
+          "sha256": "a268b26bb68b1b7b591e21ddae5ac6abdccb3b9a64ac4e70be4b39d2de457e36"
+        }
+      ],
+      "device": "N80",
+      "filename": "N80-Snakes-ROM-files.zip",
+      "download_path": "firmware-extracts/N80-Snakes-ROM-files.zip",
+      "bytes": 720809,
+      "sha256": "a98c80b0f3456461bacd4938c17cbecc05473927a9b88770d75c1690ef5bcfdf",
+      "cid": "bafybeierxsbii6327xwqcuhqwcryogzshvo75gb3n5vvgcozg64owfdjym",
+      "packaging": "Locally created ZIP containing unchanged files from a preserved firmware RPKG. Not an official downloadable installer; not tested as a standalone install.",
+      "source": "https://androiddatahost.com/tryu5",
+      "source_archive_sha256": "16440261e679e277680664585b5a11702ea623b9fd723c2de994e43f72660903",
+      "game_build": "0.6.0.7 a3",
+      "code_sha256": "56c569d7de85d21c57eb60aff361be68ba54a5a21a09b1a17cd69aa942d00a5f"
+    }
+  ],
+  "duplicates": [
+    {
+      "filename": "Nokia_N76_Snakes.SIS",
+      "same_bytes_as": "Nokia_N95_Snakes.sis",
+      "source": "https://web.archive.org/web/20070708085940id_/http://nds1.nokia.com:80/phones/files/software/Nokia_N76_Snakes.SIS"
+    },
+    {
+      "filename": "snakes.zip",
+      "contains_same_installer_as": "SNAKES.SIS",
+      "source": "https://web.archive.org/web/20060710040746id_/http://arena.n-gage.com:80/n-gage/web/en/snakes_demo/snakes.zip"
+    },
+    {
+      "filename": "Snakes HD (S60 3rd)(Maze).sisx",
+      "same_bytes_as": "Nokia_3250_snakes.SIS",
+      "source": "https://www.myabandonware.com/download/pcr2-snakes"
+    },
+    {
+      "filename": "3d snakes for s60v3.sis",
+      "same_bytes_as": "snakes60all.sis",
+      "source": "https://drive.google.com/file/d/1Lf9LmN4IMLabqCJ50JiYGI2_Ke4gU36p/view"
+    }
+  ],
+  "current_benchmark": {
+    "filename": "Snakes.sis",
+    "bytes": 963964,
+    "sha256": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+    "signatures": [
+      {
+        "subject": "CN=Nokia Content,O=Nokia",
+        "issuer": "CN=Nokia Content Signing CA,O=Nokia",
+        "verified": true,
+        "signed_controller_range": [
+          8,
+          21020
+        ],
+        "certificate_sha256": "36b320b06cd36c858d5f3882f33655a88ee9ca6822beddfd9110da83e52e0631"
+      },
+      {
+        "subject": "1.2.840.113549.1.9.1=theme@Theunlocker.co.uk,CN=Theunlocker.co.uk User,OU=Development,O=Theunlocker.co.uk,C=FI",
+        "issuer": "1.2.840.113549.1.9.1=theme@Theunlocker.co.uk,CN=Theunlocker.co.uk User,OU=Development,O=Theunlocker.co.uk,C=FI",
+        "verified": true,
+        "signed_controller_range": [
+          8,
+          22164
+        ],
+        "certificate_sha256": "cf47b7963dddf0208bd8e74f64002114500e77990169eb2e6deaf6e0ff013ecc"
+      }
+    ],
+    "cid": "bafybeicuomcc2zhzi3vwfb5xihnlkikz3biaa43g4d22z2wptcmhvmp3di",
+    "same_all_104_installed_payloads_as": "Nokia_N95_Snakes.sis",
+    "note": "Additional third-party co-signature; not byte-identical to original Nokia installer. Current launcher and benchmark were not changed."
+  },
+  "n70_repack_comparison": {
+    "filename": "3d snakes for s60v2.sis",
+    "sha256": "d3f70e51f7f886df132a4622dac989b2272e3956bd29d158a6a8a73fdf765990",
+    "signed": false,
+    "source": "https://drive.google.com/file/d/1Lf9LmN4IMLabqCJ50JiYGI2_Ke4gU36p/view",
+    "note": "Executable, five PAK archives, AIF, game.id and English/German resources match the preserved N70 firmware dump. Other language files are absent from that regional dump, so not all were verified. Installer was not recovered from Nokia and is excluded from the official collection."
+  },
+  "archive_search": {
+    "nokia_download_host_cdx": [
+      [
+        "urlkey",
+        "timestamp",
+        "original",
+        "mimetype",
+        "statuscode",
+        "digest",
+        "length"
+      ],
+      [
+        "com,nokia,nds1)/files/support/apac/phones/software/nokia_n95_snakes.sis",
+        "20100922013252",
+        "http://nds1.nokia.com:80/files/support/apac/phones/software/Nokia_N95_Snakes.sis",
+        "application/vnd.symbian.install",
+        "200",
+        "FO4L2Q7RJVZ57HR2XC3YG6Y4NYTVQKPN",
+        "952850"
+      ],
+      [
+        "com,nokia,nds1)/phones/files/software/nokia_3250_snakes.sis",
+        "20060702010618",
+        "http://nds1.nokia.com:80/phones/files/software/Nokia_3250_snakes.SIS",
+        "application/vnd.symbian.install",
+        "200",
+        "NNADUFC7X6YA5ZRYWLC3NAPX7STCXUS5",
+        "871628"
+      ],
+      [
+        "com,nokia,nds1)/phones/files/software/nokia_n76_snakes.sis",
+        "20070708085940",
+        "http://nds1.nokia.com:80/phones/files/software/Nokia_N76_Snakes.SIS",
+        "application/vnd.symbian.install",
+        "200",
+        "FO4L2Q7RJVZ57HR2XC3YG6Y4NYTVQKPN",
+        "952833"
+      ],
+      [
+        "com,nokia,nds1)/phones/files/software/snakes60all.sis",
+        "20090507145931",
+        "http://nds1.nokia.com:80/phones/files/software/snakes60all.sis",
+        "application/vnd.symbian.install",
+        "200",
+        "B6OI3CTR2Z7VDTX6NBHPI6BKKBWB3VZ7",
+        "959918"
+      ]
+    ],
+    "ngage_download_host_cdx": [
+      [
+        "urlkey",
+        "timestamp",
+        "original",
+        "mimetype",
+        "statuscode",
+        "digest",
+        "length"
+      ],
+      [
+        "com,n-gage,arena)/n-gage/web/en/downloads/fanpacks/index.-webdownloads-0004-downloadfileafterlogin.tmp/fanpack_snakes.zip",
+        "20051013070414",
+        "http://arena.n-gage.com:80/n-gage/web/en/downloads/fanpacks/index.-webDownloads-0004-DownloadFileAfterLogin.tmp/fanpack_snakes.zip",
+        "application/zip",
+        "200",
+        "V75FX7RKTZU2R6SHIKOILBEBM64U7RFC",
+        "1678276"
+      ],
+      [
+        "com,n-gage,arena)/n-gage/web/en/snakes_demo/snakes.sis",
+        "20050312153157",
+        "http://arena.n-gage.com:80/n-gage/web/en/snakes_demo/SNAKES.SIS",
+        "application/vnd",
+        "200",
+        "2HPEJQV46KW6ORPITSYJHSJOIWF5WOWI",
+        "910659"
+      ],
+      [
+        "com,n-gage,arena)/n-gage/web/en/snakes_demo/snakes.zip",
+        "20060710040746",
+        "http://arena.n-gage.com:80/n-gage/web/en/snakes_demo/snakes.zip",
+        "application/zip",
+        "200",
+        "MUCK5AUC6MXR3YZGHNY4PMXVG4FK5LAQ",
+        "910534"
+      ]
+    ],
+    "limits": "Indexed successful captures from these hosts contain the four distinct recovered installers. This does not establish completeness of historical Nokia releases or firmware variants."
+  },
+  "bundle": {
+    "filename": "Snakes-preserved-releases.zip",
+    "bytes": 5386863,
+    "sha256": "7e7d1dc30edb2f191ffb2ad4e9d737aa5bb0e29b0ecf09a09f2e0a56379bd6aa",
+    "cid": "bafybeigu4gxcz22ewu535734igcgg3g7wrbpqxmknhozbnhqpn62wjggt4",
+    "note": "The manifest inside this ZIP omits the bundle field to avoid a circular content hash."
+  }
+}

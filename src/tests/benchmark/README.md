@@ -43,6 +43,11 @@ Use the original assets (not committed to this repository). The runner validates
 
 Retrieve using `ipfs cat CID > filename` with a running IPFS node. The old `@futpib/fetch-cid` downloader does not check HTTP status and can cache gateway notices as files.
 
+The [Snakes release collection](SNAKES_RELEASES.md) preserves four original
+Nokia installers and two firmware builds, with hashes and separate IPFS CIDs.
+It identifies a newer game build, 0.6.0.20, without changing this benchmark's
+reference asset.
+
 The experimental [Nokia N80 assets](N80_ASSETS.md) use the same ROM/RPKG convention
 with separate CIDs and a reproducible firmware converter. Select their manifest
 using `--asset-manifest src/tests/benchmark/n80-assets.json`. Device installation

@@ -67,6 +67,11 @@ complete-game compatibility claims.
 
 ## Package provenance
 
+Follow-up: the [official release inventory](SNAKES_RELEASES.md) identifies the
+archive HD package as Nokia's original 3250 installer and the benchmark payloads
+as the N95 build. It also recovers the newer 0.6.0.20 release, which was not part
+of this resolution survey.
+
 The [archive page](https://www.myabandonware.com/game/snakes-msa) supplied three
 S60 packages. Its ordinary Snakes SIS is byte-for-byte identical to the existing
 benchmark asset. “Snakes HD” is a different executable, but its filename does
