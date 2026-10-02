@@ -4251,6 +4251,75 @@ static bool test_msr_privilege_guard() {
 }
 
 
+static bool test_thumb_arithmetic_run_budgets() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        bool direct=thumb_direct_memory;
+        ~restore(){thumb_direct_memory=direct;g_test_mem=nullptr;g_read32_observer={};}
+    } saved;
+    const std::vector<std::vector<std::uint16_t>> programs={
+        {0x3001,0x3802,0x4148,0x4188,0x4288,0x4208},
+        {0x0040,0x0808,0x1040,0x4088,0x40c8,0x4108,0x41c8},
+        {0x4008,0x4048,0x4308,0x4348,0x4388,0x43c8},
+        {0x1808,0x1a08,0x1c40,0x1e40,0x2800,0x4248,0x42c8},
+        {0x3001,0x4148,0x6837,0x4188,0x4248,0x3801},
+        {0x6837,0x3001,0x4148,0x4188,0x4248,0x6837,0x3002,0x3801},
+        {0x3001,0x3802,0xd000,0x3003,0x3804},
+        {0x3001,0x3802,0xe7fc},
+        {0x3001,0x3802,0xf001,0xf801},
+        {0x3001,0x3802,0xdf01},
+        {0x3001,0x3802,0x2003,0x3001,0x3802}
+    };
+    const unsigned values[]={0,1,31,32,33,255,256,0xffffffffu,0x80000000u,0x7fffffffu,0xffff0000u};
+    unsigned checks=0;
+    test_mem memory; memory.write32(0x8000,0x12345678);g_test_mem=&memory;
+    for(unsigned program=0;program<programs.size();++program) {
+        const auto &code=programs[program];
+        std::vector<std::uint8_t> modules[2];
+        for(unsigned enabled=0;enabled<2;++enabled) {
+            thumb_direct_memory=enabled;
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code.data()),code.size()*2,0x1000,nullptr,nullptr,true,false,true);
+            modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        }
+        for(unsigned seed=0;seed<11;++seed)for(unsigned flags=0;flags<16;++flags)
+        for(unsigned budget=0;budget<=code.size()+1;++budget)
+        for(unsigned callback_budget:{0u,3u,7u,100u}) {
+            alignas(8) std::array<unsigned,256> states[2]{};
+            std::vector<std::array<unsigned,256>> observations[2];int counts[2];
+            for(unsigned enabled=0;enabled<2;++enabled) {
+                auto &state=states[enabled];
+                for(unsigned reg=0;reg<16;++reg)state[reg]=values[(seed+reg)%11];
+                state[6]=0x8000;state[15]=0x1000;
+                state[state_offsets::CPSR/4]=0x30|(flags<<28);
+                state[state_offsets::NFLAG/4]=(flags>>3)&1;state[state_offsets::ZFLAG/4]=(flags>>2)&1;
+                state[state_offsets::CFLAG/4]=(flags>>1)&1;state[state_offsets::VFLAG/4]=flags&1;
+                state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+                // The old option executes long-call halfwords separately. Force
+                // the preserved midpoint exit in both policies for this oracle.
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;
+                g_read32_observer=[&](unsigned ptr,unsigned address){
+                    auto *p=reinterpret_cast<unsigned *>(ptr);
+                    std::array<unsigned,256> snapshot;std::copy(p,p+256,snapshot.begin());
+                    observations[enabled].push_back(snapshot);
+                    p[state_offsets::AOT_BUDGET/4]=callback_budget;
+                    p[state_offsets::CFLAG/4]^=1;p[0]=0x7fffffffu;p[15]=0xdeadbeef;
+                };
+                counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
+                g_read32_observer={};
+            }
+            if(counts[0]!=counts[1]||states[0]!=states[1]||observations[0]!=observations[1]) {
+                printf(" FAIL Thumb arithmetic runs program=%u seed=%u flags=%u budget=%u callback_budget=%u count=%d/%d\n",
+                    program,seed,flags,budget,callback_budget,counts[0],counts[1]);return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS Thumb arithmetic runs (%u full-state/budget/callback oracle comparisons)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_thumb_call_boundaries() {
 #ifdef __EMSCRIPTEN__
     struct restore { bool old=thumb_direct_memory; ~restore(){thumb_direct_memory=old;} } saved;
@@ -6341,6 +6410,7 @@ int main(int argc, char **argv) {
     if (test_inlined_leaves(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
     if (test_invariant_writes(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
 #endif
+    if (test_thumb_arithmetic_run_budgets()) passed++; else failed++;
     if (test_bounded_execution()) passed++; else failed++;
     if (test_folded_tlb_guards()) passed++; else failed++;
     if (test_unsafe_code_diagnostic()) passed++; else failed++;
