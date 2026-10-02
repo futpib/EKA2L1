@@ -33,12 +33,16 @@
 #include <algorithm>
 #include <unordered_map>
 #include <cstdlib>
+#include <cstddef>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #endif
 
 namespace eka2l1::arm::aot {
+#ifdef __EMSCRIPTEN__
+static_assert(offsetof(ARMul_State, NumInstrsToExecute) == state_offsets::NUM_INSTRS_TO_EXECUTE);
+#endif
 static std::atomic<std::uint64_t> completed_function_count{0};
 std::uint64_t compiled_function_count() { return completed_function_count.load(std::memory_order_relaxed); }
 

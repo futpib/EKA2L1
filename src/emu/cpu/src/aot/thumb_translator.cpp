@@ -816,6 +816,42 @@ namespace eka2l1::arm::aot {
                 if (call_half == 0xF000) {
                     const std::uint32_t displacement = ((insn & 0x7FF) << 12) | ((insn & 0x400) ? 0xFF800000u : 0u);
                     w.store_i32_const(S::LR, insn_addr + 4 + displacement);
+                    // Fuse a complete ARMv5/v6 long-call pair, retaining the
+                    // architectural stop between its two budgeted halfwords.
+                    if (direct_memory && i + 3 < code_size) {
+                        const std::uint16_t suffix = code[i+2] | (code[i+3] << 8);
+                        const auto kind = suffix & 0xF800;
+                        if (kind == 0xF800 || (kind == 0xE800 && !(suffix & 1))) {
+                            w.census_pc = (insn_addr + 2) | 1;
+                            w.census_opcode = suffix;
+                            w.load_i32(S::AOT_BUDGET); w.i32_const(insn_idx + 1);
+                            w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
+                            w.bail(insn_addr + 2, insn_idx + 1, exit_census::guard);
+                            w.op(op_end);
+                            // Preserve the outer runner's stop/IRQ boundary. A
+                            // preceding callback may have requested either exit.
+                            w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
+                            w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
+                            w.op(op_i32_or); w.op(op_i32_eqz);
+                            w.op(op_if); w.op(type_void);
+                            w.bail(insn_addr + 2, insn_idx + 1, exit_census::guard);
+                            w.op(op_end);
+                            w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                            w.load_i32(S::CPSR); w.i32_const(0x80);
+                            w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
+                            w.op(op_if); w.op(type_void);
+                            w.bail(insn_addr + 2, insn_idx + 1, exit_census::interrupt);
+                            w.op(op_end);
+                            auto target = insn_addr + 4 + displacement + ((suffix & 0x7FF) << 1);
+                            if (kind == 0xE800) { target &= ~3u; w.store_i32_const(S::TFLAG, 0); }
+                            w.store_i32_const(S::LR, (insn_addr + 4) | 1);
+                            w.bail(target, insn_idx + 2);
+                            tr.resume_points.push_back(insn_addr + 2);
+                            tr.resume_points.push_back(insn_addr + 4);
+                            decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                            insn_idx += 2; break;
+                        }
+                    }
                     w.bail(insn_addr + 2, insn_idx + 1);
                     tr.resume_points.push_back(insn_addr + 2);
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 2;

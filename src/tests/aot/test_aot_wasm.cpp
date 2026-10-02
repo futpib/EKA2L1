@@ -2143,6 +2143,13 @@ static bool test_bounded_execution() {
         thumb({0xbd00}), // POP PC mode switch
         thumb({0x3001, 0xf000, 0xf800}), // return before long call halfwords
     };
+    // Long Thumb calls retain both halfword boundaries. Include negative
+    // displacements, halfword alignment, BL/BLX and undefined odd BLX suffixes.
+    for (std::uint16_t prefix : {0xf000,0xf001,0xf7ff})
+    for (std::uint16_t suffix : {0xf800,0xf801,0xffff,0xe800,0xe802,0xeffe,0xe801}) {
+        programs.push_back(thumb({prefix,suffix}));
+        programs.push_back(thumb({0x2001,prefix,suffix}));
+    }
     // Lazy arithmetic flag recipes must survive exact short budgets, reads,
     // conditional writes, forward joins, loop backedges and helper callbacks.
     for (unsigned cond = 0; cond < 15; ++cond) {
@@ -2241,6 +2248,7 @@ static bool test_bounded_execution() {
             cpu->set_cpsr(0x10000010 | (carry<<29) | (p.thumb ? 0x20 : 0));
             set(state_offsets::CPSR,cpu->get_cpsr());
             set(state_offsets::MODE,16);
+            set(state_offsets::NUM_INSTRS_TO_EXECUTE,budget);
             set(state_offsets::CFLAG,carry); set(state_offsets::VFLAG,1);
             set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget); set(state_offsets::NIRQ,1);
             r12l1::tlb direct(12,r12l1::dyncom_folded_tlb);
@@ -4242,6 +4250,47 @@ static bool test_msr_privilege_guard() {
     return true;
 }
 
+
+static bool test_thumb_call_boundaries() {
+#ifdef __EMSCRIPTEN__
+    struct restore { bool old=thumb_direct_memory; ~restore(){thumb_direct_memory=old;} } saved;
+    unsigned checks=0;
+    for(bool enabled:{false,true})for(unsigned suffix:{0xf801u,0xe802u})for(unsigned base:{0x1000u,0x1002u}) {
+        thumb_direct_memory=enabled;
+        const std::uint16_t code[]={0xf001,static_cast<std::uint16_t>(suffix)};
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),base,nullptr,nullptr,true,false,true);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned budget:{0u,1u,2u})for(unsigned irq:{0u,1u})for(unsigned mask:{0u,0x80u})
+        for(std::uint64_t remaining:{std::uint64_t(0),std::uint64_t(1),std::uint64_t(1)<<32}) {
+            alignas(8) std::uint32_t state[256]{};
+            for(unsigned reg=0;reg<16;++reg)state[reg]=0xabc00000u+reg;
+            state[15]=base;state[state_offsets::CPSR/4]=0xa0000030u|mask;
+            state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=state[state_offsets::TFLAG/4]=1;
+            state[state_offsets::NIRQ/4]=irq;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=static_cast<unsigned>(remaining);
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=static_cast<unsigned>(remaining>>32);
+            std::uint32_t expected[256];std::memcpy(expected,state,sizeof(state));
+            const unsigned wanted=!budget?0:enabled&&budget>=2&&remaining&&(irq||mask)?2:1;
+            if(wanted==1){expected[14]=base+4+0x1000;expected[15]=base+2;}
+            if(wanted==2){
+                expected[14]=(base+4)|1;expected[15]=base+4+0x1000+((suffix&0x7ff)<<1);
+                if((suffix&0xf800)==0xe800){expected[15]&=~3u;expected[state_offsets::TFLAG/4]=0;}
+            }
+            g_count_memory_helpers=true;g_memory_helper_calls=0;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_count_memory_helpers=false;
+            if(count!=wanted||g_memory_helper_calls||std::memcmp(state,expected,sizeof(state))) {
+                printf("  FAIL thumb_call_boundaries enabled=%u suffix=%x base=%x budget=%u irq=%u mask=%u remaining=%llu count=%d expected=%u\n",
+                    enabled,suffix,base,budget,irq,mask,static_cast<unsigned long long>(remaining),count,wanted);return false;
+            }
+            ++checks;
+        }
+    }
+    printf("  PASS thumb_call_boundaries (%u full-state budget/stop/IRQ checks)\n",checks);
+#endif
+    return true;
+}
 
 static bool test_thumb_direct_memory() {
 #ifdef __EMSCRIPTEN__
@@ -6283,6 +6332,7 @@ int main(int argc, char **argv) {
     if (test_compare_conditions()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_thumb_direct_memory()) passed++; else failed++;
+    if (test_thumb_call_boundaries()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
 #ifdef EKA2L1_WASM_CODE_VERSIONS

@@ -125,6 +125,47 @@ static int thumb_memory_fault_probe(bool direct) {
     return 0;
 }
 
+
+// The emulator accounts ARMv5/v6 BL as two separately budgeted halfwords.
+// Native DynCom is the reference for that contract; Dynarmic Step treats the
+// architectural long call as one instruction and cannot expose its midpoint.
+static int thumb_call_probe() {
+    aot::thumb_direct_memory=true;
+    std::cout<<"PROBE_THUMB_CALLS 1\n";
+    unsigned cases=0;
+    for(std::uint16_t prefix:{0xf000,0xf001,0xf7ff})
+    for(std::uint16_t suffix:{0xf800,0xf801,0xffff,0xe800,0xe802,0xeffe})
+    for(unsigned start:{0x1000u,0x1002u})for(unsigned budget:{1u,2u})for(unsigned flags=0;flags<16;++flags) {
+        r12l1::exclusive_monitor monitor(1);dyncom_core cpu(&monitor,12);
+        Fixture f{cpu,std::vector<unsigned char>(65536),0x8000,0};f.install();
+        const std::uint16_t program[]={prefix,suffix};
+        std::memcpy(f.memory.data()+start,program,sizeof(program));
+        for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
+        cpu.set_pc(start);cpu.set_cpsr(0x30|(flags<<28));
+#ifdef __EMSCRIPTEN__
+        aot::global_registry().clear();
+        auto tr=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(program),sizeof(program),start,nullptr,nullptr,true,false,true);
+        if(!tr.entry_supported||!tr.complete||tr.end_address!=start+4){std::cerr<<"Long call pair did not compile completely\n";return 2;}
+        tr.func.export_name="f_"+std::to_string(start|1);
+        auto bytes=aot::build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        aot::stage_aot_module(std::move(bytes),"thumb-long-call");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        const auto compiled_before=eka2l1::common::performance::aot_instructions;
+#endif
+        const auto before=f.memory;
+        const auto prior=cpu.get_num_instruction_executed();cpu.run(budget);
+#ifdef __EMSCRIPTEN__
+        if(eka2l1::common::performance::aot_instructions-compiled_before!=budget){std::cerr<<"Long call escaped compiled runner\n";return 3;}
+#endif
+        if(f.memory!=before||f.calls||f.faults){std::cerr<<"Long call unexpectedly accessed data memory\n";return 4;}
+        std::cout<<"FAULT {\"id\":"<<cases++<<",\"opcode\":"<<(unsigned(prefix)|(unsigned(suffix)<<16))
+            <<",\"policy\":"<<budget<<",\"address\":"<<start<<",\"endian\":0,\"tlb_readonly\":0,\"partial\":"<<flags
+            <<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()<<",\"count\":"<<cpu.get_num_instruction_executed()-prior
+            <<",\"calls\":"<<f.calls<<",\"faults\":"<<f.faults<<",\"memory_changes\":[]}\n";
+    }
+    return 0;
+}
+
 int main(int argc, char **argv){
     if(argc>1 && std::strncmp(argv[argc-1],"--unsafe-code=",14)==0) {
         const std::string value(argv[argc-1]+14);
@@ -209,6 +250,7 @@ int main(int argc, char **argv){
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
+    if(argc==2 && std::string(argv[1])=="--thumb-calls")return thumb_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-memory")return thumb_memory_fault_probe(true);
     if(argc==2 && std::string(argv[1])=="--thumb-memory-control")return thumb_memory_fault_probe(false);
     const bool invariant_write_remap=argc==2 && std::string(argv[1])=="--invariant-write-remap";

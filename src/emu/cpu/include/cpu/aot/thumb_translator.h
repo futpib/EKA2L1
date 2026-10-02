@@ -40,6 +40,7 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t CFLAG = 812;
         static constexpr std::uint32_t VFLAG = 816;
         static constexpr std::uint32_t TFLAG = 828;
+        static constexpr std::uint32_t NUM_INSTRS_TO_EXECUTE = 840; // uint64_t
         static constexpr std::uint32_t AOT_BUDGET = 848;
 
         static constexpr std::uint32_t AOT_TLB = 852;
