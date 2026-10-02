@@ -1157,7 +1157,10 @@ namespace eka2l1::arm::aot {
         w.direct_block_memory = direct_blocks;
         w.defer_memory = w.region && defer_memory;
         w.cache.enabled = bounded && cache_registers;
-        w.cache.runtime_fields = region;
+        // Helpers publish/reload this state through the existing barriers;
+        // stop and IRQ signals deliberately remain uncached.
+        w.cache.runtime_fields = region || direct_blocks;
+        w.cache.program_counter = direct_blocks;
         w.cache.shared_return = w.cache.enabled;
         w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
 
