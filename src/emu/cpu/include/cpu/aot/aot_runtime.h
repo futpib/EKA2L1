@@ -30,6 +30,9 @@ namespace eka2l1::arm::aot {
     // Generated SVC returns a pending trap to the outer loop, where the exact
     // cumulative instruction count and kernel callback contract are available.
     inline bool compiled_svc_enabled = false;
+    // Compile deferred scalar/span misses through the existing memory helpers.
+    // Frozen before initialization; disabled until coverage and timing acceptance.
+    inline bool compiled_memory_misses = false;
     inline constexpr std::uint32_t svc_pending = 0x80000000u;
     inline constexpr std::uint32_t svc_taken = 0x40000000u;
     inline constexpr std::uint32_t svc_page_end = 0x20000000u;

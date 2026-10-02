@@ -236,7 +236,7 @@ namespace eka2l1::arm::aot {
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
             op(op_end); op(op_end);
             get_local(HOST); op(op_i32_eqz); op(op_if); op(type_void);
-            if (defer_memory && restartable_access) {
+            if (defer_memory && restartable_access && !compiled_memory_misses) {
                 get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT);
                 bail(current_pc, 0, exit_census::memory);
             } else {
@@ -1799,7 +1799,9 @@ namespace eka2l1::arm::aot {
             if (!instruction.leaf && (inst >> 28) == 14) {
                 // These restartable deferred loads either finish directly or
                 // exit before effects. No callback can invalidate the value.
-                if (w.defer_memory && (inst & 0x0f700000u) == 0x05100000u
+                // With compiled misses, end the lazy value before the access:
+                // its cold helper may observe or modify either register.
+                if (w.defer_memory && !compiled_memory_misses && (inst & 0x0f700000u) == 0x05100000u
                     && wide_hi != 15 && wide_lo != 15
                     && int(wide_lo) != w.wide_lo && int(wide_lo) != w.wide_hi)
                     preserve_wide = true;
@@ -2309,7 +2311,7 @@ namespace eka2l1::arm::aot {
                     // Code generation visits both arms; a fast LDM PC store
                     // must not suppress PC publication before fallback helpers.
                     if (!proved_span) w.pc_written = pc_written_before_span;
-                    if (!proved_span && w.defer_memory && !writeback && !has_pc) {
+                    if (!proved_span && w.defer_memory && !writeback && !has_pc && !compiled_memory_misses) {
                         // DynCom publishes block-transfer writeback before its
                         // callbacks, unlike this compiled/native contract. Keep
                         // writeback forms on the existing helper path.

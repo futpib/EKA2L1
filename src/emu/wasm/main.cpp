@@ -236,6 +236,14 @@ int eka2l1_ir_configure(int mode) {
 
 // DynCom and generated guards must select the same index before initialization.
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_compiled_memory_misses_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::compiled_memory_misses = mode != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_compiled_memory_misses_report() { return eka2l1::arm::aot::compiled_memory_misses; }
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_compiled_svc_configure(int mode) {
     if (g_state || mode < 0 || mode > 1) return -1;
     eka2l1::arm::aot::compiled_svc_enabled = mode != 0;

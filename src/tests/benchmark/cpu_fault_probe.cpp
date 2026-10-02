@@ -443,6 +443,11 @@ int main(int argc, char **argv){
         --argc;
     }
     std::cout << "PROBE_WRITE_PROTECT " << eka2l1::common::code_tracking::protect_writes << "\n";
+    if (argc > 1 && std::string(argv[argc-1]) == "--compiled-memory-misses") {
+        aot::compiled_memory_misses = true;
+        --argc;
+    }
+    std::cout << "PROBE_COMPILED_MEMORY_MISSES " << aot::compiled_memory_misses << "\n";
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         if(!aot::parse_arm_ir_policy(mode,ir_policy)) {std::cerr<<"Invalid IR mode\n";return 1;}
@@ -770,6 +775,9 @@ int main(int argc, char **argv){
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
         if(deferred && compiled<(ir_calls?execution_count:instruction_count))++deferred_cases;
+        if (aot::compiled_memory_misses && (std::string(argv[1]) == "--entry-budget-deferred" || wide_snapshots) && compiled != instruction_count) {
+            std::cerr << "Compiled memory miss escaped to interpreter at case " << cases << '\n'; return 3;
+        }
         if(!interpreter && (arm_leaf_memory ? (compiled<2 || compiled>3) : ir_long ? (compiled<111 || compiled>135) : invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : literal_pc_veneers ? (compiled<2 || compiled>9) : prefix_calls ? (compiled<2 || compiled>9) : expanded_calls ? (compiled<3 || compiled>9) : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Unexpected generated instruction count at case "<<cases<<'\n';return 2;
         }
@@ -814,6 +822,6 @@ int main(int argc, char **argv){
         std::cout<<"]}\n";
     }
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
-    if(deferred){std::cerr<<"Deferred cases: "<<deferred_cases<<'\n';if(!deferred_cases && !ir_call_short)return 3;}
+    if(deferred){std::cerr<<"Deferred cases: "<<deferred_cases<<'\n';if(!deferred_cases && !ir_call_short && !aot::compiled_memory_misses)return 3;}
 #endif
 }

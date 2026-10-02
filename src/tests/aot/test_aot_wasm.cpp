@@ -2493,6 +2493,81 @@ static bool test_region_cpsr_callback() {
     printf("  PASS region_cpsr_callback\n"); return true;
 }
 
+static bool test_compiled_memory_misses() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking = eka2l1::common::code_tracking;
+    const auto saved_mode=tracking::unsafe_code_mode;
+    const auto saved_fold=r12l1::dyncom_folded_tlb;
+    const auto saved_option=compiled_memory_misses;
+    struct restore { bool option; unsigned mode; bool folded;
+        ~restore(){compiled_memory_misses=option;tracking::unsafe_code_mode=mode;r12l1::dyncom_folded_tlb=folded;}
+    } saved{saved_option,saved_mode,saved_fold};
+    unsigned checks=0;
+    // Select the production policy explicitly: default IR segments can still
+    // take separate guarded IR exits, which this scalar/span option does not change.
+    for(bool folded:{false,true})for(unsigned mode:{0u,3u})
+    for(unsigned opcode:{0xe5910000u,0xe5810000u,0xe5d10000u,0xe5c10000u,0xe891000du,0xe881000du})
+    for(bool wide:{false,true}) {
+        tracking::unsafe_code_mode=mode;r12l1::dyncom_folded_tlb=folded;
+        const unsigned code[]={wide?0xe0c54796u:0xe3b02007u,opcode,0xe2844001u};
+        std::vector<std::uint8_t> modules[2];
+        for(unsigned variant=0;variant<2;++variant) {
+            compiled_memory_misses=variant;
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,arm_ir_policy::write_budget_chunks);
+            modules[variant]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        }
+        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0x8000u,0x8001u,0x8ffcu,0u})for(unsigned budget:{0u,1u,2u,3u}) {
+            test_mem memory;for(unsigned i=0x7000;i<0xa000;++i)memory.data[i]=(i*17+3)&255;
+            const auto initial=memory.data;
+            r12l1::tlb tlb(12,folded);tlb.add(0x8000,memory.data.data()+0x8000,permission);
+            std::array<unsigned,256> states[2]{};std::vector<std::uint8_t> output[2];int counts[2];unsigned helpers[2];
+            for(unsigned variant=0;variant<2;++variant) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());auto &state=states[variant];
+                for(unsigned i=0;i<15;++i)state[i]=0x12340000+i;
+                state[1]=address;state[15]=0x1000;state[state_offsets::CPSR/4]=0xa0000010|endian;
+                state[state_offsets::NFLAG/4]=1;state[state_offsets::CFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;
+                state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                counts[variant]=js_run_aot_wasm(modules[variant].data(),modules[variant].size(),reinterpret_cast<std::uint8_t*>(state.data()),sizeof(state));
+                helpers[variant]=g_all_memory_helper_calls;output[variant]=memory.data;g_test_mem=nullptr;
+            }
+            if(counts[0]!=counts[1]||states[0]!=states[1]||helpers[0]!=helpers[1]||output[0]!=output[1]) {
+                printf(" FAIL compiled memory misses op=%x mode=%u folded=%u wide=%u perm=%u endian=%u addr=%x budget=%u counts=%d/%d helpers=%u/%u\n",opcode,mode,folded,wide,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
+            }
+            ++checks;
+        }
+    }
+    // A cold callback sees the materialized multiply pair and can change both
+    // halves, flags and the stop/IRQ request. Compare with the existing helper path.
+    for(unsigned action:{0u,1u,2u,3u}) {
+        const unsigned code[]={0xe0c54796u,0xe5910000u,0xe0848005u};
+        test_mem memory;memory.write32(0x8000,42);r12l1::tlb tlb(12,saved_fold);
+        std::array<unsigned,256> states[2]{};int counts[2];std::array<unsigned,4> observations[2]{};
+        for(unsigned variant=0;variant<2;++variant) {
+            compiled_memory_misses=variant;
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,arm_ir_policy::write_budget_chunks);
+            auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+            auto &v=states[variant];v[1]=0x8000;v[6]=0x87654321;v[7]=0x12345678;v[15]=0x1000;
+            v[state_offsets::CPSR/4]=0x10;v[state_offsets::AOT_BUDGET/4]=3;v[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;v[state_offsets::NIRQ/4]=1;
+            v[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            g_test_mem=&memory;g_read32_observer=[&](unsigned ptr,unsigned address){
+                auto *s=reinterpret_cast<unsigned*>(ptr);observations[variant]={s[4],s[5],s[15],address};s[4]=11;s[5]=22;s[state_offsets::CFLAG/4]=1;
+                if(action==1)s[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;
+                if(action==2)s[state_offsets::NIRQ/4]=0;
+                if(action==3)s[state_offsets::CPSR/4]|=0x200;
+            };
+            counts[variant]=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(v.data()),sizeof(v));g_read32_observer={};g_test_mem=nullptr;
+        }
+        if(counts[0]!=counts[1]||states[0]!=states[1]||observations[0]!=observations[1]||observations[1][2]!=0x1004) {printf(" FAIL compiled memory callback action=%u\n",action);return false;}++checks;
+    }
+    compiled_memory_misses=saved_option;tracking::unsafe_code_mode=saved_mode;r12l1::dyncom_folded_tlb=saved_fold;
+    printf(" PASS compiled memory misses (%u state/memory/budget/callback comparisons)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_deferred_memory_exits() {
 #ifdef __EMSCRIPTEN__
     unsigned checks=0;
@@ -6733,6 +6808,7 @@ int main(int argc, char **argv) {
     if (test_ir_addressing()) passed++; else failed++;
     if (test_memory_displacements()) passed++; else failed++;
     if (test_deferred_memory_exits()) passed++; else failed++;
+    if (test_compiled_memory_misses()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;
     if (test_region_loop_interrupts()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
