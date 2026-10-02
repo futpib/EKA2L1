@@ -3860,7 +3860,9 @@ namespace eka2l1::arm::aot {
                 w.i32_const(1); w.op(op_i32_and); w.set_local(TMP2);
                 w.store_i32(S::TFLAG, TMP2);
                 w.load_reg(14);
-                w.i32_const(~1);
+                // Align the outgoing PC before a short-budget return too.
+                w.get_local(TMP2); w.i32_const(1); w.op(op_i32_shl);
+                w.i32_const(~3); w.op(op_i32_or);
                 w.op(op_i32_and);
                 w.set_local(TMP1);
                 w.store_reg(15, TMP1);
@@ -3879,7 +3881,12 @@ namespace eka2l1::arm::aot {
                 // BX Rm / BLX Rm
                 int rm = (insn >> 3) & 0xF;
                 bool is_blx = (insn & 0x80) != 0;
-                w.load_reg(rm); w.set_local(TMP3); // capture before BLX overwrites LR
+                // BX PC reads the Thumb pipeline value, not the current
+                // instruction address stored in the runtime. BLX PC retains
+                // DynCom's raw-PC behavior for that unpredictable encoding.
+                if (rm == 15 && !is_blx) w.i32_const(insn_addr + 4);
+                else w.load_reg(rm);
+                w.set_local(TMP3); // capture before BLX overwrites LR
                 if (is_blx) {
                     // BLX Rm — set LR = next instruction | 1 (Thumb)
                     w.store_i32_const(S::LR, static_cast<std::int32_t>((insn_addr + 2) | 1));
@@ -3893,7 +3900,9 @@ namespace eka2l1::arm::aot {
                 w.i32_const(1); w.op(op_i32_and); w.set_local(TMP2);
                 w.store_i32(S::TFLAG, TMP2);
                 w.get_local(TMP3);
-                w.i32_const(~1);
+                // Align the outgoing PC before a short-budget return too.
+                w.get_local(TMP2); w.i32_const(1); w.op(op_i32_shl);
+                w.i32_const(~3); w.op(op_i32_or);
                 w.op(op_i32_and);
                 w.set_local(TMP1);
                 w.store_reg(15, TMP1);

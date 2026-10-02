@@ -4,7 +4,7 @@ if(EMSCRIPTEN)
     target_link_options(test_aot_wasm PRIVATE
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"
         "SHELL:-s INITIAL_MEMORY=134217728"
-        "SHELL:-s EXPORTED_FUNCTIONS=['_main','_test_tlb_read32','_test_tlb_write32','_test_tlb_read8']"
+        "SHELL:-s EXPORTED_FUNCTIONS=['_main','_malloc','_free','_test_tlb_read32','_test_tlb_write32','_test_tlb_read8']"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=['addFunction']"
         "SHELL:-s ALLOW_TABLE_GROWTH=1"
         "SHELL:-s EXIT_RUNTIME=1"

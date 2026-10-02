@@ -2800,9 +2800,13 @@ AOT_RESUME:
     // Check if an AOT-compiled function exists for this PC
     {
         auto aot_func = num_instrs >= cpu->NumInstrsToExecute ? nullptr : eka2l1::arm::aot::lookup_compiled(cpu);
-        if (!aot_func && eka2l1::arm::aot::hot_compilation_enabled && !eka2l1::arm::aot::validation_running) {
+        if (!aot_func && eka2l1::arm::aot::hot_compilation_enabled && !eka2l1::arm::aot::validation_running
+                && (!eka2l1::arm::aot::synchronous_compilation || num_instrs < cpu->NumInstrsToExecute)) {
             eka2l1::arm::aot::observe_hot_pc(cpu);
-            // Newly compiled entries can be picked up on the next dispatch.
+            // The opt-in first-use policy installs before this instruction.
+            // Retry the normal validated lookup once; rejection still falls back.
+            if (eka2l1::arm::aot::synchronous_compilation)
+                aot_func = eka2l1::arm::aot::lookup_compiled(cpu);
         }
         if (aot_func) {
             link = nullptr; // An interpreted predecessor cannot link across compiled execution.

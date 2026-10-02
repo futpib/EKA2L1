@@ -6117,6 +6117,120 @@ static bool test_arm_exclusive_decode() {
     printf("  exclusive decode checks: %u\n",checked);return ok;
 }
 
+namespace eka2l1::arm {
+struct matched_kernel_access {
+    static ARMul_State *state(dyncom_core &c) { return c.state_.get(); }
+};
+}
+static bool test_thumb_register_exchange() {
+#ifdef __EMSCRIPTEN__
+    struct restore { bool old=thumb_direct_memory; ~restore(){thumb_direct_memory=old;} } saved;
+    unsigned checks=0;
+    for(bool direct:{false,true})for(unsigned rm=0;rm<16;++rm)
+    for(bool link:{false,true})for(unsigned base:{0x1000u,0x1002u})for(unsigned prefix:{0u,1u,4u}) {
+        thumb_direct_memory=direct;
+        std::vector<std::uint16_t> code(prefix,0x463f);
+        code.push_back(static_cast<std::uint16_t>(0x4700|(rm<<3)|(link?0x80:0)));
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*2,base,nullptr,nullptr,true,false,true);
+        if(!tr.entry_supported||!tr.complete)return false;
+        auto module=build_wasm_module({tr.func},{});
+        for(unsigned low=0;low<4;++low)for(unsigned budget=0;budget<=prefix+1;++budget) {
+            alignas(8) unsigned state[256]{};
+            for(unsigned i=0;i<15;++i)state[i]=0x3000+16*i+low;
+            state[15]=base;state[state_offsets::CPSR/4]=0xa0000030;
+            state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=state[state_offsets::TFLAG/4]=1;
+            state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=budget;
+            unsigned expected[256];std::memcpy(expected,state,sizeof(state));
+            expected[15]=base+2*budget;
+            if(budget==prefix+1) {
+                const unsigned pc=base+2*prefix;
+                // BX reads the Thumb pipeline PC; BLX PC is architecturally
+                // unpredictable and retains DynCom's existing raw-PC behavior.
+                const unsigned target=rm==15?pc+(link?0:4):state[rm];
+                expected[state_offsets::TFLAG/4]=target&1;
+                expected[15]=target&((target&1)?~1u:~3u);
+                if(link)expected[14]=(pc+2)|1;
+            }
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            if(count!=budget||std::memcmp(state,expected,sizeof(state))) {
+                printf(" FAIL Thumb exchange direct=%u rm=%u link=%u base=%x prefix=%u low=%u budget=%u pc=%x expected=%x\n",direct,rm,link,base,prefix,low,budget,state[15],expected[15]);return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS Thumb register exchange (%u full-state short-budget/PC/LR/interworking checks)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_synchronous_compilation() {
+#ifdef __EMSCRIPTEN__
+    namespace perf=eka2l1::common::performance;
+    namespace tracking=eka2l1::common::code_tracking;
+    if(hot_compilation_enabled || global_registry().size()) {printf(" FAIL synchronous fixture requires initial empty runtime\n");return false;}
+    struct restore {
+        unsigned sync=synchronous_compilation;
+        bool enabled=perf::enabled,detailed=perf::detailed;
+        int phase=perf::phase.load();
+        unsigned mode=tracking::unsafe_code_mode;
+        std::vector<std::pair<std::string,std::string>> env;
+        std::vector<std::string> absent;
+        restore(){for(const char *n:{"EKA2L1_AOT_RAM","EKA2L1_AOT_CHAIN","EKA2L1_AOT_REGION","EKA2L1_AOT_IR_MODE"}){if(auto v=getenv(n))env.push_back({n,v});else absent.push_back(n);}}
+        ~restore(){configure_hot_rom(nullptr,0,0,false);global_registry().clear();synchronous_compilation=sync;perf::enabled=enabled;perf::detailed=detailed;perf::phase=phase;tracking::unsafe_code_mode=mode;for(auto &x:env)setenv(x.first.c_str(),x.second.c_str(),1);for(auto &x:absent)unsetenv(x.c_str());}
+    } saved;
+    setenv("EKA2L1_AOT_RAM","1",1);setenv("EKA2L1_AOT_CHAIN","1",1);setenv("EKA2L1_AOT_REGION","1",1);setenv("EKA2L1_AOT_IR_MODE","7",1);
+    unsigned checks=0;
+    for(unsigned mode:{0u,3u})for(bool thumb:{false,true})for(bool rom:{false,true})
+    for(unsigned sync:{0u,1u,2u})for(unsigned budget:{1u,2u,3u,16u}) {
+        tracking::unsafe_code_mode=mode;configure_hot_rom(nullptr,0,0,false);global_registry().clear();
+        test_mem expected,actual;
+        const unsigned arm[]={0xe2800001u,0xeafffffdu};
+        const std::uint16_t th[]={0x3001u,0xe7fdu};
+        const auto *bytes=thumb?reinterpret_cast<const std::uint8_t*>(th):reinterpret_cast<const std::uint8_t*>(arm);
+        const unsigned size=thumb?sizeof(th):sizeof(arm);
+        expected.write_code(0x1000,{bytes,bytes+size});actual.write_code(0x1000,{bytes,bytes+size});
+        r12l1::exclusive_monitor refmon(1),mon(1);auto reference=make_cpu(expected,refmon);auto cpu=make_cpu(actual,mon);
+        reference->set_cpsr(0xa0000010u|(thumb?32u:0u));reference->set_pc(0x1000);reference->run(budget);
+        std::atomic<std::uint64_t> generation{1};cpu->code_mapping_generation=&generation;cpu->code_address_space=1;
+        cpu->resolve_code=[&](unsigned pc,core::code_mapping &view){if(pc<0x1000||pc>=0x1000+size)return false;view={1,actual.data.data()+pc,0x1000+size-pc};return true;};
+        cpu->set_cpsr(0xa0000010u|(thumb?32u:0u));cpu->set_pc(0x1000);
+        synchronous_compilation=sync;
+        configure_hot_rom(rom?actual.data.data()+0x1000:nullptr,rom?0x1000:0,rom?size:0,true);
+        perf::enabled=true;perf::detailed=true;perf::phase=2;const auto before=perf::aot_instructions;cpu->run(budget);
+        const auto compiled=perf::aot_instructions-before;
+        if(compiled!=((sync==1||(sync==2&&!rom))?budget:0u)||cpu->get_num_instruction_executed()!=budget||cpu->get_cpsr()!=reference->get_cpsr()) {printf(" FAIL sync execution mode=%u thumb=%u rom=%u sync=%u budget=%u compiled=%llu\n",mode,thumb,rom,sync,budget,(unsigned long long)compiled);return false;}
+        for(unsigned reg=0;reg<16;++reg)if(cpu->get_reg(reg)!=reference->get_reg(reg)){printf(" FAIL sync register %u\n",reg);return false;}
+        ++checks;
+    }
+    for(unsigned mode:{0u,3u}) {
+        tracking::unsafe_code_mode=mode;configure_hot_rom(nullptr,0,0,false);global_registry().clear();
+        test_mem memory;r12l1::exclusive_monitor mon(1);auto cpu=make_cpu(memory,mon);
+        std::atomic<std::uint64_t> generation{1};cpu->code_mapping_generation=&generation;cpu->code_address_space=1;
+        std::array<unsigned,2> first{0xee000010u,0xeafffffdu},second{0xe2800002u,0xeafffffdu};
+        auto *backing=first.data();bool mapped=true;
+        cpu->resolve_code=[&](unsigned pc,core::code_mapping &view){if(!mapped||pc<0x1000||pc>=0x1008)return false;view={1,reinterpret_cast<const std::uint8_t*>(backing)+(pc-0x1000),0x1008-pc};return true;};
+        cpu->set_pc(0x1000);cpu->set_cpsr(0x10);auto *state=matched_kernel_access::state(*cpu);
+        synchronous_compilation=true;configure_hot_rom(nullptr,0,0,true);
+        observe_hot_pc(state);observe_hot_pc(state);
+        if(lookup_compiled(state))return false;
+        first[0]=0xe2800001u;observe_hot_pc(state);
+        if(bool(lookup_compiled(state))!=(mode==0)) {printf(" FAIL synchronous rejection identity mode=%u\n",mode);return false;}
+        backing=second.data();++generation;observe_hot_pc(state);auto function=lookup_compiled(state);
+        if(!function)return false;
+        state->Reg[0]=0;state->Reg[15]=0x1000;state->aot_budget=1;state->NumInstrsToExecute=1;state->NirqSig=1;
+        if(execute_single(state,function)!=1||state->Reg[0]!=2)return false;
+        mapped=false;++generation;if(lookup_compiled(state))return false;
+        observe_hot_pc(state);if(lookup_compiled(state))return false;
+        mapped=true;++generation;observe_hot_pc(state);if(!lookup_compiled(state))return false;
+        cpu->code_address_space=2;if(lookup_compiled(state))return false;
+        checks+=7;
+    }
+    printf(" PASS synchronous compilation (%u real first-use/ROM/RAM/budget/rejection/mapping checks)\n",checks);
+#endif
+    return true;
+}
+
 int main(int argc, char **argv) {
 #ifdef __EMSCRIPTEN__
     if (eka2l1::common::code_tracking::unsafe_code_mode != 3) {
@@ -6711,6 +6825,8 @@ int main(int argc, char **argv) {
     printf("Running %zu AOT WASM correctness tests...\n\n", tests.size());
 
     int passed = 0, failed = 0, skipped = 0;
+    if (test_synchronous_compilation()) passed++; else failed++;
+    if (test_thumb_register_exchange()) passed++; else failed++;
     for (auto &tc : tests) {
         bool ok = run_test(tc);
         if (ok) passed++;

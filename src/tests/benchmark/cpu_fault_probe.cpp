@@ -381,6 +381,42 @@ static int compiled_svc_probe() {
     return 0;
 }
 
+// Native DynCom oracle for register exchange, including the architectural
+// Thumb PC read bias and capture-before-LR-write for register calls.
+static int thumb_exchange_probe() {
+    unsigned cases=0;
+    for(bool direct:{false,true})for(unsigned rm=0;rm<16;++rm)
+    for(bool link:{false,true})for(unsigned base:{0x1000u,0x1002u})
+    for(unsigned prefix:{0u,1u,4u})for(unsigned low=0;low<4;++low)
+    for(unsigned budget=0;budget<=prefix+1;++budget) {
+        aot::thumb_direct_memory=direct;
+        r12l1::exclusive_monitor monitor(1);dyncom_core cpu(&monitor,12);
+        std::vector<unsigned char> memory(65536);
+        std::vector<std::uint16_t> code(prefix,0x463f); // MOV r7,r7, no flag change
+        code.push_back(static_cast<std::uint16_t>(0x4700|(rm<<3)|(link?0x80:0)));
+        std::memcpy(memory.data()+base,code.data(),code.size()*2);
+        cpu.read_code=[&](unsigned a,unsigned *v){if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;};
+        cpu.exception_handler=[](exception_type,unsigned){return false;};
+        for(unsigned i=0;i<15;++i)cpu.set_reg(i,0x3000+16*i+low);
+        cpu.set_pc(base);cpu.set_cpsr(0xa0000030);
+#ifdef __EMSCRIPTEN__
+        aot::global_registry().clear();
+        auto tr=aot::translate_thumb_block(memory.data()+base,code.size()*2,base,nullptr,nullptr,true,false,true);
+        if(!tr.entry_supported||!tr.complete){std::cerr<<"Exchange fixture rejected\n";return 2;}
+        tr.func.export_name="f_"+std::to_string(base|1);
+        auto bytes=aot::build_wasm_module({tr.func},{});
+        aot::stage_aot_module(std::move(bytes),"thumb-exchange-probe");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        const auto before=eka2l1::common::performance::aot_instructions;
+#endif
+        cpu.run(budget);
+#ifdef __EMSCRIPTEN__
+        if(eka2l1::common::performance::aot_instructions-before!=budget){std::cerr<<"Exchange fixture interpreted\n";return 3;}
+#endif
+        std::cout<<"FAULT {\"id\":"<<cases++<<",\"direct\":"<<direct<<",\"rm\":"<<rm<<",\"link\":"<<link<<",\"base\":"<<base<<",\"prefix\":"<<prefix<<",\"low\":"<<low<<",\"budget\":"<<budget<<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()<<",\"count\":"<<cpu.get_num_instruction_executed()<<"}\n";
+    }
+    return 0;
+}
+
 int main(int argc, char **argv){
     if(argc>1 && std::strncmp(argv[argc-1],"--unsafe-code=",14)==0) {
         const std::string value(argv[argc-1]+14);
@@ -470,6 +506,7 @@ int main(int argc, char **argv){
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
+    if(argc==2 && std::string(argv[1])=="--thumb-exchange") return thumb_exchange_probe();
     if(argc==2 && std::string(argv[1])=="--compiled-svc") return compiled_svc_probe();
     if(argc==2 && std::string(argv[1])=="--arm-exclusive") return arm_exclusive_probe();
     if(argc==2 && std::string(argv[1])=="--rom-calls")return rom_call_probe();

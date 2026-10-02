@@ -441,9 +441,13 @@ std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
 
 void observe_hot_pc(ARMul_State *cpu) {
 #ifdef __EMSCRIPTEN__
-    if (!hot_compilation_enabled || validation_running || (++hot_dispatches & 31)) return;
-    if ((hot_dispatches & 8191) == 0) flush_hot_blocks();
+    if (!hot_compilation_enabled || validation_running) return;
     const auto pc = cpu->Reg[15], key = pc | cpu->TFlag;
+    const bool first_use = synchronous_compilation == 1
+        || (synchronous_compilation == 2 && (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size));
+    ++hot_dispatches;
+    if (!first_use && (hot_dispatches & 31)) return;
+    if (first_use || (hot_dispatches & 8191) == 0) flush_hot_blocks();
     if (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size) {
         if (!ram_compilation_enabled || !cpu->parent()->resolve_code) return;
         if (ram_cache.versions() >= 16384) {
@@ -456,7 +460,7 @@ void observe_hot_pc(ARMul_State *cpu) {
         const auto identity = validated_code_cache::key(view.address_space, key);
         if (ram_counts.size() >= 131072 && !ram_counts.count(identity)) return;
         auto &count = ram_counts[identity];
-        if (++count % 8) {
+        if (++count % 8 && !first_use) {
             if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("candidate_threshold",key,view.address_space);
             return;
         }
@@ -501,13 +505,15 @@ void observe_hot_pc(ARMul_State *cpu) {
         tr.func.export_name = "r_" + std::to_string(entry.version) + "_pc_" + std::to_string(pc);
         hot_pending.push_back(std::move(tr.func));
         if (common::performance::counting()) ++common::performance::ram_blocks_compiled;
-        if (hot_pending.size() >= 32) flush_hot_blocks();
+        if (first_use || hot_pending.size() >= 32) flush_hot_blocks();
         return;
     }
     if (hot_compiled >= 4096) return;
     if (hot_counts.size() >= 65536 && !hot_counts.count(key)) return;
     auto &count = hot_counts[key];
-    if (count >= 8 || ++count != 8) return; // one attempt per immutable entry
+    if (count >= 8) return; // one attempt per immutable entry
+    if (first_use) count = 8;
+    else if (++count != 8) return;
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(chaining_enabled ? primary_window_bytes : 128u, hot_rom_size - offset);
     leaf_resolver leaves = [](std::uint32_t target) {
@@ -518,7 +524,7 @@ void observe_hot_pc(ARMul_State *cpu) {
     if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
     hot_pending.push_back(std::move(tr.func));
-    if (hot_pending.size() >= 32) flush_hot_blocks();
+    if (first_use || hot_pending.size() >= 32) flush_hot_blocks();
     ++hot_compiled;
 #endif
 }
