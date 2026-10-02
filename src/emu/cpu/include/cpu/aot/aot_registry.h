@@ -56,11 +56,6 @@ namespace eka2l1::arm::aot {
         std::unordered_map<std::uint32_t, aot_func> functions_;
         struct recent_function { std::uint32_t address = 0; aot_func function = nullptr; };
         mutable std::array<recent_function, 4096> recent_{};
-        // Keep miss entries separate so the positive-hit path and its layout
-        // stay unchanged. Registration/unregistration invalidate matching misses.
-        struct recent_miss { std::uint32_t address = 0; bool valid = false; };
-        // Keep the additional cache off the caller stack (WASM tests use 64 KiB).
-        mutable std::vector<recent_miss> recent_misses_ = std::vector<recent_miss>(4096);
         static std::size_t recent_index(std::uint32_t address) {
             return ((address >> 1) ^ (address << 7)) & 4095;
         }

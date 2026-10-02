@@ -43,3 +43,12 @@ Each route has only two matching pairs. Inspect their directions and raw times;
 the mean is not a universal gain estimate. This compares V14 and V15b (ARM memory disabled in both) archives,
 not the untouched live archive. It does not establish zero Snakes loss or
 sustained realtime Sky Force, and is insufficient for deployment.
+
+## Disposition
+
+Omit the source change from the next shared candidate. Stationary Sky Force
+favors it in both pairs, but combat and longer Snakes reverse, and standard
+Snakes is slower in both pairs. These observations do not establish a useful
+common improvement at the requested low Snakes cost. The accepted implementation,
+failed initial version, frozen archives and all samples remain reproducible.
+This is not a claim that negative caching is universally slower.

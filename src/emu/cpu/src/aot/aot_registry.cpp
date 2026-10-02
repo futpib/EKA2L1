@@ -33,34 +33,27 @@ namespace eka2l1::arm::aot {
     void registry::register_function(std::uint32_t arm_address, aot_func func) {
         functions_[arm_address] = func;
         recent_[recent_index(arm_address)] = {arm_address, func};
-        recent_misses_[recent_index(arm_address)] = {};
     }
 
     void registry::unregister_function(std::uint32_t arm_address) {
         functions_.erase(arm_address);
         auto &slot = recent_[recent_index(arm_address)];
         if (slot.address == arm_address) slot = {};
-        auto &miss = recent_misses_[recent_index(arm_address)];
-        if (miss.address == arm_address) miss = {};
     }
 
     void registry::clear() {
         functions_.clear();
         recent_.fill({});
-        std::fill(recent_misses_.begin(), recent_misses_.end(), recent_miss{});
     }
 
     aot_func registry::lookup(std::uint32_t arm_address) const {
         auto &slot = recent_[recent_index(arm_address)];
         if (slot.function && slot.address == arm_address) return slot.function;
-        auto &miss = recent_misses_[recent_index(arm_address)];
-        if (miss.valid && miss.address == arm_address) return nullptr;
         auto it = functions_.find(arm_address);
         if (it != functions_.end()) {
             slot = {arm_address, it->second};
             return it->second;
         }
-        miss = {arm_address, true};
         return nullptr;
     }
 
