@@ -34,3 +34,14 @@ serial screen, with opposite orders across four routes. Both use Thumb memory,
 ROM regions off, original limits, shared audio and physical GPU rendering without
 capture or detailed counters. One pair per route remains exploratory. The
 realtime goal is still open; the option remains off by default and unserved.
+
+## Runner diagnostic limitation
+
+The temporary no-inline diagnostic was built and profiled after correctness and
+before timing. Its measured guest work is unchanged (2,142,147,961 instructions,
+192 presentations), but it did not expose an execute_chain_impl frame in the
+CPU-worker profile; that name is also absent from the diagnostic WASM name bytes.
+InterpreterMainLoop still owns 33.75% of self samples. This does not separate
+compiled-runner cost from interpreter fallback. The result and temporary patch
+are retained, and the patch was removed before committing the normal candidate.
+Its sampled 16.62-second window is excluded from all speed comparisons.
