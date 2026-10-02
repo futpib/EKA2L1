@@ -51,9 +51,10 @@ namespace eka2l1 {
         /*! \brief Bridge a HLE function to guest (ARM - Symbian). */
         template <typename T, typename ret, typename... args>
         auto bridge(ret (*export_fn)(T *, args...)) {
-            constexpr args_layout<args...> layouts = lay_out<typename bridge_type<args>::arm_type...>();
-
-            return [export_fn, layouts](T *data, kernel::process *pr, arm::core *cpu) {
+            return [export_fn](T *data, kernel::process *pr, arm::core *cpu) {
+                // Argument locations depend only on the signature. Keeping them
+                // constant here avoids enlarging every stored/copied callable.
+                constexpr args_layout<args...> layouts = lay_out<typename bridge_type<args>::arm_type...>();
                 using indices = std::index_sequence_for<args...>;
                 call(export_fn, layouts, indices(), cpu, pr, data);
             };

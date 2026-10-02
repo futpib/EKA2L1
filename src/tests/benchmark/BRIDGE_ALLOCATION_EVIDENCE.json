@@ -1,0 +1,808 @@
+{
+  "status": "correctness_passed_speed_panel_pending_unserved",
+  "archive": "/home/claude/.scratch/eka-sky-performance/candidate-bridge-v8",
+  "provenance": {
+    "head": "621ad65c3cd705cb0736d042816278783fc06694",
+    "diff_sha256": "967111009b6e78017d57837b525b026c36ff12752da2b58422ddbc0d4a7d3372",
+    "build_commands": [
+      [
+        "bash",
+        "-c",
+        "source /home/claude/.scratch/eka-benchmark/emsdk/emsdk_env.sh && cmake --build build-wasm -j4 --target eka2l1_wasm test_aot_wasm eka_cpu_fault_wasm"
+      ],
+      [
+        "cmake",
+        "--build",
+        "build-native-performance",
+        "-j4",
+        "--target",
+        "ekatests",
+        "eka_cpu_tests"
+      ]
+    ],
+    "files": {
+      "eka2l1.js": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+      "source.patch": "967111009b6e78017d57837b525b026c36ff12752da2b58422ddbc0d4a7d3372",
+      "eka2l1.html": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+      "eka2l1.data": "63ff767b6132d2541c98e32b601d310a8254a33beac1334149fefee6bf3c1765",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "b463ca09030f7532f40f095783ae7eba427dd4c580501419fbd126277f3a7f8c",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/test_aot_wasm.wasm": "1ad4eb166b6c5a9ce7092d4b20c24b2a7477ddbecaf4b032bc534cf545ffbfd0",
+      "tests/eka_cpu_fault_wasm.wasm": "11ad6c69d045144bfede158cc87baf89a9b936a8414e81e284fff47f11a20fe1",
+      "tests/test_aot_wasm.js": "f5678a570c227c6524b68e4c65af8174b2c6e95ee7baf1a72e83db1c33b5f9ac"
+    }
+  },
+  "recording_head": "621ad65c3cd705cb0736d042816278783fc06694",
+  "compiler_suite_provenance": {
+    "reused": true,
+    "source_archive": "/home/claude/.scratch/eka-sky-performance/candidate-thumb-v5",
+    "reason": "Compiler source is unchanged from V5; reuse only when both complete JS and WASM unit artifacts are byte-identical.",
+    "hashes": {
+      "test_aot_wasm.js": "f5678a570c227c6524b68e4c65af8174b2c6e95ee7baf1a72e83db1c33b5f9ac",
+      "test_aot_wasm.wasm": "1ad4eb166b6c5a9ce7092d4b20c24b2a7477ddbecaf4b032bc534cf545ffbfd0"
+    }
+  },
+  "native_baseline": {
+    "complete": true,
+    "test_status": 0,
+    "head": "621ad65c3cd705cb0736d042816278783fc06694",
+    "binaries": {
+      "/home/claude/code/EKA2L1-sky-performance/build-native-performance/src/tests/ekatests": "5a013176e0cfb5228fd2aede5761dd6735a76a106f1423f8815efe256f33179d",
+      "/home/claude/code/EKA2L1-sky-performance/build-native-performance/src/tests/eka_cpu_tests": "dc996ebf6241b106c36bae06648da612ae412cb40505baab242a61d9752b358b"
+    }
+  },
+  "native_candidate": {
+    "accepted": true,
+    "head": "621ad65c3cd705cb0736d042816278783fc06694",
+    "native_binaries": {
+      "/home/claude/code/EKA2L1-sky-performance/build-native-performance/src/tests/ekatests": "1bcd0ec87b0e0e85391c46ba5bc4b2252b75d5b7876e4d859cbcd8a1485ea742",
+      "/home/claude/code/EKA2L1-sky-performance/build-native-performance/src/tests/eka_cpu_tests": "dc996ebf6241b106c36bae06648da612ae412cb40505baab242a61d9752b358b"
+    }
+  },
+  "native_baseline_output": "Test project /home/claude/code/EKA2L1-sky-performance/build-native-performance\n    Start 1: ekatests\n1/3 Test #1: ekatests .........................   Passed    0.20 sec\n    Start 2: eka_cpu_tests\n2/3 Test #2: eka_cpu_tests ....................   Passed    0.01 sec\n    Start 3: bluetooth_netplay\n3/3 Test #3: bluetooth_netplay ................   Passed    0.04 sec\n\n100% tests passed out of 3\n\nTotal Test time (real) =   0.25 sec\n",
+  "native_candidate_output": "Test project /home/claude/code/EKA2L1-sky-performance/build-native-performance\n    Start 1: ekatests\n1/3 Test #1: ekatests .........................   Passed    0.25 sec\n    Start 2: eka_cpu_tests\n2/3 Test #2: eka_cpu_tests ....................   Passed    0.01 sec\n    Start 3: bluetooth_netplay\n3/3 Test #3: bluetooth_netplay ................   Passed    0.04 sec\n\n100% tests passed out of 3\n\nTotal Test time (real) =   0.31 sec\n",
+  "calls": {
+    "verified_unsafe_code": 3,
+    "verified_leaf_features": null,
+    "verified_exit_census": null,
+    "verified_predicated_leaves": null,
+    "cases": 1152,
+    "all_fields_match": 1152,
+    "final_state_and_exact_memory_match": 1152,
+    "mismatched_fields": {},
+    "categories": {},
+    "inputs": {
+      "/home/claude/.scratch/eka-sky-performance/thumb-calls-native.log": "bf3aa7b0ff34bd61d141bb9aa945e3323f03f1c3ea6d35f3d01d1a5b88e166f0",
+      "/home/claude/.scratch/eka-sky-performance/v8-calls-wasm.log": "78ca0071402fbf9b47e0f5438a3d4bce02e5ea946f1ac9eb70c620cba09b0035"
+    },
+    "differences": []
+  },
+  "faults": {
+    "v8-thumb-fault-m0-h1.json": {
+      "verified_unsafe_code": 0,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 720,
+      "all_fields_match": 720,
+      "final_state_and_exact_memory_match": 720,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 120,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-sky-performance/thumb-fault-native-m0-h1.log": "29fdf931a035c39facf75ffca80838901266373ee78de68d587833d3765d91df",
+        "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-wasm-m0-h1.log": "374dfa8ea58d766ca03e30d654763a4fef42e63e1aa7a8b332710653eccf3733"
+      },
+      "differences": [],
+      "verified_tlb_hash": 1
+    },
+    "v8-thumb-fault-m3-h0.json": {
+      "verified_unsafe_code": 3,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 720,
+      "all_fields_match": 720,
+      "final_state_and_exact_memory_match": 720,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 120,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-sky-performance/thumb-fault-native-m3-h0.log": "8bb0d7ebe264dd4684763d8104db51863e0d9aff355e39cd5b597549afdbd2ef",
+        "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-wasm-m3-h0.log": "7984b3fdf5a8767e16795a452ceaf29299c430fbe367d7d62a70a3d310455a36"
+      },
+      "differences": [],
+      "verified_tlb_hash": 0
+    },
+    "v8-thumb-fault-m0-h0.json": {
+      "verified_unsafe_code": 0,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 720,
+      "all_fields_match": 720,
+      "final_state_and_exact_memory_match": 720,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 120,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-sky-performance/thumb-fault-native-m0-h0.log": "376dae77bc8bc6964260b68d7d28e527d03ccbcc8345ee7cd2862f9ef442f711",
+        "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-wasm-m0-h0.log": "12d9a728b1fa81680632e66f1e93d7eea62025be2221e69899062f7d556d7066"
+      },
+      "differences": [],
+      "verified_tlb_hash": 0
+    },
+    "v8-thumb-fault-m3-h1.json": {
+      "verified_unsafe_code": 3,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 720,
+      "all_fields_match": 720,
+      "final_state_and_exact_memory_match": 720,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 120,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-sky-performance/thumb-fault-native-m3-h1.log": "2b1a42702ab1a648fc184074a75c6f096ccaed4cf2130ef5a96076beb37204b3",
+        "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-wasm-m3-h1.log": "edb61b56ebd76a832d9dab134b5e5db52ba3e137887c5e14f4e4d2a46a52ce64"
+      },
+      "differences": [],
+      "verified_tlb_hash": 1
+    }
+  },
+  "replays": {
+    "v8-replay-sky-t1-v0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1703464,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "726b2d3074b6358b5b94ff43c78bc12fa4edf0fdd7695ee2adf610c718a388de",
+          "sha256_events": "c63da65ce2f58aec988d20fc77deb01136c7f75bbaaae281bb87b75124f15f3b",
+          "writes": 0,
+          "callbacks": 3372,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 3372,
+          "gameplay_nonzero_samples": 715750,
+          "gameplay_peak": 3756
+        },
+        "frames": 240,
+        "unique_images": 240,
+        "last_virtual_us": 35488839,
+        "instructions": 12818449148
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 240,
+        "start_us": 28000000,
+        "unique": true,
+        "wall_seconds": 85.42256188799999,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+        "wasm_sha256": "b463ca09030f7532f40f095783ae7eba427dd4c580501419fbd126277f3a7f8c",
+        "loader_sha256": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "621ad65c3cd705cb0736d042816278783fc06694",
+        "dirty_worktree": true
+      }
+    },
+    "v8-replay-sky-t0-v0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1703464,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "726b2d3074b6358b5b94ff43c78bc12fa4edf0fdd7695ee2adf610c718a388de",
+          "sha256_events": "c63da65ce2f58aec988d20fc77deb01136c7f75bbaaae281bb87b75124f15f3b",
+          "writes": 0,
+          "callbacks": 3372,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 3372,
+          "gameplay_nonzero_samples": 715750,
+          "gameplay_peak": 3756
+        },
+        "frames": 240,
+        "unique_images": 240,
+        "last_virtual_us": 35488839,
+        "instructions": 12818449148
+      },
+      "report": {
+        "thumb_memory": 0,
+        "app_uid": "0xa020d913",
+        "frames": 240,
+        "start_us": 28000000,
+        "unique": true,
+        "wall_seconds": 118.875951595,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+        "wasm_sha256": "b463ca09030f7532f40f095783ae7eba427dd4c580501419fbd126277f3a7f8c",
+        "loader_sha256": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "621ad65c3cd705cb0736d042816278783fc06694",
+        "dirty_worktree": true
+      }
+    },
+    "v8-replay-long-t1-v0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2832756,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "cff3ae6616cdda70e86562cd63566fd809b125041a7b338afc66b36e77a8f5a8",
+          "sha256_events": "2a099f1ce470188019b5d06f67e05c5386ad0f16fd193bce211603bba3c053d1",
+          "writes": 0,
+          "callbacks": 5849,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 5849,
+          "gameplay_nonzero_samples": 1611214,
+          "gameplay_peak": 573
+        },
+        "frames": 360,
+        "unique_images": 360,
+        "last_virtual_us": 59015758,
+        "instructions": 9309923112
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0x2000730f",
+        "frames": 360,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 43.443221226,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "wasm_sha256": "b463ca09030f7532f40f095783ae7eba427dd4c580501419fbd126277f3a7f8c",
+        "loader_sha256": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "621ad65c3cd705cb0736d042816278783fc06694",
+        "dirty_worktree": true
+      }
+    },
+    "v8-replay-combat-v0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2375493,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "02e7f275991bcbc7ad95fae3ad53c2442d173bb56be0af7145e1c2948c612235",
+          "sha256_events": "9c929a2a99c44545ad92a0dd1bca896644f22c7c7b03256d0368e670b1476ba7",
+          "writes": 0,
+          "callbacks": 4772,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4772,
+          "gameplay_nonzero_samples": 715776,
+          "gameplay_peak": 6253
+        },
+        "frames": 240,
+        "unique_images": 240,
+        "last_virtual_us": 49489458,
+        "instructions": 17866914027
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 240,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 118.86840806999999,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "b463ca09030f7532f40f095783ae7eba427dd4c580501419fbd126277f3a7f8c",
+        "loader_sha256": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "621ad65c3cd705cb0736d042816278783fc06694",
+        "dirty_worktree": true
+      }
+    },
+    "v8-replay-standard-t1-v0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4656051,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+          "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+          "writes": 0,
+          "callbacks": 9648,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 9648,
+          "gameplay_nonzero_samples": 6784478,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 97001070,
+        "instructions": 16376387249
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0x2000730f",
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 79.75121752899999,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "b463ca09030f7532f40f095783ae7eba427dd4c580501419fbd126277f3a7f8c",
+        "loader_sha256": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "621ad65c3cd705cb0736d042816278783fc06694",
+        "dirty_worktree": true
+      }
+    },
+    "v8-replay-sky-t1-v1024": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1703464,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "726b2d3074b6358b5b94ff43c78bc12fa4edf0fdd7695ee2adf610c718a388de",
+          "sha256_events": "c63da65ce2f58aec988d20fc77deb01136c7f75bbaaae281bb87b75124f15f3b",
+          "writes": 0,
+          "callbacks": 3372,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 3372,
+          "gameplay_nonzero_samples": 715750,
+          "gameplay_peak": 3756
+        },
+        "frames": 240,
+        "unique_images": 240,
+        "last_virtual_us": 35488839,
+        "instructions": 12818449148
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 240,
+        "start_us": 28000000,
+        "unique": true,
+        "wall_seconds": 131.246902823,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+        "wasm_sha256": "b463ca09030f7532f40f095783ae7eba427dd4c580501419fbd126277f3a7f8c",
+        "loader_sha256": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "621ad65c3cd705cb0736d042816278783fc06694",
+        "dirty_worktree": true
+      }
+    },
+    "v8-replay-combat-v1024": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2375493,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "02e7f275991bcbc7ad95fae3ad53c2442d173bb56be0af7145e1c2948c612235",
+          "sha256_events": "9c929a2a99c44545ad92a0dd1bca896644f22c7c7b03256d0368e670b1476ba7",
+          "writes": 0,
+          "callbacks": 4772,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4772,
+          "gameplay_nonzero_samples": 715776,
+          "gameplay_peak": 6253
+        },
+        "frames": 240,
+        "unique_images": 240,
+        "last_virtual_us": 49489458,
+        "instructions": 17866914027
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 240,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 188.09835101399997,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "b463ca09030f7532f40f095783ae7eba427dd4c580501419fbd126277f3a7f8c",
+        "loader_sha256": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "621ad65c3cd705cb0736d042816278783fc06694",
+        "dirty_worktree": true
+      }
+    }
+  },
+  "closure_sizes_wasm_bytes": {
+    "before": [
+      12,
+      12,
+      36,
+      68
+    ],
+    "after": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "argument_counts": [
+      0,
+      1,
+      4,
+      8
+    ],
+    "method": "Actual WASM compiler flags; LLVM IR constants from bridge closure sizeof probe. Mechanism evidence, not a runtime speed measurement."
+  },
+  "artifacts": {
+    "/home/claude/.scratch/eka-sky-performance/queue-bridge-v8.log": {
+      "sha256": "ec858d36165da8f3992b31bbbfb1a2e2fbb80aee04461b0698014004c1c0aa4a",
+      "bytes": 114
+    },
+    "/home/claude/.scratch/eka-sky-performance/replays-bridge-v8.log": {
+      "sha256": "24740bab330ab47c10a79738aa20af900208815db0db191a070c4e19251edc4b",
+      "bytes": 462
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge-v8-screen-00-sky-b5.log": {
+      "sha256": "063ed6ab1f9820ab3248cc63d6a79f9d82f7807f5a5e8f73222e635147c7420f",
+      "bytes": 977
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge-v8-screen-01-sky-b8.log": {
+      "sha256": "7f1b84679bc276961ce892617ac7e0af79b5ffdb146fa221c2aa265f9475ac22",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge-v8-screen-02-combat-b8.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/claude/.scratch/eka-sky-performance/build-bridge-v8-native.log": {
+      "sha256": "3cd59ea97e0f6a8047b1bac140d493a1a93c0be8d6698660e74e98a5c0a41524",
+      "bytes": 147831
+    },
+    "/home/claude/.scratch/eka-sky-performance/accept-bridge-v8.log": {
+      "sha256": "aa560715a0bc516fc2914c7349e325ad0a16c86a612f968ea51f7d4fc18899f5",
+      "bytes": 398
+    },
+    "/home/claude/.scratch/eka-sky-performance/screen-bridge-v8.log": {
+      "sha256": "a31ef4225e47b42ba59b1218c7eb6bffb997b63e0b9c88a241c52aef026ae13c",
+      "bytes": 181
+    },
+    "/home/claude/.scratch/eka-sky-performance/build-bridge-v8-wasm.log": {
+      "sha256": "b77e205e43f6b0087bfb2eff0665ec6fd58e9c7efd9716019235674abb4b8bf3",
+      "bytes": 158019
+    },
+    "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-compare-m0-h0.log": {
+      "sha256": "46606411fccd6f6053e55b90d72bcf8594e641b0dfefefec4be2a754c986b857",
+      "bytes": 690
+    },
+    "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-wasm-m3-h0.log": {
+      "sha256": "7984b3fdf5a8767e16795a452ceaf29299c430fbe367d7d62a70a3d310455a36",
+      "bytes": 431013
+    },
+    "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-compare-m3-h1.log": {
+      "sha256": "32e662703cc3fc88659c4cc79beae51d15c53473c7d1f69e4ae2e5a57eab69ff",
+      "bytes": 690
+    },
+    "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-compare-m3-h0.log": {
+      "sha256": "fdc827c436d063ba46d54eb6d82e03d0ea0d8f90dc8f0e35504c9d52a3c2430c",
+      "bytes": 690
+    },
+    "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-wasm-m0-h0.log": {
+      "sha256": "12d9a728b1fa81680632e66f1e93d7eea62025be2221e69899062f7d556d7066",
+      "bytes": 430869
+    },
+    "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-compare-m0-h1.log": {
+      "sha256": "0696a7d606d5faeb960da09cef250ead63b97bd0de1469d3994425b9be13cb2a",
+      "bytes": 690
+    },
+    "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-wasm-m0-h1.log": {
+      "sha256": "374dfa8ea58d766ca03e30d654763a4fef42e63e1aa7a8b332710653eccf3733",
+      "bytes": 430869
+    },
+    "/home/claude/.scratch/eka-sky-performance/v8-thumb-fault-wasm-m3-h1.log": {
+      "sha256": "edb61b56ebd76a832d9dab134b5e5db52ba3e137887c5e14f4e4d2a46a52ce64",
+      "bytes": 431013
+    },
+    "/home/claude/.scratch/eka-sky-performance/v8-calls-wasm.log": {
+      "sha256": "78ca0071402fbf9b47e0f5438a3d4bce02e5ea946f1ac9eb70c620cba09b0035",
+      "bytes": 442526
+    },
+    "/home/claude/.scratch/eka-sky-performance/v8-calls-compare.log": {
+      "sha256": "ae3e76572f791495d3b7f273e63c9701da224a4175b9de710186f91669d2f861",
+      "bytes": 567
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-v8-candidate.log": {
+      "sha256": "18f0c1cad757209a1172a230dc23fd15e8f8423f89878e4806c4cde0bef1ff46",
+      "bytes": 431
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-v8-baseline-1.log": {
+      "sha256": "a48c7320a36158bc019d050f1db3479d218896edfc4553cb94ead3a064aac386",
+      "bytes": 488559
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-v8-baseline-complete.json": {
+      "sha256": "21cf7cfc010ab89a2988b57e26551809e0cadfe276b93073b9a01287d22090d7",
+      "bytes": 441
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-v8-baseline.log": {
+      "sha256": "347de0c9160f45931490b18fa08cf7b9a6b33ddea08cfa16cca5b33c8476ea95",
+      "bytes": 85
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-v8-baseline-LastTest.log": {
+      "sha256": "d1f81762675e99a57c7e1fd3ae2f73499d49e84c8e76b592da44ec82dd5be432",
+      "bytes": 2598
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-v8-baseline-0.log": {
+      "sha256": "8d9ad060cb0f2bb7618b35d753c99d0f17a42349268f9aa68e024d6af6ddcb64",
+      "bytes": 44751
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-v8-baseline-commands.json": {
+      "sha256": "2e793d99eee884482d381bf2b91164084b90394345e3e3a56f12f132bb58bea2",
+      "bytes": 1080
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-v8-candidate-LastTest.log": {
+      "sha256": "3a8a2faa60702ed03a412899799d18b4ec7f3154d3d54bdec8994e367178a3e7",
+      "bytes": 2598
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-v8-baseline-2.log": {
+      "sha256": "7ac7084c926e76ccccfc3b9eabc09969f5cd6a1221719ceae1525f2830c694ca",
+      "bytes": 431
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge-layout-before.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge-layout-after.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge-layout-after-command.json": {
+      "sha256": "85a2c520bb07f0b4e91744e30c972006f92b603d651b22ad56d9fda96d3038be",
+      "bytes": 4491
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge-layout-before.ll": {
+      "sha256": "c6647e032b502908631cff413c207dd0e693e860050ddf67e5cdffb4ea31ff58",
+      "bytes": 694
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge-layout-before-command.json": {
+      "sha256": "8f6dc454692a921ca25da14bb85f48ef4b7464a6200c9c0527a819728cb6c966",
+      "bytes": 2375
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge-layout-after.ll": {
+      "sha256": "e93dd2d58b208e6ef57ffd8b5429ebc285d9327893579a76458d29ad007b8a37",
+      "bytes": 690
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge_layout_probe.cpp": {
+      "sha256": "24d6a5cde54dd2f6639bf581acc6c136d379455ff73f27225a43b4ab7ed31931",
+      "bytes": 723
+    },
+    "/home/claude/.scratch/eka-sky-performance/probe_bridge_layout.py": {
+      "sha256": "b182d03f2a59d7bca189093bdfb9a9d3409e9ead7d57873cd0c999cb75616d71",
+      "bytes": 1296
+    },
+    "/home/claude/.scratch/eka-sky-performance/queue_bridge_v8.py": {
+      "sha256": "453df2a7a93e595961e8b90612c30ef85204097592bdeedd3354ad167f43f844",
+      "bytes": 3272
+    },
+    "/home/claude/.scratch/eka-sky-performance/accept_v8.py": {
+      "sha256": "530d4ff63c8d374bfe989a4b98da00510fc61936db82fcb8acd5bad47143c557",
+      "bytes": 2517
+    },
+    "/home/claude/.scratch/eka-sky-performance/replay_bridge_v8.py": {
+      "sha256": "e1712f637f5971565844e8ce01827c5f2d36f7e31e04fdbdbd4de8e624b8df62",
+      "bytes": 1769
+    },
+    "/home/claude/.scratch/eka-sky-performance/replay_combat_v8.py": {
+      "sha256": "53119d6be63d2c265c2c768cc0def690a8418332a6adec4d61837d7281c6ff49",
+      "bytes": 1321
+    },
+    "/home/claude/.scratch/eka-sky-performance/screen_bridge_v8.py": {
+      "sha256": "608eaabed69b20332c6726f59244374b4d951945bdd506032046d2d9ab8868a9",
+      "bytes": 4357
+    },
+    "/home/claude/.scratch/eka-sky-performance/bridge-v8-screen-plan.json": {
+      "sha256": "71c9a342214f7cafc05037ada2f5de397d35d1c1490c0ffaab3aba82d6c0af37",
+      "bytes": 2047
+    }
+  }
+}
