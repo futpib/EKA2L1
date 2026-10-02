@@ -22,3 +22,26 @@ The intervening combat-reference commit changes only input and evidence.
 The option remains disabled by default and unserved. Speed measurement follows
 the separate frozen-V5 ROM-policy panel, with no overlapping owned build,
 correctness job or profiler. The realtime target remains open.
+
+## Four-route speed screen
+
+All eight preplanned serial observations are retained.
+
+| Route | V5 (s) | V6 (s) | Throughput change | V6 realtime ratio |
+| --- | ---: | ---: | ---: | ---: |
+| sky | 11.54460 | 11.45140 | +0.81% | 0.524x |
+| combat | 10.89030 | 10.74080 | +1.39% | 0.559x |
+| standard | 10.23610 | 12.02010 | -14.84% | 1.497x |
+| long | 9.81422 | 10.07990 | -2.64% | 1.786x |
+
+The small Sky Force differences and slower Snakes observations do not support
+promotion. Each route has one pair; this cannot separate a stable feature cost
+from host variability. Standard Snakes has the largest adverse observation.
+The option remains unserved. The next store-continuation candidate will use V5
+as its source baseline, leaving this unproven prefix-publication stage out.
+A fresh V6 CPU profile follows the screen as diagnosis, not a speed result.
+
+An initial watcher accidentally waited on its own completion marker. It was
+stopped while idle, before any observation started. The marker was corrected,
+the original sample plan was retained, and the screen then ran to completion.
+The original script and correction record are retained in scratch evidence.
