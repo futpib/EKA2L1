@@ -37,3 +37,21 @@ screen waits for correctness and the separate runner diagnostic to finish.
 One pair per route is exploratory; final promotion would need reordered
 confirmation, untouched-live controls and normal sustained live/audio checks.
 The realtime target remains open. This option remains unserved; nothing pushed.
+
+## Four-route screen
+
+All eight planned observations are retained.
+
+| Route | V8 seconds | V9 seconds | Throughput change | V9 realtime |
+| --- | ---: | ---: | ---: | ---: |
+| sky | 11.08170 | 10.98880 | +0.85% | 0.546x |
+| combat | 10.55300 | 10.88380 | -3.04% | 0.551x |
+| standard | 9.93007 | 10.16430 | -2.30% | 1.771x |
+| long | 9.82667 | 9.54057 | +3.00% | 1.887x |
+
+Stationary Sky Force and longer Snakes improve slightly while combat Sky Force
+and standard Snakes are slower. These single pairs do not establish stable
+gains or regressions and do not support promotion. The arithmetic grouping
+source is omitted from the next independent experiment, which returns to the
+accepted V8 allocation baseline. All implementation and evidence remain in
+history. Live is unchanged and the realtime goal remains open.
