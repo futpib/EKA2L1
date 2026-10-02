@@ -60,3 +60,10 @@ about 4%; these pairs do not establish repeatable gains or zero loss.
 The ARM path stays opt-in while a separate normal-browser CPU profile and
 possible one-page register-transfer refinement are investigated. V8 remains
 the performance baseline; no default, live build or scheduling change.
+
+A separate normal-browser sampled run attributes39.09% of CPU-worker samples
+to generated-code stacks and37.45% self time to the outer interpreter frame
+(which still includes the inlined compiled runner). The hottest generated
+ARM function accounts for12.55% self time and uses multi-register loads.
+These are diagnostic sample fractions, not isolated costs or timing samples.
+A one-page transfer proof is the next generic refinement to test.
