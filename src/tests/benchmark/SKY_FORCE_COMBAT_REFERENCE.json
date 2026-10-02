@@ -1,0 +1,107 @@
+{
+  "status": "native_reference_and_visual_gameplay_verified",
+  "purpose": "Separate later Stage 1 holdout with held fire and movement; not pooled with stationary Sky timings.",
+  "input": {
+    "path": "src/tests/benchmark/sky-force-combat.input",
+    "sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec"
+  },
+  "command": {
+    "args": [
+      "python3",
+      "src/tests/benchmark/run_native.py",
+      "--assets",
+      "/home/claude/.scratch/eka-sky-performance/assets",
+      "--asset-manifest",
+      "src/tests/benchmark/sky-force-assets.json",
+      "--output",
+      "/home/claude/.scratch/eka-sky-performance/native-combat-240",
+      "--binary",
+      "/home/claude/code/EKA2L1/build/bin/eka2l1_qt",
+      "--app-uid",
+      "0xa020d913",
+      "--input",
+      "src/tests/benchmark/sky-force-combat.input",
+      "--frames",
+      "240",
+      "--repeat",
+      "1",
+      "--start-us",
+      "42000000"
+    ],
+    "binary_source_note": "Same unchanged native binary as native-240, matched SHA256. Wrapper reports current checkout head separately; that is not a fresh native build.",
+    "env": {
+      "EKA2L1_SHARED_AUDIO": "1"
+    }
+  },
+  "native_report": {
+    "shared_audio": true,
+    "app_uid": "0xA020D913",
+    "rom_app": false,
+    "snakes_n80_native_resolution": false,
+    "git_head": "098201d2d176e882a8303558895f87c842990cce",
+    "dirty_worktree": true,
+    "binary_sha256": "268ca713af03daf982a8f2583393d588461e4f2e83cfff0127d340b2d198ab56",
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+    },
+    "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+    "frames": 240,
+    "start_us": 42000000,
+    "unique": true,
+    "runs": [
+      {
+        "wall_seconds": 266.2337080480065,
+        "last_virtual_us": 49489458
+      }
+    ]
+  },
+  "visual_review": {
+    "reviewed": true,
+    "frames": 240,
+    "guest_first_us": 42021089,
+    "guest_last_us": 49489458,
+    "inspection": "Viewed frames 0, 120 and 239. Stage 1 remains in active combat with ship movement, bullets, enemy explosions and visible score 275, 475 and 850. Progress indicator advances 3%, 4%, 5%. Not a menu/game-over timing window.",
+    "screenshots": {
+      "/home/claude/.scratch/eka-sky-performance/native-combat-240/run-0/frames/frame-0000.png": "e60652a919c086172ec6d2a5c96196439523cfdfb75dc1d22d14d5da53e11745",
+      "/home/claude/.scratch/eka-sky-performance/native-combat-240/run-0/frames/frame-0120.png": "b845bd42f01d12d7ad588f155c82e3311a52218569af6a2ceff717110f5d3c03",
+      "/home/claude/.scratch/eka-sky-performance/native-combat-240/run-0/frames/frame-0239.png": "3c3e54b0afa9fa1483b6f49fcb46a3c54f96e9d98309f22785ef26bd171ba814"
+    }
+  },
+  "initial_browser_comparison": {
+    "match": true,
+    "audio": {
+      "sample_frames": 2375493,
+      "sample_rate": 48000,
+      "channels": 2,
+      "sha256_pcm": "02e7f275991bcbc7ad95fae3ad53c2442d173bb56be0af7145e1c2948c612235",
+      "sha256_events": "9c929a2a99c44545ad92a0dd1bca896644f22c7c7b03256d0368e670b1476ba7",
+      "writes": 0,
+      "callbacks": 4772,
+      "backend": "shared-dsp-cubeb-resampler",
+      "render_callbacks": 4772,
+      "gameplay_nonzero_samples": 715776,
+      "gameplay_peak": 6253
+    },
+    "frames": 240,
+    "unique_images": 240,
+    "last_virtual_us": 49489458,
+    "instructions": 17866914027
+  },
+  "binary_attribution": "Native binary matches the original native-240 SHA256 exactly. Wrapper current-head metadata is not a fresh native rebuild. Browser comparison is frozen candidate-thumb-v5, mode3, Thumb memory1, eager ROM0; remaining policy/checked comparisons are pending.",
+  "artifacts": {
+    "/home/claude/.scratch/eka-sky-performance/native-combat.log": {
+      "sha256": "2f730d8961d28f20f1c686d95ef5210c970dd10b7c0b3edc511d555365f249f2",
+      "bytes": 84
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-combat-240/run-0/frames/frames.jsonl": {
+      "sha256": "d6d5565cc4b6a76394567c3628d172b082b01d0ec96c9c09db3f159c217781b6",
+      "bytes": 25810
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-combat-240/run-0/frames/audio.jsonl": {
+      "sha256": "9c929a2a99c44545ad92a0dd1bca896644f22c7c7b03256d0368e670b1476ba7",
+      "bytes": 471490
+    }
+  }
+}
