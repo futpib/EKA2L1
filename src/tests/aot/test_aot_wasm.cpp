@@ -4389,6 +4389,39 @@ static bool test_arm_short_block_memory() {
     return true;
 }
 
+static bool test_registry_lookup_lifecycle() {
+    registry actual;
+    std::map<std::uint32_t,aot_func> expected;
+    const aot_func functions[]={nullptr,
+        +[](ARMul_State *)->std::uint32_t{return 1;},
+        +[](ARMul_State *)->std::uint32_t{return 2;}};
+    const unsigned addresses[]={0,1,2,3,0x80001000u,0x80001001u,0x80001003u,
+        0x80003000u,0x80003001u,0x80003003u,0x70001000u,0x70001001u,
+        0xfffffffeu,0xffffffffu,0x1000,0x1001};
+    unsigned random=0x12345678,checks=0;
+    for(unsigned iteration=0;iteration<10000;++iteration) {
+        random=random*1664525u+1013904223u;
+        const auto address=addresses[(random>>12)&15];
+        const auto operation=random>>26;
+        if(operation==63){actual.clear();expected.clear();}
+        else if(operation<24){const auto function=functions[(random>>20)%3];actual.register_function(address,function);expected[address]=function;}
+        else if(operation<40){actual.unregister_function(address);expected.erase(address);}
+        for(const auto probe:addresses) {
+            const auto found=expected.find(probe);
+            const auto wanted=found==expected.end()?nullptr:found->second;
+            // Repeat queries and interleave colliding entries, replacements,
+            // unregisters and clears. Zero and all-one keys are legitimate.
+            if(actual.lookup(probe)!=wanted||actual.lookup(probe)!=wanted
+                ||actual.has_function(probe)!=(found!=expected.end())||actual.size()!=expected.size()) {
+                printf(" FAIL registry lifecycle iteration=%u address=%x\n",iteration,probe);return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS registry lookup lifecycle (%u oracle comparisons)\n",checks);
+    return true;
+}
+
 static bool test_thumb_call_boundaries() {
 #ifdef __EMSCRIPTEN__
     struct restore { bool old=thumb_direct_memory; ~restore(){thumb_direct_memory=old;} } saved;
@@ -6479,6 +6512,7 @@ int main(int argc, char **argv) {
     if (test_inlined_leaves(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
     if (test_invariant_writes(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
 #endif
+    if (test_registry_lookup_lifecycle()) passed++; else failed++;
     if (test_arm_short_block_memory()) passed++; else failed++;
     if (test_bounded_execution()) passed++; else failed++;
     if (test_folded_tlb_guards()) passed++; else failed++;
