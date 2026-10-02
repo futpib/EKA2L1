@@ -27,3 +27,19 @@ archive against V15b, with reversed orders on all four routes. Original limits,
 mode 3, hardware GPU and shared audio remain. Detailed counters, capture and
 sampling are off. The failed V15 watcher never reached a timing sample. No
 speed or realtime claim follows from correctness. Nothing deployed or pushed.
+
+## Sixteen-observation panel
+
+All preplanned observations and passive host readings are retained.
+
+| Route | First pair | Reversed pair | Mean throughput change | Candidate realtime range |
+| --- | ---: | ---: | ---: | ---: |
+| sky | +8.02% | +9.04% | +8.54% | 0.559–0.577x |
+| combat | -0.70% | +1.56% | +0.42% | 0.585–0.596x |
+| standard | -0.57% | -3.64% | -2.11% | 1.748–1.750x |
+| long | -0.44% | +1.23% | +0.39% | 1.796–1.805x |
+
+Each route has only two matching pairs. Inspect their directions and raw times;
+the mean is not a universal gain estimate. This compares V14 and V15b (ARM memory disabled in both) archives,
+not the untouched live archive. It does not establish zero Snakes loss or
+sustained realtime Sky Force, and is insufficient for deployment.
