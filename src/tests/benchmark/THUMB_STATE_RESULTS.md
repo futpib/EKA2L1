@@ -40,3 +40,23 @@ GPU rendering without capture, no sampling or detailed counters, and unchanged
 limits and scheduling. A single pair per route is not promotion evidence.
 Further measurement against the untouched live archive and normal live/audio
 acceptance remain required. The realtime Sky Force target is still open.
+
+## Exploratory screen and remaining cost
+
+The six planned observations are complete and retained. They do not establish
+an independent state-cache gain. Sky Force is essentially flat (12.7037s v2
+versus 12.6529s v3 for six guest seconds). Standard Snakes is slightly slower
+(10.4262s versus 10.6444s); longer Snakes has a slower control (11.2587s versus
+10.0207s). There is only one pair per route, so none is a promotion estimate.
+
+A subsequent sampled Sky Force run, excluded from timing, puts 36.7% of worker
+samples in `InterpreterMainLoop`, which includes the inlined compiled runner.
+Generated-code-inclusive samples are 38.7%; the largest individual generated
+function is 10.3%. Memory callbacks are no longer among the hottest self frames.
+The graphics worker is predominantly parked. This supports investigating
+compiled dispatch boundaries; it does not mean 36.7% interpreter fallback.
+
+The state-cache stage remains an unpromoted opt-in checkpoint. A separate
+long-call fusion experiment follows on this frozen base, preserving the midpoint
+budget exit and return/mode state. Its benefit and the usefulness of retaining
+state caching in the final combination still require measurement.
