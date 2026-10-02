@@ -11,13 +11,16 @@ namespace eka2l1::arm::aot {
         bool enabled = false;
         bool runtime_fields = false;
         bool program_counter = false;
+        // Only for acyclic emission: publish writes preceding this barrier.
+        // Reloads still use the final locals, including future helper operands.
+        bool prefix_writeback = false;
         // A result block carries the instruction count to one final writeback.
         // Helper barriers still flush/reload at their original positions.
         bool shared_return = false;
         std::uint32_t first_local = 0;
         std::map<std::uint32_t, std::uint32_t> locals;
         std::set<std::uint32_t> written;
-        struct barrier { std::size_t position; bool reload; };
+        struct barrier { std::size_t position; bool reload; std::uint64_t writes; };
         std::vector<barrier> barriers;
 
         bool accepts(std::uint32_t offset) const {
@@ -37,7 +40,16 @@ namespace eka2l1::arm::aot {
             return slot;
         }
         void barrier_at(std::size_t position, bool reload = false) {
-            if (enabled) barriers.push_back({position, reload});
+            if (!enabled) return;
+            std::uint64_t mask = ~std::uint64_t{0};
+            if (prefix_writeback && !reload) {
+                mask = 0;
+                for (const auto offset : written) {
+                    const auto index = locals.at(offset) - first_local;
+                    if (index < 64) mask |= std::uint64_t{1} << index;
+                }
+            }
+            barriers.push_back({position, reload, mask});
         }
         static void leb(std::vector<std::uint8_t> &out, std::uint32_t value) {
             do {
@@ -46,9 +58,10 @@ namespace eka2l1::arm::aot {
                 out.push_back(byte | (value ? 128 : 0));
             } while (value);
         }
-        void transfer(std::vector<std::uint8_t> &out, bool reload) const {
+        void transfer(std::vector<std::uint8_t> &out, bool reload, std::uint64_t mask = ~std::uint64_t{0}) const {
             for (const auto &[offset, slot] : locals) {
                 if (!reload && !written.count(offset)) continue;
+                if (!reload && prefix_writeback && !(mask & (std::uint64_t{1} << (slot - first_local)))) continue;
                 out.push_back(op_local_get); leb(out, 0);
                 if (reload) {
                     out.push_back(op_i32_load); leb(out, 2); leb(out, offset);
@@ -61,6 +74,9 @@ namespace eka2l1::arm::aot {
         }
         void finish(wasm_func_def &function) {
             if (!enabled) return;
+            // Current architectural caches have fewer than 32 fields. Future
+            // expansion beyond the mask retains conservative writeback.
+            if (locals.size() > 64) prefix_writeback = false;
             std::vector<std::uint8_t> body;
             transfer(body, true);
             if (shared_return) { body.push_back(op_block); body.push_back(type_i32); }
@@ -72,14 +88,19 @@ namespace eka2l1::arm::aot {
             for (auto &call : function.outlined_calls) {
                 const auto original = call.call_offset;
                 call.call_offset += static_cast<std::uint32_t>(body.size());
-                for (const auto &point : barriers) if (point.position <= original)
-                    call.call_offset += static_cast<std::uint32_t>(point.reload ? reload_size : flush.size());
+                for (const auto &point : barriers) if (point.position <= original) {
+                    if (prefix_writeback && !point.reload) {
+                        std::vector<std::uint8_t> selected;
+                        transfer(selected, false, point.writes);
+                        call.call_offset += static_cast<std::uint32_t>(selected.size());
+                    } else call.call_offset += static_cast<std::uint32_t>(point.reload ? reload_size : flush.size());
+                }
             }
             std::size_t previous = 0;
             for (const auto &point : barriers) {
                 body.insert(body.end(), function.body.begin() + previous,
                     function.body.begin() + point.position);
-                transfer(body, point.reload);
+                transfer(body, point.reload, point.writes);
                 previous = point.position;
             }
             body.insert(body.end(), function.body.begin() + previous, function.body.end());

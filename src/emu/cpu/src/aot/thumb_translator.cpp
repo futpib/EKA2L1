@@ -680,6 +680,9 @@ namespace eka2l1::arm::aot {
         // callbacks still publish/reload the complete cached state.
         w.cache.runtime_fields = direct_memory;
         w.cache.program_counter = direct_memory;
+        // Bounded Thumb has no internal backward/forward branch targets;
+        // earlier exits cannot have executed lexically later writes.
+        w.cache.prefix_writeback = direct_memory;
         w.cache.first_local = result.num_locals + 1;
 
         // Build instruction address → index map

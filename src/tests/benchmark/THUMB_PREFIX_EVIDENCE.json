@@ -1,0 +1,681 @@
+{
+  "status": "correctness_passed_speed_screen_pending_default_off",
+  "archive": "/home/claude/.scratch/eka-sky-performance/candidate-thumb-v6",
+  "provenance": {
+    "head": "3e088bf9c3a1d0fdce7c4e656f70353c162aff1c",
+    "diff_sha256": "83be1417c36aa696c3740283ce95c49eb3fef98e9d4b9d0497353114a39b57e4",
+    "files": {
+      "eka2l1.js": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+      "source.patch": "83be1417c36aa696c3740283ce95c49eb3fef98e9d4b9d0497353114a39b57e4",
+      "eka2l1.html": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+      "eka2l1.data": "63ff767b6132d2541c98e32b601d310a8254a33beac1334149fefee6bf3c1765",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "3ce1ed168ebc6eb2dcb58d7835e29f063e7d7e0eb591e6cc591ae543e7984695",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/test_aot_wasm.wasm": "e291f8da56d481fafca6a35e6db231af4b3b42f6ae6c019ed4e7461606af6735",
+      "tests/eka_cpu_fault_wasm.wasm": "b0d6b4f2c14cd0700c8a21cb86ec3369557a7b9f5f90e1768fd0594b3a650021",
+      "tests/test_aot_wasm.js": "f5678a570c227c6524b68e4c65af8174b2c6e95ee7baf1a72e83db1c33b5f9ac"
+    }
+  },
+  "recording_head": "144ac6b3e2518cd9bc56d0c434f4aee763089dac",
+  "compiler_suite": "TEST_UNSAFE_CODE_DEFAULT 3\nTEST_TLB_HASH 0\nRunning 74 AOT WASM correctness tests...\n\n  PASS MOVS R0, #42\n  PASS MOVS R0, #0 (zero flag)\n  PASS ADDS R0, R0, #1\n  PASS SUBS R0, R0, #1\n  PASS SUBS to zero\n  PASS CMP R0, R1 equal\n  PASS CMP R0, R1 greater\n  PASS CMP R0, R1 less\n  PASS CMP R0, #0\n  PASS CMP R0, #5 when R0=5\n  PASS MOVS R1, R0 (LSLS #0)\n  PASS LSLS R0, R1, #4\n  PASS LSRS R0, R1, #1\n  PASS ANDS R0, R1\n  PASS ORRS R0, R1\n  PASS EORS R0, R1\n  PASS MVNS R0, R1\n  PASS ADDS R0, #100\n  PASS SUBS R0, #1 to zero\n  PASS MOV R8, R0 (high reg)\n  PASS LDR R0, [R1, #0]\n  PASS LDR R0, [R1, #4]\n  PASS STR R0, [R1, #0]\n  PASS LDR R0, [R1, R2]\n  PASS LDR R0, [SP, #8]\n  PASS STR R0, [SP, #0]\n  PASS LDRB R0, [R1, #0]\n  PASS STRB R0, [R1, #0]\n  PASS LDRB R0, [R1, R2]\n  PASS LDRH R0, [R1, #0]\n  PASS SUBS R0, R1, R2\n  PASS ADDS R0, R1, R2\n  PASS ASRS R0, R1, #4\n  PASS ASRS R0, R1 (reg)\n  PASS MULS R0, R1\n  PASS BICS R0, R1\n  PASS NEGS R0, R1\n  PASS TST R0, R1 (nonzero)\n  PASS TST R0, R1 (zero)\n  PASS ADD R0, SP, #16\n  PASS SUB SP, #8\n  PASS ADD SP, #8\n  PASS LDR R0, [PC, #0]\n  PASS LDRSB R0, [R1, R2]\n  PASS CMN R0, R1\n  PASS CMP R8, R0\n  PASS LSLS R0, R1 (reg)\n  PASS LSRS R0, R1 (reg)\n  PASS MOVS+ADDS sequence\n  PASS MOVS+SUBS+SUBS\n  PASS PUSH+POP roundtrip\n  PASS PUSH {R4,LR} then BL bail\n  PASS MOVS + BL offset 0\n  PASS MOVS + BL +10\n  PASS ADD R5, R0 (T2)\n  PASS ADD R8, R0 (high Rdn)\n  PASS CMP R3, LR (T2 low Rn)\n  PASS LDRSH R0, [R1, R2]\n  PASS STRH R0, [R1, R2]\n  PASS LDRH R0, [R1, R2]\n  PASS STR R0, [R1, R2]\n  PASS STRB R0, [R1, R2]\n  PASS ADR R0, #0\n  PASS ADR R2, #20\n  PASS STMIA R1!, {R0,R2}\n  PASS LDMIA R1!, {R0,R2}\n  PASS BEQ forward not taken\n  PASS BEQ forward taken\n  PASS B forward\n  PASS Backward loop BNE\n  FAIL crash-repro 0x8046506E (harness limitation): Z=0 (wasm) vs 1 (interp)\n  XFAIL crash-repro 0x8046506E (harness limitation) (known failure, see test comment)\n  PASS crash-repro 0x80464BBE\n  PASS Backward branch to non-entry\n  PASS Forward target reused as backward\n\nRunning translator-level tests...\n\n  PASS resume_points_blx_rm\n  PASS resume_points_bl_imm\n  PASS blx_veneer_inlining\n  PASS function_end_stops_at_pop_pc\n  PASS function_end_stops_at_bx_lr\n  PASS branch_targets_include_bl_next_pc\n  PASS branch_targets_include_beq_target\n  PASS literal_pool_between_early_return_and_target\n  PASS wide_push_pop\n  PASS stop_at_wide_bail\n  PASS wide_movw_movt\n  PASS wide_ldr_str_imm12\n  PASS wide_add_sub_imm\n  PASS wide_and_orr_eor_bic_imm\n  PASS wide_ldr_str_reg\n  PASS wide_ldr_neg_offset\n  PASS wide_b_uncond\n  PASS wide_ldrd_strd\n  PASS wide_ubfx_sbfx\n  PASS wide_bfi_bfc\n  PASS wide_uxtb_sxth\n  PASS wide_clz\n  PASS wide_mul_mla_mls\n  PASS wide_sdiv_udiv\n  PASS wide_shifted_reg\n  PASS wide_addw_subw\n  PASS wide_mov_mvn_imm\n  PASS wide_strb_imm12\n  PASS vfp_vldr_vadd_vstr\n  PASS vfp_vcvt_vcmp_vmrs\n  PASS vfp_f64_instantiation\n  PASS resume_points_beyond_1024\n  PASS sibling_bl_resume_point\n\nRunning ARM translator-level tests...\n\n  PASS inlined_leaves policy=-1 (2560 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=11 (1920 exact budget/state/memory comparisons)\n  PASS inlined_leaves policy=12 (1920 exact budget/state/memory comparisons)\n  PASS invariant_writes policy=12 (16896 exact state/memory/budget comparisons)\n  PASS bounded_execution (520016 exact budget/state/memory comparisons)\n  PASS folded TLB scalar/block/entry guards and exact budgets\n UNSAFE_EMISSION mode=0 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=0 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=1 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=2 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=1 proof=1 budget=8 bytes=627 count=1 exit=1\n UNSAFE_EMISSION mode=2 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=2 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=8 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=1 bytes=582 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=2 bytes=582 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=8 bytes=582 count=2 exit=0\n UNSAFE_PROOF_EMISSION mode=0 proved_writes=4 bytes=2822\n UNSAFE_PROOF_EMISSION mode=3 proved_writes=4 bytes=2575\n PASS unsafe_code_diagnostic (42 checks; expected stale primary/dependency bytes and stale post-store execution; mapping, lifetime and budget checks retained)\n  PASS outlined_code_lookup (both lookup modes, grouped/stored comparators, short/long snapshots, dependencies, mappings, rejection)\n  PASS exact_code_compare (five modes including selected functions, unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n  PASS outlined_callee_indices\n  PASS proved_read_spans (30976 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=4 (15360 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=9 (25600 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=5 (16896 exact state/memory/budget comparisons)\nAOT: unsupported ARM insn 0xEF000000 at 0x00001000\n PASS exit census actual ARM/Thumb exit labels, budgets, helpers and code aliases\n PASS execution limits validation and 270 real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor checks\n PASS guard publication: 48 real lookup/runner sentinel checks; modes 0/1 always publish\n PASS inline leaf/site bounds and 640 exact interpreter budget comparisons\n PASS predicated leaves (29120 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS expanded leaves (88035 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS preserve inner fusion (2496 exact selection/budget/state/stack comparisons)\n PASS call prefixes (36960 exact budget/state/stack/memory/alias/continuation comparisons)\n PASS branch veneers (12800 exact budget/state/alias/path comparisons)\n PASS tail prefixes (86400 exact budget/state/alias/path comparisons)\n PASS literal PC veneers (15360 exact state/budget/runtime-target/mapping comparisons)\n PASS boundary details (97 exact rejection labels/counters and primary/dependency/gap/outside guards)\n  PASS budget_chunks policy=6 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=16 (7680 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=7 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=8 (30720 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=8 (16896 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=7 (16896 exact state/memory/budget comparisons)\n  PASS region_ir (snapshot liveness/type checks; backend disabled)\n  PASS ir_flags (221184 exact flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=13 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=14 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=15 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_conditions policy=16 (57344 exact predicate/flags/state/memory/budget comparisons)\n  PASS ir_long_segments (51840 exact long-graph state/flags/memory/budget comparisons)\n  PASS ir_segments (81536 exact state/memory/budget comparisons across enabled policies)\n  PASS ir_memory_exits (24584 exact intermediate snapshot/effect comparisons)\n  PASS ir_exit_recipes (6120 exact load-history/DAG/width/budget comparisons)\n  PASS ir_addressing (24112 exact width/address/snapshot/budget comparisons)\n  PASS memory_displacements (72 exact state/memory/budget checks)\n  PASS deferred_memory_exits (672 exact pre-instruction exits)\n  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS conditional_alu_select (229376 exact budget/state comparisons)\n  PASS compare_conditions (64512 exact budget/state comparisons)\n  PASS arm_long_multiply (92160 exact budget/state comparisons)\n PASS Thumb direct memory (9222 permission/alignment/endian/policy/budget/callback comparisons)\n  PASS thumb_call_boundaries (288 full-state budget/stop/IRQ checks)\n PASS Thumb transfer spans (5376 full-state/memory/budget comparisons)\n  PASS cached_callback_state\n  PASS msr_privilege_guard\n  SKIP code validity generation tests (experimental build option disabled)\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n179 passed, 0 failed\n",
+  "calls": {
+    "verified_unsafe_code": 3,
+    "verified_leaf_features": null,
+    "verified_exit_census": null,
+    "verified_predicated_leaves": null,
+    "cases": 1152,
+    "all_fields_match": 1152,
+    "final_state_and_exact_memory_match": 1152,
+    "mismatched_fields": {},
+    "categories": {},
+    "inputs": {
+      "/home/claude/.scratch/eka-sky-performance/thumb-calls-native.log": "bf3aa7b0ff34bd61d141bb9aa945e3323f03f1c3ea6d35f3d01d1a5b88e166f0",
+      "/home/claude/.scratch/eka-sky-performance/v6-calls-wasm.log": "5ce58036a004629042150df24aeb47c5016176f2d599e83616ee6eafb6ce3c1c"
+    },
+    "differences": []
+  },
+  "faults": {
+    "v6-thumb-fault-m0-h0.json": {
+      "verified_unsafe_code": 0,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 720,
+      "all_fields_match": 720,
+      "final_state_and_exact_memory_match": 720,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 120,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-sky-performance/thumb-fault-native-m0-h0.log": "376dae77bc8bc6964260b68d7d28e527d03ccbcc8345ee7cd2862f9ef442f711",
+        "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-wasm-m0-h0.log": "f11f4e872d9793a40d92335f29222ded6c776a8d43f8809db6861554027fea3c"
+      },
+      "differences": [],
+      "verified_tlb_hash": 0
+    },
+    "v6-thumb-fault-m3-h1.json": {
+      "verified_unsafe_code": 3,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 720,
+      "all_fields_match": 720,
+      "final_state_and_exact_memory_match": 720,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 120,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-sky-performance/thumb-fault-native-m3-h1.log": "2b1a42702ab1a648fc184074a75c6f096ccaed4cf2130ef5a96076beb37204b3",
+        "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-wasm-m3-h1.log": "3f622d223736f08f90b337e58ed5ed6493b536faaf2e4f6abd28162d8dd14778"
+      },
+      "differences": [],
+      "verified_tlb_hash": 1
+    },
+    "v6-thumb-fault-m0-h1.json": {
+      "verified_unsafe_code": 0,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 720,
+      "all_fields_match": 720,
+      "final_state_and_exact_memory_match": 720,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 120,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-sky-performance/thumb-fault-native-m0-h1.log": "29fdf931a035c39facf75ffca80838901266373ee78de68d587833d3765d91df",
+        "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-wasm-m0-h1.log": "2b26caa7ccff02d94c3a3fb24169b31370487ef1c0d6ccde95c3f1d23f3ab0d3"
+      },
+      "differences": [],
+      "verified_tlb_hash": 1
+    },
+    "v6-thumb-fault-m3-h0.json": {
+      "verified_unsafe_code": 3,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 720,
+      "all_fields_match": 720,
+      "final_state_and_exact_memory_match": 720,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 120,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-sky-performance/thumb-fault-native-m3-h0.log": "8bb0d7ebe264dd4684763d8104db51863e0d9aff355e39cd5b597549afdbd2ef",
+        "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-wasm-m3-h0.log": "8a3a37286236093a2b89daf3772fd8b759673f4098955052f2be57a6f48d2327"
+      },
+      "differences": [],
+      "verified_tlb_hash": 0
+    }
+  },
+  "replays": {
+    "v6-replay-standard-t1-v0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 4656051,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "7d8b35d3f3e7e7d64ed583f895723979717a25f32c76e2cec838015d1d07e03b",
+          "sha256_events": "28df85611ece9c3b17223043ee959f35ba05e2bccc025fd8f6df0a8c6d96cc88",
+          "writes": 0,
+          "callbacks": 9648,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 9648,
+          "gameplay_nonzero_samples": 6784478,
+          "gameplay_peak": 8449
+        },
+        "frames": 1600,
+        "unique_images": 1600,
+        "last_virtual_us": 97001070,
+        "instructions": 16376387249
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0x2000730f",
+        "frames": 1600,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 91.95295880500001,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "3ce1ed168ebc6eb2dcb58d7835e29f063e7d7e0eb591e6cc591ae543e7984695",
+        "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "144ac6b3e2518cd9bc56d0c434f4aee763089dac",
+        "dirty_worktree": true
+      }
+    },
+    "v6-replay-sky-t1-v1024": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1703464,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "726b2d3074b6358b5b94ff43c78bc12fa4edf0fdd7695ee2adf610c718a388de",
+          "sha256_events": "c63da65ce2f58aec988d20fc77deb01136c7f75bbaaae281bb87b75124f15f3b",
+          "writes": 0,
+          "callbacks": 3372,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 3372,
+          "gameplay_nonzero_samples": 715750,
+          "gameplay_peak": 3756
+        },
+        "frames": 240,
+        "unique_images": 240,
+        "last_virtual_us": 35488839,
+        "instructions": 12818449148
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 240,
+        "start_us": 28000000,
+        "unique": true,
+        "wall_seconds": 171.67387671699998,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+        "wasm_sha256": "3ce1ed168ebc6eb2dcb58d7835e29f063e7d7e0eb591e6cc591ae543e7984695",
+        "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "144ac6b3e2518cd9bc56d0c434f4aee763089dac",
+        "dirty_worktree": true
+      }
+    },
+    "v6-replay-combat-v0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2375493,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "02e7f275991bcbc7ad95fae3ad53c2442d173bb56be0af7145e1c2948c612235",
+          "sha256_events": "9c929a2a99c44545ad92a0dd1bca896644f22c7c7b03256d0368e670b1476ba7",
+          "writes": 0,
+          "callbacks": 4772,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4772,
+          "gameplay_nonzero_samples": 715776,
+          "gameplay_peak": 6253
+        },
+        "frames": 240,
+        "unique_images": 240,
+        "last_virtual_us": 49489458,
+        "instructions": 17866914027
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 240,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 157.78365245999998,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "3ce1ed168ebc6eb2dcb58d7835e29f063e7d7e0eb591e6cc591ae543e7984695",
+        "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "3e088bf9c3a1d0fdce7c4e656f70353c162aff1c",
+        "dirty_worktree": true
+      }
+    },
+    "v6-replay-sky-t0-v0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1703464,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "726b2d3074b6358b5b94ff43c78bc12fa4edf0fdd7695ee2adf610c718a388de",
+          "sha256_events": "c63da65ce2f58aec988d20fc77deb01136c7f75bbaaae281bb87b75124f15f3b",
+          "writes": 0,
+          "callbacks": 3372,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 3372,
+          "gameplay_nonzero_samples": 715750,
+          "gameplay_peak": 3756
+        },
+        "frames": 240,
+        "unique_images": 240,
+        "last_virtual_us": 35488839,
+        "instructions": 12818449148
+      },
+      "report": {
+        "thumb_memory": 0,
+        "app_uid": "0xa020d913",
+        "frames": 240,
+        "start_us": 28000000,
+        "unique": true,
+        "wall_seconds": 154.61929332600002,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+        "wasm_sha256": "3ce1ed168ebc6eb2dcb58d7835e29f063e7d7e0eb591e6cc591ae543e7984695",
+        "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "3e088bf9c3a1d0fdce7c4e656f70353c162aff1c",
+        "dirty_worktree": true
+      }
+    },
+    "v6-replay-long-t1-v0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2832756,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "cff3ae6616cdda70e86562cd63566fd809b125041a7b338afc66b36e77a8f5a8",
+          "sha256_events": "2a099f1ce470188019b5d06f67e05c5386ad0f16fd193bce211603bba3c053d1",
+          "writes": 0,
+          "callbacks": 5849,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 5849,
+          "gameplay_nonzero_samples": 1611214,
+          "gameplay_peak": 573
+        },
+        "frames": 360,
+        "unique_images": 360,
+        "last_virtual_us": 59015758,
+        "instructions": 9309923112
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0x2000730f",
+        "frames": 360,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 49.715248898,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+        "wasm_sha256": "3ce1ed168ebc6eb2dcb58d7835e29f063e7d7e0eb591e6cc591ae543e7984695",
+        "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "144ac6b3e2518cd9bc56d0c434f4aee763089dac",
+        "dirty_worktree": true
+      }
+    },
+    "v6-replay-sky-t1-v0": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1703464,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "726b2d3074b6358b5b94ff43c78bc12fa4edf0fdd7695ee2adf610c718a388de",
+          "sha256_events": "c63da65ce2f58aec988d20fc77deb01136c7f75bbaaae281bb87b75124f15f3b",
+          "writes": 0,
+          "callbacks": 3372,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 3372,
+          "gameplay_nonzero_samples": 715750,
+          "gameplay_peak": 3756
+        },
+        "frames": 240,
+        "unique_images": 240,
+        "last_virtual_us": 35488839,
+        "instructions": 12818449148
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 240,
+        "start_us": 28000000,
+        "unique": true,
+        "wall_seconds": 109.255366902,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+        "wasm_sha256": "3ce1ed168ebc6eb2dcb58d7835e29f063e7d7e0eb591e6cc591ae543e7984695",
+        "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "144ac6b3e2518cd9bc56d0c434f4aee763089dac",
+        "dirty_worktree": true
+      }
+    },
+    "v6-replay-combat-v1024": {
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2375493,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "02e7f275991bcbc7ad95fae3ad53c2442d173bb56be0af7145e1c2948c612235",
+          "sha256_events": "9c929a2a99c44545ad92a0dd1bca896644f22c7c7b03256d0368e670b1476ba7",
+          "writes": 0,
+          "callbacks": 4772,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4772,
+          "gameplay_nonzero_samples": 715776,
+          "gameplay_peak": 6253
+        },
+        "frames": 240,
+        "unique_images": 240,
+        "last_virtual_us": 49489458,
+        "instructions": 17866914027
+      },
+      "report": {
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 240,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 255.77124421399998,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "3ce1ed168ebc6eb2dcb58d7835e29f063e7d7e0eb591e6cc591ae543e7984695",
+        "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 1024,
+        "git_head": "144ac6b3e2518cd9bc56d0c434f4aee763089dac",
+        "dirty_worktree": true
+      }
+    }
+  },
+  "reference_contract": "Long-call native reference uses DynCom to expose the emulator separately budgeted halfwords, including the intermediate LR. The existing memory-fault goldens use native Dynarmic instruction stepping. All production WASM runs are fresh from this frozen archive. Checked replay forces callback memory on selected verified invocations; normal replay, unit matrices and real fault probes independently exercise direct memory.",
+  "artifacts": {
+    "/home/claude/.scratch/eka-sky-performance/replays-thumb-v6.log": {
+      "sha256": "f9e22d87bedb533ed4b663f062ff3b79f3a66878095a9a6cb0bb4d515cf8d299",
+      "bytes": 462
+    },
+    "/home/claude/.scratch/eka-sky-performance/suite-thumb-v6.log": {
+      "sha256": "d086f44cf1746765818b385386a7422314f41ea2be35aa5883b79a382b184efa",
+      "bytes": 9747
+    },
+    "/home/claude/.scratch/eka-sky-performance/build-thumb-v6.log": {
+      "sha256": "525dc9c1225fbcec4e7495c1bea230f30b7e2eb2e31db381a061f83ebf09a569",
+      "bytes": 7459
+    },
+    "/home/claude/.scratch/eka-sky-performance/accept-thumb-v6.log": {
+      "sha256": "66274fcb1c1071625282e9b35b535372f6c138dc290158be5234f1e8b212475e",
+      "bytes": 365
+    },
+    "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-wasm-m0-h0.log": {
+      "sha256": "f11f4e872d9793a40d92335f29222ded6c776a8d43f8809db6861554027fea3c",
+      "bytes": 430869
+    },
+    "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-wasm-m3-h1.log": {
+      "sha256": "3f622d223736f08f90b337e58ed5ed6493b536faaf2e4f6abd28162d8dd14778",
+      "bytes": 431013
+    },
+    "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-wasm-m3-h0.log": {
+      "sha256": "8a3a37286236093a2b89daf3772fd8b759673f4098955052f2be57a6f48d2327",
+      "bytes": 431013
+    },
+    "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-wasm-m0-h1.log": {
+      "sha256": "2b26caa7ccff02d94c3a3fb24169b31370487ef1c0d6ccde95c3f1d23f3ab0d3",
+      "bytes": 430869
+    },
+    "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-compare-m3-h0.log": {
+      "sha256": "5742d2d0e6776b5caac146de549e7e0bed580572884a59b19993e002c0d18fd9",
+      "bytes": 690
+    },
+    "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-compare-m0-h1.log": {
+      "sha256": "f8f977cc23e4dd99d6d0d8e167408bbdc358c69f35053014add85bc355f088db",
+      "bytes": 690
+    },
+    "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-compare-m0-h0.log": {
+      "sha256": "a5ae3a543d281d37dceaac4830a2946aba3a271a81e0665ac92a44815c339744",
+      "bytes": 690
+    },
+    "/home/claude/.scratch/eka-sky-performance/v6-thumb-fault-compare-m3-h1.log": {
+      "sha256": "a161a9f47aa14f28c9ae45575d3794e231e8c7354309ab7d8b660b77507fa950",
+      "bytes": 690
+    },
+    "/home/claude/.scratch/eka-sky-performance/v6-calls-wasm.log": {
+      "sha256": "5ce58036a004629042150df24aeb47c5016176f2d599e83616ee6eafb6ce3c1c",
+      "bytes": 442526
+    },
+    "/home/claude/.scratch/eka-sky-performance/v6-calls-compare.log": {
+      "sha256": "315f808f3dd04b1e8f7b6527348d4a28cfb444aa5d4cb2e938f52e04be6e696f",
+      "bytes": 567
+    },
+    "/home/claude/.scratch/eka-sky-performance/thumb-calls-native-source.cpp": {
+      "sha256": "e92a11e9b3d6174b7b81d5c5c679723ebeff47262f93b26074745f657b63db42",
+      "bytes": 42257
+    },
+    "/home/claude/.scratch/eka-sky-performance/thumb-calls-native.o": {
+      "sha256": "df23fd3322643b3b312e22eca25943d2e4772858972b0209e04ded7c91778e99",
+      "bytes": 2326216
+    },
+    "/home/claude/.scratch/eka-sky-performance/thumb-calls-native.log": {
+      "sha256": "bf3aa7b0ff34bd61d141bb9aa945e3323f03f1c3ea6d35f3d01d1a5b88e166f0",
+      "bytes": 380317
+    },
+    "/home/claude/.scratch/eka-sky-performance/thumb-calls-native": {
+      "sha256": "13cc91a98e9443b572703b6c95a6db50effbbc9621e03ac83339ac7a6d4bf93e",
+      "bytes": 103414040
+    },
+    "/home/claude/.scratch/eka-sky-performance/thumb-calls-native.d": {
+      "sha256": "526530283aadeb4a9960b0ae242fa7c556584e9380c2f9756a83b51c74dc257c",
+      "bytes": 17833
+    },
+    "/home/claude/.scratch/eka-sky-performance/thumb-calls-native-link.d": {
+      "sha256": "493eb2d374cd05d512a91e79679cc6b0f343212065f8af62f62492f8993fd1b6",
+      "bytes": 4918
+    },
+    "/home/claude/.scratch/eka-sky-performance/native-call-commands.json": {
+      "sha256": "26bb94d2f6502a0cd52c628c862f1a8a5b1efd970b256b3e9eb2e10390880c16",
+      "bytes": 2140
+    },
+    "/home/claude/.scratch/eka-sky-performance/queue_prefix_v6.py": {
+      "sha256": "1df4ba0584746bedc8ccfad02a9ad38214522735e18d1ca96d0aff14ebe624ce",
+      "bytes": 2206
+    },
+    "/home/claude/.scratch/eka-sky-performance/accept_v6.py": {
+      "sha256": "b40e57992ff3fee3e77e33274fcda4786c3e50d485bd608ce72145c347b79da9",
+      "bytes": 1484
+    },
+    "/home/claude/.scratch/eka-sky-performance/replay_thumb_v6.py": {
+      "sha256": "d4991f5fb752afc9adaee33f7786e86effef9386f974863822ebc546e031c32c",
+      "bytes": 1768
+    },
+    "/home/claude/.scratch/eka-sky-performance/replay_combat_v6.py": {
+      "sha256": "c1eeeb4081e293ca09ba962151d4f88d0f7edb76c98265211d04a01b10847e2e",
+      "bytes": 1320
+    },
+    "/home/claude/.scratch/eka-sky-performance/screen_prefix_v6.py": {
+      "sha256": "6e6432fa1087e009f0e3a5ccccf07d4654c608640649c4182b743daca17f1e83",
+      "bytes": 4256
+    }
+  }
+}
