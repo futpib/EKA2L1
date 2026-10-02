@@ -4292,6 +4292,115 @@ static bool test_thumb_call_boundaries() {
     return true;
 }
 
+static bool test_thumb_store_continuation() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking = eka2l1::common::code_tracking;
+    struct restore {
+        bool direct=thumb_direct_memory, folded=r12l1::dyncom_folded_tlb;
+        unsigned mode=tracking::unsafe_code_mode;
+        ~restore(){thumb_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
+            tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};g_write16_observer={};}
+    } saved;
+    unsigned checks=0;
+    const auto module_for=[](const std::uint16_t *code,unsigned bytes,bool stop) {
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),bytes,0x1000,nullptr,nullptr,true,stop,true);
+        return build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    };
+    for(bool folded:{false,true})for(unsigned mode:{0u,1u,2u,3u})
+    for(unsigned opcode:{0x6008u,0x7008u,0x8008u,0xb503u,0xc105u}) {
+        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        const std::uint16_t code[]={static_cast<std::uint16_t>(opcode),0x3301,0x3401};
+        thumb_direct_memory=true;auto candidate=module_for(code,sizeof(code),true);
+        thumb_direct_memory=false;std::vector<std::uint8_t> controls[4];
+        for(unsigned n=1;n<=3;++n)controls[n]=module_for(code,n*2,false);
+        for(unsigned permission:{0u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned budget:{0u,1u,2u,3u})for(unsigned stop:{0u,1u,2u,3u,4u}) {
+            const bool full=permission&&!endian&&mode==3&&(stop==0||stop==4);
+            const unsigned wanted=full?budget:std::min(budget,1u);
+            test_mem memory,reference;
+            r12l1::tlb tlb(12,folded);if(permission)tlb.add(0x8000,memory.data.data()+0x8000,permission);
+            alignas(8) unsigned state[256]{};state[0]=0x12345678;state[1]=0x8040;
+            state[2]=0xabcdef01;state[3]=41;state[4]=0x7fffffff;state[13]=0x8080;state[14]=0x2001;state[15]=0x1000;
+            state[state_offsets::CPSR/4]=0x30|endian|(stop==3?0x80u:0u);
+            state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::NIRQ/4]=stop==2||stop==3?0:1;
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=stop==1||stop==4?0:100;
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=stop==4?1:0;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            // A masked IRQ must not stop a valid direct continuation.
+            const unsigned count_expected=permission&&!endian&&mode==3&&stop==3?budget:wanted;
+            unsigned expected[256];std::memcpy(expected,state,sizeof(state));
+            g_test_mem=&memory;g_all_memory_helper_calls=0;
+            const auto count=js_run_aot_wasm(candidate.data(),candidate.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            const auto helpers=g_all_memory_helper_calls;
+            g_test_mem=&reference;
+            if(count_expected) {
+                const auto &control=controls[count_expected];
+                const auto control_count=js_run_aot_wasm(control.data(),control.size(),reinterpret_cast<std::uint8_t *>(expected),sizeof(expected));
+                if(control_count!=count_expected)return false;
+            }
+            if(count!=count_expected||std::memcmp(state,expected,sizeof(state))||memory.data!=reference.data
+                ||(count_expected&&permission&&!endian&&mode==3&&helpers)) {
+                printf(" FAIL Thumb store continuation op=%x mode=%u permission=%u endian=%x budget=%u stop=%u count=%d expected=%u\n",opcode,mode,permission,endian,budget,stop,count,count_expected);return false;
+            }
+            ++checks;
+        }
+    }
+    // A preceding read helper can remap executable memory even if the store
+    // itself hits the TLB. Preserve the original return for all helper paths.
+    for(unsigned cause:{0u,1u,2u,3u}) {
+        thumb_direct_memory=true;tracking::unsafe_code_mode=3;
+        const std::uint16_t code[]={0x681a,0x8008,0x3401};
+        auto module=module_for(code,sizeof(code),true);
+        test_mem memory;memory.write32(0x9000,17);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x8000,memory.data.data()+0x8000,3);
+        alignas(8) unsigned state[256]{};state[0]=0x1234;state[1]=0x8040;state[3]=0x9000;state[4]=41;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=3;
+        state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=100;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        bool observed=false;
+        g_read32_observer=[&](unsigned ptr,unsigned address){auto *s=reinterpret_cast<unsigned *>(ptr);
+            observed=address==0x9000&&s[15]==0x1000;
+            if(cause==1)s[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;
+            if(cause==2)s[state_offsets::NIRQ/4]=0;
+            if(cause==3){s[state_offsets::AOT_TLB/4]=0;s[state_offsets::AOT_BUDGET/4]=2;}
+        };
+        g_test_mem=&memory;
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        g_read32_observer={};
+        if(count!=2||!observed||state[2]!=17||state[4]!=41||state[15]!=0x1004||(memory.read32(0x8040)&65535)!=0x1234) {
+            printf(" FAIL Thumb post-helper store cause=%u count=%d\n",cause,count);return false;
+        }
+        ++checks;
+    }
+    // A store helper must publish precise input state, reload its changes,
+    // complete the instruction, and return without executing the next ALU op.
+    for(unsigned cause:{0u,1u,2u}) {
+        thumb_direct_memory=true;tracking::unsafe_code_mode=3;
+        const std::uint16_t code[]={0x8008,0x3401};auto module=module_for(code,sizeof(code),true);
+        alignas(8) unsigned state[256]{};state[0]=0x1234;state[1]=0x8040;state[4]=41;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=2;
+        state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=100;
+        bool observed=false;
+        g_write16_observer=[&](unsigned ptr,unsigned address,unsigned value){auto *s=reinterpret_cast<unsigned *>(ptr);
+            observed=address==0x8040&&value==0x1234&&s[15]==0x1000&&s[4]==41;
+            s[4]=77;s[15]=0x98765432;
+            if(cause==1)s[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;
+            if(cause==2)s[state_offsets::NIRQ/4]=0;
+        };
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        g_write16_observer={};
+        if(count!=1||!observed||state[4]!=77||state[15]!=0x1002) {
+            printf(" FAIL Thumb store helper boundary cause=%u count=%d\n",cause,count);return false;
+        }
+        ++checks;
+    }
+    printf(" PASS Thumb store continuation (%u mode/budget/stop/IRQ/callback state and memory checks)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_thumb_transfer_spans() {
 #ifdef __EMSCRIPTEN__
     namespace tracking = eka2l1::common::code_tracking;
@@ -6393,6 +6502,7 @@ int main(int argc, char **argv) {
     if (test_thumb_direct_memory()) passed++; else failed++;
     if (test_thumb_call_boundaries()) passed++; else failed++;
     if (test_thumb_transfer_spans()) passed++; else failed++;
+    if (test_thumb_store_continuation()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
 #ifdef EKA2L1_WASM_CODE_VERSIONS
