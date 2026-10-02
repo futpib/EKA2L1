@@ -32,3 +32,26 @@ audio; capture, sampling and detailed counters are disabled. Single pairs
 are exploratory. Reordered confirmation, untouched-live comparisons and
 sustained normal play/audio remain required before promotion. Realtime Sky
 Force remains the open target; no game-specific rules, deployment or push.
+
+## Completed screen and diagnostic profile
+
+All eight planned observations are retained. Each route has one pair.
+
+| Route | V11b seconds | V12 seconds | Throughput change | V12 realtime |
+| --- | ---: | ---: | ---: | ---: |
+| sky | 11.00060 | 12.15330 | -9.48% | 0.494x |
+| combat | 10.21780 | 10.26940 | -0.50% | 0.584x |
+| standard | 10.51190 | 9.99253 | +5.20% | 1.801x |
+| long | 9.76769 | 9.76460 | +0.03% | 1.843x |
+
+The screen is mixed and does not support promotion. Both archives select the
+same direct ARM policy; this isolates state caching, not the combined change
+against live. The subsequent normal-browser sampled profile attributes 38.96%
+of CPU-worker samples inclusively to generated code and 37.54% as self time to
+InterpreterMainLoop, which includes the inlined runner. These percentages
+include idle/wait samples and are diagnostic, not timing-panel observations
+or a measured interpreter/runner split.
+
+The next registry lookup experiment uses the shared Thumb/V8 policy with
+ARM direct memory disabled in both matching binaries. ARM candidates remain
+opt-in and unserved. The realtime target is still unmet.
