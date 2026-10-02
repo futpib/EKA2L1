@@ -42,3 +42,23 @@ counters are disabled. Single pairs are exploratory. Reordered confirmation,
 untouched-live comparisons and sustained normal play/audio remain necessary
 before promotion. Realtime Sky Force remains unachieved; nothing deployed or
 pushed and the ARM option remains disabled by default.
+
+## Four-route screen
+
+All eight planned observations are retained. The watcher was restarted before
+any sample to wait for the independent V12 correctness queue; the initial
+plan is retained and the sample order did not change.
+
+| Route | V8 seconds | V11b seconds | Throughput change | V11b realtime |
+| --- | ---: | ---: | ---: | ---: |
+| sky | 10.71730 | 11.22930 | -4.56% | 0.534x |
+| combat | 12.37990 | 10.29270 | +20.28% | 0.583x |
+| standard | 10.19690 | 9.89805 | +3.02% | 1.819x |
+| long | 9.64743 | 9.65574 | -0.09% | 1.864x |
+
+Stationary Sky Force is slower, the combat pair has a slow 12.38-second control,
+standard Snakes improves modestly and longer Snakes is almost flat. The large
+combat percentage is not a stable gain estimate. These single pairs do not
+support promotion; Sky Force remains only about 0.53-0.58x realtime. The next
+screen separately compares this archive against the ARM state-cache candidate.
+No samples were removed. Live remains unchanged.
