@@ -45,3 +45,20 @@ InterpreterMainLoop still owns 33.75% of self samples. This does not separate
 compiled-runner cost from interpreter fallback. The result and temporary patch
 are retained, and the patch was removed before committing the normal candidate.
 Its sampled 16.62-second window is excluded from all speed comparisons.
+
+## Four-route speed screen
+
+All eight preplanned serial observations are retained.
+
+| Route | V5 (s) | V7 (s) | Throughput change | V7 realtime ratio |
+| --- | ---: | ---: | ---: | ---: |
+| sky | 11.50030 | 11.46950 | +0.27% | 0.523x |
+| combat | 11.28680 | 12.50550 | -9.75% | 0.480x |
+| standard | 10.23710 | 10.89380 | -6.03% | 1.652x |
+| long | 10.79660 | 11.54060 | -6.45% | 1.560x |
+
+Stationary Sky Force is essentially flat, while combat Sky Force and both Snakes
+pairs are slower. Each route has one pair, so this is not a stable regression
+estimate; it does not support promotion. The candidate remains unserved and the
+realtime goal is unmet. The next syscall-allocation experiment returns to V5's
+compiler source, keeping all V6/V7 correctness and timing evidence for review.
