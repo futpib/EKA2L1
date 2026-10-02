@@ -6205,6 +6205,89 @@ static std::uint32_t publication_test_function(ARMul_State *cpu) {
     cpu->aot_code_begin=0x12345678;cpu->aot_code_end=0x23456789;
     ++publication_test_calls;++cpu->Reg[0];return 1;
 }
+static bool test_frozen_code_cache() {
+    namespace tracking = eka2l1::common::code_tracking;
+    struct restore { unsigned mode = tracking::unsafe_code_mode; bool outline = code_lookup_outline;
+        ~restore() { tracking::unsafe_code_mode = mode; code_lookup_outline = outline; } } saved;
+    unsigned checks = 0;
+    for (unsigned mode : {1u, 3u}) for (bool outline : {false, true}) {
+        tracking::unsafe_code_mode = mode; code_lookup_outline = outline;
+        test_mem memory; r12l1::exclusive_monitor monitor(1); auto cpu = make_cpu(memory, monitor);
+        std::array<std::uint8_t, 64> primary{}, alternative{}, dependency{}, moved_dependency{};
+        auto *backing = primary.data(); auto *leaf = dependency.data();
+        std::atomic<std::uint64_t> generation{1}, replacement{1};
+        cpu->code_mapping_generation = &generation; cpu->code_address_space = 1;
+        bool mapped = true; unsigned extent = 64, resolutions = 0;
+        cpu->resolve_code = [&](unsigned address, core::code_mapping &view) {
+            ++resolutions; view = {cpu->code_address_space, address == 0x1000 ? backing : leaf, extent};
+            return mapped;
+        };
+        validated_code_cache normal, frozen;
+        unsigned random = 0x857b21a9;
+        for (unsigned step = 0; step < 4096; ++step) {
+            random ^= random << 13; random ^= random >> 17; random ^= random << 5;
+            switch (random & 15) {
+            case 0: case 1: case 2:
+                for (auto *cache : {&normal, &frozen}) {
+                    auto &entry = cache->insert(0x1001, {cpu->code_address_space, backing, 64}, 16);
+                    validated_code_cache::add_dependency(entry, 0x2000, leaf, {leaf, leaf + 16});
+                }
+                break;
+            case 3: backing = backing == primary.data() ? alternative.data() : primary.data(); ++generation; ++replacement; break;
+            case 4: leaf = leaf == dependency.data() ? moved_dependency.data() : dependency.data(); ++generation; ++replacement; break;
+            case 5: mapped = !mapped; ++generation; ++replacement; break;
+            case 6: extent = extent == 64 ? 4 : 64; ++generation; ++replacement; break;
+            case 7: cpu->code_address_space = 3 - cpu->code_address_space; break;
+            case 8: cpu->code_mapping_generation = cpu->code_mapping_generation == &generation ? &replacement : &generation; break;
+            case 9: generation.store(0); replacement.store(0); break;
+            case 10: ++generation; ++replacement; break;
+            case 11: normal.invalidate(0x2000, 16); frozen.invalidate(0x2000, 16); break;
+            case 12: primary[0] ^= 1; dependency[15] ^= 1; break; // accepted trusted-byte limitation
+            default: break;
+            }
+            const auto before = resolutions;
+            auto *a = normal.find(0x1001, *cpu);
+            const auto normal_resolves = resolutions - before;
+            const auto between = resolutions;
+            auto *b = frozen.find_trusted_original(0x1001, *cpu);
+            if (bool(a) != bool(b) || normal.invalidations != frozen.invalidations
+                || normal_resolves != resolutions - between
+                || (a && (a->key != b->key || a->version != b->version || a->backing != b->backing))) {
+                printf(" FAIL frozen cache mode=%u outline=%u step=%u\n", mode, outline, step); return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS frozen cache (%u ASID/generation/source/remap/dependency/extent/invalidation comparisons)\n", checks);
+    return true;
+}
+
+static bool test_reference_lookup_protection() {
+    const auto *verify = std::getenv("EKA2L1_AOT_VERIFY");
+    if (!verify || std::string(verify) != "1") return false;
+    struct restore { unsigned policy = hotpath_policy; bool running = validation_running;
+        bool ram = ram_compilation_enabled, omit = omit_guard_publication;
+        ~restore() { hotpath_policy = policy; validation_running = running;
+            ram_compilation_enabled = ram; omit_guard_publication = omit;
+            global_registry().unregister_function(0x54340); } } saved;
+    test_mem memory; r12l1::exclusive_monitor monitor(1); auto core = make_cpu(memory, monitor);
+    auto state = std::make_unique<ARMul_State>(core.get(), USER32MODE);
+    state->Reg[15] = 0x54340; state->TFlag = 0;
+    ram_compilation_enabled = false;
+    global_registry().register_function(0x54340, publication_test_function);
+    unsigned checks = 0;
+    for (unsigned policy = 0; policy < 8; ++policy) for (bool omit : {false, true}) {
+        hotpath_policy = policy; omit_guard_publication = omit;
+        validation_running = true;
+        if (lookup_compiled(state.get())) return false;
+        validation_running = false;
+        if (lookup_compiled(state.get()) != publication_test_function) return false;
+        ++checks;
+    }
+    printf(" PASS reference lookup protection (%u active/inactive verification checks)\n", checks);
+    return true;
+}
+
 static bool test_guard_publication() {
     namespace tracking=eka2l1::common::code_tracking;
     namespace perf=eka2l1::common::performance;
@@ -6212,19 +6295,19 @@ static bool test_guard_publication() {
     struct restore {
         bool omit=omit_guard_publication,ram=ram_compilation_enabled;
         bool enabled=perf::enabled,detailed=perf::detailed,guest=gp::enabled;
-        unsigned mode=tracking::unsafe_code_mode;
+        unsigned mode=tracking::unsafe_code_mode, policy=hotpath_policy;
         ~restore(){omit_guard_publication=omit;ram_compilation_enabled=ram;
             perf::enabled=enabled;perf::detailed=detailed;gp::enabled=guest;
-            tracking::unsafe_code_mode=mode;global_registry().unregister_function(0x54340);}
+            tracking::unsafe_code_mode=mode;hotpath_policy=policy;global_registry().unregister_function(0x54340);}
     } saved;
     test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
     ram_compilation_enabled=false;gp::enabled=false;
     global_registry().register_function(0x54340,publication_test_function);
     auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);
     unsigned checks=0;
-    for(unsigned mode=0;mode<4;++mode)for(bool omit:{false,true})for(bool detailed:{false,true})
+    for(unsigned policy:{0u,1u,2u,3u,4u,7u})for(unsigned mode=0;mode<4;++mode)for(bool omit:{false,true})for(bool detailed:{false,true})
     for(unsigned budget:{1u,2u,5u}) {
-        tracking::unsafe_code_mode=mode;omit_guard_publication=omit;
+        tracking::unsafe_code_mode=mode;omit_guard_publication=omit;hotpath_policy=policy;
         perf::enabled=detailed;perf::detailed=detailed;gp::enabled=detailed;
         publication_test_omit=omit && (mode&2);publication_test_ok=true;publication_test_calls=0;
         auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54340;cpu.TFlag=0;
@@ -6658,6 +6741,9 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--expanded-leaves-only")return test_expanded_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;
     if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
+    if(argc==2 && std::string(argv[1])=="--verification-protection-only")return test_reference_lookup_protection()?0:1;
+    if(argc==2 && std::string(argv[1])=="--frozen-cache-only")return test_frozen_code_cache()?0:1;
+    if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=7;argc=1;}
     if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
     if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
@@ -7306,6 +7392,7 @@ int main(int argc, char **argv) {
     if (test_exit_census()) passed++; else failed++;
     if (test_execution_limits()) passed++; else failed++;
     if (test_guard_publication()) passed++; else failed++;
+    if (test_frozen_code_cache()) passed++; else failed++;
     if (test_inline_limits()) passed++; else failed++;
     if (test_predicated_leaves()) passed++; else failed++;
     if (test_expanded_leaves()) passed++; else failed++;

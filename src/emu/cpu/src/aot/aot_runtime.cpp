@@ -289,10 +289,10 @@ void invalidate_ram_code(std::uint32_t address, std::size_t size) {
     ram_cache.invalidate(address, size);
 }
 
-template<bool Profile, bool PublishGuards>
+template<bool Profile, bool PublishGuards, unsigned Frozen = 0>
 static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     if constexpr(Profile) if(exit_census::enabled)census_entry=nullptr;
-    if (validation_running) return nullptr;
+    if constexpr (!(Frozen & 1)) if (validation_running) return nullptr;
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
     if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
@@ -304,7 +304,8 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     // The normal path avoids the resolver callback on a generation/space hit.
     // Mode 0 also compares compiled bytes; trusted-byte modes omit those scans.
     if (!Profile || !(common::guest_profile::enabled && common::performance::counting())) {
-        auto *entry = ram_cache.find(pc_mode, *cpu->parent());
+        auto *entry = (Frozen & 2) ? ram_cache.find_trusted_original(pc_mode, *cpu->parent())
+            : ram_cache.find(pc_mode, *cpu->parent());
         if (!entry) return nullptr;
         if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
         if constexpr (PublishGuards) {
@@ -316,7 +317,8 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     core::code_mapping view;
     if (!cpu->parent()->resolve_code) return nullptr;
     const bool mapped = cpu->parent()->resolve_code(pc, view);
-    auto *entry = ram_cache.find(pc_mode, *cpu->parent());
+    auto *entry = (Frozen & 2) ? ram_cache.find_trusted_original(pc_mode, *cpu->parent())
+            : ram_cache.find(pc_mode, *cpu->parent());
     if (Profile && (common::guest_profile::enabled && common::performance::counting()) && (!mapped || !entry || !entry->function)) {
         std::uint32_t opcode = 0;
         if (mapped && view.bytes && view.size >= (cpu->TFlag ? 2u : 4u)) std::memcpy(&opcode,view.bytes,cpu->TFlag ? 2 : 4);
@@ -331,10 +333,26 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     return entry->function;
 }
 
+static unsigned normal_lookup_policy() {
+    auto policy = hotpath_policy & 3u;
+    // Other layouts/compatibility modes retain the established general path.
+    if ((policy & 2) && (code_lookup_outline || !common::code_tracking::skip_code_scans())) policy &= ~2u;
+    return policy;
+}
+
 template<bool PublishGuards>
 static aot_func lookup_compiled_selected(ARMul_State *cpu) {
-    return common::guest_profile::enabled && common::performance::enabled && common::performance::detailed
-        ? lookup_compiled_impl<true, PublishGuards>(cpu) : lookup_compiled_impl<false, PublishGuards>(cpu);
+    if (common::guest_profile::enabled && common::performance::enabled && common::performance::detailed)
+        return lookup_compiled_impl<true, PublishGuards>(cpu);
+    // Reference execution can enter here only when verification is selected.
+    if (!verification_stride()) {
+        switch (normal_lookup_policy()) {
+        case 1: return lookup_compiled_impl<false, PublishGuards, 1>(cpu);
+        case 2: return lookup_compiled_impl<false, PublishGuards, 2>(cpu);
+        case 3: return lookup_compiled_impl<false, PublishGuards, 3>(cpu);
+        }
+    }
+    return lookup_compiled_impl<false, PublishGuards>(cpu);
 }
 
 aot_func lookup_compiled(ARMul_State *cpu) {
@@ -346,7 +364,7 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     return lookup_compiled_selected<true>(cpu);
 }
 
-template<bool Verify, bool Profile, bool PublishGuards, bool ModuleDispatch>
+template<bool Verify, bool Profile, bool PublishGuards, bool ModuleDispatch, unsigned Frozen = 0>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     const auto budget = cpu->aot_budget;
     compiled_run result;
@@ -445,7 +463,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         // This stays inside the compiled runner. Every RAM successor retains
         // mapping/lifetime validation. Byte-mutation detection is policy-dependent;
         // trusted-byte modes intentionally permit stale code after guest writes.
-        function = lookup_compiled_impl<Profile, PublishGuards>(cpu);
+        function = lookup_compiled_impl<Profile, PublishGuards, Frozen>(cpu);
     }
     if constexpr(Profile) if(exit_census::counting()) {
         const char *why = !cpu->NumInstrsToExecute ? "stop" : result.instructions==budget ? "budget"
@@ -464,6 +482,13 @@ static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) 
     if (verification_stride()) return execute_chain_impl<true, true, PublishGuards, ModuleDispatch>(cpu, function);
     if (common::performance::enabled && common::performance::detailed)
         return execute_chain_impl<false, true, PublishGuards, ModuleDispatch>(cpu, function);
+    if constexpr (!ModuleDispatch) {
+        switch (normal_lookup_policy()) {
+        case 1: return execute_chain_impl<false, false, PublishGuards, false, 1>(cpu, function);
+        case 2: return execute_chain_impl<false, false, PublishGuards, false, 2>(cpu, function);
+        case 3: return execute_chain_impl<false, false, PublishGuards, false, 3>(cpu, function);
+        }
+    }
     return execute_chain_impl<false, false, PublishGuards, ModuleDispatch>(cpu, function);
 }
 

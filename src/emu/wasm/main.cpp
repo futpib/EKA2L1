@@ -371,6 +371,15 @@ EMSCRIPTEN_KEEPALIVE
 int eka2l1_rom_calls_report() { return eka2l1::arm::aot::rom_bounded_calls; }
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_hotpath_configure(int policy) {
+    if (g_state || policy < 0 || policy > 7) return -1;
+    eka2l1::arm::aot::hotpath_policy = static_cast<unsigned>(policy);
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_hotpath_report() { return eka2l1::arm::aot::hotpath_policy; }
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_rom_dispatch_configure(int enabled) {
     if (g_state || enabled < 0 || enabled > 2 || (enabled && eka2l1::arm::aot::rom_bounded_calls)) return -1;
     eka2l1::arm::aot::rom_dispatch_enabled = enabled != 0;

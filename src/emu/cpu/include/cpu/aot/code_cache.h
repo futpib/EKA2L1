@@ -62,6 +62,15 @@ namespace eka2l1::arm::aot {
         }
 
         block *find(std::uint32_t pc_mode, const core::code_mapping &view, core *cpu = nullptr) {
+            return find_mapped<false>(pc_mode, view, cpu);
+        }
+        // Called only after the outer boundary selected trusted bytes and the
+        // original layout. Mapping/lifetime checks still apply on every lookup.
+        block *find_trusted_original(std::uint32_t pc_mode, core &cpu);
+
+    private:
+        template<bool TrustBytes>
+        block *find_mapped(std::uint32_t pc_mode, const core::code_mapping &view, core *cpu) {
             const auto k = key(view.address_space, pc_mode);
             auto &recent = recent_[recent_index(k)];
             block *entry = recent;
@@ -85,7 +94,7 @@ namespace eka2l1::arm::aot {
             // including address-space reuse. Byte checks follow the active policy.
             const bool mapping_invalid = !dependencies_mapped || !view.bytes
                 || view.bytes != entry->backing || view.size < entry->code.size();
-            if (mapping_invalid || !bytes_match(*entry, true)) {
+            if (mapping_invalid || (!TrustBytes && !bytes_match(*entry, true))) {
                 if(exit_census::counting())++exit_census::invalidations[mapping_invalid?"mapping_or_extent":"exact_bytes"];
                 entry->live = false;
                 current_.erase(k);
@@ -96,6 +105,7 @@ namespace eka2l1::arm::aot {
             return entry;
         }
 
+    public:
 #if defined(_MSC_VER)
         __forceinline
 #else
@@ -121,6 +131,8 @@ namespace eka2l1::arm::aot {
     private:
         // Container recovery, mapping refresh and invalidation stay outside
         // the small recent-hit path. Definitions live in code_compare.cpp.
+        template<bool TrustBytes>
+        block *find_original_impl(std::uint32_t pc_mode, core &cpu);
         block *find_original(std::uint32_t pc_mode, core &cpu);
         void reject_recent(std::uint64_t k, block &entry);
 
