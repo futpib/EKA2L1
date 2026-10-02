@@ -2051,6 +2051,7 @@ static bool test_arm_clz() {
 // exactly the same number of DynCom instructions, including partial budgets.
 static bool test_bounded_execution() {
 #ifdef __EMSCRIPTEN__
+    struct restore_thumb { bool saved=thumb_direct_memory; ~restore_thumb(){thumb_direct_memory=saved;} } restore;
     struct program { bool thumb; std::vector<std::uint8_t> bytes; };
     auto arm = [](std::initializer_list<std::uint32_t> words) {
         std::vector<std::uint8_t> bytes(words.size() * 4);
@@ -2215,7 +2216,9 @@ static bool test_bounded_execution() {
         }
     std::rotate(programs.begin(), programs.begin() + existing_programs, programs.end());
     int index = 0;
-    for (unsigned variant = 0; variant < 7; ++variant) for (const auto &p : programs) {
+    for (unsigned variant = 0; variant < 9; ++variant) for (const auto &p : programs) {
+        if (variant >= 7 && !p.thumb) continue;
+        thumb_direct_memory = variant >= 7;
         const bool region = variant >= 4, cache_registers = region || (variant & 2), stop_after_store = variant & 1;
         auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers)
                           : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers, region);
@@ -2275,7 +2278,7 @@ static bool test_bounded_execution() {
         }
         ++index;
     }
-    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*784);
+    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",static_cast<std::size_t>(index)*112);
 #endif
     return true;
 }
@@ -4315,6 +4318,42 @@ static bool test_thumb_direct_memory() {
         g_read32_observer={};
         if(count!=4||!observed||state[0]!=51||state[2]!=30||state[3]!=0x9000||g_all_memory_helper_calls!=(enabled?1u:2u)) {
             printf(" FAIL Thumb callback state/mapping enabled=%d count=%d r0=%u observed=%d helpers=%u\n",enabled,count,state[0],observed,g_all_memory_helper_calls);return false;
+        }
+        ++checks;
+    }
+    // Runtime fields and the PC can change in a callback. A second transfer
+    // in the same instruction sees the callback PC, and the next instruction
+    // sees a replaced TLB, endian state and reduced budget.
+    for(bool enabled:{false,true})for(unsigned endian:{0u,0x200u}) {
+        thumb_direct_memory=enabled;tracking::unsafe_code_mode=3;
+        const std::uint16_t code[]={0x2207,0xc905,0x6818,0x3401};
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem memory;memory.write32(0x8000,20);memory.write32(0x8004,30);memory.write32(0x9000,40);
+        r12l1::tlb old_tlb(12,r12l1::dyncom_folded_tlb),new_tlb(12,r12l1::dyncom_folded_tlb);
+        new_tlb.add(0x9000,memory.data.data()+0x9000,1);
+        alignas(8) unsigned state[256]{};state[1]=0x8000;state[3]=0x9000;state[4]=99;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=4;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(old_tlb.entries);
+        unsigned observed=0;
+        g_read32_observer=[&](unsigned ptr,unsigned address){
+            auto *s=reinterpret_cast<unsigned *>(ptr);
+            if(address==0x8000) {
+                if(s[2]==7&&s[15]==0x1002)++observed;
+                s[15]=0x12345678;s[state_offsets::AOT_BUDGET/4]=3;
+                s[state_offsets::CPSR/4]=0x30|endian;
+                s[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(new_tlb.entries);
+            } else if(address==0x8004&&s[15]==0x12345678)++observed;
+        };
+        g_test_mem=&memory;g_all_memory_helper_calls=0;
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        g_read32_observer={};
+        if(count!=3||observed!=2||state[0]!=40||state[1]!=0x8008||state[2]!=30||state[4]!=99||state[15]!=0x1006
+            ||state[state_offsets::AOT_BUDGET/4]!=3||state[state_offsets::CPSR/4]!=(0x30|endian)
+            ||state[state_offsets::AOT_TLB/4]!=reinterpret_cast<std::uintptr_t>(new_tlb.entries)
+            ||g_all_memory_helper_calls!=(enabled&&!endian?2u:3u)) {
+            printf(" FAIL Thumb runtime callback enabled=%d endian=%x count=%d pc=%x observed=%u helpers=%u\n",enabled,endian,count,state[15],observed,g_all_memory_helper_calls);return false;
         }
         ++checks;
     }

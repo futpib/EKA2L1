@@ -638,6 +638,10 @@ namespace eka2l1::arm::aot {
         emit w{result.body};
         w.direct_memory = direct_memory;
         w.cache.enabled = bounded && cache_registers;
+        // Keep repeated PC, budget, endian and TLB accesses in locals. Slow
+        // callbacks still publish/reload the complete cached state.
+        w.cache.runtime_fields = direct_memory;
+        w.cache.program_counter = direct_memory;
         w.cache.first_local = result.num_locals + 1;
 
         // Build instruction address → index map

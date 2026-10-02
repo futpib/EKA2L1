@@ -10,6 +10,7 @@ namespace eka2l1::arm::aot {
     struct state_local_cache {
         bool enabled = false;
         bool runtime_fields = false;
+        bool program_counter = false;
         // A result block carries the instruction count to one final writeback.
         // Helper barriers still flush/reload at their original positions.
         bool shared_return = false;
@@ -22,6 +23,7 @@ namespace eka2l1::arm::aot {
         bool accepts(std::uint32_t offset) const {
             using S = state_offsets;
             return enabled && ((offset < S::PC && offset % 4 == 0)
+                || (program_counter && offset == S::PC)
                 || offset == S::NFLAG || offset == S::ZFLAG || offset == S::CFLAG
                 || offset == S::VFLAG || offset == S::TFLAG
                 || (runtime_fields && (offset == S::CPSR
