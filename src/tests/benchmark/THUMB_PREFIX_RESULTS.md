@@ -45,3 +45,19 @@ An initial watcher accidentally waited on its own completion marker. It was
 stopped while idle, before any observation started. The marker was corrected,
 the original sample plan was retained, and the screen then ran to completion.
 The original script and correction record are retained in scratch evidence.
+
+## Fresh CPU diagnosis
+
+A sampled V6 run after the speed screen puts 36.27% of CPU-worker samples in
+InterpreterMainLoop, which includes the inlined compiled runner. Generated
+function self samples comprise 28.70% ROM and 8.50% RAM; the largest ARM ROM
+function is 11.89%. These are sampled diagnostic proportions, not speed results
+and not evidence that 36.27% is interpreter fallback. The existing profile cannot
+separate the compiled runner from other work in that large inlined function.
+
+The next generic candidate continues direct RAM Thumb stores under the existing
+mode-3 immutable-code policy. It retains stop/IRQ checks and returns at the
+original store boundary after any memory callback, preserving successor mapping
+and lifetime validation. Compatibility modes keep their existing boundaries.
+A separate diagnostic build will outline only the compiled runner to distinguish
+its remaining cost from interpreter fallback; that build is not a speed candidate.
