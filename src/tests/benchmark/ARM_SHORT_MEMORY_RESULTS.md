@@ -42,3 +42,21 @@ cost. One pair per route is exploratory, not promotion evidence. Reordered
 confirmation, untouched-live controls and sustained normal live/audio checks
 remain necessary. No game-specific selection, scheduling or clock change.
 The realtime target is still open. Nothing deployed or pushed.
+
+## Four-route screen
+
+All eight planned observations are retained.
+
+| Route | V8 seconds | V10b seconds | Throughput change | V10b realtime |
+| --- | ---: | ---: | ---: | ---: |
+| sky | 10.81150 | 11.69710 | -7.57% | 0.513x |
+| combat | 10.79320 | 9.89625 | +9.06% | 0.606x |
+| standard | 10.10310 | 9.91712 | +1.88% | 1.815x |
+| long | 10.20420 | 10.62710 | -3.98% | 1.694x |
+
+The mixed single pairs do not support promotion. Sky Force remains below
+realtime. Snakes retains headroom in this screen, but the longer route loses
+about 4%; these pairs do not establish repeatable gains or zero loss.
+The ARM path stays opt-in while a separate normal-browser CPU profile and
+possible one-page register-transfer refinement are investigated. V8 remains
+the performance baseline; no default, live build or scheduling change.
