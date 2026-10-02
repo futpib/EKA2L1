@@ -253,6 +253,10 @@ int main(int argc, char **argv){
     if(argc==2 && std::string(argv[1])=="--thumb-calls")return thumb_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-memory")return thumb_memory_fault_probe(true);
     if(argc==2 && std::string(argv[1])=="--thumb-memory-control")return thumb_memory_fault_probe(false);
+    const bool arm_leaf_memory_control=argc==2 && std::string(argv[1])=="--arm-leaf-memory-control";
+    const bool arm_leaf_memory=arm_leaf_memory_control || (argc==2 && std::string(argv[1])=="--arm-leaf-memory");
+    aot::arm_direct_memory=arm_leaf_memory && !arm_leaf_memory_control;
+    std::cout<<"PROBE_ARM_LEAF_MEMORY "<<aot::arm_direct_memory<<"\n";
     const bool invariant_write_remap=argc==2 && std::string(argv[1])=="--invariant-write-remap";
     const bool invariant_remap=invariant_write_remap || (argc==2 && std::string(argv[1])=="--invariant-remap");
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
@@ -280,10 +284,10 @@ int main(int argc, char **argv){
     const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
     const bool region_spans=ir_memory_chain || region_block_spans || (argc==2 && (std::string(argv[1])=="--region-spans" || std::string(argv[1])=="--region-spans-interpreter"));
     const bool three_instructions=read_spans || wide_snapshots;
-    const unsigned instruction_count=ir_long?135:invariant_remap||ir_recipes||ir_flags||ir_conditions?7:ir_segments||region_spans?5:three_instructions?3:2;
+    const unsigned instruction_count=arm_leaf_memory?3:ir_long?135:invariant_remap||ir_recipes||ir_flags||ir_conditions?7:ir_segments||region_spans?5:three_instructions?3:2;
     const unsigned execution_count=ir_calls?9:ir_short?4:instruction_count;
     const bool deferred=invariant_remap || ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--deferred" || std::string(argv[1])=="--entry-budget-deferred"));
-    const bool entry_budget = invariant_remap || ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-interpreter" || std::string(argv[1])=="--entry-budget-deferred"));
+    const bool entry_budget = arm_leaf_memory || invariant_remap || ir_segments || region_spans || three_instructions || (argc==2 && (std::string(argv[1])=="--entry-budget" || std::string(argv[1])=="--entry-budget-interpreter" || std::string(argv[1])=="--entry-budget-deferred"));
 #ifdef EKA_MATCHED_REFERENCE
     if(entry_budget) { std::cerr << "--entry-budget requires the production runner\n"; return 1; }
 #endif
@@ -312,7 +316,7 @@ int main(int argc, char **argv){
     const std::vector<unsigned> initial_flags=(literal_pc_veneers || tail_prefixes || branch_veneers || ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
     for(unsigned predicate:predicates)for(unsigned flags:initial_flags)
     for(unsigned op:instructions)for(unsigned policy=0;policy<4;++policy)
-    for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u})for(unsigned partial=0;partial<(!invariant_remap && !region_spans && (op&0x0e000000u)==0x08000000u?2u:1u);++partial){
+    for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:arm_leaf_memory?std::vector<unsigned>{0u,1u,3u}:std::vector<unsigned>{0u,1u})for(unsigned partial=0;partial<(!invariant_remap && !region_spans && (op&0x0e000000u)==0x08000000u?2u:1u);++partial){
 #if defined(__EMSCRIPTEN__) || defined(EKA_MATCHED_REFERENCE)
         r12l1::exclusive_monitor monitor(1); dyncom_core cpu(&monitor,12);
         if(cpu.mem_cache()->folded_index!=r12l1::dyncom_folded_tlb) {std::cerr<<"TLB index not selected\n";return 4;}
@@ -328,6 +332,7 @@ int main(int argc, char **argv){
         unsigned program[135]={region_ir?0xe3a02007u:0xe3b02007u,wide_snapshots?0xe0c54796u:region_spans?0xe5910000u:op,
             wide_snapshots?op:(read_spans||region_spans)?0xe5913004u:0xeafffffeu,
             0xe5914008u,region_block_spans?op:0xe591500cu};
+        if(arm_leaf_memory) program[2]=0xe2844001;
         if(ir_segments) {
             program[0]=0xe3b02007u; // flags visible to the final fault callback
             program[1]=0xe2844001u; program[2]=0xe0245000u; program[3]=0xe1a06005u;
@@ -414,7 +419,7 @@ int main(int argc, char **argv){
         // Unmapped cases always exercise failure callbacks. Partial cases allow
         // the first transferred word before failing subsequent accesses.
         if(permission || invariant_remap)cpu.set_tlb_page(address&~4095u,f.memory.data()+(address&~4095u),
-            (invariant_remap && !permission)?prot_read_write:prot_read);
+            (permission==3 || (invariant_remap && !permission))?prot_read_write:prot_read);
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         if(!interpreter) {
         // Every suffix is a real runner entry after a deferred access/Step.
@@ -426,7 +431,7 @@ int main(int argc, char **argv){
         };
         for(unsigned n=0;n<instruction_count;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<unsigned char*>(program+n),
-                (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,true,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
+                (instruction_count-n)*4,0x1000+n*4,nullptr,nullptr,true,false,true,!arm_leaf_memory,ir_calls?&call_resolver:nullptr,deferred,ir_policy);
             if(literal_pc_veneers && n==0 && (translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&128)) ||
                 (!translated.dependencies.empty() && (translated.dependencies[0].bytes.size()!=4 || translated.dependencies[0].address!=callee_address)))) {
                 std::cerr<<"Literal PC veneer fusion selection mismatch\n";return 4;
@@ -547,7 +552,7 @@ int main(int argc, char **argv){
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
         if(deferred && compiled<(ir_calls?execution_count:instruction_count))++deferred_cases;
-        if(!interpreter && (ir_long ? (compiled<111 || compiled>135) : invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : literal_pc_veneers ? (compiled<2 || compiled>9) : prefix_calls ? (compiled<2 || compiled>9) : expanded_calls ? (compiled<3 || compiled>9) : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
+        if(!interpreter && (arm_leaf_memory ? (compiled<2 || compiled>3) : ir_long ? (compiled<111 || compiled>135) : invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : literal_pc_veneers ? (compiled<2 || compiled>9) : prefix_calls ? (compiled<2 || compiled>9) : expanded_calls ? (compiled<3 || compiled>9) : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Unexpected generated instruction count at case "<<cases<<'\n';return 2;
         }
 #endif

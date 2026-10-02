@@ -4251,6 +4251,133 @@ static bool test_msr_privilege_guard() {
 }
 
 
+static bool test_arm_short_block_memory() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking=eka2l1::common::code_tracking;
+    struct restore {
+        bool direct=arm_direct_memory,folded=r12l1::dyncom_folded_tlb;
+        unsigned mode=tracking::unsafe_code_mode;
+        ~restore(){arm_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
+            tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
+    } saved;
+    const unsigned ops[]={0xe5910000,0xe5810000,0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,
+        0xe1d100d0,0xe1d100f0,0xe8b1000d,0xe8a1000d};
+    unsigned checks=0;
+    for(bool folded:{false,true})for(unsigned mode:{0u,1u,2u,3u})for(unsigned opcode:ops) {
+        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        const unsigned code[]={0xe3b02007,opcode,0xe2844001};
+        std::vector<std::uint8_t> modules[2];
+        for(unsigned enabled=0;enabled<2;++enabled) {
+            arm_direct_memory=enabled;
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,false);
+            modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        }
+        test_mem memory;
+        for(unsigned a=0;a<test_mem::SIZE;++a)memory.data[a]=static_cast<unsigned char>(a*37+19);
+        const auto initial=memory.data;
+        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0u,0x8040u,0x8001u,0x8ffeu,0x8ffcu})for(unsigned budget:{0u,1u,2u,3u}) {
+            r12l1::tlb tlb(12,folded);if(permission)tlb.add(0x8000,memory.data.data()+0x8000,permission);
+            alignas(8) std::array<unsigned,256> states[2]{};int counts[2];unsigned helpers[2];std::vector<unsigned char> expected;
+            for(unsigned enabled=0;enabled<2;++enabled) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());
+                auto &state=states[enabled];for(unsigned reg=0;reg<16;++reg)state[reg]=0xabc00000u+reg;
+                state[1]=address;state[15]=0x1000;state[state_offsets::CPSR/4]=0xa0000010|endian;
+                state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
+                helpers[enabled]=g_all_memory_helper_calls;if(!enabled)expected=memory.data;
+            }
+            const bool write=opcode==0xe5810000||opcode==0xe5c10000||opcode==0xe1c100b0||opcode==0xe8a1000d;
+            if(counts[0]!=int(budget)||counts[1]!=counts[0]||states[0]!=states[1]||memory.data!=expected
+                ||(budget>=2&&address==0x8040&&!endian&&(permission&(write?2:1))&&(!write||mode==3)&&helpers[1])) {
+                printf(" FAIL ARM short memory op=%x mode=%u folded=%u perm=%u endian=%x address=%x budget=%u count=%d/%d helpers=%u/%u\n",
+                    opcode,mode,folded,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
+            }
+            ++checks;
+        }
+    }
+    // A callback between reads replaces both state and the TLB. No proof
+    // from the earlier instruction may survive into the last read.
+    for(unsigned budget:{2u,3u,4u})for(unsigned endian:{0u,0x200u}) {
+        const unsigned code[]={0xe5910000,0xe5923000,0xe5914004,0xe2844001};
+        test_mem before,after;before.write32(0x8000,11);after.write32(0x8004,0x12345678);after.write32(0xa000,22);
+        r12l1::tlb old_tlb(12,r12l1::dyncom_folded_tlb),new_tlb(12,r12l1::dyncom_folded_tlb);
+        old_tlb.add(0x8000,before.data.data()+0x8000,1);new_tlb.add(0x8000,after.data.data()+0x8000,1);
+        alignas(8) std::array<unsigned,256> states[2]{};int counts[2];bool seen[2]{};
+        for(unsigned enabled=0;enabled<2;++enabled) {
+            arm_direct_memory=enabled;
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,false);
+            auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+            auto &state=states[enabled];state[1]=0x8000;state[2]=0xa000;state[15]=0x1000;
+            state[state_offsets::CPSR/4]=0x10;state[state_offsets::AOT_BUDGET/4]=4;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(old_tlb.entries);
+            state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;
+            g_test_mem=&before;
+            g_read32_observer=[&](unsigned ptr,unsigned address){
+                if(address!=0xa000)return;auto *v=reinterpret_cast<unsigned *>(ptr);
+                seen[enabled]=v[0]==11&&v[15]==0x1004;v[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(new_tlb.entries);
+                v[state_offsets::AOT_BUDGET/4]=budget;v[state_offsets::CPSR/4]=0x10|endian;v[state_offsets::CFLAG/4]=1;g_test_mem=&after;
+            };
+            counts[enabled]=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));g_read32_observer={};
+        }
+        if(!seen[0]||!seen[1]||counts[0]!=int(budget)||counts[1]!=counts[0]||states[0]!=states[1]) {
+            printf(" FAIL ARM short callback state/budget/TLB endian=%u budget=%u\n",endian,budget);return false;
+        }
+        ++checks;
+    }
+    // Stop/IRQ is observed after the whole memory instruction, including
+    // multi-register writeback, but before the following arithmetic opcode.
+    arm_direct_memory=true;
+    for (bool folded : {false,true}) for (unsigned mode : {0u,3u})
+    for (unsigned opcode : {0xe5910000u,0xe8b1000du})
+    for (unsigned action : {0u,1u,2u,3u,4u}) {
+        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        const unsigned code[]={0xe3b02007,opcode,0xe2844001};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,false);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem memory;memory.write32(0x8000,11);memory.write32(0x8004,22);memory.write32(0x8008,33);
+        r12l1::tlb tlb(12,folded);
+        alignas(8) std::array<unsigned,256> state{};
+        state[1]=0x8000;state[4]=99;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=0x10;state[state_offsets::AOT_BUDGET/4]=3;
+        state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        unsigned calls=0;bool visible=true;g_test_mem=&memory;
+        g_read32_observer=[&](unsigned ptr,unsigned address) {
+            auto *v=reinterpret_cast<unsigned *>(ptr);++calls;
+            visible &= v[15]==0x1004 && v[4]==99;
+            if(address!=0x8000)return;
+            if(action==1 || action==2) {
+                v[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;
+                v[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=action==2?1:0;
+            }
+            if(action==3 || action==4) {
+                v[state_offsets::NIRQ/4]=0;
+                if(action==4)v[state_offsets::CPSR/4]|=0x80;
+            }
+        };
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
+        g_read32_observer={};
+        const bool stopped=action==1 || action==3;
+        const bool multi=opcode==0xe8b1000d;
+        if(!visible || calls!=(multi?3u:1u) || count!=(stopped?2:3)
+            || state[0]!=11 || state[4]!=(stopped?99u:100u) || state[15]!=(stopped?0x1008u:0x100cu)
+            || state[1]!=(multi?0x800cu:0x8000u) || (multi && (state[2]!=22 || state[3]!=33))) {
+            printf(" FAIL ARM callback boundary opcode=%x mode=%u folded=%u action=%u count=%d calls=%u\n",opcode,mode,folded,action,count,calls);return false;
+        }
+        ++checks;
+    }
+    printf(" PASS ARM short block memory (%u full-state/memory/budget/callback comparisons)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_thumb_call_boundaries() {
 #ifdef __EMSCRIPTEN__
     struct restore { bool old=thumb_direct_memory; ~restore(){thumb_direct_memory=old;} } saved;
@@ -6341,6 +6468,7 @@ int main(int argc, char **argv) {
     if (test_inlined_leaves(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
     if (test_invariant_writes(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
 #endif
+    if (test_arm_short_block_memory()) passed++; else failed++;
     if (test_bounded_execution()) passed++; else failed++;
     if (test_folded_tlb_guards()) passed++; else failed++;
     if (test_unsafe_code_diagnostic()) passed++; else failed++;
