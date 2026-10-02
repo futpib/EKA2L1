@@ -218,6 +218,83 @@ static int thumb_call_probe() {
     return 0;
 }
 
+
+// Same production exclusive monitor and callback contract on native DynCom and
+// generated WASM. Include failed reservations, another processor, changed data,
+// predicates, short budgets, callback stops and callback-visible state.
+static int arm_exclusive_probe() {
+    aot::arm_exclusive_memory = true;
+    unsigned cases = 0;
+    for (unsigned region : {0u,1u}) for (unsigned shape=0; shape<6; ++shape)
+    for (unsigned cond : {0u,1u,14u}) for (unsigned flags : {0u,0x40000000u})
+    for (unsigned reservation=0; reservation<4; ++reservation)
+    for (unsigned budget : {1u,2u,3u}) for (unsigned policy=0; policy<5; ++policy) {
+        r12l1::exclusive_monitor monitor(2); dyncom_core cpu(&monitor,12);
+        std::vector<unsigned char> memory(65536,0);
+        std::uint32_t initial=0x12345678;std::memcpy(memory.data()+0x8000,&initial,4);
+        const auto ld=(cond<<28)|0x01912f9f, st=(cond<<28)|0x01813f90;
+        std::vector<std::uint32_t> words = shape==0 ? std::vector<std::uint32_t>{ld,st,0xe2844001}
+            : shape==1 ? std::vector<std::uint32_t>{st,ld,st}
+            : shape==2 ? std::vector<std::uint32_t>{(cond<<28)|0x01911f9f,0xe2844001,0xe2855001}
+            : shape==3 ? std::vector<std::uint32_t>{(cond<<28)|0x01811f90,0xe2844001,0xe2855001}
+            : shape==4 ? std::vector<std::uint32_t>{0xe2944001,ld,st}
+            : std::vector<std::uint32_t>{ld,0xe2944001,st};
+        std::memcpy(memory.data()+0x1000,words.data(),12);
+        cpu.read_code=[&](unsigned a,unsigned *v){if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;};
+        cpu.system_call_handler=[](unsigned){};
+        std::vector<std::string> events; bool record=false;
+        auto observe=[&](unsigned a,bool write) {
+            if (!record) return;
+            events.push_back(std::string("{\"write\":")+(write?"true":"false")+",\"address\":"+std::to_string(a)+",\"regs\":"+regs(cpu)+",\"cpsr\":"+std::to_string(cpu.get_cpsr())+"}");
+            if ((policy==1&&!write)||(policy==2&&write)) cpu.stop();
+            if (policy==3) cpu.set_reg(4,0xdecafbad);
+        };
+        monitor.read_32bit=[&](core *,unsigned a,unsigned *v) {
+            observe(a,false); if(policy==4&&record)return false;
+            if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;
+        };
+        monitor.write_32bit=[&](core *,unsigned a,unsigned v,unsigned expected)->std::int32_t {
+            observe(a,true);if((policy==4&&record)||a>memory.size()-4)return 0;
+            unsigned current;std::memcpy(&current,memory.data()+a,4);
+            if(current!=expected)return 0;std::memcpy(memory.data()+a,&v,4);return 1;
+        };
+        if(reservation) monitor.exclusive_read32(&cpu,reservation==2?0x8004:0x8000);
+        if(reservation==3) memory[0x8000]^=0x55;
+        monitor.restore(1,monitor.snapshot(0));
+        for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x98760000+i);
+        cpu.set_reg(0,0xaabbccdd);cpu.set_reg(1,0x8000);cpu.set_pc(0x1000);cpu.set_cpsr(flags|0xd0);
+        record=true;
+#ifdef __EMSCRIPTEN__
+        aot::global_registry().clear();std::vector<aot::wasm_func_def> functions;
+        for(unsigned i=0;i<3;++i) {
+            auto tr=aot::translate_arm_block(reinterpret_cast<const unsigned char *>(words.data()+i),(3-i)*4,0x1000+i*4,nullptr,nullptr,true,false,true,region);
+            if(!tr.entry_supported||!tr.complete){std::cerr<<"Exclusive instruction rejected\n";return 2;}
+            tr.func.export_name="f_"+std::to_string(0x1000+i*4);functions.push_back(std::move(tr.func));
+        }
+        auto bytes=aot::build_wasm_module(functions,{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false},
+            {"env","arm_exclusive",2,false}});
+        aot::stage_aot_module(std::move(bytes),"exclusive-probe");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        const auto compiled_before=eka2l1::common::performance::aot_instructions;
+#endif
+        const auto before=memory;cpu.run(budget);const auto count=cpu.get_num_instruction_executed();
+#ifdef __EMSCRIPTEN__
+        if (eka2l1::common::performance::aot_instructions-compiled_before!=count){std::cerr<<"Exclusive probe used interpreter\n";return 3;}
+#endif
+        unsigned hash=2166136261u;for(auto b:memory){hash^=b;hash*=16777619u;}
+        auto r0=monitor.snapshot(0),r1=monitor.snapshot(1);
+        std::cout<<"FAULT {\"id\":"<<cases++<<",\"region\":"<<region<<",\"shape\":"<<shape<<",\"condition\":"<<cond<<",\"flags\":"<<flags
+            <<",\"reservation\":"<<reservation<<",\"budget\":"<<budget<<",\"policy\":"<<policy
+            <<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()<<",\"count\":"<<count
+            <<",\"memory_hash\":"<<hash<<",\"monitor\":["<<r0.address<<','<<r0.value[0]<<','<<r0.value[1]<<','<<r1.address<<','<<r1.value[0]<<','<<r1.value[1]<<"],\"events\":[";
+        for(unsigned i=0;i<events.size();++i){if(i)std::cout<<',';std::cout<<events[i];}
+        std::cout<<"],\"memory_changes\":[";bool first=true;
+        for(unsigned i=0;i<memory.size();++i)if(memory[i]!=before[i]){if(!first)std::cout<<',';first=false;std::cout<<'['<<i<<','<<unsigned(memory[i])<<']';}
+        std::cout<<"]}\n";
+    }
+    return 0;
+}
+
 int main(int argc, char **argv){
     if(argc>1 && std::strncmp(argv[argc-1],"--unsafe-code=",14)==0) {
         const std::string value(argv[argc-1]+14);
@@ -302,6 +379,7 @@ int main(int argc, char **argv){
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
+    if(argc==2 && std::string(argv[1])=="--arm-exclusive") return arm_exclusive_probe();
     if(argc==2 && std::string(argv[1])=="--rom-calls")return rom_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-calls")return thumb_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-memory")return thumb_memory_fault_probe(true);

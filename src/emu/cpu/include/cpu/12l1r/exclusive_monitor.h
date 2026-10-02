@@ -87,6 +87,22 @@ namespace eka2l1::arm::r12l1 {
             return result;
         }
 
+        struct reservation_snapshot {
+            vaddress address;
+            std::array<std::uint64_t, 2> value;
+            bool operator==(const reservation_snapshot &other) const {
+                return address == other.address && value == other.value;
+            }
+        };
+        reservation_snapshot snapshot(std::size_t processor_id) {
+            lock();
+            reservation_snapshot result{exclusive_addresses_.at(processor_id), exclusive_values_.at(processor_id)};
+            unlock(); return result;
+        }
+        void restore(std::size_t processor_id, const reservation_snapshot &value) {
+            lock(); exclusive_addresses_.at(processor_id) = value.address;
+            exclusive_values_.at(processor_id) = value.value; unlock();
+        }
         void clear_processor(const std::size_t processor_id);
         void clear_exclusive() override;
 

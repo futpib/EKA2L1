@@ -1897,7 +1897,8 @@ namespace eka2l1::arm::aot {
                 }
                 // Exclusive/swap encodings overlap broad data-processing masks.
                 // Let DynCom preserve the exclusive monitor and instruction semantics.
-                if ((inst & 0x0F0000F0) == 0x01000090 || (inst >> 28) == 15) {
+                if (((inst & 0x0F0000F0) == 0x01000090 || (inst >> 28) == 15)
+                    && !(arm_exclusive_memory && supported_exclusive_word(inst))) {
                     w.bail_unsupported(insn_addr, insn_idx);
                     decoded_end_offset = static_cast<std::uint32_t>(i);
                     break;
@@ -2027,6 +2028,19 @@ namespace eka2l1::arm::aot {
 
             // Emit condition check
             bool cond_opened = emit_cond_check(w, cond, TMP1, TMP2);
+
+            // Keep the existing monitor, including failed reservations and
+            // callback effects. Return after this instruction so the runner
+            // rechecks stops, IRQs, mappings and instruction budget.
+            if (bounded && arm_exclusive_memory && supported_exclusive_word(inst)) {
+                w.store_i32_const(S::PC, insn_addr);
+                w.state_ptr(); w.i32_const(inst); w.slow_call(6);
+                w.bail_preserve_pc(insn_idx + 1);
+                if (cond_opened) w.op(op_end);
+                ++insn_idx;
+                decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                break;
+            }
 
             // === B/BL: bits [27:25] = 101 ===
             if (((inst >> 25) & 7) == 5) {

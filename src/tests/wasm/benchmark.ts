@@ -11,6 +11,8 @@ const [assetArg, outputArg, frameArg = '1000', inputArg = '../benchmark/snakes.i
 if (!assetArg || !outputArg) throw new Error('Usage: node benchmark.ts ASSETS NEW_OUTPUT [FRAMES] [INPUT] [START_US]');
 const thumbMemory = process.env.EKA2L1_THUMB_MEMORY === undefined ? -1 : Number(process.env.EKA2L1_THUMB_MEMORY);
 if (![-1,0,1].includes(thumbMemory)) throw Error('Invalid Thumb memory policy');
+const armExclusive = process.env.EKA2L1_ARM_EXCLUSIVE === undefined ? -1 : Number(process.env.EKA2L1_ARM_EXCLUSIVE);
+if (![-1,0,1].includes(armExclusive)) throw Error('ARM exclusive must be 0 or 1');
 const armMemory = process.env.EKA2L1_ARM_MEMORY === undefined ? -1 : Number(process.env.EKA2L1_ARM_MEMORY);
 if (![-1,0,1].includes(armMemory)) throw Error('Invalid ARM memory policy');
 const appUid = process.env.EKA2L1_APP_UID || '0x2000730f';
@@ -106,7 +108,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({romCalls, romLeaves, thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio, snakesN80NativeResolution}) => {
+  await page.evaluate(async ({armExclusive, romCalls, romLeaves, thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio, snakesN80NativeResolution}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -191,6 +193,9 @@ try {
       if (g.Module.ccall('eka2l1_thumb_memory_report', 'number', [], []) !== thumbMemory)
         throw Error('Thumb memory policy readback mismatch');
     }
+    if (armExclusive !== -1) call('eka2l1_arm_exclusive_configure', ['number'], [armExclusive]);
+    g.armExclusiveActual = typeof g.Module._eka2l1_arm_exclusive_report === 'function' ? g.Module._eka2l1_arm_exclusive_report() : null;
+    if (armExclusive !== -1 && g.armExclusiveActual !== armExclusive) throw Error('ARM exclusive readback mismatch');
     if (armMemory !== -1) {
       call('eka2l1_arm_memory_configure', ['number'], [armMemory]);
       if (g.Module.ccall('eka2l1_arm_memory_report', 'number', [], []) !== armMemory)
@@ -203,6 +208,7 @@ try {
       throw Error('ROM calls changed after initialization');
     if (romLeaves !== -1 && g.Module._eka2l1_rom_leaves_configure(1 - romLeaves) !== -1)
       throw Error('ROM leaves changed after initialization');
+    if (armExclusive !== -1 && g.Module._eka2l1_arm_exclusive_configure(1-armExclusive) !== -1) throw Error('ARM exclusive changed after initialization');
     if (armMemory !== -1 && g.Module._eka2l1_arm_memory_configure(1 - armMemory) !== -1)
       throw Error('ARM memory policy changed after initialization');
     if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
@@ -230,7 +236,7 @@ try {
     }
     // N80 also registers a different ROM-bundled game with the caption Snakes.
     call('eka2l1_run', ['string'], [appUid]);
-  }, {romCalls, romLeaves, thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio, snakesN80NativeResolution});
+  }, {armExclusive, romCalls, romLeaves, thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio, snakesN80NativeResolution});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -286,7 +292,7 @@ try {
   });
   await page.evaluate(() => (window as any).Module._eka2l1_shutdown());
   if (failures.length) throw new Error(failures.join('\n'));
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({rom_calls: await page.evaluate(() => (globalThis as any).romCallsActual), rom_leaves: await page.evaluate(() => (globalThis as any).romLeavesActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), rom_calls: await page.evaluate(() => (globalThis as any).romCallsActual), rom_leaves: await page.evaluate(() => (globalThis as any).romLeavesActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     snakes_n80_native_resolution: snakesN80NativeResolution,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, omit_guard_publication:await page.evaluate(()=>(globalThis as any).omitGuardPublicationActual), code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));

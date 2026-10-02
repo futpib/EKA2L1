@@ -68,6 +68,8 @@ bool validation_running = false;
 static bool validating = false;
 static ARMul_State *validation_guest = nullptr;
 static core::thread_context validation_before;
+static r12l1::exclusive_monitor *validation_monitor = nullptr;
+static r12l1::exclusive_monitor::reservation_snapshot validation_reservation{};
 static std::unordered_map<std::uint32_t, std::uint8_t> validation_memory;
 static std::unordered_map<std::uint32_t, std::uint8_t> reference_writes;
 
@@ -91,6 +93,10 @@ void validation_begin(ARMul_State *cpu) {
     validating = stride && (++attempts % stride == 0);
     if (!validating) return;
     validation_guest = cpu;
+    validation_monitor = arm_exclusive_memory
+        ? dynamic_cast<r12l1::exclusive_monitor *>(cpu->exmonitor()) : nullptr;
+    if (arm_exclusive_memory && !validation_monitor) std::abort();
+    if (validation_monitor) validation_reservation = validation_monitor->snapshot(cpu->parent()->core_number());
     cpu->parent()->save_context(validation_before);
     validation_before.cpsr = (cpu->Cpsr & 0x0fffffdf) | (cpu->NFlag << 31)
         | (cpu->ZFlag << 30) | (cpu->CFlag << 29) | (cpu->VFlag << 28) | (cpu->TFlag << 5);
@@ -129,11 +135,24 @@ void validation_end(ARMul_State *cpu, std::uint32_t count) {
     reference.read_16bit = reference_read<std::uint16_t>; reference.write_16bit = reference_write<std::uint16_t>;
     reference.read_32bit = reference_read<std::uint32_t>; reference.write_32bit = reference_write<std::uint32_t>;
     reference.read_64bit = reference_read<std::uint64_t>; reference.write_64bit = reference_write<std::uint64_t>;
+    if (validation_monitor) {
+        monitor.restore(0, validation_reservation);
+        monitor.read_32bit = [](core *, address a, std::uint32_t *value) { return reference_read(a, value); };
+        monitor.write_32bit = [](core *, address a, std::uint32_t value, std::uint32_t expected) -> std::int32_t {
+            std::uint32_t current = 0;
+            if (!reference_read(a, &current) || current != expected) return 0;
+            return reference_write(a, &value) ? 1 : 0;
+        };
+    }
     reference.load_context(validation_before);
     validation_running = true;
     reference.run(count);
     validation_running = false;
     bool same = true;
+    if (validation_monitor && !(monitor.snapshot(0) == validation_monitor->snapshot(cpu->parent()->core_number()))) {
+        fprintf(stderr, "AOT VERIFY exclusive reservation pc=%08X\n", validation_before.cpu_registers[15]);
+        same = false;
+    }
     for (unsigned r = 0; r < 16; ++r) {
         auto actual = cpu->Reg[r];
         if (r == 15) actual &= cpu->TFlag ? ~1u : ~3u;
@@ -191,9 +210,11 @@ static std::vector<wasm_func_def> hot_pending;
 
 static void flush_hot_blocks() {
     if (hot_pending.empty()) return;
-    auto bytes = build_wasm_module(hot_pending, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+    std::vector<wasm_import_func> imports{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
-        {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+    if (arm_exclusive_memory) imports.push_back({"env","arm_exclusive",2,false});
+    auto bytes = build_wasm_module(hot_pending, imports);
     stage_aot_module(std::move(bytes), "hot-rom");
     instantiate_staged_modules();
     hot_pending.clear();
@@ -567,6 +588,23 @@ static void prof_write8(ARMul_State *s, std::uint32_t a, std::uint32_t v) { coun
 static std::uint32_t prof_read16(ARMul_State *s, std::uint32_t a) { count_memory<4>(); return raw_read16(s,a); }
 static void prof_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<5>(); raw_write16(s,a,v); }
 
+static void raw_arm_exclusive(ARMul_State *s, std::uint32_t instruction) {
+    // DynCom's exclusive path calls the monitor directly: it does not repack
+    // CPSR before the callback. The generated barrier publishes registers and
+    // split flags, but must retain that existing packed-CPSR visibility.
+    const auto address = s->Reg[(instruction >> 16) & 15];
+    const auto destination = (instruction >> 12) & 15;
+    if (validating) validation_access(s, address, 4);
+    if (instruction & (1u << 20))
+        s->Reg[destination] = s->exmonitor()->exclusive_read32(s->parent(), address);
+    else {
+        const auto value = s->Reg[instruction & 15];
+        s->Reg[destination] = s->exmonitor()->exclusive_write32(s->parent(), address, value) ? 0 : 1;
+    }
+    // DynCom advances the callback-visible PC after completing the operation.
+    s->Reg[15] += 4;
+}
+
 // JS function that instantiates a WASM module and returns exported function
 // addresses as a comma-separated string of "name:table_idx" pairs.
 // Returns empty string on failure.
@@ -585,7 +623,7 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
             memory: wasmMemory,
             tlb_read32: raw(0), tlb_write32: raw(1),
             tlb_read8: raw(2), tlb_write8: raw(3),
-            tlb_read16: raw(4), tlb_write16: raw(5)
+            tlb_read16: raw(4), tlb_write16: raw(5), arm_exclusive: raw(6)
         }};
 
         var instance = new WebAssembly.Instance(wasmModule, importObj);
@@ -643,7 +681,8 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
         reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : common::guest_profile::enabled ? prof_read8 : raw_read8),
         reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : common::guest_profile::enabled ? prof_write8 : raw_write8),
         reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : common::guest_profile::enabled ? prof_read16 : raw_read16),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? prof_write16 : raw_write16)
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? prof_write16 : raw_write16),
+        reinterpret_cast<std::uintptr_t>(raw_arm_exclusive)
     };
     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
         static_cast<int>(wasm_bytes.size()), helpers);

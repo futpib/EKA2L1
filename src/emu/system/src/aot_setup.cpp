@@ -326,6 +326,8 @@ namespace eka2l1::arm::aot {
             {"env", "tlb_write16", 3, false},
         };
 
+        if (arm_exclusive_memory) imports.push_back({"env", "arm_exclusive", 2, false});
+
         // The target map only names original, unlinked Thumb functions. A
         // clone can call a base once, so even guest self/cyclic calls cannot
         // recurse on the host stack. No RAM mappings enter this map.

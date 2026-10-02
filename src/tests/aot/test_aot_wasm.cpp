@@ -5993,6 +5993,24 @@ static bool test_unsafe_code_diagnostic() {
     return true;
 }
 
+
+static bool test_arm_exclusive_decode() {
+    const auto saved=arm_exclusive_memory;unsigned checked=0;bool ok=true;
+    for(unsigned enabled:{0u,1u})for(unsigned cond=0;cond<16;++cond)
+    for(unsigned rn:{0u,1u,13u,14u,15u})for(unsigned rd:{0u,1u,13u,14u,15u})
+    for(unsigned rm:{0u,1u,13u,14u,15u})for(unsigned kind=0;kind<3;++kind) {
+        const std::uint32_t op=(cond<<28)|(kind==0?0x01900f9f:kind==1?0x01800f90:0x01d00f9f)
+            |(rn<<16)|(rd<<12)|(kind==1?rm:0);
+        const bool expected=enabled&&cond<15&&rn<15&&rd<15&&(kind==0||(kind==1&&rm<15));
+        arm_exclusive_memory=enabled;
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(&op),4,0x1000,nullptr,nullptr,true,false,true);
+        if(tr.entry_supported!=expected){printf(" FAIL exclusive decode %08x enabled=%u\n",op,enabled);ok=false;break;}
+        ++checked;
+    }
+    arm_exclusive_memory=saved;
+    printf("  exclusive decode checks: %u\n",checked);return ok;
+}
+
 int main(int argc, char **argv) {
 #ifdef __EMSCRIPTEN__
     if (eka2l1::common::code_tracking::unsafe_code_mode != 3) {
@@ -6690,6 +6708,7 @@ int main(int argc, char **argv) {
     if (test_conditional_alu_select()) passed++; else failed++;
     if (test_compare_conditions()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
+    if (test_arm_exclusive_decode()) passed++; else failed++;
     if (test_thumb_direct_memory()) passed++; else failed++;
     if (test_thumb_call_boundaries()) passed++; else failed++;
     if (test_thumb_transfer_spans()) passed++; else failed++;
