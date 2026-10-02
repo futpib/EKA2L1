@@ -27,3 +27,19 @@ The archive wrapper mistakenly labels its own archive as baseline_archive;
 that original field is retained and annotated in the evidence. The recorded
 base commit and full source patch identify the actual source without ambiguity.
 Nothing is deployed or pushed.
+
+## Sixteen-observation panel
+
+All preplanned observations and passive host readings are retained.
+
+| Route | First pair | Reversed pair | Mean throughput change | Candidate realtime range |
+| --- | ---: | ---: | ---: | ---: |
+| sky | +9.60% | +2.42% | +6.03% | 0.556–0.562x |
+| combat | -15.02% | +0.45% | -7.49% | 0.505–0.532x |
+| standard | -4.50% | +4.70% | +0.08% | 1.666–1.683x |
+| long | +21.43% | +3.24% | +11.49% | 1.464–1.764x |
+
+Each route has only two matching pairs. Inspect their directions and raw times;
+the mean is not a universal gain estimate. This compares V12 and V13 (ARM memory disabled in both) archives,
+not the untouched live archive. It does not establish zero Snakes loss or
+sustained realtime Sky Force, and is insufficient for deployment.
