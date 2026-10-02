@@ -86,8 +86,6 @@ namespace eka2l1::arm::aot {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
         bool direct_memory = false;
-        bool continue_stores = false;
-        static constexpr unsigned SLOW_PATH = 12;
         static constexpr unsigned ADDRESS = 7, VALUE = 8, HOST = 9, ENTRY = 10, SPAN_HOST = 11;
         bool span_active = false;
         bool memory_write = false;
@@ -165,9 +163,6 @@ namespace eka2l1::arm::aot {
 
         // Call imported function (index relative to imports)
         void slow_call(std::uint32_t func_idx) {
-            // Any callback may remap executable memory or alter lifetime state.
-            // Such a path retains the next original post-store runner boundary.
-            if (continue_stores) { i32_const(1); set_local(SLOW_PATH); }
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
@@ -670,9 +665,7 @@ namespace eka2l1::arm::aot {
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
         //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
         const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
-        const bool continue_stores = direct_memory && stop_after_store
-            && common::code_tracking::skip_mutation_tracking();
-        result.num_locals = continue_stores ? 12 : direct_memory ? 11 : 6;
+        result.num_locals = direct_memory ? 11 : 6;
         result.num_f32_locals = 2;
         result.num_f64_locals = 1;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
@@ -682,7 +675,6 @@ namespace eka2l1::arm::aot {
 
         emit w{result.body};
         w.direct_memory = direct_memory;
-        w.continue_stores = continue_stores;
         w.cache.enabled = bounded && cache_registers;
         // Keep repeated PC, budget, endian and TLB accesses in locals. Slow
         // callbacks still publish/reload the complete cached state.
@@ -787,8 +779,6 @@ namespace eka2l1::arm::aot {
         // After closing blk_0, depths shift: innermost is now blk_1,
         // so the same target fwd_1 is now at depth 0 (K - closed_count).
 
-        if (continue_stores) { w.i32_const(0); w.set_local(emit::SLOW_PATH); }
-
         // Initialize pc_idx = 0
         w.i32_const(0);
         w.set_local(PC_IDX);
@@ -814,24 +804,7 @@ namespace eka2l1::arm::aot {
         // loop (typically at a terminator like POP {PC}).
         std::uint32_t decoded_end_offset = 0;
         for (std::size_t i = 0; i + 1 < code_size; i += 2) {
-            if (bounded && stop_after_store && w.memory_write) {
-                if (!continue_stores) break;
-                // Direct RAM accesses cannot change mappings. Mode 3 accepts
-                // immutable executable bytes, but every former store boundary
-                // still observes stops/IRQs. Any helper retains the full return
-                // and successor mapping/lifetime validation before continuing.
-                w.get_local(emit::SLOW_PATH);
-                w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
-                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
-                w.op(op_i32_or); w.op(op_i32_eqz); w.op(op_i32_or);
-                w.load_i32(S::NIRQ); w.op(op_i32_eqz);
-                w.load_i32(S::CPSR); w.i32_const(0x80);
-                w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_i32_or);
-                w.op(op_if); w.op(type_void);
-                w.bail(start_address + decoded_end_offset, insn_idx, exit_census::guard);
-                w.op(op_end);
-                w.memory_write = false;
-            }
+            if (bounded && stop_after_store && w.memory_write) break;
             // Skip unreachable offsets. `reachable` is the CFG closure
             // from offset 0, so anything not in it is either the middle
             // halfword of a wide insn or literal-pool data past the
