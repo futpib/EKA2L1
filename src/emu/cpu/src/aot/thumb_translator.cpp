@@ -300,7 +300,7 @@ namespace eka2l1::arm::aot {
 
     // ARMv5/v6 narrow ALU semantics for scheduler-bounded blocks. Keep operands
     // in locals until all flags are derived, including register-aliasing cases.
-    static bool emit_bounded_alu(emit &w, std::uint16_t insn, bool emit_code = true) {
+    static bool emit_bounded_alu(emit &w, std::uint16_t insn) {
         constexpr unsigned result = 1, tmp = 2, lhs = 3, rhs = 4;
         auto nz = [&] {
             w.get_local(result); w.i32_const(31); w.op(op_i32_shr_u); w.set_local(tmp); w.store_i32(S::NFLAG,tmp);
@@ -320,7 +320,6 @@ namespace eka2l1::arm::aot {
         if ((insn & 0xF800) == 0x1800 || (insn & 0xF800) == 0x3000 || (insn & 0xF800) == 0x3800
                 || (insn & 0xFFC0) == 0x4280 || (insn & 0xF800) == 0x2800
                 || (insn & 0xFFC0) == 0x4240 || (insn & 0xFFC0) == 0x42C0) {
-            if (!emit_code) return true;
             bool sub = false, store = true;
             unsigned rd = insn & 7;
             if ((insn & 0xF800) == 0x1800) {
@@ -341,7 +340,6 @@ namespace eka2l1::arm::aot {
             return true;
         }
         if ((insn & 0xE000) == 0 && (insn & 0x1800) != 0x1800) {
-            if (!emit_code) return true;
             const auto kind = (insn>>11)&3;
             unsigned shift = (insn>>6)&31;
             const auto rd = insn&7;
@@ -358,7 +356,6 @@ namespace eka2l1::arm::aot {
         }
         const auto op = (insn>>6)&15;
         if ((insn & 0xFC00) == 0x4000 && (op == 2 || op == 3 || op == 4 || op == 7)) {
-            if (!emit_code) return true;
             const auto rd = insn & 7;
             w.load_reg(rd); w.set_local(lhs);
             w.load_reg((insn>>3)&7); w.i32_const(255); w.op(op_i32_and); w.set_local(rhs);
@@ -391,7 +388,6 @@ namespace eka2l1::arm::aot {
             w.get_local(lhs); w.set_local(result); w.store_reg(rd,result); nz(); return true;
         }
         if ((insn & 0xFC00) == 0x4000 && (op == 5 || op == 6)) {
-            if (!emit_code) return true;
             const auto rd = insn & 7;
             w.load_reg(rd); w.set_local(lhs); w.load_reg((insn>>3)&7); w.set_local(rhs);
             w.get_local(lhs); w.get_local(rhs); w.op(op == 5 ? op_i32_add : op_i32_sub);
@@ -412,7 +408,6 @@ namespace eka2l1::arm::aot {
         }
 
         if ((insn & 0xFC00) == 0x4000 && (op == 0 || op == 1 || op == 8 || op == 12 || op == 13 || op == 14 || op == 15)) {
-            if (!emit_code) return true;
             const auto rd = insn&7, rm = (insn>>3)&7;
             if (op != 15) w.load_reg(rd);
             w.load_reg(rm);
@@ -835,43 +830,6 @@ namespace eka2l1::arm::aot {
             while (closed_count < N_fwd && fwd_sorted[closed_count] == insn_addr) {
                 w.op(op_end);
                 closed_count++;
-            }
-
-            // Arithmetic cannot call out, fault, branch or change the budget.
-            // Prove a whole consecutive run fits once; retain the original
-            // instruction-by-instruction exits when the remaining budget is
-            // short. Memory/call boundaries never share this proof.
-            if (direct_memory) {
-                std::size_t end = i;
-                while (end + 1 < code_size && reachable.count(end)
-                        && emit_bounded_alu(w, code[end] | (code[end+1] << 8), false))
-                    end += 2;
-                const auto count = static_cast<std::uint32_t>((end - i) / 2);
-                if (count >= 2) {
-                    w.load_i32(S::AOT_BUDGET); w.i32_const(insn_idx + count);
-                    w.op(op_i32_ge_u); w.op(op_if); w.op(type_void);
-                    for (unsigned guarded = 0; guarded < 2; ++guarded) {
-                        if (guarded) w.op(op_else);
-                        for (unsigned n = 0; n < count; ++n) {
-                            const auto pc = insn_addr + n * 2;
-                            const auto opcode = code[i+n*2] | (code[i+n*2+1] << 8);
-                            w.census_pc = pc | 1; w.census_opcode = opcode;
-                            w.store_i32_const(S::PC, pc);
-                            if (guarded) {
-                                w.load_i32(S::AOT_BUDGET); w.i32_const(insn_idx + n);
-                                w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
-                                w.bail(pc, insn_idx + n, exit_census::guard);
-                                w.op(op_end);
-                            }
-                            emit_bounded_alu(w, opcode);
-                        }
-                    }
-                    w.op(op_end);
-                    insn_idx += count;
-                    decoded_end_offset = static_cast<std::uint32_t>(end);
-                    i = end - 2;
-                    continue;
-                }
             }
 
             if (bounded) {
