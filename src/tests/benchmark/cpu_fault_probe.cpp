@@ -129,6 +129,58 @@ static int thumb_memory_fault_probe(bool direct) {
 // The emulator accounts ARMv5/v6 BL as two separately budgeted halfwords.
 // Native DynCom is the reference for that contract; Dynarmic Step treats the
 // architectural long call as one instruction and cannot expose its midpoint.
+// Native DynCom oracle for two halfwords followed by a directly linked
+// Thumb ROM callee. The last instruction can fault through real callbacks.
+static int rom_call_probe() {
+    aot::thumb_direct_memory=true;
+    std::cout<<"PROBE_ROM_CALLS 1\n";
+    unsigned cases=0;
+    for(unsigned op:{0x3201u,0x6808u,0x6008u,0xbc05u})
+    for(unsigned policy=0;policy<4;++policy)for(unsigned budget=1;budget<=4;++budget)
+    for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u,3u}) {
+        r12l1::exclusive_monitor monitor(1);dyncom_core cpu(&monitor,12);
+        Fixture f{cpu,std::vector<unsigned char>(65536),0x8000,policy};f.install();
+        for(unsigned i=0x7000;i<0xa000;++i)f.memory[i]=(i*37+11)&255;
+        const std::uint16_t caller[]={0x2207,0xf000,0xfffd};
+        const std::uint16_t callee[]={static_cast<std::uint16_t>(op)};
+        std::memcpy(f.memory.data()+0x1000,caller,sizeof(caller));
+        std::memcpy(f.memory.data()+0x2000,callee,sizeof(callee));
+        for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
+        cpu.set_reg(0,0x87654321);cpu.set_reg(1,0x8000);cpu.set_reg(13,0x8000);
+        cpu.set_pc(0x1000);cpu.set_cpsr(0xA0000030|endian);
+        if(permission)cpu.set_tlb_page(0x8000,f.memory.data()+0x8000,permission==3?prot_read_write:prot_read);
+#ifdef __EMSCRIPTEN__
+        aot::global_registry().clear();
+        aot::sibling_map targets{{0x2001,7}};
+        auto parent=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,&targets);
+        auto child=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(callee),sizeof(callee),0x2000,nullptr,nullptr,true,false,true);
+        if(parent.bounded_direct_calls!=1||!child.entry_supported){std::cerr<<"ROM call fixture did not link\n";return 2;}
+        parent.func.export_name="f_4097";child.func.export_name="f_8193";
+        auto bytes=aot::build_wasm_module({parent.func,child.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        aot::stage_aot_module(std::move(bytes),"bounded-rom-call");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        const auto compiled_before=eka2l1::common::performance::aot_instructions;
+#endif
+        const auto before=f.memory;const auto prior=cpu.get_num_instruction_executed();cpu.run(budget);
+#ifdef __EMSCRIPTEN__
+        if(eka2l1::common::performance::aot_instructions-compiled_before!=budget){std::cerr<<"ROM call escaped compiled runner\n";return 3;}
+#endif
+        unsigned hash=2166136261u;for(auto b:f.memory){hash^=b;hash*=16777619u;}
+        std::cout<<"FAULT {\"id\":"<<cases++<<",\"opcode\":"<<op<<",\"policy\":"<<policy
+            <<",\"address\":32768,\"endian\":"<<endian<<",\"tlb_readonly\":"<<permission
+            <<",\"partial\":"<<budget<<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()
+            <<",\"count\":"<<cpu.get_num_instruction_executed()-prior<<",\"memory_hash\":"<<hash
+            <<",\"calls\":"<<f.calls<<",\"faults\":"<<f.faults<<",\"events\":[";
+        for(unsigned i=0;i<f.events.size();++i){if(i)std::cout<<',';std::cout<<f.events[i];}
+        std::cout<<"],\"memory_changes\":[";
+        bool first=true;for(unsigned i=0;i<f.memory.size();++i)if(f.memory[i]!=before[i]) {
+            if(!first)std::cout<<',';first=false;std::cout<<'['<<i<<','<<unsigned(f.memory[i])<<']';
+        }
+        std::cout<<"]}\n";
+    }
+    return 0;
+}
+
 static int thumb_call_probe() {
     aot::thumb_direct_memory=true;
     std::cout<<"PROBE_THUMB_CALLS 1\n";
@@ -250,6 +302,7 @@ int main(int argc, char **argv){
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
+    if(argc==2 && std::string(argv[1])=="--rom-calls")return rom_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-calls")return thumb_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-memory")return thumb_memory_fault_probe(true);
     if(argc==2 && std::string(argv[1])=="--thumb-memory-control")return thumb_memory_fault_probe(false);

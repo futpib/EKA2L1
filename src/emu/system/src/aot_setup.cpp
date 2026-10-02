@@ -148,6 +148,12 @@ namespace eka2l1::arm::aot {
         const auto eager_start = std::chrono::steady_clock::now();
         std::vector<wasm_func_def> all_funcs;
         std::size_t rom_leaf_dependencies = 0;
+        struct thumb_base {
+            const std::uint8_t *code;
+            std::uint32_t size, address;
+            std::size_t index;
+        };
+        std::vector<thumb_base> thumb_bases;
 
         for (std::uint32_t offset = 0; offset + sizeof(rom_image_header_raw) < rom_size; offset += 4) {
             std::uint32_t uid1;
@@ -280,6 +286,8 @@ namespace eka2l1::arm::aot {
                 if (tr.func.body.empty() || !tr.entry_supported) continue;
                 tr.func.export_name = "f_" + std::to_string(key);
                 rom_leaf_dependencies += tr.dependencies.size();
+                if (!c.is_arm && rom_bounded_calls && chaining_enabled && thumb_direct_memory)
+                    thumb_bases.push_back({c.func_host, size, c.func_addr, all_funcs.size()});
                 all_funcs.push_back(std::move(tr.func));
                 ++accepted;
                 if (max_exports >= 0 && accepted >= static_cast<std::size_t>(max_exports)) break;
@@ -318,6 +326,24 @@ namespace eka2l1::arm::aot {
             {"env", "tlb_write16", 3, false},
         };
 
+        // The target map only names original, unlinked Thumb functions. A
+        // clone can call a base once, so even guest self/cyclic calls cannot
+        // recurse on the host stack. No RAM mappings enter this map.
+        sibling_map base_targets;
+        for (const auto &base : thumb_bases)
+            base_targets.emplace(base.address | 1u, imports.size() + base.index);
+        unsigned linked_calls = 0;
+        for (const auto &base : thumb_bases) {
+            auto linked = translate_thumb_block(base.code, base.size, base.address,
+                nullptr, nullptr, true, false, true, &base_targets);
+            if (!linked.bounded_direct_calls) continue;
+            all_funcs[base.index].export_name = "b_" + std::to_string(base.index);
+            linked.func.export_name = "f_" + std::to_string(base.address | 1u);
+            linked_calls += linked.bounded_direct_calls;
+            all_funcs.push_back(std::move(linked.func));
+        }
+        fprintf(stderr, "AOT: rom_bounded_calls=%d linked_calls=%u base_targets=%zu\n",
+            rom_bounded_calls, linked_calls, base_targets.size());
         fprintf(stderr, "AOT: rom_inline_leaves=%d eager_leaf_dependencies=%zu\n", rom_inline_leaves, rom_leaf_dependencies);
         const auto emission_start = std::chrono::steady_clock::now();
         auto wasm_bytes = build_wasm_module(all_funcs, imports);

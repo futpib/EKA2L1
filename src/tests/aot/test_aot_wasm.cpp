@@ -4393,6 +4393,92 @@ static bool test_arm_short_block_memory() {
     return true;
 }
 
+static bool test_bounded_rom_calls() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        bool memory = thumb_direct_memory;
+        ~restore() { thumb_direct_memory = memory; g_read32_observer = nullptr; g_test_mem = nullptr; }
+    } saved;
+    thumb_direct_memory = true;
+    const std::vector<wasm_import_func> imports = {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+    unsigned checks = 0;
+    for (unsigned caller_kind = 0; caller_kind < 3; ++caller_kind)
+    for (unsigned callee_kind = 0; callee_kind < 5; ++callee_kind) {
+        // A pure arithmetic prefix, a callback prefix (must not link), and
+        // a guest self-call whose destination is the unlinked base function.
+        std::vector<std::uint16_t> caller = {std::uint16_t(caller_kind == 1 ? 0x6808 : 0x3001), 0xf000, 0xfffd};
+        if (caller_kind == 2) caller[2] = 0xfffd, caller[1] = 0xf7ff; // 0x1002 -> 0x1000
+        const std::vector<std::vector<std::uint16_t>> bodies = {
+            {0x3201,0x4770}, {0x6808,0x4770}, {0x6008,0x4770}, {0xbd01}, {0x3201,0xde00}};
+        const auto &callee = bodies[callee_kind];
+        auto translate = [&](const std::vector<std::uint16_t> &code, unsigned pc, const sibling_map *map = nullptr) {
+            return translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code.data()),code.size()*2,pc,
+                nullptr,nullptr,true,false,true,map);
+        };
+        auto original = translate(caller,0x1000), child = translate(callee,0x2000);
+        sibling_map targets{{0x2001,7},{0x1001,8}};
+        auto linked = translate(caller,0x1000,&targets);
+        if (linked.bounded_direct_calls != unsigned(caller_kind != 1)) return false;
+        original.func.export_name = "original"; child.func.export_name = "child";
+        auto linked_module = build_wasm_module({linked.func,child.func,original.func},imports);
+        auto original_module = build_wasm_module({original.func},imports);
+        auto child_module = caller_kind == 2 ? original_module : build_wasm_module({child.func},imports);
+        // Missing and wrong-mode targets must preserve ordinary dispatch.
+        sibling_map absent{{0x2000,7}};
+        if (translate(caller,0x1000,&absent).bounded_direct_calls) return false;
+        for (unsigned budget = 0; budget <= 8; ++budget)
+        for (unsigned stop : {0u,1u,2u}) for (unsigned irq : {0u,1u,2u})
+        for (unsigned callback : {0u,1u,2u}) {
+            test_mem memory; memory.write32(0x8000,0x12345678);memory.write32(0x8004,0x3001);
+            const auto initial = memory.data;
+            alignas(8) std::uint32_t states[2][256]{};
+            int counts[2]; unsigned helpers[2]; std::vector<std::uint8_t> expected;
+            for (unsigned variant = 0; variant < 2; ++variant) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());
+                auto *state = states[variant];
+                for (unsigned reg=0;reg<16;++reg) state[reg]=0xabc00000u+reg;
+                state[1]=state[13]=0x8000;state[15]=0x1000;
+                state[state_offsets::CPSR/4]=0x30 | (irq == 2 ? 0x80 : 0);
+                state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=stop==1;
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=stop==2;
+                state[state_offsets::NIRQ/4]=irq==0;
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                g_read32_observer=[&](unsigned ptr,unsigned) {
+                    auto *s=reinterpret_cast<unsigned *>(ptr);
+                    if(callback==1) {s[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;s[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=0;}
+                    if(callback==2) s[state_offsets::NIRQ/4]=0;
+                    s[3]=0x55667788; // publication/reload must preserve callback mutations
+                };
+                auto &module=variant ? linked_module : original_module;
+                counts[variant]=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[variant]));
+                // Independent outer-runner composition oracle: only the pure
+                // caller is eligible; this reproduces its removed boundary.
+                if (!variant && caller_kind != 1 && counts[0]>0 && unsigned(counts[0])<budget &&
+                    state[15]==(caller_kind==2?0x1000u:0x2000u) &&
+                    (state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]||state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]) &&
+                    (state[state_offsets::NIRQ/4]||(state[state_offsets::CPSR/4]&0x80))) {
+                    state[state_offsets::AOT_BUDGET/4]=budget-counts[0];
+                    counts[0]+=js_run_aot_wasm(child_module.data(),child_module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[0]));
+                    state[state_offsets::AOT_BUDGET/4]=budget;
+                }
+                helpers[variant]=g_all_memory_helper_calls;
+                if (!variant) expected=memory.data;
+            }
+            if(counts[0]!=counts[1]||std::memcmp(states[0],states[1],sizeof(states[0]))||expected!=memory.data||helpers[0]!=helpers[1]) {
+                printf(" FAIL ROM calls caller=%u callee=%u budget=%u stop=%u irq=%u callback=%u counts=%d/%d pc=%x/%x\n",
+                    caller_kind,callee_kind,budget,stop,irq,callback,counts[0],counts[1],states[0][15],states[1][15]);return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS bounded ROM calls (%u full-state/memory/budget/stop/IRQ/callback/self-call comparisons)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_rom_leaf_extent() {
     const auto saved_limit = leaf_instruction_limit;
     std::vector<std::uint8_t> image(96);
@@ -6551,6 +6637,7 @@ int main(int argc, char **argv) {
     if (test_invariant_writes(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
 #endif
     if (test_inlined_leaves(arm_ir_policy::write_budget_chunks, true)) passed++; else failed++;
+    if (test_bounded_rom_calls()) passed++; else failed++;
     if (test_rom_leaf_extent()) passed++; else failed++;
     if (test_registry_lookup_lifecycle()) passed++; else failed++;
     if (test_arm_short_block_memory()) passed++; else failed++;

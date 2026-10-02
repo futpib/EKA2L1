@@ -50,6 +50,7 @@ std::uint64_t compiled_function_count() { return completed_function_count.load(s
 // execution; the reference interpreter uses a private byte overlay.
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 bool rom_inline_leaves = false;
+bool rom_bounded_calls = false;
 std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
     std::uint32_t base, std::uint32_t size, std::uint32_t target) {
     if (!host || (target & 3) || target < base) return {};
