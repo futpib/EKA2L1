@@ -33,3 +33,17 @@ physical GPU rendering without capture, shared audio and no sampling or detailed
 counters. One pair per route is exploratory, not promotion evidence. A later
 comparison with the untouched live archive and normal live/audio acceptance
 remain necessary. Sky Force realtime with preserved Snakes realtime remains open.
+
+## Exploratory speed screen
+
+The six observations are complete and retained. Sky Force is 13.2964s control
+versus 12.6163s candidate for six guest seconds (+5.39% throughput, 0.476x
+realtime). Standard Snakes is 11.4079s versus 10.6804s (+6.81%); longer Snakes
+is 9.93571s versus 10.2394s (-2.96%). Guest instruction and presentation counts
+match within each route. One pair per route cannot establish a repeatable gain
+or zero Snakes loss; the candidate remains unpromoted. Static WASM grows by
+3,316 bytes versus v3, included in these new-binary comparisons.
+
+The next independent experiment reuses one TLB proof for a permitted one-page
+Thumb multi-register transfer, with scalar fallback for crossings or failed
+checks. The realtime goal remains open.

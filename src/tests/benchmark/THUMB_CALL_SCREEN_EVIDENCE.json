@@ -1,0 +1,1162 @@
+{
+  "status": "exploratory_one_pair_per_route_not_promoted",
+  "plan": {
+    "schedule": [
+      {
+        "batch": 0,
+        "route": "sky",
+        "thumb": 1,
+        "build": 3
+      },
+      {
+        "batch": 0,
+        "route": "sky",
+        "thumb": 1,
+        "build": 4
+      },
+      {
+        "batch": 0,
+        "route": "standard",
+        "thumb": 1,
+        "build": 4
+      },
+      {
+        "batch": 0,
+        "route": "standard",
+        "thumb": 1,
+        "build": 3
+      },
+      {
+        "batch": 0,
+        "route": "long",
+        "thumb": 1,
+        "build": 3
+      },
+      {
+        "batch": 0,
+        "route": "long",
+        "thumb": 1,
+        "build": 4
+      }
+    ],
+    "fixed_before_first_sample": "2026-10-02T01:58:28.942945+00:00",
+    "purpose": "Exploratory screen of v3 versus v4, both Thumb enabled. Six retained samples; insufficient alone for promotion.",
+    "capture_mode": 1,
+    "sampling": false,
+    "shared_audio": true,
+    "detail": false
+  },
+  "observations": [
+    {
+      "batch": 0,
+      "route": "sky",
+      "thumb": 1,
+      "build": 3,
+      "index": 0,
+      "name": "v4-screen-00-sky-b3",
+      "started": "2026-10-02T02:08:48.970281+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/v4-screen-00-sky-b3",
+        "1",
+        "0",
+        "34000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-thumb-v3",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "28000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force.input"
+      },
+      "git_head": "e3149507406302f6761c47c36dd723613da2c4f2",
+      "wall_seconds": 13.2964,
+      "guest_seconds": 6.0,
+      "instructions": 2142147961,
+      "presentations": 192,
+      "warmup_seconds": 63.288256866
+    },
+    {
+      "batch": 0,
+      "route": "sky",
+      "thumb": 1,
+      "build": 4,
+      "index": 1,
+      "name": "v4-screen-01-sky-b4",
+      "started": "2026-10-02T02:10:11.150368+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/v4-screen-01-sky-b4",
+        "1",
+        "0",
+        "34000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-thumb-v4",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "28000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force.input"
+      },
+      "git_head": "97b889b929b52b077d706e17cd02507fc6f9df8b",
+      "wall_seconds": 12.6163,
+      "guest_seconds": 6.0,
+      "instructions": 2142147961,
+      "presentations": 192,
+      "warmup_seconds": 61.523255850999995
+    },
+    {
+      "batch": 0,
+      "route": "standard",
+      "thumb": 1,
+      "build": 4,
+      "index": 2,
+      "name": "v4-screen-02-standard-b4",
+      "started": "2026-10-02T02:11:30.918051+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/v4-screen-02-standard-b4",
+        "1",
+        "0",
+        "39000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-thumb-v4",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_PROFILE_START_US": "21000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes.input"
+      },
+      "git_head": "97b889b929b52b077d706e17cd02507fc6f9df8b",
+      "wall_seconds": 10.6804,
+      "guest_seconds": 18.0,
+      "instructions": 2964235296,
+      "presentations": 381,
+      "warmup_seconds": 12.807349115999997
+    },
+    {
+      "batch": 0,
+      "route": "standard",
+      "thumb": 1,
+      "build": 3,
+      "index": 3,
+      "name": "v4-screen-03-standard-b3",
+      "started": "2026-10-02T02:11:59.989411+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/v4-screen-03-standard-b3",
+        "1",
+        "0",
+        "39000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-thumb-v3",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_PROFILE_START_US": "21000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes.input"
+      },
+      "git_head": "97b889b929b52b077d706e17cd02507fc6f9df8b",
+      "wall_seconds": 11.4079,
+      "guest_seconds": 18.0,
+      "instructions": 2964235296,
+      "presentations": 381,
+      "warmup_seconds": 12.803692677
+    },
+    {
+      "batch": 0,
+      "route": "long",
+      "thumb": 1,
+      "build": 3,
+      "index": 4,
+      "name": "v4-screen-04-long-b3",
+      "started": "2026-10-02T02:12:29.813053+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/v4-screen-04-long-b3",
+        "1",
+        "0",
+        "60000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-thumb-v3",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes-length-long.input"
+      },
+      "git_head": "97b889b929b52b077d706e17cd02507fc6f9df8b",
+      "wall_seconds": 9.93571,
+      "guest_seconds": 18.0,
+      "instructions": 3031637220,
+      "presentations": 380,
+      "warmup_seconds": 25.108055816
+    },
+    {
+      "batch": 0,
+      "route": "long",
+      "thumb": 1,
+      "build": 4,
+      "index": 5,
+      "name": "v4-screen-05-long-b4",
+      "started": "2026-10-02T02:13:11.940840+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/v4-screen-05-long-b4",
+        "1",
+        "0",
+        "60000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-thumb-v4",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes-length-long.input"
+      },
+      "git_head": "97b889b929b52b077d706e17cd02507fc6f9df8b",
+      "wall_seconds": 10.2394,
+      "guest_seconds": 18.0,
+      "instructions": 3031637220,
+      "presentations": 380,
+      "warmup_seconds": 24.609295559000003
+    }
+  ],
+  "summary": [
+    {
+      "route": "sky",
+      "control_seconds": 13.2964,
+      "candidate_seconds": 12.6163,
+      "throughput_percent": 5.390645434873931,
+      "candidate_realtime_capacity": 0.47557524789359795
+    },
+    {
+      "route": "standard",
+      "control_seconds": 11.4079,
+      "candidate_seconds": 10.6804,
+      "throughput_percent": 6.811542638852464,
+      "candidate_realtime_capacity": 1.6853301374480356
+    },
+    {
+      "route": "long",
+      "control_seconds": 9.93571,
+      "candidate_seconds": 10.2394,
+      "throughput_percent": -2.9658964392444864,
+      "candidate_realtime_capacity": 1.757915502861496
+    }
+  ],
+  "reports": {
+    "v4-screen-00-sky-b3": {
+      "thumb_memory": 1,
+      "app_uid": "0xa020d913",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 28000001,
+        "last_virtual_us": 34000001,
+        "first_instructions": 10157018788,
+        "last_instructions": 12299166749,
+        "wall_seconds": 13.2964,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 63.288256866,
+      "shared_audio": true,
+      "guest_profile_stride": 0,
+      "exit_census": false,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+      },
+      "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+      "wasm_sha256": "7c43bebf1d39fb7e3b0521bfe0af23b82a74addfb508ba1cab00220dc291c407",
+      "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "execution_limits": [
+        512,
+        16,
+        8,
+        512
+      ],
+      "predicated_leaves": 1,
+      "leaf_features": 128,
+      "unsafe_code_initial": 3,
+      "unsafe_code": 3,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "code_lookup": 0,
+      "omit_guard_publication": 0,
+      "code_write_protect": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "e3149507406302f6761c47c36dd723613da2c4f2",
+      "dirty_worktree": true,
+      "browser": "Chrome/153.0.8010.52",
+      "runtime_footprint": {
+        "guest_us": 34000001,
+        "instructions": 12299166749,
+        "compiled_functions": 10134,
+        "allocated_bytes": 584512424,
+        "free_bytes": 17103848
+      },
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "v4-screen-01-sky-b4": {
+      "thumb_memory": 1,
+      "app_uid": "0xa020d913",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 28000001,
+        "last_virtual_us": 34000001,
+        "first_instructions": 10157018788,
+        "last_instructions": 12299166749,
+        "wall_seconds": 12.6163,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 61.523255850999995,
+      "shared_audio": true,
+      "guest_profile_stride": 0,
+      "exit_census": false,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+      },
+      "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+      "wasm_sha256": "51decca65db5be845fb3301d9f22ab5dd83ec1275fecbe4375f75a432e223405",
+      "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "execution_limits": [
+        512,
+        16,
+        8,
+        512
+      ],
+      "predicated_leaves": 1,
+      "leaf_features": 128,
+      "unsafe_code_initial": 3,
+      "unsafe_code": 3,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "code_lookup": 0,
+      "omit_guard_publication": 0,
+      "code_write_protect": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "97b889b929b52b077d706e17cd02507fc6f9df8b",
+      "dirty_worktree": false,
+      "browser": "Chrome/153.0.8010.52",
+      "runtime_footprint": {
+        "guest_us": 34000001,
+        "instructions": 12299166749,
+        "compiled_functions": 9537,
+        "allocated_bytes": 584472048,
+        "free_bytes": 17930656
+      },
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "v4-screen-02-standard-b4": {
+      "thumb_memory": 1,
+      "app_uid": "0x2000730f",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "wall_seconds": 10.6804,
+        "presentations": 381,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 12.807349115999997,
+      "shared_audio": true,
+      "guest_profile_stride": 0,
+      "exit_census": false,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "51decca65db5be845fb3301d9f22ab5dd83ec1275fecbe4375f75a432e223405",
+      "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "execution_limits": [
+        512,
+        16,
+        8,
+        512
+      ],
+      "predicated_leaves": 1,
+      "leaf_features": 128,
+      "unsafe_code_initial": 3,
+      "unsafe_code": 3,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "code_lookup": 0,
+      "omit_guard_publication": 0,
+      "code_write_protect": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "97b889b929b52b077d706e17cd02507fc6f9df8b",
+      "dirty_worktree": false,
+      "browser": "Chrome/153.0.8010.52",
+      "runtime_footprint": {
+        "guest_us": 39000000,
+        "instructions": 5514091870,
+        "compiled_functions": 12979,
+        "allocated_bytes": 581459704,
+        "free_bytes": 16748696
+      },
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "v4-screen-03-standard-b3": {
+      "thumb_memory": 1,
+      "app_uid": "0x2000730f",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "wall_seconds": 11.4079,
+        "presentations": 381,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 12.803692677,
+      "shared_audio": true,
+      "guest_profile_stride": 0,
+      "exit_census": false,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "wasm_sha256": "7c43bebf1d39fb7e3b0521bfe0af23b82a74addfb508ba1cab00220dc291c407",
+      "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "execution_limits": [
+        512,
+        16,
+        8,
+        512
+      ],
+      "predicated_leaves": 1,
+      "leaf_features": 128,
+      "unsafe_code_initial": 3,
+      "unsafe_code": 3,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "code_lookup": 0,
+      "omit_guard_publication": 0,
+      "code_write_protect": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "97b889b929b52b077d706e17cd02507fc6f9df8b",
+      "dirty_worktree": false,
+      "browser": "Chrome/153.0.8010.52",
+      "runtime_footprint": {
+        "guest_us": 39000000,
+        "instructions": 5514091870,
+        "compiled_functions": 13822,
+        "allocated_bytes": 581883176,
+        "free_bytes": 16611944
+      },
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "v4-screen-04-long-b3": {
+      "thumb_memory": 1,
+      "app_uid": "0x2000730f",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 60000000,
+        "first_instructions": 6445351805,
+        "last_instructions": 9476989025,
+        "wall_seconds": 9.93571,
+        "presentations": 380,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 25.108055816,
+      "shared_audio": true,
+      "guest_profile_stride": 0,
+      "exit_census": false,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+      "wasm_sha256": "7c43bebf1d39fb7e3b0521bfe0af23b82a74addfb508ba1cab00220dc291c407",
+      "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "execution_limits": [
+        512,
+        16,
+        8,
+        512
+      ],
+      "predicated_leaves": 1,
+      "leaf_features": 128,
+      "unsafe_code_initial": 3,
+      "unsafe_code": 3,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "code_lookup": 0,
+      "omit_guard_publication": 0,
+      "code_write_protect": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "97b889b929b52b077d706e17cd02507fc6f9df8b",
+      "dirty_worktree": false,
+      "browser": "Chrome/153.0.8010.52",
+      "runtime_footprint": {
+        "guest_us": 60000000,
+        "instructions": 9476989025,
+        "compiled_functions": 14235,
+        "allocated_bytes": 590490712,
+        "free_bytes": 24167224
+      },
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "v4-screen-05-long-b4": {
+      "thumb_memory": 1,
+      "app_uid": "0x2000730f",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000000,
+        "last_virtual_us": 60000000,
+        "first_instructions": 6445351805,
+        "last_instructions": 9476989025,
+        "wall_seconds": 10.2394,
+        "presentations": 380,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 24.609295559000003,
+      "shared_audio": true,
+      "guest_profile_stride": 0,
+      "exit_census": false,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": false,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "6338b9fb839ccc0ac5d0a5939add828bc0f5b4bb12bb3cca7cb44fdefc697860",
+      "wasm_sha256": "51decca65db5be845fb3301d9f22ab5dd83ec1275fecbe4375f75a432e223405",
+      "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "execution_limits": [
+        512,
+        16,
+        8,
+        512
+      ],
+      "predicated_leaves": 1,
+      "leaf_features": 128,
+      "unsafe_code_initial": 3,
+      "unsafe_code": 3,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "code_lookup": 0,
+      "omit_guard_publication": 0,
+      "code_write_protect": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "97b889b929b52b077d706e17cd02507fc6f9df8b",
+      "dirty_worktree": false,
+      "browser": "Chrome/153.0.8010.52",
+      "runtime_footprint": {
+        "guest_us": 60000000,
+        "instructions": 9476989025,
+        "compiled_functions": 13374,
+        "allocated_bytes": 590571328,
+        "free_bytes": 24414288
+      },
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    }
+  },
+  "artifacts": {
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-00-sky-b3.log": {
+      "sha256": "fd1338f3cdfccc8c8f6f070dbc1c42b3205e87ff644d149f1195812458307d56",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-00-sky-b3-host.jsonl": {
+      "sha256": "2449c0e2992094669038d17be4fa1cb7c2dc97f31fdc956270c7c0b54967d2e1",
+      "bytes": 35453
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-00-sky-b3-command.json": {
+      "sha256": "a5960f1517ea8b2a2ab726498b6586bc5a8681b127dc20212e4fbd744c72f2c8",
+      "bytes": 1304
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-01-sky-b4.log": {
+      "sha256": "8fe3267747327820e19ba7135e265b2b6cedc740f0dd2b0ead7ca048eff0808d",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-01-sky-b4-host.jsonl": {
+      "sha256": "703b8f43260183f5f441666cdebd44aeecc21e3f20a8761598300ddefd8c5c17",
+      "bytes": 34591
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-01-sky-b4-command.json": {
+      "sha256": "1277554b946f50083a52f4ecfbe4e8d86602df4a9dd8127db25869f73bc9ffa5",
+      "bytes": 1304
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-02-standard-b4.log": {
+      "sha256": "59fe59b50a3f6ad86a499c1801ffee31731a3a3410aa62cb4563dc31f87c8af2",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-02-standard-b4-host.jsonl": {
+      "sha256": "6b47a2d86fd64e76f1350e0e81dee941ad7a3e4f734763c7d646ac03e8db7449",
+      "bytes": 12969
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-02-standard-b4-command.json": {
+      "sha256": "079e225dbdd2a122a2c667891e9bbea048ad77b970f5f22dc27232abe844d9c7",
+      "bytes": 1159
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-03-standard-b3.log": {
+      "sha256": "8d16a0f5cfe6cccd759876cc202d7caea0fc977eb02be8f1eb04bc860659a7c0",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-03-standard-b3-host.jsonl": {
+      "sha256": "57f660a986e73058294428ab136325c5c2d07862ffdd7ddda0c33366f5a47abb",
+      "bytes": 12971
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-03-standard-b3-command.json": {
+      "sha256": "a4bed8785e9447e1bc003aa032497f94c786c8727879f614c05224973fb178eb",
+      "bytes": 1159
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-04-long-b3.log": {
+      "sha256": "2b840e8db26df0c2a4e27429a996b2308c28331ae53dcf2c97029cb6ff10f443",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-04-long-b3-host.jsonl": {
+      "sha256": "3e5d19a074987ac90bf80c561ec32f042b496396e26ebace12800421a0c4fd05",
+      "bytes": 18162
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-04-long-b3-command.json": {
+      "sha256": "e583e2e3977ecb9d371cacc3ef8458dce5cdce01246bd58229f7819b66518cf8",
+      "bytes": 1159
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-05-long-b4.log": {
+      "sha256": "51d9d7fd6ece43ebfbd59e5aa29bf65a255dd32788f1cf4702afbc7cfbd6b9a9",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-05-long-b4-host.jsonl": {
+      "sha256": "a971382e646d865033132ffc543c4a0e177ab5c69e01b2bc0ff177ff43bbcfb6",
+      "bytes": 18162
+    },
+    "/home/claude/.scratch/eka-sky-performance/v4-screen-05-long-b4-command.json": {
+      "sha256": "bde8523b222331ff6c7707a1e0dedbe00d1d62321fcf4a2629ea526d99312408",
+      "bytes": 1159
+    }
+  }
+}
