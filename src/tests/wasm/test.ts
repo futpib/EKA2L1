@@ -159,6 +159,16 @@ async function runTests(): Promise<void> {
     });
     console.log("  PASS");
 
+    console.log("TEST Thumb direct memory: configuration and readback...");
+    await page.evaluate(() => {
+      const m = (window as any).Module;
+      for (const value of [-1, 2]) if (m._eka2l1_thumb_memory_configure(value) !== -1)
+        throw Error('Invalid Thumb memory policy accepted');
+      for (const value of [1, 0]) if (m._eka2l1_thumb_memory_configure(value) !== 0 || m._eka2l1_thumb_memory_report() !== value)
+        throw Error('Thumb memory policy readback failed');
+    });
+    console.log("  PASS");
+
     console.log("TEST lookup layout: pre-init policy validation...");
     await page.evaluate(() => {
       const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_lookup_configure','number',['number'],[n]);
@@ -208,6 +218,8 @@ async function runTests(): Promise<void> {
     await page.evaluate(() => {
       if ((window as any).Module.ccall('eka2l1_code_write_protect_configure','number',['number'],[1]) !== -1)
         throw Error('Write protection changed after initialization');
+      if ((window as any).Module._eka2l1_thumb_memory_configure(1) !== -1)
+        throw Error('Thumb memory policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_code_lookup_configure','number',['number'],[1]) !== -1)
         throw Error('Code lookup policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_tlb_hash_configure','number',['number'],[1]) !== -1)

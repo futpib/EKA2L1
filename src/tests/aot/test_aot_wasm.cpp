@@ -144,12 +144,14 @@ static unsigned g_expected_callback_pc = 0;
 static bool g_callback_pc_matches = true;
 static bool g_count_memory_helpers = false;
 static unsigned g_memory_helper_calls = 0;
+static unsigned g_all_memory_helper_calls = 0;
 static std::function<void(std::uint32_t,std::uint32_t)> g_read32_observer;
 static std::function<void(std::uint32_t,std::uint32_t,std::uint32_t)> g_write16_observer;
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read32(std::uint32_t state_ptr, std::uint32_t addr) {
+        ++g_all_memory_helper_calls;
         if (g_read32_observer) g_read32_observer(state_ptr, addr);
         if (g_count_memory_helpers) ++g_memory_helper_calls;
         if (g_expected_callback_pc)
@@ -169,28 +171,33 @@ extern "C" {
     }
     EMSCRIPTEN_KEEPALIVE
     void test_tlb_write32(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t val) {
+        ++g_all_memory_helper_calls;
         (void)state_ptr;
         if (g_count_memory_helpers) ++g_memory_helper_calls;
         if (g_test_mem) g_test_mem->write32(addr, val);
     }
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read8(std::uint32_t state_ptr, std::uint32_t addr) {
+        ++g_all_memory_helper_calls;
         (void)state_ptr;
         return g_test_mem ? g_test_mem->data[addr] : 0;
     }
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read16(std::uint32_t, std::uint32_t addr) {
+        ++g_all_memory_helper_calls;
         std::uint16_t value = 0;
         if (g_test_mem && addr + 2 <= test_mem::SIZE) std::memcpy(&value, &g_test_mem->data[addr], 2);
         return value;
     }
     EMSCRIPTEN_KEEPALIVE
     void test_tlb_write16(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t value) {
+        ++g_all_memory_helper_calls;
         if (g_write16_observer) { g_write16_observer(state_ptr,addr,value); return; }
         if (g_test_mem) g_test_mem->write16(addr, value);
     }
     EMSCRIPTEN_KEEPALIVE
     void test_tlb_write8(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t val) {
+        ++g_all_memory_helper_calls;
         (void)state_ptr;
         if (g_test_mem && addr < test_mem::SIZE) g_test_mem->data[addr] = static_cast<std::uint8_t>(val);
     }
@@ -4232,6 +4239,90 @@ static bool test_msr_privilege_guard() {
     return true;
 }
 
+
+static bool test_thumb_direct_memory() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking = eka2l1::common::code_tracking;
+    struct restore {
+        bool direct=thumb_direct_memory, folded=r12l1::dyncom_folded_tlb;
+        unsigned mode=tracking::unsafe_code_mode;
+        ~restore(){thumb_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
+            tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
+    } saved;
+    unsigned checks=0;
+    const unsigned ops[]={0x6808,0x6008,0x7808,0x7008,0x8808,0x8008};
+    for(bool folded:{false,true})for(unsigned mode:{0u,1u,2u,3u})for(unsigned index=0;index<6;++index) {
+        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        const std::uint16_t code[]={0x2207,static_cast<std::uint16_t>(ops[index]),0x3301};
+        std::vector<std::uint8_t> modules[2];
+        for(unsigned enabled=0;enabled<2;++enabled) {
+            thumb_direct_memory=enabled;
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+            modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        }
+        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0u,0x8000u,0x8001u,0x8ffeu,0x8fffu,0x9000u})for(unsigned budget:{0u,1u,2u,3u}) {
+            test_mem actual,control;
+            for(unsigned a=0;a<test_mem::SIZE;++a)actual.data[a]=static_cast<std::uint8_t>(a*37+19);
+            control=actual;
+            r12l1::tlb tlb(12,folded);tlb.add(0x8000,actual.data.data()+0x8000,permission);
+            alignas(8) unsigned states[2][256]{};
+            int counts[2]{};unsigned helpers[2]{};
+            for(unsigned enabled=0;enabled<2;++enabled) {
+                auto *state=states[enabled];state[0]=0x12345678;state[1]=address;state[3]=41;state[15]=0x1000;
+                state[state_offsets::CPSR/4]=0xA0000030|endian;state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::NFLAG/4]=1;state[state_offsets::CFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                g_test_mem=enabled?&actual:&control;g_all_memory_helper_calls=0;
+                counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[enabled]));
+                helpers[enabled]=g_all_memory_helper_calls;
+            }
+            const bool write=index&1;const unsigned size=index<2?4:index<4?1:2;
+            const bool fast=(permission&(write?2:1)) && !endian && (address&~4095u)==0x8000
+                && !(address&(size-1)) && (!write || mode==3);
+            if(counts[0]!=int(budget)||counts[1]!=counts[0]||std::memcmp(states[0],states[1],sizeof(states[0]))||actual.data!=control.data
+                || helpers[0]!=(budget>=2?1u:0u)||helpers[1]!=(budget>=2&&!fast?1u:0u)) {
+                printf(" FAIL Thumb memory op=%x folded=%d mode=%u perm=%u endian=%x address=%x budget=%u count=%d/%d helpers=%u/%u\n",
+                    ops[index],folded,mode,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
+            }
+            ++checks;
+        }
+    }
+    // A helper may change registers, flags and mappings. The next access must
+    // use the updated state and TLB; callback barriers remain on the slow arm.
+    for(bool enabled:{false,true}) {
+        thumb_direct_memory=enabled;tracking::unsafe_code_mode=3;
+        const std::uint16_t code[]={0x2207,0x6808,0x681a,0x4150};
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem memory;memory.write32(0x8000,20);memory.write32(0x9000,30);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        alignas(8) unsigned state[256]{};state[1]=0x8000;state[3]=0xA000;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=4;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        bool observed=false;
+        g_read32_observer=[&](unsigned ptr,unsigned address){
+            if(address!=0x8000)return;
+            auto *s=reinterpret_cast<unsigned *>(ptr);observed=s[2]==7&&s[15]==0x1002;
+            s[3]=0x9000;s[state_offsets::CFLAG/4]=1;
+            tlb.add(0x9000,memory.data.data()+0x9000,1);
+        };
+        g_test_mem=&memory;g_all_memory_helper_calls=0;
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        g_read32_observer={};
+        if(count!=4||!observed||state[0]!=51||state[2]!=30||state[3]!=0x9000||g_all_memory_helper_calls!=(enabled?1u:2u)) {
+            printf(" FAIL Thumb callback state/mapping enabled=%d count=%d r0=%u observed=%d helpers=%u\n",enabled,count,state[0],observed,g_all_memory_helper_calls);return false;
+        }
+        ++checks;
+    }
+    printf(" PASS Thumb direct memory (%u permission/alignment/endian/policy/budget/callback comparisons)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_cached_callback_state() {
 #ifdef __EMSCRIPTEN__
     const std::uint32_t code[] = {0xE3A02007, 0xE5910000, 0xE2834001, 0xE2A05000};
@@ -6152,6 +6243,7 @@ int main(int argc, char **argv) {
     if (test_conditional_alu_select()) passed++; else failed++;
     if (test_compare_conditions()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
+    if (test_thumb_direct_memory()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
 #ifdef EKA2L1_WASM_CODE_VERSIONS

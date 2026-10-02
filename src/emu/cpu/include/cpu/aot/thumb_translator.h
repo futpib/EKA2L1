@@ -28,6 +28,8 @@
 #include <vector>
 
 namespace eka2l1::arm::aot {
+    // Pre-initialization experiment, shared by eager ROM and hot translations.
+    inline bool thumb_direct_memory = false;
     // ARMul_State field offsets (must match the actual struct layout)
     struct state_offsets {
         static constexpr std::uint32_t REG = 0;          // Reg[0]

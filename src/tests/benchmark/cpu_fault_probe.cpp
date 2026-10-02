@@ -66,6 +66,65 @@ struct Fixture {
         cpu.system_call_handler=[](unsigned){};
     }
 };
+
+// Thumb memory operations through production callbacks and the real runner.
+// The memory instruction is last, so stop/fault cases compare its exact
+// architectural effects without assuming later instructions execute.
+static int thumb_memory_fault_probe(bool direct) {
+    aot::thumb_direct_memory=direct;
+    std::cout<<"PROBE_THUMB_MEMORY "<<direct<<"\n";
+    unsigned cases=0;
+    for(unsigned op:{0x6808u,0x6008u,0x7808u,0x7008u,0x8808u,0x8008u,0xc905u,0xc105u,0xb405u,0xbc05u})
+    for(unsigned policy=0;policy<4;++policy)for(unsigned address:{0x8000u,0x8ffdu,0x8ffcu})
+    for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u,3u}) {
+#if defined(__EMSCRIPTEN__) || defined(EKA_MATCHED_REFERENCE)
+        r12l1::exclusive_monitor monitor(1);dyncom_core cpu(&monitor,12);
+#else
+        dynarmic_exclusive_monitor monitor(1);dynarmic_core cpu(&monitor);
+#endif
+        Fixture f{cpu,std::vector<unsigned char>(65536),address,policy};f.install();
+        for(unsigned i=0x7000;i<0xa000;++i)f.memory[i]=(i*37+11)&255;
+        const std::uint16_t program[]={0x2207,static_cast<std::uint16_t>(op)};
+        std::memcpy(f.memory.data()+0x1000,program,sizeof(program));
+        for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
+        cpu.set_reg(0,0x87654321);cpu.set_reg(1,address);cpu.set_reg(13,address);
+        cpu.set_pc(0x1000);cpu.set_cpsr(0xA0000030|endian);
+        if(permission)cpu.set_tlb_page(address&~4095u,f.memory.data()+(address&~4095u),permission==3?prot_read_write:prot_read);
+#ifdef __EMSCRIPTEN__
+        aot::global_registry().clear();
+        auto translated=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(program),sizeof(program),0x1000,nullptr,nullptr,true,false,true);
+        if(!translated.entry_supported || !translated.complete){std::cerr<<"Thumb fixture did not compile\n";return 2;}
+        translated.func.export_name="f_4097";
+        auto bytes=aot::build_wasm_module({translated.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        aot::stage_aot_module(std::move(bytes),"thumb-memory-fault");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+#endif
+        const auto before=f.memory;
+#ifdef __EMSCRIPTEN__
+        const unsigned prior=0;
+        const auto compiled_before=eka2l1::common::performance::aot_instructions;
+        cpu.run(2);
+        if(eka2l1::common::performance::aot_instructions-compiled_before!=2){std::cerr<<"Thumb fixture not executed by compiled runner\n";return 3;}
+#else
+        const auto prior=cpu.get_num_instruction_executed();
+        cpu.step();if(!f.stopped)cpu.step();
+#endif
+        unsigned hash=2166136261u;for(auto b:f.memory){hash^=b;hash*=16777619u;}
+        std::cout<<"FAULT {\"id\":"<<cases++<<",\"opcode\":"<<op<<",\"policy\":"<<policy
+            <<",\"address\":"<<address<<",\"endian\":"<<endian<<",\"tlb_readonly\":"<<permission
+            <<",\"partial\":0,\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()
+            <<",\"count\":"<<cpu.get_num_instruction_executed()-prior<<",\"memory_hash\":"<<hash
+            <<",\"calls\":"<<f.calls<<",\"faults\":"<<f.faults<<",\"events\":[";
+        for(unsigned i=0;i<f.events.size();++i){if(i)std::cout<<',';std::cout<<f.events[i];}
+        std::cout<<"],\"memory_changes\":[";
+        bool first=true;for(unsigned i=0;i<f.memory.size();++i)if(f.memory[i]!=before[i]) {
+            if(!first)std::cout<<',';first=false;std::cout<<'['<<i<<','<<unsigned(f.memory[i])<<']';
+        }
+        std::cout<<"]}\n";
+    }
+    return 0;
+}
+
 int main(int argc, char **argv){
     if(argc>1 && std::strncmp(argv[argc-1],"--unsafe-code=",14)==0) {
         const std::string value(argv[argc-1]+14);
@@ -150,6 +209,8 @@ int main(int argc, char **argv){
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
+    if(argc==2 && std::string(argv[1])=="--thumb-memory")return thumb_memory_fault_probe(true);
+    if(argc==2 && std::string(argv[1])=="--thumb-memory-control")return thumb_memory_fault_probe(false);
     const bool invariant_write_remap=argc==2 && std::string(argv[1])=="--invariant-write-remap";
     const bool invariant_remap=invariant_write_remap || (argc==2 && std::string(argv[1])=="--invariant-remap");
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";

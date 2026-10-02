@@ -20,6 +20,8 @@
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/exit_census.h>
+#include <cpu/12l1r/tlb.h>
+#include <common/code_tracking.h>
 
 #include <cstring>
 #include <map>
@@ -83,6 +85,8 @@ namespace eka2l1::arm::aot {
     struct emit {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
+        bool direct_memory = false;
+        static constexpr unsigned ADDRESS = 7, VALUE = 8, HOST = 9, ENTRY = 10;
         bool memory_write = false;
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
@@ -157,11 +161,56 @@ namespace eka2l1::arm::aot {
         void store_reg(int r, std::uint32_t local) { store_i32(S::reg(r), local); }
 
         // Call imported function (index relative to imports)
-        void call(std::uint32_t func_idx) {
-            if (func_idx == 1 || func_idx == 3 || func_idx == 5) memory_write = true;
+        void slow_call(std::uint32_t func_idx) {
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
+        }
+
+        void call(std::uint32_t func_idx) {
+            const bool write = func_idx == 1 || func_idx == 3 || func_idx == 5;
+            if (write) memory_write = true;
+            // Compatibility modes retain their existing write tracking path.
+            // Each direct access proves its own TLB permission, alignment and
+            // endian state; no proof survives a callback or a mapping change.
+            if (!direct_memory || func_idx > 5 || (write &&
+                    (!common::code_tracking::skip_mutation_tracking() ||
+                     !common::code_tracking::skip_code_write_guards()))) {
+                slow_call(func_idx); return;
+            }
+            const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
+            if (write) set_local(VALUE);
+            set_local(ADDRESS); set_local(HOST); // consume imported state argument
+            i32_const(0); set_local(HOST);
+            load_i32(S::AOT_TLB); tee_local(ENTRY);
+            op(op_if); op(type_void);
+            get_local(ADDRESS); i32_const(12); op(op_i32_shr_u);
+            if (r12l1::dyncom_folded_tlb) {
+                get_local(ADDRESS); i32_const(12 + r12l1::TLB_LOOKUP_BIT_COUNT);
+                op(op_i32_shr_u); op(op_i32_xor);
+            }
+            i32_const(r12l1::TLB_ENTRY_MASK); op(op_i32_and);
+            i32_const(4); op(op_i32_shl); get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
+            get_local(ENTRY); op(op_i32_load); leb(b, 2); leb(b, write ? 4 : 0);
+            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
+            get_local(ADDRESS); i32_const(4096); op(op_i32_ge_u); op(op_i32_and);
+            get_local(ADDRESS); i32_const(size - 1); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            op(op_if); op(type_void);
+            get_local(ENTRY); op(op_i32_load); leb(b, 2); leb(b, 12); tee_local(HOST);
+            op(op_if); op(type_void);
+            get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+            op(op_i32_add); set_local(HOST);
+            op(op_end); op(op_end); op(op_end);
+            get_local(HOST); op(op_if); op(write ? type_void : type_i32);
+            get_local(HOST); if (write) get_local(VALUE);
+            op(write ? (size == 4 ? op_i32_store : size == 2 ? op_i32_store16 : op_i32_store8)
+                     : (size == 4 ? op_i32_load : size == 2 ? op_i32_load16_u : op_i32_load8_u));
+            leb(b, size == 4 ? 2 : size == 2 ? 1 : 0); leb(b, 0);
+            op(op_else);
+            state_ptr(); get_local(ADDRESS); if (write) get_local(VALUE);
+            slow_call(func_idx);
+            op(op_end);
         }
 
         std::uint32_t census_pc=0,census_opcode=0;
@@ -577,7 +626,8 @@ namespace eka2l1::arm::aot {
 
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
         //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
-        result.num_locals = 6;
+        const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
+        result.num_locals = direct_memory ? 10 : 6;
         result.num_f32_locals = 2;
         result.num_f64_locals = 1;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
@@ -586,6 +636,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t DTMP1 = 9;
 
         emit w{result.body};
+        w.direct_memory = direct_memory;
         w.cache.enabled = bounded && cache_registers;
         w.cache.first_local = result.num_locals + 1;
 
@@ -3560,7 +3611,6 @@ namespace eka2l1::arm::aot {
                 w.i32_const(count * 4);
                 w.op(op_i32_sub);
                 w.set_local(TMP1);
-                w.store_reg(13, TMP1);
                 // Store registers at ascending addresses from new SP
                 int offset = 0;
                 for (int r = 0; r < 8; r++) {
@@ -3585,6 +3635,9 @@ namespace eka2l1::arm::aot {
                     w.get_local(TMP2);
                     w.call(1);
                 }
+                // Fault callbacks observe the original SP. Publish writeback
+                // only after the transfers, matching the native core.
+                w.store_reg(13, TMP1);
             } else if ((insn & 0xFE00) == 0xBC00) {
                 // POP {reglist} — bit 8 = PC
                 std::uint16_t reglist = insn & 0xFF;
