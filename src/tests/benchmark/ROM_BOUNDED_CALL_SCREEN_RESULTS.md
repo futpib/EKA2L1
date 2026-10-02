@@ -21,3 +21,11 @@ These measurements do not establish sustained realtime Sky Force or zero Snakes
 regression. Review both orders and slow observations; do not select only positive
 pairs. The separate invocation census is diagnostic and excluded from timings.
 No deployment or push.
+
+The separate stationary census removes 3,496,495 outer
+invocations (1.81%), from 193,386,711 to 189,890,216.
+Memory callbacks stay identical at 3,508,191. This small dispatch reduction
+does not outweigh the mixed timing evidence. The option stays off. Sampled
+last-instruction reconstruction is invalid across these noncontiguous calls and
+is deliberately not used. Next investigate iterative module-local ROM dispatch
+while retaining original region limits and callback/RAM boundaries.
