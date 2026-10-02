@@ -1,0 +1,922 @@
+{
+  "plan": {
+    "schedule": [
+      {
+        "batch": 0,
+        "route": "sky",
+        "thumb": 1,
+        "build": 14,
+        "eager": 0,
+        "rom_leaves": 0,
+        "policy": 0
+      },
+      {
+        "batch": 0,
+        "route": "sky",
+        "thumb": 1,
+        "build": 14,
+        "eager": 1,
+        "rom_leaves": 0,
+        "policy": 1
+      },
+      {
+        "batch": 0,
+        "route": "sky",
+        "thumb": 1,
+        "build": 14,
+        "eager": 1,
+        "rom_leaves": 1,
+        "policy": 2
+      },
+      {
+        "batch": 0,
+        "route": "combat",
+        "thumb": 1,
+        "build": 14,
+        "eager": 1,
+        "rom_leaves": 1,
+        "policy": 2
+      },
+      {
+        "batch": 0,
+        "route": "combat",
+        "thumb": 1,
+        "build": 14,
+        "eager": 1,
+        "rom_leaves": 0,
+        "policy": 1
+      },
+      {
+        "batch": 0,
+        "route": "combat",
+        "thumb": 1,
+        "build": 14,
+        "eager": 0,
+        "rom_leaves": 0,
+        "policy": 0
+      },
+      {
+        "batch": 0,
+        "route": "standard",
+        "thumb": 1,
+        "build": 14,
+        "eager": 1,
+        "rom_leaves": 0,
+        "policy": 1
+      },
+      {
+        "batch": 0,
+        "route": "standard",
+        "thumb": 1,
+        "build": 14,
+        "eager": 0,
+        "rom_leaves": 0,
+        "policy": 0
+      },
+      {
+        "batch": 0,
+        "route": "standard",
+        "thumb": 1,
+        "build": 14,
+        "eager": 1,
+        "rom_leaves": 1,
+        "policy": 2
+      },
+      {
+        "batch": 0,
+        "route": "long",
+        "thumb": 1,
+        "build": 14,
+        "eager": 1,
+        "rom_leaves": 1,
+        "policy": 2
+      },
+      {
+        "batch": 0,
+        "route": "long",
+        "thumb": 1,
+        "build": 14,
+        "eager": 0,
+        "rom_leaves": 0,
+        "policy": 0
+      },
+      {
+        "batch": 0,
+        "route": "long",
+        "thumb": 1,
+        "build": 14,
+        "eager": 1,
+        "rom_leaves": 0,
+        "policy": 1
+      }
+    ],
+    "fixed_before_first_sample": "2026-10-02T07:07:51.944822+00:00",
+    "purpose": "Twelve fixed serial exploratory observations in one frozen V14 binary: basic-ROM/no-leaves, region-ROM/no-leaves, region-ROM/leaves. Four routes with rotated orders. Shared Thumb enabled, ARM memory disabled, unchanged limits; no game-specific policy. Single observations are not promotion evidence."
+  },
+  "observations": [
+    {
+      "batch": 0,
+      "route": "sky",
+      "thumb": 1,
+      "build": 14,
+      "eager": 0,
+      "rom_leaves": 0,
+      "policy": 0,
+      "index": 0,
+      "name": "rom-leaves-v14-screen-00-sky-p0",
+      "started": "2026-10-02T07:27:32.862495+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-00-sky-p0",
+        "1",
+        "0",
+        "34000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "0",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "28000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force.input"
+      },
+      "git_head": "12aee3b85abb9e6fadac7cd0498015e224ed4efc",
+      "wall_seconds": 11.0384,
+      "guest_seconds": 6.0,
+      "instructions": 2142147961,
+      "presentations": 192,
+      "warmup_seconds": 50.979468419999996
+    },
+    {
+      "batch": 0,
+      "route": "sky",
+      "thumb": 1,
+      "build": 14,
+      "eager": 1,
+      "rom_leaves": 0,
+      "policy": 1,
+      "index": 1,
+      "name": "rom-leaves-v14-screen-01-sky-p1",
+      "started": "2026-10-02T07:28:40.315709+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-01-sky-p1",
+        "1",
+        "0",
+        "34000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "1",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "0",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "28000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force.input"
+      },
+      "git_head": "12aee3b85abb9e6fadac7cd0498015e224ed4efc",
+      "wall_seconds": 11.958,
+      "guest_seconds": 6.0,
+      "instructions": 2142147961,
+      "presentations": 192,
+      "warmup_seconds": 50.479514806000005
+    },
+    {
+      "batch": 0,
+      "route": "sky",
+      "thumb": 1,
+      "build": 14,
+      "eager": 1,
+      "rom_leaves": 1,
+      "policy": 2,
+      "index": 2,
+      "name": "rom-leaves-v14-screen-02-sky-p2",
+      "started": "2026-10-02T07:29:48.319539+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-02-sky-p2",
+        "1",
+        "0",
+        "34000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "1",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "1",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "28000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force.input"
+      },
+      "git_head": "12aee3b85abb9e6fadac7cd0498015e224ed4efc",
+      "wall_seconds": 10.6451,
+      "guest_seconds": 6.0,
+      "instructions": 2142147961,
+      "presentations": 192,
+      "warmup_seconds": 49.471656005
+    },
+    {
+      "batch": 0,
+      "route": "combat",
+      "thumb": 1,
+      "build": 14,
+      "eager": 1,
+      "rom_leaves": 1,
+      "policy": 2,
+      "index": 3,
+      "name": "rom-leaves-v14-screen-03-combat-p2",
+      "started": "2026-10-02T07:30:54.116544+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-03-combat-p2",
+        "1",
+        "0",
+        "48000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "1",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "1",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-combat.input"
+      },
+      "git_head": "12aee3b85abb9e6fadac7cd0498015e224ed4efc",
+      "wall_seconds": 10.2098,
+      "guest_seconds": 5.999999,
+      "instructions": 2171043925,
+      "presentations": 192,
+      "warmup_seconds": 75.599710403
+    },
+    {
+      "batch": 0,
+      "route": "combat",
+      "thumb": 1,
+      "build": 14,
+      "eager": 1,
+      "rom_leaves": 0,
+      "policy": 1,
+      "index": 4,
+      "name": "rom-leaves-v14-screen-04-combat-p1",
+      "started": "2026-10-02T07:32:25.509998+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-04-combat-p1",
+        "1",
+        "0",
+        "48000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "1",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "0",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-combat.input"
+      },
+      "git_head": "12aee3b85abb9e6fadac7cd0498015e224ed4efc",
+      "wall_seconds": 10.6352,
+      "guest_seconds": 5.999999,
+      "instructions": 2171043925,
+      "presentations": 192,
+      "warmup_seconds": 76.843586033
+    },
+    {
+      "batch": 0,
+      "route": "combat",
+      "thumb": 1,
+      "build": 14,
+      "eager": 0,
+      "rom_leaves": 0,
+      "policy": 0,
+      "index": 5,
+      "name": "rom-leaves-v14-screen-05-combat-p0",
+      "started": "2026-10-02T07:33:58.661190+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-05-combat-p0",
+        "1",
+        "0",
+        "48000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "0",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-combat.input"
+      },
+      "git_head": "12aee3b85abb9e6fadac7cd0498015e224ed4efc",
+      "wall_seconds": 11.4426,
+      "guest_seconds": 5.999999,
+      "instructions": 2171043925,
+      "presentations": 192,
+      "warmup_seconds": 75.088072988
+    },
+    {
+      "batch": 0,
+      "route": "standard",
+      "thumb": 1,
+      "build": 14,
+      "eager": 1,
+      "rom_leaves": 0,
+      "policy": 1,
+      "index": 6,
+      "name": "rom-leaves-v14-screen-06-standard-p1",
+      "started": "2026-10-02T07:35:30.711681+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-06-standard-p1",
+        "1",
+        "0",
+        "39000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "1",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "0",
+        "EKA2L1_PROFILE_START_US": "21000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes.input"
+      },
+      "git_head": "12aee3b85abb9e6fadac7cd0498015e224ed4efc",
+      "wall_seconds": 10.2274,
+      "guest_seconds": 18.0,
+      "instructions": 2964235296,
+      "presentations": 381,
+      "warmup_seconds": 13.559872739
+    },
+    {
+      "batch": 0,
+      "route": "standard",
+      "thumb": 1,
+      "build": 14,
+      "eager": 0,
+      "rom_leaves": 0,
+      "policy": 0,
+      "index": 7,
+      "name": "rom-leaves-v14-screen-07-standard-p0",
+      "started": "2026-10-02T07:36:00.639069+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-07-standard-p0",
+        "1",
+        "0",
+        "39000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "0",
+        "EKA2L1_PROFILE_START_US": "21000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes.input"
+      },
+      "git_head": "390406db3ab113533296e4a71247af4aa32949e8",
+      "wall_seconds": 10.6304,
+      "guest_seconds": 18.0,
+      "instructions": 2964235296,
+      "presentations": 381,
+      "warmup_seconds": 14.820320470999999
+    },
+    {
+      "batch": 0,
+      "route": "standard",
+      "thumb": 1,
+      "build": 14,
+      "eager": 1,
+      "rom_leaves": 1,
+      "policy": 2,
+      "index": 8,
+      "name": "rom-leaves-v14-screen-08-standard-p2",
+      "started": "2026-10-02T07:36:31.818143+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-08-standard-p2",
+        "1",
+        "0",
+        "39000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "1",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "1",
+        "EKA2L1_PROFILE_START_US": "21000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes.input"
+      },
+      "git_head": "390406db3ab113533296e4a71247af4aa32949e8",
+      "wall_seconds": 10.3369,
+      "guest_seconds": 18.0,
+      "instructions": 2964235296,
+      "presentations": 381,
+      "warmup_seconds": 12.303965660000001
+    },
+    {
+      "batch": 0,
+      "route": "long",
+      "thumb": 1,
+      "build": 14,
+      "eager": 1,
+      "rom_leaves": 1,
+      "policy": 2,
+      "index": 9,
+      "name": "rom-leaves-v14-screen-09-long-p2",
+      "started": "2026-10-02T07:37:00.694621+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-09-long-p2",
+        "1",
+        "0",
+        "60000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "1",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "1",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes-length-long.input"
+      },
+      "git_head": "390406db3ab113533296e4a71247af4aa32949e8",
+      "wall_seconds": 11.7901,
+      "guest_seconds": 18.0,
+      "instructions": 3031637220,
+      "presentations": 380,
+      "warmup_seconds": 24.608842401
+    },
+    {
+      "batch": 0,
+      "route": "long",
+      "thumb": 1,
+      "build": 14,
+      "eager": 0,
+      "rom_leaves": 0,
+      "policy": 0,
+      "index": 10,
+      "name": "rom-leaves-v14-screen-10-long-p0",
+      "started": "2026-10-02T07:37:45.152844+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-10-long-p0",
+        "1",
+        "0",
+        "60000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "0",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes-length-long.input"
+      },
+      "git_head": "390406db3ab113533296e4a71247af4aa32949e8",
+      "wall_seconds": 11.3606,
+      "guest_seconds": 18.0,
+      "instructions": 3031637220,
+      "presentations": 380,
+      "warmup_seconds": 24.11068162
+    },
+    {
+      "batch": 0,
+      "route": "long",
+      "thumb": 1,
+      "build": 14,
+      "eager": 1,
+      "rom_leaves": 0,
+      "policy": 1,
+      "index": 11,
+      "name": "rom-leaves-v14-screen-11-long-p1",
+      "started": "2026-10-02T07:38:27.306247+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-11-long-p1",
+        "1",
+        "0",
+        "60000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-rom-leaves-v14",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "1",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "0",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes-length-long.input"
+      },
+      "git_head": "390406db3ab113533296e4a71247af4aa32949e8",
+      "wall_seconds": 11.2114,
+      "guest_seconds": 18.0,
+      "instructions": 3031637220,
+      "presentations": 380,
+      "warmup_seconds": 24.6104168
+    }
+  ],
+  "summary": [
+    {
+      "route": "sky",
+      "leaves_vs_basic_percent": 3.6946576359075944,
+      "leaves_vs_regions_percent": 12.333374040638434
+    },
+    {
+      "route": "combat",
+      "leaves_vs_basic_percent": 12.074673353052967,
+      "leaves_vs_regions_percent": 4.1665850457403675
+    },
+    {
+      "route": "standard",
+      "leaves_vs_basic_percent": 2.8393425495071067,
+      "leaves_vs_regions_percent": -1.05931178593196
+    },
+    {
+      "route": "long",
+      "leaves_vs_basic_percent": -3.6428868287800897,
+      "leaves_vs_regions_percent": -4.908355315052471
+    }
+  ],
+  "artifacts": {
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-00-sky-p0.log": {
+      "sha256": "74722b3e9bc3372db581fa328b02708d26eb4db8c19ade40a3ae67fa39827e59",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-00-sky-p0-host.jsonl": {
+      "sha256": "fe7b7dede6a3f53648f287d60b2397f7def13ce4457bbd5ee9d5cc7e8881131d",
+      "bytes": 29406
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-00-sky-p0-command.json": {
+      "sha256": "e0fa56d916ef26783d33f1609c6f28da62a21e645965c148b5c8d4f710cabaf6",
+      "bytes": 1443
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-00-sky-p0/report.json": {
+      "sha256": "1e865d93fc40ba2643779709eb78b4bcb89bf64adfb23810a9e03cdd3a053c0e",
+      "bytes": 3278
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-01-sky-p1.log": {
+      "sha256": "0a62064250a7b4331e5842973f3f84862ab6f8e2dda2ebc0a2d5e9b9a113a5bc",
+      "bytes": 977
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-01-sky-p1-host.jsonl": {
+      "sha256": "e3eec7b6be1bd9f9a0f30bd109c08af872b2d1a87a9fda26f30b0908750be5f8",
+      "bytes": 29404
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-01-sky-p1-command.json": {
+      "sha256": "4032df94b862dc5769e4b19ca153cb5dca5d49513e2e3ba3157f687868eba4bd",
+      "bytes": 1443
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-01-sky-p1/report.json": {
+      "sha256": "a868df972b9e27788f4a01bacb82c64430021de11e03118c7ece9826fa82160a",
+      "bytes": 3277
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-02-sky-p2.log": {
+      "sha256": "d5d39d73172e4de98d7d45f8331f1a6dc3f5427027c8304e4db95333585705d7",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-02-sky-p2-host.jsonl": {
+      "sha256": "01b8cd43616b2872ade5527482f8f62c5976898e07a15a5eede5f714384b07f3",
+      "bytes": 28533
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-02-sky-p2-command.json": {
+      "sha256": "91fd473e28f84c2c1845b762ed4eab785f5d8b6f75f9021601805026c1758732",
+      "bytes": 1443
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-02-sky-p2/report.json": {
+      "sha256": "f2c3cf2d1b0a09dd1caf3c6635c56bfd5ac80984aac8ceb6f04658d87338f2fb",
+      "bytes": 3272
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-03-combat-p2.log": {
+      "sha256": "a5e94c17b4df8c6379b0267f24a8df84d9eff829baf6c26bb9522d126ed1498b",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-03-combat-p2-host.jsonl": {
+      "sha256": "a132b1df5a528c551af5bf07fad1d486dee0e665f3c48d17d2058b3fb8b50fec",
+      "bytes": 39781
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-03-combat-p2-command.json": {
+      "sha256": "355131925f8ef39847268f02f852895cbef570bd95ba53c21b7b84e09214bb3b",
+      "bytes": 1459
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-03-combat-p2/report.json": {
+      "sha256": "e56f9b8947febd0d5ea8093c95c41ef838c772c30f8e6a43534d5c17e2b5811e",
+      "bytes": 3273
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-04-combat-p1.log": {
+      "sha256": "a526bb84df579b11f2a520ffe48dfec48377f96db8f32d49a9366d79f8737461",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-04-combat-p1-host.jsonl": {
+      "sha256": "085f36334c7590850a0e2c4439db4166a2d2bfa949983bc63ac1ed48e4468825",
+      "bytes": 40639
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-04-combat-p1-command.json": {
+      "sha256": "2c567a4a9957f2f32cdbb6349e1dcb066f4a45fbec53e6f398955f125e357703",
+      "bytes": 1459
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-04-combat-p1/report.json": {
+      "sha256": "1632f0cf06032050700c0f550ea78e204f15b5f7d8808a03731538a5a8b15575",
+      "bytes": 3273
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-05-combat-p0.log": {
+      "sha256": "5d5f2c7ca957cf62dc3709bc264150ff87806bebc14f2603f4de16707de28d4d",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-05-combat-p0-host.jsonl": {
+      "sha256": "868ccd602f7c2317eb247e9aaf1a8975e2091ff49f5238a3279e08baab614e3d",
+      "bytes": 39779
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-05-combat-p0-command.json": {
+      "sha256": "a694378f5513e68906ec5d9ac993c1ce4d320c0bddf220a16186ad4870e351bc",
+      "bytes": 1459
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-05-combat-p0/report.json": {
+      "sha256": "ccb52f52f114b4164d10330086427681ecef52bd1e6113ed00192b6d3aecc30d",
+      "bytes": 3273
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-06-standard-p1.log": {
+      "sha256": "007f9ed903cab90a87ff15d5901833a75b1960c855b760f987ea1e1bbc2daf4f",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-06-standard-p1-host.jsonl": {
+      "sha256": "f2e011f370d84bcfea3b2208be4a97bd6d6f07c18eb713eaebc617fd9dc13d08",
+      "bytes": 12969
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-06-standard-p1-command.json": {
+      "sha256": "d6983cece43026255589d60e50b4b0187c4321a9f22f9b56fb04b94696824a93",
+      "bytes": 1298
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-06-standard-p1/report.json": {
+      "sha256": "52a7c255a455289183fdaf47f2b3781aee1d6ce6a5fbfcf77237cbc795bd023f",
+      "bytes": 3270
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-07-standard-p0.log": {
+      "sha256": "834d26274703b1b90b2d9128cf8d0af0d7d6152e24b89cbbde5923897e53bb3c",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-07-standard-p0-host.jsonl": {
+      "sha256": "e7a8e9a4de72516d49dc5fb4a9261b2e0d9cbe72d73795b2e14172f7388a1648",
+      "bytes": 13835
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-07-standard-p0-command.json": {
+      "sha256": "cebef55271754ee800cf80feba35ff8a0011b592dceabc68de5a520f9df7ac24",
+      "bytes": 1298
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-07-standard-p0/report.json": {
+      "sha256": "9d643f07d4e189fbba45850e4379c8881e2047a54efcfc349dbda05a5fafb1f9",
+      "bytes": 3276
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-08-standard-p2.log": {
+      "sha256": "11014cf7181eb81ea85e4b1a5c095c5563f66691be6bc9ce12a0849518727c67",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-08-standard-p2-host.jsonl": {
+      "sha256": "f8f934734255a5194c821c477135629fb181031ac5852841ddc420e7c8227e7e",
+      "bytes": 12967
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-08-standard-p2-command.json": {
+      "sha256": "72cee2744f414654b8895d78e55a5fc6bf6efc3962d4701df68870892dfea8d8",
+      "bytes": 1298
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-08-standard-p2/report.json": {
+      "sha256": "76e589d0e63c337f4f541015b7416cebc4a4e1010ca5c23e7330c944aef2fc1a",
+      "bytes": 3276
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-09-long-p2.log": {
+      "sha256": "44f9b6de6db3cbddf801a9e5168bcec6d0c67197098a3c34c7677bbff02f3f33",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-09-long-p2-host.jsonl": {
+      "sha256": "4965fab127b667ee3315dd200c78a54638307ef72fd12ca873e73989f1f78e65",
+      "bytes": 19890
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-09-long-p2-command.json": {
+      "sha256": "df6f1bd4351d745ca731d850b2ae6d603ef1d4cd9955e0b99962b2e5ca4a03fb",
+      "bytes": 1298
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-09-long-p2/report.json": {
+      "sha256": "4644abbdc0045f7ddbe87db118a2355c6fcc2981ee7ce7540e28d2121aaa5e86",
+      "bytes": 3270
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-10-long-p0.log": {
+      "sha256": "e239a591f5101c3336ed28b771f9d932a790ce51badfdb988b9e1997d899adf6",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-10-long-p0-host.jsonl": {
+      "sha256": "1dd2d7d6ad3b432df48f229cace9cecdabf05b69ff3836d2a21153439e7fcc57",
+      "bytes": 18155
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-10-long-p0-command.json": {
+      "sha256": "0ea5e11cb39efe81c2e1fb93a26beae1a20c4def288e36687e8e8e6f40c4aa6b",
+      "bytes": 1299
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-10-long-p0/report.json": {
+      "sha256": "c2fccac79cda11f4ddde496624cdec08d3afbc7936a169e43d51aaedcb9a4794",
+      "bytes": 3269
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-11-long-p1.log": {
+      "sha256": "02056fd2ac01cbf1666e00c8605f9e01b3a7a314ee74a974f4ce2a979dba6e6b",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-11-long-p1-host.jsonl": {
+      "sha256": "2f358ded861d990ea019a1e40b2e7355d66090be0a68fb8afc8ce79da80a9fd9",
+      "bytes": 19022
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-11-long-p1-command.json": {
+      "sha256": "02004a23faeddaf8058cdfa5bdd5fc611b201cdc8971862c37e26c7a98036444",
+      "bytes": 1299
+    },
+    "/home/claude/.scratch/eka-sky-performance/rom-leaves-v14-screen-11-long-p1/report.json": {
+      "sha256": "ee761ed7048696866dc338d46fc2bdd94508e43d89f28e03548dc234dc8226c5",
+      "bytes": 3268
+    }
+  }
+}
