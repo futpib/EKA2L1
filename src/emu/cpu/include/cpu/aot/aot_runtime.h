@@ -34,7 +34,7 @@ namespace eka2l1::arm::aot {
     // Frozen before initialization; disabled until coverage and timing acceptance.
     inline bool compiled_memory_misses = false;
     // Frozen before init: 0 sampled, 1 first-use ROM/RAM, 2 first-use RAM.
-    // Mode 2 retains ROM hotness filtering to avoid filling its bounded cache.
+    // Mode 2 retains ROM hotness filtering; mode 3 recycles the bounded ROM cache.
     inline unsigned synchronous_compilation = 0;
     inline constexpr std::uint32_t svc_pending = 0x80000000u;
     inline constexpr std::uint32_t svc_taken = 0x40000000u;

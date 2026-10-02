@@ -237,7 +237,7 @@ int eka2l1_ir_configure(int mode) {
 // DynCom and generated guards must select the same index before initialization.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_synchronous_compilation_configure(int mode) {
-    if (g_state || mode < 0 || mode > 2) return -1;
+    if (g_state || mode < 0 || mode > 3) return -1;
     eka2l1::arm::aot::synchronous_compilation = static_cast<unsigned>(mode);
     return 0;
 }

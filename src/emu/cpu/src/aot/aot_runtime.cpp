@@ -219,6 +219,37 @@ static std::uint32_t hot_compiled = 0;
 static std::unordered_map<std::uint32_t, unsigned> hot_counts;
 static std::vector<wasm_func_def> hot_pending;
 
+// Only policy 3 owns reclaimable single-export ROM modules. No generated
+// function is active at observe_hot_pc/configure_hot_rom, the replacement
+// points. Normal registry hits need no extra counter or lookup.
+static constexpr std::size_t dynamic_rom_capacity = 4096;
+struct owned_rom_function { std::uint32_t key = 0; aot_func function = nullptr; };
+#ifdef __EMSCRIPTEN__
+EM_JS(void, js_release_aot_function, (std::uintptr_t index), {
+    removeFunction(index);
+});
+#endif
+static void release_owned_rom(owned_rom_function &entry) {
+    if (!entry.function) return;
+    // Do not unregister a replacement that this cache does not own.
+    if (global_registry().lookup(entry.key) == entry.function)
+        global_registry().unregister_function(entry.key);
+#ifdef __EMSCRIPTEN__
+    js_release_aot_function(reinterpret_cast<std::uintptr_t>(entry.function));
+#endif
+    entry = {};
+}
+struct owned_rom_cache {
+    std::array<owned_rom_function, dynamic_rom_capacity> entries{};
+    std::size_t next = 0;
+    void clear() { for (auto &entry : entries) release_owned_rom(entry); next = 0; }
+    ~owned_rom_cache() { clear(); }
+};
+// Emscripten tables belong to workers. Release on that worker at reset/exit,
+// never from a later system initialization on a different thread.
+static thread_local owned_rom_cache owned_rom;
+
+
 static void flush_hot_blocks() {
     if (hot_pending.empty()) return;
     std::vector<wasm_import_func> imports{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -232,6 +263,7 @@ static void flush_hot_blocks() {
 }
 
 void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled) {
+    owned_rom.clear();
     hot_rom = host; hot_rom_base = base; hot_rom_size = size;
     hot_compilation_enabled = enabled;
     completed_function_count = 0;
@@ -443,7 +475,7 @@ void observe_hot_pc(ARMul_State *cpu) {
 #ifdef __EMSCRIPTEN__
     if (!hot_compilation_enabled || validation_running) return;
     const auto pc = cpu->Reg[15], key = pc | cpu->TFlag;
-    const bool first_use = synchronous_compilation == 1
+    const bool first_use = synchronous_compilation == 1 || synchronous_compilation == 3
         || (synchronous_compilation == 2 && (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size));
     ++hot_dispatches;
     if (!first_use && (hot_dispatches & 31)) return;
@@ -508,12 +540,19 @@ void observe_hot_pc(ARMul_State *cpu) {
         if (first_use || hot_pending.size() >= 32) flush_hot_blocks();
         return;
     }
-    if (hot_compiled >= 4096) return;
-    if (hot_counts.size() >= 65536 && !hot_counts.count(key)) return;
-    auto &count = hot_counts[key];
-    if (count >= 8) return; // one attempt per immutable entry
-    if (first_use) count = 8;
-    else if (++count != 8) return;
+    const bool recycle = synchronous_compilation == 3;
+    if (recycle) {
+        // Successful entries are owned by the FIFO, not retained here after
+        // eviction. Only immutable translation rejections enter this map.
+        if (hot_counts.count(key)) return;
+    } else {
+        if (hot_compiled >= dynamic_rom_capacity) return;
+        if (hot_counts.size() >= 65536 && !hot_counts.count(key)) return;
+        auto &count = hot_counts[key];
+        if (count >= 8) return; // one attempt per immutable entry
+        if (first_use) count = 8;
+        else if (++count != 8) return;
+    }
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(chaining_enabled ? primary_window_bytes : 128u, hot_rom_size - offset);
     leaf_resolver leaves = [](std::uint32_t target) {
@@ -521,11 +560,26 @@ void observe_hot_pc(ARMul_State *cpu) {
     };
     auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
                         : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, rom_inline_leaves ? &leaves : nullptr, defer_memory_enabled, ir_policy);
-    if (tr.func.body.empty() || !tr.entry_supported) return;
+    if (tr.func.body.empty() || !tr.entry_supported) {
+        if (recycle && hot_counts.size() < 65536) hot_counts.emplace(key, 8);
+        return;
+    }
+    if (recycle) {
+        auto &victim = owned_rom.entries[owned_rom.next];
+        release_owned_rom(victim);
+    }
     tr.func.export_name = "f_" + std::to_string(key);
     hot_pending.push_back(std::move(tr.func));
     if (first_use || hot_pending.size() >= 32) flush_hot_blocks();
-    ++hot_compiled;
+    if (recycle) {
+        // Failed instantiation must neither publish ownership nor suppress a
+        // future retry. Removal made room before addFunction allocated a slot.
+        auto function = global_registry().lookup(key);
+        if (!function) return;
+        owned_rom.entries[owned_rom.next] = {key, function};
+        owned_rom.next = (owned_rom.next + 1) % dynamic_rom_capacity;
+    }
+    if (!recycle) ++hot_compiled;
 #endif
 }
 

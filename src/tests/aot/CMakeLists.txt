@@ -2,10 +2,11 @@ if(EMSCRIPTEN)
     add_executable(test_aot_wasm test_aot_wasm.cpp)
     target_link_libraries(test_aot_wasm PRIVATE cpu)
     target_link_options(test_aot_wasm PRIVATE
+        "SHELL:-s PTHREAD_POOL_SIZE=1"
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"
         "SHELL:-s INITIAL_MEMORY=134217728"
         "SHELL:-s EXPORTED_FUNCTIONS=['_main','_malloc','_free','_test_tlb_read32','_test_tlb_write32','_test_tlb_read8']"
-        "SHELL:-s EXPORTED_RUNTIME_METHODS=['addFunction']"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=['addFunction','removeFunction']"
         "SHELL:-s ALLOW_TABLE_GROWTH=1"
         "SHELL:-s EXIT_RUNTIME=1"
         "SHELL:-s USE_PTHREADS=1")
@@ -20,7 +21,7 @@ if(EMSCRIPTEN)
     target_link_options(eka_cpu_fault_wasm PRIVATE
         "SHELL:-s EXPORTED_FUNCTIONS=['_main','_malloc','_free']"
         "SHELL:-s ALLOW_MEMORY_GROWTH=1" "SHELL:-s INITIAL_MEMORY=134217728"
-        "SHELL:-s EXPORTED_RUNTIME_METHODS=['addFunction']"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=['addFunction','removeFunction']"
         "SHELL:-s ALLOW_TABLE_GROWTH=1" "SHELL:-s EXIT_RUNTIME=1" "SHELL:-s USE_PTHREADS=1")
     set_target_properties(eka_cpu_fault_wasm PROPERTIES SUFFIX ".js")
 endif()

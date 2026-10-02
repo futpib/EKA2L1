@@ -14,7 +14,7 @@ if (![-1,0,1].includes(thumbMemory)) throw Error('Invalid Thumb memory policy');
 const synchronousCompilation = process.env.EKA2L1_SYNCHRONOUS_COMPILATION === undefined ? -1 : Number(process.env.EKA2L1_SYNCHRONOUS_COMPILATION);
 const compiledMemoryMisses = process.env.EKA2L1_COMPILED_MEMORY_MISSES === undefined ? -1 : Number(process.env.EKA2L1_COMPILED_MEMORY_MISSES);
 const compiledSvc = process.env.EKA2L1_COMPILED_SVC === undefined ? -1 : Number(process.env.EKA2L1_COMPILED_SVC);
-if (![-1,0,1,2].includes(synchronousCompilation)) throw Error('Synchronous compilation must be 0, 1 or 2');
+if (![-1,0,1,2,3].includes(synchronousCompilation)) throw Error('Synchronous compilation must be 0, 1, 2 or 3');
 if (![-1,0,1].includes(compiledMemoryMisses)) throw Error('Compiled memory misses must be 0 or 1');
 if (![-1,0,1].includes(compiledSvc)) throw Error('Compiled SVC must be 0 or 1');
 const armExclusive = process.env.EKA2L1_ARM_EXCLUSIVE === undefined ? -1 : Number(process.env.EKA2L1_ARM_EXCLUSIVE);

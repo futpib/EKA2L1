@@ -28,6 +28,7 @@
 #include <cpu/aot/wasm_emitter.h>
 
 #include <cstdio>
+#include <thread>
 #include <cstring>
 #include <memory>
 #include <utility>
@@ -6182,7 +6183,7 @@ static bool test_synchronous_compilation() {
     setenv("EKA2L1_AOT_RAM","1",1);setenv("EKA2L1_AOT_CHAIN","1",1);setenv("EKA2L1_AOT_REGION","1",1);setenv("EKA2L1_AOT_IR_MODE","7",1);
     unsigned checks=0;
     for(unsigned mode:{0u,3u})for(bool thumb:{false,true})for(bool rom:{false,true})
-    for(unsigned sync:{0u,1u,2u})for(unsigned budget:{1u,2u,3u,16u}) {
+    for(unsigned sync:{0u,1u,2u,3u})for(unsigned budget:{1u,2u,3u,16u}) {
         tracking::unsafe_code_mode=mode;configure_hot_rom(nullptr,0,0,false);global_registry().clear();
         test_mem expected,actual;
         const unsigned arm[]={0xe2800001u,0xeafffffdu};
@@ -6199,9 +6200,95 @@ static bool test_synchronous_compilation() {
         configure_hot_rom(rom?actual.data.data()+0x1000:nullptr,rom?0x1000:0,rom?size:0,true);
         perf::enabled=true;perf::detailed=true;perf::phase=2;const auto before=perf::aot_instructions;cpu->run(budget);
         const auto compiled=perf::aot_instructions-before;
-        if(compiled!=((sync==1||(sync==2&&!rom))?budget:0u)||cpu->get_num_instruction_executed()!=budget||cpu->get_cpsr()!=reference->get_cpsr()) {printf(" FAIL sync execution mode=%u thumb=%u rom=%u sync=%u budget=%u compiled=%llu\n",mode,thumb,rom,sync,budget,(unsigned long long)compiled);return false;}
+        if(compiled!=((sync==1||sync==3||(sync==2&&!rom))?budget:0u)||cpu->get_num_instruction_executed()!=budget||cpu->get_cpsr()!=reference->get_cpsr()) {printf(" FAIL sync execution mode=%u thumb=%u rom=%u sync=%u budget=%u compiled=%llu\n",mode,thumb,rom,sync,budget,(unsigned long long)compiled);return false;}
         for(unsigned reg=0;reg<16;++reg)if(cpu->get_reg(reg)!=reference->get_reg(reg)){printf(" FAIL sync register %u\n",reg);return false;}
         ++checks;
+    }
+    for(unsigned mode:{0u,3u}) {
+        tracking::unsafe_code_mode=mode;
+        configure_hot_rom(nullptr,0,0,false);global_registry().clear();
+        test_mem memory;r12l1::exclusive_monitor mon(1);auto cpu=make_cpu(memory,mon);
+        constexpr unsigned capacity=4096,entries=capacity+32,base=0x1000;
+        for(unsigned i=0;i<entries;++i) {
+            const unsigned arm[]={0xe2800001u,0xe12fff1eu};
+            const std::uint16_t th[]={0x3001u,0x4770u};
+            auto bytes=(i&1)?reinterpret_cast<const std::uint8_t*>(th):reinterpret_cast<const std::uint8_t*>(arm);
+            auto size=(i&1)?sizeof(th):sizeof(arm);
+            memory.write_code(base+i*16,{bytes,bytes+size});
+        }
+        const auto eager=+[](ARMul_State *)->std::uint32_t{return 0;};
+        const unsigned eager_key=0xffff0000u;
+        const auto initial_table=EM_ASM_INT({return wasmTable.length;});
+        unsigned bounded_table=0;
+        for(unsigned cycle=0;cycle<2;++cycle) {
+            configure_hot_rom(memory.data.data()+base,base,entries*16,true);
+            synchronous_compilation=3;global_registry().register_function(eager_key,eager);
+            perf::enabled=true;perf::detailed=true;perf::phase=2;
+            for(unsigned i=0;i<entries+2;++i) {
+                const auto index=i<entries?i:i-entries;
+                const bool thumb=index&1;const auto pc=base+index*16,key=pc|unsigned(thumb);
+                for(unsigned reg=0;reg<15;++reg)cpu->set_reg(reg,0);
+                cpu->set_reg(14,0x90000);cpu->set_pc(pc);cpu->set_cpsr(0x10u|(thumb?32u:0u));
+                const auto before=perf::aot_instructions;cpu->run(1);
+                if(perf::aot_instructions-before!=1 || cpu->get_num_instruction_executed()!=1
+                    ||cpu->get_reg(0)!=1 ||cpu->get_reg(15)!=pc+(thumb?2:4)
+                    ||cpu->get_cpsr()!=(0x10u|(thumb?32u:0u))) {
+                    printf(" FAIL ROM FIFO execution mode=%u cycle=%u entry=%u\n",mode,cycle,i);return false;
+                }
+                for(unsigned reg=1;reg<14;++reg)if(cpu->get_reg(reg)!=0)return false;
+                if(cpu->get_reg(14)!=0x90000 || !global_registry().lookup(key)
+                    ||global_registry().lookup(eager_key)!=eager
+                    ||global_registry().size()!=std::min(i+1,capacity)+1) {
+                    printf(" FAIL ROM FIFO ownership mode=%u cycle=%u entry=%u\n",mode,cycle,i);return false;
+                }
+                if(i>=capacity && i<entries) {
+                    const unsigned evicted=i-capacity,old_key=(base+evicted*16)|(evicted&1);
+                    if(global_registry().lookup(old_key)) {printf(" FAIL stale ROM FIFO entry\n");return false;}
+                }
+                ++checks;
+            }
+            const auto table=EM_ASM_INT({return wasmTable.length;});
+            if(table>initial_table+capacity || (cycle && table>bounded_table)) {
+                printf(" FAIL unbounded ROM table initial=%u current=%u\n",initial_table,table);return false;
+            }
+            bounded_table=table;
+            const auto replaced_key=(base+16)|1u;
+            auto removed=global_registry().lookup(replaced_key);
+            global_registry().register_function(replaced_key,eager);
+            configure_hot_rom(nullptr,0,0,false);
+            if(global_registry().size()!=2 || global_registry().lookup(eager_key)!=eager
+                ||global_registry().lookup(replaced_key)!=eager
+                ||EM_ASM_INT({return wasmTable.get($0)!==null;},reinterpret_cast<std::uintptr_t>(removed))) {
+                printf(" FAIL ROM FIFO reset or foreign replacement\n");return false;
+            }
+            global_registry().clear();checks+=2;
+        }
+    }
+    {
+        configure_hot_rom(nullptr,0,0,false);global_registry().clear();
+        test_mem memory;const unsigned code[]={0xe2800001u,0xe12fff1eu};
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(code);
+        memory.write_code(0x1000,{bytes,bytes+sizeof(code)});
+        synchronous_compilation=3;
+        configure_hot_rom(memory.data.data()+0x1000,0x1000,sizeof(code),true);
+        std::uintptr_t previous_slot=0;
+        for(unsigned cycle=0;cycle<2;++cycle) {
+            bool good=true;
+            std::thread worker([&] {
+                if(previous_slot && EM_ASM_INT({return $0<wasmTable.length && wasmTable.get($0)!==null;},previous_slot))good=false;
+                r12l1::exclusive_monitor mon(1);auto cpu=make_cpu(memory,mon);
+                cpu->set_cpsr(0x10);cpu->set_pc(0x1000);cpu->set_reg(0,0);
+                const auto before=perf::aot_instructions;cpu->run(1);
+                auto function=global_registry().lookup(0x1000);
+                good=good&&function&&perf::aot_instructions-before==1&&cpu->get_reg(0)==1&&cpu->get_reg(15)==0x1004;
+                previous_slot=reinterpret_cast<std::uintptr_t>(function);
+                // TLS cleanup must unregister and release on this worker.
+            });
+            worker.join();
+            if(!good || global_registry().size()) {printf(" FAIL ROM worker ownership cycle=%u\n",cycle);return false;}
+            ++checks;
+        }
+        configure_hot_rom(nullptr,0,0,false);
     }
     for(unsigned mode:{0u,3u}) {
         tracking::unsafe_code_mode=mode;configure_hot_rom(nullptr,0,0,false);global_registry().clear();
