@@ -46,3 +46,20 @@ Each route has only two matching pairs. Inspect their directions and raw times;
 the mean is not a universal gain estimate. This compares V5 and V8 archives,
 not the untouched live archive. It does not establish zero Snakes loss or
 sustained realtime Sky Force, and is insufficient for deployment.
+
+## Runner call-structure diagnostic
+
+The volatile-function-pointer diagnostic preserves separate runner functions in
+the WASM binary. The ordinary browser profile still folds them into the main
+loop. Disabling browser WASM inlining exposes the compiled runner and registry
+lookup frames. Its CPU-worker profile has 62.0% inclusive runner samples,
+including 39.1% inclusive generated-code samples; runner self samples are 12.9%,
+registry lookup self samples 9.0% and main-loop self samples 7.2%. These overlap
+where inclusive and self categories describe the same call tree.
+
+This run deliberately changes browser optimization and overlaps correctness
+work. Those percentages describe this diagnostic only; they are not a cost
+split or speed prediction for the normal browser. Both diagnostic windows
+retain exactly 2,142,147,961 guest instructions and 192 presentations. The
+source patch was restored before building the next candidate. All profiles,
+commands and hashes are retained in BRIDGE_RUNNER_PROFILE_EVIDENCE.json.
