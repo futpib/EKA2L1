@@ -55,6 +55,7 @@ static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 bool rom_inline_leaves = false;
 bool rom_bounded_calls = false;
 bool rom_dispatch_enabled = false;
+bool rom_state_cohorts = false;
 std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
     std::uint32_t base, std::uint32_t size, std::uint32_t target) {
     if (!host || (target & 3) || target < base) return {};

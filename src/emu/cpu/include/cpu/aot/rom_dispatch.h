@@ -22,6 +22,15 @@ namespace eka2l1::arm::aot {
         std::size_t bytes() const;
     };
 
+    // Composition preserves each original block as a separately budgeted step.
+    // Unsupported emission forms and singleton groups keep their original body.
+    std::vector<std::uint8_t> build_rom_cohort_module(
+        const std::vector<wasm_func_def> &functions,
+        const std::vector<wasm_import_func> &imports,
+        std::uint32_t base, std::uint32_t size,
+        std::shared_ptr<rom_dispatch_map> &map,
+        unsigned *composed_entries = nullptr);
+
     // The map must outlive all exported functions from the returned module.
     // Original functions are private and never call the dispatcher recursively.
     std::vector<std::uint8_t> build_rom_dispatch_module(

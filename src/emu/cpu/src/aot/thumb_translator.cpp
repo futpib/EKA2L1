@@ -886,6 +886,11 @@ namespace eka2l1::arm::aot {
                             w.bail(insn_addr + 2, insn_idx + 1, exit_census::interrupt);
                             w.op(op_end);
                             auto target = insn_addr + 4 + displacement + ((suffix & 0x7FF) << 1);
+                            // Composition follows emitted direct call edges as
+                            // well as resume/local-branch entries. Recording the
+                            // mode-tagged target does not widen decoded code.
+                            if (capture_state_composition)
+                                result.successor_keys.push_back(kind == 0xF800 ? target | 1u : target & ~3u);
                             if (kind == 0xE800) { target &= ~3u; w.store_i32_const(S::TFLAG, 0); }
                             w.store_i32_const(S::LR, (insn_addr + 4) | 1);
                             // Only a callback-free prefix can omit the runner's

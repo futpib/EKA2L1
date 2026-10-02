@@ -92,6 +92,7 @@ set(SOURCE_AOT
         src/aot/thumb_translator.cpp
         src/aot/wasm_emitter.cpp
         src/aot/rom_dispatch.cpp
+        src/aot/rom_cohort.cpp
         include/cpu/aot/rom_dispatch.h)
 
 add_library(cpu

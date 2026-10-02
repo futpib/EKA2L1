@@ -23,6 +23,7 @@
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/rom_dispatch.h>
+#include <cpu/aot/state_locals.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
@@ -279,6 +280,7 @@ namespace eka2l1::arm::aot {
                 const auto key = c.func_addr | (c.is_arm ? 0u : 1u);
                 if (!visited.insert(key).second) continue;
                 const auto size = std::min(c.func_size, chaining_enabled ? 512u : 128u);
+                state_composition_capture capture(rom_state_cohorts && !c.is_arm);
                 auto tr = c.is_arm
                     ? (eager_regions
                         ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled, true, rom_inline_leaves ? &rom_leaves : nullptr, eager_defer, eager_ir_policy)
@@ -289,6 +291,11 @@ namespace eka2l1::arm::aot {
                 rom_leaf_dependencies += tr.dependencies.size();
                 if (!c.is_arm && rom_bounded_calls && chaining_enabled && thumb_direct_memory)
                     thumb_bases.push_back({c.func_host, size, c.func_addr, all_funcs.size()});
+                if (rom_state_cohorts && !c.is_arm) {
+                    for (auto address : tr.branch_targets) tr.func.successor_keys.push_back(address | 1u);
+                    for (auto address : tr.resume_points) tr.func.successor_keys.push_back(address | 1u);
+                    tr.func.successor_keys.push_back(tr.end_address | 1u);
+                }
                 all_funcs.push_back(std::move(tr.func));
                 ++accepted;
                 if (max_exports >= 0 && accepted >= static_cast<std::size_t>(max_exports)) break;
@@ -352,11 +359,17 @@ namespace eka2l1::arm::aot {
         std::vector<std::uint8_t> wasm_bytes;
         std::shared_ptr<rom_dispatch_map> dispatch_map;
         if (rom_dispatch_enabled && chaining_enabled && !rom_bounded_calls) {
-            dispatch_map = std::make_shared<rom_dispatch_map>(rom_base, rom_size, all_funcs.size());
-            bool valid = dispatch_map->valid;
-            for (std::size_t i = 0; valid && i < all_funcs.size(); ++i)
-                valid = dispatch_map->insert(std::stoul(all_funcs[i].export_name.substr(2)), i);
-            if (valid) wasm_bytes = build_rom_dispatch_module(all_funcs, imports, *dispatch_map);
+            if (rom_state_cohorts) {
+                unsigned composed = 0;
+                wasm_bytes = build_rom_cohort_module(all_funcs, imports, rom_base, rom_size, dispatch_map, &composed);
+                fprintf(stderr, "AOT: rom_state_cohorts entries=%u\n", composed);
+            } else {
+                dispatch_map = std::make_shared<rom_dispatch_map>(rom_base, rom_size, all_funcs.size());
+                bool valid = dispatch_map->valid;
+                for (std::size_t i = 0; valid && i < all_funcs.size(); ++i)
+                    valid = dispatch_map->insert(std::stoul(all_funcs[i].export_name.substr(2)), i);
+                if (valid) wasm_bytes = build_rom_dispatch_module(all_funcs, imports, *dispatch_map);
+            }
             if (wasm_bytes.empty()) dispatch_map.reset();
         }
         if (wasm_bytes.empty()) wasm_bytes = build_wasm_module(all_funcs, imports);

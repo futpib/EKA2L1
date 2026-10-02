@@ -4,6 +4,7 @@
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/rom_dispatch.h>
+#include <cpu/aot/state_locals.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/execution_limits.h>
@@ -71,6 +72,11 @@ struct Fixture {
     }
 };
 
+#ifdef __EMSCRIPTEN__
+static void stage_boundary_probe(const std::vector<aot::wasm_func_def> &functions,
+    const std::vector<aot::wasm_import_func> &imports, const char *name);
+#endif
+
 // Thumb memory operations through production callbacks and the real runner.
 // The memory instruction is last, so stop/fault cases compare its exact
 // architectural effects without assuming later instructions execute.
@@ -99,9 +105,17 @@ static int thumb_memory_fault_probe(bool direct) {
         auto translated=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(program),sizeof(program),0x1000,nullptr,nullptr,true,false,true);
         if(!translated.entry_supported || !translated.complete){std::cerr<<"Thumb fixture did not compile\n";return 2;}
         translated.func.export_name="f_4097";
-        auto bytes=aot::build_wasm_module({translated.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
-            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        aot::stage_aot_module(std::move(bytes),"thumb-memory-fault");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        const std::vector<aot::wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+        if(aot::rom_state_cohorts) {
+            auto first=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(program),2,0x1000,nullptr,nullptr,true,false,true);
+            auto second=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(program)+2,2,0x1002,nullptr,nullptr,true,false,true);
+            first.func.export_name="f_4097";second.func.export_name="f_4099";
+            stage_boundary_probe({first.func,second.func},imports,"thumb-cohort-memory-fault");
+        } else {
+            auto bytes=aot::build_wasm_module({translated.func},imports);
+            aot::stage_aot_module(std::move(bytes),"thumb-memory-fault");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        }
 #endif
         const auto before=f.memory;
 #ifdef __EMSCRIPTEN__
@@ -139,7 +153,7 @@ static int rom_call_probe() {
     aot::thumb_direct_memory=true;
     std::cout<<"PROBE_ROM_CALLS 1\n";
     unsigned cases=0;
-    for(unsigned op:{0x3201u,0x6808u,0x6008u,0xbc05u})
+    for(unsigned op:{0x3201u,0x6808u,0x6008u,0xbc05u,0x4770u})
     for(unsigned policy=0;policy<4;++policy)for(unsigned budget=1;budget<=4;++budget)
     for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u,3u}) {
         r12l1::exclusive_monitor monitor(1);dyncom_core cpu(&monitor,12);
@@ -156,13 +170,19 @@ static int rom_call_probe() {
 #ifdef __EMSCRIPTEN__
         aot::global_registry().clear();
         aot::sibling_map targets{{0x2001,7}};
-        auto parent=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,&targets);
+        auto parent=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,aot::rom_state_cohorts?nullptr:&targets);
         auto child=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(callee),sizeof(callee),0x2000,nullptr,nullptr,true,false,true);
-        if(parent.bounded_direct_calls!=1||!child.entry_supported){std::cerr<<"ROM call fixture did not link\n";return 2;}
+        if(parent.bounded_direct_calls!=(aot::rom_state_cohorts?0u:1u)||!child.entry_supported){std::cerr<<"ROM call fixture did not link\n";return 2;}
         parent.func.export_name="f_4097";child.func.export_name="f_8193";
-        auto bytes=aot::build_wasm_module({parent.func,child.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
-            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        aot::stage_aot_module(std::move(bytes),"bounded-rom-call");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        const std::vector<aot::wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+        if(aot::rom_state_cohorts) {
+            if(parent.func.successor_keys.empty()||parent.func.successor_keys.front()!=0x2001)std::abort();
+            stage_boundary_probe({parent.func,child.func},imports,"cohort-rom-call");
+        } else {
+            auto bytes=aot::build_wasm_module({parent.func,child.func},imports);
+            aot::stage_aot_module(std::move(bytes),"bounded-rom-call");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+        }
         const auto compiled_before=eka2l1::common::performance::aot_instructions;
 #endif
         const auto before=f.memory;const auto prior=cpu.get_num_instruction_executed();cpu.run(budget);
@@ -243,7 +263,16 @@ static void stage_boundary_probe(const std::vector<aot::wasm_func_def> &function
         auto map=std::make_shared<aot::rom_dispatch_map>(low,high-low,functions.size());
         for(unsigned i=0;i<functions.size();++i)
             if(!map->insert(std::stoul(functions[i].export_name.substr(2)),i))std::abort();
-        auto bytes=aot::build_rom_dispatch_module(functions,imports,*map);
+        std::vector<std::uint8_t> bytes;
+        if (aot::rom_state_cohorts) {
+            auto connected=functions;
+            for(unsigned i=0;i+1<connected.size();++i)
+                connected[i].successor_keys.push_back(std::stoul(connected[i+1].export_name.substr(2)));
+            unsigned composed=0;
+            bytes=aot::build_rom_cohort_module(connected,imports,low,high-low,map,&composed);
+            if(!connected.empty() && connected.front().cached_body && !connected.front().cached_body->shared_return
+                && composed==0)std::abort();
+        } else bytes=aot::build_rom_dispatch_module(functions,imports,*map);
         if(bytes.empty())std::abort();
         aot::stage_aot_module(std::move(bytes),name,map);
     }
@@ -442,6 +471,11 @@ static int thumb_exchange_probe() {
 }
 
 int main(int argc, char **argv){
+    if(argc>1 && std::strcmp(argv[argc-1],"--rom-cohorts")==0) {
+        aot::rom_dispatch_enabled=true;aot::rom_state_cohorts=true;--argc;
+    }
+    aot::state_composition_capture composition(aot::rom_state_cohorts);
+    std::cout<<"PROBE_ROM_COHORTS "<<aot::rom_state_cohorts<<"\n";
     if(argc>1 && std::strcmp(argv[argc-1],"--rom-dispatch")==0) {
         aot::rom_dispatch_enabled=true;--argc;
     }

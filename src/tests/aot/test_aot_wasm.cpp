@@ -27,6 +27,7 @@
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 #include <cpu/aot/rom_dispatch.h>
+#include <cpu/aot/state_locals.h>
 #include <common/log.h>
 
 #include <cstdio>
@@ -4680,6 +4681,197 @@ static bool test_rom_dispatch() {
     return true;
 }
 
+static bool test_rom_cohorts() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        bool memory=thumb_direct_memory, dispatch=rom_dispatch_enabled, svc=compiled_svc_enabled;
+        unsigned cap=runner_region_limit;
+        ~restore(){thumb_direct_memory=memory;rom_dispatch_enabled=dispatch;compiled_svc_enabled=svc;runner_region_limit=cap;
+            g_read32_observer=nullptr;g_test_mem=nullptr;global_registry().clear();}
+    } saved;
+    state_composition_capture capture(true);
+    thumb_direct_memory=true;compiled_svc_enabled=true;
+    unsigned extent_checks=0, checks=0;
+    const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+    for(unsigned shape=0;shape<6;++shape) {
+        if(shape==1)continue;
+        const std::uint16_t first[]={std::uint16_t(shape==2?0x6808:shape==5?0xdf20:0x3001),std::uint16_t(shape==1?0x4718:0xe07d)};
+        const std::uint16_t second[]={std::uint16_t(shape==3?0xde00:0x3201),std::uint16_t(shape==4?0x4770:0xe77d)};
+        const std::uint32_t arm[]={0xe2811001,0xe12fff14};
+        const std::uint32_t svc_first[]={shape==6?0xef000020u:0x0f000020u,0xe2800001u};
+        auto a=shape>=6?translate_arm_block(reinterpret_cast<const std::uint8_t *>(svc_first),sizeof(svc_first),0x1000,nullptr,nullptr,true,false,true)
+            :translate_thumb_block(reinterpret_cast<const std::uint8_t *>(first),sizeof(first),0x1000,nullptr,nullptr,true,false,true);
+        auto b=shape==1?translate_arm_block(reinterpret_cast<const std::uint8_t *>(arm),sizeof(arm),0x2000,nullptr,nullptr,true,false,true)
+            :translate_thumb_block(reinterpret_cast<const std::uint8_t *>(second),sizeof(second),0x1100,nullptr,nullptr,true,false,true);
+        const unsigned key1=shape>=6?0x1000:0x1001,key2=shape==1?0x2000:0x1101;
+        a.func.export_name="f_"+std::to_string(key1);b.func.export_name="f_"+std::to_string(key2);
+        a.func.successor_keys={key2};b.func.successor_keys={key1};
+        std::shared_ptr<rom_dispatch_map> map;unsigned composed=0;
+        auto module=build_rom_cohort_module({a.func,b.func},imports,0x1000,0x2000,map,&composed);
+        if(composed!=2||module.empty()){printf(" FAIL cohort construction shape=%u composed=%u\n",shape,composed);return false;}
+        auto am=build_wasm_module({a.func},imports),bm=build_wasm_module({b.func},imports);
+        for(unsigned budget:{0u,1u,2u,3u,4u,5u,17u,65u}) for(unsigned cap:{0u,1u,2u,16u,512u})
+        for(unsigned stop:{0u,1u,2u})for(unsigned irq:{0u,1u,2u})for(bool mapped:{false,true}) {
+            test_mem memory;memory.write32(0x8000,0x12345678);const auto initial=memory.data;
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);if(mapped)tlb.add(0x8000,memory.data.data()+0x8000,3);
+            alignas(8) unsigned states[2][256]{};unsigned counts[2],helpers[2];
+            std::vector<std::vector<unsigned>> callback_states[2];
+            for(unsigned variant=0;variant<2;++variant) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());auto *state=states[variant];
+                state[0]=1;state[1]=0x8000;state[3]=0x2000;state[4]=0x1001;state[14]=0x9001;state[15]=0x1000;
+                state[state_offsets::TFLAG/4]=shape<6;state[state_offsets::CPSR/4]=0x10|(shape<6?0x20:0)|(irq==2?0x80:0);
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=stop==1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=stop==2;
+                state[state_offsets::NIRQ/4]=irq==0;state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_REGIONS_LEFT/4]=cap;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                g_read32_observer=[&](unsigned ptr,unsigned) {auto *s=reinterpret_cast<unsigned *>(ptr);
+                    callback_states[variant].emplace_back(s,s+64);
+                    s[state_offsets::AOT_ROM_CALLBACK/4]=1;s[2]=0xface5678;s[5]=0xfeed1234;
+                    s[state_offsets::NFLAG/4]=1;s[state_offsets::CFLAG/4]=1;};
+                if(variant) {
+                    int result=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[variant]));
+                    if(result<0)return false;counts[variant]=result;
+                } else {
+                    unsigned total=0,blocks=0;
+                    while(total<budget&&blocks<cap) {
+                        const unsigned key=(state[15]&(state[state_offsets::TFLAG/4]?~1u:~3u))|state[state_offsets::TFLAG/4];
+                        const auto slot=map->lookup(key);if(!slot)break;
+                        state[15]=key&~1u;state[state_offsets::AOT_BUDGET/4]=budget-total;state[state_offsets::AOT_EXIT/4]=0;
+                        const auto &base=slot==1?am:bm;
+                        const int count=js_run_aot_wasm(base.data(),base.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[0]));
+                        if(count<0||unsigned(count)>budget-total)return false;
+                        ++blocks;total+=count;
+                        if(!count){state[state_offsets::AOT_ROM_CALLBACK/4]=2;break;}
+                        if(state[state_offsets::AOT_ROM_CALLBACK/4]||state[state_offsets::AOT_EXIT/4]
+                            ||!(state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]||state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1])
+                            ||(!state[state_offsets::NIRQ/4]&&!(state[state_offsets::CPSR/4]&0x80)))break;
+                    }
+                    counts[0]=total;state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_REGIONS_USED/4]=blocks;
+                }
+                helpers[variant]=g_all_memory_helper_calls;
+            }
+            if(callback_states[0]!=callback_states[1]||counts[0]!=counts[1]||helpers[0]!=helpers[1]||std::memcmp(states[0],states[1],sizeof(states[0]))) {
+                printf(" FAIL ROM cohorts shape=%u budget=%u cap=%u stop=%u irq=%u mapped=%d counts=%u/%u\n",shape,budget,cap,stop,irq,mapped,counts[0],counts[1]);return false;
+            }
+            ++checks;
+        }
+        if(shape==0) {
+            // Bad table slots and missing keys must return without invoking a
+            // private function, rather than trapping or fabricating progress.
+            auto *page=reinterpret_cast<std::uint32_t *>(static_cast<std::uintptr_t>(map->data()[0]));
+            const auto original=page[key1&4095];
+            for(unsigned value:{0u,3u,UINT32_MAX}) {
+                page[key1&4095]=value;
+                alignas(8) unsigned state[256]{};
+                state[15]=0x1000;state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=17;
+                state[state_offsets::AOT_REGIONS_LEFT/4]=16;
+                const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+                if(count!=0||state[15]!=0x1000||state[state_offsets::AOT_BUDGET/4]!=17
+                    ||state[state_offsets::AOT_REGIONS_USED/4])return false;
+                ++extent_checks;
+            }
+            page[key1&4095]=original;
+            // Exercise the actual outer runner, including its remaining cap.
+            rom_dispatch_enabled=true;global_registry().clear();stage_aot_module(module,"test-rom-cohort",map);instantiate_staged_modules();
+            test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
+            auto cpu=std::make_unique<ARMul_State>(core.get(),USER32MODE);
+            for(unsigned cap:{0u,1u,2u,3u,64u,512u})for(unsigned budget:{1u,2u,5u,63u,512u,1025u,4096u}) {
+                runner_region_limit=cap;cpu->Reset();cpu->mem_cache_=core->mem_cache();
+                cpu->Reg[15]=0x1000;cpu->TFlag=1;cpu->Cpsr=0x30;
+                cpu->NirqSig=1;cpu->NumInstrsToExecute=budget;cpu->aot_budget=budget;
+                const auto result=execute_chain(cpu.get(),global_registry().lookup(key1));
+                const unsigned want=cap?std::min(budget,cap*2):budget;
+                if(result.instructions!=want||result.blocks!=(want+1)/2) {
+                    printf(" FAIL cohort runner cap=%u budget=%u got=%u/%u want=%u/%u\n",cap,budget,result.instructions,result.blocks,want,(want+1)/2);return false;
+                }
+            }
+            rom_dispatch_enabled=false;global_registry().clear();
+        }
+    }
+    // Direct BL edges must be discovered from emitted code, not guessed from
+    // the caller's local branch/resume scan. Include the two-halfword budget exit.
+    {
+        const std::uint16_t caller[]={0xf000,0xfffe},callee[]={0x3001,0x4770};
+        auto a=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true);
+        auto b=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(callee),sizeof(callee),0x2000,nullptr,nullptr,true,false,true);
+        if(a.func.successor_keys!=std::vector<unsigned>{0x2001})return false;
+        a.func.export_name="f_4097";b.func.export_name="f_8193";
+        std::shared_ptr<rom_dispatch_map> map;unsigned composed=0;
+        auto module=build_rom_cohort_module({a.func,b.func},imports,0x1000,0x2000,map,&composed);
+        if(composed!=2||module.empty())return false;
+        for(unsigned budget:{1u,2u,3u,4u}) {
+            alignas(8) unsigned state[256]{};state[15]=0x1000;state[state_offsets::TFLAG/4]=1;
+            state[state_offsets::CPSR/4]=0x30;state[state_offsets::NIRQ/4]=1;
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
+            state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_REGIONS_LEFT/4]=16;
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            if(count!=int(budget)||state[15]!=(budget==1?0x1002u:budget==2?0x2000u:budget==3?0x2002u:0x1004u)
+                ||state[0]!=(budget>=3)||state[14]!=(budget==1?0x1004u:0x1005u))return false;
+            ++checks;
+        }
+    }
+    // Larger groups exercise every switch arm and entry alias. A late helper
+    // must observe writes from previous regions, and its mutations survive exit.
+    for(unsigned count:{3u,16u}) {
+        std::vector<wasm_func_def> functions;
+        for(unsigned i=0;i<count;++i) {
+            const unsigned address=0x1000+16*i,next=0x1000+16*((i+1)%count);
+            const std::uint16_t code[]={std::uint16_t(i==count-1?0x680a:0x3001),0x4680,
+                std::uint16_t(0xe000|(((next-(address+8))/2)&0x7ff))};
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),address,nullptr,nullptr,true,false,true);
+            tr.func.export_name="f_"+std::to_string(address|1u);tr.func.successor_keys={next|1u};functions.push_back(std::move(tr.func));
+        }
+        std::shared_ptr<rom_dispatch_map> map;unsigned composed=0;
+        auto module=build_rom_cohort_module(functions,imports,0x1000,0x1000,map,&composed);
+        if(composed!=count||module.empty())return false;
+        std::vector<std::vector<std::uint8_t>> bases;
+        for(const auto &f:functions)bases.push_back(build_wasm_module({f},imports));
+        for(unsigned entry:{0u,1u,count-1})for(unsigned budget:{1u,2u,3u,4u,47u,48u,49u,97u})
+        for(unsigned cap:{1u,2u,16u,32u})for(bool mapped:{false,true}) {
+            test_mem memory;memory.write32(0x8000,0x12345678);r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            if(mapped)tlb.add(0x8000,memory.data.data()+0x8000,3);
+            alignas(8) unsigned states[2][256]{};unsigned counts[2];
+            std::vector<std::vector<unsigned>> traces[2];
+            for(unsigned variant=0;variant<2;++variant) {
+                auto *state=states[variant];state[0]=9;state[1]=0x8000;state[15]=0x1000+entry*16;
+                state[state_offsets::TFLAG/4]=1;state[state_offsets::CPSR/4]=0x30;
+                state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_REGIONS_LEFT/4]=cap;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);g_test_mem=&memory;
+                g_read32_observer=[&](unsigned ptr,unsigned) {auto *v=reinterpret_cast<unsigned *>(ptr);
+                    traces[variant].emplace_back(v,v+64);v[0]=0xfeed1234;v[8]=0xabcdef01;
+                    v[state_offsets::CFLAG/4]=1;v[state_offsets::AOT_ROM_CALLBACK/4]=1;};
+                if(variant) {
+                    const auto result=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[variant]));
+                    if(result<0)return false;counts[variant]=result;
+                } else {
+                    unsigned total=0,blocks=0;
+                    while(total<budget&&blocks<cap) {
+                        const unsigned index=map->lookup(state[15]|state[state_offsets::TFLAG/4]);if(!index)break;
+                        state[state_offsets::AOT_BUDGET/4]=budget-total;state[state_offsets::AOT_EXIT/4]=0;
+                        const auto &base=bases[index-1];
+                        const auto result=js_run_aot_wasm(base.data(),base.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[variant]));
+                        if(result<0)return false;total+=result;++blocks;
+                        if(!result){state[state_offsets::AOT_ROM_CALLBACK/4]=2;break;}
+                        if(state[state_offsets::AOT_ROM_CALLBACK/4]||state[state_offsets::AOT_EXIT/4])break;
+                    }
+                    counts[0]=total;state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_REGIONS_USED/4]=blocks;
+                }
+            }
+            if(counts[0]!=counts[1]||traces[0]!=traces[1]||std::memcmp(states[0],states[1],sizeof(states[0]))) {
+                printf(" FAIL large cohort count=%u entry=%u budget=%u cap=%u mapped=%d\n",count,entry,budget,cap,mapped);return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS ROM cohorts (%u extent, %u state/budget/cap/mode/callback/SVC comparisons and 42 real-runner caps)\n",extent_checks,checks);
+#endif
+    return true;
+}
+
 static bool test_rom_leaf_extent() {
     const auto saved_limit = leaf_instruction_limit;
     std::vector<std::uint8_t> image(96);
@@ -7094,6 +7286,7 @@ int main(int argc, char **argv) {
     if (test_inlined_leaves(arm_ir_policy::write_budget_chunks, true)) passed++; else failed++;
     if (test_bounded_rom_calls()) passed++; else failed++;
     if (test_rom_dispatch()) passed++; else failed++;
+    if (test_rom_cohorts()) passed++; else failed++;
     if (test_rom_leaf_extent()) passed++; else failed++;
     if (test_registry_lookup_lifecycle()) passed++; else failed++;
     if (test_arm_short_block_memory()) passed++; else failed++;

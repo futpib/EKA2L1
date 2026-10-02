@@ -55,7 +55,7 @@ if (!/^\d+,\d+,\d+,\d+$/.test(limitsText) || executionLimits.length!==4 || execu
 const irMode = process.env.EKA2L1_AOT_IR_MODE === undefined ? -1 : Number(process.env.EKA2L1_AOT_IR_MODE);
 if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps)');
 const romDispatch = process.env.EKA2L1_ROM_DISPATCH === undefined ? -1 : Number(process.env.EKA2L1_ROM_DISPATCH);
-if (![-1,0,1].includes(romDispatch)) throw new Error('ROM dispatch must be 0 or 1');
+if (![-1,0,1,2].includes(romDispatch)) throw new Error('ROM dispatch must be 0, 1 or 2');
 const romCalls = process.env.EKA2L1_ROM_CALLS === undefined ? -1 : Number(process.env.EKA2L1_ROM_CALLS);
 if (![-1,0,1].includes(romCalls)) throw new Error('ROM calls must be 0 or 1');
 const romLeaves = process.env.EKA2L1_ROM_LEAVES === undefined ? -1 : Number(process.env.EKA2L1_ROM_LEAVES);
@@ -225,7 +225,7 @@ try {
     call('eka2l1_init', ['string'], ['/data']);
     if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
       throw Error('Thumb memory policy changed after initialization');
-    if (romDispatch !== -1 && g.Module._eka2l1_rom_dispatch_configure(1 - romDispatch) !== -1)
+    if (romDispatch !== -1 && g.Module._eka2l1_rom_dispatch_configure((romDispatch + 1) % 3) !== -1)
       throw Error('ROM dispatch changed after initialization');
     if (romCalls !== -1 && g.Module._eka2l1_rom_calls_configure(1 - romCalls) !== -1)
       throw Error('ROM calls changed after initialization');
