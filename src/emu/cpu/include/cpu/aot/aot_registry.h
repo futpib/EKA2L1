@@ -60,23 +60,12 @@ namespace eka2l1::arm::aot {
             return ((address >> 1) ^ (address << 7)) & 4095;
         }
 
-        aot_func lookup_slow(std::uint32_t arm_address) const;
-
     public:
         void register_function(std::uint32_t arm_address, aot_func func);
         void unregister_function(std::uint32_t arm_address);
         void clear();
 
-        // Keep the common cache hit visible to callers without pulling the
-        // unordered-map fallback into their execution loop.
-#if defined(__GNUC__) || defined(__clang__)
-        __attribute__((always_inline))
-#endif
-        aot_func lookup(std::uint32_t arm_address) const {
-            const auto &slot = recent_[recent_index(arm_address)];
-            if (slot.function && slot.address == arm_address) return slot.function;
-            return lookup_slow(arm_address);
-        }
+        aot_func lookup(std::uint32_t arm_address) const;
         bool has_function(std::uint32_t arm_address) const;
         std::size_t size() const;
     };

@@ -43,3 +43,13 @@ Each route has only two matching pairs. Inspect their directions and raw times;
 the mean is not a universal gain estimate. This compares V12 and V13 (ARM memory disabled in both) archives,
 not the untouched live archive. It does not establish zero Snakes loss or
 sustained realtime Sky Force, and is insufficient for deployment.
+
+## Selection
+
+The implementation is omitted from the next candidate. Stationary Sky Force
+and longer Snakes favor it in both pairs, but combat and standard Snakes
+reverse direction. The 12.39/12.70-second longer controls and 12.30-second
+closing candidate remain in the panel; the larger mean is not a stable gain
+estimate. Candidate Sky Force is only 0.505–0.562x realtime. Restoring the
+previous registry implementation keeps this uncertain change out of the next
+independent experiment; the lifecycle test and all evidence remain.
