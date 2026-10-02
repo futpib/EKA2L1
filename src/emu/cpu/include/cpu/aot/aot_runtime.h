@@ -27,6 +27,12 @@
 struct ARMul_State;
 
 namespace eka2l1::arm::aot {
+    // Generated SVC returns a pending trap to the outer loop, where the exact
+    // cumulative instruction count and kernel callback contract are available.
+    inline bool compiled_svc_enabled = false;
+    inline constexpr std::uint32_t svc_pending = 0x80000000u;
+    inline constexpr std::uint32_t svc_taken = 0x40000000u;
+    inline constexpr std::uint32_t svc_page_end = 0x20000000u;
     // Opt-in immutable ROM leaf fusion; frozen before CPU initialization.
     extern bool rom_inline_leaves;
     extern bool rom_bounded_calls;

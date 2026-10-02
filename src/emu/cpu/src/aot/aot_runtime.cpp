@@ -144,12 +144,23 @@ void validation_end(ARMul_State *cpu, std::uint32_t count) {
             return reference_write(a, &value) ? 1 : 0;
         };
     }
+    unsigned reference_svc_count = 0, reference_svc_number = 0;
+    auto pre_svc_reservation = monitor.snapshot(0);
+    reference.system_call_handler = [&](unsigned number) {
+        ++reference_svc_count; reference_svc_number = number;
+        pre_svc_reservation = monitor.snapshot(0);
+    };
     reference.load_context(validation_before);
     validation_running = true;
     reference.run(count);
     validation_running = false;
-    bool same = true;
-    if (validation_monitor && !(monitor.snapshot(0) == validation_monitor->snapshot(cpu->parent()->core_number()))) {
+    const auto pending = compiled_svc_enabled && (cpu->aot_exit & svc_pending);
+    const auto expected_calls = pending && (cpu->aot_exit & svc_taken) ? 1u : 0u;
+    bool same = reference_svc_count == expected_calls
+        && (!expected_calls || reference_svc_number == (cpu->aot_exit & 0x00ffffffu));
+    if (!same) fprintf(stderr,"AOT VERIFY SVC request pc=%08X\n",validation_before.cpu_registers[15]);
+    const auto expected_reservation = expected_calls ? pre_svc_reservation : monitor.snapshot(0);
+    if (validation_monitor && !(expected_reservation == validation_monitor->snapshot(cpu->parent()->core_number()))) {
         fprintf(stderr, "AOT VERIFY exclusive reservation pc=%08X\n", validation_before.cpu_registers[15]);
         same = false;
     }
@@ -383,7 +394,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
         ++result.blocks;
         result.instructions += count;
-        if (!count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
+        if ((compiled_svc_enabled && (cpu->aot_exit & svc_pending)) || !count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
         cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
         // This stays inside the compiled runner. Every RAM successor retains
         // mapping/lifetime validation. Byte-mutation detection is policy-dependent;
@@ -419,6 +430,7 @@ compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
 
 std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
     cpu->mem_cache_->sync_write_protection();
+    cpu->aot_exit = 0;
     count_ram_dispatch(cpu);
     if (!verification_stride()) return function(cpu);
     validation_begin(cpu);

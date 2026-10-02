@@ -22,6 +22,9 @@
 #include <cstring>
 #include <cstdlib>
 using namespace eka2l1::arm;
+#ifndef EKA_MATCHED_REFERENCE
+namespace eka2l1::arm { struct matched_kernel_access { static ARMul_State *state(dyncom_core &c) { return c.state_.get(); } }; }
+#endif
 std::string regs(core &c) {
     std::ostringstream o; o << '[';
     for (int i=0;i<16;++i) { if(i)o<<','; o<<c.get_reg(i); }
@@ -295,6 +298,89 @@ static int arm_exclusive_probe() {
     return 0;
 }
 
+// Generated SVC and continuation against native DynCom, including kernel-visible
+// state and changes to budgets, flags, PC, IRQ and exclusive reservations.
+static int compiled_svc_probe() {
+    aot::compiled_svc_enabled = true;
+    unsigned cases=0;
+    for(unsigned thumb:{0u,1u}) for(unsigned region:{0u,1u})
+    for(unsigned shape:{0u,1u,2u}) for(unsigned page:{0u,1u})
+    for(unsigned cond:{0u,1u,14u}) for(unsigned z:{0u,1u}) {
+        if(thumb && cond!=14)continue;
+        for(unsigned budget:{1u,2u,3u,4u,8u,12u}) for(unsigned policy=0;policy<9;++policy) {
+            r12l1::exclusive_monitor monitor(2);dyncom_core cpu(&monitor,12);
+            auto *state=matched_kernel_access::state(cpu);
+            std::vector<unsigned char> memory(65536,0);
+            const unsigned width=thumb?2:4;
+            const unsigned start=page?0x2000-width*(shape==1?2:1):0x1000;
+            std::vector<unsigned> addresses;
+            for(unsigned i=0;i<32;++i) {
+                const unsigned a=start+i*width;addresses.push_back(a);
+                if(thumb) {const std::uint16_t op=0x3401;std::memcpy(memory.data()+a,&op,2);}
+                else {const unsigned op=0xe2844001;std::memcpy(memory.data()+a,&op,4);}
+            }
+            auto write_svc=[&](unsigned index) {
+                if(thumb){const std::uint16_t op=0xdf56;std::memcpy(memory.data()+start+index*2,&op,2);}
+                else {const unsigned op=(cond<<28)|0x0f123456;std::memcpy(memory.data()+start+index*4,&op,4);}
+            };
+            write_svc(shape==1?1:0);if(shape==2)write_svc(2);
+            if(shape==1){if(thumb){const std::uint16_t op=0x3501;std::memcpy(memory.data()+start,&op,2);}else{const unsigned op=0xe2955001;std::memcpy(memory.data()+start,&op,4);}}
+            // Terminal branch bounds decoding without affecting these short runs.
+            if(thumb){const std::uint16_t op=0xe7fe;std::memcpy(memory.data()+start+62,&op,2);}
+            else {const unsigned op=0xeafffffe;std::memcpy(memory.data()+start+124,&op,4);}
+            cpu.read_code=[&](unsigned a,unsigned *v){if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;};
+            // Mode-changing callbacks can expose the same bytes through the
+            // other decoder; provide the complete ordinary memory interface.
+#define SVC_ACCESS(bits,type) cpu.read_##bits##bit=[&](unsigned a,type*v){if(a>memory.size()-sizeof(type)){*v=0;return false;}std::memcpy(v,memory.data()+a,sizeof(type));return true;};cpu.write_##bits##bit=[&](unsigned a,type*v){if(a>memory.size()-sizeof(type))return false;std::memcpy(memory.data()+a,v,sizeof(type));return true;};
+            SVC_ACCESS(8,std::uint8_t) SVC_ACCESS(16,std::uint16_t) SVC_ACCESS(32,std::uint32_t) SVC_ACCESS(64,std::uint64_t)
+#undef SVC_ACCESS
+            cpu.exception_handler=[](exception_type,unsigned){return false;};
+            monitor.read_32bit=[&](core*,unsigned a,unsigned*v){if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;};
+            monitor.exclusive_read32(&cpu,0x8000);monitor.restore(1,monitor.snapshot(0));
+            for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
+            cpu.set_reg(5,z?0xffffffff:5);cpu.set_pc(start);cpu.set_cpsr(0x10|(thumb?32:0)|(z?0x40000000:0));
+            std::vector<std::string> events;
+            cpu.system_call_handler=[&](unsigned number){
+                const auto m=monitor.snapshot(0);
+                events.push_back("{\"number\":"+std::to_string(number)+",\"regs\":"+regs(cpu)+",\"cpsr\":"+std::to_string(cpu.get_cpsr())+",\"budget\":"+std::to_string(state->NumInstrsToExecute)+",\"reservation\":"+std::to_string(m.address)+"}");
+                if(policy==1)cpu.stop();
+                if(policy==2){cpu.set_reg(4,0x76543210);cpu.set_cpsr(cpu.get_cpsr()^0xf0000000u);}
+                if(policy==3)cpu.set_pc(start+8*width);
+                if(policy==4)state->NirqSig=0;
+                if(policy==5){state->NumInstrsToExecute=16;state->NirqSig=0;}
+                if(policy==6)cpu.set_cpsr(cpu.get_cpsr()^32u);
+                if(policy==7){state->NumInstrsToExecute=3;cpu.set_pc(start+8*width);}
+                if(policy==8){memory[0x8000]=0xa5;cpu.set_reg(4,0x8000);}
+            };
+#ifdef __EMSCRIPTEN__
+            aot::global_registry().clear();std::vector<aot::wasm_func_def> functions;
+            for(unsigned i=0;i<32;++i) {
+                const auto a=addresses[i];
+                auto tr=thumb?aot::translate_thumb_block(memory.data()+a,(32-i)*width,a,nullptr,nullptr,true,false,true)
+                    :aot::translate_arm_block(memory.data()+a,(32-i)*width,a,nullptr,nullptr,true,false,true,region);
+                if(!tr.entry_supported||!tr.complete){std::cerr<<"SVC fixture rejected "<<thumb<<' '<<i<<'\n';return 2;}
+                tr.func.export_name="f_"+std::to_string(a|thumb);functions.push_back(std::move(tr.func));
+            }
+            auto bytes=aot::build_wasm_module(functions,{});
+            aot::stage_aot_module(std::move(bytes),"svc-probe");aot::instantiate_staged_modules();aot::chaining_enabled=true;
+            const auto compiled_before=eka2l1::common::performance::aot_instructions;
+#endif
+            cpu.run(budget);const auto count=cpu.get_num_instruction_executed();
+#ifdef __EMSCRIPTEN__
+            // Mode-change-without-PC-change may need a semantic fallback. Record
+            // it separately; never count interpreter work as generated work.
+            if(policy!=6 && budget!=1 && eka2l1::common::performance::aot_instructions-compiled_before!=count){std::cerr<<"SVC probe used interpreter\n";return 3;}
+#endif
+            auto m0=monitor.snapshot(0),m1=monitor.snapshot(1);
+            std::cout<<"FAULT {\"id\":"<<cases++<<",\"thumb\":"<<thumb<<",\"region\":"<<region<<",\"shape\":"<<shape<<",\"page\":"<<page<<",\"condition\":"<<cond<<",\"z\":"<<z<<",\"budget\":"<<budget<<",\"policy\":"<<policy
+                <<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()<<",\"count\":"<<count<<",\"remaining\":"<<state->NumInstrsToExecute<<",\"irq\":"<<state->NirqSig<<",\"data\":"<<unsigned(memory[0x8000])<<",\"monitor\":["<<m0.address<<','<<m1.address<<"],\"events\":[";
+            for(unsigned i=0;i<events.size();++i){if(i)std::cout<<',';std::cout<<events[i];}
+            std::cout<<"]}\n";
+        }
+    }
+    return 0;
+}
+
 int main(int argc, char **argv){
     if(argc>1 && std::strncmp(argv[argc-1],"--unsafe-code=",14)==0) {
         const std::string value(argv[argc-1]+14);
@@ -379,6 +465,7 @@ int main(int argc, char **argv){
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
+    if(argc==2 && std::string(argv[1])=="--compiled-svc") return compiled_svc_probe();
     if(argc==2 && std::string(argv[1])=="--arm-exclusive") return arm_exclusive_probe();
     if(argc==2 && std::string(argv[1])=="--rom-calls")return rom_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-calls")return thumb_call_probe();

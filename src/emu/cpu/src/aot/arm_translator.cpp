@@ -19,6 +19,7 @@
 
 #include <common/code_tracking.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/exit_census.h>
 #include <cpu/aot/execution_limits.h>
@@ -2025,6 +2026,24 @@ namespace eka2l1::arm::aot {
 
             std::uint32_t cond = (inst >> 28) & 0xF;
             bool handled = true;
+
+            // The generated instruction performs predicate/PC semantics; the
+            // outer loop services the trap at its cumulative guest count. Even
+            // a false predicate returns this boundary without invoking kernel.
+            if (bounded && compiled_svc_enabled && cond < 15 && (inst & 0x0f000000u) == 0x0f000000u) {
+                w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.i32_const(1); w.op(op_i32_eq);
+                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_if); w.op(type_void);
+                if (region) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); }
+                w.bail(insn_addr, insn_idx); w.op(op_end);
+                const auto descriptor = svc_pending | (((insn_addr + 4) & 4095) ? 0 : svc_page_end) | (inst & 0x00ffffffu);
+                w.store_i32_const(S::AOT_EXIT, descriptor);
+                const bool predicate = emit_cond_check(w, cond, TMP1, TMP2);
+                w.store_i32_const(S::AOT_EXIT, descriptor | svc_taken);
+                if (predicate) w.op(op_end);
+                w.bail(insn_addr + 4, insn_idx + 1);
+                ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                break;
+            }
 
             // Emit condition check
             bool cond_opened = emit_cond_check(w, cond, TMP1, TMP2);

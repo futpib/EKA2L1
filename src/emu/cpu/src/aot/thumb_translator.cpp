@@ -18,6 +18,7 @@
  */
 
 #include <cpu/aot/thumb_translator.h>
+#include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/exit_census.h>
 #include <cpu/12l1r/tlb.h>
@@ -3563,6 +3564,16 @@ namespace eka2l1::arm::aot {
             } else if ((insn & 0xF000) == 0xD000) {
                 // Conditional branch: B<cond> offset
                 std::uint8_t cond = (insn >> 8) & 0xF;
+                if (bounded && compiled_svc_enabled && cond == 15) {
+                w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.i32_const(1); w.op(op_i32_eq);
+                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_if); w.op(type_void);
+                w.bail(insn_addr, insn_idx); w.op(op_end);
+                    w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken
+                        | (((insn_addr + 2) & 4095) ? 0 : svc_page_end) | (insn & 255));
+                    w.bail(insn_addr + 2, insn_idx + 1);
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                    ++insn_idx; break;
+                }
                 if (cond >= 0xE) {
                     // SVC or undefined — bail
                     w.bail_unsupported(insn_addr, insn_idx);

@@ -5994,6 +5994,37 @@ static bool test_unsafe_code_diagnostic() {
 }
 
 
+static bool test_compiled_svc_boundary() {
+    const auto saved=compiled_svc_enabled;compiled_svc_enabled=true;unsigned checks=0;
+#ifdef __EMSCRIPTEN__
+    for(unsigned thumb:{0u,1u})for(unsigned page:{0u,1u})for(unsigned region:{0u,1u})
+    for(unsigned cond=0;cond<15;++cond)for(unsigned nzcv=0;nzcv<16;++nzcv)for(unsigned budget:{0u,1u,2u})for(unsigned quantum:{0u,1u,8u}) {
+        if(thumb && cond!=14)continue;
+        const unsigned width=thumb?2:4,pc=page?0x2000-width:0x1000;
+        const unsigned arm=(cond<<28)|0x0f123456;const std::uint16_t narrow=0xdf56;
+        auto tr=thumb?translate_thumb_block(reinterpret_cast<const unsigned char*>(&narrow),2,pc,nullptr,nullptr,true,false,true)
+            :translate_arm_block(reinterpret_cast<const unsigned char*>(&arm),4,pc,nullptr,nullptr,true,false,true,region);
+        auto module=build_wasm_module({tr.func},{});
+        alignas(8) std::uint32_t state[256]{};state[15]=pc;
+        state[state_offsets::CPSR/4]=16|(thumb?32:0)|(nzcv<<28);
+        state[state_offsets::NFLAG/4]=(nzcv>>3)&1;state[state_offsets::ZFLAG/4]=(nzcv>>2)&1;
+        state[state_offsets::CFLAG/4]=(nzcv>>1)&1;state[state_offsets::VFLAG/4]=nzcv&1;
+        state[state_offsets::TFLAG/4]=thumb;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=quantum;
+        const bool n=nzcv&8,z=nzcv&4,c=nzcv&2,v=nzcv&1;
+        const bool predicates[]={z,!z,c,!c,n,!n,v,!v,c&&!z,!c||z,n==v,n!=v,!z&&(n==v),z||(n!=v),true};
+        const bool executes=budget && quantum!=1;
+        const unsigned expected=executes?(svc_pending|(page?svc_page_end:0)|(predicates[cond]?svc_taken:0)|(thumb?0x56:0x123456)):0;
+        if(tr.end_address!=pc+width){printf(" FAIL SVC source extent\n");compiled_svc_enabled=saved;return false;}
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        if(count!=unsigned(executes)||state[15]!=pc+(executes?width:0)||state[state_offsets::AOT_EXIT/4]!=expected) {
+            printf(" FAIL svc boundary thumb=%u cond=%u flags=%u budget=%u count=%d exit=%x\n",thumb,cond,nzcv,budget,count,state[state_offsets::AOT_EXIT/4]);compiled_svc_enabled=saved;return false;
+        }
+        ++checks;
+    }
+#endif
+    compiled_svc_enabled=saved;printf(" PASS compiled_svc_boundary (%u predicate/budget/page checks)\n",checks);return true;
+}
+
 static bool test_arm_exclusive_decode() {
     const auto saved=arm_exclusive_memory;unsigned checked=0;bool ok=true;
     for(unsigned enabled:{0u,1u})for(unsigned cond=0;cond<16;++cond)
@@ -6708,6 +6739,7 @@ int main(int argc, char **argv) {
     if (test_conditional_alu_select()) passed++; else failed++;
     if (test_compare_conditions()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
+    if (test_compiled_svc_boundary()) passed++; else failed++;
     if (test_arm_exclusive_decode()) passed++; else failed++;
     if (test_thumb_direct_memory()) passed++; else failed++;
     if (test_thumb_call_boundaries()) passed++; else failed++;
