@@ -30,3 +30,19 @@ samples and passive host readings are retained. Builds and correctness runs
 finish before timing. An untouched live-archive comparison and actual sustained
 live/audio acceptance would still be required before a promotion claim. The
 realtime goal remains open. This candidate is unserved; nothing is pushed.
+
+## Sixteen-observation panel
+
+All preplanned observations and passive host readings are retained.
+
+| Route | First pair | Reversed pair | Mean throughput change | Candidate realtime range |
+| --- | ---: | ---: | ---: | ---: |
+| sky | -0.23% | +8.09% | +3.70% | 0.505–0.563x |
+| combat | +5.48% | +4.44% | +4.95% | 0.569–0.582x |
+| standard | +9.48% | +4.13% | +6.82% | 1.796–1.805x |
+| long | +1.56% | +1.47% | +1.51% | 1.839–1.867x |
+
+Each route has only two matching pairs. Inspect their directions and raw times;
+the mean is not a universal gain estimate. This compares V5 and V8 archives,
+not the untouched live archive. It does not establish zero Snakes loss or
+sustained realtime Sky Force, and is insufficient for deployment.
