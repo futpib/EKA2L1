@@ -320,6 +320,15 @@ int eka2l1_code_compare_configure(int mode) {
     return 0;
 }
 
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_leaves_configure(int enabled) {
+    if (g_state || enabled < 0 || enabled > 1) return -1;
+    eka2l1::arm::aot::rom_inline_leaves = enabled != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_leaves_report() { return eka2l1::arm::aot::rom_inline_leaves; }
+
 // Eager ROM compilation research control. Ordinary startup keeps basic blocks.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_eager_regions_configure(int enabled) {

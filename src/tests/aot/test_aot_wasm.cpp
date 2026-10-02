@@ -2394,8 +2394,9 @@ static bool test_region_code_alias() {
     return true;
 }
 
-static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured) {
+static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured, bool rom_resolver = false) {
 #ifdef __EMSCRIPTEN__
+    if (rom_resolver) printf("  Production ROM resolver execution comparisons\n");
     // Repeated far calls in a loop, including real workload memory leaves.
     const std::vector<std::uint32_t> caller = (policy == arm_ir_policy::inline_call_ir || policy == arm_ir_policy::invariant_write_ir)
         ? std::vector<std::uint32_t>{0xe1a0800f,0xeb0003fd,0xe1a0900f,0xeb0003fb,0xe2566001,0x1afffff9}
@@ -2414,12 +2415,15 @@ static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured
     for (bool deferred : {false,true}) for (const auto &words : leaves) {
         if ((policy == arm_ir_policy::inline_call_ir || policy == arm_ir_policy::invariant_write_ir) && !deferred) continue;
         std::vector<std::uint8_t> leaf(words.size()*4); std::memcpy(leaf.data(),words.data(),leaf.size());
-        leaf_resolver resolve = [&](std::uint32_t pc) { return pc == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
+        leaf_resolver resolve = [&](std::uint32_t pc) { return rom_resolver ? resolve_rom_leaf(leaf.data(), 0x2000, leaf.size(), pc) : pc == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,true,true,true,&resolve,deferred,policy);
         if ((policy == arm_ir_policy::inline_call_ir || policy == arm_ir_policy::invariant_write_ir) && !tr.ir_inline_transfers) {printf("  FAIL inline transfers not selected\n");return false;}
         if (tr.dependencies.size()!=1 || tr.end_address!=0x1000+caller.size()*4) {printf("  FAIL leaf discovery\n");return false;}
 #if defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)
-        if (deferred && words.size() >= 5 && !tr.ir_memory_guards && !tr.ir_proved_writes) {
+        // Policy 7 uses deferred memory and budget chunks, not the IR proof
+        // backend required by the older selections exercised here.
+        if (policy != arm_ir_policy::write_budget_chunks && deferred
+            && words.size() >= 5 && !tr.ir_memory_guards && !tr.ir_proved_writes) {
             printf("  FAIL inlined memory leaf did not select IR guards\n"); return false;
         }
 #endif
@@ -4386,6 +4390,40 @@ static bool test_arm_short_block_memory() {
     }
     printf(" PASS ARM short block memory (%u full-state/memory/budget/callback comparisons)\n",checks);
 #endif
+    return true;
+}
+
+static bool test_rom_leaf_extent() {
+    const auto saved_limit = leaf_instruction_limit;
+    std::vector<std::uint8_t> image(96);
+    for (unsigned n = 0; n < image.size(); ++n) image[n] = static_cast<std::uint8_t>(n);
+    unsigned checks = 0;
+    for (unsigned limit : {1u, 8u, 16u}) {
+        leaf_instruction_limit = limit;
+        for (std::uint32_t base : {0u, 0x80000000u, 0xffffffc0u}) {
+            for (unsigned size = 0; size <= image.size(); ++size) {
+                for (unsigned delta = 0; delta < 112; ++delta) {
+                    const auto target = base + delta;
+                    const auto actual = resolve_rom_leaf(image.data(), base, size, target);
+                    std::vector<std::uint8_t> expected;
+                    // Byte-by-byte oracle, without the resolver's extent arithmetic.
+                    if (target >= base && !(target & 3)) {
+                        for (unsigned n = 0; n < limit * 4; n += 4) {
+                            if (std::uint64_t(target) + n + 3 > UINT32_MAX || delta + n + 3 >= size) break;
+                            for (unsigned byte = 0; byte < 4; ++byte) expected.push_back(image[delta + n + byte]);
+                        }
+                    }
+                    if (actual != expected || !resolve_rom_leaf(nullptr, base, size, target).empty()) {
+                        leaf_instruction_limit = saved_limit;
+                        printf(" FAIL ROM resolver base=%x size=%u delta=%u\n",base,size,delta); return false;
+                    }
+                    ++checks;
+                }
+            }
+        }
+    }
+    leaf_instruction_limit = saved_limit;
+    printf(" PASS ROM leaf extent (%u boundary comparisons)\n",checks);
     return true;
 }
 
@@ -6512,6 +6550,8 @@ int main(int argc, char **argv) {
     if (test_inlined_leaves(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
     if (test_invariant_writes(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
 #endif
+    if (test_inlined_leaves(arm_ir_policy::write_budget_chunks, true)) passed++; else failed++;
+    if (test_rom_leaf_extent()) passed++; else failed++;
     if (test_registry_lookup_lifecycle()) passed++; else failed++;
     if (test_arm_short_block_memory()) passed++; else failed++;
     if (test_bounded_execution()) passed++; else failed++;

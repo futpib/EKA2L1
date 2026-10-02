@@ -142,8 +142,12 @@ namespace eka2l1::arm::aot {
         const bool eager_defer = false;
 #endif
         fprintf(stderr, "AOT: eager_regions=%d ir_policy=%d\n", eager_regions, static_cast<int>(eager_ir_policy));
+        leaf_resolver rom_leaves = [=](std::uint32_t target) {
+            return resolve_rom_leaf(rom_host, rom_base, rom_size, target);
+        };
         const auto eager_start = std::chrono::steady_clock::now();
         std::vector<wasm_func_def> all_funcs;
+        std::size_t rom_leaf_dependencies = 0;
 
         for (std::uint32_t offset = 0; offset + sizeof(rom_image_header_raw) < rom_size; offset += 4) {
             std::uint32_t uid1;
@@ -270,11 +274,12 @@ namespace eka2l1::arm::aot {
                 const auto size = std::min(c.func_size, chaining_enabled ? 512u : 128u);
                 auto tr = c.is_arm
                     ? (eager_regions
-                        ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled, true, nullptr, eager_defer, eager_ir_policy)
+                        ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled, true, rom_inline_leaves ? &rom_leaves : nullptr, eager_defer, eager_ir_policy)
                         : translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled))
                     : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled);
                 if (tr.func.body.empty() || !tr.entry_supported) continue;
                 tr.func.export_name = "f_" + std::to_string(key);
+                rom_leaf_dependencies += tr.dependencies.size();
                 all_funcs.push_back(std::move(tr.func));
                 ++accepted;
                 if (max_exports >= 0 && accepted >= static_cast<std::size_t>(max_exports)) break;
@@ -313,6 +318,7 @@ namespace eka2l1::arm::aot {
             {"env", "tlb_write16", 3, false},
         };
 
+        fprintf(stderr, "AOT: rom_inline_leaves=%d eager_leaf_dependencies=%zu\n", rom_inline_leaves, rom_leaf_dependencies);
         const auto emission_start = std::chrono::steady_clock::now();
         auto wasm_bytes = build_wasm_module(all_funcs, imports);
         fprintf(stderr, "AOT: eager_regions=%d scan_translate_ms=%.3f emit_ms=%.3f bytes=%zu functions=%zu\n",

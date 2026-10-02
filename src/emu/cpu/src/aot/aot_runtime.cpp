@@ -49,6 +49,18 @@ std::uint64_t compiled_function_count() { return completed_function_count.load(s
 // Optional differential execution. Guest memory is changed only by compiled
 // execution; the reference interpreter uses a private byte overlay.
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
+bool rom_inline_leaves = false;
+std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
+    std::uint32_t base, std::uint32_t size, std::uint32_t target) {
+    if (!host || (target & 3) || target < base) return {};
+    const auto offset = target - base;
+    if (offset >= size) return {};
+    // Never cross the supplied image extent or the 32-bit guest address space.
+    const auto available = std::min<std::uint64_t>(size - offset,
+        (std::uint64_t{1} << 32) - target);
+    const auto bytes = std::min<std::uint64_t>(leaf_instruction_limit * 4, available) & ~std::uint64_t{3};
+    return {host + offset, host + offset + bytes};
+}
 bool diagnostics_enabled = false;
 bool omit_guard_publication = false;
 bool validation_running = false;
@@ -464,8 +476,11 @@ void observe_hot_pc(ARMul_State *cpu) {
     if (count >= 8 || ++count != 8) return; // one attempt per immutable entry
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(chaining_enabled ? primary_window_bytes : 128u, hot_rom_size - offset);
+    leaf_resolver leaves = [](std::uint32_t target) {
+        return resolve_rom_leaf(hot_rom, hot_rom_base, hot_rom_size, target);
+    };
     auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
-                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, nullptr, defer_memory_enabled, ir_policy);
+                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, rom_inline_leaves ? &leaves : nullptr, defer_memory_enabled, ir_policy);
     if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
     hot_pending.push_back(std::move(tr.func));

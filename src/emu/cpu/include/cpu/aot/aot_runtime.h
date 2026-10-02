@@ -27,6 +27,10 @@
 struct ARMul_State;
 
 namespace eka2l1::arm::aot {
+    // Opt-in immutable ROM leaf fusion; frozen before CPU initialization.
+    extern bool rom_inline_leaves;
+    std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
+        std::uint32_t base, std::uint32_t size, std::uint32_t target);
     extern bool diagnostics_enabled;
     // Opt-in runtime layout experiment; effective only when emitted code has no interval guards.
     extern bool omit_guard_publication;

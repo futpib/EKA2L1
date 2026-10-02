@@ -62,6 +62,8 @@ if (!/^\d+,\d+,\d+,\d+$/.test(limitsText) || executionLimits.length!==4 || execu
     || executionLimits[2]<0 || executionLimits[2]>16 || executionLimits[3]<0 || executionLimits[3]>4096) throw new Error('Invalid execution limits');
 const irMode = process.env.EKA2L1_AOT_IR_MODE === undefined ? -1 : Number(process.env.EKA2L1_AOT_IR_MODE);
 if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps)');
+const romLeaves = process.env.EKA2L1_ROM_LEAVES === undefined ? -1 : Number(process.env.EKA2L1_ROM_LEAVES);
+if (![-1,0,1].includes(romLeaves)) throw new Error('ROM leaves must be 0 or 1');
 const eagerRegions = process.env.EKA2L1_AOT_EAGER_REGIONS === undefined ? -1 : Number(process.env.EKA2L1_AOT_EAGER_REGIONS);
 if (![-1,0,1].includes(eagerRegions)) throw new Error('Eager regions must be 0 (off) or 1 (on)');
 const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
@@ -130,7 +132,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+  await page.evaluate(async ({romLeaves, thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -142,6 +144,12 @@ try {
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
     if (sharedAudio) call('eka2l1_audio_configure', [], []);
     call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot, aotDiagnostics ? 1 : 0]);
+    if (romLeaves !== -1) {
+      call('eka2l1_rom_leaves_configure', ['number'], [romLeaves]);
+    }
+    g.romLeavesActual = typeof g.Module._eka2l1_rom_leaves_report === 'function'
+      ? g.Module._eka2l1_rom_leaves_report() : null;
+    if (romLeaves !== -1 && g.romLeavesActual !== romLeaves) throw Error('ROM leaves readback mismatch');
     if (eagerRegions !== -1) {
       if (typeof g.Module._eka2l1_eager_regions_configure !== 'function') throw new Error('Build lacks eager region selection');
       call('eka2l1_eager_regions_configure', ['number'], [eagerRegions]);
@@ -212,6 +220,8 @@ try {
     call('eka2l1_init', ['string'], ['/data']);
     if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
       throw Error('Thumb memory policy changed after initialization');
+    if (romLeaves !== -1 && g.Module._eka2l1_rom_leaves_configure(1 - romLeaves) !== -1)
+      throw Error('ROM leaves changed after initialization');
     if (armMemory !== -1 && g.Module._eka2l1_arm_memory_configure(1 - armMemory) !== -1)
       throw Error('ARM memory policy changed after initialization');
     if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
@@ -238,7 +248,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], [appUid]);
-  }, {thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+  }, {romLeaves, thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -373,7 +383,7 @@ try {
     if(g.Module.ccall('eka2l1_omit_guard_publication_report','number',[],[])!==g.omitGuardPublicationActual)
       throw Error('Guard publication readback changed');
   });
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({rom_leaves: await page.evaluate(() => (globalThis as any).romLeavesActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, omit_guard_publication:await page.evaluate(()=>(globalThis as any).omitGuardPublicationActual), code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
