@@ -2232,7 +2232,13 @@ namespace eka2l1::arm::aot {
                 w.set_local(TMP1); // base address
 
                 const bool proved_span = w.has_proved_access();
-                const bool span_fast_path = w.region && (count >= 2 || proved_span);
+                // Short blocks can share one permission/alignment/endian proof
+                // across the complete instruction just like connected regions.
+                // Compatibility stores keep their callback/tracking path.
+                const bool short_span = w.direct_block_memory && (load ||
+                    (common::code_tracking::skip_mutation_tracking()
+                     && common::code_tracking::skip_code_write_guards()));
+                const bool span_fast_path = (w.region || short_span) && (count >= 2 || proved_span);
                 const bool pc_written_before_span = w.pc_written;
                 if (span_fast_path) {
                     if (proved_span) w.proved_host();

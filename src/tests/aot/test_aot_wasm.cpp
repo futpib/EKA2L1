@@ -49,18 +49,18 @@ struct test_mem {
     test_mem() : data(SIZE, 0) {}
 
     void write32(std::uint32_t addr, std::uint32_t val) {
-        if (addr + 4 <= SIZE) std::memcpy(&data[addr], &val, 4);
+        if (addr <= SIZE - 4) std::memcpy(&data[addr], &val, 4);
     }
     std::uint32_t read32(std::uint32_t addr) const {
         std::uint32_t v = 0;
-        if (addr + 4 <= SIZE) std::memcpy(&v, &data[addr], 4);
+        if (addr <= SIZE - 4) std::memcpy(&v, &data[addr], 4);
         return v;
     }
     void write16(std::uint32_t addr, std::uint16_t val) {
-        if (addr + 2 <= SIZE) std::memcpy(&data[addr], &val, 2);
+        if (addr <= SIZE - 2) std::memcpy(&data[addr], &val, 2);
     }
     void write_code(std::uint32_t addr, const std::vector<std::uint8_t> &code) {
-        for (std::size_t i = 0; i < code.size() && addr + i < SIZE; i++)
+        for (std::size_t i = 0; addr < SIZE && i < code.size() && i < SIZE - addr; i++)
             data[addr + i] = code[i];
     }
 };
@@ -70,7 +70,7 @@ static std::unique_ptr<dyncom_core> make_cpu(test_mem &mem, r12l1::exclusive_mon
     test_mem *mp = &mem;
 
     core->read_code = [mp](address a, std::uint32_t *r) -> bool {
-        if (a + 4 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 4) return false;
         std::memcpy(r, &mp->data[a], 4); return true;
     };
     core->read_8bit = [mp](address a, std::uint8_t *r) -> bool {
@@ -82,27 +82,27 @@ static std::unique_ptr<dyncom_core> make_cpu(test_mem &mem, r12l1::exclusive_mon
         mp->data[a] = *r; return true;
     };
     core->read_16bit = [mp](address a, std::uint16_t *r) -> bool {
-        if (a + 2 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 2) return false;
         std::memcpy(r, &mp->data[a], 2); return true;
     };
     core->write_16bit = [mp](address a, std::uint16_t *r) -> bool {
-        if (a + 2 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 2) return false;
         std::memcpy(&mp->data[a], r, 2); return true;
     };
     core->read_32bit = [mp](address a, std::uint32_t *r) -> bool {
-        if (a + 4 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 4) return false;
         std::memcpy(r, &mp->data[a], 4); return true;
     };
     core->write_32bit = [mp](address a, std::uint32_t *r) -> bool {
-        if (a + 4 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 4) return false;
         std::memcpy(&mp->data[a], r, 4); return true;
     };
     core->read_64bit = [mp](address a, std::uint64_t *r) -> bool {
-        if (a + 8 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 8) return false;
         std::memcpy(r, &mp->data[a], 8); return true;
     };
     core->write_64bit = [mp](address a, std::uint64_t *r) -> bool {
-        if (a + 8 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 8) return false;
         std::memcpy(&mp->data[a], r, 8); return true;
     };
 
@@ -180,13 +180,13 @@ extern "C" {
     std::uint32_t test_tlb_read8(std::uint32_t state_ptr, std::uint32_t addr) {
         ++g_all_memory_helper_calls;
         (void)state_ptr;
-        return g_test_mem ? g_test_mem->data[addr] : 0;
+        return g_test_mem && addr < test_mem::SIZE ? g_test_mem->data[addr] : 0;
     }
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read16(std::uint32_t, std::uint32_t addr) {
         ++g_all_memory_helper_calls;
         std::uint16_t value = 0;
-        if (g_test_mem && addr + 2 <= test_mem::SIZE) std::memcpy(&value, &g_test_mem->data[addr], 2);
+        if (g_test_mem && addr <= test_mem::SIZE - 2) std::memcpy(&value, &g_test_mem->data[addr], 2);
         return value;
     }
     EMSCRIPTEN_KEEPALIVE
@@ -4260,8 +4260,16 @@ static bool test_arm_short_block_memory() {
         ~restore(){arm_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
             tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
     } saved;
-    const unsigned ops[]={0xe5910000,0xe5810000,0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,
+    std::vector<unsigned> ops={0xe5910000,0xe5810000,0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,
         0xe1d100d0,0xe1d100f0,0xe8b1000d,0xe8a1000d};
+    // Every addressing direction, pre/post indexing and legal writeback form;
+    // high registers/PC, a base in the load list without writeback, and wide spans.
+    for(unsigned addressing:{0u,1u<<23,1u<<24,(1u<<23)|(1u<<24)})
+    for(bool load:{false,true})for(bool writeback:{false,true})
+    for(unsigned mask:{0x1005u,0xc005u,0x500fu,0x7ffdu}) {
+        if(writeback && (mask&2))continue;
+        ops.push_back(0xe8010000u|addressing|(load?1u<<20:0)|(writeback?1u<<21:0)|mask);
+    }
     unsigned checks=0;
     for(bool folded:{false,true})for(unsigned mode:{0u,1u,2u,3u})for(unsigned opcode:ops) {
         r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
@@ -4291,8 +4299,11 @@ static bool test_arm_short_block_memory() {
                 counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
                 helpers[enabled]=g_all_memory_helper_calls;if(!enabled)expected=memory.data;
             }
-            const bool write=opcode==0xe5810000||opcode==0xe5c10000||opcode==0xe1c100b0||opcode==0xe8a1000d;
-            if(counts[0]!=int(budget)||counts[1]!=counts[0]||states[0]!=states[1]||memory.data!=expected
+            const bool block=(opcode&0x0e000000u)==0x08000000u;
+            const bool write=!(opcode&(1u<<20));
+            const bool loads_pc=block&&!write&&(opcode&0x8000);
+            const unsigned expected_count=loads_pc?std::min(budget,2u):budget;
+            if(counts[0]!=int(expected_count)||counts[1]!=counts[0]||states[0]!=states[1]||memory.data!=expected
                 ||(budget>=2&&address==0x8040&&!endian&&(permission&(write?2:1))&&(!write||mode==3)&&helpers[1])) {
                 printf(" FAIL ARM short memory op=%x mode=%u folded=%u perm=%u endian=%x address=%x budget=%u count=%d/%d helpers=%u/%u\n",
                     opcode,mode,folded,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
