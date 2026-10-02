@@ -4292,6 +4292,65 @@ static bool test_thumb_call_boundaries() {
     return true;
 }
 
+static bool test_thumb_transfer_spans() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking = eka2l1::common::code_tracking;
+    struct restore {
+        bool direct=thumb_direct_memory, folded=r12l1::dyncom_folded_tlb;
+        unsigned mode=tracking::unsafe_code_mode;
+        ~restore(){thumb_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
+            tracking::unsafe_code_mode=mode;g_test_mem=nullptr;}
+    } saved;
+    unsigned checks=0;
+    for(bool folded:{false,true})for(unsigned mode:{0u,3u})
+    for(unsigned opcode:{0xb400u,0xb401u,0xb403u,0xb5ffu,0xbc00u,0xbc01u,0xbc03u,0xbdffu,
+                        0xc100u,0xc101u,0xc103u,0xc1ffu,0xc900u,0xc901u,0xc903u,0xc9ffu}) {
+        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        const std::uint16_t code=opcode;
+        std::vector<std::uint8_t> modules[2];
+        for(unsigned enabled=0;enabled<2;++enabled) {
+            thumb_direct_memory=enabled;
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(&code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+            modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        }
+        for(unsigned permission:{0u,1u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0u,0x8000u,0x8001u,0x8040u,0x8fe0u,0x8ffcu,0x9000u})for(unsigned budget:{0u,1u}) {
+            test_mem memory;
+            for(unsigned a=0;a<test_mem::SIZE;++a)memory.data[a]=static_cast<std::uint8_t>(a*37+19);
+            const auto initial=memory.data;
+            r12l1::tlb tlb(12,folded);
+            if(permission)tlb.add(0x8000,memory.data.data()+0x8000,permission);
+            alignas(8) unsigned states[2][256]{};int counts[2];unsigned helpers[2];std::vector<std::uint8_t> expected;
+            for(unsigned enabled=0;enabled<2;++enabled) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());
+                auto *state=states[enabled];
+                for(unsigned reg=0;reg<16;++reg)state[reg]=0xabc00000u+reg;
+                state[1]=state[13]=address;state[15]=0x1000;
+                if((opcode&0xfe00)==0xb400)state[13]+=4*(__builtin_popcount(opcode&255)+((opcode>>8)&1));
+                state[state_offsets::CPSR/4]=0xa0000030u|endian;
+                state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[enabled]));
+                helpers[enabled]=g_all_memory_helper_calls;
+                if(!enabled)expected=memory.data;
+            }
+            if(counts[0]!=counts[1]||counts[1]!=budget||std::memcmp(states[0],states[1],sizeof(states[0]))||memory.data!=expected) {
+                printf(" FAIL Thumb transfer span op=%x address=%x mode=%u permission=%u endian=%x budget=%u\n",opcode,address,mode,permission,endian,budget);return false;
+            }
+            // Fully permitted interior transfers must exercise the direct path.
+            const bool write=(opcode&0xfe00)==0xb400||(opcode&0xf800)==0xc000;
+            if(budget&&address==0x8040&&!endian&&(permission&(write?2:1))&&(!write||mode==3)&&helpers[1])return false;
+            ++checks;
+        }
+    }
+    printf(" PASS Thumb transfer spans (%u full-state/memory/budget comparisons)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_thumb_direct_memory() {
 #ifdef __EMSCRIPTEN__
     namespace tracking = eka2l1::common::code_tracking;
@@ -6333,6 +6392,7 @@ int main(int argc, char **argv) {
     if (test_arm_long_multiply()) passed++; else failed++;
     if (test_thumb_direct_memory()) passed++; else failed++;
     if (test_thumb_call_boundaries()) passed++; else failed++;
+    if (test_thumb_transfer_spans()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
 #ifdef EKA2L1_WASM_CODE_VERSIONS
