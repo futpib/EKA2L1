@@ -10,11 +10,11 @@ process.env.EKA2L1_WASM_BUILD_DIR = temp;
 const { startServer, compilerPolicyFromEnv } = await import('./server.ts');
 const servers: any[] = [];
 try {
-  for (const name of ['EKA2L1_THUMB_MEMORY','EKA2L1_AOT_IR_MODE','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_TLB_HASH','EKA2L1_CODE_COMPARE','EKA2L1_CODE_LOOKUP','EKA2L1_PREDICATED_LEAVES','EKA2L1_LEAF_FEATURES','EKA2L1_EXECUTION_LIMITS','EKA2L1_UNSAFE_CODE','EKA2L1_OMIT_GUARD_PUBLICATION']) delete process.env[name];
-  assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:17});
+  for (const name of ['EKA2L1_HOTPATH','EKA2L1_THUMB_MEMORY','EKA2L1_AOT_IR_MODE','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_TLB_HASH','EKA2L1_CODE_COMPARE','EKA2L1_CODE_LOOKUP','EKA2L1_PREDICATED_LEAVES','EKA2L1_LEAF_FEATURES','EKA2L1_EXECUTION_LIMITS','EKA2L1_UNSAFE_CODE','EKA2L1_OMIT_GUARD_PUBLICATION']) delete process.env[name];
+  assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17});
   for (const mode of [0,1,2,3,4]) {
     process.env.EKA2L1_CODE_COMPARE = String(mode);
-    assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:17,codeCompare:mode});
+    assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17,codeCompare:mode});
   }
   for (const value of ['-1','5','2.0','NaN','']) {
     process.env.EKA2L1_CODE_COMPARE = value;
@@ -23,7 +23,7 @@ try {
   delete process.env.EKA2L1_CODE_COMPARE;
   for (const mode of [0,1]) {
     process.env.EKA2L1_CODE_LOOKUP = String(mode);
-    assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:17,codeLookup:mode});
+    assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17,codeLookup:mode});
   }
   for (const value of ['-1','2','1.0','NaN','']) {
     process.env.EKA2L1_CODE_LOOKUP = value;
@@ -31,11 +31,11 @@ try {
   }
   delete process.env.EKA2L1_CODE_LOOKUP;
   process.env.EKA2L1_AOT_IR_MODE = '7';
-  assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:7});
+  assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:7});
   process.env.EKA2L1_AOT_IR_MODE = '16';
-  assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:16});
+  assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:16});
   process.env.EKA2L1_AOT_IR_MODE = '17';
-  assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:17});
+  assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17});
   process.env.EKA2L1_AOT_IR_MODE = '18';
   assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);
   delete process.env.EKA2L1_AOT_IR_MODE;
@@ -76,6 +76,7 @@ try {
   for (const invalid of [-1,5,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeCompare:invalid}}),/Invalid compiler policy/);
   for (const invalid of [-1,2,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeLookup:invalid}}),/Invalid compiler policy/);
   for (const [envName,key,valid,invalid] of [
+    ['EKA2L1_HOTPATH','hotpath',['0','1','2','3','4','5','6','7'],['','8','-1','2.0','02']],
     ['EKA2L1_THUMB_MEMORY','thumbMemory',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_OMIT_GUARD_PUBLICATION','omitGuardPublication',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_UNSAFE_CODE','unsafeCode',['0','1','2','3'],['','4','-1','3.0']],
@@ -85,13 +86,14 @@ try {
   ] as const) {
     for (const value of valid) {
       process.env[envName] = value;
-      assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:17,[key]:key === 'executionLimits' ? value.split(',').map(Number) : Number(value)});
+      assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17,[key]:key === 'executionLimits' ? value.split(',').map(Number) : Number(value)});
     }
     for (const value of invalid) { process.env[envName] = value; assert.throws(compilerPolicyFromEnv, /Invalid .* policy/); }
     delete process.env[envName];
   }
   const fusionEtags: (string|null)[] = [];
   for (const policy of [
+    ...[0,2,7].map(hotpath=>({hotpath,unsafeCode:3,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,16,8,512]})),
     ...[0,1].map(thumbMemory=>({thumbMemory,unsafeCode:3,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,16,8,512]})),
     ...[0,1].map(omitGuardPublication=>({omitGuardPublication,unsafeCode:3,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,16,8,512]})),
     ...[0,1,2,3].map(unsafeCode=>({unsafeCode,predicatedLeaves:1,leafFeatures:0,executionLimits:[512,16,8,512]})),
@@ -106,8 +108,8 @@ try {
     const response=await fetch(`http://127.0.0.1:${port}/`);fusionEtags.push(response.headers.get('etag'));
     const html=await response.text();
     const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('window.ekaCompilerPolicy ='))!;
-    const entries=['leaf_predication','leaf_features','execution_limits',...('unsafeCode' in policy?['unsafe_code']:[]),...('omitGuardPublication' in policy?['omit_guard_publication']:[]),...('thumbMemory' in policy?['thumb_memory']:[])];
-    const values=[policy.predicatedLeaves,policy.leafFeatures,policy.executionLimits.join(','),...('unsafeCode' in policy?[policy.unsafeCode]:[]),...('omitGuardPublication' in policy?[policy.omitGuardPublication]:[]),...('thumbMemory' in policy?[policy.thumbMemory]:[])];
+    const entries=['leaf_predication','leaf_features','execution_limits',...('unsafeCode' in policy?['unsafe_code']:[]),...('omitGuardPublication' in policy?['omit_guard_publication']:[]),...('thumbMemory' in policy?['thumb_memory']:[]),...('hotpath' in policy?['hotpath']:[])];
+    const values=[policy.predicatedLeaves,policy.leafFeatures,policy.executionLimits.join(','),...('unsafeCode' in policy?[policy.unsafeCode]:[]),...('omitGuardPublication' in policy?[policy.omitGuardPublication]:[]),...('thumbMemory' in policy?[policy.thumbMemory]:[]),...('hotpath' in policy?[policy.hotpath]:[])];
     for (const failure of ['none','missing-config','reject-config','missing-report','wrong-report']) for (const target of failure==='none'?[0]:entries.map((_,i)=>i)) {
       const configured: Record<string,number[]>={};let starts=0;
       const exports=entries.flatMap(name=>['configure','report'].map(suffix=>'eka2l1_'+name+'_'+suffix));
@@ -126,7 +128,7 @@ try {
         await vm.runInContext('startEmulator()',context);
         assert.equal(context.window.ekaCompilerPolicy.applied,true);
         assert.deepEqual(JSON.parse(JSON.stringify(context.window.ekaCompilerPolicy.observed)),policy);
-        assert.deepEqual(configured,{eka2l1_leaf_predication_configure:[policy.predicatedLeaves],eka2l1_leaf_features_configure:[policy.leafFeatures],eka2l1_execution_limits_configure:policy.executionLimits,...('unsafeCode' in policy?{eka2l1_unsafe_code_configure:[policy.unsafeCode]}:{}),...('omitGuardPublication' in policy?{eka2l1_omit_guard_publication_configure:[policy.omitGuardPublication]}:{}),...('thumbMemory' in policy?{eka2l1_thumb_memory_configure:[policy.thumbMemory]}:{})});
+        assert.deepEqual(configured,{eka2l1_leaf_predication_configure:[policy.predicatedLeaves],eka2l1_leaf_features_configure:[policy.leafFeatures],eka2l1_execution_limits_configure:policy.executionLimits,...('unsafeCode' in policy?{eka2l1_unsafe_code_configure:[policy.unsafeCode]}:{}),...('omitGuardPublication' in policy?{eka2l1_omit_guard_publication_configure:[policy.omitGuardPublication]}:{}),...('thumbMemory' in policy?{eka2l1_thumb_memory_configure:[policy.thumbMemory]}:{}),...('hotpath' in policy?{eka2l1_hotpath_configure:[policy.hotpath]}:{})});
         await vm.runInContext('startEmulator()',context);assert.equal(starts,2);
       } else {
         await assert.rejects(vm.runInContext('startEmulator()',context),/Emulator compiler (configuration failed|readback unavailable|readback mismatch)/);
@@ -136,6 +138,7 @@ try {
   }
   assert.equal(new Set(fusionEtags).size,fusionEtags.length);
   for(const invalid of [
+    {hotpath:-1},{hotpath:8},{hotpath:NaN},{hotpath:2.5},
     {thumbMemory:2},{thumbMemory:-1},{thumbMemory:NaN},
     {omitGuardPublication:2},{omitGuardPublication:-1},{omitGuardPublication:NaN},
     {unsafeCode:4},{unsafeCode:-1},{unsafeCode:NaN},{predicatedLeaves:2},{leafFeatures:256},{leafFeatures:NaN},{leafFeatures:1.5},

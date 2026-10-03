@@ -1,13 +1,18 @@
 # Frozen hot-path specialization: V29 acceptance
 
-All options remain disabled by default. This stage changes shared runtime selection, with coverage-only options and ROM dispatch disabled in the normal comparison. Guest scheduling, instruction/region limits and executable-byte policy are unchanged.
+This is the historical V29 acceptance record. Cache-policy specialization is
+now the browser default (`EKA2L1_HOTPATH=2`), following the
+[policy-17 profile and timing pass](CACHE_POLICY_DEFAULT_RESULTS.md). The other
+selector bits remain off. The results below describe the original experiment.
 
-| Item | Implementation and emitted-WASM evidence | Disposition |
-|---|---|---|
-| Verification | Select a nonverified lookup specialization at the outer runner. Normal emitted lookup lacks the validation_running load; verified/reference paths retain it. | Correctness accepted; timing pending |
-| Cache policy | Select trusted bytes plus original cache layout outside repeated lookups. Emitted specialized cache lacks the executable-byte-policy load and byte scans; generation/source, ASID, live bit, resolver, backing and extent checks remain. Other layouts and compatibility modes retain the general path. | Correctness accepted; timing pending |
-| Outer diagnostics | Select a quiet outer loop only when PC sampling, crash history, detailed counters and guest profiling are disabled. Five frozen diagnostic flag loads occur at selection, absent from its repeated body. Instrumented body retains dynamic phase checks. | Correctness accepted; timing pending |
-| Guard publication | Reuse existing mode-aware omission option. Emitted omission lookup has zero interval stores at offsets 856/860; publication paths retain three static stores (five profiled). Modes 0/1 continue publishing. | Fresh gates accepted; interrupted prior timing is not a gain result |
+All options were disabled by default at this stage. This stage changes shared runtime selection, with coverage-only options and ROM dispatch disabled in the normal comparison. Guest scheduling, instruction/region limits and executable-byte policy are unchanged.
+
+| # | Item | Implementation and emitted-WASM evidence | Disposition |
+|---|---|---|---|
+| 1 | Verification | Select a nonverified lookup specialization at the outer runner. Normal emitted lookup lacks the validation_running load; verified/reference paths retain it. | Correctness accepted; timing pending |
+| 2 | Cache policy | Select trusted bytes plus original cache layout outside repeated lookups. Emitted specialized cache lacks the executable-byte-policy load and byte scans; generation/source, ASID, live bit, resolver, backing and extent checks remain. Other layouts and compatibility modes retain the general path. | Correctness accepted; timing pending |
+| 3 | Outer diagnostics | Select a quiet outer loop only when PC sampling, crash history, detailed counters and guest profiling are disabled. Five frozen diagnostic flag loads occur at selection, absent from its repeated body. Instrumented body retains dynamic phase checks. | Correctness accepted; timing pending |
+| 4 | Guard publication | Reuse existing mode-aware omission option. Emitted omission lookup has zero interval stores at offsets 856/860; publication paths retain three static stores (five profiled). Modes 0/1 continue publishing. | Fresh gates accepted; interrupted prior timing is not a gain result |
 
 No new hot function-pointer dispatch was added. Only the useful original-layout trusted-byte cache case is specialized. Binaryen inlines the quiet and instrumented outer templates into one public function. `sync_write_protection()` was already compiled away and is not counted as a removal.
 
