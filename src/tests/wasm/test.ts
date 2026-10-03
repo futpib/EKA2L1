@@ -208,6 +208,23 @@ async function runTests(): Promise<void> {
     });
     console.log("  PASS");
 
+    console.log("TEST custom diagnostics: build capability and opt-in configuration...");
+    await page.evaluate(() => {
+      const m = (window as any).Module;
+      const available = m._eka2l1_diagnostics_available();
+      if (available !== 0 && available !== 1) throw Error('Invalid diagnostics capability');
+      const expected = available ? 0 : -2;
+      for (const name of ['eka2l1_profile_detail_configure', 'eka2l1_guest_profile_configure', 'eka2l1_exit_census_configure']) {
+        if (m.ccall(name, 'number', ['number'], [1]) !== expected)
+          throw Error(`${name} ignored build capability`);
+        if (m.ccall(name, 'number', ['number'], [0]) !== 0)
+          throw Error(`${name} could not be disabled`);
+      }
+      if (m._eka2l1_aot_configure(5, 0, 1) !== expected || m._eka2l1_aot_configure(0, 0, 0) !== 0)
+        throw Error('Crash history ignored build capability');
+    });
+    console.log("  PASS");
+
     // Test 5: eka2l1_init
     console.log("TEST 5: eka2l1_init...");
     const initResult = await page.evaluate(() => {

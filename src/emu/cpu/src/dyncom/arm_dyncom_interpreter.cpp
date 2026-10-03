@@ -2022,7 +2022,7 @@ static int clz(unsigned int x) {
 static std::map<std::uint32_t, std::uint64_t> pc_histogram;
 static std::mutex pc_histogram_mutex;
 static std::uint64_t pc_sample_counter = 0;
-static bool pc_histogram_enabled = false;
+static eka2l1::common::diagnostics::flag pc_histogram_enabled = false;
 
 void dyncom_enable_pc_histogram() {
     pc_histogram_enabled = true;
@@ -6002,6 +6002,8 @@ INIT_INST_LENGTH : {
 unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
 #if defined(EKA2L1_DYNCOM_PROFILE)
     return InterpreterMainLoopImpl<true>(cpu, num_instrs);
+#elif defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_DIAGNOSTICS)
+    return InterpreterMainLoopImpl<false>(cpu, num_instrs);
 #else
     if ((eka2l1::arm::aot::hotpath_policy & 4)
         && !pc_histogram_enabled && !eka2l1::arm::aot::diagnostics_enabled

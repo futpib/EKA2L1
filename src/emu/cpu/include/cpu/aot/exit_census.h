@@ -8,7 +8,7 @@
 namespace eka2l1::arm::aot::exit_census {
     // Diagnostic-only, configured before the guest starts. The guest worker
     // owns these fields, just as it owns the existing instruction census.
-    inline bool enabled = false;
+    inline common::diagnostics::flag enabled = false;
     enum reason : unsigned { unknown, control, guard, unsupported, memory,
         source_end, interrupt, status, emission_end };
     inline std::uint32_t last_reason=0, last_pc=0, last_opcode=0, effects=0, last_constraint=0;

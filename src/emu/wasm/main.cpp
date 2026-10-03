@@ -192,6 +192,7 @@ int eka2l1_graphics_diagnostics_configure(int enabled) {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
     if (g_state || (enabled < 0 || enabled > 5) || verify < 0) return -1;
+    if (diagnostics && !common::diagnostics::available) return -2;
     eka2l1::arm::aot::diagnostics_enabled = diagnostics != 0;
     if (verify) setenv("EKA2L1_AOT_VERIFY", std::to_string(verify).c_str(), 1);
     else unsetenv("EKA2L1_AOT_VERIFY");
@@ -505,6 +506,7 @@ const char *eka2l1_execution_limits_report() {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_exit_census_configure(int enabled) {
     if(g_state || (enabled!=0 && enabled!=1))return -1;
+    if (enabled && !common::diagnostics::available) return -2;
     arm::aot::exit_census::enabled=enabled;
     return 0;
 }
@@ -515,6 +517,7 @@ int eka2l1_exit_census_report() { return arm::aot::exit_census::enabled ? 1 : 0;
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_guest_profile_configure(int stride) {
     if (g_state || stride < 0) return -1;
+    if (stride && !common::diagnostics::available) return -2;
     common::guest_profile::enabled = stride != 0;
     common::guest_profile::state = {};
     if (stride) common::guest_profile::state.stride = stride;
@@ -523,6 +526,7 @@ int eka2l1_guest_profile_configure(int stride) {
 
 EMSCRIPTEN_KEEPALIVE
 const char *eka2l1_guest_profile_report() {
+    if constexpr (!common::diagnostics::available) return "{\"available\":false}";
     static std::string result;
     if (common::performance::phase.load() != 3) return "{}";
     result = common::guest_profile::state.report(dyncom_instruction_name);
@@ -565,9 +569,13 @@ const char *eka2l1_monitor_report() {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_profile_detail_configure(int enabled) {
     if (g_state || (enabled != 0 && enabled != 1)) return -1;
+    if (enabled && !common::diagnostics::available) return -2;
     common::performance::detailed = enabled != 0;
     return 0;
 }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_diagnostics_available() { return common::diagnostics::available ? 1 : 0; }
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_profile_phase() { return common::performance::phase.load(); }

@@ -1,0 +1,3 @@
+#pragma once
+
+#cmakedefine EKA2L1_WASM_DIAGNOSTICS 1

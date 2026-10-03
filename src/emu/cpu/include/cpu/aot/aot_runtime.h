@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <common/diagnostics.h>
 #include <cstdint>
 #include <memory>
 #include <cpu/aot/aot_registry.h>
@@ -50,7 +51,7 @@ namespace eka2l1::arm::aot {
     inline unsigned hotpath_policy = 0;
     std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
         std::uint32_t base, std::uint32_t size, std::uint32_t target);
-    extern bool diagnostics_enabled;
+    extern common::diagnostics::flag diagnostics_enabled;
     // Opt-in runtime layout experiment; effective only when emitted code has no interval guards.
     extern bool omit_guard_publication;
     extern bool hot_compilation_enabled;

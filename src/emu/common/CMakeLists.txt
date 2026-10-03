@@ -187,3 +187,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/common/version.h.in
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/common/code_tracking_config.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/include/common/code_tracking_config.h)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/common/diagnostics_config.h.in
+    ${COMMON_GENERATED_INCLUDE_DIR}/common/diagnostics_config.h)

@@ -12,6 +12,8 @@ report = json.loads((a.directory / 'report.json').read_text())
 summary = {'measurement': report['measurement'], 'browser': report['browser'],
            'renderer': report['renderer'], 'isolates': []}
 for path in sorted(a.directory.glob('*.cpuprofile')):
+    if path.name == 'guest.cpuprofile':
+        continue  # Labelled copy of a worker profile, not another isolate.
     profile = json.loads(path.read_text())
     nodes = {node['id']: node for node in profile['nodes']}
     parents = {child: node['id'] for node in profile['nodes'] for child in node.get('children', [])}

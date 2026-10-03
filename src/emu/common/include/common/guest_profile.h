@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/diagnostics.h>
 #include <array>
 #include <cstdint>
 #include <iomanip>
@@ -10,7 +11,7 @@
 
 namespace eka2l1::common::guest_profile {
     // Guest-thread-only counters, consumed after the performance phase handoff.
-    inline bool enabled = false;
+    inline diagnostics::flag enabled = false;
     inline std::string quote(const std::string &s) {
         std::ostringstream out;
         out << '"';

@@ -70,7 +70,7 @@ std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
     const auto bytes = std::min<std::uint64_t>(leaf_instruction_limit * 4, available) & ~std::uint64_t{3};
     return {host + offset, host + offset + bytes};
 }
-bool diagnostics_enabled = false;
+common::diagnostics::flag diagnostics_enabled = false;
 bool omit_guard_publication = false;
 bool validation_running = false;
 static bool validating = false;
@@ -482,7 +482,7 @@ static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) 
     // Diagnostic configuration is fixed before guest threads start. Preserve
     // phase-dependent counting in the diagnostic runner, but omit its branches
     // entirely in normal play and counter-free timing runs.
-    if (verification_stride()) return execute_chain_impl<true, true, PublishGuards, ModuleDispatch>(cpu, function);
+    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available, PublishGuards, ModuleDispatch>(cpu, function);
     if (common::performance::enabled && common::performance::detailed)
         return execute_chain_impl<false, true, PublishGuards, ModuleDispatch>(cpu, function);
     if constexpr (!ModuleDispatch) {

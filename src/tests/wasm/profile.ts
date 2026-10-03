@@ -5,10 +5,14 @@ import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import puppeteer from 'puppeteer';
 import {startServer, buildDir} from './server.ts';
+import {ChromeTrace, summarizeProfile, labelGuestProfile} from './chrome-profiler.ts';
 
 const [assetArg, outputArg, modeArg = '0', samplingArg = '1', endArg = '25000000'] = process.argv.slice(2);
 const frameArg = '100000', inputArg = process.env.EKA2L1_PROFILE_INPUT || fileURLToPath(new URL('../benchmark/snakes.input', import.meta.url)), startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
 const captureMode = Number(modeArg), sampling = samplingArg === '1', endUs = Number(endArg);
+const traceScope = process.env.EKA2L1_CHROME_TRACE ?? (sampling ? 'window' : 'off');
+if (!['off', 'window', 'run'].includes(traceScope))
+  throw new Error('EKA2L1_CHROME_TRACE must be off, window or run');
 const sampleInterval = Number(process.env.EKA2L1_PROFILE_INTERVAL_US || '1000');
 if (!Number.isSafeInteger(sampleInterval) || sampleInterval < 100 || sampleInterval > 1000000)
   throw new Error('Profile sample interval must be between 100 and 1000000 microseconds');
@@ -39,7 +43,7 @@ const monitorCpuStart = Number(process.env.EKA2L1_MONITOR_CPU_START_US || '0');
 if (!Number.isSafeInteger(monitorCpuStart) || monitorCpuStart < 0 || monitorCpuStart >= endUs || (monitorCpuStart && (!monitor || sampling)))
   throw new Error('Monitor CPU start requires monitoring, no whole-window sampling, and a time before the endpoint');
 if (endUs > 120000000 && !monitor) throw new Error("Runs beyond 120 guest seconds require EKA2L1_LONG_MONITOR=1 to discard audio artifacts");
-const detailedProfile = process.env.EKA2L1_PROFILE_DETAIL !== '0';
+const detailedProfile = process.env.EKA2L1_PROFILE_DETAIL === '1';
 if (!detailedProfile && guestProfile) throw new Error('Guest profiling requires detailed counters');
 const hardwareGpu = process.env.EKA2L1_GPU === 'hardware';
 const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
@@ -118,7 +122,11 @@ for (const name of Object.keys(expected)) files[`/preload/${name}`] = path.join(
 const {server, port} = await startServer(0, files);
 const log = fs.createWriteStream(path.join(output, 'browser.log'));
 let browser;
+let trace: ChromeTrace | undefined;
+let traceReport: Awaited<ReturnType<ChromeTrace['stop']>> = null;
 const terminate = async () => {
+  fs.writeFileSync(path.join(output, 'incomplete.json'), JSON.stringify({reason: 'interrupted'}));
+  await trace?.stop().catch(error => log.write(`Trace cleanup: ${error}\n`));
   await browser?.close();
   server.close();
   log.end();
@@ -135,6 +143,8 @@ try {
     args: [...(process.env.EKA2L1_V8_FLAGS ? [`--js-flags=${process.env.EKA2L1_V8_FLAGS}`] : []), '--no-sandbox', '--disable-dev-shm-usage', '--use-gl=angle', ...(hardwareGpu ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']), '--disable-background-timer-throttling'],
   });
   const system = await browser.target().createCDPSession();
+  if (traceScope !== 'off') trace = new ChromeTrace(system, path.join(output, 'trace.json'));
+  if (traceScope === 'run') await trace!.start(false);
   const gpuInfo = await system.send('SystemInfo.getInfo');
   fs.writeFileSync(path.join(output, 'gpu.json'), JSON.stringify(gpuInfo.gpu, null, 2));
   const page = await browser.newPage();
@@ -145,6 +155,12 @@ try {
   page.on('response', response => {if (response.status() >= 400) failures.push(`HTTP ${response.status()} ${response.url()}`);});
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
+  const diagnosticsAvailable = await page.evaluate(() => {
+    const m = (window as any).Module;
+    return typeof m._eka2l1_diagnostics_available === 'function' ? !!m._eka2l1_diagnostics_available() : null;
+  });
+  if (diagnosticsAvailable === false && (detailedProfile || guestProfile || exitCensus || aotDiagnostics))
+    throw new Error('Custom diagnostics require a build with -DEKA2L1_WASM_DIAGNOSTICS=ON');
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
   await page.evaluate(async ({hotpathPolicy, romDispatch, synchronousCompilation, compiledMemoryMisses, compiledSvc, armExclusive, romCalls, romLeaves, thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
@@ -153,7 +169,7 @@ try {
       if (code !== 0) throw new Error(`${name} returned ${code}`);
     };
     if (monitor) call('eka2l1_monitor_configure', [], []);
-    if (!detailedProfile) call('eka2l1_profile_detail_configure', ['number'], [0]);
+    call('eka2l1_profile_detail_configure', ['number'], [detailedProfile ? 1 : 0]);
     call('eka2l1_profile_configure', ['number', 'number', 'number'], [startUs, endUs, captureMode]);
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
     if (sharedAudio) call('eka2l1_audio_configure', [], []);
@@ -331,12 +347,16 @@ try {
   const clients = [{name: 'page' , client: await page.createCDPSession()},
     ...page.workers().map((worker, i) => ({name: `worker-${i}`, client: (worker as any).client}))];
   console.log(`Warmup ${warmupSeconds.toFixed(3)}s; profiling ${clients.length} isolates; mode ${captureMode}`);
+  if (traceScope === 'window') await trace!.start();
   if (sampling) await Promise.all(clients.map(async ({client}) => {
     await client.send('Profiler.enable');
     await client.send('Profiler.setSamplingInterval', {interval: sampleInterval});
     await client.send('Profiler.start');
   }));
-  await page.evaluate(() => (window as any).Module._eka2l1_profile_resume());
+  await page.evaluate(() => {
+    performance.mark('eka2l1:measurement-start');
+    (window as any).Module._eka2l1_profile_resume();
+  });
   const timeline: unknown[] = [];
   let monitorCpuStarted = false;
   if (monitor) {
@@ -379,16 +399,32 @@ try {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   } else await waitPhase(3);
+  await page.evaluate(() => performance.mark('eka2l1:measurement-end'));
   const measured = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_profile_report', 'string', [], [])));
   console.log(JSON.stringify(measured));
   if (guestProfile) {
     const guest = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_guest_profile_report', 'string', [], [])));
     fs.writeFileSync(path.join(output, 'guest-profile.json'), JSON.stringify(guest));
   }
-  if (sampling || monitorCpuStarted) await Promise.all(clients.map(async ({name, client}) => {
+  const profiles = sampling || monitorCpuStarted ? await Promise.all(clients.map(async ({name, client}) => {
     const {profile} = await client.send('Profiler.stop');
     fs.writeFileSync(path.join(output, `${name}.cpuprofile`), JSON.stringify(profile));
-  }));
+    return summarizeProfile(name, profile);
+  })) : [];
+  traceReport = await trace?.stop() ?? null;
+  if (traceReport?.data_loss) throw new Error('Chrome trace buffer overflowed; use a shorter window. Partial trace retained.');
+  if (profiles.length) {
+    profiles.sort((a, b) => b.generated_self_us - a.generated_self_us);
+    if (profiles[0].generated_self_us > 0) {
+      const raw = JSON.parse(fs.readFileSync(path.join(output, profiles[0].file), 'utf8'));
+      fs.writeFileSync(path.join(output, 'guest.cpuprofile'), JSON.stringify(labelGuestProfile(raw)));
+    }
+    fs.writeFileSync(path.join(output, 'chrome-profile.json'), JSON.stringify({
+      attribution: 'Per-isolate sampled spans, not total process CPU time. Self time includes inlined work and can include waits. Guest labels identify region entry PCs, not sampled guest instructions.',
+      likely_guest_worker: profiles[0].generated_self_us > 0 ? profiles[0].name : null,
+      profiles,
+    }, null, 2));
+  }
   let captureWorker = process.env.EKA2L1_CAPTURE_MODULES;
   if (captureWorker === 'auto') {
     if (!sampling) throw new Error('Automatic module capture requires CPU sampling');
@@ -443,6 +479,8 @@ try {
       throw Error('Guard publication readback changed');
   });
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), rom_dispatch: await page.evaluate(() => (globalThis as any).romDispatchActual), synchronous_compilation: await page.evaluate(() => (globalThis as any).synchronousCompilationActual), compiled_memory_misses: await page.evaluate(() => (globalThis as any).compiledMemoryMissesActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), rom_calls: await page.evaluate(() => (globalThis as any).romCallsActual), rom_leaves: await page.evaluate(() => (globalThis as any).romLeavesActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
+    purpose: sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
+    chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, omit_guard_publication:await page.evaluate(()=>(globalThis as any).omitGuardPublicationActual), code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
@@ -457,9 +495,13 @@ try {
       return ext ? gl!.getParameter(ext.UNMASKED_RENDERER_WEBGL) : 'unavailable';
     })}, null, 2));
   console.log('PASS: captured performance profile');
+} catch (error) {
+  fs.writeFileSync(path.join(output, 'incomplete.json'), JSON.stringify({reason: String(error)}));
+  throw error;
 } finally {
   process.removeListener('SIGTERM', terminate);
   process.removeListener('SIGINT', terminate);
+  await trace?.stop().catch(error => log.write(`Trace cleanup: ${error}\n`));
   await browser?.close();
   server.close();
   log.end();

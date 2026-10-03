@@ -63,6 +63,10 @@ automatically provide more rendered detail.
 
 ## Browser build and comparison
 
+For performance work, use the [Chrome profiling workflow](CHROME_PROFILING.md).
+Normal WASM builds compile out custom timers and guest census; Chrome profiles
+and traces are the default source of time attribution.
+
 Use Emscripten 4.0.10 (the version used for validation), Node.js with TypeScript stripping, Python 3 for audio validation, and Chromium. Activate the SDK environment first.
 
 ```sh

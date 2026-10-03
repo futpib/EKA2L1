@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/diagnostics.h>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
@@ -17,7 +18,7 @@ namespace eka2l1::common::performance {
         std::atomic<std::uint64_t> calls{0};
     };
     inline counter counters[category_count];
-    inline bool detailed = true;
+    inline diagnostics::flag detailed = true;
     inline bool enabled = false; // Configured before starting guest threads.
     inline int capture_mode = 0; // 0: full, 1: no PNG encoding, 2: no readback/capture.
     inline std::uint64_t start_us = 0, end_us = 0;
@@ -84,11 +85,16 @@ namespace eka2l1::common::performance {
 
     inline std::string report() {
         std::ostringstream out;
-        out << "{\"detailed\":" << (detailed ? "true" : "false") << ",\"capture_mode\":" << capture_mode << ",\"first_virtual_us\":" << first_us
+        out << "{\"diagnostics_available\":" << (diagnostics::available ? "true" : "false")
+            << ",\"detailed\":" << (detailed ? "true" : "false") << ",\"capture_mode\":" << capture_mode << ",\"first_virtual_us\":" << first_us
             << ",\"last_virtual_us\":" << last_us << ",\"first_instructions\":" << first_instructions
             << ",\"last_instructions\":" << last_instructions << ",\"wall_seconds\":" << wall_seconds
-            << ",\"presentations\":" << presentations.load()
-            << ",\"aot_dispatches\":" << aot_dispatches << ",\"aot_instructions\":" << aot_instructions
+            << ",\"presentations\":" << presentations.load();
+        if (!detailed) {
+            out << '}';
+            return out.str();
+        }
+        out << ",\"aot_dispatches\":" << aot_dispatches << ",\"aot_instructions\":" << aot_instructions
             << ",\"compiled_runner_calls\":" << compiled_runner_calls
             << ",\"ram_aot_dispatches\":" << ram_aot_dispatches << ",\"ram_blocks_compiled\":" << ram_blocks_compiled
             << ",\"decoded_instructions\":" << decoded_instructions

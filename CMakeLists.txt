@@ -24,6 +24,7 @@ option(EKA2L1_WASM_IR_OUTLINE "Experimental private short-budget IR segment fall
 option(EKA2L1_WASM_CODE_VERSIONS "Experimental WASM code-page versions and guest write barriers" OFF)
 option(EKA2L1_WASM_CODE_LIFECYCLE "Experimental mutation-driven compiled-code validity" OFF)
 option(EKA2L1_WASM_CODE_WRITE_PROTECTION "Experimental TLB write protection for watched code pages" OFF)
+option(EKA2L1_WASM_DIAGNOSTICS "Compile guest census, crash history and detailed timers into WASM" OFF)
 if(EKA2L1_WASM_CODE_WRITE_PROTECTION)
     set(EKA2L1_WASM_CODE_LIFECYCLE ON)
 endif()

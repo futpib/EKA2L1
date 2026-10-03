@@ -5559,6 +5559,10 @@ static bool test_folded_tlb_guards() {
 
 
 static bool test_boundary_details() {
+    if constexpr (!eka2l1::common::diagnostics::available) {
+        printf(" SKIP boundary details: build with EKA2L1_WASM_DIAGNOSTICS=ON\n");
+        return true;
+    }
 #ifdef __EMSCRIPTEN__
     using namespace exit_census;
     struct restore {
@@ -6425,6 +6429,10 @@ static bool test_inline_limits() {
 }
 
 static bool test_exit_census() {
+    if constexpr (!eka2l1::common::diagnostics::available) {
+        printf(" SKIP exit census: build with EKA2L1_WASM_DIAGNOSTICS=ON\n");
+        return true;
+    }
 #ifdef __EMSCRIPTEN__
     const bool old=exit_census::enabled;exit_census::enabled=true;
     struct fixture {std::uint32_t op;unsigned budget,count;const char *reason;bool thumb=false;};
@@ -6801,14 +6809,24 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--expanded-leaves-only")return test_expanded_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;
     if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
-    if(argc==2 && std::string(argv[1])=="--verification-protection-only")return test_reference_lookup_protection()?0:1;
+    if(argc==2 && std::string(argv[1])=="--verification-protection-only") {
+        // Emscripten does not inherit Node's process.env into its guest libc.
+        setenv("EKA2L1_AOT_VERIFY", "1", 1);
+        return test_reference_lookup_protection()?0:1;
+    }
     if(argc==2 && std::string(argv[1])=="--frozen-cache-only")return test_frozen_code_cache()?0:1;
     if(argc==2 && std::string(argv[1])=="--dynamic-cohorts-only")return test_dynamic_rom_cohort_discovery() && test_rom_cohorts()?0:1;
     if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=7;argc=1;}
     if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
     if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
-    if(argc==2 && std::string(argv[1])=="--exit-census") {exit_census::enabled=true;argc=1;}
+    if(argc==2 && std::string(argv[1])=="--exit-census") {
+        if (!eka2l1::common::diagnostics::available) {
+            fprintf(stderr,"Exit census requires EKA2L1_WASM_DIAGNOSTICS=ON\n");
+            return 2;
+        }
+        exit_census::enabled=true;argc=1;
+    }
     if(argc==2 && std::string(argv[1])=="--write-protection-only") return test_code_write_protection()?0:1;
     if(argc==2 && std::string(argv[1])=="--lookup-only") return test_outlined_code_lookup()?0:1;
     if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
