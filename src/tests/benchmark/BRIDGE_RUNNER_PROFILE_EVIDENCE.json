@@ -1,0 +1,2172 @@
+{
+  "status": "diagnostic_only_not_normal_component_timing",
+  "archive": {
+    "head": "fd79541093313166209253b9925d280f1927f8c9",
+    "diagnostic_only": true,
+    "patch_sha256": "0363081903a42d65f63772de042a3ac414b1ba4143f7faec793e0d53f8dce084",
+    "files": {
+      "eka2l1.js": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+      "eka2l1.html": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+      "eka2l1.data": "63ff767b6132d2541c98e32b601d310a8254a33beac1334149fefee6bf3c1765",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "5d8d7fa80797d1fa8a0e247af92775021391b1639b6d2afa4afa709310c294de"
+    }
+  },
+  "ordinary_browser": [
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-13.cpuprofile",
+      "sampled_seconds": 14.161386,
+      "work_seconds": 13.335667,
+      "inclusive": {
+        "interpreter_loop": {
+          "seconds": 12.773667,
+          "percent_all_samples": 90.20068374663327
+        },
+        "generated": {
+          "seconds": 5.765282,
+          "percent_all_samples": 40.71128348595258
+        }
+      },
+      "top_self": [
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "seconds": 5.080944,
+          "percent_all_samples": 35.87886100979099
+        },
+        {
+          "name": "f_2149177368",
+          "seconds": 1.755008,
+          "percent_all_samples": 12.392911258827349
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1::kernel_system::set_epoc_version(epocver)::$_0, std::__2::allocator<eka2l1::kernel_system::set_epoc_version(epocver)::$_0>, void (unsigned int)>::operator()(unsigned int&&)",
+          "seconds": 0.713587,
+          "percent_all_samples": 5.038962994158905
+        },
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 0.597734,
+          "percent_all_samples": 4.220872166043634
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+          "seconds": 0.270941,
+          "percent_all_samples": 1.9132378709259108
+        },
+        {
+          "name": "js-to-wasm:ii:",
+          "seconds": 0.242831,
+          "percent_all_samples": 1.7147403509797698
+        },
+        {
+          "name": "f_2149191733",
+          "seconds": 0.230106,
+          "percent_all_samples": 1.624883327098068
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.227985,
+          "percent_all_samples": 1.6099059795418331
+        },
+        {
+          "name": "f_2149218301",
+          "seconds": 0.21652,
+          "percent_all_samples": 1.5289463898519537
+        },
+        {
+          "name": "r_205_pc_1879061180",
+          "seconds": 0.20188,
+          "percent_all_samples": 1.4255666782898226
+        },
+        {
+          "name": "r_232_pc_1879081572",
+          "seconds": 0.192323,
+          "percent_all_samples": 1.358080346090418
+        },
+        {
+          "name": "eka2l1::kernel::thread_scheduler::switch_context(eka2l1::kernel::thread*, eka2l1::kernel::thread*)",
+          "seconds": 0.154107,
+          "percent_all_samples": 1.0882197547612926
+        },
+        {
+          "name": "f_2149291205",
+          "seconds": 0.146903,
+          "percent_all_samples": 1.0373490278423314
+        },
+        {
+          "name": "r_228_pc_1879081368",
+          "seconds": 0.143688,
+          "percent_all_samples": 1.0146464477417676
+        },
+        {
+          "name": "eka2l1::mem::mmu_base::read_32bit_data(unsigned int, unsigned int*)",
+          "seconds": 0.12774,
+          "percent_all_samples": 0.9020303521138396
+        },
+        {
+          "name": "f_2152404689",
+          "seconds": 0.114095,
+          "percent_all_samples": 0.8056767889809656
+        },
+        {
+          "name": "f_2153195873",
+          "seconds": 0.094986,
+          "percent_all_samples": 0.670739431860695
+        },
+        {
+          "name": "f_2149247187",
+          "seconds": 0.08857,
+          "percent_all_samples": 0.6254331320394769
+        },
+        {
+          "name": "eka2l1::kernel_system::get_kernel_obj_raw(unsigned int, eka2l1::kernel::thread*)",
+          "seconds": 0.08661,
+          "percent_all_samples": 0.611592678852197
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "seconds": 0.085313,
+          "percent_all_samples": 0.6024339707991859
+        },
+        {
+          "name": "std::__2::__function::__func<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*), std::__2::allocator<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>, void (eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>::operator()(eka2l1::kernel_system*&&, eka2l1::kernel::process*&&, eka2l1::arm::core*&&)",
+          "seconds": 0.081212,
+          "percent_all_samples": 0.5734749409415152
+        },
+        {
+          "name": "f_2149191591",
+          "seconds": 0.080315,
+          "percent_all_samples": 0.5671408151716223
+        },
+        {
+          "name": "r_234_pc_1879081724",
+          "seconds": 0.079266,
+          "percent_all_samples": 0.5597333481341445
+        },
+        {
+          "name": "r_219_pc_1879065360",
+          "seconds": 0.073847,
+          "percent_all_samples": 0.5214673196535988
+        },
+        {
+          "name": "f_2149191779",
+          "seconds": 0.070819,
+          "percent_all_samples": 0.5000852317703931
+        },
+        {
+          "name": "f_2149180652",
+          "seconds": 0.070653,
+          "percent_all_samples": 0.498913030122899
+        },
+        {
+          "name": "f_2149247201",
+          "seconds": 0.067651,
+          "percent_all_samples": 0.4777145400880959
+        },
+        {
+          "name": "r_229_pc_1879081348",
+          "seconds": 0.067594,
+          "percent_all_samples": 0.47731203711275155
+        },
+        {
+          "name": "f_2152404675",
+          "seconds": 0.066674,
+          "percent_all_samples": 0.47081549786157934
+        },
+        {
+          "name": "f_2149191559",
+          "seconds": 0.065536,
+          "percent_all_samples": 0.4627795612661077
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-14.cpuprofile",
+      "sampled_seconds": 14.159308,
+      "work_seconds": 0.453714,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 13.665488,
+          "percent_all_samples": 96.51240018226879
+        },
+        {
+          "name": "getParameter",
+          "seconds": 0.15456,
+          "percent_all_samples": 1.0915787692449377
+        },
+        {
+          "name": "readPixels",
+          "seconds": 0.136438,
+          "percent_all_samples": 0.9635922885496947
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.040106,
+          "percent_all_samples": 0.2832483056375354
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'(), std::__2::allocator<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'()>, void ()>::operator()()",
+          "seconds": 0.040087,
+          "percent_all_samples": 0.2831141182888316
+        },
+        {
+          "name": "eka2l1::drivers::shared_graphics_driver::update_bitmap(unsigned long long, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, void const*, unsigned long)",
+          "seconds": 0.035801,
+          "percent_all_samples": 0.2528442774180772
+        },
+        {
+          "name": "texSubImage2D",
+          "seconds": 0.006331,
+          "percent_all_samples": 0.04471263708650169
+        },
+        {
+          "name": "clear",
+          "seconds": 0.00529,
+          "percent_all_samples": 0.03736058287594281
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.005239,
+          "percent_all_samples": 0.037000395782053754
+        },
+        {
+          "name": "void std::__2::vector<unsigned char, std::__2::allocator<unsigned char>>::__assign_with_size[abi:ne200100]<unsigned char*, unsigned char*>(unsigned char*, unsigned char*, long)",
+          "seconds": 0.004233,
+          "percent_all_samples": 0.029895528792791285
+        },
+        {
+          "name": "js-to-wasm::i",
+          "seconds": 0.004219,
+          "percent_all_samples": 0.029796653904272722
+        },
+        {
+          "name": "emscriptenWebGLGet",
+          "seconds": 0.003178,
+          "percent_all_samples": 0.022444599693713846
+        },
+        {
+          "name": "eka2l1::drivers::shared_graphics_driver::dispatch(eka2l1::drivers::command&)",
+          "seconds": 0.003178,
+          "percent_all_samples": 0.022444599693713846
+        },
+        {
+          "name": "bufferData",
+          "seconds": 0.003177,
+          "percent_all_samples": 0.022437537201676804
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.003162,
+          "percent_all_samples": 0.0223315998211212
+        },
+        {
+          "name": "bindBuffer",
+          "seconds": 0.002121,
+          "percent_all_samples": 0.014979545610562325
+        },
+        {
+          "name": "do_proxy",
+          "seconds": 0.00212,
+          "percent_all_samples": 0.014972483118525285
+        },
+        {
+          "name": "_glBindTexture",
+          "seconds": 0.00212,
+          "percent_all_samples": 0.014972483118525285
+        },
+        {
+          "name": "eka2l1::drivers::ogl_graphics_driver::dispatch(eka2l1::drivers::command&)",
+          "seconds": 0.002115,
+          "percent_all_samples": 0.014937170658340082
+        },
+        {
+          "name": "uniformMatrix4fv",
+          "seconds": 0.002115,
+          "percent_all_samples": 0.014937170658340082
+        },
+        {
+          "name": "emscripten_builtin_malloc",
+          "seconds": 0.002113,
+          "percent_all_samples": 0.014923045674266004
+        },
+        {
+          "name": "growMemViews",
+          "seconds": 0.002109,
+          "percent_all_samples": 0.01489479570611784
+        },
+        {
+          "name": "stackSave",
+          "seconds": 0.002107,
+          "percent_all_samples": 0.014880670722043762
+        },
+        {
+          "name": "uniform4fv",
+          "seconds": 0.002105,
+          "percent_all_samples": 0.01486654573796968
+        },
+        {
+          "name": "emscripten_builtin_free",
+          "seconds": 0.001076,
+          "percent_all_samples": 0.0075992414318552855
+        },
+        {
+          "name": "_glBindFramebuffer",
+          "seconds": 0.001059,
+          "percent_all_samples": 0.007479179067225602
+        },
+        {
+          "name": "spdlog::logger::log_it_(spdlog::details::log_msg const&, bool, bool)",
+          "seconds": 0.001059,
+          "percent_all_samples": 0.007479179067225602
+        },
+        {
+          "name": "eka2l1::drivers::ogl_graphics_driver::run()::$_0::__invoke(void*)",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.007465054083151522
+        },
+        {
+          "name": "_glGetIntegerv",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.007457991591114481
+        },
+        {
+          "name": "__lock",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.007457991591114481
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-23.cpuprofile",
+      "sampled_seconds": 14.156213,
+      "work_seconds": 0.00422,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.151993,
+          "percent_all_samples": 99.97018976756002
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.00422,
+          "percent_all_samples": 0.029810232439989422
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-17.cpuprofile",
+      "sampled_seconds": 14.155503,
+      "work_seconds": 0.002112,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.153391,
+          "percent_all_samples": 99.98508000740065
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002112,
+          "percent_all_samples": 0.014919992599344581
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-27.cpuprofile",
+      "sampled_seconds": 14.153355,
+      "work_seconds": 0.002111,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.151244,
+          "percent_all_samples": 99.9850848085136
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002111,
+          "percent_all_samples": 0.014915191486400222
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-29.cpuprofile",
+      "sampled_seconds": 14.153049,
+      "work_seconds": 0.002111,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.150938,
+          "percent_all_samples": 99.98508448603548
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.007461289789924419
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001055,
+          "percent_all_samples": 0.007454224174593051
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-26.cpuprofile",
+      "sampled_seconds": 14.153374,
+      "work_seconds": 0.002111,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.151263,
+          "percent_all_samples": 99.98508482853629
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.007461118458397269
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001055,
+          "percent_all_samples": 0.0074540530053116665
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-22.cpuprofile",
+      "sampled_seconds": 14.155829,
+      "work_seconds": 0.002107,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.153722,
+          "percent_all_samples": 99.98511567213761
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002107,
+          "percent_all_samples": 0.014884327862395061
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-18.cpuprofile",
+      "sampled_seconds": 14.155621,
+      "work_seconds": 0.001057,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.154564,
+          "percent_all_samples": 99.99253300155465
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.007466998445352556
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-28.cpuprofile",
+      "sampled_seconds": 14.153288,
+      "work_seconds": 0.001054,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.152234,
+          "percent_all_samples": 99.99255296719744
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001054,
+          "percent_all_samples": 0.00744703280255443
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-25.cpuprofile",
+      "sampled_seconds": 14.153317,
+      "work_seconds": 0.001052,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.152265,
+          "percent_all_samples": 99.99256711341941
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001052,
+          "percent_all_samples": 0.007432886580580369
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-30.cpuprofile",
+      "sampled_seconds": 14.153149,
+      "work_seconds": 0.001042,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.152107,
+          "percent_all_samples": 99.99263768084403
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001042,
+          "percent_all_samples": 0.0073623191559701665
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-2.cpuprofile",
+      "sampled_seconds": 14.162293,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.162293,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-1.cpuprofile",
+      "sampled_seconds": 14.162425,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.162425,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-20.cpuprofile",
+      "sampled_seconds": 14.154987,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.154987,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-6.cpuprofile",
+      "sampled_seconds": 14.162306,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.162306,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-4.cpuprofile",
+      "sampled_seconds": 14.161837,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.161837,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-19.cpuprofile",
+      "sampled_seconds": 14.155803,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.155803,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-0.cpuprofile",
+      "sampled_seconds": 14.162666,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.162666,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-8.cpuprofile",
+      "sampled_seconds": 14.161722,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.161722,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-31.cpuprofile",
+      "sampled_seconds": 14.159652,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.159652,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-16.cpuprofile",
+      "sampled_seconds": 14.158744,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.158744,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-11.cpuprofile",
+      "sampled_seconds": 14.161716,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.161716,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-9.cpuprofile",
+      "sampled_seconds": 14.161054,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.161054,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-24.cpuprofile",
+      "sampled_seconds": 14.152539,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.152539,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-21.cpuprofile",
+      "sampled_seconds": 14.155835,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.155835,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-7.cpuprofile",
+      "sampled_seconds": 14.162294,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.162294,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-12.cpuprofile",
+      "sampled_seconds": 14.159169,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.159169,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-5.cpuprofile",
+      "sampled_seconds": 14.161838,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.161838,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-3.cpuprofile",
+      "sampled_seconds": 14.162295,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.162295,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-15.cpuprofile",
+      "sampled_seconds": 14.159336,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.159336,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-10.cpuprofile",
+      "sampled_seconds": 14.161123,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 14.161123,
+          "percent_all_samples": 100.0
+        }
+      ]
+    }
+  ],
+  "browser_inlining_disabled": [
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-13.cpuprofile",
+      "sampled_seconds": 21.299916,
+      "work_seconds": 20.244824,
+      "inclusive": {
+        "interpreter_loop": {
+          "seconds": 19.868887,
+          "percent_all_samples": 93.2815274952258
+        },
+        "compiled_runner": {
+          "seconds": 13.212916,
+          "percent_all_samples": 62.032714119623755
+        },
+        "generated": {
+          "seconds": 8.328249,
+          "percent_all_samples": 39.09991476022722
+        }
+      },
+      "top_self": [
+        {
+          "name": "eka2l1::arm::aot::compiled_run eka2l1::arm::aot::execute_chain_impl<false, false, true>(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "seconds": 2.741464,
+          "percent_all_samples": 12.870773762675872
+        },
+        {
+          "name": "f_2149177368",
+          "seconds": 2.299426,
+          "percent_all_samples": 10.79546980373068
+        },
+        {
+          "name": "eka2l1::arm::aot::registry::lookup(unsigned int) const",
+          "seconds": 1.907842,
+          "percent_all_samples": 8.957040018373782
+        },
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "seconds": 1.523575,
+          "percent_all_samples": 7.152962481166593
+        },
+        {
+          "name": "unsigned int (*eka2l1::arm::aot::lookup_compiled_impl<false, true>(ARMul_State*))(ARMul_State*)",
+          "seconds": 0.965806,
+          "percent_all_samples": 4.534318351302418
+        },
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 0.910009,
+          "percent_all_samples": 4.272359571746668
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1::kernel_system::set_epoc_version(epocver)::$_0, std::__2::allocator<eka2l1::kernel_system::set_epoc_version(epocver)::$_0>, void (unsigned int)>::operator()(unsigned int&&)",
+          "seconds": 0.795991,
+          "percent_all_samples": 3.737061686064865
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+          "seconds": 0.469155,
+          "percent_all_samples": 2.20261432016915
+        },
+        {
+          "name": "eka2l1::arm::aot::global_registry()",
+          "seconds": 0.335268,
+          "percent_all_samples": 1.5740343764735973
+        },
+        {
+          "name": "f_2149218301",
+          "seconds": 0.305062,
+          "percent_all_samples": 1.4322216106392156
+        },
+        {
+          "name": "r_205_pc_1879061180",
+          "seconds": 0.244686,
+          "percent_all_samples": 1.1487650937214964
+        },
+        {
+          "name": "eka2l1::arm::r12l1::exclusive_monitor::clear_exclusive()",
+          "seconds": 0.241342,
+          "percent_all_samples": 1.1330655012911788
+        },
+        {
+          "name": "r_232_pc_1879081572",
+          "seconds": 0.240566,
+          "percent_all_samples": 1.1294222944353396
+        },
+        {
+          "name": "js-to-wasm:i:i",
+          "seconds": 0.23417,
+          "percent_all_samples": 1.0993940069998398
+        },
+        {
+          "name": "__pthread_mutex_lock",
+          "seconds": 0.22709,
+          "percent_all_samples": 1.0661544392945024
+        },
+        {
+          "name": "__pthread_mutex_unlock",
+          "seconds": 0.205937,
+          "percent_all_samples": 0.9668441884935134
+        },
+        {
+          "name": "f_2152404689",
+          "seconds": 0.202869,
+          "percent_all_samples": 0.9524403758212004
+        },
+        {
+          "name": "f_2153195873",
+          "seconds": 0.201406,
+          "percent_all_samples": 0.9455718041329365
+        },
+        {
+          "name": "r_228_pc_1879081368",
+          "seconds": 0.178149,
+          "percent_all_samples": 0.8363835801042595
+        },
+        {
+          "name": "f_2149247201",
+          "seconds": 0.167852,
+          "percent_all_samples": 0.7880406664514545
+        },
+        {
+          "name": "f_2149191591",
+          "seconds": 0.166107,
+          "percent_all_samples": 0.779848145880012
+        },
+        {
+          "name": "f_2152417839",
+          "seconds": 0.156411,
+          "percent_all_samples": 0.734326839598804
+        },
+        {
+          "name": "std::__2::__function::__func<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*), std::__2::allocator<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>, void (eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>::operator()(eka2l1::kernel_system*&&, eka2l1::kernel::process*&&, eka2l1::arm::core*&&)",
+          "seconds": 0.154376,
+          "percent_all_samples": 0.7247728113106174
+        },
+        {
+          "name": "f_2149191733",
+          "seconds": 0.151655,
+          "percent_all_samples": 0.7119981130442017
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.145083,
+          "percent_all_samples": 0.6811435312702642
+        },
+        {
+          "name": "eka2l1::arm::r12l1::exclusive_monitor::exclusive_read32(eka2l1::arm::core*, unsigned int)",
+          "seconds": 0.141337,
+          "percent_all_samples": 0.6635566074532876
+        },
+        {
+          "name": "f_2152404675",
+          "seconds": 0.138749,
+          "percent_all_samples": 0.6514063247948959
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "seconds": 0.138638,
+          "percent_all_samples": 0.6508851959791766
+        },
+        {
+          "name": "f_2149291205",
+          "seconds": 0.132621,
+          "percent_all_samples": 0.6226362582838355
+        },
+        {
+          "name": "f_2149191749",
+          "seconds": 0.125947,
+          "percent_all_samples": 0.5913028013819397
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-14.cpuprofile",
+      "sampled_seconds": 21.29672,
+      "work_seconds": 0.65228,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 20.599874,
+          "percent_all_samples": 96.7279186654095
+        },
+        {
+          "name": "getParameter",
+          "seconds": 0.239839,
+          "percent_all_samples": 1.1261781156910546
+        },
+        {
+          "name": "readPixels",
+          "seconds": 0.227951,
+          "percent_all_samples": 1.0703573132388462
+        },
+        {
+          "name": "eka2l1::drivers::shared_graphics_driver::update_bitmap(unsigned long long, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, void const*, unsigned long)",
+          "seconds": 0.044611,
+          "percent_all_samples": 0.20947357151711626
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.043505,
+          "percent_all_samples": 0.2042802835366197
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'(), std::__2::allocator<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'()>, void ()>::operator()()",
+          "seconds": 0.040148,
+          "percent_all_samples": 0.1885172928037745
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.007441,
+          "percent_all_samples": 0.03493965267891018
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.006371,
+          "percent_all_samples": 0.02991540481351119
+        },
+        {
+          "name": "texSubImage2D",
+          "seconds": 0.006321,
+          "percent_all_samples": 0.02968062687587572
+        },
+        {
+          "name": "clear",
+          "seconds": 0.005936,
+          "percent_all_samples": 0.02787283675608263
+        },
+        {
+          "name": "postMessage",
+          "seconds": 0.00425,
+          "percent_all_samples": 0.019956124699014685
+        },
+        {
+          "name": "emscriptenWebGLGet",
+          "seconds": 0.00424,
+          "percent_all_samples": 0.01990916911148759
+        },
+        {
+          "name": "js-to-wasm:i:i",
+          "seconds": 0.004198,
+          "percent_all_samples": 0.019711955643873798
+        },
+        {
+          "name": "emscripten_builtin_malloc",
+          "seconds": 0.003195,
+          "percent_all_samples": 0.015002310214906332
+        },
+        {
+          "name": "void std::__2::vector<unsigned char, std::__2::allocator<unsigned char>>::__assign_with_size[abi:ne200100]<unsigned char*, unsigned char*>(unsigned char*, unsigned char*, long)",
+          "seconds": 0.003174,
+          "percent_all_samples": 0.014903703481099437
+        },
+        {
+          "name": "__pthread_mutex_unlock",
+          "seconds": 0.003168,
+          "percent_all_samples": 0.014875530128583182
+        },
+        {
+          "name": "bufferData",
+          "seconds": 0.003167,
+          "percent_all_samples": 0.014870834569830472
+        },
+        {
+          "name": "tasks.port1.onmessage",
+          "seconds": 0.002834,
+          "percent_all_samples": 0.013307213505178262
+        },
+        {
+          "name": "emscripten_builtin_free",
+          "seconds": 0.002129,
+          "percent_all_samples": 0.00999684458451818
+        },
+        {
+          "name": "glad_debug_impl_glClear",
+          "seconds": 0.002125,
+          "percent_all_samples": 0.009978062349507343
+        },
+        {
+          "name": "bindFramebuffer",
+          "seconds": 0.002122,
+          "percent_all_samples": 0.009963975673249213
+        },
+        {
+          "name": "get buffer",
+          "seconds": 0.002119,
+          "percent_all_samples": 0.009949888996991087
+        },
+        {
+          "name": "growMemViews",
+          "seconds": 0.002118,
+          "percent_all_samples": 0.009945193438238378
+        },
+        {
+          "name": "do_proxy",
+          "seconds": 0.002114,
+          "percent_all_samples": 0.009926411203227539
+        },
+        {
+          "name": "stackSave",
+          "seconds": 0.002113,
+          "percent_all_samples": 0.00992171564447483
+        },
+        {
+          "name": "_glReadPixels",
+          "seconds": 0.002112,
+          "percent_all_samples": 0.00991702008572212
+        },
+        {
+          "name": "glad_debug_impl_glGetIntegerv",
+          "seconds": 0.002106,
+          "percent_all_samples": 0.009888846733205866
+        },
+        {
+          "name": "now",
+          "seconds": 0.001064,
+          "percent_all_samples": 0.004996074512882735
+        },
+        {
+          "name": "(garbage collector)",
+          "seconds": 0.001062,
+          "percent_all_samples": 0.004986683395377316
+        },
+        {
+          "name": "set_status_conditional",
+          "seconds": 0.001061,
+          "percent_all_samples": 0.004981987836624607
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-15.cpuprofile",
+      "sampled_seconds": 21.294736,
+      "work_seconds": 0.004137,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.289541,
+          "percent_all_samples": 99.97560429957902
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.004137,
+          "percent_all_samples": 0.01942733640839689
+        },
+        {
+          "name": "__timedwait_cp",
+          "seconds": 0.001058,
+          "percent_all_samples": 0.0049683640125897785
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-17.cpuprofile",
+      "sampled_seconds": 21.28932,
+      "work_seconds": 0.003172,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.286148,
+          "percent_all_samples": 99.98510051049071
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002115,
+          "percent_all_samples": 0.009934558736493227
+        },
+        {
+          "name": "set_status_conditional",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.0049649307728006345
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-16.cpuprofile",
+      "sampled_seconds": 21.286701,
+      "work_seconds": 0.003171,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.28353,
+          "percent_all_samples": 99.9851033751073
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.003171,
+          "percent_all_samples": 0.014896624892697089
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-26.cpuprofile",
+      "sampled_seconds": 21.291436,
+      "work_seconds": 0.003168,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.288268,
+          "percent_all_samples": 99.98512077813821
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.003168,
+          "percent_all_samples": 0.01487922186178518
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-21.cpuprofile",
+      "sampled_seconds": 21.291711,
+      "work_seconds": 0.00315,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.288561,
+          "percent_all_samples": 99.98520551025703
+        },
+        {
+          "name": "set_status_conditional",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.00496437322486671
+        },
+        {
+          "name": "_emscripten_yield",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.00495967656145624
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001037,
+          "percent_all_samples": 0.004870439956657311
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-18.cpuprofile",
+      "sampled_seconds": 21.287204,
+      "work_seconds": 0.003125,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.28302,
+          "percent_all_samples": 99.98034499974726
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002081,
+          "percent_all_samples": 0.009775825890520897
+        },
+        {
+          "name": "__timedwait_cp",
+          "seconds": 0.001059,
+          "percent_all_samples": 0.004974819614637977
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001044,
+          "percent_all_samples": 0.004904354747575116
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-27.cpuprofile",
+      "sampled_seconds": 21.282129,
+      "work_seconds": 0.00212,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.278953,
+          "percent_all_samples": 99.98507668100311
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.00212,
+          "percent_all_samples": 0.009961409405985652
+        },
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.00496190959090606
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-23.cpuprofile",
+      "sampled_seconds": 21.285808,
+      "work_seconds": 0.002118,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.28369,
+          "percent_all_samples": 99.99004970823752
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002118,
+          "percent_all_samples": 0.009950291762473851
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-30.cpuprofile",
+      "sampled_seconds": 21.28241,
+      "work_seconds": 0.002105,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.279246,
+          "percent_all_samples": 99.98513326263333
+        },
+        {
+          "name": "__timedwait_cp",
+          "seconds": 0.001059,
+          "percent_all_samples": 0.004975940224814765
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001053,
+          "percent_all_samples": 0.004947747928923463
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001052,
+          "percent_all_samples": 0.00494304921294158
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-28.cpuprofile",
+      "sampled_seconds": 21.288857,
+      "work_seconds": 0.002077,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.28678,
+          "percent_all_samples": 99.99024372233794
+        },
+        {
+          "name": "set_status_conditional",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.004960341459384128
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001021,
+          "percent_all_samples": 0.004795936202681056
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-29.cpuprofile",
+      "sampled_seconds": 21.286564,
+      "work_seconds": 0.001063,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.285501,
+          "percent_all_samples": 99.99500623961669
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001063,
+          "percent_all_samples": 0.004993760383310336
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-20.cpuprofile",
+      "sampled_seconds": 21.290294,
+      "work_seconds": 0.00106,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.289234,
+          "percent_all_samples": 99.99502120543757
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.00106,
+          "percent_all_samples": 0.004978794562442397
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-24.cpuprofile",
+      "sampled_seconds": 21.28126,
+      "work_seconds": 0.001058,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.280202,
+          "percent_all_samples": 99.99502848985445
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001058,
+          "percent_all_samples": 0.004971510145545894
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-2.cpuprofile",
+      "sampled_seconds": 21.296395,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.296395,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-22.cpuprofile",
+      "sampled_seconds": 21.2877,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.2877,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-1.cpuprofile",
+      "sampled_seconds": 21.300492,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.300492,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-6.cpuprofile",
+      "sampled_seconds": 21.299848,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.299848,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-4.cpuprofile",
+      "sampled_seconds": 21.293829,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.293829,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-19.cpuprofile",
+      "sampled_seconds": 21.290444,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.290444,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-0.cpuprofile",
+      "sampled_seconds": 21.300058,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.300058,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-8.cpuprofile",
+      "sampled_seconds": 21.287734,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.287734,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-31.cpuprofile",
+      "sampled_seconds": 21.295813,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.295813,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-11.cpuprofile",
+      "sampled_seconds": 21.296393,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.296393,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-9.cpuprofile",
+      "sampled_seconds": 21.295881,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.295881,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-7.cpuprofile",
+      "sampled_seconds": 21.292706,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.292706,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-12.cpuprofile",
+      "sampled_seconds": 21.294264,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.294264,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-5.cpuprofile",
+      "sampled_seconds": 21.296058,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.296058,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-3.cpuprofile",
+      "sampled_seconds": 21.300208,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.300208,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-25.cpuprofile",
+      "sampled_seconds": 21.279356,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "emscripten_futex_wait",
+          "seconds": 21.279356,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-10.cpuprofile",
+      "sampled_seconds": 21.296051,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 21.296051,
+          "percent_all_samples": 100.0
+        }
+      ]
+    }
+  ],
+  "runs": {
+    "diagnostic-runner-v8": {
+      "thumb_memory": 1,
+      "app_uid": "0xa020d913",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 28000001,
+        "last_virtual_us": 34000001,
+        "first_instructions": 10157018788,
+        "last_instructions": 12299166749,
+        "wall_seconds": 13.8092,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 55.25834827800001,
+      "shared_audio": true,
+      "guest_profile_stride": 0,
+      "exit_census": false,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": true,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+      },
+      "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+      "wasm_sha256": "5d8d7fa80797d1fa8a0e247af92775021391b1639b6d2afa4afa709310c294de",
+      "loader_sha256": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "execution_limits": [
+        512,
+        16,
+        8,
+        512
+      ],
+      "predicated_leaves": 1,
+      "leaf_features": 128,
+      "unsafe_code_initial": 3,
+      "unsafe_code": 3,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "code_lookup": 0,
+      "omit_guard_publication": 0,
+      "code_write_protect": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "fd79541093313166209253b9925d280f1927f8c9",
+      "dirty_worktree": true,
+      "browser": "Chrome/153.0.8010.52",
+      "runtime_footprint": {
+        "guest_us": 34000001,
+        "instructions": 12299166749,
+        "compiled_functions": 9537,
+        "allocated_bytes": 584437616,
+        "free_bytes": 21897248
+      },
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    },
+    "diagnostic-runner-v8-noinline": {
+      "thumb_memory": 1,
+      "app_uid": "0xa020d913",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 28000001,
+        "last_virtual_us": 34000001,
+        "first_instructions": 10157018788,
+        "last_instructions": 12299166749,
+        "wall_seconds": 20.9397,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "warmup_seconds": 87.983488881,
+      "shared_audio": true,
+      "guest_profile_stride": 0,
+      "exit_census": false,
+      "monitor": false,
+      "monitor_cpu_start_us": 0,
+      "sampling": true,
+      "sample_interval_us": 1000,
+      "isolates": 33,
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+      },
+      "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+      "wasm_sha256": "5d8d7fa80797d1fa8a0e247af92775021391b1639b6d2afa4afa709310c294de",
+      "loader_sha256": "f5a0386b361203c4445ccec4bf6bc22c335e58a6f98f47227bbf5072c33f61fc",
+      "gl_diagnostics": false,
+      "gl_diagnostics_configurable": true,
+      "aot": 5,
+      "aot_diagnostics": false,
+      "ir_mode": 7,
+      "execution_limits": [
+        512,
+        16,
+        8,
+        512
+      ],
+      "predicated_leaves": 1,
+      "leaf_features": 128,
+      "unsafe_code_initial": 3,
+      "unsafe_code": 3,
+      "tlb_hash": 1,
+      "code_compare": 2,
+      "code_lookup": 0,
+      "omit_guard_publication": 0,
+      "code_write_protect": -1,
+      "eager_regions": 0,
+      "verify_aot": 0,
+      "git_head": "abe9cedd721a0efce4322cb51fbe2365829d7cb3",
+      "dirty_worktree": true,
+      "browser": "Chrome/153.0.8010.52",
+      "runtime_footprint": {
+        "guest_us": 34000001,
+        "instructions": 12299166749,
+        "compiled_functions": 9537,
+        "allocated_bytes": 584437144,
+        "free_bytes": 21897720
+      },
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+    }
+  },
+  "artifacts": {
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-2.cpuprofile": {
+      "sha256": "62d3021377ac5db2f2c686dd503d7131315a94a1fd6a475729e17aaf691f3bc1",
+      "bytes": 91180
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-22.cpuprofile": {
+      "sha256": "e54c35806bf36804695923fde1731a169ece54978d408bd9a43a04d4d520e475",
+      "bytes": 94691
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-1.cpuprofile": {
+      "sha256": "5e6b4ee82584e472d415d68fce8c3ac7d9911443314a0ae0ceb6ce50b3de4801",
+      "bytes": 91836
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-20.cpuprofile": {
+      "sha256": "c1c416bf56866969d09f2526b344ddb5fa7d7d435ade15fbbd6d83dae8e036eb",
+      "bytes": 94520
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-6.cpuprofile": {
+      "sha256": "8d198f5ed9e6fbcd8ab8f05b639f512b5c7ebd66b103c925af13e40e2444b941",
+      "bytes": 92446
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-4.cpuprofile": {
+      "sha256": "9db514f78bff0e87d89f5d0471085afa92b8758461641ac9b5f41936717cba72",
+      "bytes": 91502
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-27.cpuprofile": {
+      "sha256": "76795680c8624f325c309b46db6c258c3158fa546043e4221c1b78b2acacd26f",
+      "bytes": 94788
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-19.cpuprofile": {
+      "sha256": "80a8da3a1aa04d6953d328633f7a3b4e73c4ff89031696c162d1d9cfecf707f4",
+      "bytes": 94325
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-0.cpuprofile": {
+      "sha256": "511e13bb44485a2092c87a560827829d13f9c41eca195e1bf771bedf4ea28355",
+      "bytes": 91858
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-8.cpuprofile": {
+      "sha256": "359dc2db7357aa3a7df7c666c124e32c0dfddc43726b8283bd5f3acb58246960",
+      "bytes": 91587
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-31.cpuprofile": {
+      "sha256": "7683bbb0ade84fa459f7c92c7017d7881793b7d3427da7236a95aa7f46068633",
+      "bytes": 91886
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-29.cpuprofile": {
+      "sha256": "d59020a2e01063c4f66110ad10c4571d018530e02a28191eb0c94ef8f72e19d0",
+      "bytes": 94570
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-28.cpuprofile": {
+      "sha256": "281b588763431f3549ba9681e4be9816cf793113377264ec47529b30629b0da2",
+      "bytes": 94606
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-16.cpuprofile": {
+      "sha256": "81301f2dbf6d306b98db649588821158f1c0e623c473d10b2fb2583a36332158",
+      "bytes": 94585
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-30.cpuprofile": {
+      "sha256": "28155c4c26bd62e9a695bb8d549711dad430d2c389be998a693c43f24c5b3e29",
+      "bytes": 94416
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-11.cpuprofile": {
+      "sha256": "bd6e51e47a620822c3964d38eb5ee8cc6b22d3adc7d8d2424c03649de15b7262",
+      "bytes": 91579
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-9.cpuprofile": {
+      "sha256": "230ff0c5e56cbdb2de60e6fc9aa60df03d3ef12ff2a650ea32622894f7804812",
+      "bytes": 91697
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-24.cpuprofile": {
+      "sha256": "cbb0bfb0871d5e1b94cb6eea7b3762b1dafee299f1552e401973f7bb3bec448b",
+      "bytes": 94437
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-21.cpuprofile": {
+      "sha256": "1b21d53dff2d8a585400535e4612e4b5edbd1662fbe8faaacd7007d8fa23fc10",
+      "bytes": 94296
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-7.cpuprofile": {
+      "sha256": "bf07d4476ed8a768bfaecec2aeeafc570c583f2980e51f13e47f3cace1e24ba7",
+      "bytes": 91942
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-14.cpuprofile": {
+      "sha256": "678d7df2f6a84421841aca7295ae753f97b4c50a21e2bc7540cc2e358c684de8",
+      "bytes": 171129
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-12.cpuprofile": {
+      "sha256": "228c785bb4292c8025ffdde64e4004cc531271da1d229ce03b5bd7653d89ecb7",
+      "bytes": 91957
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-23.cpuprofile": {
+      "sha256": "c566c895b498b56af5dc0efcce6cf01f42ec4a1682a0f366d1861a99b8a6dd45",
+      "bytes": 94741
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-18.cpuprofile": {
+      "sha256": "a5f884344f036b12bea4635302caa91ff441819fdb2f7cb645aa78e93f19e18d",
+      "bytes": 94892
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-13.cpuprofile": {
+      "sha256": "18ceae9cedc8b2e492e90c00b697b9f73c437214fb761f888ebf84807a22ee95",
+      "bytes": 223426
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-5.cpuprofile": {
+      "sha256": "c59433c0a528c5d1a3dd809be8627f46b565dc65a7ee24a180e83beeccdc2d4a",
+      "bytes": 91661
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-3.cpuprofile": {
+      "sha256": "519977f0d6e7052d70269bdca5dd8694cf62c114a5ebb7e0117cb009c4cb437d",
+      "bytes": 91758
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-15.cpuprofile": {
+      "sha256": "4e476e9fd2c1b85b725bfaddd280d0cd3ac8381bb4045323b3839ddba1342dac",
+      "bytes": 94407
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-25.cpuprofile": {
+      "sha256": "c37418a18fbf0de89657a43b3d272292ccc90e0207b422fd8f3e4f610748eadc",
+      "bytes": 94788
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-26.cpuprofile": {
+      "sha256": "215a8389265ab5ed32c7ea845f8fb93981e58dbb4fc8d639fb1501bf4963db3b",
+      "bytes": 95415
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-17.cpuprofile": {
+      "sha256": "090da1d027b8e1f40a10690a6b90ed87249e3faee8552f601a23f863a10a4ca1",
+      "bytes": 94601
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-sky/worker-10.cpuprofile": {
+      "sha256": "2ab44242bf25910f2ea2e65d690f1e97cde01c8ebeef99f3cebf0057419960ec",
+      "bytes": 91705
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-2.cpuprofile": {
+      "sha256": "c7f1dbcb7d0d416dd782b0794dc56742ff2da311f135d6226009e0e5cc7607ae",
+      "bytes": 134122
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-22.cpuprofile": {
+      "sha256": "860c1157b155bd1b8c99220ab36b8a82dbd731457714e920c8c850cfbbad491a",
+      "bytes": 156459
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-1.cpuprofile": {
+      "sha256": "434dee62495f21e5ed235e0f1950e84feccaa62fc3503132db53e4a96148985f",
+      "bytes": 134723
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-20.cpuprofile": {
+      "sha256": "f7575235d04d9282acaaee611ea6b323cc25f984972655040f4039b057d7197d",
+      "bytes": 157191
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-6.cpuprofile": {
+      "sha256": "f92a4ac6097a28e051d6e38e6eb2c4a10e2b8690066639467de25b0b2ed72d81",
+      "bytes": 134541
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-4.cpuprofile": {
+      "sha256": "fd1826d13b9915dcbf2ebcb93f7def863ec2c790798e0fe7926bc13533dd9033",
+      "bytes": 134283
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-27.cpuprofile": {
+      "sha256": "3da3caf5965e104073c4e5d450ce0cba15a0bdd5a47c9bb597b725c4d9d2c7f2",
+      "bytes": 156517
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-19.cpuprofile": {
+      "sha256": "0adb274b35428e67458918308262dbcee30e2173ac3b053600840295a944bda2",
+      "bytes": 156001
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-0.cpuprofile": {
+      "sha256": "d6b69b7cd818fc7e8d5d25bbb69a90d1953ce7bd78103b2560934abfa26f5639",
+      "bytes": 134305
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-8.cpuprofile": {
+      "sha256": "704d79b8f1a5ed759203b3491c73a4f8222701d855d9d323de830fae403920b0",
+      "bytes": 134296
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-31.cpuprofile": {
+      "sha256": "5e551b20316add27db7f1f1cdbee00c69dc68d63ed98195c0ba1d0515065ae2d",
+      "bytes": 134791
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-29.cpuprofile": {
+      "sha256": "5aca53f6ef333f14fa74276a6257841e778f6c2a54ee149064ec57c69779b48a",
+      "bytes": 156682
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-28.cpuprofile": {
+      "sha256": "b452c0953debecec58ef177ef8184c550c20eafb1055d04c1e83995b4f05ebc2",
+      "bytes": 156057
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-16.cpuprofile": {
+      "sha256": "ac40d1e6183c622f1584abb394a1ff17054e7774d462b6c11f82eeaa680d5be4",
+      "bytes": 156086
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-30.cpuprofile": {
+      "sha256": "77fb562359f29bdd0853c942b0efbf92afafca74c346ef867390b3990bd8c471",
+      "bytes": 156664
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-11.cpuprofile": {
+      "sha256": "8f3117fb895a812f82356bde5c50206f48588a88906413b177706777e28ce17c",
+      "bytes": 134953
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-9.cpuprofile": {
+      "sha256": "555830e229bc8f710a248de58f76e12797c991fb322a2247b4136dfee83353e3",
+      "bytes": 134968
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-24.cpuprofile": {
+      "sha256": "9080cd3a0572dece19d02304171e0e0605b480552eb02257fa8712af87512eba",
+      "bytes": 156566
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-21.cpuprofile": {
+      "sha256": "624f7f853adc12a2cd583dc3f92b6dab3bf3f5f8ff10cd18ad243d28c65d6d09",
+      "bytes": 156104
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-7.cpuprofile": {
+      "sha256": "ab885e9658331e254d4caf4e0829f323cd15fe9eda83b7d5541723c7f902a4d6",
+      "bytes": 134074
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-14.cpuprofile": {
+      "sha256": "04ac29b5a010f389c91d8b85fd6270d2e6a3b44fe70195c44d402345d8103435",
+      "bytes": 250501
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-12.cpuprofile": {
+      "sha256": "8a2748408f12307e4c0b9023ce7fd64962e226a19811cb036e809ccc44722813",
+      "bytes": 134779
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-23.cpuprofile": {
+      "sha256": "638ce04eaf2a2b1aa35cc37e48cd110288120752f4a7b92156ff0930a11bc20c",
+      "bytes": 156201
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-18.cpuprofile": {
+      "sha256": "ebedf0ceaeba269b46d1cdf81cbf3e8a44bb8fe8482e62d88886295776b6eca3",
+      "bytes": 156253
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-13.cpuprofile": {
+      "sha256": "05d93c3d7fa7c74348ac2534d91c84dbc5bfe36c5f4956f1a4828eae86b27bd8",
+      "bytes": 331517
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-5.cpuprofile": {
+      "sha256": "503363e979e4925121ed76839d9adbbdbc91c5e9d1a10351ddfc8d37f0701bb1",
+      "bytes": 134065
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-3.cpuprofile": {
+      "sha256": "4cdaeafded6239051d70ad1dd26318b4f990df0b5e86a297bec4ba7ff92e6c1b",
+      "bytes": 134529
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-15.cpuprofile": {
+      "sha256": "de3c094d16115fabcabb4b6a5fcd819c29d688b15889866d7d726d9656b9284c",
+      "bytes": 156904
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-25.cpuprofile": {
+      "sha256": "160fb35e96962cee924075eb215f35d248b84082d6be9596cfe255dd7cfcdabe",
+      "bytes": 156575
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-26.cpuprofile": {
+      "sha256": "1ec6d0d3c3e00d0517274bd950efb02fcc1e1bd2cd67cdb62b7526f34e1c2a2e",
+      "bytes": 156218
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-17.cpuprofile": {
+      "sha256": "2a6c8afd6d086ead8aed956b92889bf2fb1123bd28d8d5b30f70feae77310b78",
+      "bytes": 157504
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-profile-sky/worker-10.cpuprofile": {
+      "sha256": "e01cc88becee2db14d3d38912f8bf148035d37c2f329fae78e7d5b5a47a8da2b",
+      "bytes": 133644
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8.patch": {
+      "sha256": "0363081903a42d65f63772de042a3ac414b1ba4143f7faec793e0d53f8dce084",
+      "bytes": 1015
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnose_runner_v8.py": {
+      "sha256": "472c87487188dd3b40c231c803fdd048872d60efa18969b1231234bb8312d00f",
+      "bytes": 3636
+    },
+    "/home/claude/.scratch/eka-sky-performance/profile_runner_v8_noinline.py": {
+      "sha256": "1fd1530f66d724106d67c3c9e9c793567933c5618f427c254342ef8c5df010b1",
+      "bytes": 1450
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-profile-command.json": {
+      "sha256": "dcc1fc89f2a9814af7cf82055928beeef6f104f390fc40ae9135ba556bab7712",
+      "bytes": 1214
+    },
+    "/home/claude/.scratch/eka-sky-performance/diagnostic-runner-v8-noinline-command.json": {
+      "sha256": "cde0d8c3539c523c6342f466c19d252cef7470124e238b72b0e01fb900b51e2c",
+      "bytes": 1405
+    },
+    "/home/claude/.scratch/eka-sky-performance/build-diagnostic-runner-v8.log": {
+      "sha256": "b502f29ef381072bc2d68dbef543e60a5c92c794cc424c3bf8faa604376c2892",
+      "bytes": 6929
+    },
+    "/home/claude/.scratch/eka-sky-performance/summarize_cpu.py": {
+      "sha256": "a1af2a7e13037e24f3e2f11f84768e9a413c0fb0d3cd9b61ec29e54acba2cc4c",
+      "bytes": 1628
+    }
+  },
+  "limitations": [
+    "The first noinline attribute diagnostic did not preserve separate runner names. The volatile function-pointer diagnostic preserves two runner names in the binary but its normal browser profile still folds runner frames into InterpreterMainLoop.",
+    "With browser --no-wasm-inlining the runner and lookup call frames become visible. This changes execution and ran alongside correctness work; its timing and percentages must not estimate normal execution components or speed.",
+    "Both windows retain 2142147961 guest instructions and 192 presentations. No diagnostic archive is a candidate or served build."
+  ]
+}

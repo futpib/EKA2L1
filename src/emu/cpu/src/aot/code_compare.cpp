@@ -17,6 +17,13 @@ namespace eka2l1::arm::aot {
     }
 
     validated_code_cache::block *validated_code_cache::find_original(std::uint32_t pc_mode, core &cpu) {
+        return find_original_impl<false>(pc_mode, cpu);
+    }
+    validated_code_cache::block *validated_code_cache::find_trusted_original(std::uint32_t pc_mode, core &cpu) {
+        return find_original_impl<true>(pc_mode, cpu);
+    }
+    template<bool TrustBytes>
+    validated_code_cache::block *validated_code_cache::find_original_impl(std::uint32_t pc_mode, core &cpu) {
         const auto generation = cpu.code_mapping_generation
             ? cpu.code_mapping_generation->load(std::memory_order_acquire) : 0;
         const auto k = key(cpu.code_address_space, pc_mode);
@@ -31,7 +38,7 @@ namespace eka2l1::arm::aot {
         }
         if (generation && recent->mapping_source == cpu.code_mapping_generation
             && recent->mapping_generation == generation) {
-            if (bytes_match(*recent, false)) return recent;
+            if (TrustBytes || bytes_match(*recent, false)) return recent;
             recent->live = false;
             current_.erase(k);
             recent = nullptr;
@@ -45,7 +52,7 @@ namespace eka2l1::arm::aot {
             if (recent && recent->key == k) recent->mapping_generation = 0;
             return nullptr;
         }
-        auto *entry = find(pc_mode, view, &cpu);
+        auto *entry = find_mapped<TrustBytes>(pc_mode, view, &cpu);
         if (entry) {
             entry->mapping_generation = generation;
             entry->mapping_source = cpu.code_mapping_generation;

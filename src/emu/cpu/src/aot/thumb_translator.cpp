@@ -18,8 +18,11 @@
  */
 
 #include <cpu/aot/thumb_translator.h>
+#include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/exit_census.h>
+#include <cpu/12l1r/tlb.h>
+#include <common/code_tracking.h>
 
 #include <cstring>
 #include <map>
@@ -83,6 +86,9 @@ namespace eka2l1::arm::aot {
     struct emit {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
+        bool direct_memory = false;
+        static constexpr unsigned ADDRESS = 7, VALUE = 8, HOST = 9, ENTRY = 10, SPAN_HOST = 11;
+        bool span_active = false;
         bool memory_write = false;
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
@@ -157,11 +163,95 @@ namespace eka2l1::arm::aot {
         void store_reg(int r, std::uint32_t local) { store_i32(S::reg(r), local); }
 
         // Call imported function (index relative to imports)
-        void call(std::uint32_t func_idx) {
-            if (func_idx == 1 || func_idx == 3 || func_idx == 5) memory_write = true;
+        unsigned slow_calls = 0;
+        void slow_call(std::uint32_t func_idx) {
+            ++slow_calls;
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
+        }
+
+        // A whole one-page register transfer can reuse one TLB proof. On
+        // failure the scalar path retains all original callback barriers;
+        // no successful proof survives any callback or instruction boundary.
+        void begin_span(unsigned address_local, unsigned words, bool write) {
+            span_active = direct_memory && words > 1 && (!write ||
+                (common::code_tracking::skip_mutation_tracking() && common::code_tracking::skip_code_write_guards()));
+            if (!span_active) return;
+            i32_const(0); set_local(SPAN_HOST);
+            load_i32(S::AOT_TLB); tee_local(ENTRY);
+            op(op_if); op(type_void);
+            get_local(address_local); i32_const(12); op(op_i32_shr_u);
+            if (r12l1::dyncom_folded_tlb) {
+                get_local(address_local); i32_const(12 + r12l1::TLB_LOOKUP_BIT_COUNT);
+                op(op_i32_shr_u); op(op_i32_xor);
+            }
+            i32_const(r12l1::TLB_ENTRY_MASK); op(op_i32_and);
+            i32_const(4); op(op_i32_shl); get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
+            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,write?4:0);
+            get_local(address_local); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
+            get_local(address_local); i32_const(4096); op(op_i32_ge_u); op(op_i32_and);
+            get_local(address_local); i32_const(3); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            get_local(address_local); i32_const(4095); op(op_i32_and);
+            i32_const(4096 - words*4); op(op_i32_le_u); op(op_i32_and);
+            load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            op(op_if); op(type_void);
+            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(SPAN_HOST);
+            op(op_end); op(op_end);
+        }
+
+        void call(std::uint32_t func_idx) {
+            const bool write = func_idx == 1 || func_idx == 3 || func_idx == 5;
+            if (write) memory_write = true;
+            // Compatibility modes retain their existing write tracking path.
+            // Each direct access proves its own TLB permission, alignment and
+            // endian state; no proof survives a callback or a mapping change.
+            if (!direct_memory || func_idx > 5 || (write &&
+                    (!common::code_tracking::skip_mutation_tracking() ||
+                     !common::code_tracking::skip_code_write_guards()))) {
+                slow_call(func_idx); return;
+            }
+            const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
+            if (write) set_local(VALUE);
+            set_local(ADDRESS); set_local(HOST); // consume imported state argument
+            if (span_active) {
+                get_local(SPAN_HOST); op(op_if); op(write?type_void:type_i32);
+                get_local(SPAN_HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add);
+                if (write) get_local(VALUE);
+                op(write?op_i32_store:op_i32_load); leb(b,2); leb(b,0);
+                op(op_else);
+            }
+            i32_const(0); set_local(HOST);
+            load_i32(S::AOT_TLB); tee_local(ENTRY);
+            op(op_if); op(type_void);
+            get_local(ADDRESS); i32_const(12); op(op_i32_shr_u);
+            if (r12l1::dyncom_folded_tlb) {
+                get_local(ADDRESS); i32_const(12 + r12l1::TLB_LOOKUP_BIT_COUNT);
+                op(op_i32_shr_u); op(op_i32_xor);
+            }
+            i32_const(r12l1::TLB_ENTRY_MASK); op(op_i32_and);
+            i32_const(4); op(op_i32_shl); get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
+            get_local(ENTRY); op(op_i32_load); leb(b, 2); leb(b, write ? 4 : 0);
+            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
+            get_local(ADDRESS); i32_const(4096); op(op_i32_ge_u); op(op_i32_and);
+            get_local(ADDRESS); i32_const(size - 1); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
+            op(op_if); op(type_void);
+            get_local(ENTRY); op(op_i32_load); leb(b, 2); leb(b, 12); tee_local(HOST);
+            op(op_if); op(type_void);
+            get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+            op(op_i32_add); set_local(HOST);
+            op(op_end); op(op_end); op(op_end);
+            get_local(HOST); op(op_if); op(write ? type_void : type_i32);
+            get_local(HOST); if (write) get_local(VALUE);
+            op(write ? (size == 4 ? op_i32_store : size == 2 ? op_i32_store16 : op_i32_store8)
+                     : (size == 4 ? op_i32_load : size == 2 ? op_i32_load16_u : op_i32_load8_u));
+            leb(b, size == 4 ? 2 : size == 2 ? 1 : 0); leb(b, 0);
+            op(op_else);
+            state_ptr(); get_local(ADDRESS); if (write) get_local(VALUE);
+            slow_call(func_idx);
+            op(op_end);
+            if (span_active) op(op_end);
         }
 
         std::uint32_t census_pc=0,census_opcode=0;
@@ -565,7 +655,7 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, const sibling_map *bounded_targets)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -577,7 +667,10 @@ namespace eka2l1::arm::aot {
 
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
         //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
-        result.num_locals = 6;
+        const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
+        const bool link_calls = direct_memory && bounded_targets;
+        result.num_locals = link_calls ? 13 : direct_memory ? 11 : 6;
+        const unsigned CALL_BUDGET = 12, CALL_COUNT = 13;
         result.num_f32_locals = 2;
         result.num_f64_locals = 1;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
@@ -586,7 +679,12 @@ namespace eka2l1::arm::aot {
         const std::uint32_t DTMP1 = 9;
 
         emit w{result.body};
+        w.direct_memory = direct_memory;
         w.cache.enabled = bounded && cache_registers;
+        // Keep repeated PC, budget, endian and TLB accesses in locals. Slow
+        // callbacks still publish/reload the complete cached state.
+        w.cache.runtime_fields = direct_memory;
+        w.cache.program_counter = direct_memory;
         w.cache.first_local = result.num_locals + 1;
 
         // Build instruction address → index map
@@ -761,6 +859,77 @@ namespace eka2l1::arm::aot {
                 if (call_half == 0xF000) {
                     const std::uint32_t displacement = ((insn & 0x7FF) << 12) | ((insn & 0x400) ? 0xFF800000u : 0u);
                     w.store_i32_const(S::LR, insn_addr + 4 + displacement);
+                    // Fuse a complete ARMv5/v6 long-call pair, retaining the
+                    // architectural stop between its two budgeted halfwords.
+                    if (direct_memory && i + 3 < code_size) {
+                        const std::uint16_t suffix = code[i+2] | (code[i+3] << 8);
+                        const auto kind = suffix & 0xF800;
+                        if (kind == 0xF800 || (kind == 0xE800 && !(suffix & 1))) {
+                            w.census_pc = (insn_addr + 2) | 1;
+                            w.census_opcode = suffix;
+                            w.load_i32(S::AOT_BUDGET); w.i32_const(insn_idx + 1);
+                            w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
+                            w.bail(insn_addr + 2, insn_idx + 1, exit_census::guard);
+                            w.op(op_end);
+                            // Preserve the outer runner's stop/IRQ boundary. A
+                            // preceding callback may have requested either exit.
+                            w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
+                            w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
+                            w.op(op_i32_or); w.op(op_i32_eqz);
+                            w.op(op_if); w.op(type_void);
+                            w.bail(insn_addr + 2, insn_idx + 1, exit_census::guard);
+                            w.op(op_end);
+                            w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                            w.load_i32(S::CPSR); w.i32_const(0x80);
+                            w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
+                            w.op(op_if); w.op(type_void);
+                            w.bail(insn_addr + 2, insn_idx + 1, exit_census::interrupt);
+                            w.op(op_end);
+                            auto target = insn_addr + 4 + displacement + ((suffix & 0x7FF) << 1);
+                            // Composition follows emitted direct call edges as
+                            // well as resume/local-branch entries. Recording the
+                            // mode-tagged target does not widen decoded code.
+                            if (capture_state_composition)
+                                result.successor_keys.push_back(kind == 0xF800 ? target | 1u : target & ~3u);
+                            if (kind == 0xE800) { target &= ~3u; w.store_i32_const(S::TFLAG, 0); }
+                            w.store_i32_const(S::LR, (insn_addr + 4) | 1);
+                            // Only a callback-free prefix can omit the runner's
+                            // TLB synchronization boundary. Targets are unlinked
+                            // immutable ROM base functions in this same module;
+                            // linked clones never call one another.
+                            if (link_calls && kind == 0xF800 && !w.slow_calls &&
+                                bounded_targets->count(target | 1u)) {
+                                const auto count = insn_idx + 2;
+                                w.store_i32_const(S::PC, target);
+                                w.load_i32(S::AOT_BUDGET); w.i32_const(count);
+                                w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
+                                w.bail(target, count, exit_census::guard); w.op(op_end);
+                                w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
+                                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
+                                w.op(op_i32_or); w.op(op_i32_eqz);
+                                w.op(op_if); w.op(type_void);
+                                w.bail(target, count, exit_census::guard); w.op(op_end);
+                                w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                                w.load_i32(S::CPSR); w.i32_const(0x80);
+                                w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
+                                w.op(op_if); w.op(type_void);
+                                w.bail(target, count, exit_census::interrupt); w.op(op_end);
+                                w.load_i32(S::AOT_BUDGET); w.set_local(CALL_BUDGET);
+                                w.get_local(CALL_BUDGET); w.i32_const(count); w.op(op_i32_sub);
+                                w.set_local(CALL_COUNT); w.store_i32(S::AOT_BUDGET, CALL_COUNT);
+                                w.state_ptr(); w.slow_call(bounded_targets->at(target | 1u));
+                                w.set_local(CALL_COUNT);
+                                w.store_i32(S::AOT_BUDGET, CALL_BUDGET);
+                                w.get_local(CALL_COUNT); w.i32_const(count); w.op(op_i32_add);
+                                w.ret();
+                                ++tr.bounded_direct_calls;
+                            } else w.bail(target, insn_idx + 2);
+                            tr.resume_points.push_back(insn_addr + 2);
+                            tr.resume_points.push_back(insn_addr + 4);
+                            decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                            insn_idx += 2; break;
+                        }
+                    }
                     w.bail(insn_addr + 2, insn_idx + 1);
                     tr.resume_points.push_back(insn_addr + 2);
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
@@ -3400,6 +3569,16 @@ namespace eka2l1::arm::aot {
             } else if ((insn & 0xF000) == 0xD000) {
                 // Conditional branch: B<cond> offset
                 std::uint8_t cond = (insn >> 8) & 0xF;
+                if (bounded && compiled_svc_enabled && cond == 15) {
+                w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.i32_const(1); w.op(op_i32_eq);
+                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_if); w.op(type_void);
+                w.bail(insn_addr, insn_idx); w.op(op_end);
+                    w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken
+                        | (((insn_addr + 2) & 4095) ? 0 : svc_page_end) | (insn & 255));
+                    w.bail(insn_addr + 2, insn_idx + 1);
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                    ++insn_idx; break;
+                }
                 if (cond >= 0xE) {
                     // SVC or undefined — bail
                     w.bail_unsupported(insn_addr, insn_idx);
@@ -3560,7 +3739,7 @@ namespace eka2l1::arm::aot {
                 w.i32_const(count * 4);
                 w.op(op_i32_sub);
                 w.set_local(TMP1);
-                w.store_reg(13, TMP1);
+                w.begin_span(TMP1, count, true);
                 // Store registers at ascending addresses from new SP
                 int offset = 0;
                 for (int r = 0; r < 8; r++) {
@@ -3585,6 +3764,10 @@ namespace eka2l1::arm::aot {
                     w.get_local(TMP2);
                     w.call(1);
                 }
+                w.span_active = false;
+                // Fault callbacks observe the original SP. Publish writeback
+                // only after the transfers, matching the native core.
+                w.store_reg(13, TMP1);
             } else if ((insn & 0xFE00) == 0xBC00) {
                 // POP {reglist} — bit 8 = PC
                 std::uint16_t reglist = insn & 0xFF;
@@ -3592,6 +3775,8 @@ namespace eka2l1::arm::aot {
                 // Load registers from SP at ascending addresses
                 w.load_reg(13);
                 w.set_local(TMP1); // current SP
+                const unsigned transfers = __builtin_popcount(reglist) + pop_pc;
+                w.begin_span(TMP1, transfers, false);
                 int offset = 0;
                 for (int r = 0; r < 8; r++) {
                     if (reglist & (1 << r)) {
@@ -3617,6 +3802,7 @@ namespace eka2l1::arm::aot {
                     w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
                     offset += 4;
                 }
+                w.span_active = false;
                 // Count registers popped
                 int count = 0;
                 for (int r = 0; r < 8; r++) {
@@ -3679,7 +3865,9 @@ namespace eka2l1::arm::aot {
                 w.i32_const(1); w.op(op_i32_and); w.set_local(TMP2);
                 w.store_i32(S::TFLAG, TMP2);
                 w.load_reg(14);
-                w.i32_const(~1);
+                // Align the outgoing PC before a short-budget return too.
+                w.get_local(TMP2); w.i32_const(1); w.op(op_i32_shl);
+                w.i32_const(~3); w.op(op_i32_or);
                 w.op(op_i32_and);
                 w.set_local(TMP1);
                 w.store_reg(15, TMP1);
@@ -3698,7 +3886,12 @@ namespace eka2l1::arm::aot {
                 // BX Rm / BLX Rm
                 int rm = (insn >> 3) & 0xF;
                 bool is_blx = (insn & 0x80) != 0;
-                w.load_reg(rm); w.set_local(TMP3); // capture before BLX overwrites LR
+                // BX PC reads the Thumb pipeline value, not the current
+                // instruction address stored in the runtime. BLX PC retains
+                // DynCom's raw-PC behavior for that unpredictable encoding.
+                if (rm == 15 && !is_blx) w.i32_const(insn_addr + 4);
+                else w.load_reg(rm);
+                w.set_local(TMP3); // capture before BLX overwrites LR
                 if (is_blx) {
                     // BLX Rm — set LR = next instruction | 1 (Thumb)
                     w.store_i32_const(S::LR, static_cast<std::int32_t>((insn_addr + 2) | 1));
@@ -3712,7 +3905,9 @@ namespace eka2l1::arm::aot {
                 w.i32_const(1); w.op(op_i32_and); w.set_local(TMP2);
                 w.store_i32(S::TFLAG, TMP2);
                 w.get_local(TMP3);
-                w.i32_const(~1);
+                // Align the outgoing PC before a short-budget return too.
+                w.get_local(TMP2); w.i32_const(1); w.op(op_i32_shl);
+                w.i32_const(~3); w.op(op_i32_or);
                 w.op(op_i32_and);
                 w.set_local(TMP1);
                 w.store_reg(15, TMP1);
@@ -3929,6 +4124,7 @@ namespace eka2l1::arm::aot {
                 std::uint16_t reglist = insn & 0xFF;
                 w.load_reg(rn);
                 w.set_local(ADDR_TMP);
+                w.begin_span(ADDR_TMP, __builtin_popcount(reglist), true);
                 int count = 0;
                 for (int r = 0; r < 8; r++) {
                     if (reglist & (1 << r)) {
@@ -3942,6 +4138,7 @@ namespace eka2l1::arm::aot {
                         count++;
                     }
                 }
+                w.span_active = false;
                 // Writeback: Rn += count*4
                 w.get_local(ADDR_TMP);
                 w.i32_const(count * 4);
@@ -3954,6 +4151,7 @@ namespace eka2l1::arm::aot {
                 std::uint16_t reglist = insn & 0xFF;
                 w.load_reg(rn);
                 w.set_local(ADDR_TMP);
+                w.begin_span(ADDR_TMP, __builtin_popcount(reglist), false);
                 int count = 0;
                 for (int r = 0; r < 8; r++) {
                     if (reglist & (1 << r)) {
@@ -3966,6 +4164,7 @@ namespace eka2l1::arm::aot {
                         count++;
                     }
                 }
+                w.span_active = false;
                 // Writeback only if Rn not in reglist
                 if (!(reglist & (1 << rn))) {
                     w.get_local(ADDR_TMP);

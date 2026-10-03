@@ -1,0 +1,940 @@
+{
+  "status": "diagnostic_only_not_speed_result",
+  "report": {
+    "thumb_memory": 1,
+    "arm_memory": 1,
+    "app_uid": "0xa020d913",
+    "measurement": {
+      "detailed": false,
+      "capture_mode": 1,
+      "first_virtual_us": 28000001,
+      "last_virtual_us": 34000001,
+      "first_instructions": 10157018788,
+      "last_instructions": 12299166749,
+      "wall_seconds": 12.5536,
+      "presentations": 192,
+      "aot_dispatches": 0,
+      "aot_instructions": 0,
+      "compiled_runner_calls": 0,
+      "ram_aot_dispatches": 0,
+      "ram_blocks_compiled": 0,
+      "decoded_instructions": 0,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "cache_clears": 0,
+      "context_loads": 0,
+      "code_version_hits": 0,
+      "code_byte_checks": 0,
+      "code_epoch_hits": 0,
+      "imb_calls": 0,
+      "scopes": {
+        "cpu_loop": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "cpu_run": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "timers": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "scheduler": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "graphics_dispatch": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "graphics_wait": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "display_hook": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "readback": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "frame_capture": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "png_encode": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "audio": {
+          "seconds": 0,
+          "calls": 0
+        }
+      }
+    },
+    "warmup_seconds": 50.727618962,
+    "shared_audio": true,
+    "guest_profile_stride": 0,
+    "exit_census": false,
+    "monitor": false,
+    "monitor_cpu_start_us": 0,
+    "sampling": true,
+    "sample_interval_us": 1000,
+    "isolates": 33,
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+    },
+    "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+    "wasm_sha256": "2af306d290e12e52cee936a81c18c5656f99361d2e2a049abb40cb9b10223c4d",
+    "loader_sha256": "9e89db06745ceff26f0fc6a5d62b86f387f166b1a015948f064a4006ed62b64c",
+    "gl_diagnostics": false,
+    "gl_diagnostics_configurable": true,
+    "aot": 5,
+    "aot_diagnostics": false,
+    "ir_mode": 7,
+    "execution_limits": [
+      512,
+      16,
+      8,
+      512
+    ],
+    "predicated_leaves": 1,
+    "leaf_features": 128,
+    "unsafe_code_initial": 3,
+    "unsafe_code": 3,
+    "tlb_hash": 1,
+    "code_compare": 2,
+    "code_lookup": 0,
+    "omit_guard_publication": 0,
+    "code_write_protect": -1,
+    "eager_regions": 0,
+    "verify_aot": 0,
+    "git_head": "acc3e9e7ed2a4eefa34c27551c3988a8a2ac3998",
+    "dirty_worktree": true,
+    "browser": "Chrome/153.0.8010.52",
+    "runtime_footprint": {
+      "guest_us": 34000001,
+      "instructions": 12299166749,
+      "compiled_functions": 9537,
+      "allocated_bytes": 584435312,
+      "free_bytes": 19015968
+    },
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+  },
+  "analysis": [
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-13.cpuprofile",
+      "sampled_seconds": 12.900333,
+      "work_seconds": 12.098767,
+      "inclusive": {
+        "generated": {
+          "seconds": 5.043286,
+          "percent_all_samples": 39.09423113341337
+        },
+        "interpreter_loop": {
+          "seconds": 11.702608,
+          "percent_all_samples": 90.7155497458864
+        }
+      },
+      "top_self": [
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "seconds": 4.831265,
+          "percent_all_samples": 37.450699916040925
+        },
+        {
+          "name": "f_2149177368",
+          "seconds": 1.619356,
+          "percent_all_samples": 12.552823248826211
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1::kernel_system::set_epoc_version(epocver)::$_0, std::__2::allocator<eka2l1::kernel_system::set_epoc_version(epocver)::$_0>, void (unsigned int)>::operator()(unsigned int&&)",
+          "seconds": 0.664336,
+          "percent_all_samples": 5.14975853724086
+        },
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 0.569874,
+          "percent_all_samples": 4.41751387347908
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+          "seconds": 0.299933,
+          "percent_all_samples": 2.325001998010439
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.231692,
+          "percent_all_samples": 1.7960156532393388
+        },
+        {
+          "name": "f_2149218301",
+          "seconds": 0.176518,
+          "percent_all_samples": 1.368321267365734
+        },
+        {
+          "name": "js-to-wasm:ii:",
+          "seconds": 0.172152,
+          "percent_all_samples": 1.3344771797751267
+        },
+        {
+          "name": "r_232_pc_1879081572",
+          "seconds": 0.163594,
+          "percent_all_samples": 1.2681378069852927
+        },
+        {
+          "name": "r_205_pc_1879061180",
+          "seconds": 0.156456,
+          "percent_all_samples": 1.2128059019871813
+        },
+        {
+          "name": "f_2149191733",
+          "seconds": 0.127775,
+          "percent_all_samples": 0.9904783078080232
+        },
+        {
+          "name": "r_228_pc_1879081368",
+          "seconds": 0.118317,
+          "percent_all_samples": 0.9171623709248437
+        },
+        {
+          "name": "eka2l1::kernel::thread_scheduler::switch_context(eka2l1::kernel::thread*, eka2l1::kernel::thread*)",
+          "seconds": 0.096149,
+          "percent_all_samples": 0.7453218455678624
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "seconds": 0.093743,
+          "percent_all_samples": 0.7266711642249856
+        },
+        {
+          "name": "f_2149291205",
+          "seconds": 0.091967,
+          "percent_all_samples": 0.7129040777474503
+        },
+        {
+          "name": "f_2152404689",
+          "seconds": 0.091905,
+          "percent_all_samples": 0.7124234699987977
+        },
+        {
+          "name": "eka2l1::mem::mmu_base::read_32bit_data(unsigned int, unsigned int*)",
+          "seconds": 0.089768,
+          "percent_all_samples": 0.6958580061460429
+        },
+        {
+          "name": "f_2149247187",
+          "seconds": 0.084446,
+          "percent_all_samples": 0.6546032571407265
+        },
+        {
+          "name": "f_2153195873",
+          "seconds": 0.080332,
+          "percent_all_samples": 0.6227126074962561
+        },
+        {
+          "name": "f_2149191591",
+          "seconds": 0.080211,
+          "percent_all_samples": 0.6217746472125951
+        },
+        {
+          "name": "r_234_pc_1879081724",
+          "seconds": 0.07718,
+          "percent_all_samples": 0.5982791296937838
+        },
+        {
+          "name": "f_2149247201",
+          "seconds": 0.077147,
+          "percent_all_samples": 0.5980233223436946
+        },
+        {
+          "name": "eka2l1::arm::dyncom_core::load_context(eka2l1::arm::core::thread_context const&)",
+          "seconds": 0.077045,
+          "percent_all_samples": 0.597232645079782
+        },
+        {
+          "name": "f_2149180652",
+          "seconds": 0.075007,
+          "percent_all_samples": 0.5814346032772952
+        },
+        {
+          "name": "std::__2::__function::__func<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*), std::__2::allocator<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>, void (eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>::operator()(eka2l1::kernel_system*&&, eka2l1::kernel::process*&&, eka2l1::arm::core*&&)",
+          "seconds": 0.069736,
+          "percent_all_samples": 0.5405751929039351
+        },
+        {
+          "name": "f_2152417839",
+          "seconds": 0.069712,
+          "percent_all_samples": 0.5403891511947793
+        },
+        {
+          "name": "f_2152404675",
+          "seconds": 0.068642,
+          "percent_all_samples": 0.5320947916615796
+        },
+        {
+          "name": "r_229_pc_1879081348",
+          "seconds": 0.066465,
+          "percent_all_samples": 0.515219258293565
+        },
+        {
+          "name": "f_2149191779",
+          "seconds": 0.064414,
+          "percent_all_samples": 0.4993204438986187
+        },
+        {
+          "name": "r_219_pc_1879065360",
+          "seconds": 0.061344,
+          "percent_all_samples": 0.4755226086024291
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-14.cpuprofile",
+      "sampled_seconds": 12.90029,
+      "work_seconds": 0.432365,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.434194,
+          "percent_all_samples": 96.38693393714405
+        },
+        {
+          "name": "getParameter",
+          "seconds": 0.145886,
+          "percent_all_samples": 1.130873802061814
+        },
+        {
+          "name": "readPixels",
+          "seconds": 0.140885,
+          "percent_all_samples": 1.0921072316978921
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'(), std::__2::allocator<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'()>, void ()>::operator()()",
+          "seconds": 0.039061,
+          "percent_all_samples": 0.3027916426684982
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.033731,
+          "percent_all_samples": 0.2614747420406828
+        },
+        {
+          "name": "eka2l1::drivers::shared_graphics_driver::update_bitmap(unsigned long long, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, void const*, unsigned long)",
+          "seconds": 0.032688,
+          "percent_all_samples": 0.2533896524806807
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.00946,
+          "percent_all_samples": 0.0733316847915822
+        },
+        {
+          "name": "texSubImage2D",
+          "seconds": 0.008461,
+          "percent_all_samples": 0.06558767283526185
+        },
+        {
+          "name": "emscriptenWebGLGet",
+          "seconds": 0.004215,
+          "percent_all_samples": 0.032673684079970296
+        },
+        {
+          "name": "clear",
+          "seconds": 0.00318,
+          "percent_all_samples": 0.024650608629728482
+        },
+        {
+          "name": "do_proxy",
+          "seconds": 0.003164,
+          "percent_all_samples": 0.024526580410207832
+        },
+        {
+          "name": "postMessage",
+          "seconds": 0.003121,
+          "percent_all_samples": 0.024193254570246098
+        },
+        {
+          "name": "eka2l1::drivers::shared_graphics_driver::dispatch(eka2l1::drivers::command&)",
+          "seconds": 0.002119,
+          "percent_all_samples": 0.016425987322765612
+        },
+        {
+          "name": "_glDisable",
+          "seconds": 0.002118,
+          "percent_all_samples": 0.016418235559045573
+        },
+        {
+          "name": "_clock_time_get",
+          "seconds": 0.002115,
+          "percent_all_samples": 0.01639498026788545
+        },
+        {
+          "name": "proxyToMainThread",
+          "seconds": 0.002115,
+          "percent_all_samples": 0.01639498026788545
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002112,
+          "percent_all_samples": 0.01637172497672533
+        },
+        {
+          "name": "activeTexture",
+          "seconds": 0.002112,
+          "percent_all_samples": 0.01637172497672533
+        },
+        {
+          "name": "_emscripten_run_on_main_thread_js",
+          "seconds": 0.00211,
+          "percent_all_samples": 0.01635622144928525
+        },
+        {
+          "name": "void std::__2::vector<unsigned char, std::__2::allocator<unsigned char>>::__assign_with_size[abi:ne200100]<unsigned char*, unsigned char*>(unsigned char*, unsigned char*, long)",
+          "seconds": 0.002108,
+          "percent_all_samples": 0.016340717921845167
+        },
+        {
+          "name": "js-to-wasm:i:i",
+          "seconds": 0.002106,
+          "percent_all_samples": 0.016325214394405086
+        },
+        {
+          "name": "flush",
+          "seconds": 0.002106,
+          "percent_all_samples": 0.016325214394405086
+        },
+        {
+          "name": "get buffer",
+          "seconds": 0.00107,
+          "percent_all_samples": 0.00829438718044323
+        },
+        {
+          "name": "bindFramebuffer",
+          "seconds": 0.001059,
+          "percent_all_samples": 0.008209117779522787
+        },
+        {
+          "name": "glUniform4fv",
+          "seconds": 0.001058,
+          "percent_all_samples": 0.008201366015802746
+        },
+        {
+          "name": "bindBuffer",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.008193614252082704
+        },
+        {
+          "name": "growMemViews",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.008193614252082704
+        },
+        {
+          "name": "bindVertexArray",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.008193614252082704
+        },
+        {
+          "name": "emscripten_builtin_malloc",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.008193614252082704
+        },
+        {
+          "name": "eka2l1::drivers::ogl_graphics_driver::dispatch(eka2l1::drivers::command&)",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.008193614252082704
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-18.cpuprofile",
+      "sampled_seconds": 12.898307,
+      "work_seconds": 0.002112,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.896195,
+          "percent_all_samples": 99.98362575801615
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002112,
+          "percent_all_samples": 0.016374241983851057
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-15.cpuprofile",
+      "sampled_seconds": 12.899059,
+      "work_seconds": 0.00211,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.896949,
+          "percent_all_samples": 99.98364221762223
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.00211,
+          "percent_all_samples": 0.016357782377768797
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-21.cpuprofile",
+      "sampled_seconds": 12.896908,
+      "work_seconds": 0.002109,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.894799,
+          "percent_all_samples": 99.9836472431997
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002109,
+          "percent_all_samples": 0.01635275680031214
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-28.cpuprofile",
+      "sampled_seconds": 12.890523,
+      "work_seconds": 0.002071,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.888452,
+          "percent_all_samples": 99.98393393347966
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002071,
+          "percent_all_samples": 0.016066066520342114
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-22.cpuprofile",
+      "sampled_seconds": 12.896602,
+      "work_seconds": 0.001057,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.895545,
+          "percent_all_samples": 99.99180404264627
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.008195957353727749
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-24.cpuprofile",
+      "sampled_seconds": 12.892255,
+      "work_seconds": 0.001056,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.891199,
+          "percent_all_samples": 99.99180903573503
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.008190964264979245
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-17.cpuprofile",
+      "sampled_seconds": 12.898269,
+      "work_seconds": 0.001056,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.897213,
+          "percent_all_samples": 99.99181285488774
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.008187145112262739
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-25.cpuprofile",
+      "sampled_seconds": 12.89291,
+      "work_seconds": 0.001054,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.891856,
+          "percent_all_samples": 99.99182496426332
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001054,
+          "percent_all_samples": 0.008175035736695594
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-27.cpuprofile",
+      "sampled_seconds": 12.889929,
+      "work_seconds": 0.001053,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.888876,
+          "percent_all_samples": 99.9918308316516
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001053,
+          "percent_all_samples": 0.008169168348405954
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-30.cpuprofile",
+      "sampled_seconds": 12.887719,
+      "work_seconds": 0.001053,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.886666,
+          "percent_all_samples": 99.99182943079377
+        },
+        {
+          "name": "now",
+          "seconds": 0.001053,
+          "percent_all_samples": 0.008170569206234246
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-20.cpuprofile",
+      "sampled_seconds": 12.895251,
+      "work_seconds": 0.001052,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.894199,
+          "percent_all_samples": 99.99184195794251
+        },
+        {
+          "name": "_emscripten_yield",
+          "seconds": 0.001052,
+          "percent_all_samples": 0.008158042057498533
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-23.cpuprofile",
+      "sampled_seconds": 12.894907,
+      "work_seconds": 0.00105,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.893857,
+          "percent_all_samples": 99.9918572503082
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.00105,
+          "percent_all_samples": 0.008142749691796925
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-2.cpuprofile",
+      "sampled_seconds": 12.903763,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.903763,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-1.cpuprofile",
+      "sampled_seconds": 12.903883,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.903883,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-6.cpuprofile",
+      "sampled_seconds": 12.90348,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.90348,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-4.cpuprofile",
+      "sampled_seconds": 12.903667,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.903667,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-19.cpuprofile",
+      "sampled_seconds": 12.896882,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.896882,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-0.cpuprofile",
+      "sampled_seconds": 12.903074,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.903074,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-8.cpuprofile",
+      "sampled_seconds": 12.902551,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.902551,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-31.cpuprofile",
+      "sampled_seconds": 12.897233,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.897233,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-29.cpuprofile",
+      "sampled_seconds": 12.886938,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.886938,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-16.cpuprofile",
+      "sampled_seconds": 12.898817,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.898817,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-11.cpuprofile",
+      "sampled_seconds": 12.903035,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.903035,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-9.cpuprofile",
+      "sampled_seconds": 12.901989,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.901989,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-7.cpuprofile",
+      "sampled_seconds": 12.903068,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.903068,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-12.cpuprofile",
+      "sampled_seconds": 12.902343,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.902343,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-5.cpuprofile",
+      "sampled_seconds": 12.903566,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.903566,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-3.cpuprofile",
+      "sampled_seconds": 12.903659,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.903659,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-26.cpuprofile",
+      "sampled_seconds": 12.89311,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 12.89311,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-10.cpuprofile",
+      "sampled_seconds": 12.903266,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 12.903266,
+          "percent_all_samples": 100.0
+        }
+      ]
+    }
+  ],
+  "profiles": {
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-2.cpuprofile": "2cefffe93e397037a28463fdb9e8a00ae996078c183d7cbaf7e7dafa61d2f40e",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-22.cpuprofile": "9d036c9fc5b0389f79ad7e96f6962ba8af088356499e2f4e9a1dbfc85b7a7794",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-1.cpuprofile": "3253307877fb566ded7d4a9ba95853ecf8c1f22baecea94b93f980b757b1664c",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-20.cpuprofile": "c5752f754c2033ffa241a7da69fd7c747c1be96160631a3e415e8b920a58d60d",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-6.cpuprofile": "da4221fec813236e45bf1b801bf64e71a885378a8f07a7603228ae7842891700",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-4.cpuprofile": "47a66d6511fdccba8a63e4d223177733578c5a88c2815efff26096bd38139f0a",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-27.cpuprofile": "7a54e85d680e4c6e401e5e40f81ffc675c8ae81c491b0e63d802fcf3febdc2a0",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-19.cpuprofile": "001e0165c714a0f9a7190ec3f563df7425bc0aa006f4ccf8cc6f40ab90a24483",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-0.cpuprofile": "adfab8b30067d82c5e2a725a483c14f188b4977dea388e8d40e904790d9b6d76",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-8.cpuprofile": "c0e4e360bf4bb1c3020fd8ec714725448fe525554d9340da26901d7bb3dd92ce",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-31.cpuprofile": "72a21ee654e73c0e22e5bc15af22dcf468a9671340cdc4917ccf94b98d0832b8",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-29.cpuprofile": "eb09991c0cf99a1aacb81ece619e80336f44ac259eb826b7db0ce415a38201b0",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-28.cpuprofile": "0d3ece7f3b95493956e6141cc63e0f14aab1d4b028745e4240c200bdb6519753",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-16.cpuprofile": "59141b1810d88614fef36afb36cf5a61a53377c767251a7ad255b3136bbeae47",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-30.cpuprofile": "37e5fd144ab568109463ac9b9487a4d066250a856b49cf31f6051e0fa91d4ae2",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-11.cpuprofile": "72fb7e76af33c1f017afb1f6c2afcce322f92fed67487aa7c72fa09197de4a53",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-9.cpuprofile": "6fda6ab2d28aa0e79d3bdb985d6140fef0c472fc8c7992939d70272838624ef2",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-24.cpuprofile": "8c2fd83f7d08c483f10f4e37cefcfe3a19e12ec60285fef3937beb1e8331e7fa",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-21.cpuprofile": "5a14f0bef90431af1570467132ceb6352c5fa0969c12da47d3c5c43b036102b7",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-7.cpuprofile": "9563b1895e907eb7d6382f706a77e7cc3c39926dd7a4c2bd17db724350951c1e",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-14.cpuprofile": "b41f91bf172159f0aff3a2a9e74944f6b1b9cbf435ec91984b3908acc4632f0e",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-12.cpuprofile": "d1852d0a988ac9042ca340ff546022e8a13504f5bdb6b2bc0313dbd18314dd84",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-23.cpuprofile": "8c05ef314a73f162cedf27e6899b19f83c060195e3b2dd9cfbf890c8fc20cee4",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-18.cpuprofile": "e4639f91c8c53dad2bb591094faa18406783e18d1831159edfe113d1f14b6303",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-13.cpuprofile": "63f666c6f854de19d8ff76ecac9622f8f85779e77714525e26e5be26a0725977",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-5.cpuprofile": "4c35d65b482999fb79395c4f7d765b7d2bda909dcd3349ca87881cb9a52b237f",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-3.cpuprofile": "fc0c765e45df336e66eee4cc951228dc9f41a30a55248d3b5816ddad0fb4e07e",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-15.cpuprofile": "b3436e40e0201fbd035c456d789bcb48644171af3775c1138bc3cc1568a1a0fe",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-25.cpuprofile": "4048c36ae1e6bcf7060e9589b045bf02ad22ff7deb0e34b120f00ad1294e4446",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-26.cpuprofile": "e462dc3e078f969f91dfcabd7a9ef96438a0ecbfd3f93c3847de5756cf2a971b",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-17.cpuprofile": "f74e531d8e421a1ef48e058be1b8a2c8a405ada4a7069f041f145df5ad4ece18",
+    "/home/claude/.scratch/eka-sky-performance/v10b-profile-sky/worker-10.cpuprofile": "625eae5fb45af5cd58f529ede599dc517fde59ef80796cdb4a0e5cb615b53754"
+  }
+}

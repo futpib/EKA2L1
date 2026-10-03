@@ -24,6 +24,8 @@
 #include <common/guest_profile.h>
 #include <cpu/aot/exit_census.h>
 #include <cpu/aot/execution_limits.h>
+#include <cpu/aot/thumb_translator.h>
+#include <cpu/aot/arm_translator.h>
 #include <cpu/dyncom/arm_dyncom_dec.h>
 #include <drivers/audio/deterministic.h>
 #include <drivers/audio/clocked.h>
@@ -234,6 +236,62 @@ int eka2l1_ir_configure(int mode) {
 
 // DynCom and generated guards must select the same index before initialization.
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_synchronous_compilation_configure(int mode) {
+    if (g_state || mode < 0 || mode > 3 || (mode == 3 && eka2l1::arm::aot::dynamic_rom_cohorts)) return -1;
+    eka2l1::arm::aot::synchronous_compilation = static_cast<unsigned>(mode);
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_synchronous_compilation_report() { return eka2l1::arm::aot::synchronous_compilation; }
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_compiled_memory_misses_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::compiled_memory_misses = mode != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_compiled_memory_misses_report() { return eka2l1::arm::aot::compiled_memory_misses; }
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_compiled_svc_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::compiled_svc_enabled = mode != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_compiled_svc_report() { return eka2l1::arm::aot::compiled_svc_enabled; }
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_arm_exclusive_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::arm_exclusive_memory = mode != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_arm_exclusive_report() { return eka2l1::arm::aot::arm_exclusive_memory; }
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_arm_memory_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::arm_direct_memory = mode != 0;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_arm_memory_report() {
+    return eka2l1::arm::aot::arm_direct_memory;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_thumb_memory_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::thumb_direct_memory = mode != 0;
+    return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_thumb_memory_report() {
+    return eka2l1::arm::aot::thumb_direct_memory;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_tlb_hash_configure(int mode) {
     if (g_state || mode < 0 || mode > 1) return -1;
     eka2l1::arm::r12l1::dyncom_folded_tlb = mode != 0;
@@ -293,6 +351,45 @@ int eka2l1_code_compare_configure(int mode) {
     eka2l1::arm::aot::code_compare_mode = static_cast<unsigned>(mode);
     return 0;
 }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_leaves_configure(int enabled) {
+    if (g_state || enabled < 0 || enabled > 1) return -1;
+    eka2l1::arm::aot::rom_inline_leaves = enabled != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_leaves_report() { return eka2l1::arm::aot::rom_inline_leaves; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_calls_configure(int enabled) {
+    if (g_state || enabled < 0 || enabled > 1 || (enabled && eka2l1::arm::aot::rom_dispatch_enabled)) return -1;
+    eka2l1::arm::aot::rom_bounded_calls = enabled != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_calls_report() { return eka2l1::arm::aot::rom_bounded_calls; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_hotpath_configure(int policy) {
+    if (g_state || policy < 0 || policy > 7) return -1;
+    eka2l1::arm::aot::hotpath_policy = static_cast<unsigned>(policy);
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_hotpath_report() { return eka2l1::arm::aot::hotpath_policy; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_dispatch_configure(int enabled) {
+    if (g_state || enabled < 0 || enabled > 3 || (enabled && eka2l1::arm::aot::rom_bounded_calls)
+        || (enabled == 3 && eka2l1::arm::aot::synchronous_compilation == 3)) return -1;
+    eka2l1::arm::aot::rom_dispatch_enabled = enabled != 0;
+    eka2l1::arm::aot::rom_state_cohorts = enabled == 2;
+    eka2l1::arm::aot::dynamic_rom_cohorts = enabled == 3;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_rom_dispatch_report() { return eka2l1::arm::aot::dynamic_rom_cohorts ? 3 : eka2l1::arm::aot::rom_state_cohorts ? 2 : eka2l1::arm::aot::rom_dispatch_enabled; }
 
 // Eager ROM compilation research control. Ordinary startup keeps basic blocks.
 EMSCRIPTEN_KEEPALIVE

@@ -373,6 +373,11 @@ public:
     unsigned bigendSig;
     unsigned syscallSig;
 
+    // Optional module-local ROM dispatcher accounting. Existing generated-code
+    // field offsets above this point stay unchanged.
+    std::uint32_t aot_rom_callback = 0;
+    std::uint32_t aot_regions_left = 0, aot_regions_used = 0;
+
     // Data TLB shared with the owning dyncom_core (== core->mem_cache()), cached
     // here so the inline memory accessors above don't need the full dyncom_core
     // definition. Set by dyncom_core right after construction.

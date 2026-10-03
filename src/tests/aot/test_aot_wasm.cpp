@@ -26,8 +26,12 @@
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
+#include <cpu/aot/rom_dispatch.h>
+#include <cpu/aot/state_locals.h>
+#include <common/log.h>
 
 #include <cstdio>
+#include <thread>
 #include <cstring>
 #include <memory>
 #include <utility>
@@ -49,18 +53,18 @@ struct test_mem {
     test_mem() : data(SIZE, 0) {}
 
     void write32(std::uint32_t addr, std::uint32_t val) {
-        if (addr + 4 <= SIZE) std::memcpy(&data[addr], &val, 4);
+        if (addr <= SIZE - 4) std::memcpy(&data[addr], &val, 4);
     }
     std::uint32_t read32(std::uint32_t addr) const {
         std::uint32_t v = 0;
-        if (addr + 4 <= SIZE) std::memcpy(&v, &data[addr], 4);
+        if (addr <= SIZE - 4) std::memcpy(&v, &data[addr], 4);
         return v;
     }
     void write16(std::uint32_t addr, std::uint16_t val) {
-        if (addr + 2 <= SIZE) std::memcpy(&data[addr], &val, 2);
+        if (addr <= SIZE - 2) std::memcpy(&data[addr], &val, 2);
     }
     void write_code(std::uint32_t addr, const std::vector<std::uint8_t> &code) {
-        for (std::size_t i = 0; i < code.size() && addr + i < SIZE; i++)
+        for (std::size_t i = 0; addr < SIZE && i < code.size() && i < SIZE - addr; i++)
             data[addr + i] = code[i];
     }
 };
@@ -70,7 +74,7 @@ static std::unique_ptr<dyncom_core> make_cpu(test_mem &mem, r12l1::exclusive_mon
     test_mem *mp = &mem;
 
     core->read_code = [mp](address a, std::uint32_t *r) -> bool {
-        if (a + 4 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 4) return false;
         std::memcpy(r, &mp->data[a], 4); return true;
     };
     core->read_8bit = [mp](address a, std::uint8_t *r) -> bool {
@@ -82,27 +86,27 @@ static std::unique_ptr<dyncom_core> make_cpu(test_mem &mem, r12l1::exclusive_mon
         mp->data[a] = *r; return true;
     };
     core->read_16bit = [mp](address a, std::uint16_t *r) -> bool {
-        if (a + 2 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 2) return false;
         std::memcpy(r, &mp->data[a], 2); return true;
     };
     core->write_16bit = [mp](address a, std::uint16_t *r) -> bool {
-        if (a + 2 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 2) return false;
         std::memcpy(&mp->data[a], r, 2); return true;
     };
     core->read_32bit = [mp](address a, std::uint32_t *r) -> bool {
-        if (a + 4 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 4) return false;
         std::memcpy(r, &mp->data[a], 4); return true;
     };
     core->write_32bit = [mp](address a, std::uint32_t *r) -> bool {
-        if (a + 4 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 4) return false;
         std::memcpy(&mp->data[a], r, 4); return true;
     };
     core->read_64bit = [mp](address a, std::uint64_t *r) -> bool {
-        if (a + 8 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 8) return false;
         std::memcpy(r, &mp->data[a], 8); return true;
     };
     core->write_64bit = [mp](address a, std::uint64_t *r) -> bool {
-        if (a + 8 > test_mem::SIZE) return false;
+        if (a > test_mem::SIZE - 8) return false;
         std::memcpy(&mp->data[a], r, 8); return true;
     };
 
@@ -144,12 +148,14 @@ static unsigned g_expected_callback_pc = 0;
 static bool g_callback_pc_matches = true;
 static bool g_count_memory_helpers = false;
 static unsigned g_memory_helper_calls = 0;
+static unsigned g_all_memory_helper_calls = 0;
 static std::function<void(std::uint32_t,std::uint32_t)> g_read32_observer;
 static std::function<void(std::uint32_t,std::uint32_t,std::uint32_t)> g_write16_observer;
 
 extern "C" {
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read32(std::uint32_t state_ptr, std::uint32_t addr) {
+        ++g_all_memory_helper_calls;
         if (g_read32_observer) g_read32_observer(state_ptr, addr);
         if (g_count_memory_helpers) ++g_memory_helper_calls;
         if (g_expected_callback_pc)
@@ -169,28 +175,33 @@ extern "C" {
     }
     EMSCRIPTEN_KEEPALIVE
     void test_tlb_write32(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t val) {
+        ++g_all_memory_helper_calls;
         (void)state_ptr;
         if (g_count_memory_helpers) ++g_memory_helper_calls;
         if (g_test_mem) g_test_mem->write32(addr, val);
     }
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read8(std::uint32_t state_ptr, std::uint32_t addr) {
+        ++g_all_memory_helper_calls;
         (void)state_ptr;
-        return g_test_mem ? g_test_mem->data[addr] : 0;
+        return g_test_mem && addr < test_mem::SIZE ? g_test_mem->data[addr] : 0;
     }
     EMSCRIPTEN_KEEPALIVE
     std::uint32_t test_tlb_read16(std::uint32_t, std::uint32_t addr) {
+        ++g_all_memory_helper_calls;
         std::uint16_t value = 0;
-        if (g_test_mem && addr + 2 <= test_mem::SIZE) std::memcpy(&value, &g_test_mem->data[addr], 2);
+        if (g_test_mem && addr <= test_mem::SIZE - 2) std::memcpy(&value, &g_test_mem->data[addr], 2);
         return value;
     }
     EMSCRIPTEN_KEEPALIVE
     void test_tlb_write16(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t value) {
+        ++g_all_memory_helper_calls;
         if (g_write16_observer) { g_write16_observer(state_ptr,addr,value); return; }
         if (g_test_mem) g_test_mem->write16(addr, value);
     }
     EMSCRIPTEN_KEEPALIVE
     void test_tlb_write8(std::uint32_t state_ptr, std::uint32_t addr, std::uint32_t val) {
+        ++g_all_memory_helper_calls;
         (void)state_ptr;
         if (g_test_mem && addr < test_mem::SIZE) g_test_mem->data[addr] = static_cast<std::uint8_t>(val);
     }
@@ -2044,6 +2055,7 @@ static bool test_arm_clz() {
 // exactly the same number of DynCom instructions, including partial budgets.
 static bool test_bounded_execution() {
 #ifdef __EMSCRIPTEN__
+    struct restore_thumb { bool saved=thumb_direct_memory; ~restore_thumb(){thumb_direct_memory=saved;} } restore;
     struct program { bool thumb; std::vector<std::uint8_t> bytes; };
     auto arm = [](std::initializer_list<std::uint32_t> words) {
         std::vector<std::uint8_t> bytes(words.size() * 4);
@@ -2135,6 +2147,13 @@ static bool test_bounded_execution() {
         thumb({0xbd00}), // POP PC mode switch
         thumb({0x3001, 0xf000, 0xf800}), // return before long call halfwords
     };
+    // Long Thumb calls retain both halfword boundaries. Include negative
+    // displacements, halfword alignment, BL/BLX and undefined odd BLX suffixes.
+    for (std::uint16_t prefix : {0xf000,0xf001,0xf7ff})
+    for (std::uint16_t suffix : {0xf800,0xf801,0xffff,0xe800,0xe802,0xeffe,0xe801}) {
+        programs.push_back(thumb({prefix,suffix}));
+        programs.push_back(thumb({0x2001,prefix,suffix}));
+    }
     // Lazy arithmetic flag recipes must survive exact short budgets, reads,
     // conditional writes, forward joins, loop backedges and helper callbacks.
     for (unsigned cond = 0; cond < 15; ++cond) {
@@ -2208,7 +2227,9 @@ static bool test_bounded_execution() {
         }
     std::rotate(programs.begin(), programs.begin() + existing_programs, programs.end());
     int index = 0;
-    for (unsigned variant = 0; variant < 7; ++variant) for (const auto &p : programs) {
+    for (unsigned variant = 0; variant < 9; ++variant) for (const auto &p : programs) {
+        if (variant >= 7 && !p.thumb) continue;
+        thumb_direct_memory = variant >= 7;
         const bool region = variant >= 4, cache_registers = region || (variant & 2), stop_after_store = variant & 1;
         auto tr = p.thumb ? translate_thumb_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers)
                           : translate_arm_block(p.bytes.data(), p.bytes.size(), 0x1000, nullptr, nullptr, true, stop_after_store, cache_registers, region);
@@ -2231,6 +2252,7 @@ static bool test_bounded_execution() {
             cpu->set_cpsr(0x10000010 | (carry<<29) | (p.thumb ? 0x20 : 0));
             set(state_offsets::CPSR,cpu->get_cpsr());
             set(state_offsets::MODE,16);
+            set(state_offsets::NUM_INSTRS_TO_EXECUTE,budget);
             set(state_offsets::CFLAG,carry); set(state_offsets::VFLAG,1);
             set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget); set(state_offsets::NIRQ,1);
             r12l1::tlb direct(12,r12l1::dyncom_folded_tlb);
@@ -2268,7 +2290,7 @@ static bool test_bounded_execution() {
         }
         ++index;
     }
-    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",programs.size()*784);
+    printf("  PASS bounded_execution (%zu exact budget/state/memory comparisons)\n",static_cast<std::size_t>(index)*112);
 #endif
     return true;
 }
@@ -2376,8 +2398,9 @@ static bool test_region_code_alias() {
     return true;
 }
 
-static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured) {
+static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured, bool rom_resolver = false) {
 #ifdef __EMSCRIPTEN__
+    if (rom_resolver) printf("  Production ROM resolver execution comparisons\n");
     // Repeated far calls in a loop, including real workload memory leaves.
     const std::vector<std::uint32_t> caller = (policy == arm_ir_policy::inline_call_ir || policy == arm_ir_policy::invariant_write_ir)
         ? std::vector<std::uint32_t>{0xe1a0800f,0xeb0003fd,0xe1a0900f,0xeb0003fb,0xe2566001,0x1afffff9}
@@ -2396,12 +2419,15 @@ static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured
     for (bool deferred : {false,true}) for (const auto &words : leaves) {
         if ((policy == arm_ir_policy::inline_call_ir || policy == arm_ir_policy::invariant_write_ir) && !deferred) continue;
         std::vector<std::uint8_t> leaf(words.size()*4); std::memcpy(leaf.data(),words.data(),leaf.size());
-        leaf_resolver resolve = [&](std::uint32_t pc) { return pc == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
+        leaf_resolver resolve = [&](std::uint32_t pc) { return rom_resolver ? resolve_rom_leaf(leaf.data(), 0x2000, leaf.size(), pc) : pc == 0x2000 ? leaf : std::vector<std::uint8_t>{}; };
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(caller.data()),caller.size()*4,0x1000,nullptr,nullptr,true,true,true,true,&resolve,deferred,policy);
         if ((policy == arm_ir_policy::inline_call_ir || policy == arm_ir_policy::invariant_write_ir) && !tr.ir_inline_transfers) {printf("  FAIL inline transfers not selected\n");return false;}
         if (tr.dependencies.size()!=1 || tr.end_address!=0x1000+caller.size()*4) {printf("  FAIL leaf discovery\n");return false;}
 #if defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)
-        if (deferred && words.size() >= 5 && !tr.ir_memory_guards && !tr.ir_proved_writes) {
+        // Policy 7 uses deferred memory and budget chunks, not the IR proof
+        // backend required by the older selections exercised here.
+        if (policy != arm_ir_policy::write_budget_chunks && deferred
+            && words.size() >= 5 && !tr.ir_memory_guards && !tr.ir_proved_writes) {
             printf("  FAIL inlined memory leaf did not select IR guards\n"); return false;
         }
 #endif
@@ -2469,6 +2495,81 @@ static bool test_region_cpsr_callback() {
     }
 #endif
     printf("  PASS region_cpsr_callback\n"); return true;
+}
+
+static bool test_compiled_memory_misses() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking = eka2l1::common::code_tracking;
+    const auto saved_mode=tracking::unsafe_code_mode;
+    const auto saved_fold=r12l1::dyncom_folded_tlb;
+    const auto saved_option=compiled_memory_misses;
+    struct restore { bool option; unsigned mode; bool folded;
+        ~restore(){compiled_memory_misses=option;tracking::unsafe_code_mode=mode;r12l1::dyncom_folded_tlb=folded;}
+    } saved{saved_option,saved_mode,saved_fold};
+    unsigned checks=0;
+    // Select the production policy explicitly: default IR segments can still
+    // take separate guarded IR exits, which this scalar/span option does not change.
+    for(bool folded:{false,true})for(unsigned mode:{0u,3u})
+    for(unsigned opcode:{0xe5910000u,0xe5810000u,0xe5d10000u,0xe5c10000u,0xe891000du,0xe881000du})
+    for(bool wide:{false,true}) {
+        tracking::unsafe_code_mode=mode;r12l1::dyncom_folded_tlb=folded;
+        const unsigned code[]={wide?0xe0c54796u:0xe3b02007u,opcode,0xe2844001u};
+        std::vector<std::uint8_t> modules[2];
+        for(unsigned variant=0;variant<2;++variant) {
+            compiled_memory_misses=variant;
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,arm_ir_policy::write_budget_chunks);
+            modules[variant]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        }
+        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0x8000u,0x8001u,0x8ffcu,0u})for(unsigned budget:{0u,1u,2u,3u}) {
+            test_mem memory;for(unsigned i=0x7000;i<0xa000;++i)memory.data[i]=(i*17+3)&255;
+            const auto initial=memory.data;
+            r12l1::tlb tlb(12,folded);tlb.add(0x8000,memory.data.data()+0x8000,permission);
+            std::array<unsigned,256> states[2]{};std::vector<std::uint8_t> output[2];int counts[2];unsigned helpers[2];
+            for(unsigned variant=0;variant<2;++variant) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());auto &state=states[variant];
+                for(unsigned i=0;i<15;++i)state[i]=0x12340000+i;
+                state[1]=address;state[15]=0x1000;state[state_offsets::CPSR/4]=0xa0000010|endian;
+                state[state_offsets::NFLAG/4]=1;state[state_offsets::CFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;
+                state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                counts[variant]=js_run_aot_wasm(modules[variant].data(),modules[variant].size(),reinterpret_cast<std::uint8_t*>(state.data()),sizeof(state));
+                helpers[variant]=g_all_memory_helper_calls;output[variant]=memory.data;g_test_mem=nullptr;
+            }
+            if(counts[0]!=counts[1]||states[0]!=states[1]||helpers[0]!=helpers[1]||output[0]!=output[1]) {
+                printf(" FAIL compiled memory misses op=%x mode=%u folded=%u wide=%u perm=%u endian=%u addr=%x budget=%u counts=%d/%d helpers=%u/%u\n",opcode,mode,folded,wide,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
+            }
+            ++checks;
+        }
+    }
+    // A cold callback sees the materialized multiply pair and can change both
+    // halves, flags and the stop/IRQ request. Compare with the existing helper path.
+    for(unsigned action:{0u,1u,2u,3u}) {
+        const unsigned code[]={0xe0c54796u,0xe5910000u,0xe0848005u};
+        test_mem memory;memory.write32(0x8000,42);r12l1::tlb tlb(12,saved_fold);
+        std::array<unsigned,256> states[2]{};int counts[2];std::array<unsigned,4> observations[2]{};
+        for(unsigned variant=0;variant<2;++variant) {
+            compiled_memory_misses=variant;
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,arm_ir_policy::write_budget_chunks);
+            auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+            auto &v=states[variant];v[1]=0x8000;v[6]=0x87654321;v[7]=0x12345678;v[15]=0x1000;
+            v[state_offsets::CPSR/4]=0x10;v[state_offsets::AOT_BUDGET/4]=3;v[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;v[state_offsets::NIRQ/4]=1;
+            v[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+            g_test_mem=&memory;g_read32_observer=[&](unsigned ptr,unsigned address){
+                auto *s=reinterpret_cast<unsigned*>(ptr);observations[variant]={s[4],s[5],s[15],address};s[4]=11;s[5]=22;s[state_offsets::CFLAG/4]=1;
+                if(action==1)s[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;
+                if(action==2)s[state_offsets::NIRQ/4]=0;
+                if(action==3)s[state_offsets::CPSR/4]|=0x200;
+            };
+            counts[variant]=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(v.data()),sizeof(v));g_read32_observer={};g_test_mem=nullptr;
+        }
+        if(counts[0]!=counts[1]||states[0]!=states[1]||observations[0]!=observations[1]||observations[1][2]!=0x1004) {printf(" FAIL compiled memory callback action=%u\n",action);return false;}++checks;
+    }
+    compiled_memory_misses=saved_option;tracking::unsafe_code_mode=saved_mode;r12l1::dyncom_folded_tlb=saved_fold;
+    printf(" PASS compiled memory misses (%u state/memory/budget/callback comparisons)\n",checks);
+#endif
+    return true;
 }
 
 static bool test_deferred_memory_exits() {
@@ -4232,6 +4333,891 @@ static bool test_msr_privilege_guard() {
     return true;
 }
 
+
+static bool test_arm_short_block_memory() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking=eka2l1::common::code_tracking;
+    struct restore {
+        bool direct=arm_direct_memory,folded=r12l1::dyncom_folded_tlb;
+        unsigned mode=tracking::unsafe_code_mode;
+        ~restore(){arm_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
+            tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
+    } saved;
+    std::vector<unsigned> ops={0xe5910000,0xe5810000,0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,
+        0xe1d100d0,0xe1d100f0,0xe8b1000d,0xe8a1000d};
+    // Every addressing direction, pre/post indexing and legal writeback form;
+    // high registers/PC, a base in the load list without writeback, and wide spans.
+    for(unsigned addressing:{0u,1u<<23,1u<<24,(1u<<23)|(1u<<24)})
+    for(bool load:{false,true})for(bool writeback:{false,true})
+    for(unsigned mask:{0x1005u,0xc005u,0x500fu,0x7ffdu}) {
+        if(writeback && (mask&2))continue;
+        ops.push_back(0xe8010000u|addressing|(load?1u<<20:0)|(writeback?1u<<21:0)|mask);
+    }
+    unsigned checks=0;
+    for(bool folded:{false,true})for(unsigned mode:{0u,1u,2u,3u})for(unsigned opcode:ops) {
+        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        const unsigned code[]={0xe3b02007,opcode,0xe2844001};
+        std::vector<std::uint8_t> modules[2];
+        for(unsigned enabled=0;enabled<2;++enabled) {
+            arm_direct_memory=enabled;
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,false);
+            modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        }
+        test_mem memory;
+        for(unsigned a=0;a<test_mem::SIZE;++a)memory.data[a]=static_cast<unsigned char>(a*37+19);
+        const auto initial=memory.data;
+        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0u,0x8040u,0x8001u,0x8ffeu,0x8ffcu})for(unsigned budget:{0u,1u,2u,3u}) {
+            r12l1::tlb tlb(12,folded);if(permission)tlb.add(0x8000,memory.data.data()+0x8000,permission);
+            alignas(8) std::array<unsigned,256> states[2]{};int counts[2];unsigned helpers[2];std::vector<unsigned char> expected;
+            for(unsigned enabled=0;enabled<2;++enabled) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());
+                auto &state=states[enabled];for(unsigned reg=0;reg<16;++reg)state[reg]=0xabc00000u+reg;
+                state[1]=address;state[15]=0x1000;state[state_offsets::CPSR/4]=0xa0000010|endian;
+                state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
+                helpers[enabled]=g_all_memory_helper_calls;if(!enabled)expected=memory.data;
+            }
+            const bool block=(opcode&0x0e000000u)==0x08000000u;
+            const bool write=!(opcode&(1u<<20));
+            const bool loads_pc=block&&!write&&(opcode&0x8000);
+            const unsigned expected_count=loads_pc?std::min(budget,2u):budget;
+            if(counts[0]!=int(expected_count)||counts[1]!=counts[0]||states[0]!=states[1]||memory.data!=expected
+                ||(budget>=2&&address==0x8040&&!endian&&(permission&(write?2:1))&&(!write||mode==3)&&helpers[1])) {
+                printf(" FAIL ARM short memory op=%x mode=%u folded=%u perm=%u endian=%x address=%x budget=%u count=%d/%d helpers=%u/%u\n",
+                    opcode,mode,folded,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
+            }
+            ++checks;
+        }
+    }
+    // A callback between reads replaces both state and the TLB. No proof
+    // from the earlier instruction may survive into the last read.
+    for(unsigned budget:{2u,3u,4u})for(unsigned endian:{0u,0x200u}) {
+        const unsigned code[]={0xe5910000,0xe5923000,0xe5914004,0xe2844001};
+        test_mem before,after;before.write32(0x8000,11);after.write32(0x8004,0x12345678);after.write32(0xa000,22);
+        r12l1::tlb old_tlb(12,r12l1::dyncom_folded_tlb),new_tlb(12,r12l1::dyncom_folded_tlb);
+        old_tlb.add(0x8000,before.data.data()+0x8000,1);new_tlb.add(0x8000,after.data.data()+0x8000,1);
+        alignas(8) std::array<unsigned,256> states[2]{};int counts[2];bool seen[2]{};
+        for(unsigned enabled=0;enabled<2;++enabled) {
+            arm_direct_memory=enabled;
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,false);
+            auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+            auto &state=states[enabled];state[1]=0x8000;state[2]=0xa000;state[15]=0x1000;
+            state[state_offsets::CPSR/4]=0x10;state[state_offsets::AOT_BUDGET/4]=4;
+            state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(old_tlb.entries);
+            state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;
+            g_test_mem=&before;
+            g_read32_observer=[&](unsigned ptr,unsigned address){
+                if(address!=0xa000)return;auto *v=reinterpret_cast<unsigned *>(ptr);
+                seen[enabled]=v[0]==11&&v[15]==0x1004;v[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(new_tlb.entries);
+                v[state_offsets::AOT_BUDGET/4]=budget;v[state_offsets::CPSR/4]=0x10|endian;v[state_offsets::CFLAG/4]=1;g_test_mem=&after;
+            };
+            counts[enabled]=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));g_read32_observer={};
+        }
+        if(!seen[0]||!seen[1]||counts[0]!=int(budget)||counts[1]!=counts[0]||states[0]!=states[1]) {
+            printf(" FAIL ARM short callback state/budget/TLB endian=%u budget=%u\n",endian,budget);return false;
+        }
+        ++checks;
+    }
+    // Stop/IRQ is observed after the whole memory instruction, including
+    // multi-register writeback, but before the following arithmetic opcode.
+    arm_direct_memory=true;
+    for (bool folded : {false,true}) for (unsigned mode : {0u,3u})
+    for (unsigned opcode : {0xe5910000u,0xe8b1000du})
+    for (unsigned action : {0u,1u,2u,3u,4u}) {
+        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        const unsigned code[]={0xe3b02007,opcode,0xe2844001};
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,false);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem memory;memory.write32(0x8000,11);memory.write32(0x8004,22);memory.write32(0x8008,33);
+        r12l1::tlb tlb(12,folded);
+        alignas(8) std::array<unsigned,256> state{};
+        state[1]=0x8000;state[4]=99;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=0x10;state[state_offsets::AOT_BUDGET/4]=3;
+        state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        unsigned calls=0;bool visible=true;g_test_mem=&memory;
+        g_read32_observer=[&](unsigned ptr,unsigned address) {
+            auto *v=reinterpret_cast<unsigned *>(ptr);++calls;
+            visible &= v[15]==0x1004 && v[4]==99;
+            if(address!=0x8000)return;
+            if(action==1 || action==2) {
+                v[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;
+                v[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=action==2?1:0;
+            }
+            if(action==3 || action==4) {
+                v[state_offsets::NIRQ/4]=0;
+                if(action==4)v[state_offsets::CPSR/4]|=0x80;
+            }
+        };
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
+        g_read32_observer={};
+        const bool stopped=action==1 || action==3;
+        const bool multi=opcode==0xe8b1000d;
+        if(!visible || calls!=(multi?3u:1u) || count!=(stopped?2:3)
+            || state[0]!=11 || state[4]!=(stopped?99u:100u) || state[15]!=(stopped?0x1008u:0x100cu)
+            || state[1]!=(multi?0x800cu:0x8000u) || (multi && (state[2]!=22 || state[3]!=33))) {
+            printf(" FAIL ARM callback boundary opcode=%x mode=%u folded=%u action=%u count=%d calls=%u\n",opcode,mode,folded,action,count,calls);return false;
+        }
+        ++checks;
+    }
+    printf(" PASS ARM short block memory (%u full-state/memory/budget/callback comparisons)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_bounded_rom_calls() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        bool memory = thumb_direct_memory;
+        ~restore() { thumb_direct_memory = memory; g_read32_observer = nullptr; g_test_mem = nullptr; }
+    } saved;
+    thumb_direct_memory = true;
+    const std::vector<wasm_import_func> imports = {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+    unsigned checks = 0;
+    for (unsigned caller_kind = 0; caller_kind < 3; ++caller_kind)
+    for (unsigned callee_kind = 0; callee_kind < 5; ++callee_kind) {
+        // A pure arithmetic prefix, a callback prefix (must not link), and
+        // a guest self-call whose destination is the unlinked base function.
+        std::vector<std::uint16_t> caller = {std::uint16_t(caller_kind == 1 ? 0x6808 : 0x3001), 0xf000, 0xfffd};
+        if (caller_kind == 2) caller[2] = 0xfffd, caller[1] = 0xf7ff; // 0x1002 -> 0x1000
+        const std::vector<std::vector<std::uint16_t>> bodies = {
+            {0x3201,0x4770}, {0x6808,0x4770}, {0x6008,0x4770}, {0xbd01}, {0x3201,0xde00}};
+        const auto &callee = bodies[callee_kind];
+        auto translate = [&](const std::vector<std::uint16_t> &code, unsigned pc, const sibling_map *map = nullptr) {
+            return translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code.data()),code.size()*2,pc,
+                nullptr,nullptr,true,false,true,map);
+        };
+        auto original = translate(caller,0x1000), child = translate(callee,0x2000);
+        sibling_map targets{{0x2001,7},{0x1001,8}};
+        auto linked = translate(caller,0x1000,&targets);
+        if (linked.bounded_direct_calls != unsigned(caller_kind != 1)) return false;
+        original.func.export_name = "original"; child.func.export_name = "child";
+        auto linked_module = build_wasm_module({linked.func,child.func,original.func},imports);
+        auto original_module = build_wasm_module({original.func},imports);
+        auto child_module = caller_kind == 2 ? original_module : build_wasm_module({child.func},imports);
+        // Missing and wrong-mode targets must preserve ordinary dispatch.
+        sibling_map absent{{0x2000,7}};
+        if (translate(caller,0x1000,&absent).bounded_direct_calls) return false;
+        for (unsigned budget = 0; budget <= 8; ++budget)
+        for (unsigned stop : {0u,1u,2u}) for (unsigned irq : {0u,1u,2u})
+        for (unsigned callback : {0u,1u,2u}) {
+            test_mem memory; memory.write32(0x8000,0x12345678);memory.write32(0x8004,0x3001);
+            const auto initial = memory.data;
+            alignas(8) std::uint32_t states[2][256]{};
+            int counts[2]; unsigned helpers[2]; std::vector<std::uint8_t> expected;
+            for (unsigned variant = 0; variant < 2; ++variant) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());
+                auto *state = states[variant];
+                for (unsigned reg=0;reg<16;++reg) state[reg]=0xabc00000u+reg;
+                state[1]=state[13]=0x8000;state[15]=0x1000;
+                state[state_offsets::CPSR/4]=0x30 | (irq == 2 ? 0x80 : 0);
+                state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=stop==1;
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=stop==2;
+                state[state_offsets::NIRQ/4]=irq==0;
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                g_read32_observer=[&](unsigned ptr,unsigned) {
+                    auto *s=reinterpret_cast<unsigned *>(ptr);
+                    if(callback==1) {s[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;s[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=0;}
+                    if(callback==2) s[state_offsets::NIRQ/4]=0;
+                    s[3]=0x55667788; // publication/reload must preserve callback mutations
+                };
+                auto &module=variant ? linked_module : original_module;
+                counts[variant]=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[variant]));
+                // Independent outer-runner composition oracle: only the pure
+                // caller is eligible; this reproduces its removed boundary.
+                if (!variant && caller_kind != 1 && counts[0]>0 && unsigned(counts[0])<budget &&
+                    state[15]==(caller_kind==2?0x1000u:0x2000u) &&
+                    (state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]||state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]) &&
+                    (state[state_offsets::NIRQ/4]||(state[state_offsets::CPSR/4]&0x80))) {
+                    state[state_offsets::AOT_BUDGET/4]=budget-counts[0];
+                    counts[0]+=js_run_aot_wasm(child_module.data(),child_module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[0]));
+                    state[state_offsets::AOT_BUDGET/4]=budget;
+                }
+                helpers[variant]=g_all_memory_helper_calls;
+                if (!variant) expected=memory.data;
+            }
+            if(counts[0]!=counts[1]||std::memcmp(states[0],states[1],sizeof(states[0]))||expected!=memory.data||helpers[0]!=helpers[1]) {
+                printf(" FAIL ROM calls caller=%u callee=%u budget=%u stop=%u irq=%u callback=%u counts=%d/%d pc=%x/%x\n",
+                    caller_kind,callee_kind,budget,stop,irq,callback,counts[0],counts[1],states[0][15],states[1][15]);return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS bounded ROM calls (%u full-state/memory/budget/stop/IRQ/callback/self-call comparisons)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_rom_dispatch() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        bool memory=thumb_direct_memory, dispatch=rom_dispatch_enabled, svc=compiled_svc_enabled;
+        unsigned cap=runner_region_limit;
+        ~restore(){thumb_direct_memory=memory;rom_dispatch_enabled=dispatch;compiled_svc_enabled=svc;runner_region_limit=cap;
+            g_read32_observer=nullptr;g_test_mem=nullptr;global_registry().clear();}
+    } saved;
+    thumb_direct_memory=true;compiled_svc_enabled=true;
+    unsigned extent_checks=0, checks=0;
+    for(unsigned base:{0u,0x1000u,0x80000000u,0xfffff000u})
+    for(unsigned size:{1u,2u,4095u,4096u,4097u}) {
+        rom_dispatch_map map(base,size,3);
+        const bool valid=std::uint64_t(base)+size<=(std::uint64_t{1}<<32);
+        if(map.valid!=valid)return false;
+        for(unsigned delta:{0u,1u,2u,3u,4u,4094u,4095u,4096u,4097u,0xffffffffu}) {
+            const unsigned key=base+delta;
+            const bool want=valid&&key>=base&&key-base<size&&((key&1)||!(key&3));
+            if(map.insert(key,1)!=want||map.lookup(key)!=(want?2u:0u))return false;
+            if(map.insert(key,3)||map.insert(key,0)) {if(want||map.lookup(key))return false;}
+            ++extent_checks;
+        }
+    }
+    if(rom_dispatch_map(3,4096,2).valid||rom_dispatch_map(0,0,2).valid)return false;
+    const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+    for(unsigned shape=0;shape<8;++shape) {
+        const std::uint16_t first[]={std::uint16_t(shape==2?0x6808:shape==5?0xdf20:0x3001),std::uint16_t(shape==1?0x4718:0xe07d)};
+        const std::uint16_t second[]={std::uint16_t(shape==3?0xde00:0x3201),std::uint16_t(shape==4?0x4770:0xe77d)};
+        const std::uint32_t arm[]={0xe2811001,0xe12fff14};
+        const std::uint32_t svc_first[]={shape==6?0xef000020u:0x0f000020u,0xe2800001u};
+        auto a=shape>=6?translate_arm_block(reinterpret_cast<const std::uint8_t *>(svc_first),sizeof(svc_first),0x1000,nullptr,nullptr,true,false,true)
+            :translate_thumb_block(reinterpret_cast<const std::uint8_t *>(first),sizeof(first),0x1000,nullptr,nullptr,true,false,true);
+        auto b=shape==1?translate_arm_block(reinterpret_cast<const std::uint8_t *>(arm),sizeof(arm),0x2000,nullptr,nullptr,true,false,true)
+            :translate_thumb_block(reinterpret_cast<const std::uint8_t *>(second),sizeof(second),0x1100,nullptr,nullptr,true,false,true);
+        const unsigned key1=shape>=6?0x1000:0x1001,key2=shape==1?0x2000:0x1101;
+        a.func.export_name="f_"+std::to_string(key1);b.func.export_name="f_"+std::to_string(key2);
+        auto map=std::make_shared<rom_dispatch_map>(0x1000,0x2000,2);
+        if(!map->insert(key1,0)||!map->insert(key2,1))return false;
+        auto module=build_rom_dispatch_module({a.func,b.func},imports,*map);
+        auto am=build_wasm_module({a.func},imports),bm=build_wasm_module({b.func},imports);
+        for(unsigned budget:{0u,1u,2u,3u,4u,5u,17u,65u}) for(unsigned cap:{0u,1u,2u,16u,512u})
+        for(unsigned stop:{0u,1u,2u})for(unsigned irq:{0u,1u,2u})for(bool mapped:{false,true}) {
+            test_mem memory;memory.write32(0x8000,0x12345678);const auto initial=memory.data;
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);if(mapped)tlb.add(0x8000,memory.data.data()+0x8000,3);
+            alignas(8) unsigned states[2][256]{};unsigned counts[2],helpers[2];
+            for(unsigned variant=0;variant<2;++variant) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());auto *state=states[variant];
+                state[0]=1;state[1]=0x8000;state[3]=0x2000;state[4]=0x1001;state[14]=0x9001;state[15]=0x1000;
+                state[state_offsets::TFLAG/4]=shape<6;state[state_offsets::CPSR/4]=0x10|(shape<6?0x20:0)|(irq==2?0x80:0);
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=stop==1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=stop==2;
+                state[state_offsets::NIRQ/4]=irq==0;state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_REGIONS_LEFT/4]=cap;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                g_read32_observer=[](unsigned ptr,unsigned) {auto *s=reinterpret_cast<unsigned *>(ptr);
+                    s[state_offsets::AOT_ROM_CALLBACK/4]=1;s[5]=0xfeed1234;};
+                if(variant) {
+                    int result=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[variant]));
+                    if(result<0)return false;counts[variant]=result;
+                } else {
+                    unsigned total=0,blocks=0;
+                    while(total<budget&&blocks<cap) {
+                        const unsigned key=(state[15]&(state[state_offsets::TFLAG/4]?~1u:~3u))|state[state_offsets::TFLAG/4];
+                        const auto slot=map->lookup(key);if(!slot)break;
+                        state[15]=key&~1u;state[state_offsets::AOT_BUDGET/4]=budget-total;state[state_offsets::AOT_EXIT/4]=0;
+                        const auto &base=slot==1?am:bm;
+                        const int count=js_run_aot_wasm(base.data(),base.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[0]));
+                        if(count<0||unsigned(count)>budget-total)return false;
+                        ++blocks;total+=count;
+                        if(!count){state[state_offsets::AOT_ROM_CALLBACK/4]=2;break;}
+                        if(state[state_offsets::AOT_ROM_CALLBACK/4]||state[state_offsets::AOT_EXIT/4]
+                            ||!(state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]||state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1])
+                            ||(!state[state_offsets::NIRQ/4]&&!(state[state_offsets::CPSR/4]&0x80)))break;
+                    }
+                    counts[0]=total;state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_REGIONS_USED/4]=blocks;
+                }
+                helpers[variant]=g_all_memory_helper_calls;
+            }
+            if(counts[0]!=counts[1]||helpers[0]!=helpers[1]||std::memcmp(states[0],states[1],sizeof(states[0]))) {
+                printf(" FAIL ROM dispatch shape=%u budget=%u cap=%u stop=%u irq=%u mapped=%d counts=%u/%u\n",shape,budget,cap,stop,irq,mapped,counts[0],counts[1]);return false;
+            }
+            ++checks;
+        }
+        if(shape==0) {
+            // Bad table slots and missing keys must return without invoking a
+            // private function, rather than trapping or fabricating progress.
+            auto *page=reinterpret_cast<std::uint32_t *>(static_cast<std::uintptr_t>(map->data()[0]));
+            const auto original=page[key1&4095];
+            for(unsigned value:{0u,3u,UINT32_MAX}) {
+                page[key1&4095]=value;
+                alignas(8) unsigned state[256]{};
+                state[15]=0x1000;state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=17;
+                state[state_offsets::AOT_REGIONS_LEFT/4]=16;
+                const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+                if(count!=0||state[15]!=0x1000||state[state_offsets::AOT_BUDGET/4]!=17
+                    ||state[state_offsets::AOT_REGIONS_USED/4])return false;
+                ++extent_checks;
+            }
+            page[key1&4095]=original;
+            // Exercise the actual outer runner, including its remaining cap.
+            rom_dispatch_enabled=true;global_registry().clear();stage_aot_module(module,"test-rom-dispatch",map);instantiate_staged_modules();
+            test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
+            auto cpu=std::make_unique<ARMul_State>(core.get(),USER32MODE);
+            for(unsigned cap:{0u,1u,2u,3u,64u,512u})for(unsigned budget:{1u,2u,5u,63u,512u,1025u,4096u}) {
+                runner_region_limit=cap;cpu->Reset();cpu->mem_cache_=core->mem_cache();
+                cpu->Reg[15]=0x1000;cpu->TFlag=1;cpu->Cpsr=0x30;
+                cpu->NirqSig=1;cpu->NumInstrsToExecute=budget;cpu->aot_budget=budget;
+                const auto result=execute_chain(cpu.get(),global_registry().lookup(key1));
+                const unsigned want=cap?std::min(budget,cap*2):budget;
+                if(result.instructions!=want||result.blocks!=(want+1)/2) {
+                    printf(" FAIL ROM runner cap=%u budget=%u got=%u/%u want=%u/%u\n",cap,budget,result.instructions,result.blocks,want,(want+1)/2);return false;
+                }
+            }
+            rom_dispatch_enabled=false;global_registry().clear();
+        }
+    }
+    printf(" PASS ROM dispatch (%u extent, %u state/budget/cap/mode/callback/SVC comparisons and 42 real-runner caps)\n",extent_checks,checks);
+#endif
+    return true;
+}
+
+static bool test_dynamic_rom_cohort_discovery() {
+    unsigned checks = 0;
+    const auto body = [](std::size_t bytes = 8) {
+        wasm_func_def f; f.body.resize(bytes, 0); return f;
+    };
+    const auto all = [](std::uint32_t) { return true; };
+    for (unsigned capacity = 0; capacity <= 32; ++capacity) {
+        auto root = body();
+        root.successor_keys = {0x1003, 0x1005, 0x1001, 0x2001, 0x1000, 0x1fff};
+        std::vector<unsigned> translated;
+        const auto result = collect_thumb_rom_cohort(0x1001, std::move(root), 0x1000, 0x1000, capacity,
+            [](unsigned key) { return key != 0x1005; }, [&](unsigned key) {
+                translated.push_back(key);
+                auto f = body();
+                if (key == 0x1003) f.successor_keys = {0x1007, 0x1001, 0x1fff};
+                return f;
+            });
+        const std::vector<unsigned> expected{0x1001, 0x1003, 0x1fff, 0x1007};
+        if (result.size() != std::min<std::size_t>(capacity, expected.size())) return false;
+        for (unsigned i = 0; i < result.size(); ++i)
+            if (result[i].export_name != "f_" + std::to_string(expected[i])) return false;
+        if (translated.size() != (result.empty() ? 0 : result.size() - 1)) return false;
+        ++checks;
+    }
+    for (unsigned capacity = 1; capacity <= 32; ++capacity) {
+        auto root = body(); root.successor_keys = {0x1003};
+        auto result = collect_thumb_rom_cohort(0x1001, std::move(root), 0x1000, 0x1000, capacity, all,
+            [&](unsigned key) { auto f = body(); f.successor_keys = {key + 2}; return f; });
+        if (result.size() != std::min(capacity, 16u)) return false;
+        ++checks;
+    }
+    unsigned calls = 0;
+    auto translate = [&](unsigned) { ++calls; return body(); };
+    for (auto key : {0xfffu, 0x1000u, 0x2001u}) {
+        if (!collect_thumb_rom_cohort(key, body(), 0x1000, 0x1000, 16, all, translate).empty()) return false;
+        ++checks;
+    }
+    if (calls) return false;
+    for (unsigned size : {0u, 1u, 4096u, 4097u}) {
+        auto result = collect_thumb_rom_cohort(0xffffffffu, body(), 0xfffff000u, size, 16, all, translate);
+        if (result.size() != (size == 4096 ? 1u : 0u)) return false;
+        ++checks;
+    }
+    for (unsigned second : {65435u, 65436u, 65437u}) {
+        auto root = body(100); root.successor_keys = {0x1003, 0x1005};
+        auto result = collect_thumb_rom_cohort(0x1001, std::move(root), 0x1000, 0x1000, 16, all,
+            [&](unsigned key) { auto f = body(key == 0x1003 ? second : 2); return f; });
+        const auto expected = second <= 65436 ? 65436u : 2u;
+        if (result.size() != 2 || result[1].body.size() != (expected == 2 ? 2 : second)) return false;
+        ++checks;
+    }
+    auto root = body(); root.successor_keys = {0x1003, 0x1005};
+    auto result = collect_thumb_rom_cohort(0x1001, std::move(root), 0x1000, 0x1000, 16, all,
+        [&](unsigned key) { return key == 0x1003 ? wasm_func_def{} : body(); });
+    if (result.size() != 2 || result[1].export_name != "f_" + std::to_string(0x1005)) return false;
+    ++checks;
+    printf(" PASS dynamic ROM graph (%u extent/capacity/cycle/availability/rejection/byte-bound checks)\n", checks);
+    return true;
+}
+
+static bool test_rom_cohorts() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        bool memory=thumb_direct_memory, dispatch=rom_dispatch_enabled, svc=compiled_svc_enabled;
+        unsigned cap=runner_region_limit;
+        ~restore(){thumb_direct_memory=memory;rom_dispatch_enabled=dispatch;compiled_svc_enabled=svc;runner_region_limit=cap;
+            g_read32_observer=nullptr;g_test_mem=nullptr;global_registry().clear();}
+    } saved;
+    state_composition_capture capture(true);
+    thumb_direct_memory=true;compiled_svc_enabled=true;
+    unsigned extent_checks=0, checks=0;
+    const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+    for(unsigned shape=0;shape<6;++shape) {
+        if(shape==1)continue;
+        const std::uint16_t first[]={std::uint16_t(shape==2?0x6808:shape==5?0xdf20:0x3001),std::uint16_t(shape==1?0x4718:0xe07d)};
+        const std::uint16_t second[]={std::uint16_t(shape==3?0xde00:0x3201),std::uint16_t(shape==4?0x4770:0xe77d)};
+        const std::uint32_t arm[]={0xe2811001,0xe12fff14};
+        const std::uint32_t svc_first[]={shape==6?0xef000020u:0x0f000020u,0xe2800001u};
+        auto a=shape>=6?translate_arm_block(reinterpret_cast<const std::uint8_t *>(svc_first),sizeof(svc_first),0x1000,nullptr,nullptr,true,false,true)
+            :translate_thumb_block(reinterpret_cast<const std::uint8_t *>(first),sizeof(first),0x1000,nullptr,nullptr,true,false,true);
+        auto b=shape==1?translate_arm_block(reinterpret_cast<const std::uint8_t *>(arm),sizeof(arm),0x2000,nullptr,nullptr,true,false,true)
+            :translate_thumb_block(reinterpret_cast<const std::uint8_t *>(second),sizeof(second),0x1100,nullptr,nullptr,true,false,true);
+        const unsigned key1=shape>=6?0x1000:0x1001,key2=shape==1?0x2000:0x1101;
+        a.func.export_name="f_"+std::to_string(key1);b.func.export_name="f_"+std::to_string(key2);
+        a.func.successor_keys={key2};b.func.successor_keys={key1};
+        std::shared_ptr<rom_dispatch_map> map;unsigned composed=0;
+        auto module=build_rom_cohort_module({a.func,b.func},imports,0x1000,0x2000,map,&composed);
+        if(composed!=2||module.empty()){printf(" FAIL cohort construction shape=%u composed=%u\n",shape,composed);return false;}
+        auto am=build_wasm_module({a.func},imports),bm=build_wasm_module({b.func},imports);
+        for(unsigned budget:{0u,1u,2u,3u,4u,5u,17u,65u}) for(unsigned cap:{0u,1u,2u,16u,512u})
+        for(unsigned stop:{0u,1u,2u})for(unsigned irq:{0u,1u,2u})for(bool mapped:{false,true}) {
+            test_mem memory;memory.write32(0x8000,0x12345678);const auto initial=memory.data;
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);if(mapped)tlb.add(0x8000,memory.data.data()+0x8000,3);
+            alignas(8) unsigned states[2][256]{};unsigned counts[2],helpers[2];
+            std::vector<std::vector<unsigned>> callback_states[2];
+            for(unsigned variant=0;variant<2;++variant) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());auto *state=states[variant];
+                state[0]=1;state[1]=0x8000;state[3]=0x2000;state[4]=0x1001;state[14]=0x9001;state[15]=0x1000;
+                state[state_offsets::TFLAG/4]=shape<6;state[state_offsets::CPSR/4]=0x10|(shape<6?0x20:0)|(irq==2?0x80:0);
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=stop==1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=stop==2;
+                state[state_offsets::NIRQ/4]=irq==0;state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_REGIONS_LEFT/4]=cap;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                g_read32_observer=[&](unsigned ptr,unsigned) {auto *s=reinterpret_cast<unsigned *>(ptr);
+                    callback_states[variant].emplace_back(s,s+64);
+                    s[state_offsets::AOT_ROM_CALLBACK/4]=1;s[2]=0xface5678;s[5]=0xfeed1234;
+                    s[state_offsets::NFLAG/4]=1;s[state_offsets::CFLAG/4]=1;};
+                if(variant) {
+                    int result=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[variant]));
+                    if(result<0)return false;counts[variant]=result;
+                } else {
+                    unsigned total=0,blocks=0;
+                    while(total<budget&&blocks<cap) {
+                        const unsigned key=(state[15]&(state[state_offsets::TFLAG/4]?~1u:~3u))|state[state_offsets::TFLAG/4];
+                        const auto slot=map->lookup(key);if(!slot)break;
+                        state[15]=key&~1u;state[state_offsets::AOT_BUDGET/4]=budget-total;state[state_offsets::AOT_EXIT/4]=0;
+                        const auto &base=slot==1?am:bm;
+                        const int count=js_run_aot_wasm(base.data(),base.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[0]));
+                        if(count<0||unsigned(count)>budget-total)return false;
+                        ++blocks;total+=count;
+                        if(!count){state[state_offsets::AOT_ROM_CALLBACK/4]=2;break;}
+                        if(state[state_offsets::AOT_ROM_CALLBACK/4]||state[state_offsets::AOT_EXIT/4]
+                            ||!(state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]||state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1])
+                            ||(!state[state_offsets::NIRQ/4]&&!(state[state_offsets::CPSR/4]&0x80)))break;
+                    }
+                    counts[0]=total;state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_REGIONS_USED/4]=blocks;
+                }
+                helpers[variant]=g_all_memory_helper_calls;
+            }
+            if(callback_states[0]!=callback_states[1]||counts[0]!=counts[1]||helpers[0]!=helpers[1]||std::memcmp(states[0],states[1],sizeof(states[0]))) {
+                printf(" FAIL ROM cohorts shape=%u budget=%u cap=%u stop=%u irq=%u mapped=%d counts=%u/%u\n",shape,budget,cap,stop,irq,mapped,counts[0],counts[1]);return false;
+            }
+            ++checks;
+        }
+        if(shape==0) {
+            // Bad table slots and missing keys must return without invoking a
+            // private function, rather than trapping or fabricating progress.
+            auto *page=reinterpret_cast<std::uint32_t *>(static_cast<std::uintptr_t>(map->data()[0]));
+            const auto original=page[key1&4095];
+            for(unsigned value:{0u,3u,UINT32_MAX}) {
+                page[key1&4095]=value;
+                alignas(8) unsigned state[256]{};
+                state[15]=0x1000;state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=17;
+                state[state_offsets::AOT_REGIONS_LEFT/4]=16;
+                const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+                if(count!=0||state[15]!=0x1000||state[state_offsets::AOT_BUDGET/4]!=17
+                    ||state[state_offsets::AOT_REGIONS_USED/4])return false;
+                ++extent_checks;
+            }
+            page[key1&4095]=original;
+            // Exercise the actual outer runner, including its remaining cap.
+            rom_dispatch_enabled=true;global_registry().clear();stage_aot_module(module,"test-rom-cohort",map);instantiate_staged_modules();
+            test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
+            auto cpu=std::make_unique<ARMul_State>(core.get(),USER32MODE);
+            for(unsigned cap:{0u,1u,2u,3u,64u,512u})for(unsigned budget:{1u,2u,5u,63u,512u,1025u,4096u}) {
+                runner_region_limit=cap;cpu->Reset();cpu->mem_cache_=core->mem_cache();
+                cpu->Reg[15]=0x1000;cpu->TFlag=1;cpu->Cpsr=0x30;
+                cpu->NirqSig=1;cpu->NumInstrsToExecute=budget;cpu->aot_budget=budget;
+                const auto result=execute_chain(cpu.get(),global_registry().lookup(key1));
+                const unsigned want=cap?std::min(budget,cap*2):budget;
+                if(result.instructions!=want||result.blocks!=(want+1)/2) {
+                    printf(" FAIL cohort runner cap=%u budget=%u got=%u/%u want=%u/%u\n",cap,budget,result.instructions,result.blocks,want,(want+1)/2);return false;
+                }
+            }
+            rom_dispatch_enabled=false;global_registry().clear();
+        }
+    }
+    // Direct BL edges must be discovered from emitted code, not guessed from
+    // the caller's local branch/resume scan. Include the two-halfword budget exit.
+    {
+        const std::uint16_t caller[]={0xf000,0xfffe},callee[]={0x3001,0x4770};
+        auto a=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true);
+        auto b=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(callee),sizeof(callee),0x2000,nullptr,nullptr,true,false,true);
+        if(a.func.successor_keys!=std::vector<unsigned>{0x2001})return false;
+        a.func.export_name="f_4097";b.func.export_name="f_8193";
+        std::shared_ptr<rom_dispatch_map> map;unsigned composed=0;
+        auto module=build_rom_cohort_module({a.func,b.func},imports,0x1000,0x2000,map,&composed);
+        if(composed!=2||module.empty())return false;
+        for(unsigned budget:{1u,2u,3u,4u}) {
+            alignas(8) unsigned state[256]{};state[15]=0x1000;state[state_offsets::TFLAG/4]=1;
+            state[state_offsets::CPSR/4]=0x30;state[state_offsets::NIRQ/4]=1;
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
+            state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_REGIONS_LEFT/4]=16;
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            if(count!=int(budget)||state[15]!=(budget==1?0x1002u:budget==2?0x2000u:budget==3?0x2002u:0x1004u)
+                ||state[0]!=(budget>=3)||state[14]!=(budget==1?0x1004u:0x1005u))return false;
+            ++checks;
+        }
+    }
+    // Larger groups exercise every switch arm and entry alias. A late helper
+    // must observe writes from previous regions, and its mutations survive exit.
+    for(unsigned count:{3u,16u}) {
+        std::vector<wasm_func_def> functions;
+        for(unsigned i=0;i<count;++i) {
+            const unsigned address=0x1000+16*i,next=0x1000+16*((i+1)%count);
+            const std::uint16_t code[]={std::uint16_t(i==count-1?0x680a:0x3001),0x4680,
+                std::uint16_t(0xe000|(((next-(address+8))/2)&0x7ff))};
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),address,nullptr,nullptr,true,false,true);
+            tr.func.export_name="f_"+std::to_string(address|1u);tr.func.successor_keys={next|1u};functions.push_back(std::move(tr.func));
+        }
+        std::shared_ptr<rom_dispatch_map> map;unsigned composed=0;
+        auto module=build_rom_cohort_module(functions,imports,0x1000,0x1000,map,&composed);
+        if(composed!=count||module.empty())return false;
+        std::vector<std::vector<std::uint8_t>> bases;
+        for(const auto &f:functions)bases.push_back(build_wasm_module({f},imports));
+        for(unsigned entry:{0u,1u,count-1})for(unsigned budget:{1u,2u,3u,4u,47u,48u,49u,97u})
+        for(unsigned cap:{1u,2u,16u,32u})for(bool mapped:{false,true}) {
+            test_mem memory;memory.write32(0x8000,0x12345678);r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            if(mapped)tlb.add(0x8000,memory.data.data()+0x8000,3);
+            alignas(8) unsigned states[2][256]{};unsigned counts[2];
+            std::vector<std::vector<unsigned>> traces[2];
+            for(unsigned variant=0;variant<2;++variant) {
+                auto *state=states[variant];state[0]=9;state[1]=0x8000;state[15]=0x1000+entry*16;
+                state[state_offsets::TFLAG/4]=1;state[state_offsets::CPSR/4]=0x30;
+                state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_REGIONS_LEFT/4]=cap;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);g_test_mem=&memory;
+                g_read32_observer=[&](unsigned ptr,unsigned) {auto *v=reinterpret_cast<unsigned *>(ptr);
+                    traces[variant].emplace_back(v,v+64);v[0]=0xfeed1234;v[8]=0xabcdef01;
+                    v[state_offsets::CFLAG/4]=1;v[state_offsets::AOT_ROM_CALLBACK/4]=1;};
+                if(variant) {
+                    const auto result=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[variant]));
+                    if(result<0)return false;counts[variant]=result;
+                } else {
+                    unsigned total=0,blocks=0;
+                    while(total<budget&&blocks<cap) {
+                        const unsigned index=map->lookup(state[15]|state[state_offsets::TFLAG/4]);if(!index)break;
+                        state[state_offsets::AOT_BUDGET/4]=budget-total;state[state_offsets::AOT_EXIT/4]=0;
+                        const auto &base=bases[index-1];
+                        const auto result=js_run_aot_wasm(base.data(),base.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[variant]));
+                        if(result<0)return false;total+=result;++blocks;
+                        if(!result){state[state_offsets::AOT_ROM_CALLBACK/4]=2;break;}
+                        if(state[state_offsets::AOT_ROM_CALLBACK/4]||state[state_offsets::AOT_EXIT/4])break;
+                    }
+                    counts[0]=total;state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_REGIONS_USED/4]=blocks;
+                }
+            }
+            if(counts[0]!=counts[1]||traces[0]!=traces[1]||std::memcmp(states[0],states[1],sizeof(states[0]))) {
+                printf(" FAIL large cohort count=%u entry=%u budget=%u cap=%u mapped=%d\n",count,entry,budget,cap,mapped);return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS ROM cohorts (%u extent, %u state/budget/cap/mode/callback/SVC comparisons and 42 real-runner caps)\n",extent_checks,checks);
+#endif
+    return true;
+}
+
+static bool test_rom_leaf_extent() {
+    const auto saved_limit = leaf_instruction_limit;
+    std::vector<std::uint8_t> image(96);
+    for (unsigned n = 0; n < image.size(); ++n) image[n] = static_cast<std::uint8_t>(n);
+    unsigned checks = 0;
+    for (unsigned limit : {1u, 8u, 16u}) {
+        leaf_instruction_limit = limit;
+        for (std::uint32_t base : {0u, 0x80000000u, 0xffffffc0u}) {
+            for (unsigned size = 0; size <= image.size(); ++size) {
+                for (unsigned delta = 0; delta < 112; ++delta) {
+                    const auto target = base + delta;
+                    const auto actual = resolve_rom_leaf(image.data(), base, size, target);
+                    std::vector<std::uint8_t> expected;
+                    // Byte-by-byte oracle, without the resolver's extent arithmetic.
+                    if (target >= base && !(target & 3)) {
+                        for (unsigned n = 0; n < limit * 4; n += 4) {
+                            if (std::uint64_t(target) + n + 3 > UINT32_MAX || delta + n + 3 >= size) break;
+                            for (unsigned byte = 0; byte < 4; ++byte) expected.push_back(image[delta + n + byte]);
+                        }
+                    }
+                    if (actual != expected || !resolve_rom_leaf(nullptr, base, size, target).empty()) {
+                        leaf_instruction_limit = saved_limit;
+                        printf(" FAIL ROM resolver base=%x size=%u delta=%u\n",base,size,delta); return false;
+                    }
+                    ++checks;
+                }
+            }
+        }
+    }
+    leaf_instruction_limit = saved_limit;
+    printf(" PASS ROM leaf extent (%u boundary comparisons)\n",checks);
+    return true;
+}
+
+static bool test_registry_lookup_lifecycle() {
+    registry actual;
+    std::map<std::uint32_t,aot_func> expected;
+    const aot_func functions[]={nullptr,
+        +[](ARMul_State *)->std::uint32_t{return 1;},
+        +[](ARMul_State *)->std::uint32_t{return 2;}};
+    const unsigned addresses[]={0,1,2,3,0x80001000u,0x80001001u,0x80001003u,
+        0x80003000u,0x80003001u,0x80003003u,0x70001000u,0x70001001u,
+        0xfffffffeu,0xffffffffu,0x1000,0x1001};
+    unsigned random=0x12345678,checks=0;
+    for(unsigned iteration=0;iteration<10000;++iteration) {
+        random=random*1664525u+1013904223u;
+        const auto address=addresses[(random>>12)&15];
+        const auto operation=random>>26;
+        if(operation==63){actual.clear();expected.clear();}
+        else if(operation<24){const auto function=functions[(random>>20)%3];actual.register_function(address,function);expected[address]=function;}
+        else if(operation<40){actual.unregister_function(address);expected.erase(address);}
+        for(const auto probe:addresses) {
+            const auto found=expected.find(probe);
+            const auto wanted=found==expected.end()?nullptr:found->second;
+            // Repeat queries and interleave colliding entries, replacements,
+            // unregisters and clears. Zero and all-one keys are legitimate.
+            if(actual.lookup(probe)!=wanted||actual.lookup(probe)!=wanted
+                ||actual.has_function(probe)!=(found!=expected.end())||actual.size()!=expected.size()) {
+                printf(" FAIL registry lifecycle iteration=%u address=%x\n",iteration,probe);return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS registry lookup lifecycle (%u oracle comparisons)\n",checks);
+    return true;
+}
+
+static bool test_thumb_call_boundaries() {
+#ifdef __EMSCRIPTEN__
+    struct restore { bool old=thumb_direct_memory; ~restore(){thumb_direct_memory=old;} } saved;
+    unsigned checks=0;
+    for(bool enabled:{false,true})for(unsigned suffix:{0xf801u,0xe802u})for(unsigned base:{0x1000u,0x1002u}) {
+        thumb_direct_memory=enabled;
+        const std::uint16_t code[]={0xf001,static_cast<std::uint16_t>(suffix)};
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),base,nullptr,nullptr,true,false,true);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned budget:{0u,1u,2u})for(unsigned irq:{0u,1u})for(unsigned mask:{0u,0x80u})
+        for(std::uint64_t remaining:{std::uint64_t(0),std::uint64_t(1),std::uint64_t(1)<<32}) {
+            alignas(8) std::uint32_t state[256]{};
+            for(unsigned reg=0;reg<16;++reg)state[reg]=0xabc00000u+reg;
+            state[15]=base;state[state_offsets::CPSR/4]=0xa0000030u|mask;
+            state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=state[state_offsets::TFLAG/4]=1;
+            state[state_offsets::NIRQ/4]=irq;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=static_cast<unsigned>(remaining);
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=static_cast<unsigned>(remaining>>32);
+            std::uint32_t expected[256];std::memcpy(expected,state,sizeof(state));
+            const unsigned wanted=!budget?0:enabled&&budget>=2&&remaining&&(irq||mask)?2:1;
+            if(wanted==1){expected[14]=base+4+0x1000;expected[15]=base+2;}
+            if(wanted==2){
+                expected[14]=(base+4)|1;expected[15]=base+4+0x1000+((suffix&0x7ff)<<1);
+                if((suffix&0xf800)==0xe800){expected[15]&=~3u;expected[state_offsets::TFLAG/4]=0;}
+            }
+            g_count_memory_helpers=true;g_memory_helper_calls=0;
+            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_count_memory_helpers=false;
+            if(count!=wanted||g_memory_helper_calls||std::memcmp(state,expected,sizeof(state))) {
+                printf("  FAIL thumb_call_boundaries enabled=%u suffix=%x base=%x budget=%u irq=%u mask=%u remaining=%llu count=%d expected=%u\n",
+                    enabled,suffix,base,budget,irq,mask,static_cast<unsigned long long>(remaining),count,wanted);return false;
+            }
+            ++checks;
+        }
+    }
+    printf("  PASS thumb_call_boundaries (%u full-state budget/stop/IRQ checks)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_thumb_transfer_spans() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking = eka2l1::common::code_tracking;
+    struct restore {
+        bool direct=thumb_direct_memory, folded=r12l1::dyncom_folded_tlb;
+        unsigned mode=tracking::unsafe_code_mode;
+        ~restore(){thumb_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
+            tracking::unsafe_code_mode=mode;g_test_mem=nullptr;}
+    } saved;
+    unsigned checks=0;
+    for(bool folded:{false,true})for(unsigned mode:{0u,3u})
+    for(unsigned opcode:{0xb400u,0xb401u,0xb403u,0xb5ffu,0xbc00u,0xbc01u,0xbc03u,0xbdffu,
+                        0xc100u,0xc101u,0xc103u,0xc1ffu,0xc900u,0xc901u,0xc903u,0xc9ffu}) {
+        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        const std::uint16_t code=opcode;
+        std::vector<std::uint8_t> modules[2];
+        for(unsigned enabled=0;enabled<2;++enabled) {
+            thumb_direct_memory=enabled;
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(&code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+            modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        }
+        for(unsigned permission:{0u,1u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0u,0x8000u,0x8001u,0x8040u,0x8fe0u,0x8ffcu,0x9000u})for(unsigned budget:{0u,1u}) {
+            test_mem memory;
+            for(unsigned a=0;a<test_mem::SIZE;++a)memory.data[a]=static_cast<std::uint8_t>(a*37+19);
+            const auto initial=memory.data;
+            r12l1::tlb tlb(12,folded);
+            if(permission)tlb.add(0x8000,memory.data.data()+0x8000,permission);
+            alignas(8) unsigned states[2][256]{};int counts[2];unsigned helpers[2];std::vector<std::uint8_t> expected;
+            for(unsigned enabled=0;enabled<2;++enabled) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());
+                auto *state=states[enabled];
+                for(unsigned reg=0;reg<16;++reg)state[reg]=0xabc00000u+reg;
+                state[1]=state[13]=address;state[15]=0x1000;
+                if((opcode&0xfe00)==0xb400)state[13]+=4*(__builtin_popcount(opcode&255)+((opcode>>8)&1));
+                state[state_offsets::CPSR/4]=0xa0000030u|endian;
+                state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[enabled]));
+                helpers[enabled]=g_all_memory_helper_calls;
+                if(!enabled)expected=memory.data;
+            }
+            if(counts[0]!=counts[1]||counts[1]!=budget||std::memcmp(states[0],states[1],sizeof(states[0]))||memory.data!=expected) {
+                printf(" FAIL Thumb transfer span op=%x address=%x mode=%u permission=%u endian=%x budget=%u\n",opcode,address,mode,permission,endian,budget);return false;
+            }
+            // Fully permitted interior transfers must exercise the direct path.
+            const bool write=(opcode&0xfe00)==0xb400||(opcode&0xf800)==0xc000;
+            if(budget&&address==0x8040&&!endian&&(permission&(write?2:1))&&(!write||mode==3)&&helpers[1])return false;
+            ++checks;
+        }
+    }
+    printf(" PASS Thumb transfer spans (%u full-state/memory/budget comparisons)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_thumb_direct_memory() {
+#ifdef __EMSCRIPTEN__
+    namespace tracking = eka2l1::common::code_tracking;
+    struct restore {
+        bool direct=thumb_direct_memory, folded=r12l1::dyncom_folded_tlb;
+        unsigned mode=tracking::unsafe_code_mode;
+        ~restore(){thumb_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
+            tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
+    } saved;
+    unsigned checks=0;
+    const unsigned ops[]={0x6808,0x6008,0x7808,0x7008,0x8808,0x8008};
+    for(bool folded:{false,true})for(unsigned mode:{0u,1u,2u,3u})for(unsigned index=0;index<6;++index) {
+        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        const std::uint16_t code[]={0x2207,static_cast<std::uint16_t>(ops[index]),0x3301};
+        std::vector<std::uint8_t> modules[2];
+        for(unsigned enabled=0;enabled<2;++enabled) {
+            thumb_direct_memory=enabled;
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+            modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        }
+        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
+        for(unsigned address:{0u,0x8000u,0x8001u,0x8ffeu,0x8fffu,0x9000u})for(unsigned budget:{0u,1u,2u,3u}) {
+            test_mem actual,control;
+            for(unsigned a=0;a<test_mem::SIZE;++a)actual.data[a]=static_cast<std::uint8_t>(a*37+19);
+            control=actual;
+            r12l1::tlb tlb(12,folded);tlb.add(0x8000,actual.data.data()+0x8000,permission);
+            alignas(8) unsigned states[2][256]{};
+            int counts[2]{};unsigned helpers[2]{};
+            for(unsigned enabled=0;enabled<2;++enabled) {
+                auto *state=states[enabled];state[0]=0x12345678;state[1]=address;state[3]=41;state[15]=0x1000;
+                state[state_offsets::CPSR/4]=0xA0000030|endian;state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::NFLAG/4]=1;state[state_offsets::CFLAG/4]=1;
+                state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                g_test_mem=enabled?&actual:&control;g_all_memory_helper_calls=0;
+                counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[enabled]));
+                helpers[enabled]=g_all_memory_helper_calls;
+            }
+            const bool write=index&1;const unsigned size=index<2?4:index<4?1:2;
+            const bool fast=(permission&(write?2:1)) && !endian && (address&~4095u)==0x8000
+                && !(address&(size-1)) && (!write || mode==3);
+            if(counts[0]!=int(budget)||counts[1]!=counts[0]||std::memcmp(states[0],states[1],sizeof(states[0]))||actual.data!=control.data
+                || helpers[0]!=(budget>=2?1u:0u)||helpers[1]!=(budget>=2&&!fast?1u:0u)) {
+                printf(" FAIL Thumb memory op=%x folded=%d mode=%u perm=%u endian=%x address=%x budget=%u count=%d/%d helpers=%u/%u\n",
+                    ops[index],folded,mode,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
+            }
+            ++checks;
+        }
+    }
+    // A helper may change registers, flags and mappings. The next access must
+    // use the updated state and TLB; callback barriers remain on the slow arm.
+    for(bool enabled:{false,true}) {
+        thumb_direct_memory=enabled;tracking::unsafe_code_mode=3;
+        const std::uint16_t code[]={0x2207,0x6808,0x681a,0x4150};
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem memory;memory.write32(0x8000,20);memory.write32(0x9000,30);
+        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        alignas(8) unsigned state[256]{};state[1]=0x8000;state[3]=0xA000;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=4;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+        bool observed=false;
+        g_read32_observer=[&](unsigned ptr,unsigned address){
+            if(address!=0x8000)return;
+            auto *s=reinterpret_cast<unsigned *>(ptr);observed=s[2]==7&&s[15]==0x1002;
+            s[3]=0x9000;s[state_offsets::CFLAG/4]=1;
+            tlb.add(0x9000,memory.data.data()+0x9000,1);
+        };
+        g_test_mem=&memory;g_all_memory_helper_calls=0;
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        g_read32_observer={};
+        if(count!=4||!observed||state[0]!=51||state[2]!=30||state[3]!=0x9000||g_all_memory_helper_calls!=(enabled?1u:2u)) {
+            printf(" FAIL Thumb callback state/mapping enabled=%d count=%d r0=%u observed=%d helpers=%u\n",enabled,count,state[0],observed,g_all_memory_helper_calls);return false;
+        }
+        ++checks;
+    }
+    // Runtime fields and the PC can change in a callback. A second transfer
+    // in the same instruction sees the callback PC, and the next instruction
+    // sees a replaced TLB, endian state and reduced budget.
+    for(bool enabled:{false,true})for(unsigned endian:{0u,0x200u}) {
+        thumb_direct_memory=enabled;tracking::unsafe_code_mode=3;
+        const std::uint16_t code[]={0x2207,0xc905,0x6818,0x3401};
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem memory;memory.write32(0x8000,20);memory.write32(0x8004,30);memory.write32(0x9000,40);
+        r12l1::tlb old_tlb(12,r12l1::dyncom_folded_tlb),new_tlb(12,r12l1::dyncom_folded_tlb);
+        new_tlb.add(0x9000,memory.data.data()+0x9000,1);
+        alignas(8) unsigned state[256]{};state[1]=0x8000;state[3]=0x9000;state[4]=99;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=4;
+        state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(old_tlb.entries);
+        unsigned observed=0;
+        g_read32_observer=[&](unsigned ptr,unsigned address){
+            auto *s=reinterpret_cast<unsigned *>(ptr);
+            if(address==0x8000) {
+                if(s[2]==7&&s[15]==0x1002)++observed;
+                s[15]=0x12345678;s[state_offsets::AOT_BUDGET/4]=3;
+                s[state_offsets::CPSR/4]=0x30|endian;
+                s[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(new_tlb.entries);
+            } else if(address==0x8004&&s[15]==0x12345678)++observed;
+        };
+        g_test_mem=&memory;g_all_memory_helper_calls=0;
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+        g_read32_observer={};
+        if(count!=3||observed!=2||state[0]!=40||state[1]!=0x8008||state[2]!=30||state[4]!=99||state[15]!=0x1006
+            ||state[state_offsets::AOT_BUDGET/4]!=3||state[state_offsets::CPSR/4]!=(0x30|endian)
+            ||state[state_offsets::AOT_TLB/4]!=reinterpret_cast<std::uintptr_t>(new_tlb.entries)
+            ||g_all_memory_helper_calls!=(enabled&&!endian?2u:3u)) {
+            printf(" FAIL Thumb runtime callback enabled=%d endian=%x count=%d pc=%x observed=%u helpers=%u\n",enabled,endian,count,state[15],observed,g_all_memory_helper_calls);return false;
+        }
+        ++checks;
+    }
+    printf(" PASS Thumb direct memory (%u permission/alignment/endian/policy/budget/callback comparisons)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_cached_callback_state() {
 #ifdef __EMSCRIPTEN__
     const std::uint32_t code[] = {0xE3A02007, 0xE5910000, 0xE2834001, 0xE2A05000};
@@ -5279,6 +6265,89 @@ static std::uint32_t publication_test_function(ARMul_State *cpu) {
     cpu->aot_code_begin=0x12345678;cpu->aot_code_end=0x23456789;
     ++publication_test_calls;++cpu->Reg[0];return 1;
 }
+static bool test_frozen_code_cache() {
+    namespace tracking = eka2l1::common::code_tracking;
+    struct restore { unsigned mode = tracking::unsafe_code_mode; bool outline = code_lookup_outline;
+        ~restore() { tracking::unsafe_code_mode = mode; code_lookup_outline = outline; } } saved;
+    unsigned checks = 0;
+    for (unsigned mode : {1u, 3u}) for (bool outline : {false, true}) {
+        tracking::unsafe_code_mode = mode; code_lookup_outline = outline;
+        test_mem memory; r12l1::exclusive_monitor monitor(1); auto cpu = make_cpu(memory, monitor);
+        std::array<std::uint8_t, 64> primary{}, alternative{}, dependency{}, moved_dependency{};
+        auto *backing = primary.data(); auto *leaf = dependency.data();
+        std::atomic<std::uint64_t> generation{1}, replacement{1};
+        cpu->code_mapping_generation = &generation; cpu->code_address_space = 1;
+        bool mapped = true; unsigned extent = 64, resolutions = 0;
+        cpu->resolve_code = [&](unsigned address, core::code_mapping &view) {
+            ++resolutions; view = {cpu->code_address_space, address == 0x1000 ? backing : leaf, extent};
+            return mapped;
+        };
+        validated_code_cache normal, frozen;
+        unsigned random = 0x857b21a9;
+        for (unsigned step = 0; step < 4096; ++step) {
+            random ^= random << 13; random ^= random >> 17; random ^= random << 5;
+            switch (random & 15) {
+            case 0: case 1: case 2:
+                for (auto *cache : {&normal, &frozen}) {
+                    auto &entry = cache->insert(0x1001, {cpu->code_address_space, backing, 64}, 16);
+                    validated_code_cache::add_dependency(entry, 0x2000, leaf, {leaf, leaf + 16});
+                }
+                break;
+            case 3: backing = backing == primary.data() ? alternative.data() : primary.data(); ++generation; ++replacement; break;
+            case 4: leaf = leaf == dependency.data() ? moved_dependency.data() : dependency.data(); ++generation; ++replacement; break;
+            case 5: mapped = !mapped; ++generation; ++replacement; break;
+            case 6: extent = extent == 64 ? 4 : 64; ++generation; ++replacement; break;
+            case 7: cpu->code_address_space = 3 - cpu->code_address_space; break;
+            case 8: cpu->code_mapping_generation = cpu->code_mapping_generation == &generation ? &replacement : &generation; break;
+            case 9: generation.store(0); replacement.store(0); break;
+            case 10: ++generation; ++replacement; break;
+            case 11: normal.invalidate(0x2000, 16); frozen.invalidate(0x2000, 16); break;
+            case 12: primary[0] ^= 1; dependency[15] ^= 1; break; // accepted trusted-byte limitation
+            default: break;
+            }
+            const auto before = resolutions;
+            auto *a = normal.find(0x1001, *cpu);
+            const auto normal_resolves = resolutions - before;
+            const auto between = resolutions;
+            auto *b = frozen.find_trusted_original(0x1001, *cpu);
+            if (bool(a) != bool(b) || normal.invalidations != frozen.invalidations
+                || normal_resolves != resolutions - between
+                || (a && (a->key != b->key || a->version != b->version || a->backing != b->backing))) {
+                printf(" FAIL frozen cache mode=%u outline=%u step=%u\n", mode, outline, step); return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS frozen cache (%u ASID/generation/source/remap/dependency/extent/invalidation comparisons)\n", checks);
+    return true;
+}
+
+static bool test_reference_lookup_protection() {
+    const auto *verify = std::getenv("EKA2L1_AOT_VERIFY");
+    if (!verify || std::string(verify) != "1") return false;
+    struct restore { unsigned policy = hotpath_policy; bool running = validation_running;
+        bool ram = ram_compilation_enabled, omit = omit_guard_publication;
+        ~restore() { hotpath_policy = policy; validation_running = running;
+            ram_compilation_enabled = ram; omit_guard_publication = omit;
+            global_registry().unregister_function(0x54340); } } saved;
+    test_mem memory; r12l1::exclusive_monitor monitor(1); auto core = make_cpu(memory, monitor);
+    auto state = std::make_unique<ARMul_State>(core.get(), USER32MODE);
+    state->Reg[15] = 0x54340; state->TFlag = 0;
+    ram_compilation_enabled = false;
+    global_registry().register_function(0x54340, publication_test_function);
+    unsigned checks = 0;
+    for (unsigned policy = 0; policy < 8; ++policy) for (bool omit : {false, true}) {
+        hotpath_policy = policy; omit_guard_publication = omit;
+        validation_running = true;
+        if (lookup_compiled(state.get())) return false;
+        validation_running = false;
+        if (lookup_compiled(state.get()) != publication_test_function) return false;
+        ++checks;
+    }
+    printf(" PASS reference lookup protection (%u active/inactive verification checks)\n", checks);
+    return true;
+}
+
 static bool test_guard_publication() {
     namespace tracking=eka2l1::common::code_tracking;
     namespace perf=eka2l1::common::performance;
@@ -5286,19 +6355,19 @@ static bool test_guard_publication() {
     struct restore {
         bool omit=omit_guard_publication,ram=ram_compilation_enabled;
         bool enabled=perf::enabled,detailed=perf::detailed,guest=gp::enabled;
-        unsigned mode=tracking::unsafe_code_mode;
+        unsigned mode=tracking::unsafe_code_mode, policy=hotpath_policy;
         ~restore(){omit_guard_publication=omit;ram_compilation_enabled=ram;
             perf::enabled=enabled;perf::detailed=detailed;gp::enabled=guest;
-            tracking::unsafe_code_mode=mode;global_registry().unregister_function(0x54340);}
+            tracking::unsafe_code_mode=mode;hotpath_policy=policy;global_registry().unregister_function(0x54340);}
     } saved;
     test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
     ram_compilation_enabled=false;gp::enabled=false;
     global_registry().register_function(0x54340,publication_test_function);
     auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);
     unsigned checks=0;
-    for(unsigned mode=0;mode<4;++mode)for(bool omit:{false,true})for(bool detailed:{false,true})
+    for(unsigned policy:{0u,1u,2u,3u,4u,7u})for(unsigned mode=0;mode<4;++mode)for(bool omit:{false,true})for(bool detailed:{false,true})
     for(unsigned budget:{1u,2u,5u}) {
-        tracking::unsafe_code_mode=mode;omit_guard_publication=omit;
+        tracking::unsafe_code_mode=mode;omit_guard_publication=omit;hotpath_policy=policy;
         perf::enabled=detailed;perf::detailed=detailed;gp::enabled=detailed;
         publication_test_omit=omit && (mode&2);publication_test_ok=true;publication_test_calls=0;
         auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54340;cpu.TFlag=0;
@@ -5460,7 +6529,259 @@ static bool test_unsafe_code_diagnostic() {
     return true;
 }
 
+
+static bool test_compiled_svc_boundary() {
+    const auto saved=compiled_svc_enabled;compiled_svc_enabled=true;unsigned checks=0;
+#ifdef __EMSCRIPTEN__
+    for(unsigned thumb:{0u,1u})for(unsigned page:{0u,1u})for(unsigned region:{0u,1u})
+    for(unsigned cond=0;cond<15;++cond)for(unsigned nzcv=0;nzcv<16;++nzcv)for(unsigned budget:{0u,1u,2u})for(unsigned quantum:{0u,1u,8u}) {
+        if(thumb && cond!=14)continue;
+        const unsigned width=thumb?2:4,pc=page?0x2000-width:0x1000;
+        const unsigned arm=(cond<<28)|0x0f123456;const std::uint16_t narrow=0xdf56;
+        auto tr=thumb?translate_thumb_block(reinterpret_cast<const unsigned char*>(&narrow),2,pc,nullptr,nullptr,true,false,true)
+            :translate_arm_block(reinterpret_cast<const unsigned char*>(&arm),4,pc,nullptr,nullptr,true,false,true,region);
+        auto module=build_wasm_module({tr.func},{});
+        alignas(8) std::uint32_t state[256]{};state[15]=pc;
+        state[state_offsets::CPSR/4]=16|(thumb?32:0)|(nzcv<<28);
+        state[state_offsets::NFLAG/4]=(nzcv>>3)&1;state[state_offsets::ZFLAG/4]=(nzcv>>2)&1;
+        state[state_offsets::CFLAG/4]=(nzcv>>1)&1;state[state_offsets::VFLAG/4]=nzcv&1;
+        state[state_offsets::TFLAG/4]=thumb;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=quantum;
+        const bool n=nzcv&8,z=nzcv&4,c=nzcv&2,v=nzcv&1;
+        const bool predicates[]={z,!z,c,!c,n,!n,v,!v,c&&!z,!c||z,n==v,n!=v,!z&&(n==v),z||(n!=v),true};
+        const bool executes=budget && quantum!=1;
+        const unsigned expected=executes?(svc_pending|(page?svc_page_end:0)|(predicates[cond]?svc_taken:0)|(thumb?0x56:0x123456)):0;
+        if(tr.end_address!=pc+width){printf(" FAIL SVC source extent\n");compiled_svc_enabled=saved;return false;}
+        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        if(count!=unsigned(executes)||state[15]!=pc+(executes?width:0)||state[state_offsets::AOT_EXIT/4]!=expected) {
+            printf(" FAIL svc boundary thumb=%u cond=%u flags=%u budget=%u count=%d exit=%x\n",thumb,cond,nzcv,budget,count,state[state_offsets::AOT_EXIT/4]);compiled_svc_enabled=saved;return false;
+        }
+        ++checks;
+    }
+#endif
+    compiled_svc_enabled=saved;printf(" PASS compiled_svc_boundary (%u predicate/budget/page checks)\n",checks);return true;
+}
+
+static bool test_arm_exclusive_decode() {
+    const auto saved=arm_exclusive_memory;unsigned checked=0;bool ok=true;
+    for(unsigned enabled:{0u,1u})for(unsigned cond=0;cond<16;++cond)
+    for(unsigned rn:{0u,1u,13u,14u,15u})for(unsigned rd:{0u,1u,13u,14u,15u})
+    for(unsigned rm:{0u,1u,13u,14u,15u})for(unsigned kind=0;kind<3;++kind) {
+        const std::uint32_t op=(cond<<28)|(kind==0?0x01900f9f:kind==1?0x01800f90:0x01d00f9f)
+            |(rn<<16)|(rd<<12)|(kind==1?rm:0);
+        const bool expected=enabled&&cond<15&&rn<15&&rd<15&&(kind==0||(kind==1&&rm<15));
+        arm_exclusive_memory=enabled;
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(&op),4,0x1000,nullptr,nullptr,true,false,true);
+        if(tr.entry_supported!=expected){printf(" FAIL exclusive decode %08x enabled=%u\n",op,enabled);ok=false;break;}
+        ++checked;
+    }
+    arm_exclusive_memory=saved;
+    printf("  exclusive decode checks: %u\n",checked);return ok;
+}
+
+namespace eka2l1::arm {
+struct matched_kernel_access {
+    static ARMul_State *state(dyncom_core &c) { return c.state_.get(); }
+};
+}
+static bool test_thumb_register_exchange() {
+#ifdef __EMSCRIPTEN__
+    struct restore { bool old=thumb_direct_memory; ~restore(){thumb_direct_memory=old;} } saved;
+    unsigned checks=0;
+    for(bool direct:{false,true})for(unsigned rm=0;rm<16;++rm)
+    for(bool link:{false,true})for(unsigned base:{0x1000u,0x1002u})for(unsigned prefix:{0u,1u,4u}) {
+        thumb_direct_memory=direct;
+        std::vector<std::uint16_t> code(prefix,0x463f);
+        code.push_back(static_cast<std::uint16_t>(0x4700|(rm<<3)|(link?0x80:0)));
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*2,base,nullptr,nullptr,true,false,true);
+        if(!tr.entry_supported||!tr.complete)return false;
+        auto module=build_wasm_module({tr.func},{});
+        for(unsigned low=0;low<4;++low)for(unsigned budget=0;budget<=prefix+1;++budget) {
+            alignas(8) unsigned state[256]{};
+            for(unsigned i=0;i<15;++i)state[i]=0x3000+16*i+low;
+            state[15]=base;state[state_offsets::CPSR/4]=0xa0000030;
+            state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=state[state_offsets::TFLAG/4]=1;
+            state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=budget;
+            unsigned expected[256];std::memcpy(expected,state,sizeof(state));
+            expected[15]=base+2*budget;
+            if(budget==prefix+1) {
+                const unsigned pc=base+2*prefix;
+                // BX reads the Thumb pipeline PC; BLX PC is architecturally
+                // unpredictable and retains DynCom's existing raw-PC behavior.
+                const unsigned target=rm==15?pc+(link?0:4):state[rm];
+                expected[state_offsets::TFLAG/4]=target&1;
+                expected[15]=target&((target&1)?~1u:~3u);
+                if(link)expected[14]=(pc+2)|1;
+            }
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            if(count!=budget||std::memcmp(state,expected,sizeof(state))) {
+                printf(" FAIL Thumb exchange direct=%u rm=%u link=%u base=%x prefix=%u low=%u budget=%u pc=%x expected=%x\n",direct,rm,link,base,prefix,low,budget,state[15],expected[15]);return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS Thumb register exchange (%u full-state short-budget/PC/LR/interworking checks)\n",checks);
+#endif
+    return true;
+}
+
+static bool test_synchronous_compilation() {
+#ifdef __EMSCRIPTEN__
+    namespace perf=eka2l1::common::performance;
+    namespace tracking=eka2l1::common::code_tracking;
+    if(hot_compilation_enabled || global_registry().size()) {printf(" FAIL synchronous fixture requires initial empty runtime\n");return false;}
+    struct restore {
+        unsigned sync=synchronous_compilation;
+        bool enabled=perf::enabled,detailed=perf::detailed;
+        int phase=perf::phase.load();
+        unsigned mode=tracking::unsafe_code_mode;
+        std::vector<std::pair<std::string,std::string>> env;
+        std::vector<std::string> absent;
+        restore(){for(const char *n:{"EKA2L1_AOT_RAM","EKA2L1_AOT_CHAIN","EKA2L1_AOT_REGION","EKA2L1_AOT_IR_MODE"}){if(auto v=getenv(n))env.push_back({n,v});else absent.push_back(n);}}
+        ~restore(){configure_hot_rom(nullptr,0,0,false);global_registry().clear();synchronous_compilation=sync;perf::enabled=enabled;perf::detailed=detailed;perf::phase=phase;tracking::unsafe_code_mode=mode;for(auto &x:env)setenv(x.first.c_str(),x.second.c_str(),1);for(auto &x:absent)unsetenv(x.c_str());}
+    } saved;
+    setenv("EKA2L1_AOT_RAM","1",1);setenv("EKA2L1_AOT_CHAIN","1",1);setenv("EKA2L1_AOT_REGION","1",1);setenv("EKA2L1_AOT_IR_MODE","7",1);
+    unsigned checks=0;
+    for(unsigned mode:{0u,3u})for(bool thumb:{false,true})for(bool rom:{false,true})
+    for(unsigned sync:{0u,1u,2u,3u})for(unsigned budget:{1u,2u,3u,16u}) {
+        tracking::unsafe_code_mode=mode;configure_hot_rom(nullptr,0,0,false);global_registry().clear();
+        test_mem expected,actual;
+        const unsigned arm[]={0xe2800001u,0xeafffffdu};
+        const std::uint16_t th[]={0x3001u,0xe7fdu};
+        const auto *bytes=thumb?reinterpret_cast<const std::uint8_t*>(th):reinterpret_cast<const std::uint8_t*>(arm);
+        const unsigned size=thumb?sizeof(th):sizeof(arm);
+        expected.write_code(0x1000,{bytes,bytes+size});actual.write_code(0x1000,{bytes,bytes+size});
+        r12l1::exclusive_monitor refmon(1),mon(1);auto reference=make_cpu(expected,refmon);auto cpu=make_cpu(actual,mon);
+        reference->set_cpsr(0xa0000010u|(thumb?32u:0u));reference->set_pc(0x1000);reference->run(budget);
+        std::atomic<std::uint64_t> generation{1};cpu->code_mapping_generation=&generation;cpu->code_address_space=1;
+        cpu->resolve_code=[&](unsigned pc,core::code_mapping &view){if(pc<0x1000||pc>=0x1000+size)return false;view={1,actual.data.data()+pc,0x1000+size-pc};return true;};
+        cpu->set_cpsr(0xa0000010u|(thumb?32u:0u));cpu->set_pc(0x1000);
+        synchronous_compilation=sync;
+        configure_hot_rom(rom?actual.data.data()+0x1000:nullptr,rom?0x1000:0,rom?size:0,true);
+        perf::enabled=true;perf::detailed=true;perf::phase=2;const auto before=perf::aot_instructions;cpu->run(budget);
+        const auto compiled=perf::aot_instructions-before;
+        if(compiled!=((sync==1||sync==3||(sync==2&&!rom))?budget:0u)||cpu->get_num_instruction_executed()!=budget||cpu->get_cpsr()!=reference->get_cpsr()) {printf(" FAIL sync execution mode=%u thumb=%u rom=%u sync=%u budget=%u compiled=%llu\n",mode,thumb,rom,sync,budget,(unsigned long long)compiled);return false;}
+        for(unsigned reg=0;reg<16;++reg)if(cpu->get_reg(reg)!=reference->get_reg(reg)){printf(" FAIL sync register %u\n",reg);return false;}
+        ++checks;
+    }
+    for(unsigned mode:{0u,3u}) {
+        tracking::unsafe_code_mode=mode;
+        configure_hot_rom(nullptr,0,0,false);global_registry().clear();
+        test_mem memory;r12l1::exclusive_monitor mon(1);auto cpu=make_cpu(memory,mon);
+        constexpr unsigned capacity=4096,entries=capacity+32,base=0x1000;
+        for(unsigned i=0;i<entries;++i) {
+            const unsigned arm[]={0xe2800001u,0xe12fff1eu};
+            const std::uint16_t th[]={0x3001u,0x4770u};
+            auto bytes=(i&1)?reinterpret_cast<const std::uint8_t*>(th):reinterpret_cast<const std::uint8_t*>(arm);
+            auto size=(i&1)?sizeof(th):sizeof(arm);
+            memory.write_code(base+i*16,{bytes,bytes+size});
+        }
+        const auto eager=+[](ARMul_State *)->std::uint32_t{return 0;};
+        const unsigned eager_key=0xffff0000u;
+        const auto initial_table=EM_ASM_INT({return wasmTable.length;});
+        unsigned bounded_table=0;
+        for(unsigned cycle=0;cycle<2;++cycle) {
+            configure_hot_rom(memory.data.data()+base,base,entries*16,true);
+            synchronous_compilation=3;global_registry().register_function(eager_key,eager);
+            perf::enabled=true;perf::detailed=true;perf::phase=2;
+            for(unsigned i=0;i<entries+2;++i) {
+                const auto index=i<entries?i:i-entries;
+                const bool thumb=index&1;const auto pc=base+index*16,key=pc|unsigned(thumb);
+                for(unsigned reg=0;reg<15;++reg)cpu->set_reg(reg,0);
+                cpu->set_reg(14,0x90000);cpu->set_pc(pc);cpu->set_cpsr(0x10u|(thumb?32u:0u));
+                const auto before=perf::aot_instructions;cpu->run(1);
+                if(perf::aot_instructions-before!=1 || cpu->get_num_instruction_executed()!=1
+                    ||cpu->get_reg(0)!=1 ||cpu->get_reg(15)!=pc+(thumb?2:4)
+                    ||cpu->get_cpsr()!=(0x10u|(thumb?32u:0u))) {
+                    printf(" FAIL ROM FIFO execution mode=%u cycle=%u entry=%u\n",mode,cycle,i);return false;
+                }
+                for(unsigned reg=1;reg<14;++reg)if(cpu->get_reg(reg)!=0)return false;
+                if(cpu->get_reg(14)!=0x90000 || !global_registry().lookup(key)
+                    ||global_registry().lookup(eager_key)!=eager
+                    ||global_registry().size()!=std::min(i+1,capacity)+1) {
+                    printf(" FAIL ROM FIFO ownership mode=%u cycle=%u entry=%u\n",mode,cycle,i);return false;
+                }
+                if(i>=capacity && i<entries) {
+                    const unsigned evicted=i-capacity,old_key=(base+evicted*16)|(evicted&1);
+                    if(global_registry().lookup(old_key)) {printf(" FAIL stale ROM FIFO entry\n");return false;}
+                }
+                ++checks;
+            }
+            const auto table=EM_ASM_INT({return wasmTable.length;});
+            if(table>initial_table+capacity || (cycle && table>bounded_table)) {
+                printf(" FAIL unbounded ROM table initial=%u current=%u\n",initial_table,table);return false;
+            }
+            bounded_table=table;
+            const auto replaced_key=(base+16)|1u;
+            auto removed=global_registry().lookup(replaced_key);
+            global_registry().register_function(replaced_key,eager);
+            configure_hot_rom(nullptr,0,0,false);
+            if(global_registry().size()!=2 || global_registry().lookup(eager_key)!=eager
+                ||global_registry().lookup(replaced_key)!=eager
+                ||EM_ASM_INT({return wasmTable.get($0)!==null;},reinterpret_cast<std::uintptr_t>(removed))) {
+                printf(" FAIL ROM FIFO reset or foreign replacement\n");return false;
+            }
+            global_registry().clear();checks+=2;
+        }
+    }
+    {
+        configure_hot_rom(nullptr,0,0,false);global_registry().clear();
+        test_mem memory;const unsigned code[]={0xe2800001u,0xe12fff1eu};
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(code);
+        memory.write_code(0x1000,{bytes,bytes+sizeof(code)});
+        synchronous_compilation=3;
+        configure_hot_rom(memory.data.data()+0x1000,0x1000,sizeof(code),true);
+        std::uintptr_t previous_slot=0;
+        for(unsigned cycle=0;cycle<2;++cycle) {
+            bool good=true;
+            std::thread worker([&] {
+                if(previous_slot && EM_ASM_INT({return $0<wasmTable.length && wasmTable.get($0)!==null;},previous_slot))good=false;
+                r12l1::exclusive_monitor mon(1);auto cpu=make_cpu(memory,mon);
+                cpu->set_cpsr(0x10);cpu->set_pc(0x1000);cpu->set_reg(0,0);
+                const auto before=perf::aot_instructions;cpu->run(1);
+                auto function=global_registry().lookup(0x1000);
+                good=good&&function&&perf::aot_instructions-before==1&&cpu->get_reg(0)==1&&cpu->get_reg(15)==0x1004;
+                previous_slot=reinterpret_cast<std::uintptr_t>(function);
+                // TLS cleanup must unregister and release on this worker.
+            });
+            worker.join();
+            if(!good || global_registry().size()) {printf(" FAIL ROM worker ownership cycle=%u\n",cycle);return false;}
+            ++checks;
+        }
+        configure_hot_rom(nullptr,0,0,false);
+    }
+    for(unsigned mode:{0u,3u}) {
+        tracking::unsafe_code_mode=mode;configure_hot_rom(nullptr,0,0,false);global_registry().clear();
+        test_mem memory;r12l1::exclusive_monitor mon(1);auto cpu=make_cpu(memory,mon);
+        std::atomic<std::uint64_t> generation{1};cpu->code_mapping_generation=&generation;cpu->code_address_space=1;
+        std::array<unsigned,2> first{0xee000010u,0xeafffffdu},second{0xe2800002u,0xeafffffdu};
+        auto *backing=first.data();bool mapped=true;
+        cpu->resolve_code=[&](unsigned pc,core::code_mapping &view){if(!mapped||pc<0x1000||pc>=0x1008)return false;view={1,reinterpret_cast<const std::uint8_t*>(backing)+(pc-0x1000),0x1008-pc};return true;};
+        cpu->set_pc(0x1000);cpu->set_cpsr(0x10);auto *state=matched_kernel_access::state(*cpu);
+        synchronous_compilation=true;configure_hot_rom(nullptr,0,0,true);
+        observe_hot_pc(state);observe_hot_pc(state);
+        if(lookup_compiled(state))return false;
+        first[0]=0xe2800001u;observe_hot_pc(state);
+        if(bool(lookup_compiled(state))!=(mode==0)) {printf(" FAIL synchronous rejection identity mode=%u\n",mode);return false;}
+        backing=second.data();++generation;observe_hot_pc(state);auto function=lookup_compiled(state);
+        if(!function)return false;
+        state->Reg[0]=0;state->Reg[15]=0x1000;state->aot_budget=1;state->NumInstrsToExecute=1;state->NirqSig=1;
+        if(execute_single(state,function)!=1||state->Reg[0]!=2)return false;
+        mapped=false;++generation;if(lookup_compiled(state))return false;
+        observe_hot_pc(state);if(lookup_compiled(state))return false;
+        mapped=true;++generation;observe_hot_pc(state);if(!lookup_compiled(state))return false;
+        cpu->code_address_space=2;if(lookup_compiled(state))return false;
+        checks+=7;
+    }
+    printf(" PASS synchronous compilation (%u real first-use/ROM/RAM/budget/rejection/mapping checks)\n",checks);
+#endif
+    return true;
+}
+
 int main(int argc, char **argv) {
+    // Production module staging logs its result; standalone tests have no sink.
+    eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
+    eka2l1::log::filterings->reset_all(spdlog::level::off);
 #ifdef __EMSCRIPTEN__
     if (eka2l1::common::code_tracking::unsafe_code_mode != 3) {
         printf("FAIL WASM executable-byte default must be 3\n"); return 1;
@@ -5480,6 +6801,10 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--expanded-leaves-only")return test_expanded_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;
     if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
+    if(argc==2 && std::string(argv[1])=="--verification-protection-only")return test_reference_lookup_protection()?0:1;
+    if(argc==2 && std::string(argv[1])=="--frozen-cache-only")return test_frozen_code_cache()?0:1;
+    if(argc==2 && std::string(argv[1])=="--dynamic-cohorts-only")return test_dynamic_rom_cohort_discovery() && test_rom_cohorts()?0:1;
+    if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=7;argc=1;}
     if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
     if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
@@ -6054,6 +7379,8 @@ int main(int argc, char **argv) {
     printf("Running %zu AOT WASM correctness tests...\n\n", tests.size());
 
     int passed = 0, failed = 0, skipped = 0;
+    if (test_synchronous_compilation()) passed++; else failed++;
+    if (test_thumb_register_exchange()) passed++; else failed++;
     for (auto &tc : tests) {
         bool ok = run_test(tc);
         if (ok) passed++;
@@ -6103,6 +7430,14 @@ int main(int argc, char **argv) {
     if (test_inlined_leaves(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
     if (test_invariant_writes(arm_ir_policy::invariant_write_ir)) passed++; else failed++;
 #endif
+    if (test_inlined_leaves(arm_ir_policy::write_budget_chunks, true)) passed++; else failed++;
+    if (test_bounded_rom_calls()) passed++; else failed++;
+    if (test_rom_dispatch()) passed++; else failed++;
+    if (test_rom_cohorts()) passed++; else failed++;
+    if (test_dynamic_rom_cohort_discovery()) passed++; else failed++;
+    if (test_rom_leaf_extent()) passed++; else failed++;
+    if (test_registry_lookup_lifecycle()) passed++; else failed++;
+    if (test_arm_short_block_memory()) passed++; else failed++;
     if (test_bounded_execution()) passed++; else failed++;
     if (test_folded_tlb_guards()) passed++; else failed++;
     if (test_unsafe_code_diagnostic()) passed++; else failed++;
@@ -6119,6 +7454,7 @@ int main(int argc, char **argv) {
     if (test_exit_census()) passed++; else failed++;
     if (test_execution_limits()) passed++; else failed++;
     if (test_guard_publication()) passed++; else failed++;
+    if (test_frozen_code_cache()) passed++; else failed++;
     if (test_inline_limits()) passed++; else failed++;
     if (test_predicated_leaves()) passed++; else failed++;
     if (test_expanded_leaves()) passed++; else failed++;
@@ -6146,12 +7482,18 @@ int main(int argc, char **argv) {
     if (test_ir_addressing()) passed++; else failed++;
     if (test_memory_displacements()) passed++; else failed++;
     if (test_deferred_memory_exits()) passed++; else failed++;
+    if (test_compiled_memory_misses()) passed++; else failed++;
     if (test_block_transfer_guards()) passed++; else failed++;
     if (test_region_loop_interrupts()) passed++; else failed++;
     if (test_region_code_alias()) passed++; else failed++;
     if (test_conditional_alu_select()) passed++; else failed++;
     if (test_compare_conditions()) passed++; else failed++;
     if (test_arm_long_multiply()) passed++; else failed++;
+    if (test_compiled_svc_boundary()) passed++; else failed++;
+    if (test_arm_exclusive_decode()) passed++; else failed++;
+    if (test_thumb_direct_memory()) passed++; else failed++;
+    if (test_thumb_call_boundaries()) passed++; else failed++;
+    if (test_thumb_transfer_spans()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;
 #ifdef EKA2L1_WASM_CODE_VERSIONS

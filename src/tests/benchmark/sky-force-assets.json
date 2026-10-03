@@ -1,0 +1,13 @@
+{
+  "assets": {
+    "SYM.ROM": {
+      "sha256": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490"
+    },
+    "SYM.RPKG": {
+      "sha256": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531"
+    },
+    "Snakes.sis": {
+      "sha256": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+    }
+  }
+}

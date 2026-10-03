@@ -1,0 +1,449 @@
+{
+  "status": "diagnostic_only_excluded_from_timing",
+  "archive": {
+    "head": "3e088bf9c3a1d0fdce7c4e656f70353c162aff1c",
+    "diff_sha256": "83be1417c36aa696c3740283ce95c49eb3fef98e9d4b9d0497353114a39b57e4",
+    "files": {
+      "eka2l1.js": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+      "source.patch": "83be1417c36aa696c3740283ce95c49eb3fef98e9d4b9d0497353114a39b57e4",
+      "eka2l1.html": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+      "eka2l1.data": "63ff767b6132d2541c98e32b601d310a8254a33beac1334149fefee6bf3c1765",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "3ce1ed168ebc6eb2dcb58d7835e29f063e7d7e0eb591e6cc591ae543e7984695",
+      "tests/eka_cpu_fault_wasm.js": "2c0668146c75abd2aa79771a5d6bddf5a482ea77ff1b487582d09928bc06c228",
+      "tests/test_aot_wasm.wasm": "e291f8da56d481fafca6a35e6db231af4b3b42f6ae6c019ed4e7461606af6735",
+      "tests/eka_cpu_fault_wasm.wasm": "b0d6b4f2c14cd0700c8a21cb86ec3369557a7b9f5f90e1768fd0594b3a650021",
+      "tests/test_aot_wasm.js": "f5678a570c227c6524b68e4c65af8174b2c6e95ee7baf1a72e83db1c33b5f9ac"
+    }
+  },
+  "command": {
+    "args": [
+      "node",
+      "profile.ts",
+      "/home/claude/.scratch/eka-sky-performance/assets",
+      "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky",
+      "1",
+      "1",
+      "34000000"
+    ],
+    "env": {
+      "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-thumb-v6",
+      "EKA2L1_BENCHMARK_AOT": "5",
+      "EKA2L1_AOT_IR_MODE": "7",
+      "EKA2L1_AOT_EAGER_REGIONS": "0",
+      "EKA2L1_TLB_HASH": "1",
+      "EKA2L1_CODE_COMPARE": "2",
+      "EKA2L1_CODE_LOOKUP": "0",
+      "EKA2L1_PREDICATED_LEAVES": "1",
+      "EKA2L1_LEAF_FEATURES": "128",
+      "EKA2L1_UNSAFE_CODE": "3",
+      "EKA2L1_SHARED_AUDIO": "1",
+      "EKA2L1_GPU": "hardware",
+      "EKA2L1_PROFILE_DETAIL": "0",
+      "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+      "EKA2L1_THUMB_MEMORY": "1",
+      "EKA2L1_APP_UID": "0xa020d913",
+      "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+      "EKA2L1_PROFILE_START_US": "28000000",
+      "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force.input"
+    },
+    "purpose": "Unspeeded CPU diagnosis after the eight-observation screen; not included in timing panel."
+  },
+  "report": {
+    "thumb_memory": 1,
+    "app_uid": "0xa020d913",
+    "measurement": {
+      "detailed": false,
+      "capture_mode": 1,
+      "first_virtual_us": 28000001,
+      "last_virtual_us": 34000001,
+      "first_instructions": 10157018788,
+      "last_instructions": 12299166749,
+      "wall_seconds": 14.3337,
+      "presentations": 192,
+      "aot_dispatches": 0,
+      "aot_instructions": 0,
+      "compiled_runner_calls": 0,
+      "ram_aot_dispatches": 0,
+      "ram_blocks_compiled": 0,
+      "decoded_instructions": 0,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "cache_clears": 0,
+      "context_loads": 0,
+      "code_version_hits": 0,
+      "code_byte_checks": 0,
+      "code_epoch_hits": 0,
+      "imb_calls": 0,
+      "scopes": {
+        "cpu_loop": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "cpu_run": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "timers": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "scheduler": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "graphics_dispatch": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "graphics_wait": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "display_hook": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "readback": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "frame_capture": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "png_encode": {
+          "seconds": 0,
+          "calls": 0
+        },
+        "audio": {
+          "seconds": 0,
+          "calls": 0
+        }
+      }
+    },
+    "warmup_seconds": 52.229197803999995,
+    "shared_audio": true,
+    "guest_profile_stride": 0,
+    "exit_census": false,
+    "monitor": false,
+    "monitor_cpu_start_us": 0,
+    "sampling": true,
+    "sample_interval_us": 1000,
+    "isolates": 33,
+    "assets": {
+      "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+      "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+      "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+    },
+    "input_sha256": "61b00c3754c5ae204a8fbdcd44d06b3986c2ea41260e79d20c28d5e591c13a95",
+    "wasm_sha256": "3ce1ed168ebc6eb2dcb58d7835e29f063e7d7e0eb591e6cc591ae543e7984695",
+    "loader_sha256": "0d87a886e19b9e52e40f42780dfb14209c3d1649baf4befbdf7cb0983df3d4da",
+    "gl_diagnostics": false,
+    "gl_diagnostics_configurable": true,
+    "aot": 5,
+    "aot_diagnostics": false,
+    "ir_mode": 7,
+    "execution_limits": [
+      512,
+      16,
+      8,
+      512
+    ],
+    "predicated_leaves": 1,
+    "leaf_features": 128,
+    "unsafe_code_initial": 3,
+    "unsafe_code": 3,
+    "tlb_hash": 1,
+    "code_compare": 2,
+    "code_lookup": 0,
+    "omit_guard_publication": 0,
+    "code_write_protect": -1,
+    "eager_regions": 0,
+    "verify_aot": 0,
+    "git_head": "14d06c193bb1cdf37a538406211aa88ee7addb8d",
+    "dirty_worktree": false,
+    "browser": "Chrome/153.0.8010.52",
+    "runtime_footprint": {
+      "guest_us": 34000001,
+      "instructions": 12299166749,
+      "compiled_functions": 9537,
+      "allocated_bytes": 584471616,
+      "free_bytes": 16620368
+    },
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+  },
+  "analysis": [
+    {
+      "file": "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-13.cpuprofile",
+      "seconds": 14.642206,
+      "self": [
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "seconds": 5.310562,
+          "percent": 36.26886549745304
+        },
+        {
+          "name": "f_2149177368",
+          "seconds": 1.740803,
+          "percent": 11.888939412544804
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1::kernel_system::set_epoc_version(epocver)::$_0, std::__2::allocator<eka2l1::kernel_system::set_epoc_version(epocver)::$_0>, void (unsigned int)>::operator()(unsigned int&&)",
+          "seconds": 0.614764,
+          "percent": 4.198574996144706
+        },
+        {
+          "name": "__timedwait_cp",
+          "seconds": 0.59051,
+          "percent": 4.032930557048576
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+          "seconds": 0.356981,
+          "percent": 2.438027439307984
+        },
+        {
+          "name": "__pthread_mutex_unlock",
+          "seconds": 0.219626,
+          "percent": 1.499951578334576
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.209153,
+          "percent": 1.4284254708614263
+        },
+        {
+          "name": "emscripten_builtin_malloc",
+          "seconds": 0.199393,
+          "percent": 1.3617688482186359
+        },
+        {
+          "name": "r_205_pc_1879061180",
+          "seconds": 0.180897,
+          "percent": 1.2354490846529544
+        },
+        {
+          "name": "r_232_pc_1879081572",
+          "seconds": 0.180634,
+          "percent": 1.2336529072190352
+        },
+        {
+          "name": "f_2149218301",
+          "seconds": 0.175403,
+          "percent": 1.1979274161284166
+        },
+        {
+          "name": "eka2l1::kernel::thread_scheduler::switch_context(eka2l1::kernel::thread*, eka2l1::kernel::thread*)",
+          "seconds": 0.17115,
+          "percent": 1.1688812464460614
+        },
+        {
+          "name": "js-to-wasm:i:i",
+          "seconds": 0.170231,
+          "percent": 1.1626048697853315
+        },
+        {
+          "name": "std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>::__init_copy_ctor_external(char const*, unsigned long)",
+          "seconds": 0.146725,
+          "percent": 1.0020689505392835
+        },
+        {
+          "name": "r_228_pc_1879081368",
+          "seconds": 0.128873,
+          "percent": 0.8801474313365077
+        },
+        {
+          "name": "emscripten_builtin_free",
+          "seconds": 0.116234,
+          "percent": 0.7938284709284926
+        },
+        {
+          "name": "std::__2::__function::__func<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*), std::__2::allocator<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>, void (eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>::operator()(eka2l1::kernel_system*&&, eka2l1::kernel::process*&&, eka2l1::arm::core*&&)",
+          "seconds": 0.107654,
+          "percent": 0.7352307432363675
+        },
+        {
+          "name": "r_234_pc_1879081724",
+          "seconds": 0.104643,
+          "percent": 0.714666901968187
+        },
+        {
+          "name": "f_2149191733",
+          "seconds": 0.104567,
+          "percent": 0.7141478544967882
+        },
+        {
+          "name": "f_2149291205",
+          "seconds": 0.100406,
+          "percent": 0.6857300054377052
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "seconds": 0.090705,
+          "percent": 0.6194763275424482
+        },
+        {
+          "name": "f_2152404689",
+          "seconds": 0.089813,
+          "percent": 0.6133843493255046
+        },
+        {
+          "name": "f_2153195873",
+          "seconds": 0.082433,
+          "percent": 0.5629821080238866
+        },
+        {
+          "name": "eka2l1::kernel_system::get_kernel_obj_raw(unsigned int, eka2l1::kernel::thread*)",
+          "seconds": 0.081352,
+          "percent": 0.5555993407004381
+        },
+        {
+          "name": "f_2149180652",
+          "seconds": 0.077039,
+          "percent": 0.5261433966985576
+        }
+      ],
+      "generated_self": {
+        "ram": 8.502291253107625,
+        "rom": 28.69872886640169
+      }
+    }
+  ],
+  "artifacts": {
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-2.cpuprofile": {
+      "sha256": "464573ad2f344fbcf3749f6ddfd71009d01bfef453e408ea2e74c8e8b7dc23a3",
+      "bytes": 95467
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-22.cpuprofile": {
+      "sha256": "eaf8090201ff50edadde39bbf4c0ab9c1e12a95b724ba50f0e35cb2933749bff",
+      "bytes": 111942
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-1.cpuprofile": {
+      "sha256": "2762e03206d99575cfb10595514e4eb36f1c70fcf90850b7a94d4436eb09f2a8",
+      "bytes": 95094
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-20.cpuprofile": {
+      "sha256": "22b058448a706f3f19b26ec00dae6a218c561e747e160c53b8c01f4f78b25339",
+      "bytes": 111908
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-6.cpuprofile": {
+      "sha256": "b5d095df91bb86d63ebae79361795cb940de89da31101fa677bf335dc87ec7b4",
+      "bytes": 95106
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-4.cpuprofile": {
+      "sha256": "55bf1719ab241f56de03d92710a2392f85d7ede94e0f17d967f360382335f881",
+      "bytes": 95153
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-27.cpuprofile": {
+      "sha256": "4836ccd8698b9eca007b5cef5327c467a131cb25cb77b918535432fab8e4d123",
+      "bytes": 111322
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-19.cpuprofile": {
+      "sha256": "197df134f9853c7e67fd03132b71d2c50d0018c3cf74c5498514a260b7bc9601",
+      "bytes": 111917
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/page.cpuprofile": {
+      "sha256": "203cb441da969499f8ab36d2d407deefc3975e2578b8d1a5ede41d31aeff62fa",
+      "bytes": 104784
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-0.cpuprofile": {
+      "sha256": "9d6c75859f1d9dc9da6278972cdb7403b2fa280c841b6883e280bcb3f190fda3",
+      "bytes": 95798
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-8.cpuprofile": {
+      "sha256": "3c38893b99990dd0487bd85403c36d7f3364951111e247de969842e00b26f9b8",
+      "bytes": 95295
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-31.cpuprofile": {
+      "sha256": "7f6904a77da918f4b81f5b5b0d68b4b35fe4bbc769ea1d91f7c9df10a4daf066",
+      "bytes": 95203
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-29.cpuprofile": {
+      "sha256": "64087159776b679b6530c573bfb384624f6a5ee24cf25ac75c98c98357a9eb91",
+      "bytes": 112455
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-28.cpuprofile": {
+      "sha256": "58ba4c86559e4a0dbb03b9c9dfb82fbe8e4cd2ec112e1d3e4a6506429d927c6c",
+      "bytes": 112108
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-16.cpuprofile": {
+      "sha256": "9368c844e10c49be1d9aff766d82477114a8b3c81586559d0fd61761901d49a0",
+      "bytes": 111839
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-30.cpuprofile": {
+      "sha256": "9b033bc9a715f6b0448fc2573af05a339ce5991cbff702f5bc49084738f21fd8",
+      "bytes": 111589
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-11.cpuprofile": {
+      "sha256": "1efda17d4d1954ad38456b0c53baa475167833e5f8f3da01834940cc49392a9b",
+      "bytes": 95044
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-9.cpuprofile": {
+      "sha256": "79480ea4d86371a987368de33fb5c7808931a65ba2e4c4deeb8694df6159a84f",
+      "bytes": 95259
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-24.cpuprofile": {
+      "sha256": "d06107ceea297fca1bf7d341f7a32e99efaeb28c5ea3b1a573373462fab08ede",
+      "bytes": 111298
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-21.cpuprofile": {
+      "sha256": "0ed7d90571ccad07fb22e2860c839d3f97c060b3d3aea0c7d020f92d804cde3a",
+      "bytes": 111655
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-7.cpuprofile": {
+      "sha256": "14d1794f732642dd8bc7b42a6133928bee03b6de6ce86112dea6b6b580ae12c5",
+      "bytes": 95286
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-14.cpuprofile": {
+      "sha256": "747e04e3567c5d0461cdbe4756271326a7190fa600fb09f92d14a0d54f91938c",
+      "bytes": 182897
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-12.cpuprofile": {
+      "sha256": "573193acb26ee6d4f8674d7eef80770c23f6696a03f774f092b5a3d4cacecaba",
+      "bytes": 95065
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-23.cpuprofile": {
+      "sha256": "164e9775d18b14dd3bc60b1c992b59e4decc1afefaf7b61fb29b7dd750f55bce",
+      "bytes": 110857
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-18.cpuprofile": {
+      "sha256": "b01131cd98124219d5cc41ce5c040eca52613358efc99c5beb8213ac6e98a03d",
+      "bytes": 111728
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-13.cpuprofile": {
+      "sha256": "96a4dd0c2d4bbc88fa89c3175725566e7de90b6396cdeb6eece8f42ee09bf230",
+      "bytes": 233340
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-5.cpuprofile": {
+      "sha256": "e309d10acdad40071dbdc6e3439610fcc3de9708b62379675bafec04f1e241ee",
+      "bytes": 95561
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-3.cpuprofile": {
+      "sha256": "3cc61c893b8d8a39d3dffdf8823e8cea19c51c9c2d6242f4a33649f1016755c5",
+      "bytes": 95016
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-15.cpuprofile": {
+      "sha256": "42e3cf62696c64acab7f48e24234f04bcc21f6ac47c8937213d4d8088e58117d",
+      "bytes": 111640
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-25.cpuprofile": {
+      "sha256": "eabdc4ea6ce6f398ee84fe027dd859b19d357b92614420544daa716a4c84a56f",
+      "bytes": 111543
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-26.cpuprofile": {
+      "sha256": "0b05894d079da21b384123da121fc15506aad1921ebfeddd0cf910dfc2125fb8",
+      "bytes": 111226
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-17.cpuprofile": {
+      "sha256": "ac404923085e332193b6f023ca18c22383c22565e4c2498aaad93163b3c68fba",
+      "bytes": 111136
+    },
+    "/home/claude/.scratch/eka-sky-performance/prefix-v6-profile-sky/worker-10.cpuprofile": {
+      "sha256": "bfc7614583fbb4c24bc301082c8fef492b7986467ba3679e459bef0acf6056b8",
+      "bytes": 95065
+    }
+  }
+}

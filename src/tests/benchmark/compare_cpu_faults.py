@@ -11,7 +11,7 @@ p.add_argument('native', type=Path)
 p.add_argument('wasm', type=Path)
 p.add_argument('output', type=Path)
 p.add_argument('--require-equal', action='store_true', help='Exit nonzero on any semantic mismatch')
-p.add_argument('--cases', type=int, choices=(48,64,96,480,672,5376), default=480, help='Expected complete fixture count; read spans has 48, invariant remapping has 64, block spans has 96, extended has 672, conditional IR has 5376')
+p.add_argument('--cases', type=int, choices=(48,64,96,384,480,672,720,1008,1152,5376), default=480, help='Expected complete fixture count; read spans has 48, invariant remapping has 64, block spans has 96, bounded ROM calls has 384, extended has 672, short ARM memory has 1008, conditional IR has 5376')
 p.add_argument('--unsafe-code',type=int,choices=(0,1,2,3),default=3)
 p.add_argument('--leaf-features',type=int,choices=range(256))
 p.add_argument('--exit-census',type=int,choices=(0,1))
@@ -80,7 +80,7 @@ for n, w in zip(native, wasm):
     if not changed:
         continue
     fields.update(changed)
-    category = ('readonly_store' if n['tlb_readonly'] and not (n['opcode'] & (1 << 20))
+    category = ('readonly_store' if n['tlb_readonly'] == 1 and not (n['opcode'] & (1 << 20))
                 else 'big_endian_tlb_read' if n['tlb_readonly'] and n['endian']
                 else 'big_endian_halfword_store' if n['opcode'] == 0xe1c100b0 and n['endian']
                 else 'other')
@@ -107,7 +107,7 @@ if a.ir_policy is not None:
     result['verified_ir_policy'] = a.ir_policy
 # The 64-case remapping fixture varies read-only versus read/write mappings
 # of a separate root. Its legacy tlb_readonly=0 does not mean unmapped.
-if a.cases == 64:
+if a.cases in (64,1152):
     result.pop('little_endian_unmapped_cases')
     result.pop('little_endian_unmapped_differences')
 a.output.write_text(json.dumps(result, indent=2) + '\n')

@@ -1411,13 +1411,15 @@ namespace eka2l1::hle {
             return false;
         }
 
-        epoc_import_func func = res->second;
+        // Retain a callable snapshot during invocation, including callbacks
+        // that alter registration. The name is needed only before that call.
+        auto func = res->second.func;
 
         if (kern_->get_config()->log_svc) {
-            LOG_TRACE(KERNEL, "Calling SVC 0x{:x} {}", svcnum, func.name);
+            LOG_TRACE(KERNEL, "Calling SVC 0x{:x} {}", svcnum, res->second.name);
         }
 
-        func.func(kern_, kern_->crr_process(), kern_->get_cpu());
+        func(kern_, kern_->crr_process(), kern_->get_cpu());
 
         kern_->unlock();
         return true;

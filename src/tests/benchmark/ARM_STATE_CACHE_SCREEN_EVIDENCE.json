@@ -1,0 +1,1516 @@
+{
+  "status": "mixed_screen_not_promoted",
+  "plan": {
+    "schedule": [
+      {
+        "batch": 0,
+        "route": "sky",
+        "thumb": 1,
+        "build": 11,
+        "eager": 0
+      },
+      {
+        "batch": 0,
+        "route": "sky",
+        "thumb": 1,
+        "build": 12,
+        "eager": 0
+      },
+      {
+        "batch": 0,
+        "route": "combat",
+        "thumb": 1,
+        "build": 12,
+        "eager": 0
+      },
+      {
+        "batch": 0,
+        "route": "combat",
+        "thumb": 1,
+        "build": 11,
+        "eager": 0
+      },
+      {
+        "batch": 0,
+        "route": "standard",
+        "thumb": 1,
+        "build": 11,
+        "eager": 0
+      },
+      {
+        "batch": 0,
+        "route": "standard",
+        "thumb": 1,
+        "build": 12,
+        "eager": 0
+      },
+      {
+        "batch": 0,
+        "route": "long",
+        "thumb": 1,
+        "build": 12,
+        "eager": 0
+      },
+      {
+        "batch": 0,
+        "route": "long",
+        "thumb": 1,
+        "build": 11,
+        "eager": 0
+      }
+    ],
+    "fixed_before_first_sample": "2026-10-02T05:51:11.923577+00:00",
+    "purpose": "Exploratory V11b/V12 screen, Thumb enabled/eager0; Only ARM short-block PC/runtime state caching differs; callbacks retain publication and reload. Eight fixed serial samples across four routes; not promotion evidence."
+  },
+  "observations": [
+    {
+      "batch": 0,
+      "route": "sky",
+      "thumb": 1,
+      "build": 11,
+      "eager": 0,
+      "index": 0,
+      "name": "arm-state-v12-screen-00-sky-b11",
+      "started": "2026-10-02T06:14:51.991688+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-00-sky-b11",
+        "1",
+        "0",
+        "34000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-arm-spans-v11b",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "1",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "28000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force.input"
+      },
+      "git_head": "a5528d3078b2dccbfa1406f0b2650630bb34acb8",
+      "wall_seconds": 11.0006,
+      "guest_seconds": 6.0,
+      "instructions": 2142147961,
+      "presentations": 192,
+      "warmup_seconds": 51.982778306
+    },
+    {
+      "batch": 0,
+      "route": "sky",
+      "thumb": 1,
+      "build": 12,
+      "eager": 0,
+      "index": 1,
+      "name": "arm-state-v12-screen-01-sky-b12",
+      "started": "2026-10-02T06:16:00.597256+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-01-sky-b12",
+        "1",
+        "0",
+        "34000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-arm-state-v12",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "1",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "28000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force.input"
+      },
+      "git_head": "ac45261bdc717055a399a41dde193b34ce28e0c1",
+      "wall_seconds": 12.1533,
+      "guest_seconds": 6.0,
+      "instructions": 2142147961,
+      "presentations": 192,
+      "warmup_seconds": 51.73391104
+    },
+    {
+      "batch": 0,
+      "route": "combat",
+      "thumb": 1,
+      "build": 12,
+      "eager": 0,
+      "index": 2,
+      "name": "arm-state-v12-screen-02-combat-b12",
+      "started": "2026-10-02T06:17:10.102576+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-02-combat-b12",
+        "1",
+        "0",
+        "48000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-arm-state-v12",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "1",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-combat.input"
+      },
+      "git_head": "ac45261bdc717055a399a41dde193b34ce28e0c1",
+      "wall_seconds": 10.2694,
+      "guest_seconds": 5.999999,
+      "instructions": 2171043925,
+      "presentations": 192,
+      "warmup_seconds": 79.358992394
+    },
+    {
+      "batch": 0,
+      "route": "combat",
+      "thumb": 1,
+      "build": 11,
+      "eager": 0,
+      "index": 3,
+      "name": "arm-state-v12-screen-03-combat-b11",
+      "started": "2026-10-02T06:18:45.911661+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-03-combat-b11",
+        "1",
+        "0",
+        "48000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-arm-spans-v11b",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "1",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-combat.input"
+      },
+      "git_head": "ac45261bdc717055a399a41dde193b34ce28e0c1",
+      "wall_seconds": 10.2178,
+      "guest_seconds": 5.999999,
+      "instructions": 2171043925,
+      "presentations": 192,
+      "warmup_seconds": 77.35349663800001
+    },
+    {
+      "batch": 0,
+      "route": "standard",
+      "thumb": 1,
+      "build": 11,
+      "eager": 0,
+      "index": 4,
+      "name": "arm-state-v12-screen-04-standard-b11",
+      "started": "2026-10-02T06:20:19.015863+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-04-standard-b11",
+        "1",
+        "0",
+        "39000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-arm-spans-v11b",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "1",
+        "EKA2L1_PROFILE_START_US": "21000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes.input"
+      },
+      "git_head": "ac45261bdc717055a399a41dde193b34ce28e0c1",
+      "wall_seconds": 10.5119,
+      "guest_seconds": 18.0,
+      "instructions": 2964235296,
+      "presentations": 381,
+      "warmup_seconds": 12.56045791
+    },
+    {
+      "batch": 0,
+      "route": "standard",
+      "thumb": 1,
+      "build": 12,
+      "eager": 0,
+      "index": 5,
+      "name": "arm-state-v12-screen-05-standard-b12",
+      "started": "2026-10-02T06:20:47.939778+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-05-standard-b12",
+        "1",
+        "0",
+        "39000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-arm-state-v12",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "1",
+        "EKA2L1_PROFILE_START_US": "21000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes.input"
+      },
+      "git_head": "ac45261bdc717055a399a41dde193b34ce28e0c1",
+      "wall_seconds": 9.99253,
+      "guest_seconds": 18.0,
+      "instructions": 2964235296,
+      "presentations": 381,
+      "warmup_seconds": 12.306422491000001
+    },
+    {
+      "batch": 0,
+      "route": "long",
+      "thumb": 1,
+      "build": 12,
+      "eager": 0,
+      "index": 6,
+      "name": "arm-state-v12-screen-06-long-b12",
+      "started": "2026-10-02T06:21:16.864991+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-06-long-b12",
+        "1",
+        "0",
+        "60000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-arm-state-v12",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "1",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes-length-long.input"
+      },
+      "git_head": "ac45261bdc717055a399a41dde193b34ce28e0c1",
+      "wall_seconds": 9.7646,
+      "guest_seconds": 18.0,
+      "instructions": 3031637220,
+      "presentations": 380,
+      "warmup_seconds": 25.365006717
+    },
+    {
+      "batch": 0,
+      "route": "long",
+      "thumb": 1,
+      "build": 11,
+      "eager": 0,
+      "index": 7,
+      "name": "arm-state-v12-screen-07-long-b11",
+      "started": "2026-10-02T06:21:57.564981+00:00",
+      "command": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-07-long-b11",
+        "1",
+        "0",
+        "60000000"
+      ],
+      "env": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-arm-spans-v11b",
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "1",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes-length-long.input"
+      },
+      "git_head": "ac45261bdc717055a399a41dde193b34ce28e0c1",
+      "wall_seconds": 9.76769,
+      "guest_seconds": 18.0,
+      "instructions": 3031637220,
+      "presentations": 380,
+      "warmup_seconds": 25.871825719
+    }
+  ],
+  "summary": [
+    {
+      "route": "sky",
+      "control_seconds": 11.0006,
+      "candidate_seconds": 12.1533,
+      "throughput_percent": -9.484666716035973,
+      "candidate_realtime": 0.4936930710177483
+    },
+    {
+      "route": "combat",
+      "control_seconds": 10.2178,
+      "candidate_seconds": 10.2694,
+      "throughput_percent": -0.5024636298128327,
+      "candidate_realtime": 0.5842599372894229
+    },
+    {
+      "route": "standard",
+      "control_seconds": 10.5119,
+      "candidate_seconds": 9.99253,
+      "throughput_percent": 5.197582594197869,
+      "candidate_realtime": 1.8013456051670598
+    },
+    {
+      "route": "long",
+      "control_seconds": 9.76769,
+      "candidate_seconds": 9.7646,
+      "throughput_percent": 0.03164492145095732,
+      "candidate_realtime": 1.8433934825799316
+    }
+  ],
+  "profile": [
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-13.cpuprofile",
+      "sampled_seconds": 15.159408,
+      "work_seconds": 14.320458,
+      "inclusive": {
+        "generated": {
+          "seconds": 5.90551,
+          "percent_all_samples": 38.95607269096524
+        },
+        "interpreter_loop": {
+          "seconds": 13.746538,
+          "percent_all_samples": 90.67991309423165
+        }
+      },
+      "top_self": [
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "seconds": 5.690518,
+          "percent_all_samples": 37.53786427543873
+        },
+        {
+          "name": "f_2149177368",
+          "seconds": 1.847677,
+          "percent_all_samples": 12.188318963379045
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1::kernel_system::set_epoc_version(epocver)::$_0, std::__2::allocator<eka2l1::kernel_system::set_epoc_version(epocver)::$_0>, void (unsigned int)>::operator()(unsigned int&&)",
+          "seconds": 0.864571,
+          "percent_all_samples": 5.703197644657363
+        },
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 0.626805,
+          "percent_all_samples": 4.1347590882176934
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+          "seconds": 0.348972,
+          "percent_all_samples": 2.3020160154011293
+        },
+        {
+          "name": "js-to-wasm:i:",
+          "seconds": 0.223117,
+          "percent_all_samples": 1.4718054953069408
+        },
+        {
+          "name": "f_2149218301",
+          "seconds": 0.218143,
+          "percent_all_samples": 1.4389941876358232
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.212145,
+          "percent_all_samples": 1.399427998771456
+        },
+        {
+          "name": "r_205_pc_1879061180",
+          "seconds": 0.209524,
+          "percent_all_samples": 1.3821384054047492
+        },
+        {
+          "name": "r_232_pc_1879081572",
+          "seconds": 0.17868,
+          "percent_all_samples": 1.1786739957127614
+        },
+        {
+          "name": "r_228_pc_1879081368",
+          "seconds": 0.157557,
+          "percent_all_samples": 1.0393347814109892
+        },
+        {
+          "name": "f_2149191733",
+          "seconds": 0.135356,
+          "percent_all_samples": 0.8928844714780418
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "seconds": 0.116099,
+          "percent_all_samples": 0.7658544449756878
+        },
+        {
+          "name": "f_2153195873",
+          "seconds": 0.112086,
+          "percent_all_samples": 0.7393824349869071
+        },
+        {
+          "name": "f_2149290613",
+          "seconds": 0.111998,
+          "percent_all_samples": 0.7388019373843623
+        },
+        {
+          "name": "eka2l1::kernel::thread_scheduler::switch_context(eka2l1::kernel::thread*, eka2l1::kernel::thread*)",
+          "seconds": 0.111082,
+          "percent_all_samples": 0.732759485066963
+        },
+        {
+          "name": "eka2l1::mem::mmu_base::read_32bit_data(unsigned int, unsigned int*)",
+          "seconds": 0.099275,
+          "percent_all_samples": 0.654873857870967
+        },
+        {
+          "name": "f_2149291205",
+          "seconds": 0.097211,
+          "percent_all_samples": 0.6412585504658229
+        },
+        {
+          "name": "f_2152404689",
+          "seconds": 0.094133,
+          "percent_all_samples": 0.620954327504082
+        },
+        {
+          "name": "eka2l1::arm::dyncom_core::load_context(eka2l1::arm::core::thread_context const&)",
+          "seconds": 0.086739,
+          "percent_all_samples": 0.5721793357629796
+        },
+        {
+          "name": "f_2152417839",
+          "seconds": 0.084566,
+          "percent_all_samples": 0.5578450029183198
+        },
+        {
+          "name": "f_2149191591",
+          "seconds": 0.084504,
+          "percent_all_samples": 0.5574360159710723
+        },
+        {
+          "name": "r_234_pc_1879081724",
+          "seconds": 0.08242,
+          "percent_all_samples": 0.5436887772926225
+        },
+        {
+          "name": "f_2149247201",
+          "seconds": 0.082405,
+          "percent_all_samples": 0.5435898288376433
+        },
+        {
+          "name": "f_2149180652",
+          "seconds": 0.081374,
+          "percent_all_samples": 0.5367887716987365
+        },
+        {
+          "name": "f_2149247187",
+          "seconds": 0.081304,
+          "percent_all_samples": 0.5363270122421667
+        },
+        {
+          "name": "f_2149291233",
+          "seconds": 0.080291,
+          "percent_all_samples": 0.529644693249235
+        },
+        {
+          "name": "f_2152404675",
+          "seconds": 0.0782,
+          "percent_all_samples": 0.5158512786251284
+        },
+        {
+          "name": "std::__2::__function::__func<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*), std::__2::allocator<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>, void (eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>::operator()(eka2l1::kernel_system*&&, eka2l1::kernel::process*&&, eka2l1::arm::core*&&)",
+          "seconds": 0.078185,
+          "percent_all_samples": 0.5157523301701491
+        },
+        {
+          "name": "r_229_pc_1879081348",
+          "seconds": 0.070793,
+          "percent_all_samples": 0.46699053155637743
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-14.cpuprofile",
+      "sampled_seconds": 15.161288,
+      "work_seconds": 0.510665,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 14.604154,
+          "percent_all_samples": 96.32528582004379
+        },
+        {
+          "name": "getParameter",
+          "seconds": 0.174827,
+          "percent_all_samples": 1.1531144319664661
+        },
+        {
+          "name": "readPixels",
+          "seconds": 0.172637,
+          "percent_all_samples": 1.1386697489025999
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.046469,
+          "percent_all_samples": 0.30649770652730823
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'(), std::__2::allocator<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'()>, void ()>::operator()()",
+          "seconds": 0.042113,
+          "percent_all_samples": 0.2777666382961659
+        },
+        {
+          "name": "eka2l1::drivers::shared_graphics_driver::update_bitmap(unsigned long long, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, void const*, unsigned long)",
+          "seconds": 0.041169,
+          "percent_all_samples": 0.27154025436361345
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.008424,
+          "percent_all_samples": 0.05556256170320094
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.007395,
+          "percent_all_samples": 0.048775539386891144
+        },
+        {
+          "name": "void std::__2::vector<unsigned char, std::__2::allocator<unsigned char>>::__assign_with_size[abi:ne200100]<unsigned char*, unsigned char*>(unsigned char*, unsigned char*, long)",
+          "seconds": 0.006315,
+          "percent_all_samples": 0.041652134040326916
+        },
+        {
+          "name": "texSubImage2D",
+          "seconds": 0.005288,
+          "percent_all_samples": 0.03487830321539964
+        },
+        {
+          "name": "do_proxy",
+          "seconds": 0.004243,
+          "percent_all_samples": 0.02798574896802963
+        },
+        {
+          "name": "useProgram",
+          "seconds": 0.003261,
+          "percent_all_samples": 0.021508726699209196
+        },
+        {
+          "name": "bindFramebuffer",
+          "seconds": 0.003169,
+          "percent_all_samples": 0.020901918095612985
+        },
+        {
+          "name": "eka2l1::drivers::ogl_graphics_driver::dispatch(eka2l1::drivers::command&)",
+          "seconds": 0.002133,
+          "percent_all_samples": 0.014068725559464342
+        },
+        {
+          "name": "flush",
+          "seconds": 0.002122,
+          "percent_all_samples": 0.013996172356860447
+        },
+        {
+          "name": "emscripten_builtin_malloc",
+          "seconds": 0.002121,
+          "percent_all_samples": 0.013989576611169185
+        },
+        {
+          "name": "emscriptenWebGLGet",
+          "seconds": 0.002119,
+          "percent_all_samples": 0.013976385119786655
+        },
+        {
+          "name": "eka2l1::drivers::ogl_texture::bind(eka2l1::drivers::graphics_driver*, int)",
+          "seconds": 0.002119,
+          "percent_all_samples": 0.013976385119786655
+        },
+        {
+          "name": "eka2l1::drivers::shared_graphics_driver::dispatch(eka2l1::drivers::command&)",
+          "seconds": 0.002117,
+          "percent_all_samples": 0.01396319362840413
+        },
+        {
+          "name": "eka2l1::drivers::ogl_graphics_driver::run()::$_0::__invoke(void*)",
+          "seconds": 0.002114,
+          "percent_all_samples": 0.013943406391330342
+        },
+        {
+          "name": "js-to-wasm::i",
+          "seconds": 0.002113,
+          "percent_all_samples": 0.013936810645639078
+        },
+        {
+          "name": "postMessage",
+          "seconds": 0.002108,
+          "percent_all_samples": 0.01390383191718276
+        },
+        {
+          "name": "uniformMatrix4fv",
+          "seconds": 0.002108,
+          "percent_all_samples": 0.01390383191718276
+        },
+        {
+          "name": "stackRestore",
+          "seconds": 0.001082,
+          "percent_all_samples": 0.00713659683794675
+        },
+        {
+          "name": "fmt_u",
+          "seconds": 0.001061,
+          "percent_all_samples": 0.0069980861784302234
+        },
+        {
+          "name": "bufferData",
+          "seconds": 0.001059,
+          "percent_all_samples": 0.006984894687047697
+        },
+        {
+          "name": "glViewport",
+          "seconds": 0.001058,
+          "percent_all_samples": 0.006978298941356434
+        },
+        {
+          "name": "get",
+          "seconds": 0.001058,
+          "percent_all_samples": 0.006978298941356434
+        },
+        {
+          "name": "clear",
+          "seconds": 0.001058,
+          "percent_all_samples": 0.006978298941356434
+        },
+        {
+          "name": "enableVertexAttribArray",
+          "seconds": 0.001057,
+          "percent_all_samples": 0.006971703195665171
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-19.cpuprofile",
+      "sampled_seconds": 15.152846,
+      "work_seconds": 0.003165,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.149681,
+          "percent_all_samples": 99.97911283464505
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.0069689878719812765
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.0069689878719812765
+        },
+        {
+          "name": "std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+          "seconds": 0.001053,
+          "percent_all_samples": 0.0069491896109813295
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-18.cpuprofile",
+      "sampled_seconds": 15.15415,
+      "work_seconds": 0.003165,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.150985,
+          "percent_all_samples": 99.9791146319655
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.003165,
+          "percent_all_samples": 0.0208853680344988
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-29.cpuprofile",
+      "sampled_seconds": 15.152679,
+      "work_seconds": 0.00211,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.150569,
+          "percent_all_samples": 99.98607506962959
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001056,
+          "percent_all_samples": 0.006969064678265803
+        },
+        {
+          "name": "set_status_conditional",
+          "seconds": 0.001054,
+          "percent_all_samples": 0.006955865692132725
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-20.cpuprofile",
+      "sampled_seconds": 15.152745,
+      "work_seconds": 0.001055,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.15169,
+          "percent_all_samples": 99.99303756514084
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001055,
+          "percent_all_samples": 0.006962434859162482
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-16.cpuprofile",
+      "sampled_seconds": 15.155066,
+      "work_seconds": 0.001054,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.154012,
+          "percent_all_samples": 99.9930452298921
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001054,
+          "percent_all_samples": 0.0069547701078965934
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-15.cpuprofile",
+      "sampled_seconds": 15.154948,
+      "work_seconds": 0.001054,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.153894,
+          "percent_all_samples": 99.99304517574062
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001054,
+          "percent_all_samples": 0.0069548242593772
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-21.cpuprofile",
+      "sampled_seconds": 15.150188,
+      "work_seconds": 0.001053,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.149135,
+          "percent_all_samples": 99.99304959119979
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001053,
+          "percent_all_samples": 0.0069504088002076275
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-26.cpuprofile",
+      "sampled_seconds": 15.152461,
+      "work_seconds": 0.001053,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.151408,
+          "percent_all_samples": 99.99305063382113
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001053,
+          "percent_all_samples": 0.006949366178866917
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-25.cpuprofile",
+      "sampled_seconds": 15.15206,
+      "work_seconds": 0.001052,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.151008,
+          "percent_all_samples": 99.9930570496685
+        },
+        {
+          "name": "set_status_conditional",
+          "seconds": 0.001052,
+          "percent_all_samples": 0.0069429503315060785
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-2.cpuprofile",
+      "sampled_seconds": 15.162499,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.162499,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-22.cpuprofile",
+      "sampled_seconds": 15.150609,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.150609,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-1.cpuprofile",
+      "sampled_seconds": 15.163003,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.163003,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-6.cpuprofile",
+      "sampled_seconds": 15.162081,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.162081,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-4.cpuprofile",
+      "sampled_seconds": 15.162751,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.162751,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-27.cpuprofile",
+      "sampled_seconds": 15.15238,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.15238,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-0.cpuprofile",
+      "sampled_seconds": 15.162972,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.162972,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-8.cpuprofile",
+      "sampled_seconds": 15.162561,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.162561,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-31.cpuprofile",
+      "sampled_seconds": 15.159268,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.159268,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-28.cpuprofile",
+      "sampled_seconds": 15.152078,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.152078,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-30.cpuprofile",
+      "sampled_seconds": 15.152276,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.152276,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-11.cpuprofile",
+      "sampled_seconds": 15.161533,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.161533,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-9.cpuprofile",
+      "sampled_seconds": 15.16258,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.16258,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-24.cpuprofile",
+      "sampled_seconds": 15.15233,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.15233,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-7.cpuprofile",
+      "sampled_seconds": 15.162698,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.162698,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-12.cpuprofile",
+      "sampled_seconds": 15.157614,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.157614,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-23.cpuprofile",
+      "sampled_seconds": 15.152558,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.152558,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-5.cpuprofile",
+      "sampled_seconds": 15.162136,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.162136,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-3.cpuprofile",
+      "sampled_seconds": 15.162753,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.162753,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-17.cpuprofile",
+      "sampled_seconds": 15.155048,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 15.155048,
+          "percent_all_samples": 100.0
+        }
+      ]
+    },
+    {
+      "file": ".scratch/eka-sky-performance/v12-profile-sky/worker-10.cpuprofile",
+      "sampled_seconds": 15.161654,
+      "work_seconds": 0.0,
+      "inclusive": {},
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 15.161654,
+          "percent_all_samples": 100.0
+        }
+      ]
+    }
+  ],
+  "artifacts": {
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-00-sky-b11.log": {
+      "sha256": "97cff2061b0337d452df86b0bafc593cb4b2c2ff5c4d9d78197982a805ceab41",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-00-sky-b11-host.jsonl": {
+      "sha256": "1020656d9fd321e78081dc0e4bf960d3a6088f57fdda8b19633de87143e03d6a",
+      "bytes": 30271
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-00-sky-b11-command.json": {
+      "sha256": "6cf91f7a6797a4877595d0b54ad4c8a67efb6c7f4bc8940063a5d8cc520460e3",
+      "bytes": 1379
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-01-sky-b12.log": {
+      "sha256": "15797c1ffe13a3e808053165bcfa9f99262212f22f0e09493670029c8a8c6a7f",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-01-sky-b12-host.jsonl": {
+      "sha256": "bd126b5e61536033a955a8cff782778decf7635914169c622a45c84ec51a3ac5",
+      "bytes": 30267
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-01-sky-b12-command.json": {
+      "sha256": "6216410d7698b0701ba62151143f1e61cd55d78281176288b403a17c51b44f9f",
+      "bytes": 1378
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-02-combat-b12.log": {
+      "sha256": "572ae54c33c1ee7621b1106b532a4eccd48e80391df904dc408f6a3136ea6925",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-02-combat-b12-host.jsonl": {
+      "sha256": "99ce28c16e6585e6e58a1b374d753c9d94a875b161df48885cd34fafcaa48d19",
+      "bytes": 41515
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-02-combat-b12-command.json": {
+      "sha256": "cb98b60898989753259792e1f6037b65e4d6f799179c82793bcfab8862d2dccb",
+      "bytes": 1394
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-03-combat-b11.log": {
+      "sha256": "6e93d43d9f15ca3523561c8cdc0988e435d0c3fea4690152aed79d3173046202",
+      "bytes": 978
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-03-combat-b11-host.jsonl": {
+      "sha256": "d34a483db9966cf2f34421ab19c5ac3db51249709a9419c02ee196f9fff970f1",
+      "bytes": 40637
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-03-combat-b11-command.json": {
+      "sha256": "eac0d27293d85aa7b1bc0bd776a26496abcc8b084c48dfe7f7064484cabd2751",
+      "bytes": 1395
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-04-standard-b11.log": {
+      "sha256": "59382f64db6614c5a860d04410e30a1f33126f52e10d562d8fc943498cfd8691",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-04-standard-b11-host.jsonl": {
+      "sha256": "ed4b551c2333021985224e455da1b8e3d67da1056521a4ed663ce41e9c5846d3",
+      "bytes": 12975
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-04-standard-b11-command.json": {
+      "sha256": "c548f8472481dd2802aa1c68a83fe69f8ee80a1e87f0c02dff99b910bf85109d",
+      "bytes": 1234
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-05-standard-b12.log": {
+      "sha256": "9c3b1196b60b539410d9788f21efa8974419640667fb53595608055b85d17b11",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-05-standard-b12-host.jsonl": {
+      "sha256": "d7a97669f4cfd54d791de794c4c98087c623f047bbae8648ff9ef505941eeaf8",
+      "bytes": 12972
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-05-standard-b12-command.json": {
+      "sha256": "19e6c1282638d1959574e1da2efb249787fc7947d2f55bca991c9e8c1bc347da",
+      "bytes": 1233
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-06-long-b12.log": {
+      "sha256": "2dfe6c41f5daeaea9c0bc5257bd13e6a3b9dbfa65980ece776d41a147c09343e",
+      "bytes": 975
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-06-long-b12-host.jsonl": {
+      "sha256": "f980e8fb7e75af61834a57206251f997b77c0b39146c76b8c43a0c8edf4de9ac",
+      "bytes": 18159
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-06-long-b12-command.json": {
+      "sha256": "28fc0ac0d671c518ca79c7d95bb9f0d5fdbe2e076586d228727be8dae2862a03",
+      "bytes": 1233
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-07-long-b11.log": {
+      "sha256": "b26ca217774dfde665ebd35634b2c3b3ec290cca8ddc2411f5adb5ea8784db1b",
+      "bytes": 976
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-07-long-b11-host.jsonl": {
+      "sha256": "2aebdb395d387d358c93ecaf7990fad82745b2c3ba584e78249260bba35b9bac",
+      "bytes": 18162
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-07-long-b11-command.json": {
+      "sha256": "a575333a7a83c4533935bef5e4eb2acb1f6c853f062d4303aff6b2a9ad9c7979",
+      "bytes": 1234
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-00-sky-b11/report.json": {
+      "sha256": "524b5014854d6ad5d0b4d34081238bb3072c2c87e864f96662e416acebaee172",
+      "bytes": 3253
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-01-sky-b12/report.json": {
+      "sha256": "3b6c3ccb44fa5f1e228babe0fb04fc141ec2eacf74c68de1a8fbf1a891cb6292",
+      "bytes": 3252
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-02-combat-b12/report.json": {
+      "sha256": "217909069a2165553034521a47875a18f961ebd279006109381134796435cdfb",
+      "bytes": 3254
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-03-combat-b11/report.json": {
+      "sha256": "384297c28af270d24ed586bb6f14297afa81fa1de3cbd50db4480e2d268a939a",
+      "bytes": 3259
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-04-standard-b11/report.json": {
+      "sha256": "9c97406bcf39c6bbb2a489aefb3fa33603c3ebcfd2edb6dd07990a27cd2b62b9",
+      "bytes": 3250
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-05-standard-b12/report.json": {
+      "sha256": "fe8f9b6aacbcda78685b253d1b075c4d7da9b8dfa67ac277ef0627e66131e825",
+      "bytes": 3257
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-06-long-b12/report.json": {
+      "sha256": "6ec46cac846904f9662692ff1c5b08e41d88e2afeea988d4451e2263119d7c02",
+      "bytes": 3250
+    },
+    "/home/claude/.scratch/eka-sky-performance/arm-state-v12-screen-07-long-b11/report.json": {
+      "sha256": "96ecc7f9a0f1f7eb32d772e96240cb75d42ca7eb0b1f179ba62139d3cab15b75",
+      "bytes": 3251
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-2.cpuprofile": {
+      "sha256": "3236c196f27aa2cf93a29c901915946dd15fb70404fac7e41bd6afa46a555c18",
+      "bytes": 98858
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-22.cpuprofile": {
+      "sha256": "ace207e7bb10ee9133439c0e58038f74124da594a7a1bfafe7625891f285a695",
+      "bytes": 101141
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-1.cpuprofile": {
+      "sha256": "7949fc9821fa47483fddcbe440b66d790315c98108a4c7c73562c39db0631193",
+      "bytes": 98802
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-20.cpuprofile": {
+      "sha256": "080c9ef8ceb5e777b50d8bbb19901b1fd86e10b3cf1990860fe6172481bf1196",
+      "bytes": 101131
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-6.cpuprofile": {
+      "sha256": "d62f0d0af719cde3e185924c0fa04c45c1c1a31b0c5f2e40d70ee9ccd909d25a",
+      "bytes": 98589
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-4.cpuprofile": {
+      "sha256": "4b8ca59e935b42129d3424b07b90ff7150c58a8aadeb09debc02a1416bdc10a5",
+      "bytes": 98678
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-27.cpuprofile": {
+      "sha256": "0b2e29c32b6c342015d5cf68663c6b282e4bf3fd066db3187e7cd5f19749007e",
+      "bytes": 100813
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-19.cpuprofile": {
+      "sha256": "4957cb32cef1c13d6d6146f10bf0bc5dbff94f5df08b30b8ec1777d4c576ef40",
+      "bytes": 101475
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/page.cpuprofile": {
+      "sha256": "76ab8e1c040e17f168bd7b40175d8657aa1838c0a4633feee55baf73108e97b4",
+      "bytes": 110031
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-0.cpuprofile": {
+      "sha256": "dd018481698aaa1c2205356074808459f11278f5e4c731bef7ee0e4b6860c9e5",
+      "bytes": 98417
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-8.cpuprofile": {
+      "sha256": "143640cd9d49a50a61e3decfc5145071823cced25f8cf4d90c1ebd097f1e1670",
+      "bytes": 98300
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-31.cpuprofile": {
+      "sha256": "df695f8c141c787c9d402133eaa4332d1db55dcb9e9f458022585eed06981e5d",
+      "bytes": 98529
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-29.cpuprofile": {
+      "sha256": "ac9b6d3c4a7a98ae4cfad3bb74f50342f73e47eb666c2147047eed775bd5d808",
+      "bytes": 101891
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-28.cpuprofile": {
+      "sha256": "40bd356c5fe2c3f6367dbe5ed2b84eea7ec88f1b336c1575e2e306c8b21a260d",
+      "bytes": 101059
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-16.cpuprofile": {
+      "sha256": "9dbc7c1dce2d4dcf64061d4aa9f3a343f5a4062bdf4f84f823c65d0f1997eaaa",
+      "bytes": 101215
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-30.cpuprofile": {
+      "sha256": "a94acee3cc46f27d9f2e5ca80edf3afea5e9ff93be84ab06dbb97bd5c0a5c4af",
+      "bytes": 100806
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-11.cpuprofile": {
+      "sha256": "2e6922736bae54ef5f5ce05dbdd8410e293a241b20dea4fbfd72721567d79f22",
+      "bytes": 98401
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-9.cpuprofile": {
+      "sha256": "0fdfd89b094c37ba444fea9e7b9689b4e8ec1f6a90d89e049e1c9d622a6a01a3",
+      "bytes": 98760
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-24.cpuprofile": {
+      "sha256": "991f24276017b1cfbf815f8f45fb218e8ffec554c3f61da70b04ed0a43123e05",
+      "bytes": 100598
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-21.cpuprofile": {
+      "sha256": "1d8d4f2941a28c0dc8e4bdb9e15c482b8dc1632ed2b90144d85b047def83220e",
+      "bytes": 101583
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-7.cpuprofile": {
+      "sha256": "f75f034bf267bdbca9c4fb43d50467cc310f44b8ad958d61e2e9ebf326069197",
+      "bytes": 98782
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-14.cpuprofile": {
+      "sha256": "00412a3cda6172850b173524ee7acce5e093be37cb9c946a963ec2369ecf212e",
+      "bytes": 178872
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-12.cpuprofile": {
+      "sha256": "d677a6064ce7a8d743ef04164656f4a12c4162aa00654de5d6d7f0bbe9b4b8c9",
+      "bytes": 98711
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-23.cpuprofile": {
+      "sha256": "c50e0d52d12f5bd04868ea50a35ee2f3839716240a8887229a5de255313fc49e",
+      "bytes": 101150
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-18.cpuprofile": {
+      "sha256": "13c2b8089c411c0436c14a98d8478a576a43ea82c7a29fde5d6495977386fefd",
+      "bytes": 101419
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-13.cpuprofile": {
+      "sha256": "2f6562b5245828b2e84682ca0be983ef67c04379928d14b43145c34d03edfcdc",
+      "bytes": 240822
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-5.cpuprofile": {
+      "sha256": "1196f8098919e8f4d2469e7e0912753ce4db44ee960ed733b48577327f11059d",
+      "bytes": 98125
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-3.cpuprofile": {
+      "sha256": "d38222fbbe91b819deea1093ceb2fa6d95e6756057bf702f06bd94bf90900a50",
+      "bytes": 98731
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-15.cpuprofile": {
+      "sha256": "1fddd26ac828d94407b474b32e0783dbc29723399a803e129dd9f39c47b8ae62",
+      "bytes": 101312
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-25.cpuprofile": {
+      "sha256": "1cbf46d1d36e6d70272825e52715943c8c8d4be8fb143780737f6734823a1615",
+      "bytes": 101271
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-26.cpuprofile": {
+      "sha256": "6c4278b11b8c7a73af80a181d46c01c390f89fa92eed4eb7524a2cdb24e91fd2",
+      "bytes": 101229
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-17.cpuprofile": {
+      "sha256": "8c26e12f430de37f20583041eb2df5590c3677a0506b1f7aab58a35a0d04da68",
+      "bytes": 101282
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/worker-10.cpuprofile": {
+      "sha256": "9a66ed2a3bc0f0fbdd0a877a326a2945ec23f179bafda65e17c683be7ead598b",
+      "bytes": 98543
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-summary.json": {
+      "sha256": "8ec53bcdf13f3a2087225094f205a453fef51d9edeaf313a7b1b2d6591d1d1c5",
+      "bytes": 21472
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-sky/report.json": {
+      "sha256": "49f94671bcb1531a33b9d7621aab25d7796d394836b2d5097a15fe3e073e4525",
+      "bytes": 3258
+    },
+    "/home/claude/.scratch/eka-sky-performance/v12-profile-command.json": {
+      "sha256": "a89694ac93eadd8d8d2fc0a987f9ae76a062ba935603c5196de8fb4f6cadc8c5",
+      "bytes": 1227
+    }
+  }
+}

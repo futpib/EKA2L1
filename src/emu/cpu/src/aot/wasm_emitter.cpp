@@ -57,7 +57,8 @@ namespace eka2l1::arm::aot {
 
     std::vector<std::uint8_t> build_wasm_module(
         const std::vector<wasm_func_def> &funcs,
-        const std::vector<wasm_import_func> &imports)
+        const std::vector<wasm_import_func> &imports,
+        const std::vector<std::uint32_t> &private_table)
     {
         std::vector<std::uint8_t> module;
 
@@ -155,16 +156,38 @@ namespace eka2l1::arm::aot {
             emit_section(module, 3, sec);
         }
 
+        // A private fixed table only contains definitions in this module.
+        if (!private_table.empty()) {
+            for (auto index : private_table) if (index >= num_funcs) return {};
+            std::vector<std::uint8_t> sec;
+            leb128(sec, 1); sec.push_back(0x70); sec.push_back(1);
+            leb128(sec, private_table.size()); leb128(sec, private_table.size());
+            emit_section(module, 4, sec);
+        }
+
         // === Section 7: Export ===
         {
             std::vector<std::uint8_t> sec;
-            leb128(sec, num_funcs);
+            std::uint32_t exports = 0;
+            for (const auto &func : funcs) exports += !func.private_export + func.export_aliases.size();
+            leb128(sec, exports);
             for (std::uint32_t i = 0; i < num_funcs; i++) {
-                emit_str(sec, funcs[i].export_name);
-                sec.push_back(0x00); // func export
-                leb128(sec, num_imports + i); // func index (after imports)
+                auto emit_export = [&](const std::string &name) {
+                    emit_str(sec, name); sec.push_back(0x00); leb128(sec, num_imports + i);
+                };
+                if (!funcs[i].private_export) emit_export(funcs[i].export_name);
+                for (const auto &alias : funcs[i].export_aliases) emit_export(alias);
             }
             emit_section(module, 7, sec);
+        }
+
+        if (!private_table.empty()) {
+            std::vector<std::uint8_t> sec;
+            leb128(sec, 1); leb128(sec, 0); // active element segment, table 0
+            sec.push_back(op_i32_const); sleb128(sec, 0); sec.push_back(op_end);
+            leb128(sec, private_table.size());
+            for (auto index : private_table) leb128(sec, num_imports + index);
+            emit_section(module, 9, sec);
         }
 
         // === Section 10: Code ===

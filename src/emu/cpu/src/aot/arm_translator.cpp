@@ -19,6 +19,7 @@
 
 #include <common/code_tracking.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/exit_census.h>
 #include <cpu/aot/execution_limits.h>
@@ -59,10 +60,13 @@ namespace eka2l1::arm::aot {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
         bool region = false;
+        bool direct_block_memory = false;
         bool defer_memory = false, restartable_access = false;
         std::uint32_t current_pc = 0;
         bool pc_written = false;
         // Reserved i32 locals for region instruction count and memory fast path.
+        // Short blocks do not use a dynamic count; local 9 records a callback.
+        static constexpr unsigned CALLBACK=9;
         static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13, READ_PAGE=14, READ_BASE=15, WRITE_PAGE=16, WRITE_BASE=17;
         bool memory_write = false;
         bool instruction_may_exit = true;
@@ -170,6 +174,9 @@ namespace eka2l1::arm::aot {
             cache.barrier_at(b.size(), true);
             if (region) {
                 store_i32_const(S::AOT_EXIT, 1); census_effect(1);
+            }
+            if (direct_block_memory) { i32_const(1); set_local(CALLBACK); }
+            if (region || direct_block_memory) {
                 i32_const(-1); set_local(READ_PAGE);
                 i32_const(-1); set_local(WRITE_PAGE);
             }
@@ -186,7 +193,12 @@ namespace eka2l1::arm::aot {
             instruction_may_exit = true;
             const bool write = func_idx == 1 || func_idx == 3 || func_idx == 5;
             if (write) memory_write = true;
-            if (!region || func_idx > 5) { slow_call(func_idx); return; }
+            if ((!region && !direct_block_memory) || func_idx > 5
+                    || (direct_block_memory && write &&
+                        (!common::code_tracking::skip_mutation_tracking()
+                         || !common::code_tracking::skip_code_write_guards()))) {
+                slow_call(func_idx); return;
+            }
             const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
             if (write) set_local(VALUE);
             set_local(ADDRESS);
@@ -224,7 +236,7 @@ namespace eka2l1::arm::aot {
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
             op(op_end); op(op_end);
             get_local(HOST); op(op_i32_eqz); op(op_if); op(type_void);
-            if (defer_memory && restartable_access) {
+            if (defer_memory && restartable_access && !compiled_memory_misses) {
                 get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT);
                 bail(current_pc, 0, exit_census::memory);
             } else {
@@ -1131,7 +1143,8 @@ namespace eka2l1::arm::aot {
 
         // A fixed i64 prefix keeps its index independent of lazily allocated i32 register locals.
         // Locals: 0=state_ptr(param), 1=wide result, 2..8=i32 scratch.
-        result.num_locals = region ? 16 : 7;
+        const bool direct_blocks = bounded && cache_registers && !region && arm_direct_memory;
+        result.num_locals = region || direct_blocks ? 16 : 7;
         result.num_prefix_i64_locals = 1;
         result.num_f32_locals = 0;
         result.num_f64_locals = 0;
@@ -1142,9 +1155,13 @@ namespace eka2l1::arm::aot {
 
         arm_emit w{result.body};
         w.region = region && bounded;
+        w.direct_block_memory = direct_blocks;
         w.defer_memory = w.region && defer_memory;
         w.cache.enabled = bounded && cache_registers;
-        w.cache.runtime_fields = region;
+        // Helpers publish/reload this state through the existing barriers;
+        // stop and IRQ signals deliberately remain uncached.
+        w.cache.runtime_fields = region || direct_blocks;
+        w.cache.program_counter = direct_blocks;
         w.cache.shared_return = w.cache.enabled;
         w.cache.first_local = result.num_prefix_i64_locals + result.num_locals + 1;
 
@@ -1627,8 +1644,8 @@ namespace eka2l1::arm::aot {
         w.i32_const(0);
         w.set_local(PC_IDX);
 
-        if (region) {
-            w.i32_const(0); w.set_local(arm_emit::COUNT);
+        if (region || direct_blocks) { w.i32_const(0); w.set_local(arm_emit::COUNT); }
+        if (region || direct_blocks) {
             w.i32_const(-1); w.set_local(arm_emit::READ_PAGE);
             w.i32_const(-1); w.set_local(arm_emit::WRITE_PAGE);
         }
@@ -1743,6 +1760,13 @@ namespace eka2l1::arm::aot {
             if (bounded && !region && stop_after_store && w.memory_write) break;
             const auto inst = instruction.opcode;
             const auto insn_addr = instruction.address;
+            if (direct_blocks) {
+                // A short block proves each instruction independently. Only
+                // accesses within one instruction reuse its page permission;
+                // every callback also invalidates both keys in slow_call.
+                w.i32_const(-1); w.set_local(arm_emit::READ_PAGE);
+                w.i32_const(-1); w.set_local(arm_emit::WRITE_PAGE);
+            }
             if(instruction.leaf && !instructions[instruction_index-1].leaf) {
                 leaf_forward_targets.clear(); leaf_closed=0;
                 const auto &callee=inlined.at(i);
@@ -1775,7 +1799,9 @@ namespace eka2l1::arm::aot {
             if (!instruction.leaf && (inst >> 28) == 14) {
                 // These restartable deferred loads either finish directly or
                 // exit before effects. No callback can invalidate the value.
-                if (w.defer_memory && (inst & 0x0f700000u) == 0x05100000u
+                // With compiled misses, end the lazy value before the access:
+                // its cold helper may observe or modify either register.
+                if (w.defer_memory && !compiled_memory_misses && (inst & 0x0f700000u) == 0x05100000u
                     && wide_hi != 15 && wide_lo != 15
                     && int(wide_lo) != w.wide_lo && int(wide_lo) != w.wide_hi)
                     preserve_wide = true;
@@ -1825,6 +1851,24 @@ namespace eka2l1::arm::aot {
             }
 
             if (bounded) {
+                if (direct_blocks && instruction_index && check_exit) {
+                    // Complete every access/writeback in the preceding guest
+                    // instruction before honoring its callback's stop or IRQ.
+                    // Successful direct accesses avoid these runtime loads.
+                    w.get_local(arm_emit::CALLBACK); w.op(op_if); w.op(type_void);
+                    w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
+                    w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
+                    w.op(op_i32_or); w.op(op_i32_eqz);
+                    w.op(op_if); w.op(type_void);
+                    w.bail(insn_addr, insn_idx, exit_census::guard); w.op(op_end);
+                    w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                    w.load_i32(S::CPSR); w.i32_const(0x80);
+                    w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
+                    w.op(op_if); w.op(type_void);
+                    w.bail(insn_addr, insn_idx, exit_census::interrupt); w.op(op_end);
+                    w.i32_const(0); w.set_local(arm_emit::CALLBACK);
+                    w.op(op_end);
+                }
                 if (!region) w.store_i32_const(S::PC, insn_addr);
                 const bool check_budget = instruction_index >= budget_chunk_end;
                 if (check_budget) {
@@ -1856,7 +1900,8 @@ namespace eka2l1::arm::aot {
                 }
                 // Exclusive/swap encodings overlap broad data-processing masks.
                 // Let DynCom preserve the exclusive monitor and instruction semantics.
-                if ((inst & 0x0F0000F0) == 0x01000090 || (inst >> 28) == 15) {
+                if (((inst & 0x0F0000F0) == 0x01000090 || (inst >> 28) == 15)
+                    && !(arm_exclusive_memory && supported_exclusive_word(inst))) {
                     w.bail_unsupported(insn_addr, insn_idx);
                     decoded_end_offset = static_cast<std::uint32_t>(i);
                     break;
@@ -1984,8 +2029,39 @@ namespace eka2l1::arm::aot {
             std::uint32_t cond = (inst >> 28) & 0xF;
             bool handled = true;
 
+            // The generated instruction performs predicate/PC semantics; the
+            // outer loop services the trap at its cumulative guest count. Even
+            // a false predicate returns this boundary without invoking kernel.
+            if (bounded && compiled_svc_enabled && cond < 15 && (inst & 0x0f000000u) == 0x0f000000u) {
+                w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.i32_const(1); w.op(op_i32_eq);
+                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_if); w.op(type_void);
+                if (region) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); }
+                w.bail(insn_addr, insn_idx); w.op(op_end);
+                const auto descriptor = svc_pending | (((insn_addr + 4) & 4095) ? 0 : svc_page_end) | (inst & 0x00ffffffu);
+                w.store_i32_const(S::AOT_EXIT, descriptor);
+                const bool predicate = emit_cond_check(w, cond, TMP1, TMP2);
+                w.store_i32_const(S::AOT_EXIT, descriptor | svc_taken);
+                if (predicate) w.op(op_end);
+                w.bail(insn_addr + 4, insn_idx + 1);
+                ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                break;
+            }
+
             // Emit condition check
             bool cond_opened = emit_cond_check(w, cond, TMP1, TMP2);
+
+            // Keep the existing monitor, including failed reservations and
+            // callback effects. Return after this instruction so the runner
+            // rechecks stops, IRQs, mappings and instruction budget.
+            if (bounded && arm_exclusive_memory && supported_exclusive_word(inst)) {
+                w.store_i32_const(S::PC, insn_addr);
+                w.state_ptr(); w.i32_const(inst); w.slow_call(6);
+                w.bail_preserve_pc(insn_idx + 1);
+                if (cond_opened) w.op(op_end);
+                ++insn_idx;
+                decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                break;
+            }
 
             // === B/BL: bits [27:25] = 101 ===
             if (((inst >> 25) & 7) == 5) {
@@ -2194,7 +2270,13 @@ namespace eka2l1::arm::aot {
                 w.set_local(TMP1); // base address
 
                 const bool proved_span = w.has_proved_access();
-                const bool span_fast_path = w.region && (count >= 2 || proved_span);
+                // Short blocks can share one permission/alignment/endian proof
+                // across the complete instruction just like connected regions.
+                // Compatibility stores keep their callback/tracking path.
+                const bool short_span = w.direct_block_memory && (load ||
+                    (common::code_tracking::skip_mutation_tracking()
+                     && common::code_tracking::skip_code_write_guards()));
+                const bool span_fast_path = (w.region || short_span) && (count >= 2 || proved_span);
                 const bool pc_written_before_span = w.pc_written;
                 if (span_fast_path) {
                     if (proved_span) w.proved_host();
@@ -2229,7 +2311,7 @@ namespace eka2l1::arm::aot {
                     // Code generation visits both arms; a fast LDM PC store
                     // must not suppress PC publication before fallback helpers.
                     if (!proved_span) w.pc_written = pc_written_before_span;
-                    if (!proved_span && w.defer_memory && !writeback && !has_pc) {
+                    if (!proved_span && w.defer_memory && !writeback && !has_pc && !compiled_memory_misses) {
                         // DynCom publishes block-transfer writeback before its
                         // callbacks, unlike this compiled/native contract. Keep
                         // writeback forms on the existing helper path.

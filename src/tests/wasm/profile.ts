@@ -19,6 +19,20 @@ if (!Number.isSafeInteger(guestProfile) || guestProfile < 0 || guestProfile > 21
   throw new Error('EKA2L1_GUEST_PROFILE must be a nonnegative sample stride');
 const exitCensus = process.env.EKA2L1_EXIT_CENSUS === "1";
 if(exitCensus && !guestProfile) throw new Error("Exit census requires guest profiling");
+const thumbMemory = process.env.EKA2L1_THUMB_MEMORY === undefined ? -1 : Number(process.env.EKA2L1_THUMB_MEMORY);
+if (![-1,0,1].includes(thumbMemory)) throw Error('Invalid Thumb memory policy');
+const synchronousCompilation = process.env.EKA2L1_SYNCHRONOUS_COMPILATION === undefined ? -1 : Number(process.env.EKA2L1_SYNCHRONOUS_COMPILATION);
+const compiledMemoryMisses = process.env.EKA2L1_COMPILED_MEMORY_MISSES === undefined ? -1 : Number(process.env.EKA2L1_COMPILED_MEMORY_MISSES);
+const compiledSvc = process.env.EKA2L1_COMPILED_SVC === undefined ? -1 : Number(process.env.EKA2L1_COMPILED_SVC);
+if (![-1,0,1,2,3].includes(synchronousCompilation)) throw Error('Synchronous compilation must be 0, 1, 2 or 3');
+if (![-1,0,1].includes(compiledMemoryMisses)) throw Error('Compiled memory misses must be 0 or 1');
+if (![-1,0,1].includes(compiledSvc)) throw Error('Compiled SVC must be 0 or 1');
+const armExclusive = process.env.EKA2L1_ARM_EXCLUSIVE === undefined ? -1 : Number(process.env.EKA2L1_ARM_EXCLUSIVE);
+if (![-1,0,1].includes(armExclusive)) throw Error('ARM exclusive must be 0 or 1');
+const armMemory = process.env.EKA2L1_ARM_MEMORY === undefined ? -1 : Number(process.env.EKA2L1_ARM_MEMORY);
+if (![-1,0,1].includes(armMemory)) throw Error('Invalid ARM memory policy');
+const appUid = process.env.EKA2L1_APP_UID || '0x2000730f';
+if (!/^0x[0-9a-fA-F]{1,8}$/.test(appUid) || Number(appUid) === 0) throw Error('Invalid application UID');
 const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
 const monitor = process.env.EKA2L1_LONG_MONITOR === "1";
 const monitorCpuStart = Number(process.env.EKA2L1_MONITOR_CPU_START_US || '0');
@@ -56,6 +70,14 @@ if (!/^\d+,\d+,\d+,\d+$/.test(limitsText) || executionLimits.length!==4 || execu
     || executionLimits[2]<0 || executionLimits[2]>16 || executionLimits[3]<0 || executionLimits[3]>4096) throw new Error('Invalid execution limits');
 const irMode = process.env.EKA2L1_AOT_IR_MODE === undefined ? -1 : Number(process.env.EKA2L1_AOT_IR_MODE);
 if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps)');
+const hotpathPolicy = process.env.EKA2L1_HOTPATH === undefined ? -1 : Number(process.env.EKA2L1_HOTPATH);
+if (!Number.isInteger(hotpathPolicy) || hotpathPolicy < -1 || hotpathPolicy > 7) throw Error('Hotpath policy must be 0..7');
+const romDispatch = process.env.EKA2L1_ROM_DISPATCH === undefined ? -1 : Number(process.env.EKA2L1_ROM_DISPATCH);
+if (![-1,0,1,2,3].includes(romDispatch)) throw new Error('ROM dispatch must be 0, 1, 2 or 3');
+const romCalls = process.env.EKA2L1_ROM_CALLS === undefined ? -1 : Number(process.env.EKA2L1_ROM_CALLS);
+if (![-1,0,1].includes(romCalls)) throw new Error('ROM calls must be 0 or 1');
+const romLeaves = process.env.EKA2L1_ROM_LEAVES === undefined ? -1 : Number(process.env.EKA2L1_ROM_LEAVES);
+if (![-1,0,1].includes(romLeaves)) throw new Error('ROM leaves must be 0 or 1');
 const eagerRegions = process.env.EKA2L1_AOT_EAGER_REGIONS === undefined ? -1 : Number(process.env.EKA2L1_AOT_EAGER_REGIONS);
 if (![-1,0,1].includes(eagerRegions)) throw new Error('Eager regions must be 0 (off) or 1 (on)');
 const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
@@ -73,6 +95,14 @@ const expected: Record<string,string> = {
   'SYM.RPKG': '58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531',
   'Snakes.sis': '14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a',
 };
+if (process.env.EKA2L1_ASSET_MANIFEST) {
+  const manifest = JSON.parse(fs.readFileSync(process.env.EKA2L1_ASSET_MANIFEST, 'utf8'));
+  for (const name of Object.keys(expected)) {
+    const digest = manifest.assets?.[name]?.sha256;
+    if (typeof digest !== 'string' || !/^[0-9a-f]{64}$/.test(digest)) throw new Error(`Invalid asset digest: ${name}`);
+    expected[name] = digest;
+  }
+}
 const hash = (data: Uint8Array) => crypto.createHash('sha256').update(data).digest('hex');
 for (const [name, digest] of Object.entries(expected))
   if (hash(fs.readFileSync(path.join(assets, name))) !== digest) throw new Error(`Bad asset: ${name}`);
@@ -116,7 +146,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+  await page.evaluate(async ({hotpathPolicy, romDispatch, synchronousCompilation, compiledMemoryMisses, compiledSvc, armExclusive, romCalls, romLeaves, thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -128,6 +158,35 @@ try {
     call('eka2l1_benchmark_configure', ['number', 'number', 'number'], [count, startUs, 1]);
     if (sharedAudio) call('eka2l1_audio_configure', [], []);
     call('eka2l1_aot_configure', ['number', 'number', 'number'], [aot, verifyAot, aotDiagnostics ? 1 : 0]);
+    if (romCalls !== -1) call('eka2l1_rom_calls_configure', ['number'], [romCalls]);
+    g.romCallsActual = typeof g.Module._eka2l1_rom_calls_report === 'function'
+      ? g.Module._eka2l1_rom_calls_report() : null;
+    if (romCalls !== -1 && g.romCallsActual !== romCalls) throw Error('ROM calls readback mismatch');
+    if (hotpathPolicy !== -1) {
+      call('eka2l1_hotpath_configure', ['number'], [hotpathPolicy]);
+      if (g.Module._eka2l1_hotpath_configure(-1) !== -1 || g.Module._eka2l1_hotpath_configure(8) !== -1)
+        throw Error('Invalid hotpath policy accepted');
+    }
+    g.hotpathActual = typeof g.Module._eka2l1_hotpath_report === 'function' ? g.Module._eka2l1_hotpath_report() : null;
+    if (hotpathPolicy !== -1 && g.hotpathActual !== hotpathPolicy) throw Error('Hotpath readback mismatch');
+    if (romDispatch !== -1) call('eka2l1_rom_dispatch_configure', ['number'], [romDispatch]);
+    if (romDispatch === 3) {
+      if (g.Module._eka2l1_synchronous_compilation_configure(3) !== -1) throw Error('Recycling accepted with dynamic group owner');
+      call('eka2l1_rom_dispatch_configure', ['number'], [0]);
+      call('eka2l1_synchronous_compilation_configure', ['number'], [3]);
+      if (g.Module._eka2l1_rom_dispatch_configure(3) !== -1) throw Error('Dynamic group owner accepted with recycling');
+      call('eka2l1_synchronous_compilation_configure', ['number'], [synchronousCompilation < 0 ? 0 : synchronousCompilation]);
+      call('eka2l1_rom_dispatch_configure', ['number'], [3]);
+    }
+    g.romDispatchActual = typeof g.Module._eka2l1_rom_dispatch_report === 'function'
+      ? g.Module._eka2l1_rom_dispatch_report() : null;
+    if (romDispatch !== -1 && g.romDispatchActual !== romDispatch) throw Error('ROM dispatch readback mismatch');
+    if (romLeaves !== -1) {
+      call('eka2l1_rom_leaves_configure', ['number'], [romLeaves]);
+    }
+    g.romLeavesActual = typeof g.Module._eka2l1_rom_leaves_report === 'function'
+      ? g.Module._eka2l1_rom_leaves_report() : null;
+    if (romLeaves !== -1 && g.romLeavesActual !== romLeaves) throw Error('ROM leaves readback mismatch');
     if (eagerRegions !== -1) {
       if (typeof g.Module._eka2l1_eager_regions_configure !== 'function') throw new Error('Build lacks eager region selection');
       call('eka2l1_eager_regions_configure', ['number'], [eagerRegions]);
@@ -185,7 +244,45 @@ try {
     if (typeof g.Module._eka2l1_graphics_diagnostics_configure === 'function')
       call('eka2l1_graphics_diagnostics_configure', ['number'], [glDiagnostics ? 1 : 0]);
     else if (glDiagnostics) throw new Error('Build does not support graphics diagnostic configuration');
+    if (thumbMemory !== -1) {
+      call('eka2l1_thumb_memory_configure', ['number'], [thumbMemory]);
+      if (g.Module.ccall('eka2l1_thumb_memory_report', 'number', [], []) !== thumbMemory)
+        throw Error('Thumb memory policy readback mismatch');
+    }
+    if (synchronousCompilation !== -1) call('eka2l1_synchronous_compilation_configure', ['number'], [synchronousCompilation]);
+    if (compiledMemoryMisses !== -1) call('eka2l1_compiled_memory_misses_configure', ['number'], [compiledMemoryMisses]);
+    if (compiledSvc !== -1) call('eka2l1_compiled_svc_configure', ['number'], [compiledSvc]);
+    g.synchronousCompilationActual = typeof g.Module._eka2l1_synchronous_compilation_report === 'function' ? g.Module._eka2l1_synchronous_compilation_report() : null;
+    g.compiledMemoryMissesActual = typeof g.Module._eka2l1_compiled_memory_misses_report === 'function' ? g.Module._eka2l1_compiled_memory_misses_report() : null;
+    g.compiledSvcActual = typeof g.Module._eka2l1_compiled_svc_report === 'function' ? g.Module._eka2l1_compiled_svc_report() : null;
+    if (synchronousCompilation !== -1 && g.synchronousCompilationActual !== synchronousCompilation) throw Error('Synchronous compilation readback mismatch');
+    if (compiledMemoryMisses !== -1 && g.compiledMemoryMissesActual !== compiledMemoryMisses) throw Error('Compiled memory misses readback mismatch');
+    if (compiledSvc !== -1 && g.compiledSvcActual !== compiledSvc) throw Error('Compiled SVC readback mismatch');
+    if (armExclusive !== -1) call('eka2l1_arm_exclusive_configure', ['number'], [armExclusive]);
+    g.armExclusiveActual = typeof g.Module._eka2l1_arm_exclusive_report === 'function' ? g.Module._eka2l1_arm_exclusive_report() : null;
+    if (armExclusive !== -1 && g.armExclusiveActual !== armExclusive) throw Error('ARM exclusive readback mismatch');
+    if (armMemory !== -1) {
+      call('eka2l1_arm_memory_configure', ['number'], [armMemory]);
+      if (g.Module.ccall('eka2l1_arm_memory_report', 'number', [], []) !== armMemory)
+        throw Error('ARM memory policy readback mismatch');
+    }
     call('eka2l1_init', ['string'], ['/data']);
+    if (hotpathPolicy !== -1 && (g.Module._eka2l1_hotpath_configure(hotpathPolicy ^ 1) !== -1
+        || g.Module._eka2l1_hotpath_report() !== hotpathPolicy)) throw Error('Hotpath policy changed after initialization');
+    if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
+      throw Error('Thumb memory policy changed after initialization');
+    if (romDispatch !== -1 && g.Module._eka2l1_rom_dispatch_configure((romDispatch + 1) % 3) !== -1)
+      throw Error('ROM dispatch changed after initialization');
+    if (romCalls !== -1 && g.Module._eka2l1_rom_calls_configure(1 - romCalls) !== -1)
+      throw Error('ROM calls changed after initialization');
+    if (romLeaves !== -1 && g.Module._eka2l1_rom_leaves_configure(1 - romLeaves) !== -1)
+      throw Error('ROM leaves changed after initialization');
+    if (synchronousCompilation !== -1 && g.Module._eka2l1_synchronous_compilation_configure(synchronousCompilation===0?1:0) !== -1) throw Error('Synchronous compilation changed after initialization');
+    if (compiledMemoryMisses !== -1 && g.Module._eka2l1_compiled_memory_misses_configure(1-compiledMemoryMisses) !== -1) throw Error('Compiled memory misses changed after initialization');
+    if (compiledSvc !== -1 && g.Module._eka2l1_compiled_svc_configure(1-compiledSvc) !== -1) throw Error('Compiled SVC changed after initialization');
+    if (armExclusive !== -1 && g.Module._eka2l1_arm_exclusive_configure(1-armExclusive) !== -1) throw Error('ARM exclusive changed after initialization');
+    if (armMemory !== -1 && g.Module._eka2l1_arm_memory_configure(1 - armMemory) !== -1)
+      throw Error('ARM memory policy changed after initialization');
     if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
       if(g.Module._eka2l1_unsafe_code_report()!==unsafeCode || g.Module._eka2l1_unsafe_code_configure(unsafeCode===3?0:3)!==-1)
         throw Error('Unsafe mode changed or remained configurable after CPU initialization');
@@ -209,8 +306,8 @@ try {
         await new Promise(resolve => setTimeout(resolve, 10));
       }
     }
-    call('eka2l1_run', ['string'], ['Snakes']);
-  }, {tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+    call('eka2l1_run', ['string'], [appUid]);
+  }, {hotpathPolicy, romDispatch, synchronousCompilation, compiledMemoryMisses, compiledSvc, armExclusive, romCalls, romLeaves, thumbMemory, armMemory, appUid, tlbHash, codeCompare, codeLookup, omitGuardPublication, codeWriteProtect, eagerRegions, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -345,7 +442,7 @@ try {
     if(g.Module.ccall('eka2l1_omit_guard_publication_report','number',[],[])!==g.omitGuardPublicationActual)
       throw Error('Guard publication readback changed');
   });
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({measurement: measured, warmup_seconds: warmupSeconds,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), rom_dispatch: await page.evaluate(() => (globalThis as any).romDispatchActual), synchronous_compilation: await page.evaluate(() => (globalThis as any).synchronousCompilationActual), compiled_memory_misses: await page.evaluate(() => (globalThis as any).compiledMemoryMissesActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), rom_calls: await page.evaluate(() => (globalThis as any).romCallsActual), rom_leaves: await page.evaluate(() => (globalThis as any).romLeavesActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), tlb_hash: tlbHash, code_compare: codeCompare, code_lookup: codeLookup, omit_guard_publication:await page.evaluate(()=>(globalThis as any).omitGuardPublicationActual), code_write_protect: codeWriteProtect, eager_regions: eagerRegions, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),

@@ -22,6 +22,8 @@
 
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/rom_dispatch.h>
+#include <cpu/aot/state_locals.h>
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
@@ -142,8 +144,18 @@ namespace eka2l1::arm::aot {
         const bool eager_defer = false;
 #endif
         fprintf(stderr, "AOT: eager_regions=%d ir_policy=%d\n", eager_regions, static_cast<int>(eager_ir_policy));
+        leaf_resolver rom_leaves = [=](std::uint32_t target) {
+            return resolve_rom_leaf(rom_host, rom_base, rom_size, target);
+        };
         const auto eager_start = std::chrono::steady_clock::now();
         std::vector<wasm_func_def> all_funcs;
+        std::size_t rom_leaf_dependencies = 0;
+        struct thumb_base {
+            const std::uint8_t *code;
+            std::uint32_t size, address;
+            std::size_t index;
+        };
+        std::vector<thumb_base> thumb_bases;
 
         for (std::uint32_t offset = 0; offset + sizeof(rom_image_header_raw) < rom_size; offset += 4) {
             std::uint32_t uid1;
@@ -268,13 +280,22 @@ namespace eka2l1::arm::aot {
                 const auto key = c.func_addr | (c.is_arm ? 0u : 1u);
                 if (!visited.insert(key).second) continue;
                 const auto size = std::min(c.func_size, chaining_enabled ? 512u : 128u);
+                state_composition_capture capture(rom_state_cohorts && !c.is_arm);
                 auto tr = c.is_arm
                     ? (eager_regions
-                        ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled, true, nullptr, eager_defer, eager_ir_policy)
+                        ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled, true, rom_inline_leaves ? &rom_leaves : nullptr, eager_defer, eager_ir_policy)
                         : translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled))
                     : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled);
                 if (tr.func.body.empty() || !tr.entry_supported) continue;
                 tr.func.export_name = "f_" + std::to_string(key);
+                rom_leaf_dependencies += tr.dependencies.size();
+                if (!c.is_arm && rom_bounded_calls && chaining_enabled && thumb_direct_memory)
+                    thumb_bases.push_back({c.func_host, size, c.func_addr, all_funcs.size()});
+                if (rom_state_cohorts && !c.is_arm) {
+                    for (auto address : tr.branch_targets) tr.func.successor_keys.push_back(address | 1u);
+                    for (auto address : tr.resume_points) tr.func.successor_keys.push_back(address | 1u);
+                    tr.func.successor_keys.push_back(tr.end_address | 1u);
+                }
                 all_funcs.push_back(std::move(tr.func));
                 ++accepted;
                 if (max_exports >= 0 && accepted >= static_cast<std::size_t>(max_exports)) break;
@@ -313,8 +334,47 @@ namespace eka2l1::arm::aot {
             {"env", "tlb_write16", 3, false},
         };
 
+        if (arm_exclusive_memory) imports.push_back({"env", "arm_exclusive", 2, false});
+
+        // The target map only names original, unlinked Thumb functions. A
+        // clone can call a base once, so even guest self/cyclic calls cannot
+        // recurse on the host stack. No RAM mappings enter this map.
+        sibling_map base_targets;
+        for (const auto &base : thumb_bases)
+            base_targets.emplace(base.address | 1u, imports.size() + base.index);
+        unsigned linked_calls = 0;
+        for (const auto &base : thumb_bases) {
+            auto linked = translate_thumb_block(base.code, base.size, base.address,
+                nullptr, nullptr, true, false, true, &base_targets);
+            if (!linked.bounded_direct_calls) continue;
+            all_funcs[base.index].export_name = "b_" + std::to_string(base.index);
+            linked.func.export_name = "f_" + std::to_string(base.address | 1u);
+            linked_calls += linked.bounded_direct_calls;
+            all_funcs.push_back(std::move(linked.func));
+        }
+        fprintf(stderr, "AOT: rom_bounded_calls=%d linked_calls=%u base_targets=%zu\n",
+            rom_bounded_calls, linked_calls, base_targets.size());
+        fprintf(stderr, "AOT: rom_inline_leaves=%d eager_leaf_dependencies=%zu\n", rom_inline_leaves, rom_leaf_dependencies);
         const auto emission_start = std::chrono::steady_clock::now();
-        auto wasm_bytes = build_wasm_module(all_funcs, imports);
+        std::vector<std::uint8_t> wasm_bytes;
+        std::shared_ptr<rom_dispatch_map> dispatch_map;
+        if (rom_dispatch_enabled && !dynamic_rom_cohorts && chaining_enabled && !rom_bounded_calls) {
+            if (rom_state_cohorts) {
+                unsigned composed = 0;
+                wasm_bytes = build_rom_cohort_module(all_funcs, imports, rom_base, rom_size, dispatch_map, &composed);
+                fprintf(stderr, "AOT: rom_state_cohorts entries=%u\n", composed);
+            } else {
+                dispatch_map = std::make_shared<rom_dispatch_map>(rom_base, rom_size, all_funcs.size());
+                bool valid = dispatch_map->valid;
+                for (std::size_t i = 0; valid && i < all_funcs.size(); ++i)
+                    valid = dispatch_map->insert(std::stoul(all_funcs[i].export_name.substr(2)), i);
+                if (valid) wasm_bytes = build_rom_dispatch_module(all_funcs, imports, *dispatch_map);
+            }
+            if (wasm_bytes.empty()) dispatch_map.reset();
+        }
+        if (wasm_bytes.empty()) wasm_bytes = build_wasm_module(all_funcs, imports);
+        fprintf(stderr, "AOT: rom_dispatch=%d active=%d map_bytes=%zu\n",
+            rom_dispatch_enabled, bool(dispatch_map), dispatch_map ? dispatch_map->bytes() : 0);
         fprintf(stderr, "AOT: eager_regions=%d scan_translate_ms=%.3f emit_ms=%.3f bytes=%zu functions=%zu\n",
             eager_regions,
             std::chrono::duration<double, std::milli>(emission_start - eager_start).count(),
@@ -325,6 +385,6 @@ namespace eka2l1::arm::aot {
 
         // Stage for deferred instantiation on the worker thread.
         // addFunction must be called on the thread that will use the table.
-        stage_aot_module(std::move(wasm_bytes), "rom-aot");
+        stage_aot_module(std::move(wasm_bytes), "rom-aot", std::move(dispatch_map));
     }
 }

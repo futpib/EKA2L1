@@ -1,0 +1,9 @@
+# Sparse ROM lookup: focused screen gates
+
+Opt-in hotpath bit 8 selects an exact sparse lookup index over the configured immutable ROM extent. Each registered ARM/Thumb key gets its own slot. The directory allocates pages lazily; register/replacement/unregister/clear/reconfiguration keep the authoritative registry and index consistent. Out-of-ROM queries use the original registry. RAM code continues through its unchanged mapping/lifetime checks. Default remains zero; generated functions, instruction budgets, block limits, guest scheduling and code-byte policy are unchanged.
+
+This targets compiled-runner lookup work identified in the fresh normal-control profile. It is not an assumption that the whole runner's sampled cost is lookup cost. Emitted WASM confirms direct directory/page/slot loads return before the existing hash and collision code. The static binary grows 1,230 bytes; dynamic directory/page allocation and warmup are measured separately in the screen.
+
+Focused gates pass: 320,000 independent map-oracle comparisons across updates, missing entries, clears, ARM/Thumb tags, colliding keys, range changes, unaligned and overflow extents, plus sparse allocation/reset checks. The original 160,000 lifecycle comparisons also pass. Fresh 60-frame browser replays for moving/firing Sky Force and standard Snakes match retained native images, instruction records and PCM. Actual option readback and frozen-after-startup rejection are checked by the browser harness.
+
+These are focused gates only. No full compiler/fault/four-route acceptance is claimed. The next same-binary two-game screen holds every unrelated policy fixed, retains all observations, and uses predeclared early stopping and reversed orders. Full acceptance is reserved for a promising candidate. No deployment or push.

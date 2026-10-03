@@ -2050,7 +2050,10 @@ void dyncom_dump_pc_histogram() {
 
 static std::uint64_t g_interp_instrs = 0;
 
-unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
+static bool aot_modules_instantiated = false;
+
+template<bool Instrumented>
+static unsigned InterpreterMainLoopImpl(ARMul_State *cpu, std::uint32_t &num_instrs) {
 #undef RM
 #undef RS
 
@@ -2093,8 +2096,8 @@ unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
     if (num_instrs >= cpu->NumInstrsToExecute) \
         goto END;                              \
     num_instrs++;                              \
-    g_interp_instrs++;                         \
-    if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, cpu->Reg[15], inst_base->idx, 0); \
+    if constexpr (Instrumented) ++g_interp_instrs;                         \
+    if constexpr (Instrumented) if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, cpu->Reg[15], inst_base->idx, 0); \
     goto *InstLabel[inst_base->idx]
 #else
 #define GOTO_NEXT_INST                         \
@@ -2102,8 +2105,8 @@ unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
     if (num_instrs >= cpu->NumInstrsToExecute) \
         goto END;                              \
     num_instrs++;                              \
-    g_interp_instrs++;                         \
-    if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, cpu->Reg[15], inst_base->idx, 0); \
+    if constexpr (Instrumented) ++g_interp_instrs;                         \
+    if constexpr (Instrumented) if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, cpu->Reg[15], inst_base->idx, 0); \
     switch (inst_base->idx) {                  \
     case 0:                                    \
         goto VMLA_INST;                        \
@@ -2769,7 +2772,7 @@ unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
     LOAD_NZCVT;
 DISPATCH : {
     // PC profiling: sample every 1024th dispatch (only when enabled via CLI)
-    if (pc_histogram_enabled && (++pc_sample_counter & 0x3FF) == 0) {
+    if constexpr (Instrumented) if (pc_histogram_enabled && (++pc_sample_counter & 0x3FF) == 0) {
         std::lock_guard<std::mutex> lock(pc_histogram_mutex);
         pc_histogram[cpu->Reg[15]]++;
     }
@@ -2788,19 +2791,24 @@ DISPATCH : {
 
     // Deferred AOT instantiation: must happen on the worker thread
     {
-        static bool aot_instantiated = false;
-        if (!aot_instantiated) {
-            aot_instantiated = true;
+        if (!aot_modules_instantiated) {
+            aot_modules_instantiated = true;
             eka2l1::arm::aot::instantiate_staged_modules();
         }
     }
 
+AOT_RESUME:
+    // SVC fallthrough reaches here without an additional IRQ boundary.
     // Check if an AOT-compiled function exists for this PC
     {
-        auto aot_func = eka2l1::arm::aot::lookup_compiled(cpu);
-        if (!aot_func && eka2l1::arm::aot::hot_compilation_enabled && !eka2l1::arm::aot::validation_running) {
+        auto aot_func = num_instrs >= cpu->NumInstrsToExecute ? nullptr : eka2l1::arm::aot::lookup_compiled(cpu);
+        if (!aot_func && eka2l1::arm::aot::hot_compilation_enabled && !eka2l1::arm::aot::validation_running
+                && (!eka2l1::arm::aot::synchronous_compilation || num_instrs < cpu->NumInstrsToExecute)) {
             eka2l1::arm::aot::observe_hot_pc(cpu);
-            // Newly compiled entries can be picked up on the next dispatch.
+            // The opt-in first-use policy installs before this instruction.
+            // Retry the normal validated lookup once; rejection still falls back.
+            if (eka2l1::arm::aot::synchronous_compilation)
+                aot_func = eka2l1::arm::aot::lookup_compiled(cpu);
         }
         if (aot_func) {
             link = nullptr; // An interpreted predecessor cannot link across compiled execution.
@@ -2810,7 +2818,7 @@ DISPATCH : {
             // Snapshot pre/post register state for this dispatch into the
             // ring buffer so we can print it on crash (see aot_history).
             auto &rec = eka2l1::arm::aot::history[eka2l1::arm::aot::history_head];
-            if (eka2l1::arm::aot::diagnostics_enabled) {
+            if constexpr (Instrumented) if (eka2l1::arm::aot::diagnostics_enabled) {
                 rec.entry_pc = cpu->Reg[15];
                 for (int i = 0; i < 16; i++) rec.regs_before[i] = cpu->Reg[i];
             }
@@ -2824,7 +2832,7 @@ DISPATCH : {
                 instrs = eka2l1::arm::aot::execute_single(cpu, aot_func);
             }
 
-            if (eka2l1::arm::aot::diagnostics_enabled) {
+            if constexpr (Instrumented) if (eka2l1::arm::aot::diagnostics_enabled) {
                 rec.exit_pc = cpu->Reg[15];
                 rec.instrs = instrs;
                 for (int i = 0; i < 16; i++) rec.regs_after[i] = cpu->Reg[i];
@@ -2832,12 +2840,12 @@ DISPATCH : {
                     (eka2l1::arm::aot::history_head + 1) % eka2l1::arm::aot::AOT_HISTORY;
             }
 
-            if (eka2l1::common::performance::counting()) {
+            if constexpr (Instrumented) if (eka2l1::common::performance::counting()) {
                 eka2l1::common::performance::aot_dispatches += blocks;
                 ++eka2l1::common::performance::compiled_runner_calls;
                 eka2l1::common::performance::aot_instructions += instrs;
             }
-            if (eka2l1::arm::aot::diagnostics_enabled) {
+            if constexpr (Instrumented) if (eka2l1::arm::aot::diagnostics_enabled) {
                 aot_dispatch_count += blocks;
                 aot_instr_count += instrs;
                 // Per-module AOT tracking
@@ -2863,6 +2871,36 @@ DISPATCH : {
                 }
             }
             num_instrs += instrs;
+            if (eka2l1::arm::aot::compiled_svc_enabled && (cpu->aot_exit & eka2l1::arm::aot::svc_pending)) {
+                const auto request = cpu->aot_exit;
+                cpu->aot_exit = 0;
+                const auto current_pc = cpu->Reg[15];
+                const auto previous_thumb = cpu->TFlag;
+                if (request & eka2l1::arm::aot::svc_taken) {
+                    SAVE_NZCVT;
+                    cpu->NumInstrsToExecute = num_instrs >= cpu->NumInstrsToExecute ? 0 : cpu->NumInstrsToExecute - num_instrs;
+                    cpu->RaiseSystemCall(request & 0x00ffffffu);
+                    cpu->exmonitor()->clear_exclusive();
+                    LOAD_NZCVT;
+                    if (current_pc != cpu->Reg[15]) goto DISPATCH;
+                }
+                if (request & eka2l1::arm::aot::svc_page_end) goto DISPATCH;
+                if (num_instrs >= cpu->NumInstrsToExecute) goto END;
+                if (previous_thumb != cpu->TFlag) {
+                    // DynCom's unchanged-PC fallthrough consumes its previously
+                    // decoded instruction stream even if the callback changes T.
+                    // Preserve that unusual path using the original decoder;
+                    // ordinary returns resume compiled successor lookup below.
+                    const auto next_thumb = cpu->TFlag;
+                    cpu->TFlag = previous_thumb;
+                    const auto status = InterpreterTranslateBlock(cpu, ptr, current_pc);
+                    cpu->TFlag = next_thumb;
+                    if (status == FETCH_EXCEPTION) goto END;
+                    inst_base = reinterpret_cast<arm_inst *>(&cpu->trans_cache_buf[ptr]);
+                    GOTO_NEXT_INST;
+                }
+                goto AOT_RESUME;
+            }
             if (num_instrs >= cpu->NumInstrsToExecute)
                 goto END;
             // A deferred compiled access may next execute in the interpreter.
@@ -2873,7 +2911,7 @@ DISPATCH : {
     }
 
     // Per-module interpreter tracking is diagnostic, not guest work.
-    if (eka2l1::arm::aot::diagnostics_enabled) {
+    if constexpr (Instrumented) if (eka2l1::arm::aot::diagnostics_enabled) {
         auto *mod = eka2l1::arm::aot::lookup_module(cpu->Reg[15]);
         if (mod) mod->interp_dispatches++;
     }
@@ -3294,8 +3332,8 @@ CMN_INST : {
     if (num_instrs >= cpu->NumInstrsToExecute)      \
         goto END;                                   \
     num_instrs++;                                    \
-    g_interp_instrs++;                              \
-    if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, cpu->Reg[15], inst_base->idx, 0)
+    if constexpr (Instrumented) ++g_interp_instrs;                              \
+    if constexpr (Instrumented) if (eka2l1::common::guest_profile::enabled) guest_profile_instruction(cpu, cpu->Reg[15], inst_base->idx, 0)
 
 CMP_INST : {
     CMP_EXEC;
@@ -5956,4 +5994,20 @@ INIT_INST_LENGTH : {
     cpu->NumInstrsToExecute = 0;
     return num_instrs;
 }
+}
+
+// Diagnostics may change counting phase while a quantum executes. Select the
+// instrumented body whenever they are enabled, and keep its original dynamic
+// counting checks. Normal execution carries no diagnostic branch per dispatch.
+unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
+#if defined(EKA2L1_DYNCOM_PROFILE)
+    return InterpreterMainLoopImpl<true>(cpu, num_instrs);
+#else
+    if ((eka2l1::arm::aot::hotpath_policy & 4)
+        && !pc_histogram_enabled && !eka2l1::arm::aot::diagnostics_enabled
+        && !(eka2l1::common::performance::enabled && eka2l1::common::performance::detailed)
+        && !eka2l1::common::guest_profile::enabled)
+        return InterpreterMainLoopImpl<false>(cpu, num_instrs);
+    return InterpreterMainLoopImpl<true>(cpu, num_instrs);
+#endif
 }

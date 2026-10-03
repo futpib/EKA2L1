@@ -23,6 +23,17 @@
 #include <functional>
 
 namespace eka2l1::arm::aot {
+    // Independent of connected-region selection; fixed before translation.
+    inline bool arm_direct_memory = false;
+    // Shared instruction support, fixed before any module is translated.
+    inline bool arm_exclusive_memory = false;
+    inline bool supported_exclusive_word(std::uint32_t op) {
+        const bool load = (op & 0x0ff00fff) == 0x01900f9f;
+        const bool store = (op & 0x0ff00ff0) == 0x01800f90;
+        return (op >> 28) < 15 && (load || store)
+            && ((op >> 16) & 15) != 15 && ((op >> 12) & 15) != 15
+            && (!store || (op & 15) != 15);
+    }
     // Research selection at translation time; compile-time feature gates still
     // apply. configured preserves the build's current behavior.
     enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2, outlined_recipes = 3, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6, write_budget_chunks = 7, deferred_chunk_counts = 8, invariant_read_ir = 9, invariant_read_flag_ir = 10, inline_call_ir = 11, invariant_write_ir = 12, conditional_value_ir = 13, long_segments_ir = 14, stack_values_ir = 15, budget_gaps_ir = 16 };
