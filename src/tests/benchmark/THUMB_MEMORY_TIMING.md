@@ -1,18 +1,22 @@
 # Thumb memory timing: first verified stage
 
+This is the historical v2 panel. Direct Thumb memory is now the browser default;
+see the [policy-17 measurements and live verification](THUMB_MEMORY_DEFAULT_RESULTS.md).
+The results below describe the older binary and are not pooled with that panel.
+
 The fixed 24-observation serial panel supports a modest Sky Force improvement,
 not the realtime target. All four matching Sky Force pairs favor direct Thumb
 memory. Six guest seconds still take about 14 seconds. Snakes retains unpaced
 realtime headroom, but mixed pairs do not establish zero slowdown.
 
-| Route | Order | Control mean (s) | Candidate mean (s) | Throughput change | Candidate realtime capacity |
-| --- | --- | ---: | ---: | ---: | ---: |
-| Sky Force, 6 guest seconds | ABBA | 15.82810 | 14.61185 | +8.32% | 0.411x |
-| Sky Force, 6 guest seconds | BAAB | 15.63220 | 13.96415 | +11.95% | 0.430x |
-| Snakes standard, 18 guest seconds | ABBA | 10.40310 | 10.46900 | -0.63% | 1.719x |
-| Snakes standard, 18 guest seconds | BAAB | 11.28150 | 10.41865 | +8.28% | 1.728x |
-| Snakes longer, 18 guest seconds | ABBA | 10.86390 | 9.92977 | +9.41% | 1.813x |
-| Snakes longer, 18 guest seconds | BAAB | 9.89959 | 9.85901 | +0.41% | 1.826x |
+| # | Route | Order | Control mean (s) | Candidate mean (s) | Throughput change | Candidate realtime capacity |
+| --- | --- | --- | ---: | ---: | ---: | ---: |
+| 1 | Sky Force, 6 guest seconds | ABBA | 15.82810 | 14.61185 | +8.32% | 0.411x |
+| 2 | Sky Force, 6 guest seconds | BAAB | 15.63220 | 13.96415 | +11.95% | 0.430x |
+| 3 | Snakes standard, 18 guest seconds | ABBA | 10.40310 | 10.46900 | -0.63% | 1.719x |
+| 4 | Snakes standard, 18 guest seconds | BAAB | 11.28150 | 10.41865 | +8.28% | 1.728x |
+| 5 | Snakes longer, 18 guest seconds | ABBA | 10.86390 | 9.92977 | +9.41% | 1.813x |
+| 6 | Snakes longer, 18 guest seconds | BAAB | 9.89959 | 9.85901 | +0.41% | 1.826x |
 
 A is the original callback policy, B is the new direct-memory policy. Both use
 the same untouched v2 archive, with static WASM digest
@@ -42,8 +46,9 @@ was not terminated. The source commit changed from the uncommitted snapshot to
 its verified checkpoint during the panel; the binary archive and harness stayed
 identical, and each report retains its observed Git metadata.
 
-This is only a same-binary policy comparison. New-binary cost versus the untouched
-live archive, sustained normal live/audio tests and final promotion remain open.
-The option stays off, and the served archive is unchanged. The next independent
-change keeps Thumb PC/runtime fields in the existing state cache, with callback
-publication/reload and exact budget behavior tested before measurement.
+This was only a same-binary policy comparison. At this checkpoint, new-binary
+cost versus the untouched live archive, sustained normal live/audio tests and
+final promotion remained open. The option stayed off and the served archive was
+unchanged. Subsequent work kept Thumb PC/runtime fields in the existing state
+cache, with callback publication/reload and exact budget behavior tested before
+measurement.

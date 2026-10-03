@@ -7,9 +7,11 @@ adds guarded direct accesses to bounded Thumb code with register caching, in bot
 eager ROM and hot application translations. It contains no game names, addresses,
 ROM fingerprints, timing shortcuts or changes to guest instruction accounting.
 
-`EKA2L1_THUMB_MEMORY=1` selects the experiment in the browser test harnesses and
-launcher. The runtime APIs configure/report the setting before initialization;
-configuration after initialization is rejected. The default is currently off.
+Guarded direct Thumb memory is now the default in the browser launcher, profiler
+and replay harness. `EKA2L1_THUMB_MEMORY=0` selects the callback control;
+`EKA2L1_THUMB_MEMORY=1` explicitly selects direct accesses. The runtime APIs
+configure/report the setting before initialization; configuration after
+initialization is rejected. See the [current adoption evidence](THUMB_MEMORY_DEFAULT_RESULTS.md).
 
 Each access independently checks the configured TLB index, appropriate read/write
 tag, a nonzero host page, nonzero guest page, natural alignment and little-endian
@@ -45,13 +47,13 @@ manifest checks the actual Sky Force digest. The normal launcher uses
 reference is 240 unique images from guest second 28, with 1,703,464 stereo PCM
 frames through guest microsecond 35,488,839.
 
-Promotion requires exact replay, repeatable unsampled Sky Force improvement,
-and preserved Snakes realtime on both established routes. Reaching realtime
-Sky Force remains the task target; a modest intermediate gain is insufficient.
-No per-game policy is planned. These games are regression workloads, not evidence
+The original experiment sought realtime Sky Force and stayed opt-in after its
+first timing panel. A later profile-driven adoption on the policy-17 runtime
+established a larger repeatable gain; Sky Force still falls short of realtime.
+There is no per-game policy. These games are regression workloads, not evidence
 of universal compatibility or speed on every Symbian title.
 
-## Verified opt-in checkpoint
+## Historical opt-in checkpoint
 
 The frozen v2 runtime (`548fe0ca861a1a2898aa51d1c676961301406752f3ec68225b9bb4404758394d`)
 passes all 177 compiler tests, including 9,218 new direct/callback comparisons.
@@ -68,5 +70,6 @@ wall times are not performance evidence. The subsequent 24-observation serial
 panel uses shared audio, the physical GPU, rendering without capture, no CPU
 sampling or detailed counters, and both orders on all three routes. Neither
 the initial no-shared-audio screens nor the instrumented diagnosis is pooled
-with those timings. Performance and normal live acceptance are still pending;
-the experiment remains off and the served archive remains untouched.
+with those timings. At this checkpoint, performance and normal live acceptance
+were still pending; the experiment remained off and the served archive was
+untouched. The current adoption is recorded separately in the linked report.

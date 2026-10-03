@@ -60,6 +60,8 @@ autoStart();
 </script>`;
 }
 
+export const compilerDefaults = {thumbMemory: 1, irMode: 17} as const;
+
 export type CompilerPolicy = { thumbMemory?: number; irMode?: number; eagerRegions?: number; tlbHash?: number; codeCompare?: number; codeLookup?: number; omitGuardPublication?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; executionLimits?: [number,number,number,number] };
 
 export type LauncherGame = { id: string; title: string; uid: string; sis: string };
@@ -77,8 +79,8 @@ function validExecutionLimits(limits: unknown): limits is [number,number,number,
 }
 
 export function compilerPolicyFromEnv(): CompilerPolicy {
-  const thumb = process.env.EKA2L1_THUMB_MEMORY;
-  const ir = process.env.EKA2L1_AOT_IR_MODE ?? '17';
+  const thumb = process.env.EKA2L1_THUMB_MEMORY ?? String(compilerDefaults.thumbMemory);
+  const ir = process.env.EKA2L1_AOT_IR_MODE ?? String(compilerDefaults.irMode);
   const eager = process.env.EKA2L1_AOT_EAGER_REGIONS;
   const tlb = process.env.EKA2L1_TLB_HASH;
   const compare = process.env.EKA2L1_CODE_COMPARE;

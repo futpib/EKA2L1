@@ -17,10 +17,18 @@ identical to the execution being investigated. For the stock 5320 Snakes replay:
 cd src/tests/wasm
 EKA2L1_GPU=hardware EKA2L1_SHARED_AUDIO=1 \
 EKA2L1_BENCHMARK_AOT=5 EKA2L1_AOT_IR_MODE=17 \
+EKA2L1_THUMB_MEMORY=1 \
 EKA2L1_TLB_HASH=1 EKA2L1_CODE_COMPARE=2 \
 EKA2L1_PREDICATED_LEAVES=1 EKA2L1_LEAF_FEATURES=128 \
 node profile.ts /absolute/path/to/assets /absolute/path/to/new-capture 1 1 25000000
 ```
+
+The launcher, profiler and replay harness share defaults for Thumb memory (1)
+and IR policy (17). Explicit environment overrides still select controls or
+other experiments. Match the remaining settings and build to the running
+service: the [Thumb memory investigation](THUMB_MEMORY_DEFAULT_RESULTS.md)
+found that an explicit profiling override had enabled an optimization absent
+from normal play.
 
 Arguments after the paths are capture mode, CPU sampling (0/1), and ending guest
 time in microseconds. Mode 1 skips PNG compression while retaining readback and

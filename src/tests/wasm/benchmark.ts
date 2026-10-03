@@ -5,11 +5,11 @@ import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import puppeteer from 'puppeteer';
 import {PNG} from 'pngjs';
-import {startServer, buildDir} from './server.ts';
+import {startServer, buildDir, compilerDefaults} from './server.ts';
 
 const [assetArg, outputArg, frameArg = '1000', inputArg = '../benchmark/snakes.input', startArg = '21000000'] = process.argv.slice(2);
 if (!assetArg || !outputArg) throw new Error('Usage: node benchmark.ts ASSETS NEW_OUTPUT [FRAMES] [INPUT] [START_US]');
-const thumbMemory = process.env.EKA2L1_THUMB_MEMORY === undefined ? -1 : Number(process.env.EKA2L1_THUMB_MEMORY);
+const thumbMemory = Number(process.env.EKA2L1_THUMB_MEMORY ?? compilerDefaults.thumbMemory);
 if (![-1,0,1].includes(thumbMemory)) throw Error('Invalid Thumb memory policy');
 const synchronousCompilation = process.env.EKA2L1_SYNCHRONOUS_COMPILATION === undefined ? -1 : Number(process.env.EKA2L1_SYNCHRONOUS_COMPILATION);
 const compiledMemoryMisses = process.env.EKA2L1_COMPILED_MEMORY_MISSES === undefined ? -1 : Number(process.env.EKA2L1_COMPILED_MEMORY_MISSES);
@@ -52,7 +52,7 @@ const executionLimits = limitsText.split(',').map(Number);
 if (!/^\d+,\d+,\d+,\d+$/.test(limitsText) || executionLimits.length!==4 || executionLimits.some(n=>!Number.isSafeInteger(n))
     || executionLimits[0]<128 || executionLimits[0]>2048 || executionLimits[0]%4 || executionLimits[1]<1 || executionLimits[1]>64
     || executionLimits[2]<0 || executionLimits[2]>16 || executionLimits[3]<0 || executionLimits[3]>4096) throw new Error('Invalid execution limits');
-const irMode = process.env.EKA2L1_AOT_IR_MODE === undefined ? -1 : Number(process.env.EKA2L1_AOT_IR_MODE);
+const irMode = Number(process.env.EKA2L1_AOT_IR_MODE ?? compilerDefaults.irMode);
 if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps) or 17 (write proofs and loop budgets)');
 const hotpathPolicy = process.env.EKA2L1_HOTPATH === undefined ? -1 : Number(process.env.EKA2L1_HOTPATH);
 if (!Number.isInteger(hotpathPolicy) || hotpathPolicy < -1 || hotpathPolicy > 7) throw Error('Hotpath policy must be 0..7');

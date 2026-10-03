@@ -11,10 +11,10 @@ const { startServer, compilerPolicyFromEnv } = await import('./server.ts');
 const servers: any[] = [];
 try {
   for (const name of ['EKA2L1_THUMB_MEMORY','EKA2L1_AOT_IR_MODE','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_TLB_HASH','EKA2L1_CODE_COMPARE','EKA2L1_CODE_LOOKUP','EKA2L1_PREDICATED_LEAVES','EKA2L1_LEAF_FEATURES','EKA2L1_EXECUTION_LIMITS','EKA2L1_UNSAFE_CODE','EKA2L1_OMIT_GUARD_PUBLICATION']) delete process.env[name];
-  assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,irMode:17});
+  assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:17});
   for (const mode of [0,1,2,3,4]) {
     process.env.EKA2L1_CODE_COMPARE = String(mode);
-    assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,irMode:17,codeCompare:mode});
+    assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:17,codeCompare:mode});
   }
   for (const value of ['-1','5','2.0','NaN','']) {
     process.env.EKA2L1_CODE_COMPARE = value;
@@ -23,7 +23,7 @@ try {
   delete process.env.EKA2L1_CODE_COMPARE;
   for (const mode of [0,1]) {
     process.env.EKA2L1_CODE_LOOKUP = String(mode);
-    assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,irMode:17,codeLookup:mode});
+    assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:17,codeLookup:mode});
   }
   for (const value of ['-1','2','1.0','NaN','']) {
     process.env.EKA2L1_CODE_LOOKUP = value;
@@ -31,11 +31,11 @@ try {
   }
   delete process.env.EKA2L1_CODE_LOOKUP;
   process.env.EKA2L1_AOT_IR_MODE = '7';
-  assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,irMode:7});
+  assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:7});
   process.env.EKA2L1_AOT_IR_MODE = '16';
-  assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,irMode:16});
+  assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:16});
   process.env.EKA2L1_AOT_IR_MODE = '17';
-  assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,irMode:17});
+  assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:17});
   process.env.EKA2L1_AOT_IR_MODE = '18';
   assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);
   delete process.env.EKA2L1_AOT_IR_MODE;
@@ -76,6 +76,7 @@ try {
   for (const invalid of [-1,5,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeCompare:invalid}}),/Invalid compiler policy/);
   for (const invalid of [-1,2,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeLookup:invalid}}),/Invalid compiler policy/);
   for (const [envName,key,valid,invalid] of [
+    ['EKA2L1_THUMB_MEMORY','thumbMemory',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_OMIT_GUARD_PUBLICATION','omitGuardPublication',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_UNSAFE_CODE','unsafeCode',['0','1','2','3'],['','4','-1','3.0']],
     ['EKA2L1_PREDICATED_LEAVES','predicatedLeaves',['0','1'],['','2','-1','1.0']],
@@ -84,7 +85,7 @@ try {
   ] as const) {
     for (const value of valid) {
       process.env[envName] = value;
-      assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,irMode:17,[key]:key === 'executionLimits' ? value.split(',').map(Number) : Number(value)});
+      assert.deepEqual(compilerPolicyFromEnv(), {thumbMemory:1,unsafeCode:3,irMode:17,[key]:key === 'executionLimits' ? value.split(',').map(Number) : Number(value)});
     }
     for (const value of invalid) { process.env[envName] = value; assert.throws(compilerPolicyFromEnv, /Invalid .* policy/); }
     delete process.env[envName];
