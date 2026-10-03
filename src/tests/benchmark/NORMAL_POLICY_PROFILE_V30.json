@@ -1,0 +1,2064 @@
+{
+  "archive": "/home/claude/.scratch/eka-sky-performance/candidate-sync-v30",
+  "policy": "Normal speed control. ROM grouping0, hotpath0, all coverage-only options off.",
+  "analyses": [
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/page.cpuprofile",
+      "sample_weighted_span_seconds": 10.889097999999457,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.770879999999487,
+          "percent": 98.91434533879686
+        },
+        {
+          "name": "(program)",
+          "seconds": 0.09200499999999999,
+          "percent": 0.8449276514914694
+        },
+        {
+          "name": "_flushLog",
+          "seconds": 0.005271,
+          "percent": 0.04840621326027429
+        },
+        {
+          "name": "write",
+          "seconds": 0.003164,
+          "percent": 0.029056584852116842
+        },
+        {
+          "name": "__emscripten_thread_mailbox_await",
+          "seconds": 0.003162,
+          "percent": 0.02903821785789932
+        },
+        {
+          "name": "decode",
+          "seconds": 0.00211,
+          "percent": 0.019377178899483732
+        },
+        {
+          "name": "emscripten_futex_wake",
+          "seconds": 0.00211,
+          "percent": 0.019377178899483732
+        },
+        {
+          "name": "",
+          "seconds": 0.001059,
+          "percent": 0.009725323438176907
+        },
+        {
+          "name": "(garbage collector)",
+          "seconds": 0.001058,
+          "percent": 0.009716139941068146
+        },
+        {
+          "name": "___syscall_openat",
+          "seconds": 0.001057,
+          "percent": 0.009706956443959388
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001056,
+          "percent": 0.009697772946850628
+        },
+        {
+          "name": "js-to-wasm::i",
+          "seconds": 0.001056,
+          "percent": 0.009697772946850628
+        },
+        {
+          "name": "std::__2::__locale_guard::__locale_guard[abi:nn200100](__locale_struct*&)",
+          "seconds": 0.001056,
+          "percent": 0.009697772946850628
+        },
+        {
+          "name": "checkMailbox",
+          "seconds": 0.001055,
+          "percent": 0.009688589449741866
+        },
+        {
+          "name": "UTF8ArrayToString",
+          "seconds": 0.001053,
+          "percent": 0.009670222455524345
+        },
+        {
+          "name": "lookupPath",
+          "seconds": 0.001023,
+          "percent": 0.009394717542261545
+        },
+        {
+          "name": "___syscall_ioctl",
+          "seconds": 0.000923,
+          "percent": 0.008476367831385537
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-0.cpuprofile",
+      "sample_weighted_span_seconds": 10.889225999999372,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.889225999999372,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-1.cpuprofile",
+      "sample_weighted_span_seconds": 10.889682999999366,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.889682999999366,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-10.cpuprofile",
+      "sample_weighted_span_seconds": 10.889750999999427,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.889750999999427,
+          "percent": 99.99999999999999
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-11.cpuprofile",
+      "sample_weighted_span_seconds": 10.889262999999307,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.889262999999307,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-12.cpuprofile",
+      "sample_weighted_span_seconds": 10.888246999999398,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.888246999999398,
+          "percent": 100.00000000000001
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-13.cpuprofile",
+      "sample_weighted_span_seconds": 10.88923399999961,
+      "generated_self_seconds": 4.347924000000002,
+      "outer_execution_loop_self_seconds": 1.008043999999996,
+      "outer_execution_loop_inclusive_seconds": 10.211605999999744,
+      "generated_self_percent": 39.928648792010144,
+      "outer_execution_loop_self_percent": 9.257253540515633,
+      "top_self": [
+        {
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "seconds": 2.817878000000023,
+          "percent": 25.877651265462053
+        },
+        {
+          "name": "f_2149177368",
+          "seconds": 1.2231490000000014,
+          "percent": 11.23264501433292
+        },
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "seconds": 1.008043999999996,
+          "percent": 9.257253540515633
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1::kernel_system::set_epoc_version(epocver)::$_0, std::__2::allocator<eka2l1::kernel_system::set_epoc_version(epocver)::$_0>, void (unsigned int)>::operator()(unsigned int&&)",
+          "seconds": 0.5335739999999979,
+          "percent": 4.900014087308777
+        },
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 0.5321819999999989,
+          "percent": 4.88723081899074
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+          "seconds": 0.2910889999999999,
+          "percent": 2.673181603040309
+        },
+        {
+          "name": "eka2l1::arm::aot::registry::lookup(unsigned int) const",
+          "seconds": 0.18778300000000014,
+          "percent": 1.7244830995459084
+        },
+        {
+          "name": "f_2149218301",
+          "seconds": 0.15911100000000003,
+          "percent": 1.4611771590178495
+        },
+        {
+          "name": "js-to-wasm:ii:",
+          "seconds": 0.13182700000000008,
+          "percent": 1.2106177532781903
+        },
+        {
+          "name": "r_234_pc_1879081572",
+          "seconds": 0.12653200000000003,
+          "percent": 1.1619917434045828
+        },
+        {
+          "name": "eka2l1::arm::aot::lookup_compiled(ARMul_State*)",
+          "seconds": 0.12652800000000006,
+          "percent": 1.1619550098749334
+        },
+        {
+          "name": "r_228_pc_1879081368",
+          "seconds": 0.10337000000000003,
+          "percent": 0.9492862399687961
+        },
+        {
+          "name": "f_2149191733",
+          "seconds": 0.10122200000000003,
+          "percent": 0.9295603345469815
+        },
+        {
+          "name": "f_2149291205",
+          "seconds": 0.09500300000000003,
+          "percent": 0.8724488793243257
+        },
+        {
+          "name": "f_2149180652",
+          "seconds": 0.09176600000000003,
+          "percent": 0.8427222704554178
+        },
+        {
+          "name": "r_208_pc_1879061180",
+          "seconds": 0.09074100000000006,
+          "percent": 0.8333093034827179
+        },
+        {
+          "name": "f_2152404689",
+          "seconds": 0.08644800000000002,
+          "percent": 0.7938850427863257
+        },
+        {
+          "name": "eka2l1::kernel::thread_scheduler::switch_context(eka2l1::kernel::thread*, eka2l1::kernel::thread*)",
+          "seconds": 0.08432700000000001,
+          "percent": 0.7744070886896455
+        },
+        {
+          "name": "f_2149247187",
+          "seconds": 0.08224300000000002,
+          "percent": 0.7552689197422241
+        },
+        {
+          "name": "f_2149218333",
+          "seconds": 0.07689400000000003,
+          "percent": 0.7061470072183479
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "seconds": 0.074752,
+          "percent": 0.6864762020910073
+        },
+        {
+          "name": "f_2153195873",
+          "seconds": 0.07173000000000002,
+          "percent": 0.6587240204407637
+        },
+        {
+          "name": "std::__2::__function::__func<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*), std::__2::allocator<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>, void (eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>::operator()(eka2l1::kernel_system*&&, eka2l1::kernel::process*&&, eka2l1::arm::core*&&)",
+          "seconds": 0.067547,
+          "percent": 0.6203099318097345
+        },
+        {
+          "name": "r_217_pc_1879065360",
+          "seconds": 0.06230600000000001,
+          "percent": 0.5721798245863965
+        },
+        {
+          "name": "f_2149191769",
+          "seconds": 0.06226700000000002,
+          "percent": 0.5718216726723133
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-14.cpuprofile",
+      "sample_weighted_span_seconds": 10.889401999999215,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.45111399999936,
+          "percent": 95.97509578579348
+        },
+        {
+          "name": "readPixels",
+          "seconds": 0.16468600000000008,
+          "percent": 1.512351183288228
+        },
+        {
+          "name": "getParameter",
+          "seconds": 0.12144800000000014,
+          "percent": 1.115286220492263
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'(), std::__2::allocator<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'()>, void ()>::operator()()",
+          "seconds": 0.03477499999999999,
+          "percent": 0.3193471964760094
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.03266899999999999,
+          "percent": 0.3000072914931632
+        },
+        {
+          "name": "eka2l1::drivers::shared_graphics_driver::update_bitmap(unsigned long long, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, void const*, unsigned long)",
+          "seconds": 0.020002000000000002,
+          "percent": 0.18368318113337578
+        },
+        {
+          "name": "do_proxy",
+          "seconds": 0.008442,
+          "percent": 0.07752491826457145
+        },
+        {
+          "name": "texSubImage2D",
+          "seconds": 0.006321,
+          "percent": 0.05804726467073633
+        },
+        {
+          "name": "emscriptenWebGLGet",
+          "seconds": 0.0062900000000000005,
+          "percent": 0.05776258420802587
+        },
+        {
+          "name": "js-to-wasm:i:i",
+          "seconds": 0.003165,
+          "percent": 0.029064956918664845
+        },
+        {
+          "name": "eka2l1::drivers::shared_graphics_driver::dispatch(eka2l1::drivers::command&)",
+          "seconds": 0.003164,
+          "percent": 0.029055773677932252
+        },
+        {
+          "name": "_emscripten_run_on_main_thread_js",
+          "seconds": 0.002113,
+          "percent": 0.01940418766797435
+        },
+        {
+          "name": "fopen",
+          "seconds": 0.002107,
+          "percent": 0.019349088223578777
+        },
+        {
+          "name": "bindTexture",
+          "seconds": 0.002061,
+          "percent": 0.01892665914987938
+        },
+        {
+          "name": "(garbage collector)",
+          "seconds": 0.00106,
+          "percent": 0.009734235176551259
+        },
+        {
+          "name": "emscripten_builtin_malloc",
+          "seconds": 0.001057,
+          "percent": 0.009706685454353473
+        },
+        {
+          "name": "clearColor",
+          "seconds": 0.001057,
+          "percent": 0.009706685454353473
+        },
+        {
+          "name": "glad_debug_impl_glPixelStorei",
+          "seconds": 0.001056,
+          "percent": 0.009697502213620878
+        },
+        {
+          "name": "eka2l1::drivers::ogl_graphics_driver::dispatch(eka2l1::drivers::command&)",
+          "seconds": 0.001056,
+          "percent": 0.009697502213620878
+        },
+        {
+          "name": "_glEnableVertexAttribArray",
+          "seconds": 0.001056,
+          "percent": 0.009697502213620878
+        },
+        {
+          "name": "std::__2::basic_ostream<char, std::__2::char_traits<char>>& std::__2::basic_ostream<char, std::__2::char_traits<char>>::__put_num_integer_promote[abi:nn200100]<int>(int)",
+          "seconds": 0.001056,
+          "percent": 0.009697502213620878
+        },
+        {
+          "name": "glad_debug_impl_glGetIntegerv",
+          "seconds": 0.001056,
+          "percent": 0.009697502213620878
+        },
+        {
+          "name": "proxyToMainThread",
+          "seconds": 0.001055,
+          "percent": 0.009688318972888282
+        },
+        {
+          "name": "_glBufferData",
+          "seconds": 0.001055,
+          "percent": 0.009688318972888282
+        },
+        {
+          "name": "flush",
+          "seconds": 0.001054,
+          "percent": 0.009679135732155687
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-15.cpuprofile",
+      "sample_weighted_span_seconds": 10.88932899999919,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.888273999999189,
+          "percent": 99.99031161607846
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001055,
+          "percent": 0.009688383921544462
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-16.cpuprofile",
+      "sample_weighted_span_seconds": 10.887157999999399,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.8861059999994,
+          "percent": 99.99033723952569
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001052,
+          "percent": 0.00966276047431348
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-17.cpuprofile",
+      "sample_weighted_span_seconds": 10.887150999999285,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.886099999999285,
+          "percent": 99.99034641845236
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001051,
+          "percent": 0.009653581547643356
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-18.cpuprofile",
+      "sample_weighted_span_seconds": 10.886980999999354,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.885926999999354,
+          "percent": 99.99031871186328
+        },
+        {
+          "name": "set_status_conditional",
+          "seconds": 0.001054,
+          "percent": 0.009681288136720938
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-19.cpuprofile",
+      "sample_weighted_span_seconds": 10.88561999999935,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.883512999999349,
+          "percent": 99.98064418930662
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002107,
+          "percent": 0.019355810693374616
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-2.cpuprofile",
+      "sample_weighted_span_seconds": 10.889958999999333,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.889958999999333,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-20.cpuprofile",
+      "sample_weighted_span_seconds": 10.88463899999931,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.88463899999931,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-21.cpuprofile",
+      "sample_weighted_span_seconds": 10.885629999999408,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.882468999999407,
+          "percent": 99.97096171742012
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002108,
+          "percent": 0.01936497933514289
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001053,
+          "percent": 0.009673303244736935
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-22.cpuprofile",
+      "sample_weighted_span_seconds": 10.884670999999246,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.883617999999247,
+          "percent": 99.9903258444835
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001053,
+          "percent": 0.009674155516506406
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-23.cpuprofile",
+      "sample_weighted_span_seconds": 10.885950999999366,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.884894999999366,
+          "percent": 99.99029942354142
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001056,
+          "percent": 0.009700576458593848
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-24.cpuprofile",
+      "sample_weighted_span_seconds": 10.885578999999327,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.885578999999327,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-25.cpuprofile",
+      "sample_weighted_span_seconds": 10.88450199999926,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.88450199999926,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-26.cpuprofile",
+      "sample_weighted_span_seconds": 10.88001599999948,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.87896199999948,
+          "percent": 99.9903125142463
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001054,
+          "percent": 0.009687485753697885
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-27.cpuprofile",
+      "sample_weighted_span_seconds": 10.884992999999339,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.883939999999338,
+          "percent": 99.99032613066449
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001053,
+          "percent": 0.009673869335516007
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-28.cpuprofile",
+      "sample_weighted_span_seconds": 10.880104999999322,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.877998999999324,
+          "percent": 99.98064356915675
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001053,
+          "percent": 0.009678215421634861
+        },
+        {
+          "name": "set_status_conditional",
+          "seconds": 0.001053,
+          "percent": 0.009678215421634861
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-29.cpuprofile",
+      "sample_weighted_span_seconds": 10.879422999999322,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.877310999999324,
+          "percent": 99.9805872057737
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001061,
+          "percent": 0.009752355432820896
+        },
+        {
+          "name": "set_status_conditional",
+          "seconds": 0.001051,
+          "percent": 0.009660438793491766
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-3.cpuprofile",
+      "sample_weighted_span_seconds": 10.888653999999283,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.888653999999283,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-30.cpuprofile",
+      "sample_weighted_span_seconds": 10.879427999999251,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.879427999999251,
+          "percent": 100.00000000000001
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-31.cpuprofile",
+      "sample_weighted_span_seconds": 10.885359999999313,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.885359999999313,
+          "percent": 100.00000000000001
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-4.cpuprofile",
+      "sample_weighted_span_seconds": 10.88930799999921,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.88930799999921,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-5.cpuprofile",
+      "sample_weighted_span_seconds": 10.888906999999284,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.888906999999284,
+          "percent": 99.99999999999999
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-6.cpuprofile",
+      "sample_weighted_span_seconds": 10.889686999999347,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.889686999999347,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-7.cpuprofile",
+      "sample_weighted_span_seconds": 10.888673999999376,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.888673999999376,
+          "percent": 99.99999999999999
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-8.cpuprofile",
+      "sample_weighted_span_seconds": 10.88974799999939,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.88974799999939,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "combat",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat/worker-9.cpuprofile",
+      "sample_weighted_span_seconds": 10.888755999999352,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.888755999999352,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/page.cpuprofile",
+      "sample_weighted_span_seconds": 10.649428999999643,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.487738999999674,
+          "percent": 98.48170263401
+        },
+        {
+          "name": "(program)",
+          "seconds": 0.11122699999999998,
+          "percent": 1.0444409742532084
+        },
+        {
+          "name": "__emscripten_thread_mailbox_await",
+          "seconds": 0.010546999999999997,
+          "percent": 0.09903817378378081
+        },
+        {
+          "name": "_flushLog",
+          "seconds": 0.008432,
+          "percent": 0.07917795404805537
+        },
+        {
+          "name": "emscripten_futex_wake",
+          "seconds": 0.006324999999999999,
+          "percent": 0.05939285571085747
+        },
+        {
+          "name": "lookupPath",
+          "seconds": 0.005294999999999999,
+          "percent": 0.04972097565043325
+        },
+        {
+          "name": "write",
+          "seconds": 0.004227,
+          "percent": 0.03969226894700309
+        },
+        {
+          "name": "",
+          "seconds": 0.00212,
+          "percent": 0.019907170609805194
+        },
+        {
+          "name": "UTF8ArrayToString",
+          "seconds": 0.0021190000000000002,
+          "percent": 0.01989778043498925
+        },
+        {
+          "name": "__emscripten_receive_on_main_thread_js",
+          "seconds": 0.002111,
+          "percent": 0.019822659036461684
+        },
+        {
+          "name": "decode",
+          "seconds": 0.001059,
+          "percent": 0.009944195130086653
+        },
+        {
+          "name": "_rememberLog",
+          "seconds": 0.001058,
+          "percent": 0.009934804955270705
+        },
+        {
+          "name": "put_char",
+          "seconds": 0.001058,
+          "percent": 0.009934804955270705
+        },
+        {
+          "name": "normalize",
+          "seconds": 0.001056,
+          "percent": 0.009916024605638814
+        },
+        {
+          "name": "js-to-wasm::i",
+          "seconds": 0.001056,
+          "percent": 0.009916024605638814
+        },
+        {
+          "name": "run_js_func",
+          "seconds": 0.001055,
+          "percent": 0.009906634430822868
+        },
+        {
+          "name": "createStream",
+          "seconds": 0.001053,
+          "percent": 0.009887854081190976
+        },
+        {
+          "name": "expandFileStorage",
+          "seconds": 0.001051,
+          "percent": 0.009869073731559085
+        },
+        {
+          "name": "___syscall_ioctl",
+          "seconds": 0.000841,
+          "percent": 0.007897137020210457
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-0.cpuprofile",
+      "sample_weighted_span_seconds": 10.649184999999592,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.649184999999592,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-1.cpuprofile",
+      "sample_weighted_span_seconds": 10.649584999999565,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.649584999999565,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-10.cpuprofile",
+      "sample_weighted_span_seconds": 10.648582999999546,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.648582999999546,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-11.cpuprofile",
+      "sample_weighted_span_seconds": 10.64890699999965,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.64890699999965,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-12.cpuprofile",
+      "sample_weighted_span_seconds": 10.647790999999568,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.647790999999568,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-13.cpuprofile",
+      "sample_weighted_span_seconds": 10.648555999999637,
+      "generated_self_seconds": 5.458795999999999,
+      "outer_execution_loop_self_seconds": 0.3553659999999995,
+      "outer_execution_loop_inclusive_seconds": 10.056678999999798,
+      "generated_self_percent": 51.263251092450325,
+      "outer_execution_loop_self_percent": 3.337222436544557,
+      "top_self": [
+        {
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "seconds": 1.9405550000000087,
+          "percent": 18.223644595568402
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+          "seconds": 1.1130759999999964,
+          "percent": 10.452835107408314
+        },
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 0.9453339999999967,
+          "percent": 8.877579269903158
+        },
+        {
+          "name": "f_2149128552",
+          "seconds": 0.43770299999999845,
+          "percent": 4.110444646203798
+        },
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "seconds": 0.3553659999999995,
+          "percent": 3.337222436544557
+        },
+        {
+          "name": "r_784_pc_1879048636",
+          "seconds": 0.33109899999999953,
+          "percent": 3.109332382719411
+        },
+        {
+          "name": "r_260_pc_1879455500",
+          "seconds": 0.30382799999999976,
+          "percent": 2.853231931165222
+        },
+        {
+          "name": "r_272_pc_1879068556",
+          "seconds": 0.23217000000000015,
+          "percent": 2.180295619424907
+        },
+        {
+          "name": "f_2149189520",
+          "seconds": 0.2086840000000001,
+          "percent": 1.9597398933715258
+        },
+        {
+          "name": "r_801_pc_1879094644",
+          "seconds": 0.1856640000000001,
+          "percent": 1.7435603475251147
+        },
+        {
+          "name": "r_785_pc_1879095064",
+          "seconds": 0.16878700000000008,
+          "percent": 1.5850693746645634
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.14782900000000018,
+          "percent": 1.3882539566867584
+        },
+        {
+          "name": "r_1124_pc_1879063876",
+          "seconds": 0.11398900000000008,
+          "percent": 1.0704643897257429
+        },
+        {
+          "name": "r_1139_pc_1879098448",
+          "seconds": 0.09286200000000001,
+          "percent": 0.8720619021020614
+        },
+        {
+          "name": "r_1116_pc_1879453380",
+          "seconds": 0.08861900000000002,
+          "percent": 0.8322161239514827
+        },
+        {
+          "name": "r_1215_pc_1879455124",
+          "seconds": 0.08550600000000004,
+          "percent": 0.8029821132555716
+        },
+        {
+          "name": "r_1162_pc_1879454612",
+          "seconds": 0.08015600000000005,
+          "percent": 0.7527405593772788
+        },
+        {
+          "name": "r_1462_pc_1879230888",
+          "seconds": 0.07806600000000002,
+          "percent": 0.7331134850584689
+        },
+        {
+          "name": "r_244_pc_1879068672",
+          "seconds": 0.07704500000000002,
+          "percent": 0.7235253305706674
+        },
+        {
+          "name": "js-to-wasm:i:",
+          "seconds": 0.075979,
+          "percent": 0.7135145835736093
+        },
+        {
+          "name": "r_1451_pc_1879230316",
+          "seconds": 0.06754000000000002,
+          "percent": 0.6342644016710088
+        },
+        {
+          "name": "r_282_pc_1879068004",
+          "seconds": 0.06740700000000002,
+          "percent": 0.6330154060325393
+        },
+        {
+          "name": "r_1114_pc_1879453360",
+          "seconds": 0.06125200000000003,
+          "percent": 0.5752141417108773
+        },
+        {
+          "name": "r_1118_pc_1879462880",
+          "seconds": 0.05702500000000001,
+          "percent": 0.5355186186747006
+        },
+        {
+          "name": "r_1117_pc_1879461032",
+          "seconds": 0.05597900000000001,
+          "percent": 0.5256956905706456
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-14.cpuprofile",
+      "sample_weighted_span_seconds": 10.646927999999543,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 9.799012999999743,
+          "percent": 92.03605960329745
+        },
+        {
+          "name": "getParameter",
+          "seconds": 0.27691300000000024,
+          "percent": 2.600872289171225
+        },
+        {
+          "name": "readPixels",
+          "seconds": 0.26327600000000023,
+          "percent": 2.4727883949249168
+        },
+        {
+          "name": "eka2l1::drivers::shared_graphics_driver::update_bitmap(unsigned long long, unsigned long, eka2l1::vec2 const&, eka2l1::vec2 const&, void const*, unsigned long)",
+          "seconds": 0.06327200000000001,
+          "percent": 0.5942747053422615
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'(), std::__2::allocator<eka2l1_prepare_graphics::$_0::operator()(void*) const::'lambda'()>, void ()>::operator()()",
+          "seconds": 0.05588500000000001,
+          "percent": 0.524893189847836
+        },
+        {
+          "name": "(idle)",
+          "seconds": 0.054746,
+          "percent": 0.5141952683440929
+        },
+        {
+          "name": "texSubImage2D",
+          "seconds": 0.01054,
+          "percent": 0.09899569152717529
+        },
+        {
+          "name": "do_proxy",
+          "seconds": 0.008445999999999999,
+          "percent": 0.07932804655014443
+        },
+        {
+          "name": "emscripten_builtin_malloc",
+          "seconds": 0.007376000000000001,
+          "percent": 0.0692781993078221
+        },
+        {
+          "name": "emscriptenWebGLGet",
+          "seconds": 0.006338000000000001,
+          "percent": 0.05952890824470939
+        },
+        {
+          "name": "eka2l1::drivers::ogl_graphics_driver::dispatch(eka2l1::drivers::command&)",
+          "seconds": 0.006274,
+          "percent": 0.0589277958862901
+        },
+        {
+          "name": "proxyToMainThread",
+          "seconds": 0.005278,
+          "percent": 0.04957298480839004
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.005278,
+          "percent": 0.04957298480839004
+        },
+        {
+          "name": "void std::__2::vector<unsigned char, std::__2::allocator<unsigned char>>::__assign_with_size[abi:ne200100]<unsigned char*, unsigned char*>(unsigned char*, unsigned char*, long)",
+          "seconds": 0.00527,
+          "percent": 0.04949784576358764
+        },
+        {
+          "name": "postMessage",
+          "seconds": 0.0052309999999999995,
+          "percent": 0.04913154292017588
+        },
+        {
+          "name": "bindFramebuffer",
+          "seconds": 0.004219,
+          "percent": 0.039626453752671015
+        },
+        {
+          "name": "flush",
+          "seconds": 0.0042179999999999995,
+          "percent": 0.03961706137207071
+        },
+        {
+          "name": "emscripten_builtin_free",
+          "seconds": 0.004182,
+          "percent": 0.03927893567045987
+        },
+        {
+          "name": "growMemViews",
+          "seconds": 0.003176,
+          "percent": 0.029830200786556803
+        },
+        {
+          "name": "",
+          "seconds": 0.003169,
+          "percent": 0.029764454122354695
+        },
+        {
+          "name": "clear",
+          "seconds": 0.0031669999999999997,
+          "percent": 0.029745669361154088
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.003165,
+          "percent": 0.029726884599953488
+        },
+        {
+          "name": "(garbage collector)",
+          "seconds": 0.0031609999999999997,
+          "percent": 0.02968931507755228
+        },
+        {
+          "name": "memcmp",
+          "seconds": 0.003156,
+          "percent": 0.029642353174550776
+        },
+        {
+          "name": "std::__2::basic_ostream<char, std::__2::char_traits<char>>& std::__2::__put_character_sequence[abi:ne200100]<char, std::__2::char_traits<char>>(std::__2::basic_ostream<char, std::__2::char_traits<char>>&, char const*, unsigned long)",
+          "seconds": 0.002118,
+          "percent": 0.01989306211143807
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-15.cpuprofile",
+      "sample_weighted_span_seconds": 10.64682099999963,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.64577099999963,
+          "percent": 99.99013790125711
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.00105,
+          "percent": 0.009862098742902097
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-16.cpuprofile",
+      "sample_weighted_span_seconds": 10.64703699999964,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.64703699999964,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-17.cpuprofile",
+      "sample_weighted_span_seconds": 10.647026999999529,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.645972999999529,
+          "percent": 99.99010052289714
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001054,
+          "percent": 0.009899477102857416
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-18.cpuprofile",
+      "sample_weighted_span_seconds": 10.6447639999996,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.6447639999996,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-19.cpuprofile",
+      "sample_weighted_span_seconds": 10.642179999999472,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.641124999999471,
+          "percent": 99.9900866175915
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001055,
+          "percent": 0.009913382408491985
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-2.cpuprofile",
+      "sample_weighted_span_seconds": 10.649378999999602,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.649378999999602,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-20.cpuprofile",
+      "sample_weighted_span_seconds": 10.642137999999536,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.642137999999536,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-21.cpuprofile",
+      "sample_weighted_span_seconds": 10.642341999999529,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.64128699999953,
+          "percent": 99.99008676849513
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001055,
+          "percent": 0.009913231504870326
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-22.cpuprofile",
+      "sample_weighted_span_seconds": 10.641541999999507,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.641541999999507,
+          "percent": 100.00000000000001
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-23.cpuprofile",
+      "sample_weighted_span_seconds": 10.642361999999554,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.642361999999554,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-24.cpuprofile",
+      "sample_weighted_span_seconds": 10.641710999999708,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.641710999999708,
+          "percent": 99.99999999999999
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-25.cpuprofile",
+      "sample_weighted_span_seconds": 10.642057999999578,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.639949999999578,
+          "percent": 99.98019180124747
+        },
+        {
+          "name": "wasm-to-js",
+          "seconds": 0.001054,
+          "percent": 0.009904099376267654
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001054,
+          "percent": 0.009904099376267654
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-26.cpuprofile",
+      "sample_weighted_span_seconds": 10.642331999999492,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.639212999999492,
+          "percent": 99.9706925136333
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.002066,
+          "percent": 0.019413038420527558
+        },
+        {
+          "name": "now",
+          "seconds": 0.001053,
+          "percent": 0.009894447946183696
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-27.cpuprofile",
+      "sample_weighted_span_seconds": 10.64059199999945,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.638480999999448,
+          "percent": 99.98016087826691
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001057,
+          "percent": 0.009933657826557533
+        },
+        {
+          "name": "now",
+          "seconds": 0.001054,
+          "percent": 0.009905463906520001
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-28.cpuprofile",
+      "sample_weighted_span_seconds": 10.638604999999648,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.638604999999648,
+          "percent": 99.99999999999999
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-29.cpuprofile",
+      "sample_weighted_span_seconds": 10.638614999999566,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.637557999999567,
+          "percent": 99.99006449617738
+        },
+        {
+          "name": "_emscripten_get_now",
+          "seconds": 0.001057,
+          "percent": 0.009935503822631453
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-3.cpuprofile",
+      "sample_weighted_span_seconds": 10.649246999999614,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.649246999999614,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-30.cpuprofile",
+      "sample_weighted_span_seconds": 10.636900999999526,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "__pthread_cond_timedwait",
+          "seconds": 10.636900999999526,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-31.cpuprofile",
+      "sample_weighted_span_seconds": 10.646171999999629,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.646171999999629,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-4.cpuprofile",
+      "sample_weighted_span_seconds": 10.649325999999657,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.649325999999657,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-5.cpuprofile",
+      "sample_weighted_span_seconds": 10.648929999999634,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.648929999999634,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-6.cpuprofile",
+      "sample_weighted_span_seconds": 10.64849199999958,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.64849199999958,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-7.cpuprofile",
+      "sample_weighted_span_seconds": 10.648848999999679,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.648848999999679,
+          "percent": 100.00000000000001
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-8.cpuprofile",
+      "sample_weighted_span_seconds": 10.646806999999583,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.646806999999583,
+          "percent": 100.0
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    },
+    {
+      "route": "standard",
+      "file": "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard/worker-9.cpuprofile",
+      "sample_weighted_span_seconds": 10.649163999999551,
+      "generated_self_seconds": 0,
+      "outer_execution_loop_self_seconds": 0,
+      "outer_execution_loop_inclusive_seconds": 0,
+      "generated_self_percent": 0.0,
+      "outer_execution_loop_self_percent": 0.0,
+      "top_self": [
+        {
+          "name": "(idle)",
+          "seconds": 10.649163999999551,
+          "percent": 99.99999999999999
+        }
+      ],
+      "note": "CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback."
+    }
+  ],
+  "commands": {
+    "combat": {
+      "args": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-sky-performance/assets",
+        "/home/claude/.scratch/eka-sky-performance/v30-control-profile-combat",
+        "1",
+        "1",
+        "48000000"
+      ],
+      "env": {
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-sync-v30",
+        "EKA2L1_HOTPATH": "0",
+        "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "0",
+        "EKA2L1_ROM_CALLS": "0",
+        "EKA2L1_ARM_EXCLUSIVE": "0",
+        "EKA2L1_COMPILED_SVC": "0",
+        "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+        "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+        "EKA2L1_ROM_DISPATCH": "0",
+        "EKA2L1_APP_UID": "0xa020d913",
+        "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-assets.json",
+        "EKA2L1_PROFILE_START_US": "42000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/sky-force-combat.input"
+      },
+      "purpose": "CPU sampling after serial timing; detailed counters and guest census disabled. Not speed evidence."
+    },
+    "standard": {
+      "args": [
+        "node",
+        "profile.ts",
+        "/home/claude/.scratch/eka-benchmark/assets",
+        "/home/claude/.scratch/eka-sky-performance/v30-control-profile-standard",
+        "1",
+        "1",
+        "39000000"
+      ],
+      "env": {
+        "EKA2L1_BENCHMARK_AOT": "5",
+        "EKA2L1_AOT_IR_MODE": "7",
+        "EKA2L1_AOT_EAGER_REGIONS": "0",
+        "EKA2L1_TLB_HASH": "1",
+        "EKA2L1_CODE_COMPARE": "2",
+        "EKA2L1_CODE_LOOKUP": "0",
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "128",
+        "EKA2L1_UNSAFE_CODE": "3",
+        "EKA2L1_SHARED_AUDIO": "1",
+        "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+        "EKA2L1_GPU": "hardware",
+        "EKA2L1_PROFILE_DETAIL": "0",
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-sky-performance/candidate-sync-v30",
+        "EKA2L1_HOTPATH": "0",
+        "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+        "EKA2L1_THUMB_MEMORY": "1",
+        "EKA2L1_ARM_MEMORY": "0",
+        "EKA2L1_ROM_LEAVES": "0",
+        "EKA2L1_ROM_CALLS": "0",
+        "EKA2L1_ARM_EXCLUSIVE": "0",
+        "EKA2L1_COMPILED_SVC": "0",
+        "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+        "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+        "EKA2L1_ROM_DISPATCH": "0",
+        "EKA2L1_PROFILE_START_US": "21000000",
+        "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1-sky-performance/src/tests/benchmark/snakes.input"
+      },
+      "purpose": "CPU sampling after serial timing; detailed counters and guest census disabled. Not speed evidence."
+    }
+  },
+  "scripts": {
+    "profile_control_v30.py": "from pathlib import Path\nimport json,os,time,subprocess\ns=Path('/home/claude/.scratch/eka-sky-performance');r=Path('/home/claude/code/EKA2L1-sky-performance')\nfor index,route,assets,end in [(0,'combat',s/'assets',48000000),(3,'standard',Path('/home/claude/.scratch/eka-benchmark/assets'),39000000)]:\n meta=json.loads((s/f'dynamic-v30-screen-{index:02d}-{route}-control-command.json').read_text())\n env={k:v for k,v in os.environ.items()if not k.startswith('EKA2L1_')};env.update(meta['env'])\n args=['node','profile.ts',str(assets),str(s/f'v30-control-profile-{route}'),'1','1',str(end)]\n (s/f'v30-control-profile-{route}-command.json').write_text(json.dumps({'args':args,'env':meta['env'],'purpose':'CPU sampling after serial timing; detailed counters and guest census disabled. Not speed evidence.'},indent=2))\n with(s/f'v30-control-profile-{route}.log').open('w')as f:subprocess.run(args,cwd=r/'src/tests/wasm',env=env,stdout=f,stderr=subprocess.STDOUT,timeout=1800,check=True)\n print(f'V30 control {route} CPU profile complete',flush=True)\n(s/'v30-control-profile-complete.json').write_text(json.dumps({'complete':True}))\n",
+    "analyze_cpu_control_v30.py": "from pathlib import Path\nimport json,collections,re\ns=Path('/home/claude/.scratch/eka-sky-performance');out=[]\nfor route in ('combat','standard'):\n folder=s/f'v30-control-profile-{route}';report=json.loads((folder/'report.json').read_text())\n assert report['sampling'] and not report['measurement']['detailed'] and not report['guest_profile_stride'] and report['synchronous_compilation']==0\n for p in sorted(folder.glob('*.cpuprofile')):\n  q=json.loads(p.read_text());nodes={x['id']:x for x in q['nodes']};parents={c:x['id'] for x in q['nodes']for c in x.get('children',[])};self_time=collections.Counter();inclusive=collections.Counter();total=0\n  for ident,delta in zip(q.get('samples',[]),q.get('timeDeltas',[])):\n   seconds=delta/1e6;total+=seconds;self_time[nodes[ident]['callFrame']['functionName']]+=seconds\n   ancestors=set();seen=set()\n   while ident in nodes and ident not in seen:\n    seen.add(ident);ancestors.add(nodes[ident]['callFrame']['functionName']);ident=parents.get(ident)\n   for name in ancestors:inclusive[name]+=seconds\n  generated=sum(v for k,v in self_time.items()if re.match(r'^(?:f_\\d+|r_\\d+_pc_\\d+)$',k))\n  loop=sum(v for k,v in self_time.items()if 'InterpreterMainLoop(' in k)\n  loop_inclusive=sum(v for k,v in inclusive.items()if 'InterpreterMainLoop(' in k)\n  out.append({'route':route,'file':str(p),'sample_weighted_span_seconds':total,'generated_self_seconds':generated,'outer_execution_loop_self_seconds':loop,'outer_execution_loop_inclusive_seconds':loop_inclusive,'generated_self_percent':100*generated/total if total else 0,'outer_execution_loop_self_percent':100*loop/total if total else 0,'top_self':[{'name':k,'seconds':v,'percent':100*v/total}for k,v in self_time.most_common(25)],'note':'CPU sampling with normal browser flags and detailed counters disabled. Weighted sample spans are diagnostics, not unpaced benchmark results. InterpreterMainLoop contains the inlined compiled runner; the symbol alone does not identify interpreter fallback.'})\n(s/'v30-control-cpu-profile-analysis.json').write_text(json.dumps(out,indent=2))\nfor x in out:\n if x['outer_execution_loop_inclusive_seconds']>1:print(x['route'],x['file'],x['generated_self_percent'],x['outer_execution_loop_self_percent'],x['top_self'][:6])\n"
+  }
+}
