@@ -562,7 +562,7 @@ int main(int argc, char **argv){
         --argc;
     }
     std::cout << "PROBE_POLICY " << static_cast<int>(ir_policy) << "\n";
-    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts || ir_policy==aot::arm_ir_policy::loop_budget_chunks;
+    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts || ir_policy==aot::arm_ir_policy::loop_budget_chunks || ir_policy==aot::arm_ir_policy::batched_instruction_counts;
     const bool interpreter=argc==2 && (std::string(argv[1])=="--interpreter" || std::string(argv[1])=="--region-spans-interpreter" || std::string(argv[1])=="--entry-budget-interpreter");
     eka2l1::common::performance::enabled=true;
     eka2l1::common::performance::phase=2;
@@ -774,6 +774,10 @@ int main(int argc, char **argv){
             }
             if(predicated_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves)) {
                 std::cerr<<"Predicated call fusion selection mismatch\n";return 4;
+            }
+            if(ir_policy==aot::arm_ir_policy::batched_instruction_counts && !arm_leaf_memory
+                && n==0 && !translated.deferred_count_updates) {
+                std::cerr<<"Fault fixture did not select batched instruction counts\n";return 4;
             }
             const auto checked_policy = (ir_policy == aot::arm_ir_policy::long_segments_ir || ir_policy == aot::arm_ir_policy::stack_values_ir || ir_policy == aot::arm_ir_policy::budget_gaps_ir)
                 ? aot::arm_ir_policy::conditional_value_ir : ir_policy;

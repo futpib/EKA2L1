@@ -2296,7 +2296,7 @@ static bool test_bounded_execution() {
 }
 
 // Pending interrupts must exit at a taken loop backedge with precise state.
-static bool test_region_loop_interrupts() {
+static bool test_region_loop_interrupts(arm_ir_policy policy = arm_ir_policy::configured) {
 #ifdef __EMSCRIPTEN__
     const std::vector<std::vector<std::uint32_t>> programs = {
         {0xe2800001,0xeafffffd},
@@ -2306,7 +2306,7 @@ static bool test_region_loop_interrupts() {
     for (unsigned kind = 0; kind < programs.size(); ++kind) {
         const auto &words = programs[kind];
         auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words.data()),
-            words.size()*4, 0x1000, nullptr, nullptr, true, true, true, true);
+            words.size()*4, 0x1000, nullptr, nullptr, true, true, true, true, nullptr, false, policy);
         auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
             {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
             {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
@@ -2334,11 +2334,11 @@ static bool test_region_loop_interrupts() {
 }
 
 // A guest alias must not let a region execute code overwritten by an inline store.
-static bool test_region_code_alias() {
+static bool test_region_code_alias(arm_ir_policy policy = arm_ir_policy::configured) {
 #ifdef __EMSCRIPTEN__
     for (bool block_store : {false, true}) {
     const std::uint32_t words[] = {block_store ? 0xe8a10009u : 0xe5810004u,0xe2822001,0xeafffffc};
-    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,false,policy);
     auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
     for (unsigned address : {0x1000u,0x8000u}) {
@@ -2363,7 +2363,7 @@ static bool test_region_code_alias() {
     // the same physical bytes; stores must remain visible to later loads.
     const std::uint32_t alias_words[] = {0xe5810000,0xe5952000,0xe5812004,0xe5953004};
     auto alias_tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(alias_words),
-        sizeof(alias_words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
+        sizeof(alias_words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,policy);
     auto alias_module = build_wasm_module({alias_tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
     for (bool code_alias : {false,true}) for (unsigned budget=0;budget<=5;++budget) {
@@ -2426,7 +2426,7 @@ static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured
 #if defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)
         // Policy 7 uses deferred memory and budget chunks, not the IR proof
         // backend required by the older selections exercised here.
-        if (policy != arm_ir_policy::write_budget_chunks && deferred
+        if (policy != arm_ir_policy::write_budget_chunks && policy != arm_ir_policy::batched_instruction_counts && deferred
             && words.size() >= 5 && !tr.ir_memory_guards && !tr.ir_proved_writes) {
             printf("  FAIL inlined memory leaf did not select IR guards\n"); return false;
         }
@@ -2473,11 +2473,11 @@ static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured
     return true;
 }
 
-static bool test_region_cpsr_callback() {
+static bool test_region_cpsr_callback(arm_ir_policy policy = arm_ir_policy::configured) {
 #ifdef __EMSCRIPTEN__
     const std::uint32_t code[] = {0xE128F000u, 0xE5912000u, 0xE2833001u};
     auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(code), sizeof(code),
-        0x1000, nullptr, nullptr, true, true, true, true);
+        0x1000, nullptr, nullptr, true, true, true, true, nullptr, false, policy);
     auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},
         {"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
         {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
@@ -2497,7 +2497,7 @@ static bool test_region_cpsr_callback() {
     printf("  PASS region_cpsr_callback\n"); return true;
 }
 
-static bool test_compiled_memory_misses() {
+static bool test_compiled_memory_misses(arm_ir_policy policy = arm_ir_policy::write_budget_chunks) {
 #ifdef __EMSCRIPTEN__
     namespace tracking = eka2l1::common::code_tracking;
     const auto saved_mode=tracking::unsafe_code_mode;
@@ -2517,7 +2517,7 @@ static bool test_compiled_memory_misses() {
         std::vector<std::uint8_t> modules[2];
         for(unsigned variant=0;variant<2;++variant) {
             compiled_memory_misses=variant;
-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,arm_ir_policy::write_budget_chunks);
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,policy);
             modules[variant]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         }
         for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
@@ -2551,7 +2551,7 @@ static bool test_compiled_memory_misses() {
         std::array<unsigned,256> states[2]{};int counts[2];std::array<unsigned,4> observations[2]{};
         for(unsigned variant=0;variant<2;++variant) {
             compiled_memory_misses=variant;
-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,arm_ir_policy::write_budget_chunks);
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,policy);
             auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
             auto &v=states[variant];v[1]=0x8000;v[6]=0x87654321;v[7]=0x12345678;v[15]=0x1000;
             v[state_offsets::CPSR/4]=0x10;v[state_offsets::AOT_BUDGET/4]=3;v[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;v[state_offsets::NIRQ/4]=1;
@@ -3076,13 +3076,13 @@ static bool test_loop_budget_chunks() {
         {0xe2877001,0xe3560000,0x0a00003c,0xe2888001,0x1891000c,0x15812008,0xe2566001,0x1afffff8,0xe1a00003,0xe12fff1e},
     };
     unsigned checks = 0;
-    for (auto policy : {arm_ir_policy::write_budget_chunks, arm_ir_policy::loop_budget_chunks})
+    for (auto policy : {arm_ir_policy::write_budget_chunks, arm_ir_policy::loop_budget_chunks, arm_ir_policy::batched_instruction_counts})
     for (unsigned p = 0; p < programs.size(); ++p) {
         const auto &code = programs[p];
         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
         auto tr = translate_arm_block(bytes, code.size()*4, 0x1000,
             nullptr,nullptr,true,true,true,true,nullptr,true,policy);
-        const bool selected = policy == arm_ir_policy::loop_budget_chunks;
+        const bool selected = policy != arm_ir_policy::write_budget_chunks;
         if (tr.loop_budget_chunks != unsigned(selected) || (selected && tr.func.outlined_calls.empty())) {
             printf(" FAIL loop budget selection policy=%d program=%u loops=%u\n",int(policy),p,tr.loop_budget_chunks); return false;
         }
@@ -3152,8 +3152,93 @@ static bool test_loop_budget_chunks() {
     if (selected.loop_budget_chunks != 1) { printf(" FAIL loop policy missed straight loop\n"); return false; }
     arm_ir_policy parsed = arm_ir_policy::configured;
     if (!parse_arm_ir_policy("17",parsed) || parsed != arm_ir_policy::loop_budget_chunks
-        || parse_arm_ir_policy("18",parsed)) { printf(" FAIL loop policy parsing\n"); return false; }
+        || !parse_arm_ir_policy("18",parsed) || parsed != arm_ir_policy::batched_instruction_counts
+        || parse_arm_ir_policy("19",parsed)) { printf(" FAIL loop policy parsing\n"); return false; }
     printf(" PASS loop_budget_chunks (%u exact interpreter state/memory/budget comparisons)\n",checks);
+#endif
+    return true;
+}
+
+// Count batching is independent of loop/chunk selection. Compare all state,
+// effects and helper calls with the existing policy across different paths,
+// including short blocks, interior entries, precise fallbacks and cold exits.
+static bool test_batched_instruction_counts() {
+#ifdef __EMSCRIPTEN__
+    std::vector<std::vector<std::uint32_t>> programs = {
+        {0xe2800001,0xe2822001},
+        {0xe2800001,0xe5912000,0xe2833001},
+        {0xe2800001,0xe5812000,0xe2833001},
+        {0xe2800001,0xe3560000,0x0a000001,0xe2822001,0xea000000,0xe2833001,0xe2844001,0xe12fff1e},
+        {0xe2800001,0xeafffffd},
+        {0xe2800001,0xe3560000,0x0a000001,0xe2566001,0xeafffffa,0xe2844001,0xe12fff1e},
+        {0xe2800001,0xe2566001,0x1afffffc,0xe2877001,0xe2888001,0xe12fff1e},
+        {0xe2800001,0x05912000,0x12833001,0xe2844001,0xe12fff1e},
+        {0xe2800001,0xe891000c,0xe2833001,0xe12fff1e},
+        {0xe2800001,0xe3560000,0x0a00003c,0xe2822001,0xe12fff1e},
+        {0xe2800001,0x0e000000,0xe2822001,0xe12fff1e},
+    };
+    // Cross several budget chunks without a control-flow merge.
+    std::vector<std::uint32_t> long_program(70,0xe2800001);
+    long_program[34]=0xe5912000;
+    programs.push_back(long_program);
+    unsigned checks=0;
+    for (bool deferred : {false,true}) for (bool cached : {false,true})
+    for (unsigned p=0;p<programs.size();++p) {
+        const auto &code=programs[p];
+        std::vector<std::uint8_t> modules[2];
+        for (unsigned variant=0;variant<2;++variant) {
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,
+                0x1000,nullptr,nullptr,true,true,cached,true,nullptr,deferred,
+                variant ? arm_ir_policy::batched_instruction_counts : arm_ir_policy::loop_budget_chunks);
+            if (variant && !tr.deferred_count_updates) {printf(" FAIL missing count batching\n");return false;}
+            modules[variant]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        }
+        for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0x1000u})
+        for (unsigned permission : {0u,3u}) for (unsigned selector : {0u,2u})
+        for (unsigned event : {0u,1u,2u})
+        for (unsigned budget : {0u,1u,2u,3u,4u,5u,7u,8u,16u,31u,32u,33u,35u,65u,71u}) {
+            test_mem memory;
+            memory.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(code.data()),
+                reinterpret_cast<const std::uint8_t*>(code.data())+code.size()*4});
+            memory.write32(0x8000,0x12345678);memory.write32(0x8004,0x87654321);
+            const auto initial=memory.data;
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            tlb.add(0x8000,memory.data.data()+0x8000,permission);
+            tlb.add(0x1000,memory.data.data()+0x1000,permission);
+            std::array<unsigned,256> states[2]{};
+            int counts[2];unsigned helpers[2];std::vector<std::uint8_t> outputs[2];
+            for (unsigned variant=0;variant<2;++variant) {
+                std::copy(initial.begin(),initial.end(),memory.data.begin());
+                auto &state=states[variant];
+                for (unsigned r=0;r<16;++r) state[r]=0x120+r;
+                state[1]=address;state[6]=selector;state[14]=0x1100;state[15]=0x1000;
+                state[state_offsets::CPSR/4]=0xa0000010|(selector ? 0x40000000u : 0);
+                state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=1;
+                state[state_offsets::ZFLAG/4]=selector!=0;state[state_offsets::MODE/4]=16;
+                state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=budget;
+                state[state_offsets::NIRQ/4]=event!=0;state[state_offsets::AOT_EXIT/4]=event==2;
+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
+                state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
+                state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+code.size()*4;
+                g_test_mem=&memory;g_all_memory_helper_calls=0;
+                counts[variant]=js_run_aot_wasm(modules[variant].data(),modules[variant].size(),
+                    reinterpret_cast<std::uint8_t*>(state.data()),sizeof(state));
+                g_test_mem=nullptr;helpers[variant]=g_all_memory_helper_calls;outputs[variant]=memory.data;
+            }
+            if(counts[0]<0 || counts[0]!=counts[1] || states[0]!=states[1]
+                || helpers[0]!=helpers[1] || outputs[0]!=outputs[1]) {
+                printf(" FAIL batched counts program=%u deferred=%u cached=%u addr=%x perm=%u selector=%u event=%u budget=%u counts=%d/%d\n",
+                    p,deferred,cached,address,permission,selector,event,budget,counts[0],counts[1]);
+                for(unsigned r=0;r<states[0].size();++r)if(states[0][r]!=states[1][r])
+                    printf(" state[%u]=%x/%x\n",r,states[0][r],states[1][r]);
+                return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS batched instruction counts (%u exact state/memory/helper/progress comparisons)\n",checks);
 #endif
     return true;
 }
@@ -6249,7 +6334,7 @@ static bool test_expanded_leaves(bool always=false) {
     return true;
 }
 
-static bool test_predicated_leaves() {
+static bool test_predicated_leaves(arm_ir_policy policy = arm_ir_policy::write_budget_chunks) {
 #ifdef __EMSCRIPTEN__
     struct restore {bool flag=predicated_leaves;std::string limits=execution_limits_text();
         ~restore(){predicated_leaves=flag;parse_execution_limits(limits.c_str());}} saved;
@@ -6263,8 +6348,8 @@ static bool test_predicated_leaves() {
             return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
         auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,
             nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
-        predicated_leaves=false;if(!translate(arm_ir_policy::write_budget_chunks).dependencies.empty())return false;
-        predicated_leaves=true;auto tr=translate(arm_ir_policy::write_budget_chunks);
+        predicated_leaves=false;if(!translate(policy).dependencies.empty())return false;
+        predicated_leaves=true;auto tr=translate(policy);
         if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
@@ -6305,7 +6390,7 @@ static bool test_predicated_leaves() {
     }
     for(unsigned op:{0x15910000u,0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {
         unsigned leaf[]={op,0xe12fff1e};leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
-        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);
         if(!tr.dependencies.empty()){printf(" FAIL unsafe predicated leaf accepted %x\n",op);return false;}
     }
     printf(" PASS predicated leaves (%u exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n",checks);
@@ -6633,7 +6718,7 @@ static bool test_unsafe_code_diagnostic() {
 }
 
 
-static bool test_compiled_svc_boundary() {
+static bool test_compiled_svc_boundary(arm_ir_policy policy = arm_ir_policy::configured) {
     const auto saved=compiled_svc_enabled;compiled_svc_enabled=true;unsigned checks=0;
 #ifdef __EMSCRIPTEN__
     for(unsigned thumb:{0u,1u})for(unsigned page:{0u,1u})for(unsigned region:{0u,1u})
@@ -6642,7 +6727,7 @@ static bool test_compiled_svc_boundary() {
         const unsigned width=thumb?2:4,pc=page?0x2000-width:0x1000;
         const unsigned arm=(cond<<28)|0x0f123456;const std::uint16_t narrow=0xdf56;
         auto tr=thumb?translate_thumb_block(reinterpret_cast<const unsigned char*>(&narrow),2,pc,nullptr,nullptr,true,false,true)
-            :translate_arm_block(reinterpret_cast<const unsigned char*>(&arm),4,pc,nullptr,nullptr,true,false,true,region);
+            :translate_arm_block(reinterpret_cast<const unsigned char*>(&arm),4,pc,nullptr,nullptr,true,false,true,region,nullptr,false,policy);
         auto module=build_wasm_module({tr.func},{});
         alignas(8) std::uint32_t state[256]{};state[15]=pc;
         state[state_offsets::CPSR/4]=16|(thumb?32:0)|(nzcv<<28);
@@ -6916,6 +7001,16 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--dynamic-cohorts-only")return test_dynamic_rom_cohort_discovery() && test_rom_cohorts()?0:1;
     if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=7;argc=1;}
     if(argc==2 && std::string(argv[1])=="--loop-budget-only")return test_loop_budget_chunks()?0:1;
+    if(argc==2 && std::string(argv[1])=="--batched-counts-only")return test_batched_instruction_counts()
+        && test_loop_budget_chunks() && test_budget_chunks(arm_ir_policy::batched_instruction_counts)
+        && test_inlined_leaves(arm_ir_policy::batched_instruction_counts)?0:1;
+    if(argc==2 && std::string(argv[1])=="--batched-boundaries-only")return
+        test_region_loop_interrupts(arm_ir_policy::batched_instruction_counts)
+        && test_region_code_alias(arm_ir_policy::batched_instruction_counts)
+        && test_region_cpsr_callback(arm_ir_policy::batched_instruction_counts)
+        && test_compiled_memory_misses(arm_ir_policy::batched_instruction_counts)
+        && test_compiled_svc_boundary(arm_ir_policy::batched_instruction_counts)
+        && test_predicated_leaves(arm_ir_policy::batched_instruction_counts)?0:1;
     if(argc==2 && std::string(argv[1])=="--registry-only")return test_registry_lookup_lifecycle()?0:1;
     if(argc==2 && std::string(argv[1])=="--synchronous-compilation-only")return test_synchronous_compilation()?0:1;
     if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
@@ -7583,6 +7678,7 @@ int main(int argc, char **argv) {
     if (test_literal_pc_veneers()) passed++; else failed++;
     if (test_boundary_details()) passed++; else failed++;
     if (test_loop_budget_chunks()) passed++; else failed++;
+    if (test_batched_instruction_counts()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;

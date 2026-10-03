@@ -15,7 +15,7 @@ parser.add_argument('--tail-prefixes',action='store_true',help='Include register
 parser.add_argument('--exit-census',type=int,choices=(0,1))
 parser.add_argument('--predicated-leaves', type=int, choices=(0,1))
 parser.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
-parser.add_argument('--ir-policy', type=int, choices=range(17), required=True)
+parser.add_argument('--ir-policy', type=int, choices=range(19), required=True)
 parser.add_argument('--long', action='store_true', help='Include 128-instruction coverage fixture (policies 13/14/15)')
 parser.add_argument('--code-write-protect', type=int, choices=(0,1))
 parser.add_argument('--code-lookup', type=int, choices=(0,1))

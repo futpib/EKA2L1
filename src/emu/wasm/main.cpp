@@ -213,7 +213,7 @@ int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
 // CPU. Selection is frozen before guest translation starts.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_ir_configure(int mode) {
-    if (g_state || mode < -1 || mode > 17) return -1;
+    if (g_state || mode < -1 || mode > 18) return -1;
 #ifdef EKA2L1_WASM_CODE_VERSIONS
 #if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
     if (mode >= 4 && !(mode == 7 && eka2l1::common::code_tracking::protect_writes)) return -2;

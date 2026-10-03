@@ -100,7 +100,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
     policy.thumbMemory = Number(thumb);
   }
   if (ir !== undefined) {
-    if (!/^(?:-1|[0-9]|10|11|12|13|14|15|16|17)$/.test(ir)) throw new Error("Invalid compiler policy");
+    if (!/^(?:-1|[0-9]|10|11|12|13|14|15|16|17|18)$/.test(ir)) throw new Error("Invalid compiler policy");
     policy.irMode = Number(ir);
   }
   if (eager !== undefined) {
@@ -144,7 +144,7 @@ function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   if (!policy) return "";
   if ((policy.hotpath !== undefined && (!Number.isInteger(policy.hotpath) || policy.hotpath < 0 || policy.hotpath > 7))
       || (policy.thumbMemory !== undefined && ![0,1].includes(policy.thumbMemory))
-      || (policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 17))
+      || (policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 18))
       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions))
       || (policy.tlbHash !== undefined && ![0,1].includes(policy.tlbHash))
       || (policy.codeCompare !== undefined && ![0,1,2,3,4].includes(policy.codeCompare))
