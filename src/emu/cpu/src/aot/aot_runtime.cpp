@@ -273,7 +273,6 @@ static void flush_hot_blocks() {
 void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled) {
     owned_rom.clear();
     hot_rom = host; hot_rom_base = base; hot_rom_size = size;
-    global_registry().configure_rom_index(base, size, (hotpath_policy & 8) != 0);
     hot_compilation_enabled = enabled;
     completed_function_count = 0;
     hot_dispatches = 0; hot_compiled = 0; hot_counts.clear(); hot_pending.clear();

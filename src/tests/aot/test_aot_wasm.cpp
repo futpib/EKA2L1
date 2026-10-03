@@ -4999,58 +4999,6 @@ static bool test_registry_lookup_lifecycle() {
     return true;
 }
 
-static bool test_sparse_rom_registry() {
-    registry actual;
-    std::map<std::uint32_t,aot_func> expected;
-    const aot_func functions[]={nullptr,
-        +[](ARMul_State *)->std::uint32_t{return 1;},
-        +[](ARMul_State *)->std::uint32_t{return 2;}};
-    const unsigned addresses[]={0,1,2,3,0x80001000u,0x80001001u,0x80001003u,
-        0x80003000u,0x80003001u,0x80003003u,0x70001000u,0x70001001u,
-        0xfffffffeu,0xffffffffu,0x1000,0x1001};
-    unsigned random=0x12345678,checks=0;
-    for(unsigned iteration=0;iteration<20000;++iteration) {
-        if (iteration % 127 == 0) {
-            const unsigned mode=(iteration/127)%6;
-            if(mode==0)actual.configure_rom_index(0x80001000u,0x2004u,true);
-            if(mode==1)actual.configure_rom_index(0xfffffff0u,16,true);
-            if(mode==2)actual.configure_rom_index(0,0x1002,true);
-            if(mode==3)actual.configure_rom_index(0x80001001u,0x2002,true);
-            if(mode==4)actual.configure_rom_index(0xfffffff0u,32,true); // invalid extent -> original
-            if(mode==5)actual.configure_rom_index(0,0,false);
-        }
-        random=random*1664525u+1013904223u;
-        const auto address=addresses[(random>>12)&15];
-        const auto operation=random>>26;
-        if(operation==63){actual.clear();expected.clear();}
-        else if(operation<24){const auto function=functions[(random>>20)%3];actual.register_function(address,function);expected[address]=function;}
-        else if(operation<40){actual.unregister_function(address);expected.erase(address);}
-        for(const auto probe:addresses) {
-            const auto found=expected.find(probe);
-            const auto wanted=found==expected.end()?nullptr:found->second;
-            // Repeat queries and interleave colliding entries, replacements,
-            // unregisters and clears. Zero and all-one keys are legitimate.
-            if(actual.lookup(probe)!=wanted||actual.lookup(probe)!=wanted
-                ||actual.has_function(probe)!=(found!=expected.end())||actual.size()!=expected.size()) {
-                printf(" FAIL sparse ROM registry lifecycle iteration=%u address=%x\n",iteration,probe);return false;
-            }
-            ++checks;
-        }
-    }
-    actual.configure_rom_index(0x80000000u,0x1000000,true);
-    actual.clear();
-    const auto directory=actual.rom_index_bytes();
-    actual.register_function(0x80001000u,functions[1]);
-    actual.register_function(0x80001001u,functions[2]);
-    if(actual.rom_index_bytes()!=directory+4096*sizeof(aot_func))return false;
-    actual.unregister_function(0x80001000u);
-    if(actual.lookup(0x80001000u)||actual.lookup(0x80001001u)!=functions[2])return false;
-    actual.clear();if(actual.rom_index_bytes()!=directory)return false;
-    actual.configure_rom_index(0,0,false);if(actual.rom_index_bytes()!=0)return false;
-    printf(" PASS sparse ROM registry lifecycle (%u oracle comparisons)\n",checks);
-    return true;
-}
-
 static bool test_thumb_call_boundaries() {
 #ifdef __EMSCRIPTEN__
     struct restore { bool old=thumb_direct_memory; ~restore(){thumb_direct_memory=old;} } saved;
@@ -6855,7 +6803,6 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--verification-protection-only")return test_reference_lookup_protection()?0:1;
     if(argc==2 && std::string(argv[1])=="--frozen-cache-only")return test_frozen_code_cache()?0:1;
-    if(argc==2 && std::string(argv[1])=="--sparse-rom-only")return test_sparse_rom_registry() && test_registry_lookup_lifecycle()?0:1;
     if(argc==2 && std::string(argv[1])=="--dynamic-cohorts-only")return test_dynamic_rom_cohort_discovery() && test_rom_cohorts()?0:1;
     if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=7;argc=1;}
     if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
@@ -7490,7 +7437,6 @@ int main(int argc, char **argv) {
     if (test_dynamic_rom_cohort_discovery()) passed++; else failed++;
     if (test_rom_leaf_extent()) passed++; else failed++;
     if (test_registry_lookup_lifecycle()) passed++; else failed++;
-    if (test_sparse_rom_registry()) passed++; else failed++;
     if (test_arm_short_block_memory()) passed++; else failed++;
     if (test_bounded_execution()) passed++; else failed++;
     if (test_folded_tlb_guards()) passed++; else failed++;

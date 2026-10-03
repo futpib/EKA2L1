@@ -372,7 +372,7 @@ int eka2l1_rom_calls_report() { return eka2l1::arm::aot::rom_bounded_calls; }
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_hotpath_configure(int policy) {
-    if (g_state || policy < 0 || policy > 15) return -1;
+    if (g_state || policy < 0 || policy > 7) return -1;
     eka2l1::arm::aot::hotpath_policy = static_cast<unsigned>(policy);
     return 0;
 }
@@ -556,7 +556,6 @@ const char *eka2l1_monitor_report() {
     out << "{\"guest_us\":" << common::benchmark::virtual_us.load()
         << ",\"instructions\":" << common::benchmark::instructions.load()
         << ",\"compiled_functions\":" << arm::aot::compiled_function_count()
-        << ",\"rom_index_bytes\":" << arm::aot::global_registry().rom_index_bytes()
         << ",\"allocated_bytes\":" << heap.uordblks
         << ",\"free_bytes\":" << heap.fordblks << "}";
     result = out.str();
