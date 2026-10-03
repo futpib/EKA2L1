@@ -17,8 +17,8 @@ When the entry proof succeeds, subsequent chunk instructions omit only their
 budget comparisons. Every count increment and applicable AOT_EXIT check remains,
 as do the original interrupt/backedge checks, memory guards, callback handling
 and code-alias exits. This proof cannot be entered through an interior label.
-Other compiler policies emit their existing checks unchanged. Policy 6 is
-opt-in; neither ordinary defaults nor the LAN policy change.
+Policy 6 remains an explicit option. The normal browser launcher uses policy 17,
+which extends these proofs to loop iterations as described below.
 
 The test matrix compares original-emitter progress and state/memory, then checks
 that count against the interpreter. It includes condition outcomes, loops,
@@ -34,13 +34,14 @@ No performance claim follows from static instruction or byte counts.
 
 ## Natural-loop iterations
 
-Opt-in policy 17 (`EKA2L1_AOT_IR_MODE=17`) extends policy 7's write proofs and
+The browser's default policy 17 extends policy 7's write proofs and
 original instruction lowering with budget proofs for natural ARM loops of
 4–32 contiguous instructions. Selection requires one backedge target, no entry
 into the loop interior, no inlined code or IR segment, and a final branch back
 to the head. Conditional exits outside the loop are allowed. Calls, indirect
 transfers and unsupported shapes retain the existing lowering. No ROM address
-or game-specific rule is used. Existing policies, including 6 and 7, are unchanged.
+or game-specific rule is used. Explicit policies, including 6 and 7, retain
+their previous behavior; `EKA2L1_AOT_IR_MODE=7` selects the previous browser policy.
 
 The loop head first honors a pending region exit, then checks whether the
 remaining budget covers the longest iteration. This replaces the individual
@@ -56,6 +57,7 @@ normal runner continues at the published PC. A backedge re-enters the head's
 proof, so the reservation cannot be reused across iterations. Time slices and
 virtual time are unchanged.
 
-This remains an experiment: a gameplay screen showed a Sky Force gain but a
-Snakes regression signal. A narrower selection did not establish a win for
-either game. See [measurements and correctness evidence](LOOP_BUDGET_RESULTS.md).
+A gameplay screen showed a Sky Force gain but a Snakes regression signal;
+that tradeoff is accepted for the browser default. A narrower selection did
+not establish a win for either game. See
+[measurements and correctness evidence](LOOP_BUDGET_RESULTS.md).

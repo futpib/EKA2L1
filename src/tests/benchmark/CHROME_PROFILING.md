@@ -16,7 +16,7 @@ identical to the execution being investigated. For the stock 5320 Snakes replay:
 ```sh
 cd src/tests/wasm
 EKA2L1_GPU=hardware EKA2L1_SHARED_AUDIO=1 \
-EKA2L1_BENCHMARK_AOT=5 EKA2L1_AOT_IR_MODE=7 \
+EKA2L1_BENCHMARK_AOT=5 EKA2L1_AOT_IR_MODE=17 \
 EKA2L1_TLB_HASH=1 EKA2L1_CODE_COMPARE=2 \
 EKA2L1_PREDICATED_LEAVES=1 EKA2L1_LEAF_FEATURES=128 \
 node profile.ts /absolute/path/to/assets /absolute/path/to/new-capture 1 1 25000000

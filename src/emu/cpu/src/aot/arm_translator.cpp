@@ -1133,7 +1133,7 @@ namespace eka2l1::arm::aot {
         const bool budget_gaps_ir = ir_policy == arm_ir_policy::budget_gaps_ir;
         if (long_ir_segments || stack_ir_values || budget_gaps_ir) ir_policy = arm_ir_policy::conditional_value_ir;
         // Policy 17 adds iteration proofs to policy 7's original lowering.
-        // It remains opt-in because game throughput gains are workload-dependent.
+        // The browser launcher selects it by default; policy 7 remains available.
         const bool loop_budgets = ir_policy == arm_ir_policy::loop_budget_chunks;
         if (loop_budgets) ir_policy = arm_ir_policy::write_budget_chunks;
         region = region && bounded;

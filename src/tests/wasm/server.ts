@@ -78,7 +78,7 @@ function validExecutionLimits(limits: unknown): limits is [number,number,number,
 
 export function compilerPolicyFromEnv(): CompilerPolicy {
   const thumb = process.env.EKA2L1_THUMB_MEMORY;
-  const ir = process.env.EKA2L1_AOT_IR_MODE;
+  const ir = process.env.EKA2L1_AOT_IR_MODE ?? '17';
   const eager = process.env.EKA2L1_AOT_EAGER_REGIONS;
   const tlb = process.env.EKA2L1_TLB_HASH;
   const compare = process.env.EKA2L1_CODE_COMPARE;

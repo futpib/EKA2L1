@@ -3072,7 +3072,142 @@
     "All timing runs use deterministic game input and exact virtual/instruction/presentation windows. Warmup is retained separately. No samples were discarded.",
     "Game replay and module-inspection timings overlapped correctness work and are excluded from throughput comparisons.",
     "The broader compiler run was stopped after affected tests, during unrelated IR tests. Its diagnostic-counter failure was fixed and retested separately; this is not a complete suite pass.",
-    "Neither selection supports replacing the existing default. The broader rule remains available only as explicit policy 17.",
+    "Neither selection establishes a universal speedup. Policy 17 was initially opt-in and was subsequently adopted as the browser default with the measured tradeoff accepted.",
     "Captured module byte size is not V8 machine-code size and does not prove instruction-level sampled cost."
-  ]
+  ],
+  "adoption": {
+    "date": "2026-10-03",
+    "browser_default_policy": 17,
+    "explicit_previous_policy": 7,
+    "artifact_directory": "/home/claude/.scratch/eka-loop-budget/adoption",
+    "server_environment_has_ir_override": false,
+    "deployed_build": "/home/claude/.scratch/eka-loop-budget/opt-in/candidate-build",
+    "service_dropin": "[Service]\nEnvironment=\"EKA2L1_WASM_BUILD_DIR=/home/claude/.scratch/eka-loop-budget/opt-in/candidate-build\"\nUnsetEnvironment=EKA2L1_AOT_IR_MODE\n",
+    "gpu_renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.57.4.0)",
+    "configuration_test": {
+      "command": "node src/tests/wasm/compiler-policy.test.ts",
+      "passed": true
+    },
+    "live_browser_verification": {
+      "url": "https://claude-laptop.lan:8188/",
+      "expected_wasm_sha256": "6a7d07b370cd7ce0fd08405c46f52644a3bd8bd8776b536fdd8ac6267842a578",
+      "results": [
+        {
+          "game": "snakes",
+          "url": "https://claude-laptop.lan:8188/?game=snakes",
+          "secure": true,
+          "isolated": true,
+          "policy": {
+            "requested": {
+              "irMode": 17,
+              "eagerRegions": 0,
+              "tlbHash": 1,
+              "codeCompare": 2,
+              "codeLookup": 0,
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ],
+              "unsafeCode": 3
+            },
+            "applied": true,
+            "observed": {
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "unsafeCode": 3,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ]
+            }
+          },
+          "urls": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+            "/eka2l1.js": "/eka2l1.js?v=8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=6a7d07b370cd7ce0fd08405c46f52644a3bd8bd8776b536fdd8ac6267842a578"
+          },
+          "start": {
+            "guest": 23039300,
+            "frames": 475,
+            "inputs": 22
+          },
+          "colors": 236,
+          "canvas_sha256": "20bedcf22f0b37ac319b614580e35891886d0a9fdd28f958d292dd878018dc2b",
+          "runtime_confirmation": "AOT: eager_regions=0 ir_policy=17",
+          "errors": []
+        },
+        {
+          "game": "sky-force",
+          "url": "https://claude-laptop.lan:8188/?game=sky-force",
+          "secure": true,
+          "isolated": true,
+          "policy": {
+            "requested": {
+              "irMode": 17,
+              "eagerRegions": 0,
+              "tlbHash": 1,
+              "codeCompare": 2,
+              "codeLookup": 0,
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ],
+              "unsafeCode": 3
+            },
+            "applied": true,
+            "observed": {
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "unsafeCode": 3,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ]
+            }
+          },
+          "urls": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+            "/eka2l1.js": "/eka2l1.js?v=8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=6a7d07b370cd7ce0fd08405c46f52644a3bd8bd8776b536fdd8ac6267842a578"
+          },
+          "start": {
+            "guest": 42003284,
+            "frames": 1302,
+            "inputs": 18
+          },
+          "colors": 461,
+          "canvas_sha256": "63566afacfd16e52fdff54add619dfdd1384f87825527c0d06855ac56a5e4799",
+          "runtime_confirmation": "AOT: eager_regions=0 ir_policy=17",
+          "errors": []
+        }
+      ]
+    },
+    "performance_note": "Adoption accepts the recorded workload tradeoff. Previous timing data and initial opt-in integration evidence are preserved; these interactive checks are not new speed measurements."
+  }
 }

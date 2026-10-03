@@ -1,9 +1,9 @@
 # Instruction budgets at ARM loop heads
 
-Implemented as **opt-in compiler policy 17**, selected before startup with
-`EKA2L1_AOT_IR_MODE=17`. It extends policy 7 with one budget proof per eligible
-loop iteration. Existing policies and defaults retain their previous behavior:
-the measurements do not support enabling this optimization universally.
+The **browser launcher defaults to compiler policy 17**. It extends policy 7
+with one budget proof per eligible loop iteration. `EKA2L1_AOT_IR_MODE=7` selects
+the previous behavior explicitly. The measured tradeoff below is accepted for
+the default; adoption does not establish a speedup for every game.
 
 The generic rule covers 4–32 contiguous instructions and rejects interior
 entries, calls, inlined code and IR segments. Conditional exits are allowed.
@@ -38,17 +38,27 @@ the order (candidate/baseline/baseline/candidate) to check the initial conflict.
 The narrower selection required a conditional exit inside the loop, retaining
 existing grouping for straight loops. It kept the EUser check reduction but
 failed to establish a game-level gain. Policy 17 therefore retains the broader
-prototype as an explicit experiment; neither selection replaces policy 7.
-These small screens do not establish precise general speed changes.
+prototype. The browser launcher now selects it by default; explicit policy 7
+retains its original behavior. These small screens do not establish precise
+general speed changes.
 
 Timing prototypes temporarily changed policy 7. The final integration places
-the broader behavior behind policy 17. Its correctness and emitted module were
+the broader behavior in policy 17. Its correctness and emitted module were
 rechecked after integration; the final binary was not put through another timing
 campaign. The reported speed observations belong to the archived prototypes.
 Full observations, commands, build hashes and test logs are in
 [the evidence record](LOOP_BUDGET_RESULTS.json). Raw artifacts are under
 `/home/claude/.scratch/eka-loop-budget`; `conditional` holds the narrower trial,
 and `opt-in` holds final integration checks. Baseline source is `ac7f31db9`.
+
+Default adoption was checked through `https://claude-laptop.lan:8188/` in a real
+Chromium session using NVIDIA Vulkan. The service's old policy-7 override was
+removed, so it uses the source default. Snakes reached gameplay past 23 guest
+seconds and Sky Force reached combat past 42; both consumed keyboard input and
+continued presenting frames. Runtime logs confirmed `ir_policy=17`, and the
+loaded WASM hash matched the verified policy-17 build. The `adoption` evidence
+preserves these checks alongside the original opt-in integration record. This
+was a deployment check, not another timing campaign.
 
 ## Actual emitted code
 
@@ -63,7 +73,7 @@ size or prove which individual instruction consumed sampled CPU time.
 
 ## Correctness
 
-- 24,192 comparisons exercise policy 7 and opt-in policy 17 against the
+- 24,192 comparisons exercise policies 7 and 17 against the
   interpreter's registers, flags, memory and executed instruction count. They
   cover zero/short budgets, repeated six- and seven-instruction loops, prefixes,
   conditional exits inside/outside the parent region, alignment, page boundaries,
