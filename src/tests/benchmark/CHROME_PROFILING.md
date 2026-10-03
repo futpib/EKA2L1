@@ -73,6 +73,37 @@ module, not a Symbian DLL. DLL attribution or instruction-level investigation
 requires additional symbols/disassembly. Do not infer an expensive lookup from
 the entire inlined runner's self time.
 
+## Map samples to guest code
+
+Generated names already encode ARM/Thumb entry PCs. Map those entries to the
+exact ROM's DLL code ranges offline, without rebuilding or instrumenting the
+guest:
+
+```sh
+python3 src/tests/benchmark/map_chrome_guest.py /absolute/path/to/capture \
+  /absolute/path/to/assets/SYM.ROM
+```
+
+This checks the ROM hash against `report.json`, then writes `guest-rom.json`
+(module totals and sampled entries) and `guest-rom.cpuprofile` (a labelled copy
+for DevTools). It supports expanded EKA2 ROMs. Optional matching Symbian export
+definitions can add names with `--symbols DRTAEABI.dll=/path/to/drtaeabiu.def`;
+only exact export entries receive symbols. Internal functions retain DLL offsets
+until independently identified by disassembly. Never name an internal function
+using its nearest preceding export. Keep definition files from the matching ABI;
+the mapper records their hashes but cannot establish their version compatibility.
+
+RAM entries retain their guest PC and compiled version but have no DLL name:
+reliable attribution additionally needs process/ASID, load lifetime and the
+corresponding executable mapping. Inlined callees can contribute time to their
+containing region. Neither output assigns samples to individual ARM instructions.
+
+In the [gameplay captures](CHROME_GAMEPLAY_ANALYSIS.md), Chrome trace `columns`
+repeat the WASM function entry, including across hundreds of samples. More
+precise attribution would require native instruction samples with V8 JIT
+metadata, plus a generated WASM-offset-to-guest-PC map that records inlining.
+Adding guest source labels alone cannot recover missing instruction positions.
+
 ## Timing and experiment decisions
 
 For throughput, repeat the same command with sampling **0** and

@@ -1,0 +1,843 @@
+{
+  "source_commit": "59afd0346699915961165d243d273f81d246a9bb",
+  "captures": {
+    "standard": {
+      "directory": "/home/claude/.scratch/eka-chrome-analysis/standard",
+      "command": {
+        "args": [
+          "node",
+          "profile.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-chrome-analysis/standard",
+          "1",
+          "1",
+          "25000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_HOTPATH": "0",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_PROFILE_START_US": "21000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+          "EKA2L1_CHROME_TRACE": "window"
+        },
+        "git_head": "59afd0346699915961165d243d273f81d246a9bb"
+      },
+      "report": {
+        "hotpath_policy": 0,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0x2000730f",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2549856574,
+          "last_instructions": 3194584805,
+          "wall_seconds": 2.38585,
+          "presentations": 84
+        },
+        "warmup_seconds": 12.057104045,
+        "purpose": "diagnostic",
+        "chrome_trace": {
+          "scope": "window",
+          "file": "/home/claude/.scratch/eka-chrome-analysis/standard/trace.json",
+          "bytes": 17665565,
+          "data_loss": false,
+          "categories": [
+            "toplevel",
+            "devtools.timeline",
+            "disabled-by-default-devtools.timeline",
+            "disabled-by-default-devtools.timeline.frame",
+            "blink.user_timing",
+            "v8",
+            "v8.wasm",
+            "v8.execute",
+            "disabled-by-default-v8.gc",
+            "disabled-by-default-v8.cpu_profiler"
+          ]
+        },
+        "diagnostics_available": false,
+        "shared_audio": true,
+        "guest_profile_stride": 0,
+        "exit_census": false,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": true,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "903d422d2a54e03152cb3803efb9d246dd4f7ca7fd77e743ef5473514b191f46",
+        "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "59afd0346699915961165d243d273f81d246a9bb",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "runtime_footprint": {
+          "guest_us": 25000000,
+          "instructions": 3194584805,
+          "compiled_functions": 12328,
+          "allocated_bytes": 582039632,
+          "free_bytes": 17321664
+        },
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      },
+      "sampled_worker": "worker-13",
+      "sampled_us": 2625425,
+      "generated_self_us": 1202034,
+      "top_self": [
+        {
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "self_us": 422820,
+          "self_percent": 16.10482112419894
+        },
+        {
+          "name": "__pthread_cond_timedwait",
+          "self_us": 332410,
+          "self_percent": 12.661188188578992
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+          "self_us": 280752,
+          "self_percent": 10.693582943713874
+        },
+        {
+          "name": "(idle)",
+          "self_us": 121793,
+          "self_percent": 4.638982260015045
+        },
+        {
+          "name": "f_2149128552",
+          "self_us": 100348,
+          "self_percent": 3.8221621261319596
+        },
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "self_us": 93037,
+          "self_percent": 3.543692925907234
+        },
+        {
+          "name": "r_784_pc_1879048636",
+          "self_us": 67211,
+          "self_percent": 2.5600045706885552
+        },
+        {
+          "name": "r_260_pc_1879455500",
+          "self_us": 62248,
+          "self_percent": 2.370968509860308
+        },
+        {
+          "name": "f_2149189520",
+          "self_us": 49618,
+          "self_percent": 1.88990353942695
+        },
+        {
+          "name": "r_801_pc_1879094644",
+          "self_us": 48301,
+          "self_percent": 1.8397402325337802
+        },
+        {
+          "name": "r_272_pc_1879068556",
+          "self_us": 47537,
+          "self_percent": 1.810640182065761
+        },
+        {
+          "name": "r_785_pc_1879095064",
+          "self_us": 46523,
+          "self_percent": 1.7720178637744364
+        },
+        {
+          "name": "eka2l1::arm::aot::registry::lookup(unsigned int) const",
+          "self_us": 28238,
+          "self_percent": 1.0755591951779235
+        },
+        {
+          "name": "r_1124_pc_1879063876",
+          "self_us": 27426,
+          "self_percent": 1.0446308692878297
+        },
+        {
+          "name": "r_1162_pc_1879454612",
+          "self_us": 26767,
+          "self_percent": 1.0195301713055982
+        },
+        {
+          "name": "r_1215_pc_1879455124",
+          "self_us": 25448,
+          "self_percent": 0.969290686269842
+        },
+        {
+          "name": "r_1462_pc_1879230888",
+          "self_us": 21989,
+          "self_percent": 0.8375405886665969
+        },
+        {
+          "name": "r_1116_pc_1879453380",
+          "self_us": 19750,
+          "self_percent": 0.7522591580410791
+        },
+        {
+          "name": "r_1117_pc_1879461032",
+          "self_us": 19437,
+          "self_percent": 0.7403372787263014
+        },
+        {
+          "name": "js-to-wasm:ii:",
+          "self_us": 19121,
+          "self_percent": 0.7283011321976441
+        },
+        {
+          "name": "r_736_pc_1879048720",
+          "self_us": 19047,
+          "self_percent": 0.725482540921946
+        },
+        {
+          "name": "r_1194_pc_1879068440",
+          "self_us": 16867,
+          "self_percent": 0.6424483655027281
+        },
+        {
+          "name": "r_1139_pc_1879098448",
+          "self_us": 15948,
+          "self_percent": 0.6074445089842597
+        },
+        {
+          "name": "r_282_pc_1879068004",
+          "self_us": 15516,
+          "self_percent": 0.590990030185589
+        },
+        {
+          "name": "r_244_pc_1879068672",
+          "self_us": 13695,
+          "self_percent": 0.5216298313606369
+        }
+      ],
+      "rom_mapping": {
+        "rom_sha256": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "rom_images": 2850,
+        "symbol_sources": {
+          "DRTAEABI.dll": {
+            "path": "/home/claude/.scratch/eka-chrome-analysis/drtaeabiu.def",
+            "sha256": "e92de7ee40e69629d3a6d111f9bc21094129e5ea7991045bab0178963951314f"
+          },
+          "EUser.dll": {
+            "path": "/home/claude/.scratch/eka-chrome-analysis/euseru.def",
+            "sha256": "884d483cf3761273362e11b9713b8b0c6d77c17c18075a5bb52841e542f41e16"
+          }
+        },
+        "worker": "worker-13",
+        "sampled_us": 2625425,
+        "generated_self_us": 1202034,
+        "unresolved_guest_us": 984396,
+        "modules": [
+          {
+            "module": "z:/Sys/Bin/DRTAEABI.dll",
+            "self_us": 131558,
+            "self_percent": 5.01092204119333
+          },
+          {
+            "module": "z:/Sys/Bin/EUser.dll",
+            "self_us": 69641,
+            "self_percent": 2.652561013931078
+          },
+          {
+            "module": "z:/Sys/Bin/DFPAEABI.dll",
+            "self_us": 11175,
+            "self_percent": 0.42564537170172445
+          },
+          {
+            "module": "z:/Sys/Bin/FbsCli.dll",
+            "self_us": 3090,
+            "self_percent": 0.11769523029604731
+          },
+          {
+            "module": "z:/Sys/Bin/Cone.dll",
+            "self_us": 1117,
+            "self_percent": 0.04254549263452584
+          },
+          {
+            "module": "z:/Sys/Bin/BitGdi.dll",
+            "self_us": 1057,
+            "self_percent": 0.04026014835693269
+          }
+        ],
+        "limit": "Region-entry attribution, not per-ARM-instruction timing. DLL names come from ROM ranges; supplied DEF names require matching ABI. RAM needs process, mapping lifetime and compiled-version metadata."
+      },
+      "marker_span_us": 2507646,
+      "trace_durations": {
+        "wasm.TopTierCompilation": {
+          "events": 96,
+          "duration_us": 412592
+        },
+        "wasm.CompileLazy": {
+          "events": 344,
+          "duration_us": 56223
+        },
+        "wasm.SyncCompile": {
+          "events": 13,
+          "duration_us": 4419
+        },
+        "wasm.SyncInstantiate": {
+          "events": 13,
+          "duration_us": 715
+        },
+        "MajorGC": {
+          "events": 0,
+          "duration_us": 0
+        }
+      },
+      "trace_profile_crosscheck": [
+        {
+          "sources": [
+            "Internal"
+          ],
+          "sampled_us_within_markers": 2507550,
+          "function": "f_2149128552",
+          "hot_us": 96092,
+          "sample_columns_us": {
+            "13378": 96092
+          },
+          "entry_columns": [
+            13377
+          ],
+          "top_self": [
+            {
+              "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+              "us": 420579
+            },
+            {
+              "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+              "us": 253010
+            },
+            {
+              "name": "__pthread_cond_timedwait",
+              "us": 219207
+            },
+            {
+              "name": "(idle)",
+              "us": 118700
+            },
+            {
+              "name": "f_2149128552",
+              "us": 96092
+            },
+            {
+              "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+              "us": 88073
+            }
+          ]
+        },
+        {
+          "sources": [
+            "Inspector"
+          ],
+          "sampled_us_within_markers": 2507543,
+          "function": "f_2149128552",
+          "hot_us": 100348,
+          "sample_columns_us": {
+            "13378": 100348
+          },
+          "entry_columns": [
+            13377
+          ],
+          "top_self": [
+            {
+              "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+              "us": 422820
+            },
+            {
+              "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+              "us": 280752
+            },
+            {
+              "name": "__pthread_cond_timedwait",
+              "us": 217526
+            },
+            {
+              "name": "(idle)",
+              "us": 118795
+            },
+            {
+              "name": "f_2149128552",
+              "us": 100348
+            },
+            {
+              "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+              "us": 93037
+            }
+          ]
+        }
+      ]
+    },
+    "combat": {
+      "directory": "/home/claude/.scratch/eka-chrome-analysis/combat",
+      "command": {
+        "args": [
+          "node",
+          "profile.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-chrome-analysis/combat",
+          "1",
+          "1",
+          "48000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_HOTPATH": "0",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+          "EKA2L1_PROFILE_START_US": "42000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_CHROME_TRACE": "window"
+        },
+        "git_head": "59afd0346699915961165d243d273f81d246a9bb"
+      },
+      "report": {
+        "hotpath_policy": 0,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0xa020d913",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 42000001,
+          "last_virtual_us": 48000000,
+          "first_instructions": 15147789887,
+          "last_instructions": 17318833812,
+          "wall_seconds": 13.579,
+          "presentations": 192
+        },
+        "warmup_seconds": 76.349405602,
+        "purpose": "diagnostic",
+        "chrome_trace": {
+          "scope": "window",
+          "file": "/home/claude/.scratch/eka-chrome-analysis/combat/trace.json",
+          "bytes": 59441004,
+          "data_loss": false,
+          "categories": [
+            "toplevel",
+            "devtools.timeline",
+            "disabled-by-default-devtools.timeline",
+            "disabled-by-default-devtools.timeline.frame",
+            "blink.user_timing",
+            "v8",
+            "v8.wasm",
+            "v8.execute",
+            "disabled-by-default-v8.gc",
+            "disabled-by-default-v8.cpu_profiler"
+          ]
+        },
+        "diagnostics_available": false,
+        "shared_audio": true,
+        "guest_profile_stride": 0,
+        "exit_census": false,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": true,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "903d422d2a54e03152cb3803efb9d246dd4f7ca7fd77e743ef5473514b191f46",
+        "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 7,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "59afd0346699915961165d243d273f81d246a9bb",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "runtime_footprint": {
+          "guest_us": 48000000,
+          "instructions": 17318833812,
+          "compiled_functions": 10070,
+          "allocated_bytes": 594000536,
+          "free_bytes": 25939064
+        },
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      },
+      "sampled_worker": "worker-13",
+      "sampled_us": 13903290,
+      "generated_self_us": 5468846,
+      "top_self": [
+        {
+          "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+          "self_us": 2340638,
+          "self_percent": 16.835137582543414
+        },
+        {
+          "name": "f_2149177368",
+          "self_us": 1593890,
+          "self_percent": 11.464121082132358
+        },
+        {
+          "name": "eka2l1::arm::aot::registry::lookup(unsigned int) const",
+          "self_us": 1409389,
+          "self_percent": 10.137089854271903
+        },
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "self_us": 1315586,
+          "self_percent": 9.46240781858107
+        },
+        {
+          "name": "__pthread_cond_timedwait",
+          "self_us": 688185,
+          "self_percent": 4.949799651737107
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1::kernel_system::set_epoc_version(epocver)::$_0, std::__2::allocator<eka2l1::kernel_system::set_epoc_version(epocver)::$_0>, void (unsigned int)>::operator()(unsigned int&&)",
+          "self_us": 652191,
+          "self_percent": 4.690911287903798
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+          "self_us": 303351,
+          "self_percent": 2.181864867955714
+        },
+        {
+          "name": "(idle)",
+          "self_us": 203898,
+          "self_percent": 1.466544968852696
+        },
+        {
+          "name": "r_228_pc_1879081368",
+          "self_us": 173076,
+          "self_percent": 1.24485643326148
+        },
+        {
+          "name": "f_2149218301",
+          "self_us": 171518,
+          "self_percent": 1.2336504525187924
+        },
+        {
+          "name": "eka2l1::arm::aot::lookup_compiled(ARMul_State*)",
+          "self_us": 161752,
+          "self_percent": 1.1634080854243851
+        },
+        {
+          "name": "js-to-wasm:i:",
+          "self_us": 153184,
+          "self_percent": 1.1017823838818006
+        },
+        {
+          "name": "f_2152404689",
+          "self_us": 151536,
+          "self_percent": 1.0899290743413967
+        },
+        {
+          "name": "r_234_pc_1879081572",
+          "self_us": 146833,
+          "self_percent": 1.0561025483896258
+        },
+        {
+          "name": "f_2149180652",
+          "self_us": 138041,
+          "self_percent": 0.9928657173949476
+        },
+        {
+          "name": "f_2149191733",
+          "self_us": 133486,
+          "self_percent": 0.9601036876883098
+        },
+        {
+          "name": "eka2l1::kernel::thread_scheduler::switch_context(eka2l1::kernel::thread*, eka2l1::kernel::thread*)",
+          "self_us": 131425,
+          "self_percent": 0.9452798582206082
+        },
+        {
+          "name": "r_208_pc_1879061180",
+          "self_us": 107239,
+          "self_percent": 0.7713210326476683
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "self_us": 105286,
+          "self_percent": 0.7572739977372263
+        },
+        {
+          "name": "std::__2::__function::__func<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*), std::__2::allocator<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>, void (eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>::operator()(eka2l1::kernel_system*&&, eka2l1::kernel::process*&&, eka2l1::arm::core*&&)",
+          "self_us": 103968,
+          "self_percent": 0.7477942271217819
+        },
+        {
+          "name": "f_2149291205",
+          "self_us": 98681,
+          "self_percent": 0.7097672565270522
+        },
+        {
+          "name": "f_2149218333",
+          "self_us": 96768,
+          "self_percent": 0.696007923304484
+        },
+        {
+          "name": "eka2l1::arm::dyncom_core::load_context(eka2l1::arm::core::thread_context const&)",
+          "self_us": 95939,
+          "self_percent": 0.6900453058232979
+        },
+        {
+          "name": "f_2153195873",
+          "self_us": 92282,
+          "self_percent": 0.6637421790094287
+        },
+        {
+          "name": "r_224_pc_1879081724",
+          "self_us": 87672,
+          "self_percent": 0.6305845594819643
+        }
+      ],
+      "rom_mapping": {
+        "rom_sha256": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "rom_images": 2850,
+        "symbol_sources": {
+          "DRTAEABI.dll": {
+            "path": "/home/claude/.scratch/eka-chrome-analysis/drtaeabiu.def",
+            "sha256": "e92de7ee40e69629d3a6d111f9bc21094129e5ea7991045bab0178963951314f"
+          },
+          "EUser.dll": {
+            "path": "/home/claude/.scratch/eka-chrome-analysis/euseru.def",
+            "sha256": "884d483cf3761273362e11b9713b8b0c6d77c17c18075a5bb52841e542f41e16"
+          }
+        },
+        "worker": "worker-13",
+        "sampled_us": 13903290,
+        "generated_self_us": 5468846,
+        "unresolved_guest_us": 1466995,
+        "modules": [
+          {
+            "module": "z:/Sys/Bin/EUser.dll",
+            "self_us": 3328075,
+            "self_percent": 23.937319871771358
+          },
+          {
+            "module": "z:/Sys/Bin/Ws32.dll",
+            "self_us": 343355,
+            "self_percent": 2.469595325998379
+          },
+          {
+            "module": "z:/Sys/Bin/Cone.dll",
+            "self_us": 327972,
+            "self_percent": 2.3589524493842826
+          },
+          {
+            "module": "z:/Sys/Bin/avkon.dll",
+            "self_us": 2449,
+            "self_percent": 0.01761453584007814
+          }
+        ],
+        "limit": "Region-entry attribution, not per-ARM-instruction timing. DLL names come from ROM ranges; supplied DEF names require matching ABI. RAM needs process, mapping lifetime and compiled-version metadata."
+      },
+      "marker_span_us": 13800969,
+      "trace_durations": {
+        "wasm.TopTierCompilation": {
+          "events": 54,
+          "duration_us": 207539
+        },
+        "wasm.CompileLazy": {
+          "events": 310,
+          "duration_us": 61860
+        },
+        "wasm.SyncCompile": {
+          "events": 160,
+          "duration_us": 29113
+        },
+        "wasm.SyncInstantiate": {
+          "events": 160,
+          "duration_us": 5292
+        },
+        "MajorGC": {
+          "events": 1,
+          "duration_us": 13277
+        }
+      },
+      "trace_profile_crosscheck": [
+        {
+          "sources": [
+            "Internal"
+          ],
+          "sampled_us_within_markers": 13800945,
+          "function": "f_2149177368",
+          "hot_us": 1584342,
+          "sample_columns_us": {
+            "7821": 1584342
+          },
+          "entry_columns": [
+            7820
+          ],
+          "top_self": [
+            {
+              "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+              "us": 2258629
+            },
+            {
+              "name": "f_2149177368",
+              "us": 1584342
+            },
+            {
+              "name": "eka2l1::arm::aot::registry::lookup(unsigned int) const",
+              "us": 1403000
+            },
+            {
+              "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+              "us": 1339324
+            },
+            {
+              "name": "std::__2::__function::__func<eka2l1::kernel_system::set_epoc_version(epocver)::$_0, std::__2::allocator<eka2l1::kernel_system::set_epoc_version(epocver)::$_0>, void (unsigned int)>::operator()(unsigned int&&)",
+              "us": 621231
+            },
+            {
+              "name": "__pthread_cond_timedwait",
+              "us": 592889
+            }
+          ]
+        },
+        {
+          "sources": [
+            "Inspector"
+          ],
+          "sampled_us_within_markers": 13800929,
+          "function": "f_2149177368",
+          "hot_us": 1593890,
+          "sample_columns_us": {
+            "7821": 1593890
+          },
+          "entry_columns": [
+            7820
+          ],
+          "top_self": [
+            {
+              "name": "eka2l1::arm::aot::execute_chain(ARMul_State*, unsigned int (*)(ARMul_State*))",
+              "us": 2340638
+            },
+            {
+              "name": "f_2149177368",
+              "us": 1593890
+            },
+            {
+              "name": "eka2l1::arm::aot::registry::lookup(unsigned int) const",
+              "us": 1409389
+            },
+            {
+              "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+              "us": 1315586
+            },
+            {
+              "name": "std::__2::__function::__func<eka2l1::kernel_system::set_epoc_version(epocver)::$_0, std::__2::allocator<eka2l1::kernel_system::set_epoc_version(epocver)::$_0>, void (unsigned int)>::operator()(unsigned int&&)",
+              "us": 652191
+            },
+            {
+              "name": "__pthread_cond_timedwait",
+              "us": 590062
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
