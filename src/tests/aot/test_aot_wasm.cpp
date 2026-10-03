@@ -3064,6 +3064,101 @@ static bool test_budget_chunks(arm_ir_policy policy = arm_ir_policy::budget_chun
 }
 
 
+// Loop proofs must keep exact short-budget prefixes, including conditional
+// external exits, memory faults, interrupt backedges and entry in the middle
+// of a larger region. These fixtures use no ROM/game-specific addresses.
+static bool test_loop_budget_chunks() {
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_VERSIONS)
+    const std::vector<std::vector<std::uint32_t>> programs = {
+        {0xe2877001,0xe3560000,0x0a00003c,0x1891000c,0x15812008,0xe2566001,0x1afffff9,0xe1a00003,0xe12fff1e},
+        {0xe2877001,0xe3560000,0x0a000003,0x1891000c,0x15812008,0xe2566001,0x1afffff9,0xe1a00003,0xe12fff1e},
+        {0xe3560000,0x0a00003d,0x1891000c,0x15812008,0xe2566001,0x1afffff9,0xe1a00003,0xe12fff1e},
+        {0xe2877001,0xe3560000,0x0a00003c,0xe2888001,0x1891000c,0x15812008,0xe2566001,0x1afffff8,0xe1a00003,0xe12fff1e},
+    };
+    unsigned checks = 0;
+    for (auto policy : {arm_ir_policy::write_budget_chunks, arm_ir_policy::loop_budget_chunks})
+    for (unsigned p = 0; p < programs.size(); ++p) {
+        const auto &code = programs[p];
+        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
+        auto tr = translate_arm_block(bytes, code.size()*4, 0x1000,
+            nullptr,nullptr,true,true,true,true,nullptr,true,policy);
+        const bool selected = policy == arm_ir_policy::loop_budget_chunks;
+        if (tr.loop_budget_chunks != unsigned(selected) || (selected && tr.func.outlined_calls.empty())) {
+            printf(" FAIL loop budget selection policy=%d program=%u loops=%u\n",int(policy),p,tr.loop_budget_chunks); return false;
+        }
+        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0x1000u})
+        for (unsigned permission : {0u,3u}) for (unsigned endian : {0u,0x200u})
+        for (unsigned iterations : {0u,1u,3u}) for (unsigned event : {0u,1u,2u})
+        for (unsigned budget = 0; budget <= 20; ++budget) {
+            const unsigned irq = event != 0;
+            test_mem memory;
+            memory.write_code(0x1000,{bytes,bytes+code.size()*4});
+            memory.write32(0x8000,0x7fffffff); memory.write32(0x8004,0x80000000);
+            test_mem reference_memory = memory;
+            r12l1::exclusive_monitor monitor(1); auto reference = make_cpu(reference_memory,monitor);
+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            tlb.add(0x8000,memory.data.data()+0x8000,permission);
+            tlb.add(0x1000,memory.data.data()+0x1000,permission);
+            alignas(8) std::uint32_t state[256]{};
+            for (unsigned r = 0; r < 16; ++r) {
+                const auto value = r == 15 ? 0x1000u : r == 14 ? 0x1100u : r == 1 ? address
+                    : r == 6 ? iterations : 0x120u+r;
+                state[r] = value; reference->set_reg(r,value);
+            }
+            const unsigned cpsr = 16 | endian | 0xb0000000u;
+            state[state_offsets::CPSR/4] = cpsr; reference->set_cpsr(cpsr);
+            for (unsigned f = 0; f < 4; ++f) state[region_ir::flag_offsets[f]/4] = (cpsr >> (31-f)) & 1;
+            state[state_offsets::MODE/4] = 16; state[state_offsets::NIRQ/4] = irq;
+            state[state_offsets::AOT_EXIT/4] = event == 2;
+            state[state_offsets::AOT_BUDGET/4] = budget;
+            state[state_offsets::AOT_TLB/4] = reinterpret_cast<std::uintptr_t>(tlb.entries);
+            state[state_offsets::AOT_CODE_BEGIN/4] = reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4] = state[state_offsets::AOT_CODE_BEGIN/4]+code.size()*4;
+            g_test_mem = &memory;
+            const auto count = js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
+            g_test_mem = nullptr;
+            if (count < 0 || count > int(budget) || state[state_offsets::AOT_BUDGET/4] != budget
+                || (event == 2 && count) || (event == 1 && address == 0x8000 && permission == 3
+                    && !endian && iterations == 3 && count != int(budget))) {
+                printf(" FAIL loop budget count p=%u budget=%u count=%d\n",p,budget,count); return false;
+            }
+            if (count) reference->run(count);
+            for (unsigned r = 0; r < 16; ++r) if (state[r] != reference->get_reg(r)) {
+                printf(" FAIL loop budget R%u p=%u address=%x perm=%u endian=%u iterations=%u irq=%u budget=%u count=%d actual=%x ref=%x\n",
+                    r,p,address,permission,endian,iterations,irq,budget,count,state[r],reference->get_reg(r)); return false;
+            }
+            for (unsigned f = 0; f < 5; ++f) if (state[region_ir::flag_offsets[f]/4] != ((reference->get_cpsr() >> (f == 4 ? 5 : 31-f)) & 1)) {
+                printf(" FAIL loop budget flags p=%u budget=%u count=%d\n",p,budget,count); return false;
+            }
+            if (memory.data != reference_memory.data) { printf(" FAIL loop budget memory\n"); return false; }
+            ++checks;
+        }
+    }
+    // A forward entry into the loop body must prevent hoisting over that entry.
+    auto interior = programs.front();
+    interior[0] = 0x0a000001; // BEQ into the otherwise eligible loop at 0x100c.
+    auto rejected = translate_arm_block(reinterpret_cast<const std::uint8_t *>(interior.data()),interior.size()*4,0x1000,
+        nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
+    if (rejected.loop_budget_chunks) { printf(" FAIL loop budget interior entry accepted\n"); return false; }
+    // Straight loops are eligible only under the explicit experiment.
+    const unsigned straight[] = {0xe2800001,0xe2811001,0xe2522001,0x1afffffb};
+    auto unchanged = translate_arm_block(reinterpret_cast<const std::uint8_t *>(straight),sizeof(straight),0x1000,
+        nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+    if (unchanged.loop_budget_chunks) { printf(" FAIL straight loop replaced existing chunks\n"); return false; }
+    auto selected = translate_arm_block(reinterpret_cast<const std::uint8_t *>(straight),sizeof(straight),0x1000,
+        nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
+    if (selected.loop_budget_chunks != 1) { printf(" FAIL loop policy missed straight loop\n"); return false; }
+    arm_ir_policy parsed = arm_ir_policy::configured;
+    if (!parse_arm_ir_policy("17",parsed) || parsed != arm_ir_policy::loop_budget_chunks
+        || parse_arm_ir_policy("18",parsed)) { printf(" FAIL loop policy parsing\n"); return false; }
+    printf(" PASS loop_budget_chunks (%u exact interpreter state/memory/budget comparisons)\n",checks);
+#endif
+    return true;
+}
+
+
 static bool test_invariant_writes(arm_ir_policy policy = arm_ir_policy::invariant_writes) {
 #if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_VERSIONS)
     const std::vector<std::vector<std::uint32_t>> programs = {
@@ -6637,6 +6732,9 @@ static bool test_synchronous_compilation() {
 #ifdef __EMSCRIPTEN__
     namespace perf=eka2l1::common::performance;
     namespace tracking=eka2l1::common::code_tracking;
+    // Normal builds omit instruction counters. Keep state, registry and table
+    // lifetime checks active; assert diagnostic counts only when collected.
+    constexpr bool counters = eka2l1::common::diagnostics::available;
     if(hot_compilation_enabled || global_registry().size()) {printf(" FAIL synchronous fixture requires initial empty runtime\n");return false;}
     struct restore {
         unsigned sync=synchronous_compilation;
@@ -6668,7 +6766,7 @@ static bool test_synchronous_compilation() {
         configure_hot_rom(rom?actual.data.data()+0x1000:nullptr,rom?0x1000:0,rom?size:0,true);
         perf::enabled=true;perf::detailed=true;perf::phase=2;const auto before=perf::aot_instructions;cpu->run(budget);
         const auto compiled=perf::aot_instructions-before;
-        if(compiled!=((sync==1||sync==3||(sync==2&&!rom))?budget:0u)||cpu->get_num_instruction_executed()!=budget||cpu->get_cpsr()!=reference->get_cpsr()) {printf(" FAIL sync execution mode=%u thumb=%u rom=%u sync=%u budget=%u compiled=%llu\n",mode,thumb,rom,sync,budget,(unsigned long long)compiled);return false;}
+        if((counters && compiled!=((sync==1||sync==3||(sync==2&&!rom))?budget:0u))||cpu->get_num_instruction_executed()!=budget||cpu->get_cpsr()!=reference->get_cpsr()) {printf(" FAIL sync execution mode=%u thumb=%u rom=%u sync=%u budget=%u compiled=%llu\n",mode,thumb,rom,sync,budget,(unsigned long long)compiled);return false;}
         for(unsigned reg=0;reg<16;++reg)if(cpu->get_reg(reg)!=reference->get_reg(reg)){printf(" FAIL sync register %u\n",reg);return false;}
         ++checks;
     }
@@ -6698,7 +6796,7 @@ static bool test_synchronous_compilation() {
                 for(unsigned reg=0;reg<15;++reg)cpu->set_reg(reg,0);
                 cpu->set_reg(14,0x90000);cpu->set_pc(pc);cpu->set_cpsr(0x10u|(thumb?32u:0u));
                 const auto before=perf::aot_instructions;cpu->run(1);
-                if(perf::aot_instructions-before!=1 || cpu->get_num_instruction_executed()!=1
+                if((counters && perf::aot_instructions-before!=1) || cpu->get_num_instruction_executed()!=1
                     ||cpu->get_reg(0)!=1 ||cpu->get_reg(15)!=pc+(thumb?2:4)
                     ||cpu->get_cpsr()!=(0x10u|(thumb?32u:0u))) {
                     printf(" FAIL ROM FIFO execution mode=%u cycle=%u entry=%u\n",mode,cycle,i);return false;
@@ -6748,7 +6846,7 @@ static bool test_synchronous_compilation() {
                 cpu->set_cpsr(0x10);cpu->set_pc(0x1000);cpu->set_reg(0,0);
                 const auto before=perf::aot_instructions;cpu->run(1);
                 auto function=global_registry().lookup(0x1000);
-                good=good&&function&&perf::aot_instructions-before==1&&cpu->get_reg(0)==1&&cpu->get_reg(15)==0x1004;
+                good=good&&function&&(!counters||perf::aot_instructions-before==1)&&cpu->get_reg(0)==1&&cpu->get_reg(15)==0x1004;
                 previous_slot=reinterpret_cast<std::uintptr_t>(function);
                 // TLS cleanup must unregister and release on this worker.
             });
@@ -6817,6 +6915,8 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--frozen-cache-only")return test_frozen_code_cache()?0:1;
     if(argc==2 && std::string(argv[1])=="--dynamic-cohorts-only")return test_dynamic_rom_cohort_discovery() && test_rom_cohorts()?0:1;
     if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=7;argc=1;}
+    if(argc==2 && std::string(argv[1])=="--loop-budget-only")return test_loop_budget_chunks()?0:1;
+    if(argc==2 && std::string(argv[1])=="--synchronous-compilation-only")return test_synchronous_compilation()?0:1;
     if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
     if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
     if(argc==2 && std::string(argv[1])=="--exit-census-only")return test_exit_census()?0:1;
@@ -7481,6 +7581,7 @@ int main(int argc, char **argv) {
     if (test_tail_prefixes()) passed++; else failed++;
     if (test_literal_pc_veneers()) passed++; else failed++;
     if (test_boundary_details()) passed++; else failed++;
+    if (test_loop_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks()) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;
     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;

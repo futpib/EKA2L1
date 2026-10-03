@@ -1132,6 +1132,10 @@ namespace eka2l1::arm::aot {
         const bool stack_ir_values = ir_policy == arm_ir_policy::stack_values_ir;
         const bool budget_gaps_ir = ir_policy == arm_ir_policy::budget_gaps_ir;
         if (long_ir_segments || stack_ir_values || budget_gaps_ir) ir_policy = arm_ir_policy::conditional_value_ir;
+        // Policy 17 adds iteration proofs to policy 7's original lowering.
+        // It remains opt-in because game throughput gains are workload-dependent.
+        const bool loop_budgets = ir_policy == arm_ir_policy::loop_budget_chunks;
+        if (loop_budgets) ir_policy = arm_ir_policy::write_budget_chunks;
         region = region && bounded;
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -1596,10 +1600,11 @@ namespace eka2l1::arm::aot {
         }
 #endif
 
-        // Budget chunks keep the existing opcode lowering. Each chunk has one
-        // entry and no control transfer. A short budget enters a private precise
-        // compiler before effects; the hot path keeps every count/exit check.
+        // Budget chunks keep the existing opcode lowering. Straight-line spans
+        // and selected single-entry loops prove their maximum instruction count.
+        // Short budgets use a precise callee; count/exit checks stay in place.
         std::map<std::size_t, unsigned> budget_chunks;
+        std::set<std::size_t> loop_budget_chunks;
         if (allow_memory_proof && (budget_gaps_ir || ir_policy == arm_ir_policy::budget_chunks
                 || ir_policy == arm_ir_policy::write_budget_chunks || ir_policy == arm_ir_policy::deferred_chunk_counts)
             && w.region && cache_registers) {
@@ -1628,6 +1633,31 @@ namespace eka2l1::arm::aot {
                 for (unsigned n = 0; n < part.second.length; ++n)
                     ir_covered[part.first + n] = true;
             for (std::size_t first = 0; first < instructions.size();) {
+                // A natural loop has no interior entry. Prove its longest
+                // iteration once, including conditional exits; each backedge
+                // re-enters this proof. Keep deferred-count and IR policies on
+                // their existing straight-line chunks.
+                if (loop_budgets && direct_loop && instructions[first].address == loop_start) {
+                    std::size_t end = first;
+                    for (; end < instructions.size() && end - first < 32; ++end) {
+                        const auto &ins = instructions[end];
+                        if (ir_covered[end] || ins.leaf || ins.address != loop_start + (end - first) * 4) break;
+                        const auto op = ins.opcode;
+                        const bool branch = ((op >> 25) & 7) == 5 && !(op & (1u << 24)) && (op >> 28) < 15;
+                        const auto target = ins.address + 8 + (static_cast<std::int32_t>(op << 8) >> 6);
+                        if (ins.address == loop_last) {
+                            if (branch && target == loop_start && end - first >= 3) {
+                                budget_chunks.emplace(first, static_cast<unsigned>(end - first + 1));
+                                loop_budget_chunks.insert(first);
+                                ++end;
+                            }
+                            break;
+                        }
+                        if (ins.address > loop_last || (!straight(op) && !(branch && (op >> 28) < 14
+                            && (target < loop_start || target > loop_last)))) break;
+                    }
+                    if (loop_budget_chunks.count(first)) { first = end; continue; }
+                }
                 std::size_t end = first;
                 for (; end < instructions.size() && end - first < 32; ++end) {
                     const auto &ins = instructions[end];
@@ -1850,6 +1880,38 @@ namespace eka2l1::arm::aot {
                 inner_loop_open = true;
             }
 
+            const bool loop_budget_chunk = loop_budget_chunks.count(instruction_index);
+            auto emit_budget_chunk = [&](bool charged) {
+                const auto length = budget_chunk->second;
+                // COUNT never exceeds the budget. Loop proofs run before the
+                // first charge, so zero/short budgets enter the precise callee.
+                w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
+                w.i32_const(length - (charged ? 1 : 0)); w.op(op_i32_lt_u);
+                w.op(op_if); w.op(type_void);
+                if (charged) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); }
+                w.store_i32_const(S::PC, insn_addr);
+                w.cache.barrier_at(w.b.size());
+                w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
+                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
+                w.state_ptr(); w.op(op_call);
+                const auto call_offset = static_cast<std::uint32_t>(w.b.size());
+                w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});
+                w.get_local(arm_emit::COUNT); w.op(op_i32_add);
+                w.state_ptr(); w.load_i32(S::AOT_BUDGET);
+                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
+                w.op(op_return); w.op(op_end);
+                std::vector<std::uint32_t> words;
+                for (unsigned n = 0; n < length; ++n)
+                    words.push_back(instructions[instruction_index + n].opcode);
+                auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),
+                    words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,
+                    true, true, nullptr, defer_memory, false);
+                precise.func.export_name += "_budget_short";
+                result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});
+                budget_chunk_end = instruction_index + length;
+                ++tr.budget_chunks;
+            };
+
             if (bounded) {
                 if (direct_blocks && instruction_index && check_exit) {
                     // Complete every access/writeback in the preceding guest
@@ -1870,7 +1932,7 @@ namespace eka2l1::arm::aot {
                     w.op(op_end);
                 }
                 if (!region) w.store_i32_const(S::PC, insn_addr);
-                const bool check_budget = instruction_index >= budget_chunk_end;
+                const bool check_budget = instruction_index >= budget_chunk_end && !loop_budget_chunk;
                 if (check_budget) {
                     w.load_i32(S::AOT_BUDGET);
                     if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);
@@ -1883,6 +1945,10 @@ namespace eka2l1::arm::aot {
                     w.op(op_if); w.op(type_void);
                     w.bail(insn_addr, insn_idx, exit_census::guard);
                     w.op(op_end);
+                }
+                if (loop_budget_chunk) {
+                    emit_budget_chunk(false);
+                    ++tr.loop_budget_chunks;
                 }
                 if (region) {
                     if (ir_policy == arm_ir_policy::deferred_chunk_counts && instruction_index < budget_chunk_end) {
@@ -1908,36 +1974,7 @@ namespace eka2l1::arm::aot {
                 }
             }
 
-            if (budget_chunk != budget_chunks.end()) {
-                const auto length = budget_chunk->second;
-                // The normal entry check charged the first instruction and
-                // established a non-wrapping remaining-budget subtraction.
-                w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
-                w.i32_const(length - 1); w.op(op_i32_lt_u);
-                w.op(op_if); w.op(type_void);
-                w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT);
-                w.store_i32_const(S::PC, insn_addr);
-                w.cache.barrier_at(w.b.size());
-                w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
-                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
-                w.state_ptr(); w.op(op_call);
-                const auto call_offset = static_cast<std::uint32_t>(w.b.size());
-                w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});
-                w.get_local(arm_emit::COUNT); w.op(op_i32_add);
-                w.state_ptr(); w.load_i32(S::AOT_BUDGET);
-                w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
-                w.op(op_return); w.op(op_end);
-                std::vector<std::uint32_t> words;
-                for (unsigned n = 0; n < length; ++n)
-                    words.push_back(instructions[instruction_index + n].opcode);
-                auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),
-                    words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,
-                    true, true, nullptr, defer_memory, false);
-                precise.func.export_name += "_budget_short";
-                result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});
-                budget_chunk_end = instruction_index + length;
-                ++tr.budget_chunks;
-            }
+            if (budget_chunk != budget_chunks.end() && !loop_budget_chunk) emit_budget_chunk(true);
 
             if (segment != segments.end()) {
                 const auto &part = segment->second;

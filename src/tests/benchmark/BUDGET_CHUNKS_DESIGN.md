@@ -31,3 +31,31 @@ This differs from the earlier whole-region budget trial: it can select parts of
 loop regions while retaining original lowering. It still adds entry and private
 fallback code; code growth or extra compilation may outweigh avoided checks.
 No performance claim follows from static instruction or byte counts.
+
+## Natural-loop iterations
+
+Opt-in policy 17 (`EKA2L1_AOT_IR_MODE=17`) extends policy 7's write proofs and
+original instruction lowering with budget proofs for natural ARM loops of
+4–32 contiguous instructions. Selection requires one backedge target, no entry
+into the loop interior, no inlined code or IR segment, and a final branch back
+to the head. Conditional exits outside the loop are allowed. Calls, indirect
+transfers and unsupported shapes retain the existing lowering. No ROM address
+or game-specific rule is used. Existing policies, including 6 and 7, are unchanged.
+
+The loop head first honors a pending region exit, then checks whether the
+remaining budget covers the longest iteration. This replaces the individual
+budget comparisons, including the ordinary first-instruction budget check.
+Each executed guest instruction still increments the count; all memory,
+callback, code-write and backedge-interrupt checks remain.
+
+An insufficient budget enters a private precise translation of the loop before
+any instruction is charged. The callee receives the exact remainder; its state
+and completed count are returned without stale caller writeback. A conditional
+exit can return from this small callee before exhausting the remainder; the
+normal runner continues at the published PC. A backedge re-enters the head's
+proof, so the reservation cannot be reused across iterations. Time slices and
+virtual time are unchanged.
+
+This remains an experiment: a gameplay screen showed a Sky Force gain but a
+Snakes regression signal. A narrower selection did not establish a win for
+either game. See [measurements and correctness evidence](LOOP_BUDGET_RESULTS.md).

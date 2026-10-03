@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('assets', type=Path)
 parser.add_argument('output', type=Path)
 parser.add_argument('builds', nargs='+', help='NAME=ARCHIVED_BUILD')
-parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16',
+parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17',
                     help='Select compiler policy within an archived binary')
 parser.add_argument('--eager-regions', action='append', default=[], metavar='NAME=0/1',
                     help='Select eager ROM region compilation within an archived binary')
@@ -39,8 +39,8 @@ for item in args.builds:
 modes = {}
 for item in args.ir_mode:
     name, separator, value = item.partition('=')
-    if not separator or name not in dict(variants) or name in modes or value not in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16'):
-        parser.error('IR mode requires a unique known NAME=0/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16')
+    if not separator or name not in dict(variants) or name in modes or value not in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17'):
+        parser.error('IR mode requires a unique known NAME=0/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17')
     modes[name] = int(value)
 eager_modes = {}
 for item in args.eager_regions:

@@ -33,6 +33,8 @@ try {
   process.env.EKA2L1_AOT_IR_MODE = '16';
   assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,irMode:16});
   process.env.EKA2L1_AOT_IR_MODE = '17';
+  assert.deepEqual(compilerPolicyFromEnv(), {unsafeCode:3,irMode:17});
+  process.env.EKA2L1_AOT_IR_MODE = '18';
   assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);
   delete process.env.EKA2L1_AOT_IR_MODE;
   const responses: {html:string; etag:string|null}[] = [];
