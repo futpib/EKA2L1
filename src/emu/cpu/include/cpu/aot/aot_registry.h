@@ -59,13 +59,25 @@ namespace eka2l1::arm::aot {
         static std::size_t recent_index(std::uint32_t address) {
             return ((address >> 1) ^ (address << 7)) & 4095;
         }
+        aot_func lookup_uncached(std::uint32_t arm_address, recent_function &slot) const;
 
     public:
         void register_function(std::uint32_t arm_address, aot_func func);
         void unregister_function(std::uint32_t arm_address);
         void clear();
 
-        aot_func lookup(std::uint32_t arm_address) const;
+#if defined(_MSC_VER)
+        __forceinline
+#else
+        __attribute__((always_inline))
+#endif
+        aot_func lookup(std::uint32_t arm_address) const {
+            auto &slot = recent_[recent_index(arm_address)];
+            // Keep recent hits at the dispatch site; container recovery stays
+            // out of line. Empty slots and cached null functions still miss.
+            if (slot.function && slot.address == arm_address) return slot.function;
+            return lookup_uncached(arm_address, slot);
+        }
         bool has_function(std::uint32_t arm_address) const;
         std::size_t size() const;
     };

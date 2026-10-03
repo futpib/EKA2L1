@@ -293,6 +293,11 @@ void invalidate_ram_code(std::uint32_t address, std::size_t size) {
 }
 
 template<bool Profile, bool PublishGuards, unsigned Frozen = 0>
+#if defined(_MSC_VER)
+__forceinline
+#else
+__attribute__((always_inline))
+#endif
 static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     if constexpr(Profile) if(exit_census::enabled)census_entry=nullptr;
     if constexpr (!(Frozen & 1)) if (validation_running) return nullptr;

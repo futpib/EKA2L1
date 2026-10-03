@@ -46,9 +46,7 @@ namespace eka2l1::arm::aot {
         recent_.fill({});
     }
 
-    aot_func registry::lookup(std::uint32_t arm_address) const {
-        auto &slot = recent_[recent_index(arm_address)];
-        if (slot.function && slot.address == arm_address) return slot.function;
+    aot_func registry::lookup_uncached(std::uint32_t arm_address, recent_function &slot) const {
         auto it = functions_.find(arm_address);
         if (it != functions_.end()) {
             slot = {arm_address, it->second};
