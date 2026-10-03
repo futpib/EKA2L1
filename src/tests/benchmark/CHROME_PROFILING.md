@@ -63,7 +63,10 @@ The capture produces:
   PCs, RAM versions and WASM module URLs. Worker selection uses generated-code
   samples, avoiding the mistake of selecting a parked worker as the bottleneck.
 - `report.json`: build/input hashes, browser/GPU, settings, exact guest work,
-  timing, diagnostics capability, trace scope and data-loss status.
+  wall and CPU timing, diagnostics capability, trace scope and data-loss status.
+- `cpu-time.json`: raw before/after Chrome process CPU counters and, on local
+  Linux, per-renderer-thread scheduler runtimes. The summary is also recorded in
+  `report.json.cpu_time` and retained by `serial_variants.py`.
 
 `EKA2L1_CHROME_TRACE=window` is the sampling default. `run` starts before loading
 the emulator and includes startup/compilation; `off` collects only the requested
@@ -122,6 +125,45 @@ For throughput, repeat the same command with sampling **0** and
 and AOT verification off. Such reports are labelled `purpose: "throughput"`;
 profiled or instrumented reports are labelled `diagnostic`. Detailed custom
 counter fields are absent when not collected, rather than reported as zeros.
+
+The [CPU-time validation and game measurements](CPU_TIME_RESULTS.md) record the
+initial verification and its remaining variance.
+
+CPU time is collected automatically, with two host-side snapshots at the existing
+pause/completion boundaries. No guest hot-path counters or sampling are needed.
+`cpu_time.renderer_cpu_seconds` sums Chrome renderer process CPU deltas; it includes
+emulation, graphics, audio and JIT/compiler threads and can exceed wall time.
+It excludes GPU device execution. `cpu_time.threads` records Linux scheduler
+runtime deltas in seconds, with PID, TID and thread name. Sleeping and descheduled
+time are excluded. Thread deltas retain nanosecond precision; Chrome process
+counters can have coarser platform resolution.
+
+`cpu_time.busiest_renderer_thread.cpu_seconds` is useful for CPU-bound emulator
+changes, but its name does not establish guest-worker identity. Confirm that
+identity in a representative diagnostic trace: match `Profile` and `ProfileChunk`
+events by PID/profile ID, find the stream containing generated ARM functions,
+and compare the owning `Profile` event's TID with the CPU-time report. Retain
+renderer totals to catch work shifted to other threads. A changed/missing process
+makes the renderer total null; new, missing or recycled threads are explicitly
+reported rather than silently charged to the wrong task.
+
+CPU snapshots bracket host resume and observed completion, so they include small
+collection/polling margins outside the exact guest wall-clock interval. Collection
+cost and host interval are reported. The emulator CPU thread is paused before
+resume and stops guest execution at completion; other renderer work may continue
+within the margins. Compare identical guest instruction totals and presentation
+counts. CPU time removes scheduling/wait noise, but CPU frequency, cache contention
+and JIT work can still vary. Use serial runs in both orders and retain wall time
+as the measure of actual elapsed gameplay throughput. CDP sample-weighted profile
+durations are elapsed time, not a substitute for these OS CPU counters.
+
+Validate CPU-vs-wait discrimination on a local browser with:
+
+```sh
+cd src/tests/wasm
+node --test cpu-time.test.ts chrome-profiler.test.ts
+node cpu-time-browser-check.ts
+```
 
 Use one short representative capture per game to pick a specific expensive
 operation. Check its callers and the trace's wait/compilation activity. Then

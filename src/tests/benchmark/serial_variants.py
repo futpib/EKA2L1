@@ -92,7 +92,8 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         label = f'{name}-{repetition}'
         env = dict(os.environ, EKA2L1_WASM_BUILD_DIR=str(build),
                    EKA2L1_BENCHMARK_AOT='5', EKA2L1_GPU='hardware',
-                   EKA2L1_PROFILE_DETAIL='0', EKA2L1_PROFILE_START_US=str(args.start_us))
+                   EKA2L1_PROFILE_DETAIL='0', EKA2L1_CHROME_TRACE='off',
+                   EKA2L1_PROFILE_START_US=str(args.start_us))
         for key in ('PROFILE_GATE', 'EKA2L1_AOT_VERIFY', 'EKA2L1_GUEST_PROFILE',
                     'EKA2L1_AOT_DIAGNOSTICS', 'EKA2L1_EXIT_CENSUS', 'EKA2L1_V8_FLAGS', 'EKA2L1_V8_DUMP'):
             env.pop(key, None)
@@ -137,7 +138,7 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Profile did not use requested guest window')
         row = dict(unsafe_code=report['unsafe_code'],leaf_features=report['leaf_features'],predicated_leaves=report['predicated_leaves'], runtime_footprint=report.get('runtime_footprint'), warmup_seconds=report['warmup_seconds'], execution_limits=report['execution_limits'], tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
                    wasm_sha256=report['wasm_sha256'], loader_sha256=report['loader_sha256'],
-                   measurement=report['measurement'])
+                   measurement=report['measurement'], cpu_time=report['cpu_time'])
         rows.append(row)
         (args.output / 'measurements.json').write_text(json.dumps(rows, indent=2) + '\n')
         print(json.dumps(row), flush=True)

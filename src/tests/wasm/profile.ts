@@ -6,6 +6,7 @@ import {execFileSync} from 'node:child_process';
 import puppeteer from 'puppeteer';
 import {startServer, buildDir, compilerDefaults, rejectRetiredCompilerOptions} from './server.ts';
 import {ChromeTrace, summarizeProfile, labelGuestProfile} from './chrome-profiler.ts';
+import {sampleCpuTime, cpuTimeDelta} from './cpu-time.ts';
 
 const [assetArg, outputArg, modeArg = '0', samplingArg = '1', endArg = '25000000'] = process.argv.slice(2);
 const frameArg = '100000', inputArg = process.env.EKA2L1_PROFILE_INPUT || fileURLToPath(new URL('../benchmark/snakes.input', import.meta.url)), startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
@@ -275,6 +276,7 @@ try {
     await client.send('Profiler.setSamplingInterval', {interval: sampleInterval});
     await client.send('Profiler.start');
   }));
+  const cpuBefore = await sampleCpuTime(system);
   await page.evaluate(() => {
     performance.mark('eka2l1:measurement-start');
     (window as any).Module._eka2l1_profile_resume();
@@ -321,6 +323,9 @@ try {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   } else await waitPhase(3);
+  const cpuAfter = await sampleCpuTime(system);
+  const cpuTime = cpuTimeDelta(cpuBefore, cpuAfter);
+  fs.writeFileSync(path.join(output, 'cpu-time.json'), JSON.stringify({before: cpuBefore, after: cpuAfter, summary: cpuTime}, null, 2));
   await page.evaluate(() => performance.mark('eka2l1:measurement-end'));
   const measured = await page.evaluate(() => JSON.parse((window as any).Module.ccall('eka2l1_profile_report', 'string', [], [])));
   console.log(JSON.stringify(measured));
@@ -396,6 +401,7 @@ try {
 
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
     purpose: sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
+    cpu_time: cpuTime,
     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,

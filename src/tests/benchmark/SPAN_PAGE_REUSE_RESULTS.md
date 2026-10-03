@@ -7,6 +7,11 @@ The production compiler and live deployment remain unchanged; no runtime option
 was added. The implementation and regression tests are preserved in the
 `source_patch` field of [the evidence file](SPAN_PAGE_REUSE_RESULTS.json).
 
+A later [CPU-time follow-up](CPU_TIME_RESULTS.md) found that the Snakes slowdown
+also did not repeat consistently across sessions. The original measurements below
+are preserved as observed results, not a claim of a universal 8.9% regression.
+Neither panel establishes a repeatable general speedup, so adoption remains rejected.
+
 ## Implementation
 
 The common `block_transfer_host` emitter first checked the existing read or write
