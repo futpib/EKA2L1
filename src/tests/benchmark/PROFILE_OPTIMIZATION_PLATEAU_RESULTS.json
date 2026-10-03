@@ -1,0 +1,2449 @@
+{
+  "objective": "Repeat profile-driven optimization until speed returns diminish.",
+  "accepted_change": {
+    "commit": "164173789",
+    "report": "REGISTRY_CHAIN_INLINE_RESULTS.json",
+    "sky_force_throughput_percent": 5.418532552531885,
+    "snakes_throughput_percent": -0.11233331718084605,
+    "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89"
+  },
+  "stopping_rule": "Use roughly 3 percent repeatable improvement as the useful-gain screen. RAM inline failed its prospectively extended confirmation; neither remaining fixed-policy selector met the prospective bracketed-screen threshold. Stop this local dispatch campaign without claiming a global performance ceiling.",
+  "ram_inline": {
+    "initial_plan": {
+      "hypothesis": "Current ROM-inline profile shows 9.69 percent of Snakes worker span in find_trusted_original. Inline only the recent/live/key/generation/source hit; preserve existing out-of-line recovery and all mapping/lifetime checks.",
+      "baseline_commit": "164173789578590a68e6caf8e604de147342a6a2",
+      "variants": {
+        "control": {
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+        },
+        "candidate": {
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/ram-inline/candidate-build"
+        }
+      },
+      "replays": [
+        {
+          "game": "standard",
+          "variant": "candidate"
+        }
+      ],
+      "timings": [
+        {
+          "game": "standard",
+          "variant": "control"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate"
+        },
+        {
+          "game": "standard",
+          "variant": "control"
+        }
+      ],
+      "profiles": [
+        {
+          "game": "standard",
+          "variant": "candidate"
+        }
+      ],
+      "decision_rule": "First run focused cache/runner tests, one exact Snakes replay, and Snakes ABBA. Expand to Sky Force exact replay/timings/live acceptance only if Snakes mean improves roughly 3 percent or more and both pairs favor candidate. Otherwise retain the negative result, restore production source, and count this as a diminishing-return candidate."
+    },
+    "confirmation_plan": {
+      "hypothesis": "Current ROM-inline profile shows 9.69 percent of Snakes worker span in find_trusted_original. Inline only the recent/live/key/generation/source hit; preserve existing out-of-line recovery and all mapping/lifetime checks.",
+      "baseline_commit": "164173789578590a68e6caf8e604de147342a6a2",
+      "variants": {
+        "control": {
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+        },
+        "candidate": {
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/ram-inline/candidate-build"
+        }
+      },
+      "replays": [
+        {
+          "game": "standard",
+          "variant": "candidate"
+        }
+      ],
+      "timings": [
+        {
+          "game": "standard",
+          "variant": "candidate"
+        },
+        {
+          "game": "standard",
+          "variant": "control"
+        },
+        {
+          "game": "standard",
+          "variant": "control"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate"
+        }
+      ],
+      "profiles": [
+        {
+          "game": "standard",
+          "variant": "candidate"
+        }
+      ],
+      "decision_rule": "Additional prospective confirmation: first screen mean exceeds 3 percent and both pairs favor candidate, but pair gains vary from 6.9 to 1.0 percent. Run reversed BAAB Snakes before Sky Force. Pool all eight samples; proceed only if overall mean gain remains at least roughly 3 percent and at least three of four pairs favor candidate. Preserve both panels regardless."
+    },
+    "patch": "diff --git a/src/emu/cpu/include/cpu/aot/code_cache.h b/src/emu/cpu/include/cpu/aot/code_cache.h\nindex 892a39e86..cb824a058 100644\n--- a/src/emu/cpu/include/cpu/aot/code_cache.h\n+++ b/src/emu/cpu/include/cpu/aot/code_cache.h\n@@ -66,7 +66,21 @@ namespace eka2l1::arm::aot {\n         }\n         // Called only after the outer boundary selected trusted bytes and the\n         // original layout. Mapping/lifetime checks still apply on every lookup.\n-        block *find_trusted_original(std::uint32_t pc_mode, core &cpu);\n+#if defined(_MSC_VER)\n+        __forceinline\n+#else\n+        __attribute__((always_inline))\n+#endif\n+        block *find_trusted_original(std::uint32_t pc_mode, core &cpu) {\n+            const auto generation = cpu.code_mapping_generation\n+                ? cpu.code_mapping_generation->load(std::memory_order_acquire) : 0;\n+            const auto k = key(cpu.code_address_space, pc_mode);\n+            auto *entry = recent_[recent_index(k)];\n+            if (entry && entry->live && entry->key == k && generation\n+                && entry->mapping_source == cpu.code_mapping_generation\n+                && entry->mapping_generation == generation) return entry;\n+            return find_trusted_slow(pc_mode, cpu);\n+        }\n \n     private:\n         template<bool TrustBytes>\n@@ -134,6 +148,7 @@ namespace eka2l1::arm::aot {\n         template<bool TrustBytes>\n         block *find_original_impl(std::uint32_t pc_mode, core &cpu);\n         block *find_original(std::uint32_t pc_mode, core &cpu);\n+        block *find_trusted_slow(std::uint32_t pc_mode, core &cpu);\n         void reject_recent(std::uint64_t k, block &entry);\n \n     public:\ndiff --git a/src/emu/cpu/src/aot/code_compare.cpp b/src/emu/cpu/src/aot/code_compare.cpp\nindex e28ac9ac8..a440aa6a2 100644\n--- a/src/emu/cpu/src/aot/code_compare.cpp\n+++ b/src/emu/cpu/src/aot/code_compare.cpp\n@@ -19,7 +19,7 @@ namespace eka2l1::arm::aot {\n     validated_code_cache::block *validated_code_cache::find_original(std::uint32_t pc_mode, core &cpu) {\n         return find_original_impl<false>(pc_mode, cpu);\n     }\n-    validated_code_cache::block *validated_code_cache::find_trusted_original(std::uint32_t pc_mode, core &cpu) {\n+    validated_code_cache::block *validated_code_cache::find_trusted_slow(std::uint32_t pc_mode, core &cpu) {\n         return find_original_impl<true>(pc_mode, cpu);\n     }\n     template<bool TrustBytes>\n",
+    "hashes": {
+      "eka2l1.js": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+      "eka2l1.html": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+      "eka2l1.data": "34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "4abcd0957228feadf2ef2a9fdbffe78eab27651c6791f14e90001566419a5fa6"
+    },
+    "inspection": {
+      "trusted_function_declarations": [
+        "(func $eka2l1::arm::aot::validated_code_cache::find_trusted_slow\\28unsigned\\20int\\2c\\20eka2l1::arm::core&\\29"
+      ],
+      "slow_call_sites": [
+        {
+          "line": 619304,
+          "caller": "(func $eka2l1::arm::aot::lookup_compiled\\28ARMul_State*\\29"
+        },
+        {
+          "line": 619429,
+          "caller": "(func $eka2l1::arm::aot::lookup_compiled\\28ARMul_State*\\29"
+        },
+        {
+          "line": 623224,
+          "caller": "(func $eka2l1::arm::aot::execute_chain\\28ARMul_State*\\2c\\20unsigned\\20int\\20\\28*\\29\\28ARMul_State*\\29\\29"
+        },
+        {
+          "line": 623658,
+          "caller": "(func $eka2l1::arm::aot::execute_chain\\28ARMul_State*\\2c\\20unsigned\\20int\\20\\28*\\29\\28ARMul_State*\\29\\29"
+        },
+        {
+          "line": 625597,
+          "caller": "(func $eka2l1::arm::aot::execute_chain\\28ARMul_State*\\2c\\20unsigned\\20int\\20\\28*\\29\\28ARMul_State*\\29\\29"
+        },
+        {
+          "line": 626047,
+          "caller": "(func $eka2l1::arm::aot::execute_chain\\28ARMul_State*\\2c\\20unsigned\\20int\\20\\28*\\29\\28ARMul_State*\\29\\29"
+        }
+      ],
+      "claim": "Trusted recent hit is inlined; mapping/container recovery remains out of line."
+    },
+    "tests": {
+      "frozen-cache-only": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS frozen cache (16384 ASID/generation/source/remap/dependency/extent/invalidation comparisons)\n",
+      "lookup-only": "TEST_UNSAFE_CODE_DEFAULT 3\n  PASS outlined_code_lookup (both lookup modes, grouped/stored comparators, short/long snapshots, dependencies, mappings, rejection)\n",
+      "guard-publication-only": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS guard publication: 288 real lookup/runner sentinel checks; modes 0/1 always publish\n",
+      "verification-protection-only": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS reference lookup protection (16 active/inactive verification checks)\n"
+    },
+    "replays": [
+      {
+        "game": "standard",
+        "variant": "candidate",
+        "order": 0,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/ram-inline/replays-0-standard-candidate",
+        "command": {
+          "args": [
+            "node",
+            "benchmark.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/ram-inline/replays-0-standard-candidate",
+            "60",
+            "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "21000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/ram-inline/candidate-build",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_AOT_IR_MODE": "17"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "frames": 60,
+          "start_us": 21000000,
+          "unique": true,
+          "wall_seconds": 14.700164409000001,
+          "snakes_n80_native_resolution": false,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "4abcd0957228feadf2ef2a9fdbffe78eab27651c6791f14e90001566419a5fa6",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "shared_audio": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "exit_census": false,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true
+        },
+        "comparison": {
+          "match": true,
+          "audio": {
+            "sample_frames": 1143727,
+            "sample_rate": 48000,
+            "channels": 2,
+            "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+            "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+            "writes": 0,
+            "callbacks": 2330,
+            "backend": "shared-dsp-cubeb-resampler",
+            "render_callbacks": 2330,
+            "gameplay_nonzero_samples": 264002,
+            "gameplay_peak": 206
+          },
+          "frames": 60,
+          "unique_images": 60,
+          "last_virtual_us": 23827651,
+          "instructions": 3012361007
+        }
+      }
+    ],
+    "initial_timings": [
+      {
+        "game": "standard",
+        "variant": "control",
+        "order": 0,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/ram-inline/timings-0-standard-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/ram-inline/timings-0-standard-control",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.31375,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.049767305000001,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039464,
+            "free_bytes": 17321832
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "candidate",
+        "order": 1,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/ram-inline/timings-1-standard-candidate",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/ram-inline/timings-1-standard-candidate",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/ram-inline/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.1646,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.053467633,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "4abcd0957228feadf2ef2a9fdbffe78eab27651c6791f14e90001566419a5fa6",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582038928,
+            "free_bytes": 17322368
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "candidate",
+        "order": 2,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/ram-inline/timings-2-standard-candidate",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/ram-inline/timings-2-standard-candidate",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/ram-inline/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.29638,
+            "presentations": 84
+          },
+          "warmup_seconds": 11.804247272000001,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "4abcd0957228feadf2ef2a9fdbffe78eab27651c6791f14e90001566419a5fa6",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039248,
+            "free_bytes": 17322048
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "control",
+        "order": 3,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/ram-inline/timings-3-standard-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/ram-inline/timings-3-standard-control",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.31988,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.052392667,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039480,
+            "free_bytes": 17321816
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      }
+    ],
+    "confirmation_timings": [
+      {
+        "game": "standard",
+        "variant": "candidate",
+        "order": 0,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/ram-inline/confirmation/timings-0-standard-candidate",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/ram-inline/confirmation/timings-0-standard-candidate",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/ram-inline/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.2054,
+            "presentations": 84
+          },
+          "warmup_seconds": 11.799239806999998,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "4abcd0957228feadf2ef2a9fdbffe78eab27651c6791f14e90001566419a5fa6",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039920,
+            "free_bytes": 17321376
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "control",
+        "order": 1,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/ram-inline/confirmation/timings-1-standard-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/ram-inline/confirmation/timings-1-standard-control",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.23219,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.306013792999998,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039784,
+            "free_bytes": 17321512
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "control",
+        "order": 2,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/ram-inline/confirmation/timings-2-standard-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/ram-inline/confirmation/timings-2-standard-control",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.20852,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.055657789,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039496,
+            "free_bytes": 17321800
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "candidate",
+        "order": 3,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/ram-inline/confirmation/timings-3-standard-candidate",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/ram-inline/confirmation/timings-3-standard-candidate",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/ram-inline/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.27287,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.05415582,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "4abcd0957228feadf2ef2a9fdbffe78eab27651c6791f14e90001566419a5fa6",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039800,
+            "free_bytes": 17321496
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      }
+    ],
+    "summary": {
+      "control_seconds": [
+        2.31375,
+        2.31988,
+        2.23219,
+        2.20852
+      ],
+      "candidate_seconds": [
+        2.1646,
+        2.29638,
+        2.2054,
+        2.27287
+      ],
+      "mean_change_percent": 1.5112006040775006,
+      "pairs_percent": [
+        6.890418553081412,
+        1.0233497940236314,
+        1.2147456243765342,
+        -2.8312221992458975
+      ],
+      "decision": "Reject and restore production source: confirmation reduces the mean to below the predeclared approximately 3 percent useful-gain threshold; one pair reverses. No Sky Force expansion or deployment."
+    },
+    "decision": "Rejected; source restored. No Sky Force expansion or deployment."
+  },
+  "remaining_switches": {
+    "plan": {
+      "baseline_commit": "164173789",
+      "hypothesis": "Current profile has compiled-runner self samples of 15.50 percent in Snakes and 22.20 percent in Sky Force. Test two independent existing specializations: omit verifier-disabled validation_running checks (hotpath 3 vs 2), or omit unread mode-3 code-guard interval publication. These remove known work, but the profile does not identify its precise share.",
+      "variants": {
+        "control": {
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0"
+        },
+        "verification": {
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build",
+          "EKA2L1_HOTPATH": "3",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0"
+        },
+        "guards": {
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "1"
+        }
+      },
+      "timings": [
+        {
+          "game": "standard",
+          "variant": "control"
+        },
+        {
+          "game": "standard",
+          "variant": "verification"
+        },
+        {
+          "game": "standard",
+          "variant": "guards"
+        },
+        {
+          "game": "standard",
+          "variant": "control"
+        },
+        {
+          "game": "combat",
+          "variant": "control"
+        },
+        {
+          "game": "combat",
+          "variant": "guards"
+        },
+        {
+          "game": "combat",
+          "variant": "verification"
+        },
+        {
+          "game": "combat",
+          "variant": "control"
+        }
+      ],
+      "decision_rule": "Prospective exploratory bracketed screen, one observation per candidate/game and two controls. Confirm in reverse order with fresh controls only if a candidate is at least roughly 3 percent faster than the faster bracketing control in either game without a substantial loss in the other. Do not promote on this screen alone. If neither merits confirmation, stop this campaign at diminishing returns, retaining the verified ROM-inline default.",
+      "correctness_basis": "Registry-inline build has passed 288 actual runner/publication checks covering both option values and compatibility modes, plus 16 verifier protection checks; implementations already have historical exact replay coverage. Run fresh two-game exact/live checks only for a promising adoption candidate."
+    },
+    "timings": [
+      {
+        "game": "standard",
+        "variant": "control",
+        "order": 0,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-0-standard-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-0-standard-control",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.22076,
+            "presentations": 84
+          },
+          "warmup_seconds": 11.548889349999998,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582040104,
+            "free_bytes": 17321192
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "verification",
+        "order": 1,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-1-standard-verification",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-1-standard-verification",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "3",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 3,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.28004,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.055907121,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039056,
+            "free_bytes": 17322240
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "guards",
+        "order": 2,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-2-standard-guards",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-2-standard-guards",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "1",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.32462,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.303148177000002,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 1,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039312,
+            "free_bytes": 17321984
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "control",
+        "order": 3,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-3-standard-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-3-standard-control",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.26201,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.052476309999998,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039480,
+            "free_bytes": 17321816
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "combat",
+        "variant": "control",
+        "order": 4,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-4-combat-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-sky-performance/assets",
+            "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-4-combat-control",
+            "1",
+            "0",
+            "48000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_APP_UID": "0xa020d913",
+            "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+            "EKA2L1_PROFILE_START_US": "42000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0xa020d913",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 42000001,
+            "last_virtual_us": 48000000,
+            "first_instructions": 15147789887,
+            "last_instructions": 17318833812,
+            "wall_seconds": 10.1098,
+            "presentations": 192
+          },
+          "warmup_seconds": 72.06497232,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+          },
+          "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 48000000,
+            "instructions": 17318833812,
+            "compiled_functions": 10060,
+            "allocated_bytes": 593998464,
+            "free_bytes": 25941136
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "combat",
+        "variant": "guards",
+        "order": 5,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-5-combat-guards",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-sky-performance/assets",
+            "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-5-combat-guards",
+            "1",
+            "0",
+            "48000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "1",
+            "EKA2L1_APP_UID": "0xa020d913",
+            "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+            "EKA2L1_PROFILE_START_US": "42000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0xa020d913",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 42000001,
+            "last_virtual_us": 48000000,
+            "first_instructions": 15147789887,
+            "last_instructions": 17318833812,
+            "wall_seconds": 10.2302,
+            "presentations": 192
+          },
+          "warmup_seconds": 74.332512838,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+          },
+          "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 1,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 48000000,
+            "instructions": 17318833812,
+            "compiled_functions": 10060,
+            "allocated_bytes": 593998872,
+            "free_bytes": 25940728
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "combat",
+        "variant": "verification",
+        "order": 6,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-6-combat-verification",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-sky-performance/assets",
+            "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-6-combat-verification",
+            "1",
+            "0",
+            "48000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "3",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_APP_UID": "0xa020d913",
+            "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+            "EKA2L1_PROFILE_START_US": "42000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 3,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0xa020d913",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 42000001,
+            "last_virtual_us": 48000000,
+            "first_instructions": 15147789887,
+            "last_instructions": 17318833812,
+            "wall_seconds": 10.3329,
+            "presentations": 192
+          },
+          "warmup_seconds": 101.749677803,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+          },
+          "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 48000000,
+            "instructions": 17318833812,
+            "compiled_functions": 10060,
+            "allocated_bytes": 593998480,
+            "free_bytes": 25941120
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "combat",
+        "variant": "control",
+        "order": 7,
+        "directory": "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-7-combat-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-sky-performance/assets",
+            "/home/claude/.scratch/eka-profile-plateau/remaining-switches/timings-7-combat-control",
+            "1",
+            "0",
+            "48000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_APP_UID": "0xa020d913",
+            "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+            "EKA2L1_PROFILE_START_US": "42000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-profile-plateau/registry-inline-chain/candidate-build"
+          },
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0xa020d913",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 42000001,
+            "last_virtual_us": 48000000,
+            "first_instructions": 15147789887,
+            "last_instructions": 17318833812,
+            "wall_seconds": 10.2907,
+            "presentations": 192
+          },
+          "warmup_seconds": 86.24026655300001,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+          },
+          "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+          "wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+          "loader_sha256": "8c5fa1683ff3e91a71de529f8163db5adac40d182e10ebeb895a59ceb8855973",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "164173789578590a68e6caf8e604de147342a6a2",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 48000000,
+            "instructions": 17318833812,
+            "compiled_functions": 10060,
+            "allocated_bytes": 593999272,
+            "free_bytes": 25940328
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      }
+    ],
+    "summary": {
+      "standard": {
+        "control_seconds": [
+          2.22076,
+          2.26201
+        ],
+        "candidates": {
+          "verification": {
+            "seconds": 2.28004,
+            "change_vs_faster_control_percent": -2.5999543867651576,
+            "change_vs_slower_control_percent": -0.7907756004280619,
+            "change_vs_mean_control_percent": -1.695364993596593
+          },
+          "guards": {
+            "seconds": 2.32462,
+            "change_vs_faster_control_percent": -4.467826999681668,
+            "change_vs_slower_control_percent": -2.6933434281732005,
+            "change_vs_mean_control_percent": -3.580585213927423
+          }
+        }
+      },
+      "combat": {
+        "control_seconds": [
+          10.1098,
+          10.2907
+        ],
+        "candidates": {
+          "verification": {
+            "seconds": 10.3329,
+            "change_vs_faster_control_percent": -2.1591228019239517,
+            "change_vs_slower_control_percent": -0.40840422340292504,
+            "change_vs_mean_control_percent": -1.2837635126634384
+          },
+          "guards": {
+            "seconds": 10.2302,
+            "change_vs_faster_control_percent": -1.1769075873394486,
+            "change_vs_slower_control_percent": 0.5913862876581133,
+            "change_vs_mean_control_percent": -0.2927606498406621
+          }
+        }
+      }
+    },
+    "decision": "Neither meets confirmation threshold. Keep hotpath 2 and guard publication enabled."
+  },
+  "restored_build": {
+    "built_wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+    "served_wasm_sha256": "2f57ffb2f05651659669ad86d47e41c9c3e60906fb4ebc08251629a472ad7b89",
+    "build_log": "/home/claude/.scratch/eka-profile-plateau/restored-build.log",
+    "tests": {
+      "--registry-only": {
+        "exit_code": 0,
+        "output": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS registry lookup lifecycle (160000 oracle comparisons)\n"
+      },
+      "--frozen-cache-only": {
+        "exit_code": 0,
+        "output": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS frozen cache (16384 ASID/generation/source/remap/dependency/extent/invalidation comparisons)\n"
+      },
+      "--verification-protection-only": {
+        "exit_code": 0,
+        "output": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS reference lookup protection (16 active/inactive verification checks)\n"
+      },
+      "--guard-publication-only": {
+        "exit_code": 0,
+        "output": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS guard publication: 288 real lookup/runner sentinel checks; modes 0/1 always publish\n"
+      }
+    }
+  },
+  "limits": [
+    "All timing observations retained, including unfavorable and variable results. No outlier exclusions or normalization.",
+    "RAM screen expanded prospectively because initial positive pairs varied materially. All eight observations determine its disposition.",
+    "Final switches are exploratory single-candidate observations bracketed by controls, not two independent pairs or promotion evidence. No full acceptance campaign run for rejected settings.",
+    "No owned build/profile/correctness jobs overlap the timing panels. Build and correctness wall times are not performance evidence.",
+    "Profiles identify functions, not exact sampled ARM instructions. Inlining moves work between named buckets; the timing evidence is independent.",
+    "Retained ROM-inline candidate passed two-game exact frames/audio and live hardware-accelerated HTTPS launcher checks in its own report. No new live run is implied by final hash verification."
+  ]
+}

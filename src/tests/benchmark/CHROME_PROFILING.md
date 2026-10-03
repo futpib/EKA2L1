@@ -131,6 +131,11 @@ time, fixed guest-work totals and losing results. Extend testing only for a
 repeatable useful gain. A large sample bucket is an upper bound on opportunity,
 not evidence that a proposed change will remove that time.
 
+The [iterative dispatch campaign](PROFILE_OPTIMIZATION_PLATEAU_RESULTS.md)
+records an adopted ROM lookup improvement, a RAM lookup gain that shrank after
+confirmation, and rejected verifier/guard-publication screens. It preserves
+the prospective expansion and stopping rules alongside every observation.
+
 Profiling can change V8 tiering and adds overhead, so never claim speedup from
 profiled timings. See [V8's compilation and profiling documentation](https://v8.dev/docs/wasm-compilation-pipeline)
 and the [Chrome tracing protocol](https://chromedevtools.github.io/devtools-protocol/tot/Tracing/).

@@ -1,5 +1,10 @@
 # Registry positive-hit inline layout
 
+This is the historical V13 experiment. The later
+[complete cache-hit dispatch change](REGISTRY_CHAIN_INLINE_RESULTS.md) also
+keeps the surrounding lookup inside the runner, passes a current-default
+comparison, and is now adopted. Its results are separate from this panel.
+
 The existing 4096-slot positive registry cache hit is visible in the header
 and always inlined under GCC/Clang. Its unordered-map fallback stays out of
 line. Keys, hashing, registration, replacement, invalidation and miss behavior
