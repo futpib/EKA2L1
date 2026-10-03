@@ -73,7 +73,7 @@ if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].includes(irMode)) throw new E
 const hotpathPolicy = process.env.EKA2L1_HOTPATH === undefined ? -1 : Number(process.env.EKA2L1_HOTPATH);
 if (!Number.isInteger(hotpathPolicy) || hotpathPolicy < -1 || hotpathPolicy > 7) throw Error('Hotpath policy must be 0..7');
 const romDispatch = process.env.EKA2L1_ROM_DISPATCH === undefined ? -1 : Number(process.env.EKA2L1_ROM_DISPATCH);
-if (![-1,0,1,2].includes(romDispatch)) throw new Error('ROM dispatch must be 0, 1 or 2');
+if (![-1,0,1,2,3].includes(romDispatch)) throw new Error('ROM dispatch must be 0, 1, 2 or 3');
 const romCalls = process.env.EKA2L1_ROM_CALLS === undefined ? -1 : Number(process.env.EKA2L1_ROM_CALLS);
 if (![-1,0,1].includes(romCalls)) throw new Error('ROM calls must be 0 or 1');
 const romLeaves = process.env.EKA2L1_ROM_LEAVES === undefined ? -1 : Number(process.env.EKA2L1_ROM_LEAVES);
@@ -170,6 +170,14 @@ try {
     g.hotpathActual = typeof g.Module._eka2l1_hotpath_report === 'function' ? g.Module._eka2l1_hotpath_report() : null;
     if (hotpathPolicy !== -1 && g.hotpathActual !== hotpathPolicy) throw Error('Hotpath readback mismatch');
     if (romDispatch !== -1) call('eka2l1_rom_dispatch_configure', ['number'], [romDispatch]);
+    if (romDispatch === 3) {
+      if (g.Module._eka2l1_synchronous_compilation_configure(3) !== -1) throw Error('Recycling accepted with dynamic group owner');
+      call('eka2l1_rom_dispatch_configure', ['number'], [0]);
+      call('eka2l1_synchronous_compilation_configure', ['number'], [3]);
+      if (g.Module._eka2l1_rom_dispatch_configure(3) !== -1) throw Error('Dynamic group owner accepted with recycling');
+      call('eka2l1_synchronous_compilation_configure', ['number'], [synchronousCompilation < 0 ? 0 : synchronousCompilation]);
+      call('eka2l1_rom_dispatch_configure', ['number'], [3]);
+    }
     g.romDispatchActual = typeof g.Module._eka2l1_rom_dispatch_report === 'function'
       ? g.Module._eka2l1_rom_dispatch_report() : null;
     if (romDispatch !== -1 && g.romDispatchActual !== romDispatch) throw Error('ROM dispatch readback mismatch');

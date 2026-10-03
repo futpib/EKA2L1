@@ -3,6 +3,7 @@
 #include <cpu/aot/wasm_emitter.h>
 #include <array>
 #include <memory>
+#include <functional>
 #include <vector>
 
 namespace eka2l1::arm::aot {
@@ -21,6 +22,15 @@ namespace eka2l1::arm::aot {
         const std::uint32_t *data() const { return pointers_.data(); }
         std::size_t bytes() const;
     };
+
+    // Bounded discovery for a hot immutable Thumb entry. The caller translates
+    // the root once; new candidates are admitted only after exact extent and
+    // availability checks. No registry or cache mutation occurs here.
+    std::vector<wasm_func_def> collect_thumb_rom_cohort(
+        std::uint32_t root_key, wasm_func_def root,
+        std::uint32_t base, std::uint32_t size, unsigned remaining_capacity,
+        const std::function<bool(std::uint32_t)> &available,
+        const std::function<wasm_func_def(std::uint32_t)> &translate);
 
     // Composition preserves each original block as a separately budgeted step.
     // Unsupported emission forms and singleton groups keep their original body.

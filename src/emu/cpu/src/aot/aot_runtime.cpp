@@ -30,6 +30,8 @@
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/12l1r/tlb.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/rom_dispatch.h>
+#include <cpu/aot/state_locals.h>
 #include <algorithm>
 #include <unordered_map>
 #include <cstdlib>
@@ -56,6 +58,7 @@ bool rom_inline_leaves = false;
 bool rom_bounded_calls = false;
 bool rom_dispatch_enabled = false;
 bool rom_state_cohorts = false;
+bool dynamic_rom_cohorts = false;
 std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
     std::uint32_t base, std::uint32_t size, std::uint32_t target) {
     if (!host || (target & 3) || target < base) return {};
@@ -605,10 +608,58 @@ void observe_hot_pc(ARMul_State *cpu) {
     leaf_resolver leaves = [](std::uint32_t target) {
         return resolve_rom_leaf(hot_rom, hot_rom_base, hot_rom_size, target);
     };
+    state_composition_capture capture(dynamic_rom_cohorts && cpu->TFlag && chaining_enabled && !recycle);
     auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
                         : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, rom_inline_leaves ? &leaves : nullptr, defer_memory_enabled, ir_policy);
     if (tr.func.body.empty() || !tr.entry_supported) {
         if (recycle && hot_counts.size() < 65536) hot_counts.emplace(key, 8);
+        return;
+    }
+    if (dynamic_rom_cohorts && cpu->TFlag && chaining_enabled && !recycle) {
+        const auto add_edges = [](translate_result &part) {
+            for (auto target : part.branch_targets) part.func.successor_keys.push_back(target | 1u);
+            for (auto target : part.resume_points) part.func.successor_keys.push_back(target | 1u);
+            part.func.successor_keys.push_back(part.end_address | 1u);
+        };
+        add_edges(tr);
+        auto group = collect_thumb_rom_cohort(key, std::move(tr.func), hot_rom_base, hot_rom_size,
+            dynamic_rom_capacity - hot_compiled,
+            [](std::uint32_t target) {
+                const auto it = hot_counts.find(target);
+                return !global_registry().lookup(target) && (it == hot_counts.end() || it->second < 8);
+            }, [&](std::uint32_t target) {
+                const auto address = target & ~1u;
+                const auto remaining = hot_rom_size - (address - hot_rom_base);
+                auto part = translate_thumb_block(hot_rom + address - hot_rom_base,
+                    std::min(primary_window_bytes, remaining), address, nullptr, nullptr, true, false, true);
+                if (!part.entry_supported) return wasm_func_def{};
+                add_edges(part);
+                return std::move(part.func);
+            });
+        if (group.empty()) return;
+        // Earlier pending RAM functions retain their own validated identities.
+        // A ROM group is staged separately with its immutable map owner.
+        flush_hot_blocks();
+        std::vector<wasm_import_func> imports{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
+            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+        if (arm_exclusive_memory) imports.push_back({"env","arm_exclusive",2,false});
+        std::shared_ptr<rom_dispatch_map> map;
+        unsigned composed = 0;
+        auto bytes = build_rom_cohort_module(group, imports, hot_rom_base, hot_rom_size, map, &composed);
+        if (bytes.empty()) { map.reset(); bytes = build_wasm_module(group, imports); }
+        stage_aot_module(std::move(bytes), "hot-rom-cohort", map);
+        instantiate_staged_modules();
+        for (const auto &entry : group) {
+            const auto target = static_cast<std::uint32_t>(std::stoul(entry.export_name.substr(2)));
+            hot_counts[target] = 8;
+        }
+        hot_compiled += static_cast<unsigned>(group.size());
+        if (common::performance::counting() && common::performance::detailed) {
+            exit_census::compilation["dynamic_cohort_entries"] += group.size();
+            exit_census::compilation["dynamic_cohort_composed"] += composed;
+            exit_census::compilation["dynamic_cohort_map_bytes"] += map ? map->bytes() : 0;
+        }
         return;
     }
     if (recycle) {

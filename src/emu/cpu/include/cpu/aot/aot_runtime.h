@@ -45,6 +45,7 @@ namespace eka2l1::arm::aot {
     extern bool rom_bounded_calls;
     extern bool rom_dispatch_enabled;
     extern bool rom_state_cohorts;
+    extern bool dynamic_rom_cohorts;
     // Frozen before execution: verification lookup, trusted cache, quiet outer loop.
     inline unsigned hotpath_policy = 0;
     std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,

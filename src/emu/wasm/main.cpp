@@ -237,7 +237,7 @@ int eka2l1_ir_configure(int mode) {
 // DynCom and generated guards must select the same index before initialization.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_synchronous_compilation_configure(int mode) {
-    if (g_state || mode < 0 || mode > 3) return -1;
+    if (g_state || mode < 0 || mode > 3 || (mode == 3 && eka2l1::arm::aot::dynamic_rom_cohorts)) return -1;
     eka2l1::arm::aot::synchronous_compilation = static_cast<unsigned>(mode);
     return 0;
 }
@@ -381,13 +381,15 @@ int eka2l1_hotpath_report() { return eka2l1::arm::aot::hotpath_policy; }
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_rom_dispatch_configure(int enabled) {
-    if (g_state || enabled < 0 || enabled > 2 || (enabled && eka2l1::arm::aot::rom_bounded_calls)) return -1;
+    if (g_state || enabled < 0 || enabled > 3 || (enabled && eka2l1::arm::aot::rom_bounded_calls)
+        || (enabled == 3 && eka2l1::arm::aot::synchronous_compilation == 3)) return -1;
     eka2l1::arm::aot::rom_dispatch_enabled = enabled != 0;
     eka2l1::arm::aot::rom_state_cohorts = enabled == 2;
+    eka2l1::arm::aot::dynamic_rom_cohorts = enabled == 3;
     return 0;
 }
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_rom_dispatch_report() { return eka2l1::arm::aot::rom_state_cohorts ? 2 : eka2l1::arm::aot::rom_dispatch_enabled; }
+int eka2l1_rom_dispatch_report() { return eka2l1::arm::aot::dynamic_rom_cohorts ? 3 : eka2l1::arm::aot::rom_state_cohorts ? 2 : eka2l1::arm::aot::rom_dispatch_enabled; }
 
 // Eager ROM compilation research control. Ordinary startup keeps basic blocks.
 EMSCRIPTEN_KEEPALIVE

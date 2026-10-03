@@ -4681,6 +4681,66 @@ static bool test_rom_dispatch() {
     return true;
 }
 
+static bool test_dynamic_rom_cohort_discovery() {
+    unsigned checks = 0;
+    const auto body = [](std::size_t bytes = 8) {
+        wasm_func_def f; f.body.resize(bytes, 0); return f;
+    };
+    const auto all = [](std::uint32_t) { return true; };
+    for (unsigned capacity = 0; capacity <= 32; ++capacity) {
+        auto root = body();
+        root.successor_keys = {0x1003, 0x1005, 0x1001, 0x2001, 0x1000, 0x1fff};
+        std::vector<unsigned> translated;
+        const auto result = collect_thumb_rom_cohort(0x1001, std::move(root), 0x1000, 0x1000, capacity,
+            [](unsigned key) { return key != 0x1005; }, [&](unsigned key) {
+                translated.push_back(key);
+                auto f = body();
+                if (key == 0x1003) f.successor_keys = {0x1007, 0x1001, 0x1fff};
+                return f;
+            });
+        const std::vector<unsigned> expected{0x1001, 0x1003, 0x1fff, 0x1007};
+        if (result.size() != std::min<std::size_t>(capacity, expected.size())) return false;
+        for (unsigned i = 0; i < result.size(); ++i)
+            if (result[i].export_name != "f_" + std::to_string(expected[i])) return false;
+        if (translated.size() != (result.empty() ? 0 : result.size() - 1)) return false;
+        ++checks;
+    }
+    for (unsigned capacity = 1; capacity <= 32; ++capacity) {
+        auto root = body(); root.successor_keys = {0x1003};
+        auto result = collect_thumb_rom_cohort(0x1001, std::move(root), 0x1000, 0x1000, capacity, all,
+            [&](unsigned key) { auto f = body(); f.successor_keys = {key + 2}; return f; });
+        if (result.size() != std::min(capacity, 16u)) return false;
+        ++checks;
+    }
+    unsigned calls = 0;
+    auto translate = [&](unsigned) { ++calls; return body(); };
+    for (auto key : {0xfffu, 0x1000u, 0x2001u}) {
+        if (!collect_thumb_rom_cohort(key, body(), 0x1000, 0x1000, 16, all, translate).empty()) return false;
+        ++checks;
+    }
+    if (calls) return false;
+    for (unsigned size : {0u, 1u, 4096u, 4097u}) {
+        auto result = collect_thumb_rom_cohort(0xffffffffu, body(), 0xfffff000u, size, 16, all, translate);
+        if (result.size() != (size == 4096 ? 1u : 0u)) return false;
+        ++checks;
+    }
+    for (unsigned second : {65435u, 65436u, 65437u}) {
+        auto root = body(100); root.successor_keys = {0x1003, 0x1005};
+        auto result = collect_thumb_rom_cohort(0x1001, std::move(root), 0x1000, 0x1000, 16, all,
+            [&](unsigned key) { auto f = body(key == 0x1003 ? second : 2); return f; });
+        const auto expected = second <= 65436 ? 65436u : 2u;
+        if (result.size() != 2 || result[1].body.size() != (expected == 2 ? 2 : second)) return false;
+        ++checks;
+    }
+    auto root = body(); root.successor_keys = {0x1003, 0x1005};
+    auto result = collect_thumb_rom_cohort(0x1001, std::move(root), 0x1000, 0x1000, 16, all,
+        [&](unsigned key) { return key == 0x1003 ? wasm_func_def{} : body(); });
+    if (result.size() != 2 || result[1].export_name != "f_" + std::to_string(0x1005)) return false;
+    ++checks;
+    printf(" PASS dynamic ROM graph (%u extent/capacity/cycle/availability/rejection/byte-bound checks)\n", checks);
+    return true;
+}
+
 static bool test_rom_cohorts() {
 #ifdef __EMSCRIPTEN__
     struct restore {
@@ -6743,6 +6803,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--predicated-leaves-only")return test_predicated_leaves()?0:1;
     if(argc==2 && std::string(argv[1])=="--verification-protection-only")return test_reference_lookup_protection()?0:1;
     if(argc==2 && std::string(argv[1])=="--frozen-cache-only")return test_frozen_code_cache()?0:1;
+    if(argc==2 && std::string(argv[1])=="--dynamic-cohorts-only")return test_dynamic_rom_cohort_discovery() && test_rom_cohorts()?0:1;
     if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=7;argc=1;}
     if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
     if(argc==2 && std::string(argv[1])=="--execution-limits-only")return test_execution_limits() && test_inline_limits()?0:1;
@@ -7373,6 +7434,7 @@ int main(int argc, char **argv) {
     if (test_bounded_rom_calls()) passed++; else failed++;
     if (test_rom_dispatch()) passed++; else failed++;
     if (test_rom_cohorts()) passed++; else failed++;
+    if (test_dynamic_rom_cohort_discovery()) passed++; else failed++;
     if (test_rom_leaf_extent()) passed++; else failed++;
     if (test_registry_lookup_lifecycle()) passed++; else failed++;
     if (test_arm_short_block_memory()) passed++; else failed++;

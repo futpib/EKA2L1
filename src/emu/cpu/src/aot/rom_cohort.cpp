@@ -208,6 +208,39 @@ namespace {
     }
 }
 
+std::vector<wasm_func_def> collect_thumb_rom_cohort(
+    std::uint32_t root_key, wasm_func_def root,
+    std::uint32_t base, std::uint32_t size, unsigned remaining_capacity,
+    const std::function<bool(std::uint32_t)> &available,
+    const std::function<wasm_func_def(std::uint32_t)> &translate) {
+    const auto valid_key = [&](std::uint32_t key) {
+        if (!(key & 1) || !size || std::uint64_t(base) + size > (std::uint64_t{1} << 32)) return false;
+        const auto pc = key & ~1u;
+        return pc >= base && std::uint64_t(pc) + 2 <= std::uint64_t(base) + size;
+    };
+    if (!remaining_capacity || !valid_key(root_key) || root.body.empty()) return {};
+    root.export_name = "f_" + std::to_string(root_key);
+    std::vector<wasm_func_def> result;
+    result.push_back(std::move(root));
+    std::set<std::uint32_t> visited{root_key};
+    std::size_t bytes = result.front().body.size();
+    const auto limit = std::min(16u, remaining_capacity);
+    for (std::size_t i = 0; i < result.size() && result.size() < limit; ++i) {
+        // Appending can reallocate result, so copy this bounded edge list first.
+        const auto successors = result[i].successor_keys;
+        for (auto key : successors) {
+            if (result.size() == limit || bytes >= 65536) break;
+            if (!valid_key(key) || !visited.insert(key).second || !available(key)) continue;
+            auto next = translate(key);
+            if (next.body.empty() || next.body.size() > 65536 - bytes) continue;
+            next.export_name = "f_" + std::to_string(key);
+            bytes += next.body.size();
+            result.push_back(std::move(next));
+        }
+    }
+    return result;
+}
+
 std::vector<std::uint8_t> build_rom_cohort_module(
     const std::vector<wasm_func_def> &input,const std::vector<wasm_import_func> &imports,
     std::uint32_t base,std::uint32_t size,std::shared_ptr<rom_dispatch_map> &map,unsigned *composed_entries) {

@@ -358,7 +358,7 @@ namespace eka2l1::arm::aot {
         const auto emission_start = std::chrono::steady_clock::now();
         std::vector<std::uint8_t> wasm_bytes;
         std::shared_ptr<rom_dispatch_map> dispatch_map;
-        if (rom_dispatch_enabled && chaining_enabled && !rom_bounded_calls) {
+        if (rom_dispatch_enabled && !dynamic_rom_cohorts && chaining_enabled && !rom_bounded_calls) {
             if (rom_state_cohorts) {
                 unsigned composed = 0;
                 wasm_bytes = build_rom_cohort_module(all_funcs, imports, rom_base, rom_size, dispatch_map, &composed);
