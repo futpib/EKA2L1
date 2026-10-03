@@ -46,7 +46,8 @@ namespace eka2l1::arm::aot {
     extern bool rom_dispatch_enabled;
     extern bool rom_state_cohorts;
     extern bool dynamic_rom_cohorts;
-    // Frozen before execution: verification lookup, trusted cache, quiet outer loop.
+    // Frozen before execution: bits 1/2/4 select verification lookup, trusted cache, quiet outer loop;
+    // bit 8 selects the sparse immutable-ROM registry index.
     inline unsigned hotpath_policy = 0;
     std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
         std::uint32_t base, std::uint32_t size, std::uint32_t target);

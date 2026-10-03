@@ -23,6 +23,7 @@
 #include <array>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -60,7 +61,16 @@ namespace eka2l1::arm::aot {
             return ((address >> 1) ^ (address << 7)) & 4095;
         }
 
+        // Optional exact index for immutable ROM keys. Allocate a page only
+        // when an entry is registered; ARM and Thumb tags retain separate slots.
+        using rom_page = std::array<aot_func, 4096>;
+        std::vector<std::unique_ptr<rom_page>> rom_pages_;
+        std::uint32_t rom_base_ = 0, rom_size_ = 0;
+        void index_rom(std::uint32_t address, aot_func function);
+
     public:
+        void configure_rom_index(std::uint32_t base, std::uint32_t size, bool enabled);
+        std::size_t rom_index_bytes() const;
         void register_function(std::uint32_t arm_address, aot_func func);
         void unregister_function(std::uint32_t arm_address);
         void clear();

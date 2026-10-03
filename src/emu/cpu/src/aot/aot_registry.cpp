@@ -30,13 +30,38 @@
 namespace eka2l1::arm::aot {
     // --- registry ---
 
+    void registry::index_rom(std::uint32_t address, aot_func function) {
+        if (address < rom_base_ || std::uint64_t(address) - rom_base_ >= rom_size_) return;
+        const auto offset = address - rom_base_;
+        auto &page = rom_pages_[offset >> 12];
+        if (!page && function) page = std::make_unique<rom_page>();
+        if (page) (*page)[offset & 4095] = function;
+    }
+
+    void registry::configure_rom_index(std::uint32_t base, std::uint32_t size, bool enabled) {
+        rom_pages_.clear(); rom_base_ = 0; rom_size_ = 0;
+        // Reject overflowing extents instead of aliasing low addresses.
+        if (!enabled || !size || std::uint64_t(base) + size > (std::uint64_t(1) << 32)) return;
+        rom_base_ = base; rom_size_ = size;
+        rom_pages_.resize((std::uint64_t(size) + 4095) >> 12);
+        for (const auto &[address, function] : functions_) index_rom(address, function);
+    }
+
+    std::size_t registry::rom_index_bytes() const {
+        std::size_t bytes = rom_pages_.size() * sizeof(rom_pages_[0]);
+        for (const auto &page : rom_pages_) if (page) bytes += sizeof(rom_page);
+        return bytes;
+    }
+
     void registry::register_function(std::uint32_t arm_address, aot_func func) {
         functions_[arm_address] = func;
+        index_rom(arm_address, func);
         recent_[recent_index(arm_address)] = {arm_address, func};
     }
 
     void registry::unregister_function(std::uint32_t arm_address) {
         functions_.erase(arm_address);
+        index_rom(arm_address, nullptr);
         auto &slot = recent_[recent_index(arm_address)];
         if (slot.address == arm_address) slot = {};
     }
@@ -44,9 +69,15 @@ namespace eka2l1::arm::aot {
     void registry::clear() {
         functions_.clear();
         recent_.fill({});
+        for (auto &page : rom_pages_) page.reset();
     }
 
     aot_func registry::lookup(std::uint32_t arm_address) const {
+        if (arm_address >= rom_base_ && std::uint64_t(arm_address) - rom_base_ < rom_size_) {
+            const auto offset = arm_address - rom_base_;
+            const auto &page = rom_pages_[offset >> 12];
+            return page ? (*page)[offset & 4095] : nullptr;
+        }
         auto &slot = recent_[recent_index(arm_address)];
         if (slot.function && slot.address == arm_address) return slot.function;
         auto it = functions_.find(arm_address);
