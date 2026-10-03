@@ -1,0 +1,2812 @@
+{
+  "baseline_commit": "5b823fb48",
+  "implementation_commit": "a227e2289",
+  "artifact_directory": "/home/claude/.scratch/eka-batched-counts",
+  "plan": {
+    "hypothesis": "Generic deferred instruction accounting removes runtime counter updates through straight-line code, predicated instructions, inlined calls and loops, materializing at control-flow edges and observing exact prefixes on cold exits. Compare policies 17 and 18 in the same binary.",
+    "source_baseline": "5b823fb48",
+    "variants": {
+      "control": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build",
+        "EKA2L1_AOT_IR_MODE": "17"
+      },
+      "candidate": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build",
+        "EKA2L1_AOT_IR_MODE": "18"
+      }
+    },
+    "replays": [
+      {
+        "game": "standard",
+        "variant": "candidate"
+      },
+      {
+        "game": "combat",
+        "variant": "candidate"
+      }
+    ],
+    "timings": [
+      {
+        "game": "standard",
+        "variant": "control"
+      },
+      {
+        "game": "standard",
+        "variant": "candidate"
+      },
+      {
+        "game": "standard",
+        "variant": "candidate"
+      },
+      {
+        "game": "standard",
+        "variant": "control"
+      },
+      {
+        "game": "combat",
+        "variant": "control"
+      },
+      {
+        "game": "combat",
+        "variant": "candidate"
+      },
+      {
+        "game": "combat",
+        "variant": "candidate"
+      },
+      {
+        "game": "combat",
+        "variant": "control"
+      }
+    ],
+    "profiles": [],
+    "decision_rule": "Require exact replay and compiler/fault correctness. Initial serial ABBA panel in both games; pursue a useful (roughly 3 percent) gain repeated in both pairs. If noisy/mixed, one predeclared BAAB confirmation pooling all observations. Keep opt-in if no repeated useful speedup. No profiler, correctness or build work overlaps timings."
+  },
+  "source_patch": "--- a/src/emu/cpu/include/cpu/aot/arm_translator.h\n+++ b/src/emu/cpu/include/cpu/aot/arm_translator.h\n@@ -36,14 +36,14 @@\n     }\n     // Research selection at translation time; compile-time feature gates still\n     // apply. configured preserves the build's current behavior.\n-    enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2, outlined_recipes = 3, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6, write_budget_chunks = 7, deferred_chunk_counts = 8, invariant_read_ir = 9, invariant_read_flag_ir = 10, inline_call_ir = 11, invariant_write_ir = 12, conditional_value_ir = 13, long_segments_ir = 14, stack_values_ir = 15, budget_gaps_ir = 16, loop_budget_chunks = 17 };\n+    enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2, outlined_recipes = 3, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6, write_budget_chunks = 7, deferred_chunk_counts = 8, invariant_read_ir = 9, invariant_read_flag_ir = 10, inline_call_ir = 11, invariant_write_ir = 12, conditional_value_ir = 13, long_segments_ir = 14, stack_values_ir = 15, budget_gaps_ir = 16, loop_budget_chunks = 17, batched_instruction_counts = 18 };\n \n     inline bool parse_arm_ir_policy(const char *text, arm_ir_policy &out) {\n         if (!text) return false;\n         if (text[0] >= '0' && text[0] <= '9' && !text[1]) {\n             out = static_cast<arm_ir_policy>(text[0] - '0'); return true;\n         }\n-        if (text[0] == '1' && (text[1] >= '0' && text[1] <= '7') && !text[2]) {\n+        if (text[0] == '1' && (text[1] >= '0' && text[1] <= '8') && !text[2]) {\n             out = static_cast<arm_ir_policy>(10 + text[1] - '0'); return true;\n         }\n         return false;\n--- a/src/emu/cpu/src/aot/arm_translator.cpp\n+++ b/src/emu/cpu/src/aot/arm_translator.cpp\n@@ -73,16 +73,21 @@\n         bool entry_supported = true;\n         bool unsupported = false;\n         std::uint32_t bail_count = 0;\n-        // Offset within an entry-proved straight-line chunk. Cold exits consume\n-        // it without changing the representation on the successful path.\n+        // Deferred lexical instructions since the last count materialization.\n+        // Cold exits consume this offset without changing the fallthrough path.\n         unsigned count_offset = 0;\n         void count_value() {\n             get_local(COUNT);\n             if (count_offset) { i32_const(count_offset); op(op_i32_add); }\n         }\n+        // A taken edge publishes its count; emitting it must not reset the\n+        // compiler offset still needed by an untaken conditional branch.\n+        void edge_count() {\n+            if (!count_offset) return;\n+            count_value(); set_local(COUNT);\n+        }\n         void commit_count() {\n-            if (!count_offset) return;\n-            count_value(); set_local(COUNT); count_offset = 0;\n+            edge_count(); count_offset = 0;\n         }\n         // A straight-line long-multiply value can represent two guest registers.\n         // Exits reconstruct their exact halves; control/helper boundaries end\n@@ -1133,8 +1138,9 @@\n         const bool budget_gaps_ir = ir_policy == arm_ir_policy::budget_gaps_ir;\n         if (long_ir_segments || stack_ir_values || budget_gaps_ir) ir_policy = arm_ir_policy::conditional_value_ir;\n         // Policy 17 adds iteration proofs to policy 7's original lowering.\n-        // The browser launcher selects it by default; policy 7 remains available.\n-        const bool loop_budgets = ir_policy == arm_ir_policy::loop_budget_chunks;\n+        // Policy 18 also batches counts independently of those budget proofs.\n+        const bool batch_counts = ir_policy == arm_ir_policy::batched_instruction_counts;\n+        const bool loop_budgets = ir_policy == arm_ir_policy::loop_budget_chunks || batch_counts;\n         if (loop_budgets) ir_policy = arm_ir_policy::write_budget_chunks;\n         region = region && bounded;\n         // Bounded blocks exit on branches instead of recursively calling siblings.\n@@ -1778,7 +1784,7 @@\n             if (instruction_index < skip_segment_until) continue;\n             // Flush fallthrough before closing labels: a taken edge must not\n             // inherit the lexical predecessor's pending instruction count.\n-            if (instruction_index >= budget_chunk_end) w.commit_count();\n+            if (!batch_counts && instruction_index >= budget_chunk_end) w.commit_count();\n             // Opcode emitters commonly continue the outer loop. Close the\n             // fallback at the next lexical boundary so all such paths join.\n             if (segment_end && segment_end == instruction_index) {\n@@ -1812,6 +1818,10 @@\n                 for(std::size_t n=0;n<leaf_forward_targets.size();++n){w.op(op_block);w.op(type_void);}\n             }\n             const bool leaf_join=instruction.leaf && std::binary_search(leaf_forward_targets.begin(),leaf_forward_targets.end(),insn_addr);\n+            if (batch_counts && (leaf_join || (!instruction.leaf && forward_targets_set.count(insn_addr))\n+                    || (direct_loop && !instruction.leaf && insn_addr == loop_start)\n+                    || (inner_loop_open && !instruction.leaf && insn_addr > loop_last)))\n+                w.commit_count();\n             w.census_pc=insn_addr;w.census_opcode=inst;\n             const auto refusal=exit_census::enabled && !instruction.leaf && refusals.count(i)?refusals.at(i):exit_census::leaf_refusal{};\n             w.census_constraint=instruction.leaf && (inst&0xff000000u)==0xeb000000u?8:refusal.constraint;\n@@ -1885,18 +1895,18 @@\n                 const auto length = budget_chunk->second;\n                 // COUNT never exceeds the budget. Loop proofs run before the\n                 // first charge, so zero/short budgets enter the precise callee.\n-                w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);\n+                w.load_i32(S::AOT_BUDGET); w.count_value(); w.op(op_i32_sub);\n                 w.i32_const(length - (charged ? 1 : 0)); w.op(op_i32_lt_u);\n                 w.op(op_if); w.op(type_void);\n                 if (charged) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); }\n                 w.store_i32_const(S::PC, insn_addr);\n                 w.cache.barrier_at(w.b.size());\n-                w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);\n+                w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.count_value(); w.op(op_i32_sub);\n                 w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);\n                 w.state_ptr(); w.op(op_call);\n                 const auto call_offset = static_cast<std::uint32_t>(w.b.size());\n                 w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});\n-                w.get_local(arm_emit::COUNT); w.op(op_i32_add);\n+                w.count_value(); w.op(op_i32_add);\n                 w.state_ptr(); w.load_i32(S::AOT_BUDGET);\n                 w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);\n                 w.op(op_return); w.op(op_end);\n@@ -1905,7 +1915,8 @@\n                     words.push_back(instructions[instruction_index + n].opcode);\n                 auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),\n                     words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,\n-                    true, true, nullptr, defer_memory, false);\n+                    true, true, nullptr, defer_memory, false,\n+                    batch_counts ? arm_ir_policy::batched_instruction_counts : arm_ir_policy::configured);\n                 precise.func.export_name += \"_budget_short\";\n                 result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});\n                 budget_chunk_end = instruction_index + length;\n@@ -1935,7 +1946,7 @@\n                 const bool check_budget = instruction_index >= budget_chunk_end && !loop_budget_chunk;\n                 if (check_budget) {\n                     w.load_i32(S::AOT_BUDGET);\n-                    if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);\n+                    if (region) w.count_value(); else w.i32_const(insn_idx);\n                     w.op(op_i32_le_u);\n                 }\n                 if (region && check_exit) {\n@@ -1951,7 +1962,7 @@\n                     ++tr.loop_budget_chunks;\n                 }\n                 if (region) {\n-                    if (ir_policy == arm_ir_policy::deferred_chunk_counts && instruction_index < budget_chunk_end) {\n+                    if (batch_counts || (ir_policy == arm_ir_policy::deferred_chunk_counts && instruction_index < budget_chunk_end)) {\n                         ++w.count_offset; ++tr.deferred_count_updates;\n                     } else {\n                         w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(arm_emit::COUNT);\n@@ -2121,6 +2132,7 @@\n                         continue;\n                     }\n                     const auto target_index=static_cast<std::size_t>(std::lower_bound(leaf_forward_targets.begin(),leaf_forward_targets.end(),target)-leaf_forward_targets.begin());\n+                    w.edge_count();\n                     w.op(op_br);leb(result.body,static_cast<unsigned>(target_index-leaf_closed)+(cond_opened?1:0));\n                     if(cond_opened)w.op(op_end);\n                     ++insn_idx;decoded_end_offset=static_cast<std::uint32_t>(i)+4;\n@@ -2162,6 +2174,7 @@\n                 if (fit != fwd_idx.end() && target > insn_addr) {\n                     // Forward branch: br to the appropriate block depth\n                     std::uint32_t depth = fit->second - closed_count + (cond_opened ? 1 : 0) + (inner_loop_open ? 1 : 0);\n+                    w.edge_count();\n                     w.op(op_br);\n                     leb(result.body, depth);\n                     if (cond_opened) w.op(op_end);\n@@ -2178,6 +2191,7 @@\n                     // Backward branch within block: br to loop\n                     std::uint32_t loop_depth = direct_loop ? w.scope_depth - direct_loop_depth\n                         : N_fwd - closed_count + (cond_opened ? 1 : 0); // loop is right after blocks\n+                    w.edge_count();\n                     w.op(op_br);\n                     leb(result.body, loop_depth);\n                     if (cond_opened) w.op(op_end);\n@@ -3147,7 +3161,8 @@\n                 + (w.cache.shared_return ? 2 : 0);\n             auto fallback = translate_arm_block_impl(code, code_size, start_address,\n                 siblings, dll_code, bounded, stop_after_store, cache_registers,\n-                region, leaves, defer_memory, false);\n+                region, leaves, defer_memory, false,\n+                batch_counts ? arm_ir_policy::batched_instruction_counts : arm_ir_policy::configured);\n             fallback.func.export_name += \"_memory_fallback\";\n             result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));\n         }\n--- a/src/emu/wasm/main.cpp\n+++ b/src/emu/wasm/main.cpp\n@@ -213,7 +213,7 @@\n // CPU. Selection is frozen before guest translation starts.\n EMSCRIPTEN_KEEPALIVE\n int eka2l1_ir_configure(int mode) {\n-    if (g_state || mode < -1 || mode > 17) return -1;\n+    if (g_state || mode < -1 || mode > 18) return -1;\n #ifdef EKA2L1_WASM_CODE_VERSIONS\n #if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)\n     if (mode >= 4 && !(mode == 7 && eka2l1::common::code_tracking::protect_writes)) return -2;\n--- a/src/tests/aot/test_aot_wasm.cpp\n+++ b/src/tests/aot/test_aot_wasm.cpp\n@@ -2296,7 +2296,7 @@\n }\n \n // Pending interrupts must exit at a taken loop backedge with precise state.\n-static bool test_region_loop_interrupts() {\n+static bool test_region_loop_interrupts(arm_ir_policy policy = arm_ir_policy::configured) {\n #ifdef __EMSCRIPTEN__\n     const std::vector<std::vector<std::uint32_t>> programs = {\n         {0xe2800001,0xeafffffd},\n@@ -2306,7 +2306,7 @@\n     for (unsigned kind = 0; kind < programs.size(); ++kind) {\n         const auto &words = programs[kind];\n         auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words.data()),\n-            words.size()*4, 0x1000, nullptr, nullptr, true, true, true, true);\n+            words.size()*4, 0x1000, nullptr, nullptr, true, true, true, true, nullptr, false, policy);\n         auto module = build_wasm_module({tr.func}, {{\"env\",\"tlb_read32\",2,true},\n             {\"env\",\"tlb_write32\",3,false},{\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},\n             {\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n@@ -2334,11 +2334,11 @@\n }\n \n // A guest alias must not let a region execute code overwritten by an inline store.\n-static bool test_region_code_alias() {\n+static bool test_region_code_alias(arm_ir_policy policy = arm_ir_policy::configured) {\n #ifdef __EMSCRIPTEN__\n     for (bool block_store : {false, true}) {\n     const std::uint32_t words[] = {block_store ? 0xe8a10009u : 0xe5810004u,0xe2822001,0xeafffffc};\n-    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);\n+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,false,policy);\n     auto module = build_wasm_module({tr.func}, {{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},\n         {\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n     for (unsigned address : {0x1000u,0x8000u}) {\n@@ -2363,7 +2363,7 @@\n     // the same physical bytes; stores must remain visible to later loads.\n     const std::uint32_t alias_words[] = {0xe5810000,0xe5952000,0xe5812004,0xe5953004};\n     auto alias_tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(alias_words),\n-        sizeof(alias_words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);\n+        sizeof(alias_words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,policy);\n     auto alias_module = build_wasm_module({alias_tr.func}, {{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},\n         {\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n     for (bool code_alias : {false,true}) for (unsigned budget=0;budget<=5;++budget) {\n@@ -2426,7 +2426,7 @@\n #if defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)\n         // Policy 7 uses deferred memory and budget chunks, not the IR proof\n         // backend required by the older selections exercised here.\n-        if (policy != arm_ir_policy::write_budget_chunks && deferred\n+        if (policy != arm_ir_policy::write_budget_chunks && policy != arm_ir_policy::batched_instruction_counts && deferred\n             && words.size() >= 5 && !tr.ir_memory_guards && !tr.ir_proved_writes) {\n             printf(\"  FAIL inlined memory leaf did not select IR guards\\n\"); return false;\n         }\n@@ -2473,11 +2473,11 @@\n     return true;\n }\n \n-static bool test_region_cpsr_callback() {\n+static bool test_region_cpsr_callback(arm_ir_policy policy = arm_ir_policy::configured) {\n #ifdef __EMSCRIPTEN__\n     const std::uint32_t code[] = {0xE128F000u, 0xE5912000u, 0xE2833001u};\n     auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(code), sizeof(code),\n-        0x1000, nullptr, nullptr, true, true, true, true);\n+        0x1000, nullptr, nullptr, true, true, true, true, nullptr, false, policy);\n     auto module = build_wasm_module({tr.func}, {{\"env\",\"tlb_read32\",2,true},\n         {\"env\",\"tlb_write32\",3,false},{\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},\n         {\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n@@ -2497,7 +2497,7 @@\n     printf(\"  PASS region_cpsr_callback\\n\"); return true;\n }\n \n-static bool test_compiled_memory_misses() {\n+static bool test_compiled_memory_misses(arm_ir_policy policy = arm_ir_policy::write_budget_chunks) {\n #ifdef __EMSCRIPTEN__\n     namespace tracking = eka2l1::common::code_tracking;\n     const auto saved_mode=tracking::unsafe_code_mode;\n@@ -2517,7 +2517,7 @@\n         std::vector<std::uint8_t> modules[2];\n         for(unsigned variant=0;variant<2;++variant) {\n             compiled_memory_misses=variant;\n-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,arm_ir_policy::write_budget_chunks);\n+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,policy);\n             modules[variant]=build_wasm_module({tr.func},{{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},{\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n         }\n         for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})\n@@ -2551,7 +2551,7 @@\n         std::array<unsigned,256> states[2]{};int counts[2];std::array<unsigned,4> observations[2]{};\n         for(unsigned variant=0;variant<2;++variant) {\n             compiled_memory_misses=variant;\n-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,arm_ir_policy::write_budget_chunks);\n+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,policy);\n             auto module=build_wasm_module({tr.func},{{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},{\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n             auto &v=states[variant];v[1]=0x8000;v[6]=0x87654321;v[7]=0x12345678;v[15]=0x1000;\n             v[state_offsets::CPSR/4]=0x10;v[state_offsets::AOT_BUDGET/4]=3;v[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;v[state_offsets::NIRQ/4]=1;\n@@ -3076,13 +3076,13 @@\n         {0xe2877001,0xe3560000,0x0a00003c,0xe2888001,0x1891000c,0x15812008,0xe2566001,0x1afffff8,0xe1a00003,0xe12fff1e},\n     };\n     unsigned checks = 0;\n-    for (auto policy : {arm_ir_policy::write_budget_chunks, arm_ir_policy::loop_budget_chunks})\n+    for (auto policy : {arm_ir_policy::write_budget_chunks, arm_ir_policy::loop_budget_chunks, arm_ir_policy::batched_instruction_counts})\n     for (unsigned p = 0; p < programs.size(); ++p) {\n         const auto &code = programs[p];\n         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());\n         auto tr = translate_arm_block(bytes, code.size()*4, 0x1000,\n             nullptr,nullptr,true,true,true,true,nullptr,true,policy);\n-        const bool selected = policy == arm_ir_policy::loop_budget_chunks;\n+        const bool selected = policy != arm_ir_policy::write_budget_chunks;\n         if (tr.loop_budget_chunks != unsigned(selected) || (selected && tr.func.outlined_calls.empty())) {\n             printf(\" FAIL loop budget selection policy=%d program=%u loops=%u\\n\",int(policy),p,tr.loop_budget_chunks); return false;\n         }\n@@ -3152,8 +3152,93 @@\n     if (selected.loop_budget_chunks != 1) { printf(\" FAIL loop policy missed straight loop\\n\"); return false; }\n     arm_ir_policy parsed = arm_ir_policy::configured;\n     if (!parse_arm_ir_policy(\"17\",parsed) || parsed != arm_ir_policy::loop_budget_chunks\n-        || parse_arm_ir_policy(\"18\",parsed)) { printf(\" FAIL loop policy parsing\\n\"); return false; }\n+        || !parse_arm_ir_policy(\"18\",parsed) || parsed != arm_ir_policy::batched_instruction_counts\n+        || parse_arm_ir_policy(\"19\",parsed)) { printf(\" FAIL loop policy parsing\\n\"); return false; }\n     printf(\" PASS loop_budget_chunks (%u exact interpreter state/memory/budget comparisons)\\n\",checks);\n+#endif\n+    return true;\n+}\n+\n+// Count batching is independent of loop/chunk selection. Compare all state,\n+// effects and helper calls with the existing policy across different paths,\n+// including short blocks, interior entries, precise fallbacks and cold exits.\n+static bool test_batched_instruction_counts() {\n+#ifdef __EMSCRIPTEN__\n+    std::vector<std::vector<std::uint32_t>> programs = {\n+        {0xe2800001,0xe2822001},\n+        {0xe2800001,0xe5912000,0xe2833001},\n+        {0xe2800001,0xe5812000,0xe2833001},\n+        {0xe2800001,0xe3560000,0x0a000001,0xe2822001,0xea000000,0xe2833001,0xe2844001,0xe12fff1e},\n+        {0xe2800001,0xeafffffd},\n+        {0xe2800001,0xe3560000,0x0a000001,0xe2566001,0xeafffffa,0xe2844001,0xe12fff1e},\n+        {0xe2800001,0xe2566001,0x1afffffc,0xe2877001,0xe2888001,0xe12fff1e},\n+        {0xe2800001,0x05912000,0x12833001,0xe2844001,0xe12fff1e},\n+        {0xe2800001,0xe891000c,0xe2833001,0xe12fff1e},\n+        {0xe2800001,0xe3560000,0x0a00003c,0xe2822001,0xe12fff1e},\n+        {0xe2800001,0x0e000000,0xe2822001,0xe12fff1e},\n+    };\n+    // Cross several budget chunks without a control-flow merge.\n+    std::vector<std::uint32_t> long_program(70,0xe2800001);\n+    long_program[34]=0xe5912000;\n+    programs.push_back(long_program);\n+    unsigned checks=0;\n+    for (bool deferred : {false,true}) for (bool cached : {false,true})\n+    for (unsigned p=0;p<programs.size();++p) {\n+        const auto &code=programs[p];\n+        std::vector<std::uint8_t> modules[2];\n+        for (unsigned variant=0;variant<2;++variant) {\n+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,\n+                0x1000,nullptr,nullptr,true,true,cached,true,nullptr,deferred,\n+                variant ? arm_ir_policy::batched_instruction_counts : arm_ir_policy::loop_budget_chunks);\n+            if (variant && !tr.deferred_count_updates) {printf(\" FAIL missing count batching\\n\");return false;}\n+            modules[variant]=build_wasm_module({tr.func},{{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},\n+                {\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n+        }\n+        for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0x1000u})\n+        for (unsigned permission : {0u,3u}) for (unsigned selector : {0u,2u})\n+        for (unsigned event : {0u,1u,2u})\n+        for (unsigned budget : {0u,1u,2u,3u,4u,5u,7u,8u,16u,31u,32u,33u,35u,65u,71u}) {\n+            test_mem memory;\n+            memory.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(code.data()),\n+                reinterpret_cast<const std::uint8_t*>(code.data())+code.size()*4});\n+            memory.write32(0x8000,0x12345678);memory.write32(0x8004,0x87654321);\n+            const auto initial=memory.data;\n+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);\n+            tlb.add(0x8000,memory.data.data()+0x8000,permission);\n+            tlb.add(0x1000,memory.data.data()+0x1000,permission);\n+            std::array<unsigned,256> states[2]{};\n+            int counts[2];unsigned helpers[2];std::vector<std::uint8_t> outputs[2];\n+            for (unsigned variant=0;variant<2;++variant) {\n+                std::copy(initial.begin(),initial.end(),memory.data.begin());\n+                auto &state=states[variant];\n+                for (unsigned r=0;r<16;++r) state[r]=0x120+r;\n+                state[1]=address;state[6]=selector;state[14]=0x1100;state[15]=0x1000;\n+                state[state_offsets::CPSR/4]=0xa0000010|(selector ? 0x40000000u : 0);\n+                state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=1;\n+                state[state_offsets::ZFLAG/4]=selector!=0;state[state_offsets::MODE/4]=16;\n+                state[state_offsets::AOT_BUDGET/4]=budget;\n+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=budget;\n+                state[state_offsets::NIRQ/4]=event!=0;state[state_offsets::AOT_EXIT/4]=event==2;\n+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);\n+                state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);\n+                state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+code.size()*4;\n+                g_test_mem=&memory;g_all_memory_helper_calls=0;\n+                counts[variant]=js_run_aot_wasm(modules[variant].data(),modules[variant].size(),\n+                    reinterpret_cast<std::uint8_t*>(state.data()),sizeof(state));\n+                g_test_mem=nullptr;helpers[variant]=g_all_memory_helper_calls;outputs[variant]=memory.data;\n+            }\n+            if(counts[0]<0 || counts[0]!=counts[1] || states[0]!=states[1]\n+                || helpers[0]!=helpers[1] || outputs[0]!=outputs[1]) {\n+                printf(\" FAIL batched counts program=%u deferred=%u cached=%u addr=%x perm=%u selector=%u event=%u budget=%u counts=%d/%d\\n\",\n+                    p,deferred,cached,address,permission,selector,event,budget,counts[0],counts[1]);\n+                for(unsigned r=0;r<states[0].size();++r)if(states[0][r]!=states[1][r])\n+                    printf(\" state[%u]=%x/%x\\n\",r,states[0][r],states[1][r]);\n+                return false;\n+            }\n+            ++checks;\n+        }\n+    }\n+    printf(\" PASS batched instruction counts (%u exact state/memory/helper/progress comparisons)\\n\",checks);\n #endif\n     return true;\n }\n@@ -6141,7 +6226,7 @@\n     return true;\n }\n \n-static bool test_expanded_leaves(bool always=false) {\n+static bool test_expanded_leaves(bool always=false, arm_ir_policy policy=arm_ir_policy::write_budget_chunks) {\n #ifdef __EMSCRIPTEN__\n     struct restore {bool flag=predicated_leaves;unsigned features=leaf_features;std::string limits=execution_limits_text();\n         ~restore(){predicated_leaves=flag;leaf_features=features;parse_execution_limits(limits.c_str());}} saved;\n@@ -6156,8 +6241,8 @@\n             return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};\n         auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,\n             nullptr,nullptr,true,false,true,true,&resolver,true,policy);};\n-        predicated_leaves=false;if(!translate(arm_ir_policy::write_budget_chunks).dependencies.empty())return false;\n-        predicated_leaves=true;auto tr=translate(arm_ir_policy::write_budget_chunks);\n+        predicated_leaves=false;if(!translate(policy).dependencies.empty())return false;\n+        predicated_leaves=true;auto tr=translate(policy);\n         if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;\n         auto module=build_wasm_module({tr.func},{{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},\n             {\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n@@ -6198,7 +6283,7 @@\n     }\n     for(unsigned op:{0xeafffffeu,0xea000004u,0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {\n         unsigned leaf[]={op,0xe12fff1e};leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};\n-        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);\n+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);\n         if(!tr.dependencies.empty()){printf(\" FAIL unsafe expanded leaf accepted %x\\n\",op);return false;}\n     }\n \n@@ -6209,7 +6294,7 @@\n     const unsigned twice[]={0xeb0003feu,0xe1a00006u,0xe1a02007u,0xeb0003fbu,0xe2888001u};\n     leaf_resolver lookup_resolver=[&](unsigned pc){const auto *p=reinterpret_cast<const std::uint8_t*>(lookup);\n         return pc==0x2000?std::vector<std::uint8_t>(p,p+sizeof(lookup)):std::vector<std::uint8_t>{};};\n-    auto lookup_translate=[&](){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(twice),sizeof(twice),0x1000,nullptr,nullptr,true,false,true,true,&lookup_resolver,true,arm_ir_policy::write_budget_chunks);};\n+    auto lookup_translate=[&](){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(twice),sizeof(twice),0x1000,nullptr,nullptr,true,false,true,true,&lookup_resolver,true,policy);};\n     predicated_leaves=true;\n     for(unsigned limit:{16u,32u})for(unsigned mask=0;mask<8;++mask) {\n         leaf_instruction_limit=limit;leaf_features=mask;\n@@ -6249,7 +6334,7 @@\n     return true;\n }\n \n-static bool test_predicated_leaves() {\n+static bool test_predicated_leaves(arm_ir_policy policy = arm_ir_policy::write_budget_chunks) {\n #ifdef __EMSCRIPTEN__\n     struct restore {bool flag=predicated_leaves;std::string limits=execution_limits_text();\n         ~restore(){predicated_leaves=flag;parse_execution_limits(limits.c_str());}} saved;\n@@ -6263,8 +6348,8 @@\n             return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};\n         auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,\n             nullptr,nullptr,true,false,true,true,&resolver,true,policy);};\n-        predicated_leaves=false;if(!translate(arm_ir_policy::write_budget_chunks).dependencies.empty())return false;\n-        predicated_leaves=true;auto tr=translate(arm_ir_policy::write_budget_chunks);\n+        predicated_leaves=false;if(!translate(policy).dependencies.empty())return false;\n+        predicated_leaves=true;auto tr=translate(policy);\n         if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;\n         auto module=build_wasm_module({tr.func},{{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},\n             {\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n@@ -6305,7 +6390,7 @@\n     }\n     for(unsigned op:{0x15910000u,0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {\n         unsigned leaf[]={op,0xe12fff1e};leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};\n-        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);\n+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);\n         if(!tr.dependencies.empty()){printf(\" FAIL unsafe predicated leaf accepted %x\\n\",op);return false;}\n     }\n     printf(\" PASS predicated leaves (%u exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\\n\",checks);\n@@ -6633,7 +6718,7 @@\n }\n \n \n-static bool test_compiled_svc_boundary() {\n+static bool test_compiled_svc_boundary(arm_ir_policy policy = arm_ir_policy::configured) {\n     const auto saved=compiled_svc_enabled;compiled_svc_enabled=true;unsigned checks=0;\n #ifdef __EMSCRIPTEN__\n     for(unsigned thumb:{0u,1u})for(unsigned page:{0u,1u})for(unsigned region:{0u,1u})\n@@ -6642,7 +6727,7 @@\n         const unsigned width=thumb?2:4,pc=page?0x2000-width:0x1000;\n         const unsigned arm=(cond<<28)|0x0f123456;const std::uint16_t narrow=0xdf56;\n         auto tr=thumb?translate_thumb_block(reinterpret_cast<const unsigned char*>(&narrow),2,pc,nullptr,nullptr,true,false,true)\n-            :translate_arm_block(reinterpret_cast<const unsigned char*>(&arm),4,pc,nullptr,nullptr,true,false,true,region);\n+            :translate_arm_block(reinterpret_cast<const unsigned char*>(&arm),4,pc,nullptr,nullptr,true,false,true,region,nullptr,false,policy);\n         auto module=build_wasm_module({tr.func},{});\n         alignas(8) std::uint32_t state[256]{};state[15]=pc;\n         state[state_offsets::CPSR/4]=16|(thumb?32:0)|(nzcv<<28);\n@@ -6916,6 +7001,19 @@\n     if(argc==2 && std::string(argv[1])==\"--dynamic-cohorts-only\")return test_dynamic_rom_cohort_discovery() && test_rom_cohorts()?0:1;\n     if(argc==2 && std::string(argv[1])==\"--hotpaths\") {hotpath_policy=7;argc=1;}\n     if(argc==2 && std::string(argv[1])==\"--loop-budget-only\")return test_loop_budget_chunks()?0:1;\n+    if(argc==2 && std::string(argv[1])==\"--batched-counts-only\")return test_batched_instruction_counts()\n+        && test_loop_budget_chunks() && test_budget_chunks(arm_ir_policy::batched_instruction_counts)\n+        && test_inlined_leaves(arm_ir_policy::batched_instruction_counts)?0:1;\n+    if(argc==2 && std::string(argv[1])==\"--batched-inline-branches-only\")return\n+        test_expanded_leaves(false,arm_ir_policy::batched_instruction_counts)\n+        && test_expanded_leaves(true,arm_ir_policy::batched_instruction_counts)?0:1;\n+    if(argc==2 && std::string(argv[1])==\"--batched-boundaries-only\")return\n+        test_region_loop_interrupts(arm_ir_policy::batched_instruction_counts)\n+        && test_region_code_alias(arm_ir_policy::batched_instruction_counts)\n+        && test_region_cpsr_callback(arm_ir_policy::batched_instruction_counts)\n+        && test_compiled_memory_misses(arm_ir_policy::batched_instruction_counts)\n+        && test_compiled_svc_boundary(arm_ir_policy::batched_instruction_counts)\n+        && test_predicated_leaves(arm_ir_policy::batched_instruction_counts)?0:1;\n     if(argc==2 && std::string(argv[1])==\"--registry-only\")return test_registry_lookup_lifecycle()?0:1;\n     if(argc==2 && std::string(argv[1])==\"--synchronous-compilation-only\")return test_synchronous_compilation()?0:1;\n     if(argc==2 && std::string(argv[1])==\"--guard-publication-only\")return test_guard_publication()?0:1;\n@@ -7583,6 +7681,7 @@\n     if (test_literal_pc_veneers()) passed++; else failed++;\n     if (test_boundary_details()) passed++; else failed++;\n     if (test_loop_budget_chunks()) passed++; else failed++;\n+    if (test_batched_instruction_counts()) passed++; else failed++;\n     if (test_budget_chunks()) passed++; else failed++;\n     if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;\n     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;\n--- a/src/tests/wasm/server.ts\n+++ b/src/tests/wasm/server.ts\n@@ -100,7 +100,7 @@\n     policy.thumbMemory = Number(thumb);\n   }\n   if (ir !== undefined) {\n-    if (!/^(?:-1|[0-9]|10|11|12|13|14|15|16|17)$/.test(ir)) throw new Error(\"Invalid compiler policy\");\n+    if (!/^(?:-1|[0-9]|10|11|12|13|14|15|16|17|18)$/.test(ir)) throw new Error(\"Invalid compiler policy\");\n     policy.irMode = Number(ir);\n   }\n   if (eager !== undefined) {\n@@ -144,7 +144,7 @@\n   if (!policy) return \"\";\n   if ((policy.hotpath !== undefined && (!Number.isInteger(policy.hotpath) || policy.hotpath < 0 || policy.hotpath > 7))\n       || (policy.thumbMemory !== undefined && ![0,1].includes(policy.thumbMemory))\n-      || (policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 17))\n+      || (policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 18))\n       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions))\n       || (policy.tlbHash !== undefined && ![0,1].includes(policy.tlbHash))\n       || (policy.codeCompare !== undefined && ![0,1,2,3,4].includes(policy.codeCompare))\n--- a/src/tests/wasm/profile.ts\n+++ b/src/tests/wasm/profile.ts\n@@ -73,7 +73,7 @@\n     || executionLimits[0]<128 || executionLimits[0]>2048 || executionLimits[0]%4 || executionLimits[1]<1 || executionLimits[1]>64\n     || executionLimits[2]<0 || executionLimits[2]>16 || executionLimits[3]<0 || executionLimits[3]>4096) throw new Error('Invalid execution limits');\n const irMode = Number(process.env.EKA2L1_AOT_IR_MODE ?? compilerDefaults.irMode);\n-if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps) or 17 (write proofs and loop budgets)');\n+if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps) or 17 (write proofs and loop budgets) or 18 (generic instruction-count batching)');\n const hotpathPolicy = Number(process.env.EKA2L1_HOTPATH ?? compilerDefaults.hotpath);\n if (!Number.isInteger(hotpathPolicy) || hotpathPolicy < -1 || hotpathPolicy > 7) throw Error('Hotpath policy must be 0..7');\n const romDispatch = process.env.EKA2L1_ROM_DISPATCH === undefined ? -1 : Number(process.env.EKA2L1_ROM_DISPATCH);\n--- a/src/tests/wasm/benchmark.ts\n+++ b/src/tests/wasm/benchmark.ts\n@@ -53,7 +53,7 @@\n     || executionLimits[0]<128 || executionLimits[0]>2048 || executionLimits[0]%4 || executionLimits[1]<1 || executionLimits[1]>64\n     || executionLimits[2]<0 || executionLimits[2]>16 || executionLimits[3]<0 || executionLimits[3]>4096) throw new Error('Invalid execution limits');\n const irMode = Number(process.env.EKA2L1_AOT_IR_MODE ?? compilerDefaults.irMode);\n-if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps) or 17 (write proofs and loop budgets)');\n+if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps) or 17 (write proofs and loop budgets) or 18 (generic instruction-count batching)');\n const hotpathPolicy = Number(process.env.EKA2L1_HOTPATH ?? compilerDefaults.hotpath);\n if (!Number.isInteger(hotpathPolicy) || hotpathPolicy < -1 || hotpathPolicy > 7) throw Error('Hotpath policy must be 0..7');\n const romDispatch = process.env.EKA2L1_ROM_DISPATCH === undefined ? -1 : Number(process.env.EKA2L1_ROM_DISPATCH);\n--- a/src/tests/wasm/compiler-policy.test.ts\n+++ b/src/tests/wasm/compiler-policy.test.ts\n@@ -37,6 +37,8 @@\n   process.env.EKA2L1_AOT_IR_MODE = '17';\n   assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17});\n   process.env.EKA2L1_AOT_IR_MODE = '18';\n+  assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:18});\n+  process.env.EKA2L1_AOT_IR_MODE = '19';\n   assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);\n   delete process.env.EKA2L1_AOT_IR_MODE;\n   const responses: {html:string; etag:string|null}[] = [];\n--- a/src/tests/benchmark/cpu_fault_probe.cpp\n+++ b/src/tests/benchmark/cpu_fault_probe.cpp\n@@ -562,7 +562,7 @@\n         --argc;\n     }\n     std::cout << \"PROBE_POLICY \" << static_cast<int>(ir_policy) << \"\\n\";\n-    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts || ir_policy==aot::arm_ir_policy::loop_budget_chunks;\n+    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts || ir_policy==aot::arm_ir_policy::loop_budget_chunks || ir_policy==aot::arm_ir_policy::batched_instruction_counts;\n     const bool interpreter=argc==2 && (std::string(argv[1])==\"--interpreter\" || std::string(argv[1])==\"--region-spans-interpreter\" || std::string(argv[1])==\"--entry-budget-interpreter\");\n     eka2l1::common::performance::enabled=true;\n     eka2l1::common::performance::phase=2;\n@@ -775,6 +775,10 @@\n             if(predicated_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves)) {\n                 std::cerr<<\"Predicated call fusion selection mismatch\\n\";return 4;\n             }\n+            if(ir_policy==aot::arm_ir_policy::batched_instruction_counts && !arm_leaf_memory\n+                && n==0 && !translated.deferred_count_updates) {\n+                std::cerr<<\"Fault fixture did not select batched instruction counts\\n\";return 4;\n+            }\n             const auto checked_policy = (ir_policy == aot::arm_ir_policy::long_segments_ir || ir_policy == aot::arm_ir_policy::stack_values_ir || ir_policy == aot::arm_ir_policy::budget_gaps_ir)\n                 ? aot::arm_ir_policy::conditional_value_ir : ir_policy;\n             if(ir_long && n==0 && translated.ir_max_segment_length != (ir_policy==aot::arm_ir_policy::long_segments_ir?128u:32u)) {\n--- a/src/tests/benchmark/run_cpu_fault_matrix.py\n+++ b/src/tests/benchmark/run_cpu_fault_matrix.py\n@@ -15,7 +15,7 @@\n parser.add_argument('--exit-census',type=int,choices=(0,1))\n parser.add_argument('--predicated-leaves', type=int, choices=(0,1))\n parser.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')\n-parser.add_argument('--ir-policy', type=int, choices=range(17), required=True)\n+parser.add_argument('--ir-policy', type=int, choices=range(19), required=True)\n parser.add_argument('--long', action='store_true', help='Include 128-instruction coverage fixture (policies 13/14/15)')\n parser.add_argument('--code-write-protect', type=int, choices=(0,1))\n parser.add_argument('--code-lookup', type=int, choices=(0,1))\n--- a/src/tests/benchmark/compare_cpu_faults.py\n+++ b/src/tests/benchmark/compare_cpu_faults.py\n@@ -17,7 +17,7 @@\n p.add_argument('--exit-census',type=int,choices=(0,1))\n p.add_argument('--predicated-leaves', type=int, choices=(0,1))\n p.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')\n-p.add_argument('--ir-policy', type=int, choices=range(17), help='Require explicit matching probe-policy markers')\n+p.add_argument('--ir-policy', type=int, choices=range(19), help='Require explicit matching probe-policy markers')\n p.add_argument('--code-write-protect', type=int, choices=(0,1))\n p.add_argument('--code-lookup', type=int, choices=(0,1))\n p.add_argument('--code-compare', type=int, choices=(0,1,2,3,4))\n",
+  "runtime_source_patch": "--- a/src/emu/cpu/include/cpu/aot/arm_translator.h\n+++ b/src/emu/cpu/include/cpu/aot/arm_translator.h\n@@ -36,14 +36,14 @@\n     }\n     // Research selection at translation time; compile-time feature gates still\n     // apply. configured preserves the build's current behavior.\n-    enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2, outlined_recipes = 3, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6, write_budget_chunks = 7, deferred_chunk_counts = 8, invariant_read_ir = 9, invariant_read_flag_ir = 10, inline_call_ir = 11, invariant_write_ir = 12, conditional_value_ir = 13, long_segments_ir = 14, stack_values_ir = 15, budget_gaps_ir = 16, loop_budget_chunks = 17 };\n+    enum class arm_ir_policy { configured = -1, disabled = 0, inline_segments = 1, outlined_segments = 2, outlined_recipes = 3, invariant_reads = 4, invariant_writes = 5, budget_chunks = 6, write_budget_chunks = 7, deferred_chunk_counts = 8, invariant_read_ir = 9, invariant_read_flag_ir = 10, inline_call_ir = 11, invariant_write_ir = 12, conditional_value_ir = 13, long_segments_ir = 14, stack_values_ir = 15, budget_gaps_ir = 16, loop_budget_chunks = 17, batched_instruction_counts = 18 };\n \n     inline bool parse_arm_ir_policy(const char *text, arm_ir_policy &out) {\n         if (!text) return false;\n         if (text[0] >= '0' && text[0] <= '9' && !text[1]) {\n             out = static_cast<arm_ir_policy>(text[0] - '0'); return true;\n         }\n-        if (text[0] == '1' && (text[1] >= '0' && text[1] <= '7') && !text[2]) {\n+        if (text[0] == '1' && (text[1] >= '0' && text[1] <= '8') && !text[2]) {\n             out = static_cast<arm_ir_policy>(10 + text[1] - '0'); return true;\n         }\n         return false;\n--- a/src/emu/cpu/src/aot/arm_translator.cpp\n+++ b/src/emu/cpu/src/aot/arm_translator.cpp\n@@ -73,16 +73,21 @@\n         bool entry_supported = true;\n         bool unsupported = false;\n         std::uint32_t bail_count = 0;\n-        // Offset within an entry-proved straight-line chunk. Cold exits consume\n-        // it without changing the representation on the successful path.\n+        // Deferred lexical instructions since the last count materialization.\n+        // Cold exits consume this offset without changing the fallthrough path.\n         unsigned count_offset = 0;\n         void count_value() {\n             get_local(COUNT);\n             if (count_offset) { i32_const(count_offset); op(op_i32_add); }\n         }\n+        // A taken edge publishes its count; emitting it must not reset the\n+        // compiler offset still needed by an untaken conditional branch.\n+        void edge_count() {\n+            if (!count_offset) return;\n+            count_value(); set_local(COUNT);\n+        }\n         void commit_count() {\n-            if (!count_offset) return;\n-            count_value(); set_local(COUNT); count_offset = 0;\n+            edge_count(); count_offset = 0;\n         }\n         // A straight-line long-multiply value can represent two guest registers.\n         // Exits reconstruct their exact halves; control/helper boundaries end\n@@ -1133,8 +1138,9 @@\n         const bool budget_gaps_ir = ir_policy == arm_ir_policy::budget_gaps_ir;\n         if (long_ir_segments || stack_ir_values || budget_gaps_ir) ir_policy = arm_ir_policy::conditional_value_ir;\n         // Policy 17 adds iteration proofs to policy 7's original lowering.\n-        // The browser launcher selects it by default; policy 7 remains available.\n-        const bool loop_budgets = ir_policy == arm_ir_policy::loop_budget_chunks;\n+        // Policy 18 also batches counts independently of those budget proofs.\n+        const bool batch_counts = ir_policy == arm_ir_policy::batched_instruction_counts;\n+        const bool loop_budgets = ir_policy == arm_ir_policy::loop_budget_chunks || batch_counts;\n         if (loop_budgets) ir_policy = arm_ir_policy::write_budget_chunks;\n         region = region && bounded;\n         // Bounded blocks exit on branches instead of recursively calling siblings.\n@@ -1778,7 +1784,7 @@\n             if (instruction_index < skip_segment_until) continue;\n             // Flush fallthrough before closing labels: a taken edge must not\n             // inherit the lexical predecessor's pending instruction count.\n-            if (instruction_index >= budget_chunk_end) w.commit_count();\n+            if (!batch_counts && instruction_index >= budget_chunk_end) w.commit_count();\n             // Opcode emitters commonly continue the outer loop. Close the\n             // fallback at the next lexical boundary so all such paths join.\n             if (segment_end && segment_end == instruction_index) {\n@@ -1812,6 +1818,10 @@\n                 for(std::size_t n=0;n<leaf_forward_targets.size();++n){w.op(op_block);w.op(type_void);}\n             }\n             const bool leaf_join=instruction.leaf && std::binary_search(leaf_forward_targets.begin(),leaf_forward_targets.end(),insn_addr);\n+            if (batch_counts && (leaf_join || (!instruction.leaf && forward_targets_set.count(insn_addr))\n+                    || (direct_loop && !instruction.leaf && insn_addr == loop_start)\n+                    || (inner_loop_open && !instruction.leaf && insn_addr > loop_last)))\n+                w.commit_count();\n             w.census_pc=insn_addr;w.census_opcode=inst;\n             const auto refusal=exit_census::enabled && !instruction.leaf && refusals.count(i)?refusals.at(i):exit_census::leaf_refusal{};\n             w.census_constraint=instruction.leaf && (inst&0xff000000u)==0xeb000000u?8:refusal.constraint;\n@@ -1885,18 +1895,18 @@\n                 const auto length = budget_chunk->second;\n                 // COUNT never exceeds the budget. Loop proofs run before the\n                 // first charge, so zero/short budgets enter the precise callee.\n-                w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);\n+                w.load_i32(S::AOT_BUDGET); w.count_value(); w.op(op_i32_sub);\n                 w.i32_const(length - (charged ? 1 : 0)); w.op(op_i32_lt_u);\n                 w.op(op_if); w.op(type_void);\n                 if (charged) { w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT); }\n                 w.store_i32_const(S::PC, insn_addr);\n                 w.cache.barrier_at(w.b.size());\n-                w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);\n+                w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.count_value(); w.op(op_i32_sub);\n                 w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);\n                 w.state_ptr(); w.op(op_call);\n                 const auto call_offset = static_cast<std::uint32_t>(w.b.size());\n                 w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});\n-                w.get_local(arm_emit::COUNT); w.op(op_i32_add);\n+                w.count_value(); w.op(op_i32_add);\n                 w.state_ptr(); w.load_i32(S::AOT_BUDGET);\n                 w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);\n                 w.op(op_return); w.op(op_end);\n@@ -1905,7 +1915,8 @@\n                     words.push_back(instructions[instruction_index + n].opcode);\n                 auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),\n                     words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,\n-                    true, true, nullptr, defer_memory, false);\n+                    true, true, nullptr, defer_memory, false,\n+                    batch_counts ? arm_ir_policy::batched_instruction_counts : arm_ir_policy::configured);\n                 precise.func.export_name += \"_budget_short\";\n                 result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});\n                 budget_chunk_end = instruction_index + length;\n@@ -1935,7 +1946,7 @@\n                 const bool check_budget = instruction_index >= budget_chunk_end && !loop_budget_chunk;\n                 if (check_budget) {\n                     w.load_i32(S::AOT_BUDGET);\n-                    if (region) w.get_local(arm_emit::COUNT); else w.i32_const(insn_idx);\n+                    if (region) w.count_value(); else w.i32_const(insn_idx);\n                     w.op(op_i32_le_u);\n                 }\n                 if (region && check_exit) {\n@@ -1951,7 +1962,7 @@\n                     ++tr.loop_budget_chunks;\n                 }\n                 if (region) {\n-                    if (ir_policy == arm_ir_policy::deferred_chunk_counts && instruction_index < budget_chunk_end) {\n+                    if (batch_counts || (ir_policy == arm_ir_policy::deferred_chunk_counts && instruction_index < budget_chunk_end)) {\n                         ++w.count_offset; ++tr.deferred_count_updates;\n                     } else {\n                         w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_add); w.set_local(arm_emit::COUNT);\n@@ -2121,6 +2132,7 @@\n                         continue;\n                     }\n                     const auto target_index=static_cast<std::size_t>(std::lower_bound(leaf_forward_targets.begin(),leaf_forward_targets.end(),target)-leaf_forward_targets.begin());\n+                    w.edge_count();\n                     w.op(op_br);leb(result.body,static_cast<unsigned>(target_index-leaf_closed)+(cond_opened?1:0));\n                     if(cond_opened)w.op(op_end);\n                     ++insn_idx;decoded_end_offset=static_cast<std::uint32_t>(i)+4;\n@@ -2162,6 +2174,7 @@\n                 if (fit != fwd_idx.end() && target > insn_addr) {\n                     // Forward branch: br to the appropriate block depth\n                     std::uint32_t depth = fit->second - closed_count + (cond_opened ? 1 : 0) + (inner_loop_open ? 1 : 0);\n+                    w.edge_count();\n                     w.op(op_br);\n                     leb(result.body, depth);\n                     if (cond_opened) w.op(op_end);\n@@ -2178,6 +2191,7 @@\n                     // Backward branch within block: br to loop\n                     std::uint32_t loop_depth = direct_loop ? w.scope_depth - direct_loop_depth\n                         : N_fwd - closed_count + (cond_opened ? 1 : 0); // loop is right after blocks\n+                    w.edge_count();\n                     w.op(op_br);\n                     leb(result.body, loop_depth);\n                     if (cond_opened) w.op(op_end);\n@@ -3147,7 +3161,8 @@\n                 + (w.cache.shared_return ? 2 : 0);\n             auto fallback = translate_arm_block_impl(code, code_size, start_address,\n                 siblings, dll_code, bounded, stop_after_store, cache_registers,\n-                region, leaves, defer_memory, false);\n+                region, leaves, defer_memory, false,\n+                batch_counts ? arm_ir_policy::batched_instruction_counts : arm_ir_policy::configured);\n             fallback.func.export_name += \"_memory_fallback\";\n             result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));\n         }\n--- a/src/emu/wasm/main.cpp\n+++ b/src/emu/wasm/main.cpp\n@@ -213,7 +213,7 @@\n // CPU. Selection is frozen before guest translation starts.\n EMSCRIPTEN_KEEPALIVE\n int eka2l1_ir_configure(int mode) {\n-    if (g_state || mode < -1 || mode > 17) return -1;\n+    if (g_state || mode < -1 || mode > 18) return -1;\n #ifdef EKA2L1_WASM_CODE_VERSIONS\n #if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)\n     if (mode >= 4 && !(mode == 7 && eka2l1::common::code_tracking::protect_writes)) return -2;\n--- a/src/tests/aot/test_aot_wasm.cpp\n+++ b/src/tests/aot/test_aot_wasm.cpp\n@@ -2296,7 +2296,7 @@\n }\n \n // Pending interrupts must exit at a taken loop backedge with precise state.\n-static bool test_region_loop_interrupts() {\n+static bool test_region_loop_interrupts(arm_ir_policy policy = arm_ir_policy::configured) {\n #ifdef __EMSCRIPTEN__\n     const std::vector<std::vector<std::uint32_t>> programs = {\n         {0xe2800001,0xeafffffd},\n@@ -2306,7 +2306,7 @@\n     for (unsigned kind = 0; kind < programs.size(); ++kind) {\n         const auto &words = programs[kind];\n         auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words.data()),\n-            words.size()*4, 0x1000, nullptr, nullptr, true, true, true, true);\n+            words.size()*4, 0x1000, nullptr, nullptr, true, true, true, true, nullptr, false, policy);\n         auto module = build_wasm_module({tr.func}, {{\"env\",\"tlb_read32\",2,true},\n             {\"env\",\"tlb_write32\",3,false},{\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},\n             {\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n@@ -2334,11 +2334,11 @@\n }\n \n // A guest alias must not let a region execute code overwritten by an inline store.\n-static bool test_region_code_alias() {\n+static bool test_region_code_alias(arm_ir_policy policy = arm_ir_policy::configured) {\n #ifdef __EMSCRIPTEN__\n     for (bool block_store : {false, true}) {\n     const std::uint32_t words[] = {block_store ? 0xe8a10009u : 0xe5810004u,0xe2822001,0xeafffffc};\n-    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);\n+    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,false,policy);\n     auto module = build_wasm_module({tr.func}, {{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},\n         {\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n     for (unsigned address : {0x1000u,0x8000u}) {\n@@ -2363,7 +2363,7 @@\n     // the same physical bytes; stores must remain visible to later loads.\n     const std::uint32_t alias_words[] = {0xe5810000,0xe5952000,0xe5812004,0xe5953004};\n     auto alias_tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(alias_words),\n-        sizeof(alias_words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);\n+        sizeof(alias_words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true,policy);\n     auto alias_module = build_wasm_module({alias_tr.func}, {{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},\n         {\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n     for (bool code_alias : {false,true}) for (unsigned budget=0;budget<=5;++budget) {\n@@ -2426,7 +2426,7 @@\n #if defined(EKA2L1_WASM_IR_MEMORY) && defined(EKA2L1_WASM_IR_SEGMENTS) && !defined(EKA2L1_WASM_CODE_VERSIONS)\n         // Policy 7 uses deferred memory and budget chunks, not the IR proof\n         // backend required by the older selections exercised here.\n-        if (policy != arm_ir_policy::write_budget_chunks && deferred\n+        if (policy != arm_ir_policy::write_budget_chunks && policy != arm_ir_policy::batched_instruction_counts && deferred\n             && words.size() >= 5 && !tr.ir_memory_guards && !tr.ir_proved_writes) {\n             printf(\"  FAIL inlined memory leaf did not select IR guards\\n\"); return false;\n         }\n@@ -2473,11 +2473,11 @@\n     return true;\n }\n \n-static bool test_region_cpsr_callback() {\n+static bool test_region_cpsr_callback(arm_ir_policy policy = arm_ir_policy::configured) {\n #ifdef __EMSCRIPTEN__\n     const std::uint32_t code[] = {0xE128F000u, 0xE5912000u, 0xE2833001u};\n     auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(code), sizeof(code),\n-        0x1000, nullptr, nullptr, true, true, true, true);\n+        0x1000, nullptr, nullptr, true, true, true, true, nullptr, false, policy);\n     auto module = build_wasm_module({tr.func}, {{\"env\",\"tlb_read32\",2,true},\n         {\"env\",\"tlb_write32\",3,false},{\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},\n         {\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n@@ -2497,7 +2497,7 @@\n     printf(\"  PASS region_cpsr_callback\\n\"); return true;\n }\n \n-static bool test_compiled_memory_misses() {\n+static bool test_compiled_memory_misses(arm_ir_policy policy = arm_ir_policy::write_budget_chunks) {\n #ifdef __EMSCRIPTEN__\n     namespace tracking = eka2l1::common::code_tracking;\n     const auto saved_mode=tracking::unsafe_code_mode;\n@@ -2517,7 +2517,7 @@\n         std::vector<std::uint8_t> modules[2];\n         for(unsigned variant=0;variant<2;++variant) {\n             compiled_memory_misses=variant;\n-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,arm_ir_policy::write_budget_chunks);\n+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,policy);\n             modules[variant]=build_wasm_module({tr.func},{{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},{\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n         }\n         for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})\n@@ -2551,7 +2551,7 @@\n         std::array<unsigned,256> states[2]{};int counts[2];std::array<unsigned,4> observations[2]{};\n         for(unsigned variant=0;variant<2;++variant) {\n             compiled_memory_misses=variant;\n-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,arm_ir_policy::write_budget_chunks);\n+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,true,true,true,nullptr,variant,policy);\n             auto module=build_wasm_module({tr.func},{{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},{\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n             auto &v=states[variant];v[1]=0x8000;v[6]=0x87654321;v[7]=0x12345678;v[15]=0x1000;\n             v[state_offsets::CPSR/4]=0x10;v[state_offsets::AOT_BUDGET/4]=3;v[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;v[state_offsets::NIRQ/4]=1;\n@@ -3076,13 +3076,13 @@\n         {0xe2877001,0xe3560000,0x0a00003c,0xe2888001,0x1891000c,0x15812008,0xe2566001,0x1afffff8,0xe1a00003,0xe12fff1e},\n     };\n     unsigned checks = 0;\n-    for (auto policy : {arm_ir_policy::write_budget_chunks, arm_ir_policy::loop_budget_chunks})\n+    for (auto policy : {arm_ir_policy::write_budget_chunks, arm_ir_policy::loop_budget_chunks, arm_ir_policy::batched_instruction_counts})\n     for (unsigned p = 0; p < programs.size(); ++p) {\n         const auto &code = programs[p];\n         const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());\n         auto tr = translate_arm_block(bytes, code.size()*4, 0x1000,\n             nullptr,nullptr,true,true,true,true,nullptr,true,policy);\n-        const bool selected = policy == arm_ir_policy::loop_budget_chunks;\n+        const bool selected = policy != arm_ir_policy::write_budget_chunks;\n         if (tr.loop_budget_chunks != unsigned(selected) || (selected && tr.func.outlined_calls.empty())) {\n             printf(\" FAIL loop budget selection policy=%d program=%u loops=%u\\n\",int(policy),p,tr.loop_budget_chunks); return false;\n         }\n@@ -3152,8 +3152,93 @@\n     if (selected.loop_budget_chunks != 1) { printf(\" FAIL loop policy missed straight loop\\n\"); return false; }\n     arm_ir_policy parsed = arm_ir_policy::configured;\n     if (!parse_arm_ir_policy(\"17\",parsed) || parsed != arm_ir_policy::loop_budget_chunks\n-        || parse_arm_ir_policy(\"18\",parsed)) { printf(\" FAIL loop policy parsing\\n\"); return false; }\n+        || !parse_arm_ir_policy(\"18\",parsed) || parsed != arm_ir_policy::batched_instruction_counts\n+        || parse_arm_ir_policy(\"19\",parsed)) { printf(\" FAIL loop policy parsing\\n\"); return false; }\n     printf(\" PASS loop_budget_chunks (%u exact interpreter state/memory/budget comparisons)\\n\",checks);\n+#endif\n+    return true;\n+}\n+\n+// Count batching is independent of loop/chunk selection. Compare all state,\n+// effects and helper calls with the existing policy across different paths,\n+// including short blocks, interior entries, precise fallbacks and cold exits.\n+static bool test_batched_instruction_counts() {\n+#ifdef __EMSCRIPTEN__\n+    std::vector<std::vector<std::uint32_t>> programs = {\n+        {0xe2800001,0xe2822001},\n+        {0xe2800001,0xe5912000,0xe2833001},\n+        {0xe2800001,0xe5812000,0xe2833001},\n+        {0xe2800001,0xe3560000,0x0a000001,0xe2822001,0xea000000,0xe2833001,0xe2844001,0xe12fff1e},\n+        {0xe2800001,0xeafffffd},\n+        {0xe2800001,0xe3560000,0x0a000001,0xe2566001,0xeafffffa,0xe2844001,0xe12fff1e},\n+        {0xe2800001,0xe2566001,0x1afffffc,0xe2877001,0xe2888001,0xe12fff1e},\n+        {0xe2800001,0x05912000,0x12833001,0xe2844001,0xe12fff1e},\n+        {0xe2800001,0xe891000c,0xe2833001,0xe12fff1e},\n+        {0xe2800001,0xe3560000,0x0a00003c,0xe2822001,0xe12fff1e},\n+        {0xe2800001,0x0e000000,0xe2822001,0xe12fff1e},\n+    };\n+    // Cross several budget chunks without a control-flow merge.\n+    std::vector<std::uint32_t> long_program(70,0xe2800001);\n+    long_program[34]=0xe5912000;\n+    programs.push_back(long_program);\n+    unsigned checks=0;\n+    for (bool deferred : {false,true}) for (bool cached : {false,true})\n+    for (unsigned p=0;p<programs.size();++p) {\n+        const auto &code=programs[p];\n+        std::vector<std::uint8_t> modules[2];\n+        for (unsigned variant=0;variant<2;++variant) {\n+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,\n+                0x1000,nullptr,nullptr,true,true,cached,true,nullptr,deferred,\n+                variant ? arm_ir_policy::batched_instruction_counts : arm_ir_policy::loop_budget_chunks);\n+            if (variant && !tr.deferred_count_updates) {printf(\" FAIL missing count batching\\n\");return false;}\n+            modules[variant]=build_wasm_module({tr.func},{{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},\n+                {\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n+        }\n+        for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0x1000u})\n+        for (unsigned permission : {0u,3u}) for (unsigned selector : {0u,2u})\n+        for (unsigned event : {0u,1u,2u})\n+        for (unsigned budget : {0u,1u,2u,3u,4u,5u,7u,8u,16u,31u,32u,33u,35u,65u,71u}) {\n+            test_mem memory;\n+            memory.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(code.data()),\n+                reinterpret_cast<const std::uint8_t*>(code.data())+code.size()*4});\n+            memory.write32(0x8000,0x12345678);memory.write32(0x8004,0x87654321);\n+            const auto initial=memory.data;\n+            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);\n+            tlb.add(0x8000,memory.data.data()+0x8000,permission);\n+            tlb.add(0x1000,memory.data.data()+0x1000,permission);\n+            std::array<unsigned,256> states[2]{};\n+            int counts[2];unsigned helpers[2];std::vector<std::uint8_t> outputs[2];\n+            for (unsigned variant=0;variant<2;++variant) {\n+                std::copy(initial.begin(),initial.end(),memory.data.begin());\n+                auto &state=states[variant];\n+                for (unsigned r=0;r<16;++r) state[r]=0x120+r;\n+                state[1]=address;state[6]=selector;state[14]=0x1100;state[15]=0x1000;\n+                state[state_offsets::CPSR/4]=0xa0000010|(selector ? 0x40000000u : 0);\n+                state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=1;\n+                state[state_offsets::ZFLAG/4]=selector!=0;state[state_offsets::MODE/4]=16;\n+                state[state_offsets::AOT_BUDGET/4]=budget;\n+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=budget;\n+                state[state_offsets::NIRQ/4]=event!=0;state[state_offsets::AOT_EXIT/4]=event==2;\n+                state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);\n+                state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(memory.data.data()+0x1000);\n+                state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+code.size()*4;\n+                g_test_mem=&memory;g_all_memory_helper_calls=0;\n+                counts[variant]=js_run_aot_wasm(modules[variant].data(),modules[variant].size(),\n+                    reinterpret_cast<std::uint8_t*>(state.data()),sizeof(state));\n+                g_test_mem=nullptr;helpers[variant]=g_all_memory_helper_calls;outputs[variant]=memory.data;\n+            }\n+            if(counts[0]<0 || counts[0]!=counts[1] || states[0]!=states[1]\n+                || helpers[0]!=helpers[1] || outputs[0]!=outputs[1]) {\n+                printf(\" FAIL batched counts program=%u deferred=%u cached=%u addr=%x perm=%u selector=%u event=%u budget=%u counts=%d/%d\\n\",\n+                    p,deferred,cached,address,permission,selector,event,budget,counts[0],counts[1]);\n+                for(unsigned r=0;r<states[0].size();++r)if(states[0][r]!=states[1][r])\n+                    printf(\" state[%u]=%x/%x\\n\",r,states[0][r],states[1][r]);\n+                return false;\n+            }\n+            ++checks;\n+        }\n+    }\n+    printf(\" PASS batched instruction counts (%u exact state/memory/helper/progress comparisons)\\n\",checks);\n #endif\n     return true;\n }\n@@ -6249,7 +6334,7 @@\n     return true;\n }\n \n-static bool test_predicated_leaves() {\n+static bool test_predicated_leaves(arm_ir_policy policy = arm_ir_policy::write_budget_chunks) {\n #ifdef __EMSCRIPTEN__\n     struct restore {bool flag=predicated_leaves;std::string limits=execution_limits_text();\n         ~restore(){predicated_leaves=flag;parse_execution_limits(limits.c_str());}} saved;\n@@ -6263,8 +6348,8 @@\n             return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};\n         auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,\n             nullptr,nullptr,true,false,true,true,&resolver,true,policy);};\n-        predicated_leaves=false;if(!translate(arm_ir_policy::write_budget_chunks).dependencies.empty())return false;\n-        predicated_leaves=true;auto tr=translate(arm_ir_policy::write_budget_chunks);\n+        predicated_leaves=false;if(!translate(policy).dependencies.empty())return false;\n+        predicated_leaves=true;auto tr=translate(policy);\n         if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;\n         auto module=build_wasm_module({tr.func},{{\"env\",\"tlb_read32\",2,true},{\"env\",\"tlb_write32\",3,false},\n             {\"env\",\"tlb_read8\",2,true},{\"env\",\"tlb_write8\",3,false},{\"env\",\"tlb_read16\",2,true},{\"env\",\"tlb_write16\",3,false}});\n@@ -6305,7 +6390,7 @@\n     }\n     for(unsigned op:{0x15910000u,0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {\n         unsigned leaf[]={op,0xe12fff1e};leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};\n-        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);\n+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);\n         if(!tr.dependencies.empty()){printf(\" FAIL unsafe predicated leaf accepted %x\\n\",op);return false;}\n     }\n     printf(\" PASS predicated leaves (%u exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\\n\",checks);\n@@ -6633,7 +6718,7 @@\n }\n \n \n-static bool test_compiled_svc_boundary() {\n+static bool test_compiled_svc_boundary(arm_ir_policy policy = arm_ir_policy::configured) {\n     const auto saved=compiled_svc_enabled;compiled_svc_enabled=true;unsigned checks=0;\n #ifdef __EMSCRIPTEN__\n     for(unsigned thumb:{0u,1u})for(unsigned page:{0u,1u})for(unsigned region:{0u,1u})\n@@ -6642,7 +6727,7 @@\n         const unsigned width=thumb?2:4,pc=page?0x2000-width:0x1000;\n         const unsigned arm=(cond<<28)|0x0f123456;const std::uint16_t narrow=0xdf56;\n         auto tr=thumb?translate_thumb_block(reinterpret_cast<const unsigned char*>(&narrow),2,pc,nullptr,nullptr,true,false,true)\n-            :translate_arm_block(reinterpret_cast<const unsigned char*>(&arm),4,pc,nullptr,nullptr,true,false,true,region);\n+            :translate_arm_block(reinterpret_cast<const unsigned char*>(&arm),4,pc,nullptr,nullptr,true,false,true,region,nullptr,false,policy);\n         auto module=build_wasm_module({tr.func},{});\n         alignas(8) std::uint32_t state[256]{};state[15]=pc;\n         state[state_offsets::CPSR/4]=16|(thumb?32:0)|(nzcv<<28);\n@@ -6916,6 +7001,16 @@\n     if(argc==2 && std::string(argv[1])==\"--dynamic-cohorts-only\")return test_dynamic_rom_cohort_discovery() && test_rom_cohorts()?0:1;\n     if(argc==2 && std::string(argv[1])==\"--hotpaths\") {hotpath_policy=7;argc=1;}\n     if(argc==2 && std::string(argv[1])==\"--loop-budget-only\")return test_loop_budget_chunks()?0:1;\n+    if(argc==2 && std::string(argv[1])==\"--batched-counts-only\")return test_batched_instruction_counts()\n+        && test_loop_budget_chunks() && test_budget_chunks(arm_ir_policy::batched_instruction_counts)\n+        && test_inlined_leaves(arm_ir_policy::batched_instruction_counts)?0:1;\n+    if(argc==2 && std::string(argv[1])==\"--batched-boundaries-only\")return\n+        test_region_loop_interrupts(arm_ir_policy::batched_instruction_counts)\n+        && test_region_code_alias(arm_ir_policy::batched_instruction_counts)\n+        && test_region_cpsr_callback(arm_ir_policy::batched_instruction_counts)\n+        && test_compiled_memory_misses(arm_ir_policy::batched_instruction_counts)\n+        && test_compiled_svc_boundary(arm_ir_policy::batched_instruction_counts)\n+        && test_predicated_leaves(arm_ir_policy::batched_instruction_counts)?0:1;\n     if(argc==2 && std::string(argv[1])==\"--registry-only\")return test_registry_lookup_lifecycle()?0:1;\n     if(argc==2 && std::string(argv[1])==\"--synchronous-compilation-only\")return test_synchronous_compilation()?0:1;\n     if(argc==2 && std::string(argv[1])==\"--guard-publication-only\")return test_guard_publication()?0:1;\n@@ -7583,6 +7678,7 @@\n     if (test_literal_pc_veneers()) passed++; else failed++;\n     if (test_boundary_details()) passed++; else failed++;\n     if (test_loop_budget_chunks()) passed++; else failed++;\n+    if (test_batched_instruction_counts()) passed++; else failed++;\n     if (test_budget_chunks()) passed++; else failed++;\n     if (test_budget_chunks(arm_ir_policy::budget_gaps_ir)) passed++; else failed++;\n     if (test_budget_chunks(arm_ir_policy::write_budget_chunks)) passed++; else failed++;\n--- a/src/tests/wasm/server.ts\n+++ b/src/tests/wasm/server.ts\n@@ -100,7 +100,7 @@\n     policy.thumbMemory = Number(thumb);\n   }\n   if (ir !== undefined) {\n-    if (!/^(?:-1|[0-9]|10|11|12|13|14|15|16|17)$/.test(ir)) throw new Error(\"Invalid compiler policy\");\n+    if (!/^(?:-1|[0-9]|10|11|12|13|14|15|16|17|18)$/.test(ir)) throw new Error(\"Invalid compiler policy\");\n     policy.irMode = Number(ir);\n   }\n   if (eager !== undefined) {\n@@ -144,7 +144,7 @@\n   if (!policy) return \"\";\n   if ((policy.hotpath !== undefined && (!Number.isInteger(policy.hotpath) || policy.hotpath < 0 || policy.hotpath > 7))\n       || (policy.thumbMemory !== undefined && ![0,1].includes(policy.thumbMemory))\n-      || (policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 17))\n+      || (policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 18))\n       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions))\n       || (policy.tlbHash !== undefined && ![0,1].includes(policy.tlbHash))\n       || (policy.codeCompare !== undefined && ![0,1,2,3,4].includes(policy.codeCompare))\n--- a/src/tests/wasm/profile.ts\n+++ b/src/tests/wasm/profile.ts\n@@ -73,7 +73,7 @@\n     || executionLimits[0]<128 || executionLimits[0]>2048 || executionLimits[0]%4 || executionLimits[1]<1 || executionLimits[1]>64\n     || executionLimits[2]<0 || executionLimits[2]>16 || executionLimits[3]<0 || executionLimits[3]>4096) throw new Error('Invalid execution limits');\n const irMode = Number(process.env.EKA2L1_AOT_IR_MODE ?? compilerDefaults.irMode);\n-if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps) or 17 (write proofs and loop budgets)');\n+if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps) or 17 (write proofs and loop budgets) or 18 (generic instruction-count batching)');\n const hotpathPolicy = Number(process.env.EKA2L1_HOTPATH ?? compilerDefaults.hotpath);\n if (!Number.isInteger(hotpathPolicy) || hotpathPolicy < -1 || hotpathPolicy > 7) throw Error('Hotpath policy must be 0..7');\n const romDispatch = process.env.EKA2L1_ROM_DISPATCH === undefined ? -1 : Number(process.env.EKA2L1_ROM_DISPATCH);\n--- a/src/tests/wasm/benchmark.ts\n+++ b/src/tests/wasm/benchmark.ts\n@@ -53,7 +53,7 @@\n     || executionLimits[0]<128 || executionLimits[0]>2048 || executionLimits[0]%4 || executionLimits[1]<1 || executionLimits[1]>64\n     || executionLimits[2]<0 || executionLimits[2]>16 || executionLimits[3]<0 || executionLimits[3]>4096) throw new Error('Invalid execution limits');\n const irMode = Number(process.env.EKA2L1_AOT_IR_MODE ?? compilerDefaults.irMode);\n-if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps) or 17 (write proofs and loop budgets)');\n+if (![-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].includes(irMode)) throw new Error('IR mode must be -1 (configured), 0 (disabled), 1 (inline) or 2 (outlined) or 3 (exit recipes) or 4 (invariant reads without IR) or 5 (invariant reads and writes without IR) or 6 (read proofs and budget chunks) or 7 (write proofs and budget chunks) or 8 (deferred chunk counts) or 9 (IR with invariant read proofs) or 10 (IR flags with read proofs) or 11 (IR through inline leaves) or 12 (IR with read/write proofs) or 13 (conditional integer values) or 14 (longer bounded IR segments) or 15 (single-use pure stack values) or 16 (IR with budget chunks in gaps) or 17 (write proofs and loop budgets) or 18 (generic instruction-count batching)');\n const hotpathPolicy = Number(process.env.EKA2L1_HOTPATH ?? compilerDefaults.hotpath);\n if (!Number.isInteger(hotpathPolicy) || hotpathPolicy < -1 || hotpathPolicy > 7) throw Error('Hotpath policy must be 0..7');\n const romDispatch = process.env.EKA2L1_ROM_DISPATCH === undefined ? -1 : Number(process.env.EKA2L1_ROM_DISPATCH);\n--- a/src/tests/wasm/compiler-policy.test.ts\n+++ b/src/tests/wasm/compiler-policy.test.ts\n@@ -37,6 +37,8 @@\n   process.env.EKA2L1_AOT_IR_MODE = '17';\n   assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17});\n   process.env.EKA2L1_AOT_IR_MODE = '18';\n+  assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:18});\n+  process.env.EKA2L1_AOT_IR_MODE = '19';\n   assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);\n   delete process.env.EKA2L1_AOT_IR_MODE;\n   const responses: {html:string; etag:string|null}[] = [];\n--- a/src/tests/benchmark/cpu_fault_probe.cpp\n+++ b/src/tests/benchmark/cpu_fault_probe.cpp\n@@ -562,7 +562,7 @@\n         --argc;\n     }\n     std::cout << \"PROBE_POLICY \" << static_cast<int>(ir_policy) << \"\\n\";\n-    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts || ir_policy==aot::arm_ir_policy::loop_budget_chunks;\n+    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts || ir_policy==aot::arm_ir_policy::loop_budget_chunks || ir_policy==aot::arm_ir_policy::batched_instruction_counts;\n     const bool interpreter=argc==2 && (std::string(argv[1])==\"--interpreter\" || std::string(argv[1])==\"--region-spans-interpreter\" || std::string(argv[1])==\"--entry-budget-interpreter\");\n     eka2l1::common::performance::enabled=true;\n     eka2l1::common::performance::phase=2;\n@@ -775,6 +775,10 @@\n             if(predicated_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves)) {\n                 std::cerr<<\"Predicated call fusion selection mismatch\\n\";return 4;\n             }\n+            if(ir_policy==aot::arm_ir_policy::batched_instruction_counts && !arm_leaf_memory\n+                && n==0 && !translated.deferred_count_updates) {\n+                std::cerr<<\"Fault fixture did not select batched instruction counts\\n\";return 4;\n+            }\n             const auto checked_policy = (ir_policy == aot::arm_ir_policy::long_segments_ir || ir_policy == aot::arm_ir_policy::stack_values_ir || ir_policy == aot::arm_ir_policy::budget_gaps_ir)\n                 ? aot::arm_ir_policy::conditional_value_ir : ir_policy;\n             if(ir_long && n==0 && translated.ir_max_segment_length != (ir_policy==aot::arm_ir_policy::long_segments_ir?128u:32u)) {\n--- a/src/tests/benchmark/run_cpu_fault_matrix.py\n+++ b/src/tests/benchmark/run_cpu_fault_matrix.py\n@@ -15,7 +15,7 @@\n parser.add_argument('--exit-census',type=int,choices=(0,1))\n parser.add_argument('--predicated-leaves', type=int, choices=(0,1))\n parser.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')\n-parser.add_argument('--ir-policy', type=int, choices=range(17), required=True)\n+parser.add_argument('--ir-policy', type=int, choices=range(19), required=True)\n parser.add_argument('--long', action='store_true', help='Include 128-instruction coverage fixture (policies 13/14/15)')\n parser.add_argument('--code-write-protect', type=int, choices=(0,1))\n parser.add_argument('--code-lookup', type=int, choices=(0,1))\n--- a/src/tests/benchmark/compare_cpu_faults.py\n+++ b/src/tests/benchmark/compare_cpu_faults.py\n@@ -17,7 +17,7 @@\n p.add_argument('--exit-census',type=int,choices=(0,1))\n p.add_argument('--predicated-leaves', type=int, choices=(0,1))\n p.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')\n-p.add_argument('--ir-policy', type=int, choices=range(17), help='Require explicit matching probe-policy markers')\n+p.add_argument('--ir-policy', type=int, choices=range(19), help='Require explicit matching probe-policy markers')\n p.add_argument('--code-write-protect', type=int, choices=(0,1))\n p.add_argument('--code-lookup', type=int, choices=(0,1))\n p.add_argument('--code-compare', type=int, choices=(0,1,2,3,4))\n",
+  "runtime_hashes": {
+    "eka2l1.js": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+    "eka2l1.html": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+    "eka2l1.data": "859c8f8f4902ec717212d00726712e6fbc69bd81315aed4c923e038a7477438f",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "eka2l1.wasm": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6"
+  },
+  "test_runs": [
+    {
+      "flag": "--batched-counts-only",
+      "exit_code": 0
+    },
+    {
+      "flag": "--batched-boundaries-only",
+      "exit_code": 0
+    },
+    {
+      "flag": "--batched-inline-branches-only",
+      "exit_code": 0,
+      "diagnostics": true,
+      "command": [
+        "node",
+        "/home/claude/.scratch/eka-batched-counts/build/src/tests/aot/test_aot_wasm.js",
+        "--batched-inline-branches-only"
+      ],
+      "test_wasm_sha256": "514196c6c5ab3ccafdf5d802997a5261acbdfd8c23cea678cf0f86209d0928a7",
+      "exact_comparisons": 94950
+    }
+  ],
+  "tests": {
+    "batched-counts-only": "TEST_UNSAFE_CODE_DEFAULT 3\nAOT: unsupported ARM insn 0x0E000000 at 0x00001004\n PASS batched instruction counts (34560 exact state/memory/helper/progress comparisons)\n PASS loop_budget_chunks (36288 exact interpreter state/memory/budget comparisons)\n  PASS budget_chunks policy=18 (26880 exact state/memory/budget comparisons)\n  PASS inlined_leaves policy=18 (2560 exact budget/state/memory comparisons)\n",
+    "batched-boundaries-only": "TEST_UNSAFE_CODE_DEFAULT 3\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS region_cpsr_callback\n PASS compiled memory misses (6148 state/memory/budget/callback comparisons)\n PASS compiled_svc_boundary (9216 predicate/budget/page checks)\n PASS predicated leaves (29120 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n",
+    "batched-inline-branches-only": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS expanded leaves (88035 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS expanded leaves (6915 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n"
+  },
+  "fault_reference": {
+    "path": "/home/claude/.scratch/eka-batched-counts/faults/eka_cpu_fault_native_reference",
+    "sha256": "3810ea321124198fe8894a104dab223f1344cb0c254ce9443041994363020242",
+    "policy": 7,
+    "backend": "native Dynarmic; compiler policy does not affect its instruction execution",
+    "rebuilt": false
+  },
+  "faults": [
+    {
+      "verified_unsafe_code": 3,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-batched-counts/faults/entry-budget-native.log": "0ddcad559081f5135c80d2851cb63fd317e3fa4a5a5734177a2be730d6536b7f",
+        "/home/claude/.scratch/eka-batched-counts/faults/entry-budget-wasm.log": "9ad816d92b8e22664e2ace91a7fd3d519b5d8b818ae1b22c1f95ea9e37499623"
+      },
+      "differences": [],
+      "case": "entry-budget",
+      "verified_native_policy": 7,
+      "verified_wasm_policy": 18
+    },
+    {
+      "verified_unsafe_code": 3,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-batched-counts/faults/entry-budget-deferred-native.log": "0ddcad559081f5135c80d2851cb63fd317e3fa4a5a5734177a2be730d6536b7f",
+        "/home/claude/.scratch/eka-batched-counts/faults/entry-budget-deferred-wasm.log": "44ce170d591718f605ad34b7a19663cca7a5d20d39471881da16e019b53e3d17"
+      },
+      "differences": [],
+      "case": "entry-budget-deferred",
+      "verified_native_policy": 7,
+      "verified_wasm_policy": 18
+    },
+    {
+      "verified_unsafe_code": 3,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 64,
+      "all_fields_match": 64,
+      "final_state_and_exact_memory_match": 64,
+      "mismatched_fields": {},
+      "categories": {},
+      "inputs": {
+        "/home/claude/.scratch/eka-batched-counts/faults/invariant-remap-native.log": "dace5bd79ecf8aa35b9bfe014ae335a8090213d13a868f8fd828d84b1ac9d162",
+        "/home/claude/.scratch/eka-batched-counts/faults/invariant-remap-wasm.log": "057f1c2c6a10d2dd5f1f3c692d9e88759f063cf57e38e767b28964ac455d9192"
+      },
+      "differences": [],
+      "case": "invariant-remap",
+      "verified_native_policy": 7,
+      "verified_wasm_policy": 18
+    },
+    {
+      "verified_unsafe_code": 3,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 64,
+      "all_fields_match": 64,
+      "final_state_and_exact_memory_match": 64,
+      "mismatched_fields": {},
+      "categories": {},
+      "inputs": {
+        "/home/claude/.scratch/eka-batched-counts/faults/invariant-write-remap-native.log": "8da3e5c3e3850c823d339beab7bb1110667699769a3e68f72be2d642751cccc9",
+        "/home/claude/.scratch/eka-batched-counts/faults/invariant-write-remap-wasm.log": "ebc931eb96187a1ce08b669a233e9a534024e33b5a43d495d90a8bbe68cc358f"
+      },
+      "differences": [],
+      "case": "invariant-write-remap",
+      "verified_native_policy": 7,
+      "verified_wasm_policy": 18
+    },
+    {
+      "verified_unsafe_code": 3,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 672,
+      "all_fields_match": 672,
+      "final_state_and_exact_memory_match": 672,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 168,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-batched-counts/faults/wide-snapshots-native.log": "3a8f45e43b10adb92dea17a00b3db3478122a6aa0f93501a18a3f1e089df519a",
+        "/home/claude/.scratch/eka-batched-counts/faults/wide-snapshots-wasm.log": "c16d6c4cb752e2ac25da8e2ff3b231f90217d790b3e944ee6e937516dc4644e1"
+      },
+      "differences": [],
+      "case": "wide-snapshots",
+      "verified_native_policy": 7,
+      "verified_wasm_policy": 18
+    },
+    {
+      "verified_unsafe_code": 3,
+      "verified_leaf_features": null,
+      "verified_exit_census": null,
+      "verified_predicated_leaves": null,
+      "cases": 96,
+      "all_fields_match": 96,
+      "final_state_and_exact_memory_match": 96,
+      "mismatched_fields": {},
+      "categories": {},
+      "little_endian_unmapped_cases": 24,
+      "little_endian_unmapped_differences": 0,
+      "inputs": {
+        "/home/claude/.scratch/eka-batched-counts/faults/region-block-spans-native.log": "a99421b03c3a3f5f29c21460e40ea4ee5d531f1086ca95061ccda155afd5e025",
+        "/home/claude/.scratch/eka-batched-counts/faults/region-block-spans-wasm.log": "04ba5868792c2bb42a8d0fb5ad4a33688f6cf11328f1e5bc224700686c8e799e"
+      },
+      "differences": [],
+      "case": "region-block-spans",
+      "verified_native_policy": 7,
+      "verified_wasm_policy": 18
+    }
+  ],
+  "replays": [
+    {
+      "game": "standard",
+      "variant": "candidate",
+      "order": 0,
+      "directory": "/home/claude/.scratch/eka-batched-counts/replays-0-standard-candidate",
+      "command": {
+        "args": [
+          "node",
+          "benchmark.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-batched-counts/replays-0-standard-candidate",
+          "60",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+          "21000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build",
+          "EKA2L1_AOT_IR_MODE": "18",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1"
+        },
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0x2000730f",
+        "frames": 60,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 15.226489869000002,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+        "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 18,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1143727,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+          "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+          "writes": 0,
+          "callbacks": 2330,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 2330,
+          "gameplay_nonzero_samples": 264002,
+          "gameplay_peak": 206
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 23827651,
+        "instructions": 3012361007
+      }
+    },
+    {
+      "game": "combat",
+      "variant": "candidate",
+      "order": 1,
+      "directory": "/home/claude/.scratch/eka-batched-counts/replays-1-combat-candidate",
+      "command": {
+        "args": [
+          "node",
+          "benchmark.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-batched-counts/replays-1-combat-candidate",
+          "60",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "42000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build",
+          "EKA2L1_AOT_IR_MODE": "18",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1"
+        },
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0xa020d913",
+        "frames": 60,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 98.87728867999999,
+        "snakes_n80_native_resolution": false,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+        "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 18,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2105509,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f86fd7c8908cee93c5b8215ec3e4891ddf6a54a8a79783fea5d584bbf4290cab",
+          "sha256_events": "54699bb0cb4fcd867b4a437f0fc65f5f0a5fc28e723b8750fc3b97667e05e6e2",
+          "writes": 0,
+          "callbacks": 4210,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4210,
+          "gameplay_nonzero_samples": 176458,
+          "gameplay_peak": 4041
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 43864773,
+        "instructions": 15827750304
+      }
+    }
+  ],
+  "inspection": {
+    "function": "f_2149177368",
+    "entry": "0x8019d818",
+    "loop_head": "0x8019d81c",
+    "old_counter_assignments": [
+      [
+        "add",
+        "1"
+      ],
+      [
+        "add",
+        "1"
+      ],
+      [
+        "add",
+        "1"
+      ],
+      [
+        "sub",
+        "1"
+      ],
+      [
+        "add",
+        "1"
+      ],
+      [
+        "add",
+        "1"
+      ],
+      [
+        "add",
+        "1"
+      ],
+      [
+        "add",
+        "1"
+      ]
+    ],
+    "new_counter_assignments": [
+      [
+        "sub",
+        "1"
+      ],
+      [
+        "add",
+        "7"
+      ],
+      [
+        "add",
+        "7"
+      ]
+    ],
+    "module_bytes": 18608,
+    "module_sha256": "68e8b99eb638d11d18a9fbb5fb314a6f37e126b615f5fd4c833cb897a2220f94",
+    "caveat": "Emitted WASM, not V8 machine-instruction timing. Rollback assignments are cold memory exits."
+  },
+  "timings": [
+    {
+      "game": "standard",
+      "variant": "control",
+      "order": 0,
+      "directory": "/home/claude/.scratch/eka-batched-counts/timings-0-standard-control",
+      "command": {
+        "args": [
+          "node",
+          "profile.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-batched-counts/timings-0-standard-control",
+          "1",
+          "0",
+          "25000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_PROFILE_START_US": "21000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+        },
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0x2000730f",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2549856574,
+          "last_instructions": 3194584805,
+          "wall_seconds": 2.3407,
+          "presentations": 84
+        },
+        "warmup_seconds": 11.800487894999998,
+        "purpose": "throughput",
+        "chrome_trace": {
+          "scope": "off"
+        },
+        "diagnostics_available": false,
+        "shared_audio": true,
+        "guest_profile_stride": 0,
+        "exit_census": false,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+        "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "runtime_footprint": {
+          "guest_us": 25000000,
+          "instructions": 3194584805,
+          "compiled_functions": 12328,
+          "allocated_bytes": 582040376,
+          "free_bytes": 17446232
+        },
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      }
+    },
+    {
+      "game": "standard",
+      "variant": "candidate",
+      "order": 1,
+      "directory": "/home/claude/.scratch/eka-batched-counts/timings-1-standard-candidate",
+      "command": {
+        "args": [
+          "node",
+          "profile.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-batched-counts/timings-1-standard-candidate",
+          "1",
+          "0",
+          "25000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "18",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_PROFILE_START_US": "21000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+        },
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0x2000730f",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2549856574,
+          "last_instructions": 3194584805,
+          "wall_seconds": 2.2105,
+          "presentations": 84
+        },
+        "warmup_seconds": 12.050530524000001,
+        "purpose": "throughput",
+        "chrome_trace": {
+          "scope": "off"
+        },
+        "diagnostics_available": false,
+        "shared_audio": true,
+        "guest_profile_stride": 0,
+        "exit_census": false,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+        "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 18,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "runtime_footprint": {
+          "guest_us": 25000000,
+          "instructions": 3194584805,
+          "compiled_functions": 12328,
+          "allocated_bytes": 582039128,
+          "free_bytes": 17447480
+        },
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      }
+    },
+    {
+      "game": "standard",
+      "variant": "candidate",
+      "order": 2,
+      "directory": "/home/claude/.scratch/eka-batched-counts/timings-2-standard-candidate",
+      "command": {
+        "args": [
+          "node",
+          "profile.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-batched-counts/timings-2-standard-candidate",
+          "1",
+          "0",
+          "25000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "18",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_PROFILE_START_US": "21000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+        },
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0x2000730f",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2549856574,
+          "last_instructions": 3194584805,
+          "wall_seconds": 2.39064,
+          "presentations": 84
+        },
+        "warmup_seconds": 12.052049233999998,
+        "purpose": "throughput",
+        "chrome_trace": {
+          "scope": "off"
+        },
+        "diagnostics_available": false,
+        "shared_audio": true,
+        "guest_profile_stride": 0,
+        "exit_census": false,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+        "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 18,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "runtime_footprint": {
+          "guest_us": 25000000,
+          "instructions": 3194584805,
+          "compiled_functions": 12328,
+          "allocated_bytes": 582039784,
+          "free_bytes": 17446824
+        },
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      }
+    },
+    {
+      "game": "standard",
+      "variant": "control",
+      "order": 3,
+      "directory": "/home/claude/.scratch/eka-batched-counts/timings-3-standard-control",
+      "command": {
+        "args": [
+          "node",
+          "profile.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-batched-counts/timings-3-standard-control",
+          "1",
+          "0",
+          "25000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_PROFILE_START_US": "21000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+        },
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0x2000730f",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2549856574,
+          "last_instructions": 3194584805,
+          "wall_seconds": 2.47968,
+          "presentations": 84
+        },
+        "warmup_seconds": 12.303810377999998,
+        "purpose": "throughput",
+        "chrome_trace": {
+          "scope": "off"
+        },
+        "diagnostics_available": false,
+        "shared_audio": true,
+        "guest_profile_stride": 0,
+        "exit_census": false,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+        "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "runtime_footprint": {
+          "guest_us": 25000000,
+          "instructions": 3194584805,
+          "compiled_functions": 12328,
+          "allocated_bytes": 582040544,
+          "free_bytes": 17446064
+        },
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      }
+    },
+    {
+      "game": "combat",
+      "variant": "control",
+      "order": 4,
+      "directory": "/home/claude/.scratch/eka-batched-counts/timings-4-combat-control",
+      "command": {
+        "args": [
+          "node",
+          "profile.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-batched-counts/timings-4-combat-control",
+          "1",
+          "0",
+          "48000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+          "EKA2L1_PROFILE_START_US": "42000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+        },
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0xa020d913",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 42000001,
+          "last_virtual_us": 48000000,
+          "first_instructions": 15147789887,
+          "last_instructions": 17318833812,
+          "wall_seconds": 11.2029,
+          "presentations": 192
+        },
+        "warmup_seconds": 78.099335551,
+        "purpose": "throughput",
+        "chrome_trace": {
+          "scope": "off"
+        },
+        "diagnostics_available": false,
+        "shared_audio": true,
+        "guest_profile_stride": 0,
+        "exit_census": false,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+        "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "5b823fb48d322303135bcb40cbebb6fa034b56d5",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "runtime_footprint": {
+          "guest_us": 48000000,
+          "instructions": 17318833812,
+          "compiled_functions": 10060,
+          "allocated_bytes": 593999056,
+          "free_bytes": 26459072
+        },
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      }
+    },
+    {
+      "game": "combat",
+      "variant": "candidate",
+      "order": 5,
+      "directory": "/home/claude/.scratch/eka-batched-counts/timings-5-combat-candidate",
+      "command": {
+        "args": [
+          "node",
+          "profile.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-batched-counts/timings-5-combat-candidate",
+          "1",
+          "0",
+          "48000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "18",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+          "EKA2L1_PROFILE_START_US": "42000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+        },
+        "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0xa020d913",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 42000001,
+          "last_virtual_us": 48000000,
+          "first_instructions": 15147789887,
+          "last_instructions": 17318833812,
+          "wall_seconds": 10.0347,
+          "presentations": 192
+        },
+        "warmup_seconds": 76.09041618999998,
+        "purpose": "throughput",
+        "chrome_trace": {
+          "scope": "off"
+        },
+        "diagnostics_available": false,
+        "shared_audio": true,
+        "guest_profile_stride": 0,
+        "exit_census": false,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+        "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 18,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "runtime_footprint": {
+          "guest_us": 48000000,
+          "instructions": 17318833812,
+          "compiled_functions": 10060,
+          "allocated_bytes": 593999016,
+          "free_bytes": 26459112
+        },
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      }
+    },
+    {
+      "game": "combat",
+      "variant": "candidate",
+      "order": 6,
+      "directory": "/home/claude/.scratch/eka-batched-counts/timings-6-combat-candidate",
+      "command": {
+        "args": [
+          "node",
+          "profile.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-batched-counts/timings-6-combat-candidate",
+          "1",
+          "0",
+          "48000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "18",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+          "EKA2L1_PROFILE_START_US": "42000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+        },
+        "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0xa020d913",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 42000001,
+          "last_virtual_us": 48000000,
+          "first_instructions": 15147789887,
+          "last_instructions": 17318833812,
+          "wall_seconds": 12.177,
+          "presentations": 192
+        },
+        "warmup_seconds": 79.099248762,
+        "purpose": "throughput",
+        "chrome_trace": {
+          "scope": "off"
+        },
+        "diagnostics_available": false,
+        "shared_audio": true,
+        "guest_profile_stride": 0,
+        "exit_census": false,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+        "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 18,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "runtime_footprint": {
+          "guest_us": 48000000,
+          "instructions": 17318833812,
+          "compiled_functions": 10060,
+          "allocated_bytes": 593999664,
+          "free_bytes": 26458464
+        },
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      }
+    },
+    {
+      "game": "combat",
+      "variant": "control",
+      "order": 7,
+      "directory": "/home/claude/.scratch/eka-batched-counts/timings-7-combat-control",
+      "command": {
+        "args": [
+          "node",
+          "profile.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-batched-counts/timings-7-combat-control",
+          "1",
+          "0",
+          "48000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_COMPILED_SVC": "0",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+          "EKA2L1_ROM_DISPATCH": "0",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+          "EKA2L1_PROFILE_START_US": "42000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+        },
+        "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "rom_dispatch": 0,
+        "synchronous_compilation": 0,
+        "compiled_memory_misses": 0,
+        "compiled_svc": 0,
+        "arm_exclusive": 0,
+        "rom_calls": 0,
+        "rom_leaves": 0,
+        "thumb_memory": 1,
+        "arm_memory": 0,
+        "app_uid": "0xa020d913",
+        "measurement": {
+          "diagnostics_available": false,
+          "detailed": false,
+          "capture_mode": 1,
+          "first_virtual_us": 42000001,
+          "last_virtual_us": 48000000,
+          "first_instructions": 15147789887,
+          "last_instructions": 17318833812,
+          "wall_seconds": 10.4911,
+          "presentations": 192
+        },
+        "warmup_seconds": 77.10060385700001,
+        "purpose": "throughput",
+        "chrome_trace": {
+          "scope": "off"
+        },
+        "diagnostics_available": false,
+        "shared_audio": true,
+        "guest_profile_stride": 0,
+        "exit_census": false,
+        "monitor": false,
+        "monitor_cpu_start_us": 0,
+        "sampling": false,
+        "sample_interval_us": 1000,
+        "isolates": 33,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+        "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "tlb_hash": 1,
+        "code_compare": 2,
+        "code_lookup": 0,
+        "omit_guard_publication": 0,
+        "code_write_protect": -1,
+        "eager_regions": 0,
+        "verify_aot": 0,
+        "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+        "dirty_worktree": true,
+        "browser": "Chrome/153.0.8010.52",
+        "runtime_footprint": {
+          "guest_us": 48000000,
+          "instructions": 17318833812,
+          "compiled_functions": 10060,
+          "allocated_bytes": 593999416,
+          "free_bytes": 26458712
+        },
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+      }
+    }
+  ],
+  "summary": {
+    "standard": {
+      "seconds": {
+        "control": [
+          2.3407,
+          2.47968,
+          2.33515,
+          2.33003
+        ],
+        "candidate": [
+          2.2105,
+          2.39064,
+          2.4211,
+          2.40894
+        ]
+      },
+      "mean_seconds": {
+        "control": 2.37139,
+        "candidate": 2.357795
+      },
+      "mean_throughput_percent": 0.5765980502969947,
+      "paired_throughput_percent": [
+        5.890070119882362,
+        3.7245256500351376,
+        -3.5500392383627233,
+        -3.275714629671145
+      ],
+      "favorable_pairs": 2,
+      "identical_work": {
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 25000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 3194584805,
+        "presentations": 84
+      }
+    },
+    "combat": {
+      "seconds": {
+        "control": [
+          11.2029,
+          10.4911,
+          10.1024,
+          9.98556
+        ],
+        "candidate": [
+          10.0347,
+          12.177,
+          11.3788,
+          10.9995
+        ]
+      },
+      "mean_seconds": {
+        "control": 10.44549,
+        "candidate": 11.1475
+      },
+      "mean_throughput_percent": -6.29746579950663,
+      "paired_throughput_percent": [
+        11.6416036353852,
+        -13.844953601051168,
+        -11.217351566070244,
+        -9.21805536615301
+      ],
+      "favorable_pairs": 1,
+      "identical_work": {
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "presentations": 192
+      }
+    }
+  },
+  "limits": [
+    "Shared host; outside activity uncontrolled. All observations retained. Profiling and correctness elapsed times are not throughput measurements.",
+    "Build used an isolated source snapshot because another session was removing compiler feature gates in the main checkout. Those changes are excluded from this experiment.",
+    "Native fault reference is an archived Dynarmic executable rerun with policy marker 7; generated WASM probe explicitly uses 18. Native execution does not use the WASM compiler policy. Both markers are independently checked; no equal-policy claim is made.",
+    "The quiet fault probe aborted before case 0 under both 17 and 18 because its coverage checks require compiled counters. A separate diagnostics-enabled probe supplied the recorded native comparisons; production replays and timings use the diagnostics-free runtime.",
+    "An attempted native-probe relink against the old native build failed on missing newer runtime globals; no output from that failed build is treated as verification.",
+    "The additional inline-branch test was compiled after timings with diagnostics ON. It changes only test coverage; every production source file still matches implementation commit a227e2289 and frozen runtime hashes were rechecked.",
+    "WASM counter assignments are structural evidence; V8 may simplify equivalent arithmetic. No individual machine-instruction cost is inferred."
+  ],
+  "disposition": "Retain policy 18 as opt-in; the completed two-panel comparison did not establish a useful repeatable speedup. Policy 17 remains the default; live deployment unchanged.",
+  "confirmation": {
+    "plan": {
+      "hypothesis": "Generic deferred instruction accounting removes runtime counter updates through straight-line code, predicated instructions, inlined calls and loops, materializing at control-flow edges and observing exact prefixes on cold exits. Compare policies 17 and 18 in the same binary.",
+      "source_baseline": "5b823fb48",
+      "variants": {
+        "control": {
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build",
+          "EKA2L1_AOT_IR_MODE": "17"
+        },
+        "candidate": {
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build",
+          "EKA2L1_AOT_IR_MODE": "18"
+        }
+      },
+      "replays": [
+        {
+          "game": "standard",
+          "variant": "candidate"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate"
+        }
+      ],
+      "timings": [
+        {
+          "game": "standard",
+          "variant": "candidate"
+        },
+        {
+          "game": "standard",
+          "variant": "control"
+        },
+        {
+          "game": "standard",
+          "variant": "control"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate"
+        },
+        {
+          "game": "combat",
+          "variant": "control"
+        },
+        {
+          "game": "combat",
+          "variant": "control"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate"
+        }
+      ],
+      "profiles": [],
+      "decision_rule": "One reversed-order BAAB confirmation for both games, prescribed after mixed initial Sky Force pairs. Pool every observation. Require a useful roughly 3 percent mean gain with at least three of four pairs favorable in a game and no repeatable material regression in the other; otherwise retain as opt-in. No further timing expansion for this task."
+    },
+    "timings": [
+      {
+        "game": "standard",
+        "variant": "candidate",
+        "order": 0,
+        "directory": "/home/claude/.scratch/eka-batched-counts/confirmation/timings-0-standard-candidate",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-batched-counts/confirmation/timings-0-standard-candidate",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "18",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+          },
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.4211,
+            "presentations": 84
+          },
+          "warmup_seconds": 11.800571263,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+          "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 18,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582038224,
+            "free_bytes": 17448384
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "control",
+        "order": 1,
+        "directory": "/home/claude/.scratch/eka-batched-counts/confirmation/timings-1-standard-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-batched-counts/confirmation/timings-1-standard-control",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+          },
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.33515,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.302239436000002,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+          "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582041112,
+            "free_bytes": 17445496
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "control",
+        "order": 2,
+        "directory": "/home/claude/.scratch/eka-batched-counts/confirmation/timings-2-standard-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-batched-counts/confirmation/timings-2-standard-control",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+          },
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.33003,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.302775105,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+          "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039608,
+            "free_bytes": 17447000
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "standard",
+        "variant": "candidate",
+        "order": 3,
+        "directory": "/home/claude/.scratch/eka-batched-counts/confirmation/timings-3-standard-candidate",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-benchmark/assets",
+            "/home/claude/.scratch/eka-batched-counts/confirmation/timings-3-standard-candidate",
+            "1",
+            "0",
+            "25000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "18",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_PROFILE_START_US": "21000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+          },
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0x2000730f",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 21000000,
+            "last_virtual_us": 25000000,
+            "first_instructions": 2549856574,
+            "last_instructions": 3194584805,
+            "wall_seconds": 2.40894,
+            "presentations": 84
+          },
+          "warmup_seconds": 12.557149302000001,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+          },
+          "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+          "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+          "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 18,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 25000000,
+            "instructions": 3194584805,
+            "compiled_functions": 12328,
+            "allocated_bytes": 582039032,
+            "free_bytes": 17447576
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "combat",
+        "variant": "candidate",
+        "order": 4,
+        "directory": "/home/claude/.scratch/eka-batched-counts/confirmation/timings-4-combat-candidate",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-sky-performance/assets",
+            "/home/claude/.scratch/eka-batched-counts/confirmation/timings-4-combat-candidate",
+            "1",
+            "0",
+            "48000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "18",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_APP_UID": "0xa020d913",
+            "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+            "EKA2L1_PROFILE_START_US": "42000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+          },
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0xa020d913",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 42000001,
+            "last_virtual_us": 48000000,
+            "first_instructions": 15147789887,
+            "last_instructions": 17318833812,
+            "wall_seconds": 11.3788,
+            "presentations": 192
+          },
+          "warmup_seconds": 75.08532093,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+          },
+          "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+          "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+          "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 18,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 48000000,
+            "instructions": 17318833812,
+            "compiled_functions": 10060,
+            "allocated_bytes": 593999032,
+            "free_bytes": 26459096
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "combat",
+        "variant": "control",
+        "order": 5,
+        "directory": "/home/claude/.scratch/eka-batched-counts/confirmation/timings-5-combat-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-sky-performance/assets",
+            "/home/claude/.scratch/eka-batched-counts/confirmation/timings-5-combat-control",
+            "1",
+            "0",
+            "48000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_APP_UID": "0xa020d913",
+            "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+            "EKA2L1_PROFILE_START_US": "42000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+          },
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0xa020d913",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 42000001,
+            "last_virtual_us": 48000000,
+            "first_instructions": 15147789887,
+            "last_instructions": 17318833812,
+            "wall_seconds": 10.1024,
+            "presentations": 192
+          },
+          "warmup_seconds": 75.590112735,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+          },
+          "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+          "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+          "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 48000000,
+            "instructions": 17318833812,
+            "compiled_functions": 10060,
+            "allocated_bytes": 593999120,
+            "free_bytes": 26459008
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "combat",
+        "variant": "control",
+        "order": 6,
+        "directory": "/home/claude/.scratch/eka-batched-counts/confirmation/timings-6-combat-control",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-sky-performance/assets",
+            "/home/claude/.scratch/eka-batched-counts/confirmation/timings-6-combat-control",
+            "1",
+            "0",
+            "48000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "17",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_APP_UID": "0xa020d913",
+            "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+            "EKA2L1_PROFILE_START_US": "42000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+          },
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0xa020d913",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 42000001,
+            "last_virtual_us": 48000000,
+            "first_instructions": 15147789887,
+            "last_instructions": 17318833812,
+            "wall_seconds": 9.98556,
+            "presentations": 192
+          },
+          "warmup_seconds": 74.575763817,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+          },
+          "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+          "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+          "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 17,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 48000000,
+            "instructions": 17318833812,
+            "compiled_functions": 10060,
+            "allocated_bytes": 593999360,
+            "free_bytes": 26458768
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      },
+      {
+        "game": "combat",
+        "variant": "candidate",
+        "order": 7,
+        "directory": "/home/claude/.scratch/eka-batched-counts/confirmation/timings-7-combat-candidate",
+        "command": {
+          "args": [
+            "node",
+            "profile.ts",
+            "/home/claude/.scratch/eka-sky-performance/assets",
+            "/home/claude/.scratch/eka-batched-counts/confirmation/timings-7-combat-candidate",
+            "1",
+            "0",
+            "48000000"
+          ],
+          "env": {
+            "EKA2L1_BENCHMARK_AOT": "5",
+            "EKA2L1_AOT_IR_MODE": "18",
+            "EKA2L1_AOT_EAGER_REGIONS": "0",
+            "EKA2L1_TLB_HASH": "1",
+            "EKA2L1_CODE_COMPARE": "2",
+            "EKA2L1_CODE_LOOKUP": "0",
+            "EKA2L1_PREDICATED_LEAVES": "1",
+            "EKA2L1_LEAF_FEATURES": "128",
+            "EKA2L1_UNSAFE_CODE": "3",
+            "EKA2L1_SHARED_AUDIO": "1",
+            "EKA2L1_GPU": "hardware",
+            "EKA2L1_THUMB_MEMORY": "1",
+            "EKA2L1_ARM_MEMORY": "0",
+            "EKA2L1_ROM_LEAVES": "0",
+            "EKA2L1_ROM_CALLS": "0",
+            "EKA2L1_ARM_EXCLUSIVE": "0",
+            "EKA2L1_COMPILED_SVC": "0",
+            "EKA2L1_COMPILED_MEMORY_MISSES": "0",
+            "EKA2L1_SYNCHRONOUS_COMPILATION": "0",
+            "EKA2L1_ROM_DISPATCH": "0",
+            "EKA2L1_HOTPATH": "2",
+            "EKA2L1_OMIT_GUARD_PUBLICATION": "0",
+            "EKA2L1_APP_UID": "0xa020d913",
+            "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+            "EKA2L1_PROFILE_START_US": "42000000",
+            "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+            "EKA2L1_CHROME_TRACE": "off",
+            "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-batched-counts/candidate-build"
+          },
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20"
+        },
+        "report": {
+          "hotpath_policy": 2,
+          "rom_dispatch": 0,
+          "synchronous_compilation": 0,
+          "compiled_memory_misses": 0,
+          "compiled_svc": 0,
+          "arm_exclusive": 0,
+          "rom_calls": 0,
+          "rom_leaves": 0,
+          "thumb_memory": 1,
+          "arm_memory": 0,
+          "app_uid": "0xa020d913",
+          "measurement": {
+            "diagnostics_available": false,
+            "detailed": false,
+            "capture_mode": 1,
+            "first_virtual_us": 42000001,
+            "last_virtual_us": 48000000,
+            "first_instructions": 15147789887,
+            "last_instructions": 17318833812,
+            "wall_seconds": 10.9995,
+            "presentations": 192
+          },
+          "warmup_seconds": 77.092143881,
+          "purpose": "throughput",
+          "chrome_trace": {
+            "scope": "off"
+          },
+          "diagnostics_available": false,
+          "shared_audio": true,
+          "guest_profile_stride": 0,
+          "exit_census": false,
+          "monitor": false,
+          "monitor_cpu_start_us": 0,
+          "sampling": false,
+          "sample_interval_us": 1000,
+          "isolates": 33,
+          "assets": {
+            "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+          },
+          "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+          "wasm_sha256": "5bd6f999b24129e6c204101079a871cf5ebe111c0bdd577a8ff092c88f7e68d6",
+          "loader_sha256": "eed3da6f664038bebc9abc1edad5990536fee8bdfd79da2915b1fabecbf5e5c3",
+          "gl_diagnostics": false,
+          "gl_diagnostics_configurable": true,
+          "aot": 5,
+          "aot_diagnostics": false,
+          "ir_mode": 18,
+          "execution_limits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "predicated_leaves": 1,
+          "leaf_features": 128,
+          "unsafe_code_initial": 3,
+          "unsafe_code": 3,
+          "tlb_hash": 1,
+          "code_compare": 2,
+          "code_lookup": 0,
+          "omit_guard_publication": 0,
+          "code_write_protect": -1,
+          "eager_regions": 0,
+          "verify_aot": 0,
+          "git_head": "a227e2289754b895313baa17e845b5c04d925d20",
+          "dirty_worktree": true,
+          "browser": "Chrome/153.0.8010.52",
+          "runtime_footprint": {
+            "guest_us": 48000000,
+            "instructions": 17318833812,
+            "compiled_functions": 10060,
+            "allocated_bytes": 593999264,
+            "free_bytes": 26458864
+          },
+          "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+          "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)"
+        }
+      }
+    ],
+    "pooled_summary": {
+      "standard": {
+        "seconds": {
+          "control": [
+            2.3407,
+            2.47968,
+            2.33515,
+            2.33003
+          ],
+          "candidate": [
+            2.2105,
+            2.39064,
+            2.4211,
+            2.40894
+          ]
+        },
+        "mean_seconds": {
+          "control": 2.37139,
+          "candidate": 2.357795
+        },
+        "mean_throughput_percent": 0.5765980502969947,
+        "paired_throughput_percent": [
+          5.890070119882362,
+          3.7245256500351376,
+          -3.5500392383627233,
+          -3.275714629671145
+        ],
+        "favorable_pairs": 2,
+        "identical_work": {
+          "first_virtual_us": 21000000,
+          "last_virtual_us": 25000000,
+          "first_instructions": 2549856574,
+          "last_instructions": 3194584805,
+          "presentations": 84
+        }
+      },
+      "combat": {
+        "seconds": {
+          "control": [
+            11.2029,
+            10.4911,
+            10.1024,
+            9.98556
+          ],
+          "candidate": [
+            10.0347,
+            12.177,
+            11.3788,
+            10.9995
+          ]
+        },
+        "mean_seconds": {
+          "control": 10.44549,
+          "candidate": 11.1475
+        },
+        "mean_throughput_percent": -6.29746579950663,
+        "paired_throughput_percent": [
+          11.6416036353852,
+          -13.844953601051168,
+          -11.217351566070244,
+          -9.21805536615301
+        ],
+        "favorable_pairs": 1,
+        "identical_work": {
+          "first_virtual_us": 42000001,
+          "last_virtual_us": 48000000,
+          "first_instructions": 15147789887,
+          "last_instructions": 17318833812,
+          "presentations": 192
+        }
+      }
+    },
+    "disposition": "Retain policy 18 as opt-in. Pooled Snakes gain is 0.6 percent with 2/4 favorable pairs; Sky Force is 6.3 percent slower with 1/4 favorable pairs. Policy 17 stays the default; live service unchanged."
+  },
+  "initial_summary": {
+    "standard": {
+      "seconds": {
+        "control": [
+          2.3407,
+          2.47968
+        ],
+        "candidate": [
+          2.2105,
+          2.39064
+        ]
+      },
+      "mean_throughput_percent": 4.7649060884911165,
+      "paired_throughput_percent": [
+        5.890070119882362,
+        3.7245256500351376
+      ]
+    },
+    "combat": {
+      "seconds": {
+        "control": [
+          11.2029,
+          10.4911
+        ],
+        "candidate": [
+          10.0347,
+          12.177
+        ]
+      },
+      "mean_throughput_percent": -2.3307536118352123,
+      "paired_throughput_percent": [
+        11.6416036353852,
+        -13.844953601051168
+      ]
+    }
+  }
+}

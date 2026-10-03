@@ -6226,7 +6226,7 @@ static bool test_call_prefixes() {
     return true;
 }
 
-static bool test_expanded_leaves(bool always=false) {
+static bool test_expanded_leaves(bool always=false, arm_ir_policy policy=arm_ir_policy::write_budget_chunks) {
 #ifdef __EMSCRIPTEN__
     struct restore {bool flag=predicated_leaves;unsigned features=leaf_features;std::string limits=execution_limits_text();
         ~restore(){predicated_leaves=flag;leaf_features=features;parse_execution_limits(limits.c_str());}} saved;
@@ -6241,8 +6241,8 @@ static bool test_expanded_leaves(bool always=false) {
             return pc==0x2000?std::vector<std::uint8_t>(b,b+sizeof(leaf)):std::vector<std::uint8_t>{};};
         auto translate=[&](arm_ir_policy policy) {return translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,
             nullptr,nullptr,true,false,true,true,&resolver,true,policy);};
-        predicated_leaves=false;if(!translate(arm_ir_policy::write_budget_chunks).dependencies.empty())return false;
-        predicated_leaves=true;auto tr=translate(arm_ir_policy::write_budget_chunks);
+        predicated_leaves=false;if(!translate(policy).dependencies.empty())return false;
+        predicated_leaves=true;auto tr=translate(policy);
         if(tr.dependencies.size()!=1 || !translate(arm_ir_policy::conditional_value_ir).dependencies.empty())return false;
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
@@ -6283,7 +6283,7 @@ static bool test_expanded_leaves(bool always=false) {
     }
     for(unsigned op:{0xeafffffeu,0xea000004u,0x128ee001u,0x112fff1eu,0xeb000000u,0xe10f4000u,0xf3a00001u}) {
         unsigned leaf[]={op,0xe12fff1e};leaf_resolver resolver=[&](unsigned){const auto *b=reinterpret_cast<const std::uint8_t*>(leaf);return std::vector<std::uint8_t>(b,b+sizeof(leaf));};
-        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,arm_ir_policy::write_budget_chunks);
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,true,&resolver,true,policy);
         if(!tr.dependencies.empty()){printf(" FAIL unsafe expanded leaf accepted %x\n",op);return false;}
     }
 
@@ -6294,7 +6294,7 @@ static bool test_expanded_leaves(bool always=false) {
     const unsigned twice[]={0xeb0003feu,0xe1a00006u,0xe1a02007u,0xeb0003fbu,0xe2888001u};
     leaf_resolver lookup_resolver=[&](unsigned pc){const auto *p=reinterpret_cast<const std::uint8_t*>(lookup);
         return pc==0x2000?std::vector<std::uint8_t>(p,p+sizeof(lookup)):std::vector<std::uint8_t>{};};
-    auto lookup_translate=[&](){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(twice),sizeof(twice),0x1000,nullptr,nullptr,true,false,true,true,&lookup_resolver,true,arm_ir_policy::write_budget_chunks);};
+    auto lookup_translate=[&](){return translate_arm_block(reinterpret_cast<const std::uint8_t*>(twice),sizeof(twice),0x1000,nullptr,nullptr,true,false,true,true,&lookup_resolver,true,policy);};
     predicated_leaves=true;
     for(unsigned limit:{16u,32u})for(unsigned mask=0;mask<8;++mask) {
         leaf_instruction_limit=limit;leaf_features=mask;
@@ -7004,6 +7004,9 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--batched-counts-only")return test_batched_instruction_counts()
         && test_loop_budget_chunks() && test_budget_chunks(arm_ir_policy::batched_instruction_counts)
         && test_inlined_leaves(arm_ir_policy::batched_instruction_counts)?0:1;
+    if(argc==2 && std::string(argv[1])=="--batched-inline-branches-only")return
+        test_expanded_leaves(false,arm_ir_policy::batched_instruction_counts)
+        && test_expanded_leaves(true,arm_ir_policy::batched_instruction_counts)?0:1;
     if(argc==2 && std::string(argv[1])=="--batched-boundaries-only")return
         test_region_loop_interrupts(arm_ir_policy::batched_instruction_counts)
         && test_region_code_alias(arm_ir_policy::batched_instruction_counts)
