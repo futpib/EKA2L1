@@ -1,4 +1,3 @@
-#include <common/code_tracking.h>
 /*
  * Copyright (c) 2020 EKA2L1 Team.
  * 
@@ -220,9 +219,8 @@ namespace eka2l1::mem::flexible {
         return info_result->map_->base_;
     }
 
-    void *flexible_mem_model_chunk::host_base(bool expose) {
+    void *flexible_mem_model_chunk::host_base() {
         auto *ptr = mem_obj_->ptr();
-        if (expose) common::code_tracking::escape_pointer(ptr);
         return ptr;
     }
 }

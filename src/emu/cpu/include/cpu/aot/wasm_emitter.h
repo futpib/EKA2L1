@@ -142,17 +142,6 @@ namespace eka2l1::arm::aot {
         type_void = 0x40,
     };
 
-    // Optional composition input, captured before cache barriers are expanded.
-    // Ordinary finalized bodies remain available as the conservative fallback.
-    struct wasm_cached_body {
-        std::vector<std::uint8_t> body;
-        std::map<std::uint32_t, std::uint32_t> locals;
-        std::set<std::uint32_t> written;
-        struct barrier { std::size_t position; bool reload; };
-        std::vector<barrier> barriers;
-        bool shared_return = false;
-    };
-
     // Describes one function to include in the WASM module.
     struct wasm_func_def {
         std::string export_name;              // e.g. "f_80464C14"
@@ -161,7 +150,6 @@ namespace eka2l1::arm::aot {
         std::uint32_t num_f32_locals = 0;     // f32 locals (after i32 locals)
         std::uint32_t num_f64_locals = 0;     // f64 locals (after f32 locals)
         std::uint32_t num_prefix_i64_locals = 0; // before i32 scratch/cache locals
-        std::uint32_t num_suffix_i64_locals = 0; // typed IR values after all existing locals
         // Optional private cold callee. The call operand at this body offset
         // reserves five unsigned-LEB bytes; the module builder supplies its
         // final index after all public functions, preserving sibling indices.
@@ -172,10 +160,6 @@ namespace eka2l1::arm::aot {
             std::uint32_t call_offset;
         };
         std::vector<private_call> outlined_calls;
-        std::shared_ptr<wasm_cached_body> cached_body;
-        std::vector<std::uint32_t> successor_keys;
-        bool private_export = false;
-        std::vector<std::string> export_aliases;
     };
 
     // Describes an imported function.
@@ -191,6 +175,5 @@ namespace eka2l1::arm::aot {
     // The module imports shared memory from the host.
     std::vector<std::uint8_t> build_wasm_module(
         const std::vector<wasm_func_def> &funcs,
-        const std::vector<wasm_import_func> &imports = {},
-        const std::vector<std::uint32_t> &private_table = {});
+        const std::vector<wasm_import_func> &imports = {});
 }

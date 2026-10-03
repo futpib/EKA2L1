@@ -3,7 +3,6 @@
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/aot/aot_runtime.h>
-#include <cpu/aot/rom_dispatch.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/arm_translator.h>
@@ -107,12 +106,7 @@ static int thumb_memory_fault_probe(bool direct) {
         translated.func.export_name="f_4097";
         const std::vector<aot::wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
-        if(aot::rom_state_cohorts) {
-            auto first=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(program),2,0x1000,nullptr,nullptr,true,false,true);
-            auto second=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(program)+2,2,0x1002,nullptr,nullptr,true,false,true);
-            first.func.export_name="f_4097";second.func.export_name="f_4099";
-            stage_boundary_probe({first.func,second.func},imports,"thumb-cohort-memory-fault");
-        } else {
+{
             auto bytes=aot::build_wasm_module({translated.func},imports);
             aot::stage_aot_module(std::move(bytes),"thumb-memory-fault");aot::instantiate_staged_modules();aot::chaining_enabled=true;
         }
@@ -143,7 +137,6 @@ static int thumb_memory_fault_probe(bool direct) {
     return 0;
 }
 
-
 // The emulator accounts ARMv5/v6 BL as two separately budgeted halfwords.
 // Native DynCom is the reference for that contract; Dynarmic Step treats the
 // architectural long call as one instruction and cannot expose its midpoint.
@@ -170,16 +163,13 @@ static int rom_call_probe() {
 #ifdef __EMSCRIPTEN__
         aot::global_registry().clear();
         aot::sibling_map targets{{0x2001,7}};
-        auto parent=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,aot::rom_state_cohorts?nullptr:&targets);
+        auto parent=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,&targets);
         auto child=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(callee),sizeof(callee),0x2000,nullptr,nullptr,true,false,true);
-        if(parent.bounded_direct_calls!=(aot::rom_state_cohorts?0u:1u)||!child.entry_supported){std::cerr<<"ROM call fixture did not link\n";return 2;}
+        if(parent.bounded_direct_calls!=1u||!child.entry_supported){std::cerr<<"ROM call fixture did not link\n";return 2;}
         parent.func.export_name="f_4097";child.func.export_name="f_8193";
         const std::vector<aot::wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
-        if(aot::rom_state_cohorts) {
-            if(parent.func.successor_keys.empty()||parent.func.successor_keys.front()!=0x2001)std::abort();
-            stage_boundary_probe({parent.func,child.func},imports,"cohort-rom-call");
-        } else {
+{
             auto bytes=aot::build_wasm_module({parent.func,child.func},imports);
             aot::stage_aot_module(std::move(bytes),"bounded-rom-call");aot::instantiate_staged_modules();aot::chaining_enabled=true;
         }
@@ -242,7 +232,6 @@ static int thumb_call_probe() {
     return 0;
 }
 
-
 // Same production exclusive monitor and callback contract on native DynCom and
 // generated WASM. Include failed reservations, another processor, changed data,
 // predicates, short budgets, callback stops and callback-visible state.
@@ -250,32 +239,7 @@ static int thumb_call_probe() {
 #ifdef __EMSCRIPTEN__
 static void stage_boundary_probe(const std::vector<aot::wasm_func_def> &functions,
     const std::vector<aot::wasm_import_func> &imports, const char *name) {
-    if (!aot::rom_dispatch_enabled) {
-        aot::stage_aot_module(aot::build_wasm_module(functions, imports), name);
-    } else {
-        unsigned low=UINT32_MAX;std::uint64_t high=0;
-        for(const auto &fn:functions) {
-            const auto key=std::stoul(fn.export_name.substr(2));
-            low=std::min(low,static_cast<unsigned>(key)&~4095u);
-            high=std::max(high,(std::uint64_t(key)+4096)&~std::uint64_t{4095});
-        }
-        if(high>UINT32_MAX||high<=low)std::abort();
-        auto map=std::make_shared<aot::rom_dispatch_map>(low,high-low,functions.size());
-        for(unsigned i=0;i<functions.size();++i)
-            if(!map->insert(std::stoul(functions[i].export_name.substr(2)),i))std::abort();
-        std::vector<std::uint8_t> bytes;
-        if (aot::rom_state_cohorts) {
-            auto connected=functions;
-            for(unsigned i=0;i+1<connected.size();++i)
-                connected[i].successor_keys.push_back(std::stoul(connected[i+1].export_name.substr(2)));
-            unsigned composed=0;
-            bytes=aot::build_rom_cohort_module(connected,imports,low,high-low,map,&composed);
-            if(!connected.empty() && connected.front().cached_body && !connected.front().cached_body->shared_return
-                && composed==0)std::abort();
-        } else bytes=aot::build_rom_dispatch_module(functions,imports,*map);
-        if(bytes.empty())std::abort();
-        aot::stage_aot_module(std::move(bytes),name,map);
-    }
+    aot::stage_aot_module(aot::build_wasm_module(functions, imports), name);
     aot::instantiate_staged_modules();aot::chaining_enabled=true;
 }
 #endif
@@ -471,18 +435,9 @@ static int thumb_exchange_probe() {
 }
 
 int main(int argc, char **argv){
-    if(argc>1 && std::strcmp(argv[argc-1],"--rom-cohorts")==0) {
-        aot::rom_dispatch_enabled=true;aot::rom_state_cohorts=true;--argc;
-    }
-    aot::state_composition_capture composition(aot::rom_state_cohorts);
-    std::cout<<"PROBE_ROM_COHORTS "<<aot::rom_state_cohorts<<"\n";
-    if(argc>1 && std::strcmp(argv[argc-1],"--rom-dispatch")==0) {
-        aot::rom_dispatch_enabled=true;--argc;
-    }
-    std::cout<<"PROBE_ROM_DISPATCH "<<aot::rom_dispatch_enabled<<"\n";
     if(argc>1 && std::strncmp(argv[argc-1],"--unsafe-code=",14)==0) {
         const std::string value(argv[argc-1]+14);
-        if(value!="0" && value!="1" && value!="2" && value!="3")return 1;
+        if(value!="0" && value!="3")return 1;
         eka2l1::common::code_tracking::unsafe_code_mode=std::stoi(value);--argc;
     }
     std::cout<<"PROBE_UNSAFE_CODE "<<eka2l1::common::code_tracking::unsafe_code_mode<<"\n";
@@ -519,28 +474,11 @@ int main(int argc, char **argv){
     std::cout << "PROBE_TLB_HASH " << r12l1::dyncom_folded_tlb << "\n";
     if (argc > 1 && std::strncmp(argv[argc-1],"--code-compare=",15) == 0) {
         const std::string value(argv[argc-1]+15);
-        if(value!="0" && value!="1" && value!="2" && value!="3" && value!="4") {std::cerr<<"Invalid comparison policy\n";return 1;}
+        if(value!="0" && value!="3" && value!="4") {std::cerr<<"Invalid comparison policy\n";return 1;}
         aot::code_compare_mode=static_cast<unsigned>(value[0]-'0');
         --argc;
     }
     std::cout << "PROBE_COMPARE " << aot::code_compare_mode << "\n";
-    if (argc > 1 && std::strncmp(argv[argc-1],"--code-lookup=",14) == 0) {
-        const std::string value(argv[argc-1]+14);
-        if(value!="0" && value!="1") {std::cerr<<"Invalid lookup policy\n";return 1;}
-        aot::code_lookup_outline=value=="1";
-        --argc;
-    }
-    std::cout << "PROBE_LOOKUP " << aot::code_lookup_outline << "\n";
-    if (argc > 1 && std::strncmp(argv[argc-1],"--code-write-protect=",21) == 0) {
-        const std::string value(argv[argc-1]+21);
-        if(value!="0" && value!="1") {std::cerr<<"Invalid code write protection policy\n";return 1;}
-#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
-        if(value=="1") {std::cerr<<"Write protection build required\n";return 1;}
-#endif
-        eka2l1::common::code_tracking::protect_writes=value=="1";
-        --argc;
-    }
-    std::cout << "PROBE_WRITE_PROTECT " << eka2l1::common::code_tracking::protect_writes << "\n";
     if (argc > 1 && std::string(argv[argc-1]) == "--compiled-memory-misses") {
         aot::compiled_memory_misses = true;
         --argc;
@@ -562,7 +500,6 @@ int main(int argc, char **argv){
         --argc;
     }
     std::cout << "PROBE_POLICY " << static_cast<int>(ir_policy) << "\n";
-    const bool ir_disabled=ir_policy==aot::arm_ir_policy::disabled || ir_policy==aot::arm_ir_policy::invariant_reads || ir_policy==aot::arm_ir_policy::invariant_writes || ir_policy==aot::arm_ir_policy::budget_chunks || ir_policy==aot::arm_ir_policy::write_budget_chunks || ir_policy==aot::arm_ir_policy::deferred_chunk_counts || ir_policy==aot::arm_ir_policy::loop_budget_chunks || ir_policy==aot::arm_ir_policy::batched_instruction_counts;
     const bool interpreter=argc==2 && (std::string(argv[1])=="--interpreter" || std::string(argv[1])=="--region-spans-interpreter" || std::string(argv[1])=="--entry-budget-interpreter");
     eka2l1::common::performance::enabled=true;
     eka2l1::common::performance::phase=2;
@@ -583,7 +520,7 @@ int main(int argc, char **argv){
     const bool invariant_remap=invariant_write_remap || (argc==2 && std::string(argv[1])=="--invariant-remap");
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
-    const bool region_ir=argc==2 && std::string(argv[1])=="--region-ir";
+    // Historical fixture names identify instruction sequences, not a compiler backend.
     const bool ir_call_short=argc==2 && std::string(argv[1])=="--ir-calls-short";
     const bool preserve_inner=argc==2 && std::string(argv[1])=="--preserve-inner";
     const bool literal_pc_veneers=argc==2 && std::string(argv[1])=="--literal-pc-veneers";
@@ -603,7 +540,7 @@ int main(int argc, char **argv){
     const bool ir_memory=ir_long || ir_conditions || ir_calls || ir_flags || ir_recipes || ir_short || ir_addressing || ir_wide || (argc==2 && std::string(argv[1])=="--ir-memory");
     const bool ir_memory_chain=argc==2 && std::string(argv[1])=="--ir-memory-chain";
     const bool ir_segments=ir_memory || (argc==2 && std::string(argv[1])=="--ir-segments");
-    const bool region_block_spans=region_ir || (argc==2 && std::string(argv[1])=="--region-block-spans");
+    const bool region_block_spans=(argc==2 && std::string(argv[1])=="--region-block-spans");
     const bool region_spans=ir_memory_chain || region_block_spans || (argc==2 && (std::string(argv[1])=="--region-spans" || std::string(argv[1])=="--region-spans-interpreter"));
     const bool three_instructions=read_spans || wide_snapshots;
     const unsigned instruction_count=arm_leaf_memory?3:ir_long?135:invariant_remap||ir_recipes||ir_flags||ir_conditions?7:ir_segments||region_spans?5:three_instructions?3:2;
@@ -651,7 +588,7 @@ int main(int argc, char **argv){
         Fixture f{cpu, std::vector<unsigned char>(65536),address,policy,region_spans?3u:read_spans?1u:partial};f.install();
         for(unsigned i=0x8000;i<0xa000;++i)f.memory[i]=(i*37+11)&255;
         // MOVS precedes the access, so exception observers see live flags/registers.
-        unsigned program[135]={region_ir?0xe3a02007u:0xe3b02007u,wide_snapshots?0xe0c54796u:region_spans?0xe5910000u:op,
+        unsigned program[135]={0xe3b02007u,wide_snapshots?0xe0c54796u:region_spans?0xe5910000u:op,
             wide_snapshots?op:(read_spans||region_spans)?0xe5913004u:0xeafffffeu,
             0xe5914008u,region_block_spans?op:0xe591500cu};
         if(arm_leaf_memory) program[2]=0xe2844001;
@@ -779,51 +716,23 @@ int main(int argc, char **argv){
                 && n==0 && !translated.deferred_count_updates) {
                 std::cerr<<"Fault fixture did not select batched instruction counts\n";return 4;
             }
-            const auto checked_policy = (ir_policy == aot::arm_ir_policy::long_segments_ir || ir_policy == aot::arm_ir_policy::stack_values_ir || ir_policy == aot::arm_ir_policy::budget_gaps_ir)
-                ? aot::arm_ir_policy::conditional_value_ir : ir_policy;
-            if(ir_long && n==0 && translated.ir_max_segment_length != (ir_policy==aot::arm_ir_policy::long_segments_ir?128u:32u)) {
-                std::cerr<<"Long fault fixture did not select expected segment cap: policy="<<int(ir_policy)<<" max="<<translated.ir_max_segment_length<<" segments="<<translated.ir_segments<<" selected="<<translated.ir_segment_instructions<<"\n";return 4;
+            const auto checked_policy = (ir_policy == aot::arm_ir_policy::loop_budget_chunks
+                || ir_policy == aot::arm_ir_policy::batched_instruction_counts)
+                ? aot::arm_ir_policy::write_budget_chunks : ir_policy;
+            const bool writes = checked_policy == aot::arm_ir_policy::invariant_writes
+                || checked_policy == aot::arm_ir_policy::write_budget_chunks
+                || checked_policy == aot::arm_ir_policy::deferred_chunk_counts;
+            const bool reads = writes || checked_policy == aot::arm_ir_policy::invariant_reads
+                || checked_policy == aot::arm_ir_policy::budget_chunks;
+            if (writes && invariant_write_remap && n == 0 && translated.proved_writes != 3) {
+                std::cerr << "Write remap proof was not selected\n"; return 4;
             }
-            if((checked_policy==aot::arm_ir_policy::invariant_writes || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir) || checked_policy==aot::arm_ir_policy::write_budget_chunks || checked_policy==aot::arm_ir_policy::deferred_chunk_counts) && invariant_write_remap && n==0 && translated.proved_writes!=3) {std::cerr<<"Write remap proof was not selected\n";return 4;}
-            if((checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir) && invariant_write_remap && n==0 && translated.ir_proved_writes!=3) {std::cerr<<"IR write remap proof was not used\n";return 4;}
-            if(((checked_policy==aot::arm_ir_policy::invariant_read_ir || checked_policy==aot::arm_ir_policy::invariant_read_flag_ir || (checked_policy==aot::arm_ir_policy::inline_call_ir || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir))) || checked_policy==aot::arm_ir_policy::invariant_reads || checked_policy==aot::arm_ir_policy::invariant_writes || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir) || checked_policy==aot::arm_ir_policy::budget_chunks || checked_policy==aot::arm_ir_policy::write_budget_chunks || checked_policy==aot::arm_ir_policy::deferred_chunk_counts) && ((!invariant_write_remap && invariant_remap) || (region_spans && !region_block_spans)) && n==0 && !translated.proved_reads) {
+            if (reads && ((!invariant_write_remap && invariant_remap) || (region_spans && !region_block_spans))
+                && n == 0 && !translated.proved_reads) {
                 std::cerr << "Invariant read fault fixture did not select entry proof\n"; return 4;
             }
-            if((checked_policy==aot::arm_ir_policy::invariant_read_ir || checked_policy==aot::arm_ir_policy::invariant_read_flag_ir || (checked_policy==aot::arm_ir_policy::inline_call_ir || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir))) && invariant_remap && !invariant_write_remap && n==0 && !translated.ir_proved_reads) {std::cerr<<"IR read remap proof was not used\n";return 4;}
-            if(!ir_disabled && !ir_long && !ir_flags && !ir_calls && ir_segments && n==0 && !translated.ir_segments) {
-                std::cerr << "Integer-segment fault fixture did not select the IR\n"; return 4;
-            }
-            // The four-load chain uses entry proofs in invariant-aware policies.
-            // Require all four actual IR proof consumers rather than accepting no coverage.
-            if(!ir_disabled && !ir_flags && !ir_calls && (ir_memory || ir_memory_chain) && n==0
-                && !translated.ir_memory_guards && !(ir_memory_chain && translated.ir_proved_reads==4)) {
-                std::cerr << "Dynamic memory fixture did not select IR guard exits\n"; return 4;
-            }
-            if(!ir_disabled && ir_wide && n==0 && !translated.ir_wide_products) {
-                std::cerr << "Wide memory fixture did not select IR products\n"; return 4;
-            }
-            if(!ir_disabled && checked_policy!=aot::arm_ir_policy::inline_segments && ir_short && n==0 && !translated.ir_outlined_segments) {
-                std::cerr << "Short-budget fault fixture did not select private IR fallback\n"; return 4;
-            }
-            if(ir_recipes && checked_policy==aot::arm_ir_policy::outlined_recipes && n==0
-                && translated.ir_cold_values<=translated.ir_cold_halves) {
-                std::cerr<<"General exit recipes were not selected\n";return 4;
-            }
-            if((checked_policy==aot::arm_ir_policy::disabled && (translated.ir_segments || translated.func.outlined_callee))
-                || (checked_policy==aot::arm_ir_policy::inline_segments && translated.ir_outlined_segments)) {
-                std::cerr<<"IR mode selection was ignored\n";return 4;
-            }
-            if(ir_flags && (checked_policy==aot::arm_ir_policy::invariant_read_flag_ir || checked_policy==aot::arm_ir_policy::inline_call_ir || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir)) && n==0
-                && (translated.ir_flag_instructions!=4 || !translated.ir_memory_guards)) {
-                std::cerr<<"Flag IR fault snapshot was not selected\n";return 4;
-            }
-            if(ir_conditions && checked_policy==aot::arm_ir_policy::conditional_value_ir && n==0
-                && (translated.ir_conditional_instructions!=2 || !translated.ir_memory_guards)) {
-                std::cerr<<"Conditional fault snapshot was not selected\n";return 4;
-            }
-            if(ir_calls && (checked_policy==aot::arm_ir_policy::inline_call_ir || (checked_policy==aot::arm_ir_policy::invariant_write_ir || checked_policy==aot::arm_ir_policy::conditional_value_ir)) && n==0
-                && (translated.ir_inline_transfers!=2 || !translated.ir_memory_guards)) {
-                std::cerr<<"Inline-call fault snapshot was not selected\n";return 4;
+            if (checked_policy == aot::arm_ir_policy::disabled && translated.func.outlined_callee) {
+                std::cerr << "Disabled proof policy was ignored\n"; return 4;
             }
             functions.push_back(std::move(translated.func));
         }
@@ -837,9 +746,7 @@ int main(int argc, char **argv){
             auto translated=aot::translate_arm_block(f.memory.data()+0x3000+n*4,(((literal_pc_veneers || branch_veneers || tail_prefixes)?4u:3u)-n)*4,0x3000+n*4,nullptr,nullptr,true,false,true,true,nullptr,true,ir_policy);
             functions.push_back(std::move(translated.func));
         }
-        if(region_ir && !functions.front().outlined_callee) {
-            std::cerr << "IR fault fixture was not compiled through guarded IR\n"; return 4;
-        }
+
         auto bytes=aot::build_wasm_module(functions,{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         aot::stage_aot_module(std::move(bytes),"hot-rom");aot::instantiate_staged_modules();aot::chaining_enabled=true;
         }

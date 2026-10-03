@@ -176,7 +176,7 @@ namespace eka2l1::arm::aot {
         // no successful proof survives any callback or instruction boundary.
         void begin_span(unsigned address_local, unsigned words, bool write) {
             span_active = direct_memory && words > 1 && (!write ||
-                (common::code_tracking::skip_mutation_tracking() && common::code_tracking::skip_code_write_guards()));
+                common::code_tracking::skip_code_write_guards());
             if (!span_active) return;
             i32_const(0); set_local(SPAN_HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
@@ -203,12 +203,11 @@ namespace eka2l1::arm::aot {
         void call(std::uint32_t func_idx) {
             const bool write = func_idx == 1 || func_idx == 3 || func_idx == 5;
             if (write) memory_write = true;
-            // Compatibility modes retain their existing write tracking path.
+            // Mutation-compatible stores retain their callback path.
             // Each direct access proves its own TLB permission, alignment and
             // endian state; no proof survives a callback or a mapping change.
             if (!direct_memory || func_idx > 5 || (write &&
-                    (!common::code_tracking::skip_mutation_tracking() ||
-                     !common::code_tracking::skip_code_write_guards()))) {
+                    !common::code_tracking::skip_code_write_guards())) {
                 slow_call(func_idx); return;
             }
             const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
@@ -886,11 +885,6 @@ namespace eka2l1::arm::aot {
                             w.bail(insn_addr + 2, insn_idx + 1, exit_census::interrupt);
                             w.op(op_end);
                             auto target = insn_addr + 4 + displacement + ((suffix & 0x7FF) << 1);
-                            // Composition follows emitted direct call edges as
-                            // well as resume/local-branch entries. Recording the
-                            // mode-tagged target does not widen decoded code.
-                            if (capture_state_composition)
-                                result.successor_keys.push_back(kind == 0xF800 ? target | 1u : target & ~3u);
                             if (kind == 0xE800) { target &= ~3u; w.store_i32_const(S::TFLAG, 0); }
                             w.store_i32_const(S::LR, (insn_addr + 4) | 1);
                             // Only a callback-free prefix can omit the runner's

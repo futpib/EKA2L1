@@ -119,11 +119,26 @@ async function runTests(): Promise<void> {
     await page.evaluate(() => {
       const m = (window as any).Module;
       const configure = (n: number) => m.ccall('eka2l1_ir_configure', 'number', ['number'], [n]);
-      if (configure(-2) !== -1 || configure(18) !== -1 || configure(0) !== 0)
-        throw new Error('IR mode validation failed');
-      for (const mode of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]) if (![0,-2].includes(configure(mode)))
-        throw new Error('IR capability response failed');
+      for (const mode of [-2,1,2,3,9,10,11,12,13,14,15,16,19]) if (configure(mode) !== -1)
+        throw new Error('Retired or invalid compiler policy accepted');
+      for (const mode of [0,4,5,6,7,8,17,18]) if (configure(mode) !== 0)
+        throw new Error('Compiler policy rejected');
       if (configure(-1) !== 0) throw new Error('IR default restoration failed');
+      for (const name of ['rom_dispatch','synchronous_compilation','code_write_protect','code_lookup','omit_guard_publication']) {
+        for (const suffix of ['configure','report']) if (typeof m['_eka2l1_' + name + '_' + suffix] !== 'undefined')
+          throw Error('Retired configuration API is still exported: ' + name);
+      }
+      for (const [name, valid, invalid] of [
+        ['unsafe_code', [0,3], [-1,1,2,4]],
+        ['hotpath', [0,2], [-1,1,3,4,5,6,7,8]],
+      ] as const) {
+        const previous = m['_eka2l1_' + name + '_report']();
+        for (const value of valid) if (m['_eka2l1_' + name + '_configure'](value) !== 0
+            || m['_eka2l1_' + name + '_report']() !== value) throw Error('Policy readback failed: ' + name);
+        for (const value of invalid) if (m['_eka2l1_' + name + '_configure'](value) !== -1)
+          throw Error('Retired policy accepted: ' + name);
+        if (m['_eka2l1_' + name + '_configure'](previous) !== 0) throw Error('Policy restoration failed');
+      }
     });
     console.log("  PASS");
 
@@ -169,29 +184,6 @@ async function runTests(): Promise<void> {
     });
     console.log("  PASS");
 
-    console.log("TEST lookup layout: pre-init policy validation...");
-    await page.evaluate(() => {
-      const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_lookup_configure','number',['number'],[n]);
-      if(configure(-1)!==-1 || configure(2)!==-1 || configure(1)!==0 || configure(0)!==0)
-        throw Error('Code lookup policy validation failed');
-    });
-    console.log("  PASS");
-
-    console.log("TEST code write protection: pre-init capability and policy validation...");
-    await page.evaluate((expectEnabled) => {
-      const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_write_protect_configure','number',['number'],[n]);
-      if(configure(-1)!==-1 || configure(2)!==-1) throw Error('Invalid write protection accepted');
-      const enabled=configure(1);
-      if(enabled===0) {
-        const ir=(n: number)=>(window as any).Module.ccall('eka2l1_ir_configure','number',['number'],[n]);
-        if(ir(7)!==0 || configure(0)!==-2 || ir(-1)!==0) throw Error('Protected proof policy requirements not enforced');
-      }
-      const disabled=configure(0);
-      if(expectEnabled ? (enabled!==0 || disabled!==0) : !((enabled===0 && disabled===0)||(enabled===-1 && disabled===-1)))
-        throw Error('Write protection capability mismatch');
-    }, process.env.EKA2L1_EXPECT_WRITE_PROTECTION==='1');
-    console.log("  PASS");
-
     console.log("TEST exact scanner: pre-init policy validation...");
     await page.evaluate(() => {
       const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[n]);
@@ -233,12 +225,8 @@ async function runTests(): Promise<void> {
     });
     if (initResult !== 0) throw new Error(`eka2l1_init returned ${initResult}`);
     await page.evaluate(() => {
-      if ((window as any).Module.ccall('eka2l1_code_write_protect_configure','number',['number'],[1]) !== -1)
-        throw Error('Write protection changed after initialization');
       if ((window as any).Module._eka2l1_thumb_memory_configure(1) !== -1)
         throw Error('Thumb memory policy changed after initialization');
-      if ((window as any).Module.ccall('eka2l1_code_lookup_configure','number',['number'],[1]) !== -1)
-        throw Error('Code lookup policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_tlb_hash_configure','number',['number'],[1]) !== -1)
         throw Error('TLB index policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_leaf_predication_configure','number',['number'],[1]) !== -1)

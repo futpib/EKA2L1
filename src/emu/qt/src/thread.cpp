@@ -250,7 +250,6 @@ namespace eka2l1::desktop {
                         LOG_INFO(FRONTEND_CMDLINE, "Frame dump complete, exiting");
                         if (common::benchmark::enabled())
                             drivers::export_benchmark_audio(state.dump_frames_dir_, common::benchmark::virtual_us.load());
-                        dyncom_dump_pc_histogram();
                         std::_Exit(0);
                     }
                 }

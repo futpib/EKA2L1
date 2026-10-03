@@ -17,21 +17,7 @@ endif()
 set(EKA2L1_IOS_DEPLOYMENT_TARGET "16.0" CACHE STRING "Minimum iOS version to target")
 
 option(EKA2L1_WASM_DEFER_MEMORY "Restart eligible AOT memory misses in DynCom with precise state" ON)
-option(EKA2L1_WASM_REGION_IR "Experimental guarded value IR for straight-line ARM regions" OFF)
-option(EKA2L1_WASM_IR_SEGMENTS "Experimental value IR within existing ARM control flow" OFF)
-option(EKA2L1_WASM_IR_MEMORY "Experimental precise memory exits inside IR segments" OFF)
-option(EKA2L1_WASM_IR_OUTLINE "Experimental private short-budget IR segment fallbacks" OFF)
-option(EKA2L1_WASM_CODE_VERSIONS "Experimental WASM code-page versions and guest write barriers" OFF)
-option(EKA2L1_WASM_CODE_LIFECYCLE "Experimental mutation-driven compiled-code validity" OFF)
-option(EKA2L1_WASM_CODE_WRITE_PROTECTION "Experimental TLB write protection for watched code pages" OFF)
 option(EKA2L1_WASM_DIAGNOSTICS "Compile guest census, crash history and detailed timers into WASM" OFF)
-if(EKA2L1_WASM_CODE_WRITE_PROTECTION)
-    set(EKA2L1_WASM_CODE_LIFECYCLE ON)
-endif()
-if(EKA2L1_WASM_CODE_LIFECYCLE)
-    set(EKA2L1_WASM_CODE_VERSIONS ON)
-endif()
-
 option(EKA2L1_BUILD_TOOLS "Build EKA2L1's tool" ON)
 option(EKA2L1_BUILD_TESTS "Build EKA2L1's tests" ON)
 option(EKA2L1_ENABLE_SCRIPTING_ABILITY "Enable to script with Python or Lua" ON)
@@ -105,7 +91,6 @@ if (EKA2L1_IOS)
     message(STATUS "iOS build: tools/tests/vulkan/patch/dmg/discord forced OFF; scripting is native-patch only (no LuaJIT)")
 endif()
 
-
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set (ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -146,7 +131,6 @@ if (EKA2L1_SANITIZER)
     endif()
     message(STATUS "Sanitizer enabled: ${EKA2L1_SANITIZER}")
 endif()
-
 
 if (APPLE)
     # The bundled boost (pulled in by dynarmic) still uses std::unary_function,

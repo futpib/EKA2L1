@@ -117,154 +117,6 @@ static DYNCOM_FORCE_INLINE bool CondPassed(const ARMul_State *cpu, unsigned int 
 }
 
 // ---------------------------------------------------------------------------
-// Optional guest-execution profiler (-DEKA2L1_DYNCOM_PROFILE). Counts, per
-// executed instruction, the opcode and the (previous,current) consecutive pair
-// within a basic block, plus the per-block instruction-count distribution, and
-// periodically logs the hottest opcodes / pairs. Used to pick which instruction
-// patterns are worth fusing into super-ops. Zero overhead when not defined.
-// ---------------------------------------------------------------------------
-#ifdef EKA2L1_DYNCOM_PROFILE
-#include <algorithm>
-#include <vector>
-namespace {
-    constexpr int PROF_NUM_OPS = 202; // == arm_instruction_trans_len
-    const char *kProfOpNames[PROF_NUM_OPS] = {
-        "VMLA","VMLS","VNMLA","VNMLS","VNMUL","VMUL","VADD","VSUB","VDIV","VMOVI","VMOVR","VABS","VNEG","VSQRT","VCMP",
-        "VCMP2","VCVTBDS","VCVTBFF","VCVTBFI","VMOVBRS","VMSR","VMOVBRC","VMRS","VMOVBCR","VMOVBRRSS","VMOVBRRD","VSTR",
-        "VPUSH","VSTM","VPOP","VLDR","VLDM","SRS","RFE","BKPT","BLX","CPS","PLD","SETEND","CLREX","REV16","USAD8","SXTB",
-        "UXTB","SXTH","SXTB16","UXTH","UXTB16","CPY","UXTAB","SSUB8","SHSUB8","SSUBADDX","STREX","STREXB","SWP","SWPB",
-        "SSUB16","SSAT16","SHSUBADDX","QSUBADDX","SHADDSUBX","SHADD8","SHADD16","SEL","SADDSUBX","SADD8","SADD16","SHSUB16",
-        "UMAAL","UXTAB16","USUBADDX","USUB8","USUB16","USAT16","USADA8","UQSUBADDX","UQSUB8","UQSUB16","UQADDSUBX","UQADD8",
-        "UQADD16","SXTAB","UHSUBADDX","UHSUB8","UHSUB16","UHADDSUBX","UHADD8","UHADD16","UADDSUBX","UADD8","UADD16","SXTAH",
-        "SXTAB16","QADD8","BXJ","CLZ","UXTAH","BX","REV","BLX2","REVSH","QADD","QADD16","QADDSUBX","LDREX","QDADD","QDSUB",
-        "QSUB","LDREXB","QSUB8","QSUB16","SMUAD","SMMUL","SMUSD","SMLSD","SMLSLD","SMMLA","SMMLS","SMLALD","SMLAD","SMLAW",
-        "SMULW","PKHTB","PKHBT","SMUL","SMLALXY","SMLA","MCRR","MRRC","CMP","TST","TEQ","CMN","SMULL","UMULL","UMLAL",
-        "SMLAL","MUL","MLA","SSAT","USAT","MRS","MSR","AND","BIC","LDM","EOR","ADD","RSB","RSC","SBC","ADC","SUB","ORR",
-        "MVN","MOV","STM","LDM2","LDRSH","STM2","LDM3","LDRSB","STRD","LDRH","STRH","LDRD","STRT","STRBT","LDRBT","LDRT",
-        "MRC","MCR","MSR2","MSR3","MSR4","MSR5","MSR6","LDRB","STRB","LDR","LDRCOND","STR","CDP","STC","LDC","LDREXD",
-        "STREXD","LDREXH","STREXH","NOP","YIELD","WFE","WFI","SEV","SWI","BBL","B_2_THUMB","B_COND_THUMB","BL_1_THUMB",
-        "BL_2_THUMB","BLX_1_THUMB"
-    };
-    inline const char *prof_op_name(int idx) {
-        return (idx >= 0 && idx < PROF_NUM_OPS) ? kProfOpNames[idx] : "?";
-    }
-    struct dyncom_profiler {
-        std::uint64_t op_count[PROF_NUM_OPS] = {};
-        std::vector<std::uint64_t> pair_count;
-        std::uint64_t block_len[64] = {};
-        std::uint64_t total_insts = 0;
-        std::uint64_t total_blocks = 0;
-        std::uint64_t next_dump = 50000000ull;
-        // Sparse guest-PC histogram (64-byte buckets, sampled every 64th
-        // instruction) to attribute hot loops to guest code regions. The code
-        // bytes are snapshotted on first touch, while the bucket's page is
-        // guaranteed mapped in the current process (reading them at dump time
-        // from an unrelated process faults the guest).
-        struct pc_bucket {
-            std::uint64_t count = 0;
-            std::uint32_t code[16] = {};
-        };
-        std::unordered_map<std::uint32_t, pc_bucket> pc_hist;
-        std::uint64_t pc_samples = 0;
-        dyncom_profiler()
-            : pair_count(static_cast<std::size_t>(PROF_NUM_OPS) * PROF_NUM_OPS, 0) {}
-    };
-    dyncom_profiler g_dyncom_profiler;
-
-    void dyncom_profile_dump(ARMul_State *cpu) {
-        dyncom_profiler &p = g_dyncom_profiler;
-        if (p.total_insts == 0)
-            return;
-        // Write to a plain file in the cwd (Documents/data on iOS) so the output
-        // bypasses the per-category log filter (CPU.DynCom is silenced there).
-        std::FILE *f = std::fopen("dyncom_profile.txt", "w");
-        if (!f)
-            return;
-        std::fprintf(f, "=== dyncom profile: %llu insts, %llu blocks, %.2f insts/block ===\n",
-            (unsigned long long)p.total_insts, (unsigned long long)p.total_blocks,
-            p.total_blocks ? (double)p.total_insts / p.total_blocks : 0.0);
-        std::vector<int> ops(PROF_NUM_OPS);
-        for (int i = 0; i < PROF_NUM_OPS; i++) ops[i] = i;
-        std::sort(ops.begin(), ops.end(), [&](int a, int b) { return p.op_count[a] > p.op_count[b]; });
-        for (int i = 0; i < 25 && p.op_count[ops[i]]; i++)
-            std::fprintf(f, "  op   %-12s %13llu (%.1f%%)\n", prof_op_name(ops[i]), (unsigned long long)p.op_count[ops[i]],
-                100.0 * (double)p.op_count[ops[i]] / p.total_insts);
-        std::vector<std::size_t> pairs;
-        for (std::size_t i = 0; i < p.pair_count.size(); i++)
-            if (p.pair_count[i]) pairs.push_back(i);
-        std::sort(pairs.begin(), pairs.end(), [&](std::size_t a, std::size_t b) { return p.pair_count[a] > p.pair_count[b]; });
-        for (std::size_t i = 0; i < 40 && i < pairs.size(); i++) {
-            const int a = static_cast<int>(pairs[i] / PROF_NUM_OPS);
-            const int b = static_cast<int>(pairs[i] % PROF_NUM_OPS);
-            std::fprintf(f, "  pair %-10s -> %-10s %13llu (%.1f%%)\n", prof_op_name(a), prof_op_name(b),
-                (unsigned long long)p.pair_count[pairs[i]], 100.0 * (double)p.pair_count[pairs[i]] / p.total_insts);
-        }
-        for (int i = 0; i < 16; i++)
-            if (p.block_len[i])
-                std::fprintf(f, "  blocklen %2d : %13llu\n", i, (unsigned long long)p.block_len[i]);
-        if (p.pc_samples) {
-            std::vector<std::pair<std::uint32_t, const dyncom_profiler::pc_bucket *>> hot;
-            hot.reserve(p.pc_hist.size());
-            for (const auto &kv : p.pc_hist)
-                hot.emplace_back(kv.first, &kv.second);
-            std::sort(hot.begin(), hot.end(),
-                [](const auto &a, const auto &b) { return a.second->count > b.second->count; });
-            std::fprintf(f, "  pc-hist: %llu samples, %zu buckets (64B)\n",
-                (unsigned long long)p.pc_samples, p.pc_hist.size());
-            for (std::size_t i = 0; i < 48 && i < hot.size(); i++)
-                std::fprintf(f, "  pc %08X %13llu (%.2f%%)\n", hot[i].first,
-                    (unsigned long long)hot[i].second->count,
-                    100.0 * (double)hot[i].second->count / p.pc_samples);
-            for (std::size_t i = 0; i < 10 && i < hot.size(); i++) {
-                std::fprintf(f, "  code %08X:", hot[i].first);
-                for (int w = 0; w < 16; w++)
-                    std::fprintf(f, " %08X", hot[i].second->code[w]);
-                std::fprintf(f, "\n");
-            }
-        }
-        std::fclose(f);
-    }
-}
-#define PROF_STEP(cpu, the_idx)                                                              \
-    do {                                                                                     \
-        dyncom_profiler &pp_ = g_dyncom_profiler;                                            \
-        const int idx_ = (the_idx);                                                          \
-        if (idx_ >= PROF_NUM_OPS)                                                             \
-            break; /* synthetic ops (loop accel) have no table slot */                        \
-        pp_.op_count[idx_]++;                                                                 \
-        pp_.total_insts++;                                                                    \
-        if ((pp_.total_insts & 63) == 0) {                                                    \
-            const std::uint32_t pcb_ = (cpu)->Reg[15] & ~63u;                                 \
-            auto &bkt_ = pp_.pc_hist[pcb_];                                                   \
-            if (bkt_.count++ == 0)                                                            \
-                for (int w_ = 0; w_ < 16; w_++)                                               \
-                    bkt_.code[w_] = (cpu)->ReadMemory32(pcb_ + w_ * 4);                       \
-            pp_.pc_samples++;                                                                 \
-        }                                                                                     \
-        if ((cpu)->prof_prev >= 0)                                                            \
-            pp_.pair_count[static_cast<std::size_t>((cpu)->prof_prev) * PROF_NUM_OPS + idx_]++; \
-        (cpu)->prof_prev = idx_;                                                              \
-        if ((cpu)->prof_block_len < 63)                                                       \
-            (cpu)->prof_block_len++;                                                          \
-        if (pp_.total_insts >= pp_.next_dump) {                                               \
-            dyncom_profile_dump(cpu);                                                         \
-            pp_.next_dump += 50000000ull;                                                    \
-        }                                                                                     \
-    } while (0)
-#define PROF_BLOCK_ENTER(cpu)                                                                \
-    do {                                                                                     \
-        dyncom_profiler &pp_ = g_dyncom_profiler;                                            \
-        pp_.total_blocks++;                                                                   \
-        pp_.block_len[(cpu)->prof_block_len & 63]++;                                          \
-        (cpu)->prof_block_len = 0;                                                            \
-        (cpu)->prof_prev = -1;                                                                \
-    } while (0)
-#else
-#define PROF_STEP(cpu, the_idx) ((void)0)
-#define PROF_BLOCK_ENTER(cpu) ((void)0)
-#endif
-
-// ---------------------------------------------------------------------------
 // Translation-time bulk-loop acceleration.
 //
 // Guest-side pixel-conversion / copy / fill loops (e.g. an RGB565->32bpp
@@ -1018,7 +870,6 @@ static std::uint32_t run_accel_bulk(ARMul_State *cpu, const loop_accel_inst *d, 
                     std::memcpy(p, &v, 4);
                     break;
                 }
-                eka2l1::common::code_tracking::guest_write(p, st.width);
             }
             hd += d->dst_step;
         }
@@ -1234,7 +1085,6 @@ static DYNCOM_FORCE_INLINE unsigned int compute_shifter_operand(ARMul_State *cpu
     }
     return v_;
 }
-
 
 #define DEBUG_MSG                                        \
     LOG_DEBUG(eka2l1::CPU_DYNCOM, "inst is {:x}", inst); \
@@ -2019,35 +1869,6 @@ static int clz(unsigned int x) {
     return n;
 }
 
-static std::map<std::uint32_t, std::uint64_t> pc_histogram;
-static std::mutex pc_histogram_mutex;
-static std::uint64_t pc_sample_counter = 0;
-static eka2l1::common::diagnostics::flag pc_histogram_enabled = false;
-
-void dyncom_enable_pc_histogram() {
-    pc_histogram_enabled = true;
-}
-
-void dyncom_dump_pc_histogram() {
-    std::lock_guard<std::mutex> lock(pc_histogram_mutex);
-    if (pc_histogram.empty()) return;
-
-    // Sort by count descending
-    std::vector<std::pair<std::uint32_t, std::uint64_t>> sorted(pc_histogram.begin(), pc_histogram.end());
-    std::sort(sorted.begin(), sorted.end(), [](const auto &a, const auto &b) { return a.second > b.second; });
-
-    std::uint64_t total = 0;
-    for (auto &p : sorted) total += p.second;
-
-    fprintf(stderr, "=== PC Histogram (top 50, total %llu samples) ===\n", (unsigned long long)total);
-    int shown = 0;
-    for (auto &p : sorted) {
-        if (shown++ >= 50) break;
-        fprintf(stderr, "  0x%08X: %llu (%.2f%%)\n", p.first, (unsigned long long)p.second, 100.0 * p.second / total);
-    }
-    fflush(stderr);
-}
-
 static std::uint64_t g_interp_instrs = 0;
 
 static bool aot_modules_instantiated = false;
@@ -2092,7 +1913,6 @@ static unsigned InterpreterMainLoopImpl(ARMul_State *cpu, std::uint32_t &num_ins
 // clunky switch statement.
 #if defined __GNUC__ || defined __clang__
 #define GOTO_NEXT_INST                         \
-    PROF_STEP(cpu, inst_base->idx);            \
     if (num_instrs >= cpu->NumInstrsToExecute) \
         goto END;                              \
     num_instrs++;                              \
@@ -2101,7 +1921,6 @@ static unsigned InterpreterMainLoopImpl(ARMul_State *cpu, std::uint32_t &num_ins
     goto *InstLabel[inst_base->idx]
 #else
 #define GOTO_NEXT_INST                         \
-    PROF_STEP(cpu, inst_base->idx);            \
     if (num_instrs >= cpu->NumInstrsToExecute) \
         goto END;                              \
     num_instrs++;                              \
@@ -2771,13 +2590,6 @@ static unsigned InterpreterMainLoopImpl(ARMul_State *cpu, std::uint32_t &num_ins
 
     LOAD_NZCVT;
 DISPATCH : {
-    // PC profiling: sample every 1024th dispatch (only when enabled via CLI)
-    if constexpr (Instrumented) if (pc_histogram_enabled && (++pc_sample_counter & 0x3FF) == 0) {
-        std::lock_guard<std::mutex> lock(pc_histogram_mutex);
-        pc_histogram[cpu->Reg[15]]++;
-    }
-
-    PROF_BLOCK_ENTER(cpu);
     if (!cpu->NirqSig) {
         if (!(cpu->Cpsr & 0x80)) {
             goto END;
@@ -2802,13 +2614,8 @@ AOT_RESUME:
     // Check if an AOT-compiled function exists for this PC
     {
         auto aot_func = num_instrs >= cpu->NumInstrsToExecute ? nullptr : eka2l1::arm::aot::lookup_compiled(cpu);
-        if (!aot_func && eka2l1::arm::aot::hot_compilation_enabled && !eka2l1::arm::aot::validation_running
-                && (!eka2l1::arm::aot::synchronous_compilation || num_instrs < cpu->NumInstrsToExecute)) {
+        if (!aot_func && eka2l1::arm::aot::hot_compilation_enabled && !eka2l1::arm::aot::validation_running) {
             eka2l1::arm::aot::observe_hot_pc(cpu);
-            // The opt-in first-use policy installs before this instruction.
-            // Retry the normal validated lookup once; rejection still falls back.
-            if (eka2l1::arm::aot::synchronous_compilation)
-                aot_func = eka2l1::arm::aot::lookup_compiled(cpu);
         }
         if (aot_func) {
             link = nullptr; // An interpreted predecessor cannot link across compiled execution.
@@ -3328,7 +3135,6 @@ CMN_INST : {
 // quantum and single-step exits still land between the two instructions.
 #define ENTER_FUSED_BRANCH                          \
     inst_base = (arm_inst *)&cpu->trans_cache_buf[ptr]; \
-    PROF_STEP(cpu, inst_base->idx);                 \
     if (num_instrs >= cpu->NumInstrsToExecute)      \
         goto END;                                   \
     num_instrs++;                                    \
@@ -6000,13 +5806,10 @@ INIT_INST_LENGTH : {
 // instrumented body whenever they are enabled, and keep its original dynamic
 // counting checks. Normal execution carries no diagnostic branch per dispatch.
 unsigned InterpreterMainLoop(ARMul_State *cpu, std::uint32_t &num_instrs) {
-#if defined(EKA2L1_DYNCOM_PROFILE)
-    return InterpreterMainLoopImpl<true>(cpu, num_instrs);
-#elif defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_DIAGNOSTICS)
+#if defined(__EMSCRIPTEN__) && !defined(EKA2L1_WASM_DIAGNOSTICS)
     return InterpreterMainLoopImpl<false>(cpu, num_instrs);
 #else
-    if ((eka2l1::arm::aot::hotpath_policy & 4)
-        && !pc_histogram_enabled && !eka2l1::arm::aot::diagnostics_enabled
+    if (!eka2l1::arm::aot::diagnostics_enabled
         && !(eka2l1::common::performance::enabled && eka2l1::common::performance::detailed)
         && !eka2l1::common::guest_profile::enabled)
         return InterpreterMainLoopImpl<false>(cpu, num_instrs);

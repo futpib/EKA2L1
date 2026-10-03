@@ -5,15 +5,6 @@
 #include <set>
 
 namespace eka2l1::arm::aot {
-    // Scoped to eager translation on its owning thread; normal compilation
-    // pays no metadata allocation cost when composition is not selected.
-    inline thread_local bool capture_state_composition = false;
-    struct state_composition_capture {
-        bool previous = capture_state_composition;
-        explicit state_composition_capture(bool enabled) { capture_state_composition = enabled; }
-        ~state_composition_capture() { capture_state_composition = previous; }
-    };
-
     // Deferred barriers use the final register set, including registers whose
     // first textual use is after a callback or a conditional early return.
     struct state_local_cache {
@@ -70,16 +61,7 @@ namespace eka2l1::arm::aot {
         }
         void finish(wasm_func_def &function) {
             if (!enabled) return;
-            if (capture_state_composition) {
-                auto metadata = std::make_shared<wasm_cached_body>();
-                metadata->body = function.body;
-                metadata->locals = locals;
-                metadata->written = written;
-                metadata->shared_return = shared_return;
-                for (const auto &point : barriers)
-                    metadata->barriers.push_back({point.position, point.reload});
-                function.cached_body = std::move(metadata);
-            }
+
             std::vector<std::uint8_t> body;
             transfer(body, true);
             if (shared_return) { body.push_back(op_block); body.push_back(type_i32); }

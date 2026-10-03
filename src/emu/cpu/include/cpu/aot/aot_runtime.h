@@ -35,25 +35,17 @@ namespace eka2l1::arm::aot {
     // Compile deferred scalar/span misses through the existing memory helpers.
     // Frozen before initialization; disabled until coverage and timing acceptance.
     inline bool compiled_memory_misses = false;
-    // Frozen before init: 0 sampled, 1 first-use ROM/RAM, 2 first-use RAM.
-    // Mode 2 retains ROM hotness filtering; mode 3 recycles the bounded ROM cache.
-    inline unsigned synchronous_compilation = 0;
     inline constexpr std::uint32_t svc_pending = 0x80000000u;
     inline constexpr std::uint32_t svc_taken = 0x40000000u;
     inline constexpr std::uint32_t svc_page_end = 0x20000000u;
     // Opt-in immutable ROM leaf fusion; frozen before CPU initialization.
     extern bool rom_inline_leaves;
     extern bool rom_bounded_calls;
-    extern bool rom_dispatch_enabled;
-    extern bool rom_state_cohorts;
-    extern bool dynamic_rom_cohorts;
-    // Frozen before execution: verification lookup, trusted cache, quiet outer loop.
+    // Frozen before execution: 0 general lookup, 2 trusted cache specialization.
     inline unsigned hotpath_policy = 0;
     std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
         std::uint32_t base, std::uint32_t size, std::uint32_t target);
     extern common::diagnostics::flag diagnostics_enabled;
-    // Opt-in runtime layout experiment; effective only when emitted code has no interval guards.
-    extern bool omit_guard_publication;
     extern bool hot_compilation_enabled;
     extern bool ram_compilation_enabled;
     extern bool chaining_enabled;
@@ -73,7 +65,7 @@ namespace eka2l1::arm::aot {
     // the function table is accessible.
     void stage_aot_module(
         std::vector<std::uint8_t> wasm_bytes,
-        const std::string &dll_name, std::shared_ptr<void> keepalive = {});
+        const std::string &dll_name);
 
     // Called from the AOT dispatch path (on the worker thread) to
     // instantiate any staged modules. Returns true if modules were

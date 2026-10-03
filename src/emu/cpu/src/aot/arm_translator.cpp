@@ -23,7 +23,6 @@
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/exit_census.h>
 #include <cpu/aot/execution_limits.h>
-#include <cpu/aot/region_ir.h>
 #include <cpu/12l1r/tlb.h>
 
 #include <cstring>
@@ -200,8 +199,7 @@ namespace eka2l1::arm::aot {
             if (write) memory_write = true;
             if ((!region && !direct_block_memory) || func_idx > 5
                     || (direct_block_memory && write &&
-                        (!common::code_tracking::skip_mutation_tracking()
-                         || !common::code_tracking::skip_code_write_guards()))) {
+                        !common::code_tracking::skip_code_write_guards())) {
                 slow_call(func_idx); return;
             }
             const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
@@ -215,7 +213,6 @@ namespace eka2l1::arm::aot {
                 proved_host(); get_local(HOST);
                 if (write) get_local(VALUE);
                 op(write ? op_i32_store : op_i32_load); leb(b, 2); leb(b, 0);
-                if (write) track_write();
                 return;
             }
             const auto page_local = write ? WRITE_PAGE : READ_PAGE;
@@ -261,7 +258,6 @@ namespace eka2l1::arm::aot {
                      : (size==4 ? op_i32_load : size==2 ? op_i32_load16_u : op_i32_load8_u));
             leb(b, size==4 ? 2 : size==2 ? 1 : 0); leb(b,0);
             if (write) {
-                track_write();
                 if (!common::code_tracking::skip_code_write_guards()) {
                 // Backing-address guard catches writes through guest aliases.
                 get_local(HOST); load_i32(S::AOT_CODE_END); op(op_i32_lt_u);
@@ -295,58 +291,6 @@ namespace eka2l1::arm::aot {
             get_local(HOST); op(op_if); op(type_void);
             get_local(HOST); get_local(address_local); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
             op(op_end); op(op_end); op(op_end); op(op_end);
-        }
-        // IR guards share the ordinary emitter's page proofs. Helpers invalidate
-        // these local keys; successful graph memory effects cannot change a TLB
-        // mapping or endian mode. Read and write permission proofs stay separate.
-        void ir_memory_host(unsigned bytes, bool write) {
-            const unsigned page = write ? WRITE_PAGE : READ_PAGE;
-            const unsigned base = write ? WRITE_BASE : READ_BASE;
-            get_local(ADDRESS); i32_const(-4096 | (std::min(bytes, 4u) - 1)); op(op_i32_and);
-            get_local(page); op(op_i32_eq);
-            if (bytes > 4) {
-                get_local(ADDRESS); i32_const(4095); op(op_i32_and);
-                i32_const(4096 - bytes); op(op_i32_le_u); op(op_i32_and);
-            }
-            op(op_if); op(type_void);
-            get_local(base); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
-            op(op_i32_add); set_local(HOST);
-            op(op_else);
-            block_transfer_host(ADDRESS, bytes, write, std::min(bytes, 4u));
-            get_local(HOST); op(op_if); op(type_void);
-            get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
-            op(op_i32_sub); set_local(base);
-            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); set_local(page);
-            op(op_end); op(op_end);
-        }
-        // All direct stores are aligned and confined to one physical page.
-        // Helpers/interpreter writes use the same backing-indexed versions.
-        void track_write() {
-            if (common::code_tracking::skip_mutation_tracking()) return;
-#if defined(__EMSCRIPTEN__) && defined(EKA2L1_WASM_CODE_VERSIONS)
-#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
-            if (common::code_tracking::protect_writes) return;
-#endif
-            get_local(HOST); i32_const(12); op(op_i32_shr_u);
-            i32_const(3); op(op_i32_shl);
-            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(common::code_tracking::pages)));
-            op(op_i32_add); set_local(ENTRY);
-            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,0); set_local(VALUE);
-            get_local(VALUE); op(op_if); op(type_void);
-            get_local(ENTRY); get_local(VALUE); i32_const(1); op(op_i32_add);
-            op(op_i32_store); leb(b,2); leb(b,0);
-#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
-            // Page-version overflow must not rearm an exhausted page when a
-            // new region starts watching it. Host flags use atomic operations.
-            get_local(VALUE); i32_const(-1); op(op_i32_eq); op(op_if); op(type_void);
-            get_local(ENTRY); i32_const(3);
-            op(0xfe); leb(b,0x17); leb(b,2); leb(b,4); // i32.atomic.store flags
-            op(op_end);
-            i32_const(static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&common::code_tracking::dirty)));
-            i32_const(1); op(0xfe); leb(b,0x17); leb(b,2); leb(b,0);
-#endif
-            op(op_end);
-#endif
         }
         std::uint32_t census_pc=0,census_opcode=0,census_constraint=0;
         std::uint32_t census_restriction=0,census_rejected_pc=0,census_rejected_opcode=0;
@@ -437,152 +381,6 @@ namespace eka2l1::arm::aot {
             bail(pc, instr_count, exit_census::unsupported);
         }
     };
-
-    // Shared lowering for a proved whole region or a pure integer segment.
-    // Entry state is read before parallel snapshot destinations are assigned.
-    static void emit_ir_values(arm_emit &w, const region_ir &ir,
-        const std::vector<bool> &live, const std::vector<unsigned> &locals,
-        bool publish_pc, const std::vector<bool> &cold = {},
-        std::vector<std::pair<std::size_t, unsigned>> *wide_fixups = nullptr, bool memoize_cold = false,
-        const std::vector<bool> &stack_values = {}) {
-        auto local = [&](unsigned opcode, unsigned v) {
-            if (wide_fixups && ir.nodes[v].type == type_i64) {
-                w.op(static_cast<std::uint8_t>(opcode));
-                wide_fixups->emplace_back(w.b.size(), locals[v]);
-                // Fixed width keeps barrier offsets stable until suffix slots
-                // are known, after all architectural locals have been allocated.
-                w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});
-            } else if (opcode == op_local_get) w.get_local(locals[v]);
-            else w.set_local(locals[v]);
-        };
-        // Share pure expression lowering between hot values and exit recipes.
-        // Memory operations never enter this path: their results can precede
-        // stores that overwrite the original source location.
-        auto emit_pure = [&](auto &&input, const region_ir::node &node) {
-            input(node.a);
-            switch (node.op) {
-            case region_ir::choose:
-                input(node.b); input(static_cast<unsigned>(node.immediate)); w.op(op_select); break;
-            case region_ir::pack:
-                w.op(op_i64_extend_i32_u); input(node.b); w.op(op_i64_extend_i32_u);
-                w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shl); w.op(op_i64_or); break;
-            case region_ir::low: w.op(op_i32_wrap_i64); break;
-            case region_ir::high:
-                w.op(op_i64_const); w.b.push_back(32); w.op(op_i64_shr_u); w.op(op_i32_wrap_i64); break;
-            default:
-                if (node.b) input(node.b);
-                w.op(static_cast<std::uint8_t>(node.op)); break;
-            }
-        };
-        std::vector<bool> cold_ready(ir.nodes.size());
-        auto push_value = [&](auto &&self, unsigned v) -> void {
-            const auto &node = ir.nodes[v];
-            if (node.op == region_ir::constant) {
-                if (node.type == type_i32) w.i32_const(static_cast<std::int32_t>(node.immediate));
-                else {
-                    w.op(op_i64_const);
-                    auto n = static_cast<std::int64_t>(node.immediate);
-                    bool more = true;
-                    while (more) {
-                        auto byte = static_cast<std::uint8_t>(n & 127); n >>= 7;
-                        more = !((n == 0 && !(byte & 64)) || (n == -1 && (byte & 64)));
-                        w.b.push_back(byte | (more ? 128 : 0));
-                    }
-                }
-            } else if (!stack_values.empty() && stack_values[v]) {
-                auto input = [&](unsigned operand) { self(self, operand); };
-                emit_pure(input, node);
-            } else if (!cold.empty() && cold[v]) {
-                auto input = [&](unsigned operand) { self(self, operand); };
-                if (!memoize_cold) emit_pure(input, node);
-                else {
-                    // A shared DAG must not expand exponentially, e.g. repeated
-                    // squaring. These slots are assigned inside this exit only.
-                    if (!cold_ready[v]) {
-                        emit_pure(input, node); local(op_local_set, v); cold_ready[v] = true;
-                    }
-                    local(op_local_get, v);
-                }
-            } else if (node.op == region_ir::host) w.get_local(static_cast<unsigned>(node.immediate));
-            else if (node.op == region_ir::state) w.load_i32(static_cast<unsigned>(node.immediate));
-            else local(op_local_get, v);
-        };
-        auto push = [&](unsigned v) { push_value(push_value, v); };
-        auto snapshot = [&](unsigned index, bool pc) {
-            // Separate failure arms cannot rely on another arm's assignments.
-            std::fill(cold_ready.begin(), cold_ready.end(), false);
-            const auto &entry = ir.snapshots.front(); const auto &exit = ir.snapshots.at(index);
-            // Consume every source before changing any architectural local.
-            std::vector<unsigned> destinations;
-            for (unsigned r = 0; r < 16; ++r)
-                if ((r == 15 && pc) || (r != 15 && entry.regs[r] != exit.regs[r])) {
-                    push(exit.regs[r]); destinations.push_back(S::reg(r));
-                }
-            for (unsigned f = 0; f < 5; ++f) if (entry.flags[f] != exit.flags[f]) {
-                push(exit.flags[f]); destinations.push_back(region_ir::flag_offsets[f]);
-            }
-            for (auto it = destinations.rbegin(); it != destinations.rend(); ++it)
-                w.store_i32_from_stack(*it, 2);
-        };
-        for (unsigned v = 1; v < ir.nodes.size(); ++v) {
-            if (!live[v] || (!cold.empty() && cold[v])
-                || (!stack_values.empty() && stack_values[v])) continue;
-            const auto &node = ir.nodes[v];
-            if (node.op == region_ir::constant || node.op == region_ir::state || node.op == region_ir::host) continue;
-            if (!region_ir::is_effect(node.op)) {
-                emit_pure(push, node);
-                if (node.type != type_void) local(op_local_set, v);
-                continue;
-            }
-            push(node.a);
-            switch (node.op) {
-            case region_ir::guarded_host: {
-                const unsigned bytes = static_cast<unsigned>(ir.nodes[node.b].immediate);
-                const bool write = node.immediate & 1;
-                const unsigned exit = static_cast<unsigned>(node.immediate / 2);
-                w.set_local(arm_emit::ADDRESS);
-                w.ir_memory_host(bytes, write);
-                w.get_local(arm_emit::HOST); w.op(op_i32_eqz);
-                if (write) {
-                    if (!common::code_tracking::skip_code_write_guards()) {
-                    // A store to translated code must return before effects,
-                    // including writes through a different guest alias.
-                    w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
-                    w.get_local(arm_emit::HOST); w.i32_const(bytes); w.op(op_i32_add);
-                    w.load_i32(S::AOT_CODE_BEGIN); w.op(op_i32_gt_u); w.op(op_i32_and); w.op(op_i32_or);
-                    }
-                    w.get_local(arm_emit::HOST); w.i32_const(bytes); w.op(op_i32_add);
-                    w.get_local(arm_emit::HOST); w.op(op_i32_lt_u); w.op(op_i32_or);
-                }
-                w.op(op_if); w.op(type_void);
-                snapshot(exit, true);
-                // The enclosing segment charged its first instruction before
-                // entering the graph. A failed access itself is not completed.
-                w.get_local(arm_emit::COUNT); w.i32_const(static_cast<int>(ir.snapshots[exit].count) - 1);
-                w.op(op_i32_add); w.set_local(arm_emit::COUNT);
-                w.bail_preserve_pc(0);
-                w.op(op_end);
-                w.get_local(arm_emit::HOST);
-                break;
-            }
-            case region_ir::read32: case region_ir::read8u: case region_ir::read8s:
-            case region_ir::read16u: case region_ir::read16s: {
-                const bool word = node.op == region_ir::read32;
-                const bool half = node.op == region_ir::read16u || node.op == region_ir::read16s;
-                w.op(word ? op_i32_load : node.op == region_ir::read8s ? op_i32_load8_s
-                    : node.op == region_ir::read16s ? op_i32_load16_s : half ? op_i32_load16_u : op_i32_load8_u);
-                leb(w.b, word ? 2 : half ? 1 : 0); leb(w.b, static_cast<unsigned>(node.immediate)); break;
-            }
-            case region_ir::write32: case region_ir::write8: case region_ir::write16:
-                push(node.b);
-                w.op(node.op == region_ir::write32 ? op_i32_store : node.op == region_ir::write16 ? op_i32_store16 : op_i32_store8);
-                leb(w.b, node.op == region_ir::write32 ? 2 : node.op == region_ir::write16 ? 1 : 0);
-                leb(w.b, static_cast<unsigned>(node.immediate)); break;
-            }
-            if (node.type != type_void) local(op_local_set, v);
-        }
-        snapshot(static_cast<unsigned>(ir.snapshots.size() - 1), publish_pc);
-    }
 
     // Emit condition check. ARM condition code in bits [31:28].
     // Emits: if (cond) { ... } with the caller responsible for closing the block.
@@ -1131,12 +929,6 @@ namespace eka2l1::arm::aot {
         const sibling_map *siblings,
         const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, bool region, const leaf_resolver *leaves, bool defer_memory, bool allow_memory_proof, arm_ir_policy ir_policy = arm_ir_policy::configured)
     {
-        // Policies 14/15 preserve policy 13 semantics and separately vary
-        // the segment bound or adjacent single-use pure-value lowering.
-        const bool long_ir_segments = ir_policy == arm_ir_policy::long_segments_ir;
-        const bool stack_ir_values = ir_policy == arm_ir_policy::stack_values_ir;
-        const bool budget_gaps_ir = ir_policy == arm_ir_policy::budget_gaps_ir;
-        if (long_ir_segments || stack_ir_values || budget_gaps_ir) ir_policy = arm_ir_policy::conditional_value_ir;
         // Policy 17 adds iteration proofs to policy 7's original lowering.
         // Policy 18 also batches counts independently of those budget proofs.
         const bool batch_counts = ir_policy == arm_ir_policy::batched_instruction_counts;
@@ -1202,25 +994,15 @@ namespace eka2l1::arm::aot {
             }
         }
 
-        // A conservative affine pass can prove every ordinary memory span at
-        // entry. No successful instruction in this version can call a helper,
-        // remap memory, or write current compiled code. Failed proofs exit with
-        // zero guest effects into the original compiled function. In particular,
-        // writeback/fault ordering must not change to interpreter-block behavior.
+        // Entry-relative memory proofs retain ordinary instruction lowering.
+        // Failed proofs call the original function before any guest effect;
+        // writeback and fault ordering remain exact.
         struct affine { int root = -1; std::int64_t offset = 0; };
         struct proof_group { unsigned root; bool write; std::int64_t low, high; unsigned host; };
         struct proof_access { std::uint32_t pc; unsigned group; std::int64_t offset; };
         std::vector<proof_group> proof_groups;
         std::vector<proof_access> proof_accesses;
-        bool prove_memory = allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && ir_policy != arm_ir_policy::deferred_chunk_counts && ir_policy != arm_ir_policy::invariant_read_ir && ir_policy != arm_ir_policy::invariant_read_flag_ir && ir_policy != arm_ir_policy::inline_call_ir && ir_policy != arm_ir_policy::invariant_write_ir && ir_policy != arm_ir_policy::conditional_value_ir && w.region && w.defer_memory && cache_registers && !instructions.empty();
-#if !defined(EKA2L1_WASM_REGION_IR) || defined(EKA2L1_WASM_CODE_VERSIONS)
-        // The guarded IR is an opt-in research path. Version tracking also
-        // keeps its existing compiler until separately validated.
-        prove_memory = false;
-#endif
-        affine values[16];
-        for (int r = 0; r < 15; ++r) values[r] = {r, 0};
+        bool prove_memory = false;
         auto add_access = [&](std::uint32_t pc, affine address, unsigned bytes, bool write) {
             if (address.root < 0 || address.offset < INT32_MIN
                 || address.offset + bytes > INT32_MAX) return false;
@@ -1236,81 +1018,16 @@ namespace eka2l1::arm::aot {
             proof_accesses.push_back({pc, group, address.offset});
             return true;
         };
-        for (std::size_t n = 0; prove_memory && n < instructions.size(); ++n) {
-            const auto &ins = instructions[n];
-            const auto op = ins.opcode;
-            const bool last = n + 1 == instructions.size();
-            if (ins.leaf || ins.offset != n * 4 || (op >> 28) != 14) { prove_memory = false; break; }
-            const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
-            if ((op & 0x0ffffff0u) == 0x012fff10u) { prove_memory = last; continue; }
-            if (((op >> 26) & 3) == 1) {
-                const bool pre = op & (1u << 24), up = op & (1u << 23);
-                const bool writeback = !pre || (op & (1u << 21)), load = op & (1u << 20);
-                if ((op & ((1u << 25) | (1u << 22))) || rn == 15 || rd == 15
-                    || (!pre && (op & (1u << 21))) || (writeback && rn == rd)) { prove_memory = false; break; }
-                const auto delta = (up ? 1 : -1) * std::int64_t(op & 4095);
-                auto address = values[rn]; if (pre) address.offset += delta;
-                prove_memory = add_access(ins.address, address, 4, !load);
-                if (writeback) values[rn].offset += delta;
-                if (load) values[rd] = {};
-            } else if (((op >> 25) & 7) == 4) {
-                const bool load = op & (1u << 20), writeback = op & (1u << 21);
-                const bool up = op & (1u << 23), pre = op & (1u << 24);
-                const auto list = op & 65535;
-                if (!list || rn == 15 || (op & (1u << 22))
-                    || (writeback && (list & (1u << rn)))
-                    || (load && (list & 32768) && !last)) { prove_memory = false; break; }
-                unsigned count = 0; for (unsigned r = 0; r < 16; ++r) count += (list >> r) & 1;
-                auto address = values[rn];
-                address.offset += up ? (pre ? 4 : 0) : -std::int64_t(count * 4) + (pre ? 0 : 4);
-                prove_memory = add_access(ins.address, address, count * 4, !load);
-                if (writeback) values[rn].offset += (up ? 1 : -1) * std::int64_t(count * 4);
-                if (load) for (unsigned r = 0; r < 16; ++r) if (list & (1u << r)) values[r] = {};
-            } else if ((op & 0x0f8000f0u) == 0x00800090u) {
-                // Long multiply; both halves cease to be entry-relative pointers.
-                if (rn == 15 || rd == 15 || rn == rd) { prove_memory = false; break; }
-                values[rn] = {}; values[rd] = {};
-            } else if ((op & 0x0fc000f0u) == 0x00000090u) {
-                if (rn == 15) { prove_memory = false; break; }
-                values[rn] = {};
-            } else if (((op >> 26) & 3) == 0 && ((op & (1u << 25)) || (op & 0x90) != 0x90)) {
-                const unsigned alu = (op >> 21) & 15;
-                const bool flags = op & (1u << 20);
-                if (alu >= 8 && alu <= 11) { if (!flags) prove_memory = false; continue; }
-                if (rd == 15) { prove_memory = last && !flags && alu == 13; continue; }
-                affine value;
-                if (alu == 13 && !(op & (1u << 25)) && !(op & 0xff0)) value = values[op & 15];
-                if ((alu == 2 || alu == 4) && (op & (1u << 25))) {
-                    const unsigned rotation = ((op >> 8) & 15) * 2;
-                    const std::uint32_t imm = op & 255;
-                    const auto immediate = rotation ? (imm >> rotation) | (imm << (32 - rotation)) : imm;
-                    value = values[rn]; value.offset += (alu == 4 ? 1 : -1) * std::int64_t(immediate);
-                    if (value.offset < INT32_MIN || value.offset > INT32_MAX) value = {};
-                }
-                values[rd] = value;
-            } else prove_memory = false;
-        }
+
         // Separate research policies prove reads, or reads and writes, through
         // unchanged entry registers. They admit loops and conditional accesses.
         // Write proofs also exclude physical code aliases. All helper paths end
         // this region before a later instruction can use a pointer invalidated by a callback.
-        const bool include_writes = ir_policy == arm_ir_policy::invariant_writes || (ir_policy == arm_ir_policy::invariant_write_ir || ir_policy == arm_ir_policy::conditional_value_ir)
+        const bool include_writes = ir_policy == arm_ir_policy::invariant_writes
             || ir_policy == arm_ir_policy::write_budget_chunks || ir_policy == arm_ir_policy::deferred_chunk_counts;
-        bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || (ir_policy == arm_ir_policy::inline_call_ir || (ir_policy == arm_ir_policy::invariant_write_ir || ir_policy == arm_ir_policy::conditional_value_ir)) || include_writes || ir_policy == arm_ir_policy::budget_chunks)
+        const bool invariant_reads = allow_memory_proof && (ir_policy == arm_ir_policy::invariant_reads
+            || include_writes || ir_policy == arm_ir_policy::budget_chunks)
             && w.region && w.defer_memory && cache_registers && !instructions.empty();
-#ifdef EKA2L1_WASM_CODE_VERSIONS
-        if (!common::code_tracking::skip_mutation_tracking()) {
-#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
-        // Only the original-emitter delivered proof policy is admitted. Its
-        // entry checks consume writable TLB tags after runtime protection sync;
-        // denied watched pages retain the precise deferred/helper path.
-        invariant_reads = invariant_reads && common::code_tracking::protect_writes
-            && ir_policy == arm_ir_policy::write_budget_chunks;
-#else
-        invariant_reads = false;
-#endif
-        }
-#endif
         if (invariant_reads) {
             unsigned written = 0;
             bool known = true;
@@ -1376,55 +1093,6 @@ namespace eka2l1::arm::aot {
                 w.proved_accesses.emplace(access.pc, arm_emit::proved_access{
                     span.host, static_cast<std::uint32_t>(access.offset - span.low)});
             }
-        }
-
-        std::unique_ptr<region_ir> ir;
-        std::vector<bool> ir_live;
-        std::vector<unsigned> ir_locals;
-        if (prove_memory && !invariant_reads) {
-            ir = std::make_unique<region_ir>(start_address);
-            for (unsigned n = 0; n < instructions.size(); ++n) {
-                if (!ir->append(instructions[n].opcode, instructions[n].address,
-                        n + 1 == instructions.size(), w.proved_accesses)) {
-                    ir.reset(); break;
-                }
-            }
-            if (ir && !ir->valid()) ir.reset();
-            // Do not retain the rejected memory-only optimization for regions
-            // outside the IR's conservative semantic subset.
-            if (!ir) { prove_memory = false; w.proved_accesses.clear(); }
-        }
-        if (ir) {
-            ir_live = ir->live_for({static_cast<unsigned>(ir->snapshots.size() - 1)});
-            ir_locals.resize(ir->nodes.size());
-            unsigned i32_count = 0, i64_count = 0;
-            for (unsigned v = 1; v < ir->nodes.size(); ++v) {
-                const auto &node = ir->nodes[v];
-                if (!ir_live[v] || node.op == region_ir::constant || node.op == region_ir::host
-                    || node.op == region_ir::state || node.type == type_void) continue;
-                if (node.type == type_i32) ir_locals[v] = w.cache.first_local + i32_count++;
-                else ir_locals[v] = i64_count++;
-            }
-            w.cache.first_local += i32_count;
-            result.num_locals += i32_count;
-            result.num_suffix_i64_locals = i64_count;
-            // Cache slots precede the i64 suffix. Reserve every state slot that
-            // proof/lowering/writeback can use before assigning suffix indices.
-            for (unsigned offset = S::AOT_BUDGET; offset <= S::AOT_EXIT; offset += 4) w.cache.local(offset);
-            w.cache.local(S::CPSR);
-            for (const auto &span : proof_groups) w.cache.local(S::reg(span.root));
-            for (unsigned v = 1; v < ir->nodes.size(); ++v)
-                if (ir_live[v] && ir->nodes[v].op == region_ir::state)
-                    w.cache.local(static_cast<unsigned>(ir->nodes[v].immediate));
-            const auto &entry = ir->snapshots.front(); const auto &exit = ir->snapshots.back();
-            for (unsigned r = 0; r < 15; ++r)
-                if (entry.regs[r] != exit.regs[r]) w.cache.local(S::reg(r));
-            for (unsigned f = 0; f < 5; ++f)
-                if (entry.flags[f] != exit.flags[f]) w.cache.local(region_ir::flag_offsets[f]);
-            const auto suffix = w.cache.first_local + static_cast<unsigned>(w.cache.locals.size());
-            for (unsigned v = 1; v < ir->nodes.size(); ++v)
-                if (ir_live[v] && ir->nodes[v].type == type_i64 && ir->nodes[v].op != region_ir::constant)
-                    ir_locals[v] += suffix;
         }
 
         // Collect forward branch targets
@@ -1504,114 +1172,12 @@ namespace eka2l1::arm::aot {
             fwd_idx[fwd_sorted[k]] = k;
         }
 
-        struct integer_segment {
-            region_ir graph;
-            std::vector<bool> live, cold, stack_values;
-            std::vector<unsigned> locals;
-            unsigned length;
-            bool memoize_cold = false;
-        };
-        std::map<std::size_t, integer_segment> segments;
-        std::vector<std::pair<std::size_t, unsigned>> wide_fixups;
-#ifdef EKA2L1_WASM_IR_SEGMENTS
-        if (allow_memory_proof && ir_policy != arm_ir_policy::disabled
-            && ir_policy != arm_ir_policy::invariant_reads && ir_policy != arm_ir_policy::invariant_writes && ir_policy != arm_ir_policy::budget_chunks && ir_policy != arm_ir_policy::write_budget_chunks && ir_policy != arm_ir_policy::deferred_chunk_counts && w.region && cache_registers && !ir) {
-            unsigned max_locals = 0, max_wide_locals = 0;
-#if defined(EKA2L1_WASM_IR_MEMORY) && !defined(EKA2L1_WASM_CODE_VERSIONS)
-            const bool dynamic_memory = w.defer_memory;
-#else
-            const bool dynamic_memory = false;
-#endif
-            const std::map<std::uint32_t, arm_emit::proved_access> no_memory;
-            const auto &segment_memory = (ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || (ir_policy == arm_ir_policy::inline_call_ir || (ir_policy == arm_ir_policy::invariant_write_ir || ir_policy == arm_ir_policy::conditional_value_ir))) ? w.proved_accesses : no_memory;
-#ifdef EKA2L1_WASM_IR_OUTLINE
-            const bool join_calls = (ir_policy == arm_ir_policy::inline_call_ir || (ir_policy == arm_ir_policy::invariant_write_ir || ir_policy == arm_ir_policy::conditional_value_ir));
-#else
-            const bool join_calls = false;
-#endif
-            for (std::size_t first = 0; first < instructions.size();) {
-                region_ir graph(instructions[first].address);
-                std::size_t end = first;
-                for (; end < instructions.size() && end - first < (long_ir_segments ? 128u : 32u); ++end) {
-                    const auto &ins = instructions[end];
-                    const auto op = ins.opcode;
-                    if (end != first) {
-                        const auto &previous = instructions[end - 1];
-                        const bool linear = ins.leaf == previous.leaf && ins.address == previous.address + 4;
-                        const auto callee = inlined.find(previous.offset);
-                        const bool enter_leaf = join_calls && !previous.leaf && ins.leaf
-                            && callee != inlined.end() && ins.offset == previous.offset && ins.address == callee->second.address;
-                        const bool leave_leaf = join_calls && previous.leaf && previous.opcode == 0xe12fff1e
-                            && !ins.leaf && ins.address == start_address + previous.offset + 4;
-                        if ((!linear && !enter_leaf && !leave_leaf)
-                            || (!ins.leaf && forward_targets_set.count(ins.address))) break;
-                    }
-                    auto trial = graph;
-                    if (join_calls && !ins.leaf && inlined.count(ins.offset)) {
-                        trial.inline_call(ins.address, inlined.at(ins.offset).address);
-                        graph = std::move(trial); continue;
-                    }
-                    if (join_calls && ins.leaf && op == 0xe12fff1e) {
-                        trial.inline_return(start_address + static_cast<std::uint32_t>(ins.offset) + 4);
-                        graph = std::move(trial); continue;
-                    }
-                    // Memory joins only through precise guards; selected policies
-                    // also model flags and already validated inline transfers.
-                    // Other control transfers remain segment boundaries.
-                    if (!dynamic_memory && (((op >> 26) & 3) != 0
-                        || (op & 0x0f8000f0u) == 0x00800090u)) break;
-                    const bool appended = ir_policy == arm_ir_policy::conditional_value_ir
-                        ? trial.append_conditional(op, ins.address, segment_memory, dynamic_memory, true)
-                        : trial.append(op, ins.address, false, segment_memory, dynamic_memory, ir_policy == arm_ir_policy::invariant_read_flag_ir || join_calls);
-                    if (!appended) break;
-                    graph = std::move(trial);
-                }
-                if (end - first < 3 || !graph.valid()) { ++first; continue; }
-                integer_segment segment{std::move(graph), {}, {}, {}, {}, static_cast<unsigned>(end - first)};
-                segment.memoize_cold = ir_policy == arm_ir_policy::outlined_recipes || ir_policy == arm_ir_policy::invariant_read_ir || ir_policy == arm_ir_policy::invariant_read_flag_ir || join_calls;
-                std::vector<unsigned> exits{segment.length};
-                for (const auto &node : segment.graph.nodes)
-                    if (node.op == region_ir::guarded_host) exits.push_back(static_cast<unsigned>(node.immediate / 2));
-                segment.live = segment.graph.live_for(exits);
-                segment.locals.resize(segment.graph.nodes.size());
-                segment.cold.resize(segment.graph.nodes.size());
-                const auto ordinary = segment.graph.live_for({segment.length});
-                unsigned count = 0, wide_count = 0;
-                for (unsigned v = 1; v < segment.graph.nodes.size(); ++v) {
-                    const auto &node = segment.graph.nodes[v];
-                    segment.cold[v] = segment.live[v] && !ordinary[v]
-                        && (node.op == region_ir::low || node.op == region_ir::high
-                            || (segment.memoize_cold && !region_ir::is_effect(node.op)
-                                && node.op != region_ir::constant && node.op != region_ir::state && node.op != region_ir::host));
-                }
-                segment.stack_values = stack_ir_values
-                    ? segment.graph.stack_values_for(segment.live, segment.cold, exits)
-                    : std::vector<bool>(segment.graph.nodes.size());
-                for (unsigned v = 1; v < segment.graph.nodes.size(); ++v) {
-                    const auto &node = segment.graph.nodes[v];
-                    if (segment.stack_values[v]) continue;
-                    if (segment.live[v] && (!segment.cold[v] || segment.memoize_cold) && node.op != region_ir::state
-                        && node.op != region_ir::constant && node.op != region_ir::host && node.type != type_void) {
-                        segment.locals[v] = node.type == type_i64 ? wide_count++ : w.cache.first_local + count++;
-                    }
-                }
-                max_locals = std::max(max_locals, count);
-                max_wide_locals = std::max(max_wide_locals, wide_count);
-                segments.emplace(first, std::move(segment)); first = end;
-            }
-            // Segments never overlap dynamically, so their value locals can
-            // share slots. Reserve them before lazy architectural cache slots.
-            w.cache.first_local += max_locals; result.num_locals += max_locals;
-            result.num_suffix_i64_locals = max_wide_locals;
-        }
-#endif
-
         // Budget chunks keep the existing opcode lowering. Straight-line spans
         // and selected single-entry loops prove their maximum instruction count.
         // Short budgets use a precise callee; count/exit checks stay in place.
         std::map<std::size_t, unsigned> budget_chunks;
         std::set<std::size_t> loop_budget_chunks;
-        if (allow_memory_proof && (budget_gaps_ir || ir_policy == arm_ir_policy::budget_chunks
+        if (allow_memory_proof && (ir_policy == arm_ir_policy::budget_chunks
                 || ir_policy == arm_ir_policy::write_budget_chunks || ir_policy == arm_ir_policy::deferred_chunk_counts)
             && w.region && cache_registers) {
             auto straight = [](std::uint32_t op) {
@@ -1632,22 +1198,16 @@ namespace eka2l1::arm::aot {
                 const unsigned alu = (op >> 21) & 15;
                 return alu >= 8 && alu <= 11 ? bool(op & (1u << 20)) : rd != 15;
             };
-            // IR is selected first. A chunk cannot begin within or cross an
-            // IR segment, including when that segment takes its cold fallback.
-            std::vector<bool> ir_covered(instructions.size());
-            for (const auto &part : segments)
-                for (unsigned n = 0; n < part.second.length; ++n)
-                    ir_covered[part.first + n] = true;
             for (std::size_t first = 0; first < instructions.size();) {
                 // A natural loop has no interior entry. Prove its longest
                 // iteration once, including conditional exits; each backedge
-                // re-enters this proof. Keep deferred-count and IR policies on
+                // re-enters this proof. Keep deferred-count policies on
                 // their existing straight-line chunks.
                 if (loop_budgets && direct_loop && instructions[first].address == loop_start) {
                     std::size_t end = first;
                     for (; end < instructions.size() && end - first < 32; ++end) {
                         const auto &ins = instructions[end];
-                        if (ir_covered[end] || ins.leaf || ins.address != loop_start + (end - first) * 4) break;
+                        if (ins.leaf || ins.address != loop_start + (end - first) * 4) break;
                         const auto op = ins.opcode;
                         const bool branch = ((op >> 25) & 7) == 5 && !(op & (1u << 24)) && (op >> 28) < 15;
                         const auto target = ins.address + 8 + (static_cast<std::int32_t>(op << 8) >> 6);
@@ -1667,7 +1227,7 @@ namespace eka2l1::arm::aot {
                 std::size_t end = first;
                 for (; end < instructions.size() && end - first < 32; ++end) {
                     const auto &ins = instructions[end];
-                    if (ir_covered[end] || ins.leaf || !straight(ins.opcode)
+                    if (ins.leaf || !straight(ins.opcode)
                         || (end != first && (ins.address != instructions[end - 1].address + 4
                             || forward_targets_set.count(ins.address)))) break;
                 }
@@ -1694,13 +1254,9 @@ namespace eka2l1::arm::aot {
                 w.census_store(&exit_census::entry_write_spans,write_spans);
                 w.census_store(&exit_census::entry_read_spans,static_cast<unsigned>(proof_groups.size())-write_spans);
             }
-            // The successful IR path cannot call helpers, raise a memory exit,
-            // or cross the scheduler budget. All other cases use the precise
-            // original function, before any guest memory/state effect.
-            if (!invariant_reads) {
-                w.load_i32(S::AOT_BUDGET); w.i32_const(static_cast<unsigned>(instructions.size()));
-                w.op(op_i32_lt_u); w.load_i32(S::AOT_EXIT); w.op(op_i32_or);
-            } else w.load_i32(S::AOT_EXIT);
+            // Failed entry proofs call the precise original function before
+            // any guest memory/state effect.
+            w.load_i32(S::AOT_EXIT);
             w.census_entry_other();
             w.set_local(TMP4);
             for (const auto &span : proof_groups) {
@@ -1734,24 +1290,6 @@ namespace eka2l1::arm::aot {
             w.op(op_return); w.op(op_end);
         }
 
-        if (ir) {
-            emit_ir_values(w, *ir, ir_live, ir_locals, true);
-            const auto &exit = ir->snapshots.back();
-            w.i32_const(exit.count); w.ret();
-            std::vector<std::uint8_t> prefix; w.cache.transfer(prefix, true);
-            result.outlined_call_offset = proof_call_offset + static_cast<unsigned>(prefix.size()) + 2;
-            auto fallback = translate_arm_block_impl(code, code_size, start_address,
-                siblings, dll_code, bounded, stop_after_store, cache_registers,
-                region, leaves, defer_memory, false);
-            fallback.func.export_name += "_ir_fallback";
-            result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));
-            w.cache.finish(result);
-            tr.entry_supported = tr.complete = true;
-            tr.end_address = start_address + static_cast<unsigned>(instructions.size() * 4);
-            tr.bail_count = 1;
-            return tr;
-        }
-
         // block $exit
         w.op(op_block); w.op(type_void);
         // loop $loop
@@ -1775,22 +1313,15 @@ namespace eka2l1::arm::aot {
 
         std::uint32_t insn_idx = 0;
         std::uint32_t decoded_end_offset = 0;
-        std::size_t segment_end = 0, skip_segment_until = 0, budget_chunk_end = 0;
+        std::size_t budget_chunk_end = 0;
         std::vector<std::uint32_t> leaf_forward_targets;
         std::size_t leaf_closed = 0;
 
         for (const auto &instruction : instructions) {
             const auto instruction_index = static_cast<std::size_t>(&instruction - instructions.data());
-            if (instruction_index < skip_segment_until) continue;
             // Flush fallthrough before closing labels: a taken edge must not
             // inherit the lexical predecessor's pending instruction count.
             if (!batch_counts && instruction_index >= budget_chunk_end) w.commit_count();
-            // Opcode emitters commonly continue the outer loop. Close the
-            // fallback at the next lexical boundary so all such paths join.
-            if (segment_end && segment_end == instruction_index) {
-                w.end_wide(); w.op(op_end); segment_end = 0;
-            }
-            const auto segment = segments.find(instruction_index);
             const auto i = instruction.offset;
             if (!region) insn_idx = static_cast<std::uint32_t>(i / 4);
             if (bounded && !region && stop_after_store && w.memory_write) break;
@@ -1860,7 +1391,7 @@ namespace eka2l1::arm::aot {
             if (!preserve_wide || (!instruction.leaf && forward_targets_set.count(insn_addr)))
                 w.end_wide();
             const auto budget_chunk = budget_chunks.find(instruction_index);
-            if (segment != segments.end() || budget_chunk != budget_chunks.end()) w.end_wide();
+            if (budget_chunk != budget_chunks.end()) w.end_wide();
 
             // Only memory/helper paths can raise AOT_EXIT. Straight-line ALU
             // successors need just their budget guard; join/loop entries retain
@@ -1986,79 +1517,6 @@ namespace eka2l1::arm::aot {
             }
 
             if (budget_chunk != budget_chunks.end() && !loop_budget_chunk) emit_budget_chunk(true);
-
-            if (segment != segments.end()) {
-                const auto &part = segment->second;
-                // The normal first-instruction check established COUNT <=
-                // budget and charged that instruction. Subtraction cannot wrap.
-                w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
-                w.i32_const(part.length - 1); w.op(op_i32_ge_u);
-                w.op(op_if); w.op(type_void);
-                emit_ir_values(w, part.graph, part.live, part.locals, false, part.cold, &wide_fixups, part.memoize_cold, part.stack_values);
-                w.get_local(arm_emit::COUNT); w.i32_const(part.length - 1);
-                w.op(op_i32_add); w.set_local(arm_emit::COUNT);
-                ++tr.ir_segments;
-                tr.ir_max_segment_length = std::max(tr.ir_max_segment_length, part.length);
-                tr.ir_segment_instructions += part.length;
-                tr.ir_flag_instructions += part.graph.flag_instructions;
-                tr.ir_inline_transfers += part.graph.inline_transfers;
-                tr.ir_conditional_instructions += part.graph.conditional_instructions;
-                for (unsigned v = 1; v < part.graph.nodes.size(); ++v) {
-                    if (part.graph.nodes[v].op == region_ir::guarded_host) ++tr.ir_memory_guards;
-                    if (part.graph.nodes[v].op == region_ir::read32
-                        && part.graph.nodes[part.graph.nodes[v].a].op == region_ir::host) ++tr.ir_proved_reads;
-                    if (part.graph.nodes[v].op == region_ir::write32
-                        && part.graph.nodes[part.graph.nodes[v].a].op == region_ir::host) ++tr.ir_proved_writes;
-                    if (part.live[v] && part.graph.nodes[v].op == op_i64_mul) ++tr.ir_wide_products;
-                    if (part.stack_values[v]) ++tr.ir_stack_values;
-                    if (part.cold[v]) {
-                        ++tr.ir_cold_values;
-                        if (part.graph.nodes[v].op == region_ir::low || part.graph.nodes[v].op == region_ir::high)
-                            ++tr.ir_cold_halves;
-                    }
-                }
-                w.op(op_else);
-#ifdef EKA2L1_WASM_IR_OUTLINE
-                if (ir_policy != arm_ir_policy::inline_segments) {
-                    // The callee receives the exact remainder and current guest
-                    // state. It exhausts that short budget or exits precisely; no
-                    // subsequent caller instruction is executed on this arm.
-                    w.get_local(arm_emit::COUNT); w.i32_const(1); w.op(op_i32_sub); w.set_local(arm_emit::COUNT);
-                    w.store_i32_const(S::PC, insn_addr);
-                    w.cache.barrier_at(w.b.size());
-                    w.state_ptr(); w.load_i32(S::AOT_BUDGET); w.get_local(arm_emit::COUNT); w.op(op_i32_sub);
-                    w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
-                    w.state_ptr(); w.op(op_call);
-                    const auto call_offset = static_cast<std::uint32_t>(w.b.size());
-                    w.b.insert(w.b.end(), {0x80, 0x80, 0x80, 0x80, 0});
-                    w.get_local(arm_emit::COUNT); w.op(op_i32_add);
-                    // Bypass stale caller writeback after the helper updated guest
-                    // state. Only restore the runner's original budget contract.
-                    w.state_ptr(); w.load_i32(S::AOT_BUDGET);
-                    w.op(op_i32_store); leb(w.b, 2); leb(w.b, S::AOT_BUDGET);
-                    w.op(op_return); w.op(op_end);
-                    std::vector<std::uint32_t> words;
-                    // A flattened caller/leaf sequence is not contiguous guest
-                    // code. On short budgets execute its first real instruction
-                    // at its real PC and return positive progress to the runner.
-                    // Never relabel the flattened words as a contiguous slice.
-                    const unsigned precise_length = part.graph.inline_transfers ? 1 : part.length;
-                    for (unsigned n = 0; n < precise_length; ++n)
-                        words.push_back(instructions[instruction_index + n].opcode);
-                    auto precise = translate_arm_block_impl(reinterpret_cast<const std::uint8_t *>(words.data()),
-                        words.size() * 4, insn_addr, nullptr, nullptr, true, stop_after_store,
-                        true, true, nullptr, defer_memory, false);
-                    precise.func.export_name += "_ir_short";
-                    result.outlined_calls.push_back({std::make_shared<wasm_func_def>(std::move(precise.func)), call_offset});
-                    ++tr.ir_outlined_segments;
-                    skip_segment_until = instruction_index + part.length;
-                    insn_idx += part.length;
-                    decoded_end_offset = static_cast<std::uint32_t>(instructions[skip_segment_until - 1].offset) + 4;
-                    continue;
-                }
-#endif
-                segment_end = instruction_index + part.length;
-            }
 
             if (instruction.leaf && inst == 0xe12fff1e) {
                 // LR still contains this call's ARM return address. The next
@@ -2323,10 +1781,9 @@ namespace eka2l1::arm::aot {
                 const bool proved_span = w.has_proved_access();
                 // Short blocks can share one permission/alignment/endian proof
                 // across the complete instruction just like connected regions.
-                // Compatibility stores keep their callback/tracking path.
+                // Mutation-compatible stores keep their callback path.
                 const bool short_span = w.direct_block_memory && (load ||
-                    (common::code_tracking::skip_mutation_tracking()
-                     && common::code_tracking::skip_code_write_guards()));
+                    common::code_tracking::skip_code_write_guards());
                 const bool span_fast_path = (w.region || short_span) && (count >= 2 || proved_span);
                 const bool pc_written_before_span = w.pc_written;
                 if (span_fast_path) {
@@ -2350,7 +1807,6 @@ namespace eka2l1::arm::aot {
                         offset += 4;
                     }
                     if (!load && !proved_span) {
-                        w.track_write();
                         if (!common::code_tracking::skip_code_write_guards()) {
                         w.get_local(arm_emit::HOST); w.load_i32(S::AOT_CODE_END); w.op(op_i32_lt_u);
                         w.get_local(arm_emit::HOST); w.i32_const(count * 4); w.op(op_i32_add);
@@ -3136,7 +2592,6 @@ namespace eka2l1::arm::aot {
         }
 
         w.commit_count();
-        if (segment_end) { w.end_wide(); w.op(op_end); }
         if (inner_loop_open) w.op(op_end);
 
         // Close remaining forward blocks
@@ -3165,14 +2620,6 @@ namespace eka2l1::arm::aot {
                 batch_counts ? arm_ir_policy::batched_instruction_counts : arm_ir_policy::configured);
             fallback.func.export_name += "_memory_fallback";
             result.outlined_callee = std::make_shared<wasm_func_def>(std::move(fallback.func));
-        }
-        const auto wide_base = w.cache.first_local + static_cast<unsigned>(w.cache.locals.size());
-        for (const auto &[position, slot] : wide_fixups) {
-            unsigned index = wide_base + slot;
-            for (unsigned byte = 0; byte < 5; ++byte) {
-                w.b[position + byte] = (index & 127) | (byte == 4 ? 0 : 128);
-                index >>= 7;
-            }
         }
         w.cache.finish(result);
         tr.entry_supported = w.entry_supported;

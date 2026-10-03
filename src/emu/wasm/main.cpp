@@ -213,37 +213,13 @@ int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
 // CPU. Selection is frozen before guest translation starts.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_ir_configure(int mode) {
-    if (g_state || mode < -1 || mode > 18) return -1;
-#ifdef EKA2L1_WASM_CODE_VERSIONS
-#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
-    if (mode >= 4 && !(mode == 7 && eka2l1::common::code_tracking::protect_writes)) return -2;
-#else
-    if (mode >= 4) return -2;
-#endif
-#endif
-#ifndef EKA2L1_WASM_IR_SEGMENTS
-    if ((mode > 0 && mode < 4) || (mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15 || mode == 16)) return -2;
-#endif
-#ifndef EKA2L1_WASM_IR_OUTLINE
-    if ((mode >= 2 && mode < 4) || (mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15 || mode == 16)) return -2;
-#endif
-#ifndef EKA2L1_WASM_IR_MEMORY
-    if ((mode == 9 || mode == 10 || mode == 11 || mode == 12 || mode == 13 || mode == 14 || mode == 15 || mode == 16)) return -2;
-#endif
+    eka2l1::arm::aot::arm_ir_policy policy;
+    if (g_state || (mode != -1 && !eka2l1::arm::aot::parse_arm_ir_policy(std::to_string(mode).c_str(), policy))) return -1;
     if (mode < 0) unsetenv("EKA2L1_AOT_IR_MODE");
     else setenv("EKA2L1_AOT_IR_MODE", std::to_string(mode).c_str(), 1);
     return 0;
 }
 
-// DynCom and generated guards must select the same index before initialization.
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_synchronous_compilation_configure(int mode) {
-    if (g_state || mode < 0 || mode > 3 || (mode == 3 && eka2l1::arm::aot::dynamic_rom_cohorts)) return -1;
-    eka2l1::arm::aot::synchronous_compilation = static_cast<unsigned>(mode);
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_synchronous_compilation_report() { return eka2l1::arm::aot::synchronous_compilation; }
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_compiled_memory_misses_configure(int mode) {
     if (g_state || mode < 0 || mode > 1) return -1;
@@ -292,6 +268,7 @@ int eka2l1_thumb_memory_report() {
     return eka2l1::arm::aot::thumb_direct_memory;
 }
 
+// DynCom and generated guards must select the same index before initialization.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_tlb_hash_configure(int mode) {
     if (g_state || mode < 0 || mode > 1) return -1;
@@ -299,47 +276,12 @@ int eka2l1_tlb_hash_configure(int mode) {
     return 0;
 }
 
-// Lookup layout research control, frozen before guest execution.
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_code_write_protect_configure(int mode) {
-#if defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
-    if (g_state || (mode != 0 && mode != 1) || common::code_tracking::skip_mutation_tracking()) return -1;
-    // Do not leave a selected proof policy without its required protection.
-    if (!mode) if (const char *policy=std::getenv("EKA2L1_AOT_IR_MODE"))
-        if (std::string(policy)=="7") return -2;
-    eka2l1::common::code_tracking::protect_writes = mode != 0;
-    return 0;
-#else
-    return -1;
-#endif
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_omit_guard_publication_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::omit_guard_publication = mode != 0;
-    return 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_omit_guard_publication_report() {
-    return eka2l1::arm::aot::omit_guard_publication ? 1 : 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_code_lookup_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::code_lookup_outline = mode != 0;
-    return 0;
-}
-
 // WASM defaults to mode 3 (immutable executable bytes); explicit mode 0
 // restores mutation compatibility. The selection is frozen at CPU initialization.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_unsafe_code_configure(int mode) {
-    if (g_state || mode < 0 || mode > 3) return -1;
+    if (g_state || (mode != 0 && mode != 3)) return -1;
     common::code_tracking::unsafe_code_mode = static_cast<unsigned>(mode);
-    if (mode == 3) common::code_tracking::protect_writes = false;
     return 0;
 }
 EMSCRIPTEN_KEEPALIVE
@@ -364,7 +306,7 @@ int eka2l1_rom_leaves_report() { return eka2l1::arm::aot::rom_inline_leaves; }
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_rom_calls_configure(int enabled) {
-    if (g_state || enabled < 0 || enabled > 1 || (enabled && eka2l1::arm::aot::rom_dispatch_enabled)) return -1;
+    if (g_state || enabled < 0 || enabled > 1) return -1;
     eka2l1::arm::aot::rom_bounded_calls = enabled != 0;
     return 0;
 }
@@ -373,24 +315,12 @@ int eka2l1_rom_calls_report() { return eka2l1::arm::aot::rom_bounded_calls; }
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_hotpath_configure(int policy) {
-    if (g_state || policy < 0 || policy > 7) return -1;
+    if (g_state || (policy != 0 && policy != 2)) return -1;
     eka2l1::arm::aot::hotpath_policy = static_cast<unsigned>(policy);
     return 0;
 }
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_hotpath_report() { return eka2l1::arm::aot::hotpath_policy; }
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_rom_dispatch_configure(int enabled) {
-    if (g_state || enabled < 0 || enabled > 3 || (enabled && eka2l1::arm::aot::rom_bounded_calls)
-        || (enabled == 3 && eka2l1::arm::aot::synchronous_compilation == 3)) return -1;
-    eka2l1::arm::aot::rom_dispatch_enabled = enabled != 0;
-    eka2l1::arm::aot::rom_state_cohorts = enabled == 2;
-    eka2l1::arm::aot::dynamic_rom_cohorts = enabled == 3;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_rom_dispatch_report() { return eka2l1::arm::aot::dynamic_rom_cohorts ? 3 : eka2l1::arm::aot::rom_state_cohorts ? 2 : eka2l1::arm::aot::rom_dispatch_enabled; }
 
 // Eager ROM compilation research control. Ordinary startup keeps basic blocks.
 EMSCRIPTEN_KEEPALIVE
@@ -1109,15 +1039,7 @@ EMSCRIPTEN_KEEPALIVE
 int eka2l1_frame_dump_done() {
     if (g_state && common::benchmark::enabled()) return g_state->benchmark_done ? 1 : 0;
     if (!g_state || !g_state->dumper) return 1;
-    bool done = g_state->dumper->done();
-    if (done) {
-        static bool histogram_dumped = false;
-        if (!histogram_dumped) {
-            histogram_dumped = true;
-            dyncom_dump_pc_histogram();
-        }
-    }
-    return done ? 1 : 0;
+    return g_state->dumper->done() ? 1 : 0;
 }
 
 EMSCRIPTEN_KEEPALIVE

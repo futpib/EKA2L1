@@ -16,7 +16,6 @@
     Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
 #pragma once
-#include <common/code_tracking.h>
 
 #include <array>
 #include <common/bytes.h>
@@ -199,7 +198,6 @@ public:
     void WriteMemory8(std::uint32_t address, std::uint8_t data) {
         if (std::uint8_t *ptr = mem_cache_->lookup_access<prot_write>(address)) {
             *ptr = data;
-            eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
         }
         WriteMemory8Slow(address, data);
@@ -209,7 +207,6 @@ public:
             data = eka2l1::common::byte_swap(data);
         if (std::uint16_t *ptr = reinterpret_cast<std::uint16_t *>(mem_cache_->lookup_access<prot_write>(address))) {
             *ptr = data;
-            eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
         }
         WriteMemory16Slow(address, data);
@@ -219,7 +216,6 @@ public:
             data = eka2l1::common::byte_swap(data);
         if (std::uint32_t *ptr = reinterpret_cast<std::uint32_t *>(mem_cache_->lookup_access<prot_write>(address))) {
             *ptr = data;
-            eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
         }
         WriteMemory32Slow(address, data);
@@ -229,7 +225,6 @@ public:
             data = eka2l1::common::byte_swap(data);
         if (std::uint64_t *ptr = reinterpret_cast<std::uint64_t *>(mem_cache_->lookup_access<prot_write>(address))) {
             *ptr = data;
-            eka2l1::common::code_tracking::guest_write(ptr, sizeof(*ptr));
             return;
         }
         WriteMemory64Slow(address, data);
@@ -272,14 +267,12 @@ public:
         const std::uint32_t page_off = address & static_cast<std::uint32_t>(mem_cache_->page_mask);
         if (c.page_host && (address - page_off) == c.page_base) {
             *reinterpret_cast<std::uint32_t *>(c.page_host + page_off) = data;
-            eka2l1::common::code_tracking::guest_write(c.page_host + page_off, 4);
             return;
         }
         if (std::uint8_t *ptr = mem_cache_->lookup_access<prot_write>(address)) {
             c.page_host = ptr - page_off;
             c.page_base = address - page_off;
             *reinterpret_cast<std::uint32_t *>(ptr) = data;
-            eka2l1::common::code_tracking::guest_write(ptr, 4);
             return;
         }
         c.page_host = nullptr;
@@ -373,11 +366,6 @@ public:
     unsigned bigendSig;
     unsigned syscallSig;
 
-    // Optional module-local ROM dispatcher accounting. Existing generated-code
-    // field offsets above this point stay unchanged.
-    std::uint32_t aot_rom_callback = 0;
-    std::uint32_t aot_regions_left = 0, aot_regions_used = 0;
-
     // Data TLB shared with the owning dyncom_core (== core->mem_cache()), cached
     // here so the inline memory accessors above don't need the full dyncom_core
     // definition. Set by dyncom_core right after construction.
@@ -396,14 +384,6 @@ public:
     // code itself changes (handled separately via imb_range / clear).
     std::unordered_map<std::uint64_t, std::size_t> instruction_cache;
     std::uint32_t instruction_cache_asid = 0;
-
-#ifdef EKA2L1_DYNCOM_PROFILE
-    // Guest-execution profiler scratch (see arm_dyncom_interpreter.cpp): the
-    // previous executed opcode index within the current block and the running
-    // block length. -1 prev means "block start".
-    int prof_prev = -1;
-    std::uint32_t prof_block_len = 0;
-#endif
 
     std::uint64_t make_instruction_cache_key(std::uint32_t vaddr) const {
         // Instruction PCs are aligned; bit zero distinguishes ARM and Thumb.

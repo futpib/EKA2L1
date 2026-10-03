@@ -30,8 +30,6 @@
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/12l1r/tlb.h>
 #include <cpu/aot/arm_translator.h>
-#include <cpu/aot/rom_dispatch.h>
-#include <cpu/aot/state_locals.h>
 #include <algorithm>
 #include <unordered_map>
 #include <cstdlib>
@@ -44,9 +42,6 @@
 namespace eka2l1::arm::aot {
 #ifdef __EMSCRIPTEN__
 static_assert(offsetof(ARMul_State, NumInstrsToExecute) == state_offsets::NUM_INSTRS_TO_EXECUTE);
-static_assert(offsetof(ARMul_State, aot_rom_callback) == state_offsets::AOT_ROM_CALLBACK);
-static_assert(offsetof(ARMul_State, aot_regions_left) == state_offsets::AOT_REGIONS_LEFT);
-static_assert(offsetof(ARMul_State, aot_regions_used) == state_offsets::AOT_REGIONS_USED);
 #endif
 static std::atomic<std::uint64_t> completed_function_count{0};
 std::uint64_t compiled_function_count() { return completed_function_count.load(std::memory_order_relaxed); }
@@ -56,9 +51,6 @@ std::uint64_t compiled_function_count() { return completed_function_count.load(s
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
 bool rom_inline_leaves = false;
 bool rom_bounded_calls = false;
-bool rom_dispatch_enabled = false;
-bool rom_state_cohorts = false;
-bool dynamic_rom_cohorts = false;
 std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
     std::uint32_t base, std::uint32_t size, std::uint32_t target) {
     if (!host || (target & 3) || target < base) return {};
@@ -71,7 +63,6 @@ std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
     return {host + offset, host + offset + bytes};
 }
 common::diagnostics::flag diagnostics_enabled = false;
-bool omit_guard_publication = false;
 bool validation_running = false;
 static bool validating = false;
 static ARMul_State *validation_guest = nullptr;
@@ -204,8 +195,6 @@ void validation_end(ARMul_State *cpu, std::uint32_t count) {
     validating = false;
 }
 
-
-
 // Extend export-based compilation using deterministic dispatch samples. Only
 // immutable ROM addresses are eligible; RAM code needs explicit invalidation.
 bool hot_compilation_enabled = false;
@@ -227,37 +216,6 @@ static std::uint32_t hot_compiled = 0;
 static std::unordered_map<std::uint32_t, unsigned> hot_counts;
 static std::vector<wasm_func_def> hot_pending;
 
-// Only policy 3 owns reclaimable single-export ROM modules. No generated
-// function is active at observe_hot_pc/configure_hot_rom, the replacement
-// points. Normal registry hits need no extra counter or lookup.
-static constexpr std::size_t dynamic_rom_capacity = 4096;
-struct owned_rom_function { std::uint32_t key = 0; aot_func function = nullptr; };
-#ifdef __EMSCRIPTEN__
-EM_JS(void, js_release_aot_function, (std::uintptr_t index), {
-    removeFunction(index);
-});
-#endif
-static void release_owned_rom(owned_rom_function &entry) {
-    if (!entry.function) return;
-    // Do not unregister a replacement that this cache does not own.
-    if (global_registry().lookup(entry.key) == entry.function)
-        global_registry().unregister_function(entry.key);
-#ifdef __EMSCRIPTEN__
-    js_release_aot_function(reinterpret_cast<std::uintptr_t>(entry.function));
-#endif
-    entry = {};
-}
-struct owned_rom_cache {
-    std::array<owned_rom_function, dynamic_rom_capacity> entries{};
-    std::size_t next = 0;
-    void clear() { for (auto &entry : entries) release_owned_rom(entry); next = 0; }
-    ~owned_rom_cache() { clear(); }
-};
-// Emscripten tables belong to workers. Release on that worker at reset/exit,
-// never from a later system initialization on a different thread.
-static thread_local owned_rom_cache owned_rom;
-
-
 static void flush_hot_blocks() {
     if (hot_pending.empty()) return;
     std::vector<wasm_import_func> imports{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -271,7 +229,6 @@ static void flush_hot_blocks() {
 }
 
 void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32_t size, bool enabled) {
-    owned_rom.clear();
     hot_rom = host; hot_rom_base = base; hot_rom_size = size;
     hot_compilation_enabled = enabled;
     completed_function_count = 0;
@@ -292,7 +249,7 @@ void invalidate_ram_code(std::uint32_t address, std::size_t size) {
     ram_cache.invalidate(address, size);
 }
 
-template<bool Profile, bool PublishGuards, unsigned Frozen = 0>
+template<bool Profile, bool TrustBytes = false>
 #if defined(_MSC_VER)
 __forceinline
 #else
@@ -300,11 +257,11 @@ __attribute__((always_inline))
 #endif
 static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     if constexpr(Profile) if(exit_census::enabled)census_entry=nullptr;
-    if constexpr (!(Frozen & 1)) if (validation_running) return nullptr;
+    if (validation_running) return nullptr;
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
     if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
-        if constexpr (PublishGuards) cpu->aot_code_begin = cpu->aot_code_end = 0; // ROM is immutable.
+        cpu->aot_code_begin = cpu->aot_code_end = 0; // ROM is immutable.
         auto function = global_registry().lookup(pc_mode);
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
         return function;
@@ -312,11 +269,11 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     // The normal path avoids the resolver callback on a generation/space hit.
     // Mode 0 also compares compiled bytes; trusted-byte modes omit those scans.
     if (!Profile || !(common::guest_profile::enabled && common::performance::counting())) {
-        auto *entry = (Frozen & 2) ? ram_cache.find_trusted_original(pc_mode, *cpu->parent())
+        auto *entry = TrustBytes ? ram_cache.find_trusted_original(pc_mode, *cpu->parent())
             : ram_cache.find(pc_mode, *cpu->parent());
         if (!entry) return nullptr;
         if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
-        if constexpr (PublishGuards) {
+        {
             cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
             cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
         }
@@ -325,7 +282,7 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     core::code_mapping view;
     if (!cpu->parent()->resolve_code) return nullptr;
     const bool mapped = cpu->parent()->resolve_code(pc, view);
-    auto *entry = (Frozen & 2) ? ram_cache.find_trusted_original(pc_mode, *cpu->parent())
+    auto *entry = TrustBytes ? ram_cache.find_trusted_original(pc_mode, *cpu->parent())
             : ram_cache.find(pc_mode, *cpu->parent());
     if (Profile && (common::guest_profile::enabled && common::performance::counting()) && (!mapped || !entry || !entry->function)) {
         std::uint32_t opcode = 0;
@@ -334,45 +291,22 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     }
     if (!mapped || !entry) return nullptr;
     if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
-    if constexpr (PublishGuards) {
+    {
         cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
         cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
     }
     return entry->function;
 }
 
-static unsigned normal_lookup_policy() {
-    auto policy = hotpath_policy & 3u;
-    // Other layouts/compatibility modes retain the established general path.
-    if ((policy & 2) && (code_lookup_outline || !common::code_tracking::skip_code_scans())) policy &= ~2u;
-    return policy;
-}
-
-template<bool PublishGuards>
-static aot_func lookup_compiled_selected(ARMul_State *cpu) {
-    if (common::guest_profile::enabled && common::performance::enabled && common::performance::detailed)
-        return lookup_compiled_impl<true, PublishGuards>(cpu);
-    // Reference execution can enter here only when verification is selected.
-    if (!verification_stride()) {
-        switch (normal_lookup_policy()) {
-        case 1: return lookup_compiled_impl<false, PublishGuards, 1>(cpu);
-        case 2: return lookup_compiled_impl<false, PublishGuards, 2>(cpu);
-        case 3: return lookup_compiled_impl<false, PublishGuards, 3>(cpu);
-        }
-    }
-    return lookup_compiled_impl<false, PublishGuards>(cpu);
-}
-
 aot_func lookup_compiled(ARMul_State *cpu) {
-    // The executable-byte policy is frozen before modules are generated. Modes
-    // with emitted interval readers always retain publication, even when the
-    // experiment is selected. Mapping/lifetime validation is unchanged.
-    if (omit_guard_publication && common::code_tracking::skip_code_write_guards())
-        return lookup_compiled_selected<false>(cpu);
-    return lookup_compiled_selected<true>(cpu);
+    if (common::guest_profile::enabled && common::performance::enabled && common::performance::detailed)
+        return lookup_compiled_impl<true>(cpu);
+    if (!verification_stride() && hotpath_policy == 2 && common::code_tracking::skip_code_scans())
+        return lookup_compiled_impl<false, true>(cpu);
+    return lookup_compiled_impl<false>(cpu);
 }
 
-template<bool Verify, bool Profile, bool PublishGuards, bool ModuleDispatch, unsigned Frozen = 0>
+template<bool Verify, bool Profile, bool TrustBytes = false>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     const auto budget = cpu->aot_budget;
     compiled_run result;
@@ -383,7 +317,6 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
 
     while (function && result.instructions < budget && (!runner_region_limit || result.blocks < runner_region_limit)) {
-        tlb->sync_write_protection();
         cpu->aot_budget = budget - result.instructions;
         if constexpr (Profile) count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);
@@ -409,11 +342,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
                 exit_census::validated_dependency_bytes += dependency.code.size();
             exit_census::protected_interval_bytes += guard_entry->guard_end-guard_entry->guard_begin;
         }
-        if constexpr (ModuleDispatch) {
-            cpu->aot_regions_left = runner_region_limit ? runner_region_limit - result.blocks : UINT32_MAX;
-            cpu->aot_regions_used = 0;
-            cpu->aot_rom_callback = 0;
-        }
+
         const auto count = function(cpu);
         if constexpr(Profile) if(exit_census::counting()) {
             exit_census::entry_proof_attempts+=exit_census::entry_proof_attempted;
@@ -460,18 +389,14 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         if constexpr (Verify) validation_end(cpu, count);
         if (count > cpu->aot_budget) std::abort(); // generated-code contract
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
-        if constexpr (ModuleDispatch) {
-            if (cpu->aot_regions_used > cpu->aot_regions_left) std::abort();
-            result.blocks += std::max(1u, cpu->aot_regions_used);
-        } else ++result.blocks;
+        ++result.blocks;
         result.instructions += count;
-        if constexpr (ModuleDispatch) if (cpu->aot_rom_callback & 2) break;
         if ((compiled_svc_enabled && (cpu->aot_exit & svc_pending)) || !count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
         cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
         // This stays inside the compiled runner. Every RAM successor retains
         // mapping/lifetime validation. Byte-mutation detection is policy-dependent;
         // trusted-byte modes intentionally permit stale code after guest writes.
-        function = lookup_compiled_impl<Profile, PublishGuards, Frozen>(cpu);
+        function = lookup_compiled_impl<Profile, TrustBytes>(cpu);
     }
     if constexpr(Profile) if(exit_census::counting()) {
         const char *why = !cpu->NumInstrsToExecute ? "stop" : result.instructions==budget ? "budget"
@@ -482,43 +407,20 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     return result;
 }
 
-template<bool PublishGuards, bool ModuleDispatch = false>
-static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
-    // Diagnostic configuration is fixed before guest threads start. Preserve
-    // phase-dependent counting in the diagnostic runner, but omit its branches
-    // entirely in normal play and counter-free timing runs.
-    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available, PublishGuards, ModuleDispatch>(cpu, function);
-    if (common::performance::enabled && common::performance::detailed)
-        return execute_chain_impl<false, true, PublishGuards, ModuleDispatch>(cpu, function);
-    if constexpr (!ModuleDispatch) {
-        switch (normal_lookup_policy()) {
-        case 1: return execute_chain_impl<false, false, PublishGuards, false, 1>(cpu, function);
-        case 2: return execute_chain_impl<false, false, PublishGuards, false, 2>(cpu, function);
-        case 3: return execute_chain_impl<false, false, PublishGuards, false, 3>(cpu, function);
-        }
-    }
-    return execute_chain_impl<false, false, PublishGuards, ModuleDispatch>(cpu, function);
-}
-
 compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
-    if (rom_dispatch_enabled) {
-        if (omit_guard_publication && common::code_tracking::skip_code_write_guards())
-            return execute_chain_selected<false, true>(cpu, function);
-        return execute_chain_selected<true, true>(cpu, function);
-    }
-    // Choose once per outer runner, not once per compiled region or guest store.
-    if (omit_guard_publication && common::code_tracking::skip_code_write_guards())
-        return execute_chain_selected<false>(cpu, function);
-    return execute_chain_selected<true>(cpu, function);
+    // Select verification, diagnostics and the trusted cache once per chain.
+    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available>(cpu, function);
+    if (common::performance::enabled && common::performance::detailed)
+        return execute_chain_impl<false, true>(cpu, function);
+    if (hotpath_policy == 2 && common::code_tracking::skip_code_scans())
+        return execute_chain_impl<false, false, true>(cpu, function);
+    return execute_chain_impl<false, false>(cpu, function);
 }
 
 std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
-    cpu->mem_cache_->sync_write_protection();
     cpu->aot_exit = 0;
     count_ram_dispatch(cpu);
-    if (rom_dispatch_enabled) {
-        cpu->aot_regions_left = 1; cpu->aot_regions_used = 0; cpu->aot_rom_callback = 0;
-    }
+
     if (!verification_stride()) return function(cpu);
     validation_begin(cpu);
     const auto count = function(cpu);
@@ -530,11 +432,9 @@ void observe_hot_pc(ARMul_State *cpu) {
 #ifdef __EMSCRIPTEN__
     if (!hot_compilation_enabled || validation_running) return;
     const auto pc = cpu->Reg[15], key = pc | cpu->TFlag;
-    const bool first_use = synchronous_compilation == 1 || synchronous_compilation == 3
-        || (synchronous_compilation == 2 && (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size));
     ++hot_dispatches;
-    if (!first_use && (hot_dispatches & 31)) return;
-    if (first_use || (hot_dispatches & 8191) == 0) flush_hot_blocks();
+    if (hot_dispatches & 31) return;
+    if ((hot_dispatches & 8191) == 0) flush_hot_blocks();
     if (pc < hot_rom_base || pc - hot_rom_base >= hot_rom_size) {
         if (!ram_compilation_enabled || !cpu->parent()->resolve_code) return;
         if (ram_cache.versions() >= 16384) {
@@ -547,7 +447,7 @@ void observe_hot_pc(ARMul_State *cpu) {
         const auto identity = validated_code_cache::key(view.address_space, key);
         if (ram_counts.size() >= 131072 && !ram_counts.count(identity)) return;
         auto &count = ram_counts[identity];
-        if (++count % 8 && !first_use) {
+        if (++count % 8) {
             if ((common::guest_profile::enabled && common::performance::counting())) common::guest_profile::state.event("candidate_threshold",key,view.address_space);
             return;
         }
@@ -592,97 +492,26 @@ void observe_hot_pc(ARMul_State *cpu) {
         tr.func.export_name = "r_" + std::to_string(entry.version) + "_pc_" + std::to_string(pc);
         hot_pending.push_back(std::move(tr.func));
         if (common::performance::counting()) ++common::performance::ram_blocks_compiled;
-        if (first_use || hot_pending.size() >= 32) flush_hot_blocks();
+        if (hot_pending.size() >= 32) flush_hot_blocks();
         return;
     }
-    const bool recycle = synchronous_compilation == 3;
-    if (recycle) {
-        // Successful entries are owned by the FIFO, not retained here after
-        // eviction. Only immutable translation rejections enter this map.
-        if (hot_counts.count(key)) return;
-    } else {
-        if (hot_compiled >= dynamic_rom_capacity) return;
-        if (hot_counts.size() >= 65536 && !hot_counts.count(key)) return;
-        auto &count = hot_counts[key];
-        if (count >= 8) return; // one attempt per immutable entry
-        if (first_use) count = 8;
-        else if (++count != 8) return;
-    }
+    if (hot_compiled >= 4096) return;
+    if (hot_counts.size() >= 65536 && !hot_counts.count(key)) return;
+    auto &count = hot_counts[key];
+    if (count >= 8) return; // one attempt per immutable entry
+    if (++count != 8) return;
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(chaining_enabled ? primary_window_bytes : 128u, hot_rom_size - offset);
     leaf_resolver leaves = [](std::uint32_t target) {
         return resolve_rom_leaf(hot_rom, hot_rom_base, hot_rom_size, target);
     };
-    state_composition_capture capture(dynamic_rom_cohorts && cpu->TFlag && chaining_enabled && !recycle);
     auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
                         : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, rom_inline_leaves ? &leaves : nullptr, defer_memory_enabled, ir_policy);
-    if (tr.func.body.empty() || !tr.entry_supported) {
-        if (recycle && hot_counts.size() < 65536) hot_counts.emplace(key, 8);
-        return;
-    }
-    if (dynamic_rom_cohorts && cpu->TFlag && chaining_enabled && !recycle) {
-        const auto add_edges = [](translate_result &part) {
-            for (auto target : part.branch_targets) part.func.successor_keys.push_back(target | 1u);
-            for (auto target : part.resume_points) part.func.successor_keys.push_back(target | 1u);
-            part.func.successor_keys.push_back(part.end_address | 1u);
-        };
-        add_edges(tr);
-        auto group = collect_thumb_rom_cohort(key, std::move(tr.func), hot_rom_base, hot_rom_size,
-            dynamic_rom_capacity - hot_compiled,
-            [](std::uint32_t target) {
-                const auto it = hot_counts.find(target);
-                return !global_registry().lookup(target) && (it == hot_counts.end() || it->second < 8);
-            }, [&](std::uint32_t target) {
-                const auto address = target & ~1u;
-                const auto remaining = hot_rom_size - (address - hot_rom_base);
-                auto part = translate_thumb_block(hot_rom + address - hot_rom_base,
-                    std::min(primary_window_bytes, remaining), address, nullptr, nullptr, true, false, true);
-                if (!part.entry_supported) return wasm_func_def{};
-                add_edges(part);
-                return std::move(part.func);
-            });
-        if (group.empty()) return;
-        // Earlier pending RAM functions retain their own validated identities.
-        // A ROM group is staged separately with its immutable map owner.
-        flush_hot_blocks();
-        std::vector<wasm_import_func> imports{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
-            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},
-            {"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
-        if (arm_exclusive_memory) imports.push_back({"env","arm_exclusive",2,false});
-        std::shared_ptr<rom_dispatch_map> map;
-        unsigned composed = 0;
-        auto bytes = build_rom_cohort_module(group, imports, hot_rom_base, hot_rom_size, map, &composed);
-        if (bytes.empty()) { map.reset(); bytes = build_wasm_module(group, imports); }
-        stage_aot_module(std::move(bytes), "hot-rom-cohort", map);
-        instantiate_staged_modules();
-        for (const auto &entry : group) {
-            const auto target = static_cast<std::uint32_t>(std::stoul(entry.export_name.substr(2)));
-            hot_counts[target] = 8;
-        }
-        hot_compiled += static_cast<unsigned>(group.size());
-        if (common::performance::counting() && common::performance::detailed) {
-            exit_census::compilation["dynamic_cohort_entries"] += group.size();
-            exit_census::compilation["dynamic_cohort_composed"] += composed;
-            exit_census::compilation["dynamic_cohort_map_bytes"] += map ? map->bytes() : 0;
-        }
-        return;
-    }
-    if (recycle) {
-        auto &victim = owned_rom.entries[owned_rom.next];
-        release_owned_rom(victim);
-    }
+    if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
     hot_pending.push_back(std::move(tr.func));
-    if (first_use || hot_pending.size() >= 32) flush_hot_blocks();
-    if (recycle) {
-        // Failed instantiation must neither publish ownership nor suppress a
-        // future retry. Removal made room before addFunction allocated a slot.
-        auto function = global_registry().lookup(key);
-        if (!function) return;
-        owned_rom.entries[owned_rom.next] = {key, function};
-        owned_rom.next = (owned_rom.next + 1) % dynamic_rom_capacity;
-    }
-    if (!recycle) ++hot_compiled;
+    if (hot_pending.size() >= 32) flush_hot_blocks();
+    ++hot_compiled;
 #endif
 }
 
@@ -692,7 +521,6 @@ void observe_hot_pc(ARMul_State *cpu) {
 // after the emitter's state barrier and before a memory/exception callback reads
 // the owning core's CPSR. Direct mapped accesses do not call these trampolines.
 static void publish_callback_cpsr(ARMul_State *state) {
-    if (rom_dispatch_enabled) state->aot_rom_callback = 1;
     state->Cpsr = (state->Cpsr & 0x0fffffdfu) | (state->NFlag << 31)
         | (state->ZFlag << 30) | (state->CFlag << 29) | (state->VFlag << 28)
         | (state->TFlag << 5);
@@ -765,7 +593,6 @@ static std::uint32_t prof_read16(ARMul_State *s, std::uint32_t a) { count_memory
 static void prof_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<5>(); raw_write16(s,a,v); }
 
 static void raw_arm_exclusive(ARMul_State *s, std::uint32_t instruction) {
-    if (rom_dispatch_enabled) s->aot_rom_callback = 1;
     // DynCom's exclusive path calls the monitor directly: it does not repack
     // CPSR before the callback. The generated barrier publishes registers and
     // split flags, but must retain that existing packed-CPSR visibility.
@@ -834,20 +661,15 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
 struct staged_module {
     std::vector<std::uint8_t> wasm_bytes;
     std::string dll_name;
-    std::shared_ptr<void> keepalive;
 };
 static std::vector<staged_module> g_staged_modules;
-// Exported WASM functions currently live for the host table's lifetime. Their
-// private lookup maps must live equally long, including after registry clear.
-static std::vector<std::shared_ptr<void>> g_module_owners;
-
 void stage_aot_module(
     std::vector<std::uint8_t> wasm_bytes,
-    const std::string &dll_name, std::shared_ptr<void> keepalive)
+    const std::string &dll_name)
 {
     if (dll_name != "hot-rom") fprintf(stderr, "AOT: staging %zu-byte WASM module for %s\n",
         wasm_bytes.size(), dll_name.c_str());
-    g_staged_modules.push_back({std::move(wasm_bytes), dll_name, std::move(keepalive)});
+    g_staged_modules.push_back({std::move(wasm_bytes), dll_name});
 }
 
 static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
@@ -910,7 +732,6 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
         reg.register_function(addr, func);
         count++;
 
-
     }
 
     completed_function_count.fetch_add(count, std::memory_order_relaxed);
@@ -921,21 +742,18 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 bool instantiate_staged_modules() {
     if (g_staged_modules.empty()) return false;
 
-
-
     for (auto &mod : g_staged_modules) {
-        if (do_instantiate(mod.wasm_bytes, mod.dll_name) && mod.keepalive)
-            g_module_owners.push_back(std::move(mod.keepalive));
+        do_instantiate(mod.wasm_bytes, mod.dll_name);
     }
     g_staged_modules.clear();
     return true;
 }
 
-#else // !__EMSCRIPTEN__
+#else
 
 void stage_aot_module(
     std::vector<std::uint8_t>,
-    const std::string &, std::shared_ptr<void>)
+    const std::string &)
 {
 }
 

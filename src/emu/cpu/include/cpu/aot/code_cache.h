@@ -12,16 +12,13 @@
 #include <unordered_map>
 
 namespace eka2l1::arm::aot {
-    // Research switch, configured before CPU startup; exact coverage in both modes.
-    extern bool code_lookup_outline; // Opt-in layout only; validation remains exact.
     extern unsigned code_compare_mode; // 0: original, 1: overlapping tail, 2: four-vector loop, 3: fixed short sizes + grouped, 4: stored comparator
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size);
     using code_comparator = bool (*)(const std::uint8_t *, const std::uint8_t *, std::size_t);
     code_comparator select_code_comparator(std::size_t size);
 
     // Mapping/lifetime checks apply in every mode. Instruction-byte validation
-    // follows the selected executable-byte policy. Optional write versions and
-    // host-pointer escape tracking apply only when mutation tracking is enabled.
+    // follows the selected executable-byte policy.
     class validated_code_cache {
     public:
         validated_code_cache() = default;
@@ -48,11 +45,6 @@ namespace eka2l1::arm::aot {
             bool rejected = false;
             std::uint64_t mapping_generation = 0;
             const std::atomic<std::uint64_t> *mapping_source = nullptr;
-            bool tracking_attempted = false;
-#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
-            std::uint64_t validation_epoch = 0;
-#endif
-            std::vector<common::code_tracking::stamp> stamps;
             // Snapshot length stays fixed until this version is discarded.
             code_comparator comparator = equal_code_bytes;
         };
@@ -64,8 +56,8 @@ namespace eka2l1::arm::aot {
         block *find(std::uint32_t pc_mode, const core::code_mapping &view, core *cpu = nullptr) {
             return find_mapped<false>(pc_mode, view, cpu);
         }
-        // Called only after the outer boundary selected trusted bytes and the
-        // original layout. Mapping/lifetime checks still apply on every lookup.
+        // Called only after the outer boundary selected trusted bytes.
+        // Mapping/lifetime checks still apply on every lookup.
         block *find_trusted_original(std::uint32_t pc_mode, core &cpu);
 
     private:
@@ -94,7 +86,7 @@ namespace eka2l1::arm::aot {
             // including address-space reuse. Byte checks follow the active policy.
             const bool mapping_invalid = !dependencies_mapped || !view.bytes
                 || view.bytes != entry->backing || view.size < entry->code.size();
-            if (mapping_invalid || (!TrustBytes && !bytes_match(*entry, true))) {
+            if (mapping_invalid || (!TrustBytes && !bytes_match(*entry))) {
                 if(exit_census::counting())++exit_census::invalidations[mapping_invalid?"mapping_or_extent":"exact_bytes"];
                 entry->live = false;
                 current_.erase(k);
@@ -112,20 +104,7 @@ namespace eka2l1::arm::aot {
         __attribute__((always_inline))
 #endif
         block *find(std::uint32_t pc_mode, core &cpu) {
-            if (!code_lookup_outline) return find_original(pc_mode, cpu);
-            const auto generation = cpu.code_mapping_generation
-                ? cpu.code_mapping_generation->load(std::memory_order_acquire) : 0;
-            const auto k = key(cpu.code_address_space, pc_mode);
-            auto *entry = recent_[recent_index(k)];
-            if (!entry || !entry->live || entry->key != k || !generation
-                || entry->mapping_source != cpu.code_mapping_generation
-                || entry->mapping_generation != generation)
-                return find_original(pc_mode, cpu);
-            if (bytes_match(*entry, false)) return entry;
-            // A byte mismatch is terminal for this version. Calling the old
-            // lookup again could revalidate it after a host write; reject once.
-            reject_recent(k, *entry);
-            return nullptr;
+            return find_original(pc_mode, cpu);
         }
 
     private:
@@ -134,7 +113,6 @@ namespace eka2l1::arm::aot {
         template<bool TrustBytes>
         block *find_original_impl(std::uint32_t pc_mode, core &cpu);
         block *find_original(std::uint32_t pc_mode, core &cpu);
-        void reject_recent(std::uint64_t k, block &entry);
 
     public:
         block &insert(std::uint32_t pc_mode, const core::code_mapping &view, std::size_t size) {
@@ -153,12 +131,6 @@ namespace eka2l1::arm::aot {
 
         static void add_dependency(block &entry, std::uint32_t address,
             const std::uint8_t *backing, const std::vector<std::uint8_t> &bytes) {
-            // A new dependency cannot inherit an earlier validation lease.
-            entry.tracking_attempted = false;
-            entry.stamps.clear();
-#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
-            entry.validation_epoch = 0;
-#endif
             entry.dependencies.push_back({address, backing, bytes,
                 code_compare_mode == 4 ? select_code_comparator(bytes.size()) : equal_code_bytes});
             const auto begin = reinterpret_cast<std::uintptr_t>(backing);
@@ -207,51 +179,9 @@ namespace eka2l1::arm::aot {
                 return snapshot.comparator(snapshot.backing, snapshot.code.data(), snapshot.code.size());
             return equal_code_bytes(snapshot.backing, snapshot.code.data(), snapshot.code.size());
         }
-        static bool bytes_match(block &entry, bool force) {
+        static bool bytes_match(block &entry) {
             if (common::code_tracking::skip_code_scans()) return true;
-#if !defined(EKA2L1_WASM_CODE_VERSIONS)
             return snapshot_equal(entry) && dependencies_equal(entry);
-#else
-#if defined(EKA2L1_WASM_CODE_LIFECYCLE)
-            const auto epoch = common::code_tracking::validation_epoch();
-            if (!force && epoch && entry.validation_epoch == epoch && !entry.stamps.empty()) {
-                if (common::performance::counting()) {
-                    ++common::performance::code_version_hits;
-                    ++common::performance::code_epoch_hits;
-                }
-                return true;
-            }
-            entry.validation_epoch = epoch;
-#endif
-            if (!force && !entry.stamps.empty()
-                && std::all_of(entry.stamps.begin(), entry.stamps.end(), [](const auto &s) { return s.valid(); })) {
-                if (common::performance::counting()) ++common::performance::code_version_hits;
-                return true;
-            }
-            if (common::performance::counting()) ++common::performance::code_byte_checks;
-            if (!snapshot_equal(entry) || !dependencies_equal(entry))
-                return false;
-            if (!entry.tracking_attempted) {
-                entry.tracking_attempted = true;
-                entry.stamps = common::code_tracking::snapshot(entry.backing, entry.code.size());
-                for (const auto &dep : entry.dependencies) {
-                    if (entry.stamps.empty()) break;
-                    auto stamps = common::code_tracking::snapshot(dep.backing, dep.code.size());
-                    if (stamps.empty()) { entry.stamps.clear(); break; }
-                    entry.stamps.insert(entry.stamps.end(), stamps.begin(), stamps.end());
-                }
-                std::sort(entry.stamps.begin(), entry.stamps.end(), [](const auto &a, const auto &b) { return a.page < b.page; });
-                entry.stamps.erase(std::unique(entry.stamps.begin(), entry.stamps.end(),
-                    [](const auto &a, const auto &b) { return a.page == b.page; }), entry.stamps.end());
-            } else {
-                // A write may leave bytes unchanged. Refresh versions only
-                // after the complete exact comparison, never after a mismatch.
-                for (auto &s : entry.stamps) s.version = s.page->version;
-            }
-            if (std::any_of(entry.stamps.begin(), entry.stamps.end(), [](const auto &s) { return !s.valid(); }))
-                entry.stamps.clear(); // Escaped pointers/overflow never recover.
-            return true;
-#endif
         }
         static bool dependencies_equal(const block &entry) {
             for (const auto &d : entry.dependencies)

@@ -179,12 +179,6 @@ namespace eka2l1 {
             }
 
             void *host_base();
-        private:
-            friend class codeseg;
-            // Only fresh-code initialization; pointer cannot escape the loader.
-            void *host_base_for_loading();
-            void *tracked_code_base_ = nullptr;
-        public:
         };
     }
 }

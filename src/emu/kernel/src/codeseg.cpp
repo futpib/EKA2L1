@@ -267,7 +267,7 @@ namespace eka2l1::kernel {
                 the_addr_of_code_run = code_chunk->base(new_foe).ptr_address();
 
                 // Copy data
-                code_base_ptr = reinterpret_cast<std::uint8_t *>(code_chunk->host_base_for_loading());
+                code_base_ptr = reinterpret_cast<std::uint8_t *>(code_chunk->host_base());
                 std::copy(code_data.get(), code_data.get() + code_size, code_base_ptr); // .code
 
                 if (code_chunk_for_reuse) {

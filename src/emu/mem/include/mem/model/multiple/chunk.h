@@ -18,7 +18,6 @@
  */
 
 #pragma once
-#include <common/code_tracking.h>
 
 #include <common/allocator.h>
 #include <mem/chunk.h>
@@ -71,8 +70,7 @@ namespace eka2l1::mem {
             return base_;
         }
 
-        void *host_base(bool expose = true) override {
-            if (expose) common::code_tracking::escape_pointer(host_base_);
+        void *host_base() override {
             return host_base_;
         }
 

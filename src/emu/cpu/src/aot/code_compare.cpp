@@ -6,15 +6,6 @@
 
 namespace eka2l1::arm::aot {
     unsigned code_compare_mode = 0;
-    bool code_lookup_outline = false;
-
-    void validated_code_cache::reject_recent(std::uint64_t k, block &entry) {
-        entry.live = false;
-        current_.erase(k);
-        recent_[recent_index(k)] = nullptr;
-        ++invalidations;
-        if(exit_census::counting())++exit_census::invalidations["exact_bytes"];
-    }
 
     validated_code_cache::block *validated_code_cache::find_original(std::uint32_t pc_mode, core &cpu) {
         return find_original_impl<false>(pc_mode, cpu);
@@ -38,7 +29,7 @@ namespace eka2l1::arm::aot {
         }
         if (generation && recent->mapping_source == cpu.code_mapping_generation
             && recent->mapping_generation == generation) {
-            if (TrustBytes || bytes_match(*recent, false)) return recent;
+            if (TrustBytes || bytes_match(*recent)) return recent;
             recent->live = false;
             current_.erase(k);
             recent = nullptr;

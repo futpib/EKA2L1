@@ -90,10 +90,7 @@ set(SOURCE_AOT
         src/aot/aot_runtime.cpp
         src/aot/arm_translator.cpp
         src/aot/thumb_translator.cpp
-        src/aot/wasm_emitter.cpp
-        src/aot/rom_dispatch.cpp
-        src/aot/rom_cohort.cpp
-        include/cpu/aot/rom_dispatch.h)
+        src/aot/wasm_emitter.cpp)
 
 add_library(cpu
         include/cpu/arm_analyser.h
@@ -114,11 +111,6 @@ add_library(cpu
 # otherwise would drag in dynarmic (which fails to build host-side against newer
 # libc++ via boost's removed std::unary_function). Default OFF.
 option(EKA2L1_CPU_DYNCOM_ONLY "Build the CPU module with the dyncom interpreter only (no dynarmic)" OFF)
-
-# Instrument the dyncom interpreter to log guest opcode / instruction-pair /
-# block-length frequencies (used to target super-instruction fusion). Opt-in,
-# default OFF -> zero overhead in normal builds.
-option(EKA2L1_DYNCOM_PROFILE "Profile guest instruction/pair frequencies in the dyncom interpreter" OFF)
 
 # VFP's instruction-level trace sites sit directly on dyncom's hottest path: one
 # log line per float loaded or stored, each synchronously flushed (spdlog
@@ -152,12 +144,6 @@ else()
             dynarmic)
 endif()
 
-if (EKA2L1_DYNCOM_PROFILE)
-    # PUBLIC so the ARMul_State layout (which gains two profiling fields) is
-    # consistent in every TU that includes armstate.h, avoiding an ODR mismatch.
-    target_compile_definitions(cpu PUBLIC EKA2L1_DYNCOM_PROFILE=1)
-endif()
-
 target_include_directories(cpu PUBLIC include)
 target_include_directories(cpu PRIVATE ${capstone_INCLUDE_DIRS})
 
@@ -184,17 +170,4 @@ endif()
 
 if(EKA2L1_WASM_DEFER_MEMORY)
     target_compile_definitions(cpu PUBLIC EKA2L1_WASM_DEFER_MEMORY=1)
-endif()
-
-if(EKA2L1_WASM_REGION_IR)
-    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_REGION_IR=1)
-endif()
-if(EKA2L1_WASM_IR_SEGMENTS)
-    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_IR_SEGMENTS=1)
-endif()
-if(EKA2L1_WASM_IR_MEMORY)
-    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_IR_MEMORY=1)
-endif()
-if(EKA2L1_WASM_IR_OUTLINE)
-    target_compile_definitions(cpu PUBLIC EKA2L1_WASM_IR_OUTLINE=1)
 endif()

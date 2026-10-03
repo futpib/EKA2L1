@@ -12,14 +12,12 @@ p.add_argument('wasm', type=Path)
 p.add_argument('output', type=Path)
 p.add_argument('--require-equal', action='store_true', help='Exit nonzero on any semantic mismatch')
 p.add_argument('--cases', type=int, choices=(48,64,96,384,480,672,720,1008,1152,5376), default=480, help='Expected complete fixture count; read spans has 48, invariant remapping has 64, block spans has 96, bounded ROM calls has 384, extended has 672, short ARM memory has 1008, conditional IR has 5376')
-p.add_argument('--unsafe-code',type=int,choices=(0,1,2,3),default=3)
+p.add_argument('--unsafe-code',type=int,choices=(0,3),default=3)
 p.add_argument('--leaf-features',type=int,choices=range(256))
 p.add_argument('--exit-census',type=int,choices=(0,1))
 p.add_argument('--predicated-leaves', type=int, choices=(0,1))
 p.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
-p.add_argument('--ir-policy', type=int, choices=range(19), help='Require explicit matching probe-policy markers')
-p.add_argument('--code-write-protect', type=int, choices=(0,1))
-p.add_argument('--code-lookup', type=int, choices=(0,1))
+p.add_argument('--ir-policy', type=int, choices=(0,4,5,6,7,8,17,18), help='Require explicit matching probe-policy markers')
 p.add_argument('--code-compare', type=int, choices=(0,1,2,3,4))
 p.add_argument('--tlb-hash', type=int, choices=(0,1))
 a = p.parse_args()
@@ -45,14 +43,6 @@ def load(path):
         markers = [line for line in lines if line.startswith('PROBE_POLICY ')]
         if markers != [f'PROBE_POLICY {a.ir_policy}']:
             raise ValueError(f'{path}: requested policy {a.ir_policy}, observed {markers}')
-    if a.code_write_protect is not None:
-        markers = [line for line in lines if line.startswith('PROBE_WRITE_PROTECT ')]
-        if markers != [f'PROBE_WRITE_PROTECT {a.code_write_protect}']:
-            raise ValueError(f'{path}: wrong code write protection policy {markers}')
-    if a.code_lookup is not None:
-        markers = [line for line in lines if line.startswith('PROBE_LOOKUP ')]
-        if markers != [f'PROBE_LOOKUP {a.code_lookup}']:
-            raise ValueError(f'{path}: wrong code lookup policy {markers}')
     if a.code_compare is not None:
         markers = [line for line in lines if line.startswith('PROBE_COMPARE ')]
         if markers != [f'PROBE_COMPARE {a.code_compare}']:
@@ -97,10 +87,6 @@ if a.execution_limits is not None:
     result['verified_execution_limits']=a.execution_limits
 if a.tlb_hash is not None:
     result['verified_tlb_hash'] = a.tlb_hash
-if a.code_write_protect is not None:
-    result['verified_code_write_protect'] = a.code_write_protect
-if a.code_lookup is not None:
-    result['verified_code_lookup'] = a.code_lookup
 if a.code_compare is not None:
     result['verified_code_compare'] = a.code_compare
 if a.ir_policy is not None:

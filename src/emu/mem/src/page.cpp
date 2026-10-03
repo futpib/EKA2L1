@@ -17,7 +17,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <common/code_tracking.h>
 #include <mem/page.h>
 
 namespace eka2l1::mem {
@@ -79,7 +78,6 @@ namespace eka2l1::mem {
         }
 
         auto *ptr = reinterpret_cast<std::uint8_t *>(pi->host_addr) + (addr & offset_mask_);
-        common::code_tracking::escape_pointer(ptr);
         return ptr;
     }
 

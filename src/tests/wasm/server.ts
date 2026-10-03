@@ -62,7 +62,7 @@ autoStart();
 
 export const compilerDefaults = {thumbMemory: 1, irMode: 17, hotpath: 2} as const;
 
-export type CompilerPolicy = { hotpath?: number; thumbMemory?: number; irMode?: number; eagerRegions?: number; tlbHash?: number; codeCompare?: number; codeLookup?: number; omitGuardPublication?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; executionLimits?: [number,number,number,number] };
+export type CompilerPolicy = { hotpath?: number; thumbMemory?: number; irMode?: number; eagerRegions?: number; tlbHash?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; executionLimits?: [number,number,number,number] };
 
 export type LauncherGame = { id: string; title: string; uid: string; sis: string };
 
@@ -78,29 +78,34 @@ function validExecutionLimits(limits: unknown): limits is [number,number,number,
     && limits[3] >= 0 && limits[3] <= 4096;
 }
 
+export function rejectRetiredCompilerOptions(): void {
+  for (const name of ['EKA2L1_SYNCHRONOUS_COMPILATION', 'EKA2L1_ROM_DISPATCH', 'EKA2L1_CODE_WRITE_PROTECT', 'EKA2L1_CODE_LOOKUP', 'EKA2L1_OMIT_GUARD_PUBLICATION']) {
+    if (process.env[name] !== undefined) throw Error('Retired compiler option: ' + name);
+  }
+}
+
 export function compilerPolicyFromEnv(): CompilerPolicy {
+  rejectRetiredCompilerOptions();
   const hotpath = process.env.EKA2L1_HOTPATH ?? String(compilerDefaults.hotpath);
   const thumb = process.env.EKA2L1_THUMB_MEMORY ?? String(compilerDefaults.thumbMemory);
   const ir = process.env.EKA2L1_AOT_IR_MODE ?? String(compilerDefaults.irMode);
   const eager = process.env.EKA2L1_AOT_EAGER_REGIONS;
   const tlb = process.env.EKA2L1_TLB_HASH;
   const compare = process.env.EKA2L1_CODE_COMPARE;
-  const lookup = process.env.EKA2L1_CODE_LOOKUP;
-  const omitGuards = process.env.EKA2L1_OMIT_GUARD_PUBLICATION;
   const predicates = process.env.EKA2L1_PREDICATED_LEAVES;
   const features = process.env.EKA2L1_LEAF_FEATURES;
   const limits = process.env.EKA2L1_EXECUTION_LIMITS;
   const unsafe = process.env.EKA2L1_UNSAFE_CODE ?? '3';
-  if (!/^[0123]$/.test(unsafe)) throw new Error("Invalid executable-byte policy");
+  if (!/^[03]$/.test(unsafe)) throw new Error("Invalid executable-byte policy");
   const policy: CompilerPolicy = {};
-  if (!/^[0-7]$/.test(hotpath)) throw Error('Invalid hotpath policy');
+  if (!/^[02]$/.test(hotpath)) throw Error('Invalid hotpath policy');
   policy.hotpath = Number(hotpath);
   if (thumb !== undefined) {
     if (!/^[01]$/.test(thumb)) throw Error('Invalid Thumb memory policy');
     policy.thumbMemory = Number(thumb);
   }
   if (ir !== undefined) {
-    if (!/^(?:-1|[0-9]|10|11|12|13|14|15|16|17|18)$/.test(ir)) throw new Error("Invalid compiler policy");
+    if (!/^(?:-1|0|[4-8]|17|18)$/.test(ir)) throw new Error("Invalid compiler policy");
     policy.irMode = Number(ir);
   }
   if (eager !== undefined) {
@@ -115,14 +120,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
     if (!/^[01234]$/.test(compare)) throw new Error("Invalid exact comparison policy");
     policy.codeCompare = Number(compare);
   }
-  if (omitGuards !== undefined) {
-    if (!/^[01]$/.test(omitGuards)) throw new Error('Invalid guard publication policy');
-    policy.omitGuardPublication = Number(omitGuards);
-  }
-  if (lookup !== undefined) {
-    if (!/^[01]$/.test(lookup)) throw new Error("Invalid code lookup policy");
-    policy.codeLookup = Number(lookup);
-  }
+
   if (predicates !== undefined) {
     if (!/^[01]$/.test(predicates)) throw new Error("Invalid leaf predication policy");
     policy.predicatedLeaves = Number(predicates);
@@ -142,15 +140,15 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
 
 function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   if (!policy) return "";
-  if ((policy.hotpath !== undefined && (!Number.isInteger(policy.hotpath) || policy.hotpath < 0 || policy.hotpath > 7))
+  const allowed = ['hotpath','thumbMemory','irMode','eagerRegions','tlbHash','codeCompare','predicatedLeaves','leafFeatures','unsafeCode','executionLimits'];
+  if (Object.keys(policy).some(key => !allowed.includes(key))) throw Error('Invalid compiler policy');
+  if ((policy.hotpath !== undefined && ![0,2].includes(policy.hotpath))
       || (policy.thumbMemory !== undefined && ![0,1].includes(policy.thumbMemory))
-      || (policy.irMode !== undefined && (!Number.isInteger(policy.irMode) || policy.irMode < -1 || policy.irMode > 18))
+      || (policy.irMode !== undefined && ![-1,0,4,5,6,7,8,17,18].includes(policy.irMode))
       || (policy.eagerRegions !== undefined && ![0,1].includes(policy.eagerRegions))
       || (policy.tlbHash !== undefined && ![0,1].includes(policy.tlbHash))
       || (policy.codeCompare !== undefined && ![0,1,2,3,4].includes(policy.codeCompare))
-      || (policy.omitGuardPublication !== undefined && ![0,1].includes(policy.omitGuardPublication))
-      || (policy.codeLookup !== undefined && ![0,1].includes(policy.codeLookup))
-      || (policy.unsafeCode !== undefined && ![0,1,2,3].includes(policy.unsafeCode))
+      || (policy.unsafeCode !== undefined && ![0,3].includes(policy.unsafeCode))
       || (policy.predicatedLeaves !== undefined && ![0,1].includes(policy.predicatedLeaves))
       || (policy.leafFeatures !== undefined && (!Number.isInteger(policy.leafFeatures) || policy.leafFeatures < 0 || policy.leafFeatures > 255))
       || (policy.executionLimits !== undefined && !validExecutionLimits(policy.executionLimits)))
@@ -162,14 +160,14 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
   startEmulator = async function() {
     const state = window.ekaCompilerPolicy;
     if (!state.applied) {
-      for (const [key, entry] of [['hotpath','eka2l1_hotpath_configure'], ['thumbMemory','eka2l1_thumb_memory_configure'], ['irMode','eka2l1_ir_configure'], ['eagerRegions','eka2l1_eager_regions_configure'], ['tlbHash','eka2l1_tlb_hash_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['codeLookup','eka2l1_code_lookup_configure'], ['omitGuardPublication','eka2l1_omit_guard_publication_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure'], ['unsafeCode','eka2l1_unsafe_code_configure']]) {
+      for (const [key, entry] of [['hotpath','eka2l1_hotpath_configure'], ['thumbMemory','eka2l1_thumb_memory_configure'], ['irMode','eka2l1_ir_configure'], ['eagerRegions','eka2l1_eager_regions_configure'], ['tlbHash','eka2l1_tlb_hash_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure'], ['unsafeCode','eka2l1_unsafe_code_configure']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function'
             || Module.ccall(entry, 'number', ['number'], [state.requested[key]]) !== 0)
           throw new Error('Emulator compiler configuration failed: ' + key);
       }
       state.observed = {};
-      for (const [key, entry] of [['hotpath','eka2l1_hotpath_report'], ['thumbMemory','eka2l1_thumb_memory_report'], ['omitGuardPublication','eka2l1_omit_guard_publication_report'], ['predicatedLeaves','eka2l1_leaf_predication_report'], ['leafFeatures','eka2l1_leaf_features_report'], ['unsafeCode','eka2l1_unsafe_code_report']]) {
+      for (const [key, entry] of [['hotpath','eka2l1_hotpath_report'], ['thumbMemory','eka2l1_thumb_memory_report'], ['predicatedLeaves','eka2l1_leaf_predication_report'], ['leafFeatures','eka2l1_leaf_features_report'], ['unsafeCode','eka2l1_unsafe_code_report']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function') throw new Error('Emulator compiler readback unavailable: ' + key);
         state.observed[key] = Module.ccall(entry, 'number', [], []);

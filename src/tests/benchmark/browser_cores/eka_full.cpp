@@ -6,10 +6,6 @@
 #include <cpu/aot/code_cache.h>
 #include <common/log.h>
 #include <common/performance.h>
-#include <common/code_tracking_config.h>
-#if defined(EKA2L1_WASM_CODE_VERSIONS) || defined(EKA2L1_WASM_CODE_LIFECYCLE) || defined(EKA2L1_WASM_CODE_WRITE_PROTECTION)
-#error Full CPU comparison must use the delivered exact-byte validation policy
-#endif
 #include <emscripten.h>
 #include <memory>
 #include <cstring>
