@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {startServer,compilerPolicyFromEnv} from './server.ts';
 const [assets,out,url]=process.argv.slice(2);
 if(!assets||!out)throw Error('Usage: node softkeys.ts ASSETS NEW_OUTPUT [EXISTING_URL]; requires ImageMagick and Tesseract');
-const expectedPolicy={irMode:7,eagerRegions:0,...compilerPolicyFromEnv()};
+const expectedPolicy={...compilerPolicyFromEnv()};
 const local=!url ? await startServer(0,{'/preload/rom':assets+'/SYM.ROM','/preload/rpkg':assets+'/SYM.RPKG','/preload/sis':assets+'/Snakes.sis'},'Snakes',{compilerPolicy:expectedPolicy}) : null;
 const target=local?`http://127.0.0.1:${local.port}/`:url;
 import png from 'pngjs';

@@ -119,17 +119,18 @@ async function runTests(): Promise<void> {
     await page.evaluate(() => {
       const m = (window as any).Module;
       const configure = (n: number) => m.ccall('eka2l1_ir_configure', 'number', ['number'], [n]);
-      for (const mode of [-2,1,2,3,9,10,11,12,13,14,15,16,19]) if (configure(mode) !== -1)
+      for (const mode of [-2,1,2,3,8,9,10,11,12,13,14,15,16,18,19]) if (configure(mode) !== -1)
         throw new Error('Retired or invalid compiler policy accepted');
-      for (const mode of [0,4,5,6,7,8,17,18]) if (configure(mode) !== 0)
+      for (const mode of [0,4,5,6,7,17]) if (configure(mode) !== 0)
         throw new Error('Compiler policy rejected');
       if (configure(-1) !== 0) throw new Error('IR default restoration failed');
-      for (const name of ['rom_dispatch','synchronous_compilation','code_write_protect','code_lookup','omit_guard_publication']) {
+      for (const name of ['rom_dispatch','synchronous_compilation','code_write_protect','code_lookup','omit_guard_publication','compiled_svc','compiled_memory_misses','rom_calls','rom_leaves','eager_regions','snakes_n80_native_resolution']) {
         for (const suffix of ['configure','report']) if (typeof m['_eka2l1_' + name + '_' + suffix] !== 'undefined')
           throw Error('Retired configuration API is still exported: ' + name);
       }
       for (const [name, valid, invalid] of [
         ['unsafe_code', [0,3], [-1,1,2,4]],
+        ['leaf_features', [0,128], [-1,1,2,4,8,16,32,64,127,129,255]],
         ['hotpath', [0,2], [-1,1,3,4,5,6,7,8]],
       ] as const) {
         const previous = m['_eka2l1_' + name + '_report']();
@@ -166,14 +167,6 @@ async function runTests(): Promise<void> {
     });
     console.log("  PASS");
 
-    console.log("TEST eager ROM: pre-init mode validation...");
-    await page.evaluate(() => {
-      const configure = (n: number) => (window as any).Module.ccall('eka2l1_eager_regions_configure', 'number', ['number'], [n]);
-      if (configure(-1) !== -1 || configure(2) !== -1 || configure(1) !== 0 || configure(0) !== 0)
-        throw new Error('Eager ROM mode validation failed');
-    });
-    console.log("  PASS");
-
     console.log("TEST Thumb direct memory: configuration and readback...");
     await page.evaluate(() => {
       const m = (window as any).Module;
@@ -187,7 +180,7 @@ async function runTests(): Promise<void> {
     console.log("TEST exact scanner: pre-init policy validation...");
     await page.evaluate(() => {
       const configure = (n: number) => (window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[n]);
-      if(configure(-1)!==-1 || configure(5)!==-1 || configure(4)!==0 || configure(3)!==0 || configure(2)!==0 || configure(1)!==0 || configure(0)!==0)
+      if(configure(-1)!==-1 || configure(5)!==-1 || configure(4)!==-1 || configure(3)!==-1 || configure(2)!==0 || configure(1)!==-1 || configure(0)!==0)
         throw Error('Exact comparison policy validation failed');
     });
     console.log("  PASS");
@@ -235,10 +228,8 @@ async function runTests(): Promise<void> {
         throw Error('Execution limits changed after initialization');
       if ((window as any).Module.ccall('eka2l1_ir_configure', 'number', ['number'], [0]) !== -1)
         throw new Error('IR policy changed after initialization');
-      if ((window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[1]) !== -1)
+      if ((window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[2]) !== -1)
         throw Error('Exact comparison policy changed after initialization');
-      if ((window as any).Module.ccall('eka2l1_eager_regions_configure', 'number', ['number'], [1]) !== -1)
-        throw new Error('Eager ROM policy changed after initialization');
     });
     console.log("  PASS");
 

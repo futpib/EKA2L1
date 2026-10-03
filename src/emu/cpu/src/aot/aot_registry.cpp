@@ -193,16 +193,6 @@ namespace eka2l1::arm::aot {
         return result;
     }
 
-    // --- builtins ---
-
-    const char *default_config_string() {
-        // Default: AOT-compile all registered functions in gdi.dll
-        return "gdi.dll";
-    }
-
-    void register_builtin_functions() {
-    }
-
     // --- Module map ---
     static std::vector<module_range> g_modules;
 

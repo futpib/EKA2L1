@@ -74,6 +74,8 @@ def main():
     p.add_argument('--start-us', type=int, default=21000000)
     p.add_argument('--all-presentations', action='store_true')
     a = p.parse_args()
+    if "EKA2L1_SNAKES_N80_NATIVE_RESOLUTION" in os.environ:
+        p.error("Retired option: EKA2L1_SNAKES_N80_NATIVE_RESOLUTION")
     if not 1 <= a.frames <= 100000 or a.repeat < 1 or a.timeout < 1 or not 0 <= a.start_us <= 120000000:
         p.error("frames must be 1..100000; repeat and timeout must be positive")
     if not 0 < a.app_uid <= 0xFFFFFFFF:
@@ -105,7 +107,6 @@ def main():
         raise RuntimeError('Device install failed; see install.log')
     report = {'shared_audio': env.get('EKA2L1_SHARED_AUDIO') == '1',
               'app_uid': f'0x{a.app_uid:08X}', 'rom_app': a.rom_app,
-              'snakes_n80_native_resolution': env.get('EKA2L1_SNAKES_N80_NATIVE_RESOLUTION') == '1',
               'git_head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'dirty_worktree': bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT)),
               'binary_sha256': hashlib.sha256(a.binary.read_bytes()).hexdigest(),

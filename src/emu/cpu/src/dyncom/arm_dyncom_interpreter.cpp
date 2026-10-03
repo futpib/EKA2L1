@@ -2609,7 +2609,6 @@ DISPATCH : {
         }
     }
 
-AOT_RESUME:
     // SVC fallthrough reaches here without an additional IRQ boundary.
     // Check if an AOT-compiled function exists for this PC
     {
@@ -2678,36 +2677,7 @@ AOT_RESUME:
                 }
             }
             num_instrs += instrs;
-            if (eka2l1::arm::aot::compiled_svc_enabled && (cpu->aot_exit & eka2l1::arm::aot::svc_pending)) {
-                const auto request = cpu->aot_exit;
-                cpu->aot_exit = 0;
-                const auto current_pc = cpu->Reg[15];
-                const auto previous_thumb = cpu->TFlag;
-                if (request & eka2l1::arm::aot::svc_taken) {
-                    SAVE_NZCVT;
-                    cpu->NumInstrsToExecute = num_instrs >= cpu->NumInstrsToExecute ? 0 : cpu->NumInstrsToExecute - num_instrs;
-                    cpu->RaiseSystemCall(request & 0x00ffffffu);
-                    cpu->exmonitor()->clear_exclusive();
-                    LOAD_NZCVT;
-                    if (current_pc != cpu->Reg[15]) goto DISPATCH;
-                }
-                if (request & eka2l1::arm::aot::svc_page_end) goto DISPATCH;
-                if (num_instrs >= cpu->NumInstrsToExecute) goto END;
-                if (previous_thumb != cpu->TFlag) {
-                    // DynCom's unchanged-PC fallthrough consumes its previously
-                    // decoded instruction stream even if the callback changes T.
-                    // Preserve that unusual path using the original decoder;
-                    // ordinary returns resume compiled successor lookup below.
-                    const auto next_thumb = cpu->TFlag;
-                    cpu->TFlag = previous_thumb;
-                    const auto status = InterpreterTranslateBlock(cpu, ptr, current_pc);
-                    cpu->TFlag = next_thumb;
-                    if (status == FETCH_EXCEPTION) goto END;
-                    inst_base = reinterpret_cast<arm_inst *>(&cpu->trans_cache_buf[ptr]);
-                    GOTO_NEXT_INST;
-                }
-                goto AOT_RESUME;
-            }
+
             if (num_instrs >= cpu->NumInstrsToExecute)
                 goto END;
             // A deferred compiled access may next execute in the interpreter.

@@ -142,58 +142,6 @@ static int thumb_memory_fault_probe(bool direct) {
 // architectural long call as one instruction and cannot expose its midpoint.
 // Native DynCom oracle for two halfwords followed by a directly linked
 // Thumb ROM callee. The last instruction can fault through real callbacks.
-static int rom_call_probe() {
-    aot::thumb_direct_memory=true;
-    std::cout<<"PROBE_ROM_CALLS 1\n";
-    unsigned cases=0;
-    for(unsigned op:{0x3201u,0x6808u,0x6008u,0xbc05u,0x4770u})
-    for(unsigned policy=0;policy<4;++policy)for(unsigned budget=1;budget<=4;++budget)
-    for(unsigned endian:{0u,0x200u})for(unsigned permission:{0u,1u,3u}) {
-        r12l1::exclusive_monitor monitor(1);dyncom_core cpu(&monitor,12);
-        Fixture f{cpu,std::vector<unsigned char>(65536),0x8000,policy};f.install();
-        for(unsigned i=0x7000;i<0xa000;++i)f.memory[i]=(i*37+11)&255;
-        const std::uint16_t caller[]={0x2207,0xf000,0xfffd};
-        const std::uint16_t callee[]={static_cast<std::uint16_t>(op)};
-        std::memcpy(f.memory.data()+0x1000,caller,sizeof(caller));
-        std::memcpy(f.memory.data()+0x2000,callee,sizeof(callee));
-        for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
-        cpu.set_reg(0,0x87654321);cpu.set_reg(1,0x8000);cpu.set_reg(13,0x8000);
-        cpu.set_pc(0x1000);cpu.set_cpsr(0xA0000030|endian);
-        if(permission)cpu.set_tlb_page(0x8000,f.memory.data()+0x8000,permission==3?prot_read_write:prot_read);
-#ifdef __EMSCRIPTEN__
-        aot::global_registry().clear();
-        aot::sibling_map targets{{0x2001,7}};
-        auto parent=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(caller),sizeof(caller),0x1000,nullptr,nullptr,true,false,true,&targets);
-        auto child=aot::translate_thumb_block(reinterpret_cast<const unsigned char *>(callee),sizeof(callee),0x2000,nullptr,nullptr,true,false,true);
-        if(parent.bounded_direct_calls!=1u||!child.entry_supported){std::cerr<<"ROM call fixture did not link\n";return 2;}
-        parent.func.export_name="f_4097";child.func.export_name="f_8193";
-        const std::vector<aot::wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
-            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
-{
-            auto bytes=aot::build_wasm_module({parent.func,child.func},imports);
-            aot::stage_aot_module(std::move(bytes),"bounded-rom-call");aot::instantiate_staged_modules();aot::chaining_enabled=true;
-        }
-        const auto compiled_before=eka2l1::common::performance::aot_instructions;
-#endif
-        const auto before=f.memory;const auto prior=cpu.get_num_instruction_executed();cpu.run(budget);
-#ifdef __EMSCRIPTEN__
-        if(eka2l1::common::performance::aot_instructions-compiled_before!=budget){std::cerr<<"ROM call escaped compiled runner\n";return 3;}
-#endif
-        unsigned hash=2166136261u;for(auto b:f.memory){hash^=b;hash*=16777619u;}
-        std::cout<<"FAULT {\"id\":"<<cases++<<",\"opcode\":"<<op<<",\"policy\":"<<policy
-            <<",\"address\":32768,\"endian\":"<<endian<<",\"tlb_readonly\":"<<permission
-            <<",\"partial\":"<<budget<<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()
-            <<",\"count\":"<<cpu.get_num_instruction_executed()-prior<<",\"memory_hash\":"<<hash
-            <<",\"calls\":"<<f.calls<<",\"faults\":"<<f.faults<<",\"events\":[";
-        for(unsigned i=0;i<f.events.size();++i){if(i)std::cout<<',';std::cout<<f.events[i];}
-        std::cout<<"],\"memory_changes\":[";
-        bool first=true;for(unsigned i=0;i<f.memory.size();++i)if(f.memory[i]!=before[i]) {
-            if(!first)std::cout<<',';first=false;std::cout<<'['<<i<<','<<unsigned(f.memory[i])<<']';
-        }
-        std::cout<<"]}\n";
-    }
-    return 0;
-}
 
 static int thumb_call_probe() {
     aot::thumb_direct_memory=true;
@@ -316,88 +264,6 @@ static int arm_exclusive_probe() {
     return 0;
 }
 
-// Generated SVC and continuation against native DynCom, including kernel-visible
-// state and changes to budgets, flags, PC, IRQ and exclusive reservations.
-static int compiled_svc_probe() {
-    aot::compiled_svc_enabled = true;
-    unsigned cases=0;
-    for(unsigned thumb:{0u,1u}) for(unsigned region:{0u,1u})
-    for(unsigned shape:{0u,1u,2u}) for(unsigned page:{0u,1u})
-    for(unsigned cond:{0u,1u,14u}) for(unsigned z:{0u,1u}) {
-        if(thumb && cond!=14)continue;
-        for(unsigned budget:{1u,2u,3u,4u,8u,12u}) for(unsigned policy=0;policy<9;++policy) {
-            r12l1::exclusive_monitor monitor(2);dyncom_core cpu(&monitor,12);
-            auto *state=matched_kernel_access::state(cpu);
-            std::vector<unsigned char> memory(65536,0);
-            const unsigned width=thumb?2:4;
-            const unsigned start=page?0x2000-width*(shape==1?2:1):0x1000;
-            std::vector<unsigned> addresses;
-            for(unsigned i=0;i<32;++i) {
-                const unsigned a=start+i*width;addresses.push_back(a);
-                if(thumb) {const std::uint16_t op=0x3401;std::memcpy(memory.data()+a,&op,2);}
-                else {const unsigned op=0xe2844001;std::memcpy(memory.data()+a,&op,4);}
-            }
-            auto write_svc=[&](unsigned index) {
-                if(thumb){const std::uint16_t op=0xdf56;std::memcpy(memory.data()+start+index*2,&op,2);}
-                else {const unsigned op=(cond<<28)|0x0f123456;std::memcpy(memory.data()+start+index*4,&op,4);}
-            };
-            write_svc(shape==1?1:0);if(shape==2)write_svc(2);
-            if(shape==1){if(thumb){const std::uint16_t op=0x3501;std::memcpy(memory.data()+start,&op,2);}else{const unsigned op=0xe2955001;std::memcpy(memory.data()+start,&op,4);}}
-            // Terminal branch bounds decoding without affecting these short runs.
-            if(thumb){const std::uint16_t op=0xe7fe;std::memcpy(memory.data()+start+62,&op,2);}
-            else {const unsigned op=0xeafffffe;std::memcpy(memory.data()+start+124,&op,4);}
-            cpu.read_code=[&](unsigned a,unsigned *v){if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;};
-            // Mode-changing callbacks can expose the same bytes through the
-            // other decoder; provide the complete ordinary memory interface.
-#define SVC_ACCESS(bits,type) cpu.read_##bits##bit=[&](unsigned a,type*v){if(a>memory.size()-sizeof(type)){*v=0;return false;}std::memcpy(v,memory.data()+a,sizeof(type));return true;};cpu.write_##bits##bit=[&](unsigned a,type*v){if(a>memory.size()-sizeof(type))return false;std::memcpy(memory.data()+a,v,sizeof(type));return true;};
-            SVC_ACCESS(8,std::uint8_t) SVC_ACCESS(16,std::uint16_t) SVC_ACCESS(32,std::uint32_t) SVC_ACCESS(64,std::uint64_t)
-#undef SVC_ACCESS
-            cpu.exception_handler=[](exception_type,unsigned){return false;};
-            monitor.read_32bit=[&](core*,unsigned a,unsigned*v){if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;};
-            monitor.exclusive_read32(&cpu,0x8000);monitor.restore(1,monitor.snapshot(0));
-            for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
-            cpu.set_reg(5,z?0xffffffff:5);cpu.set_pc(start);cpu.set_cpsr(0x10|(thumb?32:0)|(z?0x40000000:0));
-            std::vector<std::string> events;
-            cpu.system_call_handler=[&](unsigned number){
-                const auto m=monitor.snapshot(0);
-                events.push_back("{\"number\":"+std::to_string(number)+",\"regs\":"+regs(cpu)+",\"cpsr\":"+std::to_string(cpu.get_cpsr())+",\"budget\":"+std::to_string(state->NumInstrsToExecute)+",\"reservation\":"+std::to_string(m.address)+"}");
-                if(policy==1)cpu.stop();
-                if(policy==2){cpu.set_reg(4,0x76543210);cpu.set_cpsr(cpu.get_cpsr()^0xf0000000u);}
-                if(policy==3)cpu.set_pc(start+8*width);
-                if(policy==4)state->NirqSig=0;
-                if(policy==5){state->NumInstrsToExecute=16;state->NirqSig=0;}
-                if(policy==6)cpu.set_cpsr(cpu.get_cpsr()^32u);
-                if(policy==7){state->NumInstrsToExecute=3;cpu.set_pc(start+8*width);}
-                if(policy==8){memory[0x8000]=0xa5;cpu.set_reg(4,0x8000);}
-            };
-#ifdef __EMSCRIPTEN__
-            aot::global_registry().clear();std::vector<aot::wasm_func_def> functions;
-            for(unsigned i=0;i<32;++i) {
-                const auto a=addresses[i];
-                auto tr=thumb?aot::translate_thumb_block(memory.data()+a,(32-i)*width,a,nullptr,nullptr,true,false,true)
-                    :aot::translate_arm_block(memory.data()+a,(32-i)*width,a,nullptr,nullptr,true,false,true,region);
-                if(!tr.entry_supported||!tr.complete){std::cerr<<"SVC fixture rejected "<<thumb<<' '<<i<<'\n';return 2;}
-                tr.func.export_name="f_"+std::to_string(a|thumb);functions.push_back(std::move(tr.func));
-            }
-            stage_boundary_probe(functions,{},"svc-probe");
-            const auto compiled_before=eka2l1::common::performance::aot_instructions;
-#endif
-            cpu.run(budget);const auto count=cpu.get_num_instruction_executed();
-#ifdef __EMSCRIPTEN__
-            // Mode-change-without-PC-change may need a semantic fallback. Record
-            // it separately; never count interpreter work as generated work.
-            if(policy!=6 && budget!=1 && eka2l1::common::performance::aot_instructions-compiled_before!=count){std::cerr<<"SVC probe used interpreter\n";return 3;}
-#endif
-            auto m0=monitor.snapshot(0),m1=monitor.snapshot(1);
-            std::cout<<"FAULT {\"id\":"<<cases++<<",\"thumb\":"<<thumb<<",\"region\":"<<region<<",\"shape\":"<<shape<<",\"page\":"<<page<<",\"condition\":"<<cond<<",\"z\":"<<z<<",\"budget\":"<<budget<<",\"policy\":"<<policy
-                <<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()<<",\"count\":"<<count<<",\"remaining\":"<<state->NumInstrsToExecute<<",\"irq\":"<<state->NirqSig<<",\"data\":"<<unsigned(memory[0x8000])<<",\"monitor\":["<<m0.address<<','<<m1.address<<"],\"events\":[";
-            for(unsigned i=0;i<events.size();++i){if(i)std::cout<<',';std::cout<<events[i];}
-            std::cout<<"]}\n";
-        }
-    }
-    return 0;
-}
-
 // Native DynCom oracle for register exchange, including the architectural
 // Thumb PC read bias and capture-before-LR-write for register calls.
 static int thumb_exchange_probe() {
@@ -443,7 +309,7 @@ int main(int argc, char **argv){
     std::cout<<"PROBE_UNSAFE_CODE "<<eka2l1::common::code_tracking::unsafe_code_mode<<"\n";
     if(argc>1 && std::strncmp(argv[argc-1],"--leaf-features=",16)==0) {
         const std::string value(argv[argc-1]+16);
-        if(value.empty() || value.size()>3 || value.find_first_not_of("0123456789")!=std::string::npos || std::stoi(value)>255){std::cerr<<"Invalid leaf feature policy\n";return 1;}
+        if(value!="0" && value!="128"){std::cerr<<"Invalid leaf feature policy\n";return 1;}
         aot::leaf_features=static_cast<unsigned>(std::stoi(value));--argc;
     }
     std::cout<<"PROBE_LEAF_FEATURES "<<aot::leaf_features<<"\n";
@@ -474,16 +340,12 @@ int main(int argc, char **argv){
     std::cout << "PROBE_TLB_HASH " << r12l1::dyncom_folded_tlb << "\n";
     if (argc > 1 && std::strncmp(argv[argc-1],"--code-compare=",15) == 0) {
         const std::string value(argv[argc-1]+15);
-        if(value!="0" && value!="3" && value!="4") {std::cerr<<"Invalid comparison policy\n";return 1;}
+        if(value!="0" && value!="2") {std::cerr<<"Invalid comparison policy\n";return 1;}
         aot::code_compare_mode=static_cast<unsigned>(value[0]-'0');
         --argc;
     }
     std::cout << "PROBE_COMPARE " << aot::code_compare_mode << "\n";
-    if (argc > 1 && std::string(argv[argc-1]) == "--compiled-memory-misses") {
-        aot::compiled_memory_misses = true;
-        --argc;
-    }
-    std::cout << "PROBE_COMPILED_MEMORY_MISSES " << aot::compiled_memory_misses << "\n";
+
     auto ir_policy=aot::arm_ir_policy::configured;
     if(const char *mode=std::getenv("EKA2L1_AOT_IR_MODE")) {
         if(!aot::parse_arm_ir_policy(mode,ir_policy)) {std::cerr<<"Invalid IR mode\n";return 1;}
@@ -500,15 +362,49 @@ int main(int argc, char **argv){
         --argc;
     }
     std::cout << "PROBE_POLICY " << static_cast<int>(ir_policy) << "\n";
+    if (argc > 2 || (argc == 2 && std::string(argv[1]) != "--arm-exclusive"
+        && std::string(argv[1]) != "--arm-leaf-memory"
+        && std::string(argv[1]) != "--arm-leaf-memory-control"
+        && std::string(argv[1]) != "--deferred"
+        && std::string(argv[1]) != "--entry-budget"
+        && std::string(argv[1]) != "--entry-budget-deferred"
+        && std::string(argv[1]) != "--entry-budget-interpreter"
+        && std::string(argv[1]) != "--extended"
+        && std::string(argv[1]) != "--interpreter"
+        && std::string(argv[1]) != "--invariant-remap"
+        && std::string(argv[1]) != "--invariant-write-remap"
+        && std::string(argv[1]) != "--ir-addressing"
+        && std::string(argv[1]) != "--ir-calls"
+        && std::string(argv[1]) != "--ir-calls-short"
+        && std::string(argv[1]) != "--ir-conditions"
+        && std::string(argv[1]) != "--ir-flags"
+        && std::string(argv[1]) != "--ir-long"
+        && std::string(argv[1]) != "--ir-memory"
+        && std::string(argv[1]) != "--ir-memory-chain"
+        && std::string(argv[1]) != "--ir-recipes"
+        && std::string(argv[1]) != "--ir-segments"
+        && std::string(argv[1]) != "--ir-short"
+        && std::string(argv[1]) != "--ir-wide"
+        && std::string(argv[1]) != "--literal-pc-veneers"
+        && std::string(argv[1]) != "--predicated-calls"
+        && std::string(argv[1]) != "--read-spans"
+        && std::string(argv[1]) != "--region-block-spans"
+        && std::string(argv[1]) != "--region-spans"
+        && std::string(argv[1]) != "--region-spans-interpreter"
+        && std::string(argv[1]) != "--thumb-calls"
+        && std::string(argv[1]) != "--thumb-exchange"
+        && std::string(argv[1]) != "--thumb-memory"
+        && std::string(argv[1]) != "--thumb-memory-control"
+        && std::string(argv[1]) != "--wide-snapshots")) {
+        std::cerr << "Unknown fault fixture or option\n"; return 1;
+    }
     const bool interpreter=argc==2 && (std::string(argv[1])=="--interpreter" || std::string(argv[1])=="--region-spans-interpreter" || std::string(argv[1])=="--entry-budget-interpreter");
     eka2l1::common::performance::enabled=true;
     eka2l1::common::performance::phase=2;
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
     if(argc==2 && std::string(argv[1])=="--thumb-exchange") return thumb_exchange_probe();
-    if(argc==2 && std::string(argv[1])=="--compiled-svc") return compiled_svc_probe();
     if(argc==2 && std::string(argv[1])=="--arm-exclusive") return arm_exclusive_probe();
-    if(argc==2 && std::string(argv[1])=="--rom-calls")return rom_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-calls")return thumb_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-memory")return thumb_memory_fault_probe(true);
     if(argc==2 && std::string(argv[1])=="--thumb-memory-control")return thumb_memory_fault_probe(false);
@@ -522,14 +418,9 @@ int main(int argc, char **argv){
     const bool wide_snapshots=argc==2 && std::string(argv[1])=="--wide-snapshots";
     // Historical fixture names identify instruction sequences, not a compiler backend.
     const bool ir_call_short=argc==2 && std::string(argv[1])=="--ir-calls-short";
-    const bool preserve_inner=argc==2 && std::string(argv[1])=="--preserve-inner";
     const bool literal_pc_veneers=argc==2 && std::string(argv[1])=="--literal-pc-veneers";
-    const bool tail_prefixes=argc==2 && std::string(argv[1])=="--tail-prefixes";
-    const bool branch_veneers=argc==2 && std::string(argv[1])=="--branch-veneers";
-    const bool prefix_calls=preserve_inner || (argc==2 && std::string(argv[1])=="--prefix-calls");
-    const bool expanded_calls=argc==2 && std::string(argv[1])=="--expanded-calls";
     const bool predicated_calls=argc==2 && std::string(argv[1])=="--predicated-calls";
-    const bool ir_calls=literal_pc_veneers || tail_prefixes || branch_veneers || prefix_calls || expanded_calls || predicated_calls || ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
+    const bool ir_calls=literal_pc_veneers || predicated_calls || ir_call_short || (argc==2 && std::string(argv[1])=="--ir-calls");
     const bool ir_long=argc==2 && std::string(argv[1])=="--ir-long";
     const bool ir_conditions=argc==2 && std::string(argv[1])=="--ir-conditions";
     const bool ir_flags=argc==2 && std::string(argv[1])=="--ir-flags";
@@ -571,8 +462,8 @@ int main(int argc, char **argv){
         : read_spans
         ? std::vector<unsigned>{0x8000u,0x8ff8u,0x8ffcu}
         : std::vector<unsigned>{0x8000u,0x8ffdu,0x8ffcu};
-    const std::vector<unsigned> predicates=(literal_pc_veneers || tail_prefixes || branch_veneers || ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,1,2,3,4,5,6,7,8,9,10,11,12,13} : std::vector<unsigned>{14};
-    const std::vector<unsigned> initial_flags=(literal_pc_veneers || tail_prefixes || branch_veneers || ir_conditions || predicated_calls || expanded_calls || prefix_calls) ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
+    const std::vector<unsigned> predicates=(literal_pc_veneers || ir_conditions || predicated_calls) ? std::vector<unsigned>{0,1,2,3,4,5,6,7,8,9,10,11,12,13} : std::vector<unsigned>{14};
+    const std::vector<unsigned> initial_flags=(literal_pc_veneers || ir_conditions || predicated_calls) ? std::vector<unsigned>{0,5,10,15} : std::vector<unsigned>{10};
     for(unsigned predicate:predicates)for(unsigned flags:initial_flags)
     for(unsigned op:instructions)for(unsigned policy=0;policy<4;++policy)
     for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:arm_leaf_memory?std::vector<unsigned>{0u,1u,3u}:std::vector<unsigned>{0u,1u})for(unsigned partial=0;partial<(!invariant_remap && !region_spans && (op&0x0e000000u)==0x08000000u?2u:1u);++partial){
@@ -631,32 +522,7 @@ int main(int argc, char **argv){
                 called_words[0]=0x00944005u|(predicate<<28);
                 called_words[1]=0x00b46000u|((predicate^1)<<28);
             }
-            if(expanded_calls) {
-                program[0]=0xe3a02007u;
-                called_words[0]=0x0a000000u|(predicate<<28); // forward join at 0x2008
-                called_words[1]=op;
-                called_words[2]=0xe0944005u;
-            }
-            if(prefix_calls) {
-                program[0]=0xe3a02007u;
-                called_words[0]=0xe92d4010u; // preserve caller LR as a real stack store
-                called_words[1]=0x00944005u|(predicate<<28);
-                called_words[2]=op;called_words[3]=0xeb0003fbu; // nested call to 0x3000
-                const unsigned nested[]={0xe28aa001u,0xe2899001u,preserve_inner?0xe12fff1eu:0xeafffffeu};
-                std::memcpy(f.memory.data()+0x3000,nested,sizeof(nested));
-            }
-            if(branch_veneers || tail_prefixes) {
-                program[0]=0xe3a02007u;
-                const unsigned target[]={0x00944005u|(predicate<<28),0x00b46000u|((predicate^1)<<28),op,0xe12fff1eu};
-                std::memcpy(f.memory.data()+0x3000,target,sizeof(target));
-                called_words[0]=0xea0003feu; // B 0x3000; following words are unreachable.
-                if(tail_prefixes) {
-                    called_words[0]=0x00944005u|(predicate<<28);
-                    called_words[1]=0xe1a06004u;
-                    called_words[2]=0xe2877001u;
-                    called_words[3]=0xea0003fbu; // B 0x3000 after the register prefix.
-                }
-            }
+
             if(literal_pc_veneers) {
                 program[0]=0xe3a02007u;program[1]=0xeb001bfdu; // BL 0x8000
                 called_words[0]=0xe59ff000u|(address-0x8008u);
@@ -672,7 +538,6 @@ int main(int argc, char **argv){
         cpu.set_reg(0,0x87654321);cpu.set_reg(1,address);cpu.set_pc(0x1000);cpu.set_cpsr((flags<<28)|0x10|endian);
         if(ir_conditions){cpu.set_reg(4,0x7fffffffu);cpu.set_reg(5,1);}
         if(ir_addressing)cpu.set_reg(6,1);
-        if(prefix_calls){cpu.set_reg(13,0xb020);cpu.set_tlb_page(0xb000,f.memory.data()+0xb000,prot_read_write);}
         if(invariant_remap)cpu.set_reg(2,0xb000);
         // Read-only TLB: permitted control for loads, denied mapping for stores.
         // Unmapped cases always exercise failure callbacks. Partial cases allow
@@ -685,7 +550,6 @@ int main(int argc, char **argv){
         std::vector<aot::wasm_func_def> functions;
         aot::leaf_resolver call_resolver=[&](std::uint32_t pc) {
             const auto *begin=reinterpret_cast<const std::uint8_t *>(called_words);
-            if(preserve_inner && pc==0x3000)return std::vector<std::uint8_t>(f.memory.begin()+0x3000,f.memory.begin()+0x300c);
             return pc==callee_address ? std::vector<std::uint8_t>(begin,begin+sizeof(called_words)) : std::vector<std::uint8_t>{};
         };
         for(unsigned n=0;n<instruction_count;++n) {
@@ -695,33 +559,14 @@ int main(int argc, char **argv){
                 (!translated.dependencies.empty() && (translated.dependencies[0].bytes.size()!=4 || translated.dependencies[0].address!=callee_address)))) {
                 std::cerr<<"Literal PC veneer fusion selection mismatch\n";return 4;
             }
-            if(branch_veneers && n==0 && (translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&32)) ||
-                (!translated.dependencies.empty() && translated.dependencies[0].bytes.size()!=4))) {
-                std::cerr<<"Branch veneer fusion selection mismatch\n";return 4;
-            }
-            if(tail_prefixes && n==0 && (translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&64)) ||
-                (!translated.dependencies.empty() && translated.dependencies[0].bytes.size()!=16))) {
-                std::cerr<<"Tail-prefix fusion selection mismatch\n";return 4;
-            }
-            if(prefix_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&8) && !(preserve_inner && (aot::leaf_features&16)))) {
-                std::cerr<<"Call-prefix fusion selection mismatch\n";return 4;
-            }
-            if(expanded_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves && (aot::leaf_features&4))) {
-                std::cerr<<"Expanded call fusion selection mismatch\n";return 4;
-            }
             if(predicated_calls && n==0 && translated.dependencies.size()!=unsigned(aot::predicated_leaves)) {
                 std::cerr<<"Predicated call fusion selection mismatch\n";return 4;
             }
-            if(ir_policy==aot::arm_ir_policy::batched_instruction_counts && !arm_leaf_memory
-                && n==0 && !translated.deferred_count_updates) {
-                std::cerr<<"Fault fixture did not select batched instruction counts\n";return 4;
-            }
-            const auto checked_policy = (ir_policy == aot::arm_ir_policy::loop_budget_chunks
-                || ir_policy == aot::arm_ir_policy::batched_instruction_counts)
+
+            const auto checked_policy = (ir_policy == aot::arm_ir_policy::loop_budget_chunks)
                 ? aot::arm_ir_policy::write_budget_chunks : ir_policy;
             const bool writes = checked_policy == aot::arm_ir_policy::invariant_writes
-                || checked_policy == aot::arm_ir_policy::write_budget_chunks
-                || checked_policy == aot::arm_ir_policy::deferred_chunk_counts;
+                || checked_policy == aot::arm_ir_policy::write_budget_chunks;
             const bool reads = writes || checked_policy == aot::arm_ir_policy::invariant_reads
                 || checked_policy == aot::arm_ir_policy::budget_chunks;
             if (writes && invariant_write_remap && n == 0 && translated.proved_writes != 3) {
@@ -738,12 +583,11 @@ int main(int argc, char **argv){
         }
         if(ir_calls) for(unsigned n=0;n<4;++n) {
             auto translated=aot::translate_arm_block(reinterpret_cast<const unsigned char *>(called_words+n),
-                (4-n)*4,callee_address+n*4,nullptr,nullptr,true,false,true,true,preserve_inner?&call_resolver:nullptr,true,ir_policy);
-            if(preserve_inner && n==0 && translated.dependencies.size()!=1){std::cerr<<"Preserved inner leaf not selected\n";return 4;}
+                (4-n)*4,callee_address+n*4,nullptr,nullptr,true,false,true,true,nullptr,true,ir_policy);
             functions.push_back(std::move(translated.func));
         }
-        if(literal_pc_veneers || prefix_calls || branch_veneers || tail_prefixes)for(unsigned n=0;n<((literal_pc_veneers || branch_veneers || tail_prefixes)?4u:3u);++n) {
-            auto translated=aot::translate_arm_block(f.memory.data()+0x3000+n*4,(((literal_pc_veneers || branch_veneers || tail_prefixes)?4u:3u)-n)*4,0x3000+n*4,nullptr,nullptr,true,false,true,true,nullptr,true,ir_policy);
+        if(literal_pc_veneers)for(unsigned n=0;n<4u;++n) {
+            auto translated=aot::translate_arm_block(f.memory.data()+0x3000+n*4,(4u-n)*4,0x3000+n*4,nullptr,nullptr,true,false,true,true,nullptr,true,ir_policy);
             functions.push_back(std::move(translated.func));
         }
 
@@ -785,10 +629,8 @@ int main(int argc, char **argv){
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
         const auto compiled=eka2l1::common::performance::aot_instructions-prior_compiled;
         if(deferred && compiled<(ir_calls?execution_count:instruction_count))++deferred_cases;
-        if (aot::compiled_memory_misses && (std::string(argv[1]) == "--entry-budget-deferred" || wide_snapshots) && compiled != instruction_count) {
-            std::cerr << "Compiled memory miss escaped to interpreter at case " << cases << '\n'; return 3;
-        }
-        if(!interpreter && (arm_leaf_memory ? (compiled<2 || compiled>3) : ir_long ? (compiled<111 || compiled>135) : invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : literal_pc_veneers ? (compiled<2 || compiled>9) : prefix_calls ? (compiled<2 || compiled>9) : expanded_calls ? (compiled<3 || compiled>9) : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
+
+        if(!interpreter && (arm_leaf_memory ? (compiled<2 || compiled>3) : ir_long ? (compiled<111 || compiled>135) : invariant_remap ? (compiled<(endian?1u:2u) || compiled>7) : ir_call_short ? compiled!=run_count : literal_pc_veneers ? (compiled<2 || compiled>9) : ir_calls ? (compiled<4 || compiled>9) : (ir_recipes || ir_flags || ir_conditions) ? (compiled<3 || compiled>7) : ir_short ? (compiled<2 || compiled>4) : ir_segments ? (compiled<4 || compiled>5) : region_spans ? (compiled>5 || (permission && !endian && address<=0x8ff0 && (!region_block_spans || (op&(1u<<20))) && compiled!=5)) : three_instructions ? (compiled<(wide_snapshots?2u:1u) || compiled>3) : (compiled!=2 && !(deferred && compiled==1)))){
             std::cerr<<"Unexpected generated instruction count at case "<<cases<<'\n';return 2;
         }
 #endif
@@ -832,6 +674,6 @@ int main(int argc, char **argv){
         std::cout<<"]}\n";
     }
 #if defined(__EMSCRIPTEN__) && !defined(EKA_MATCHED_REFERENCE)
-    if(deferred){std::cerr<<"Deferred cases: "<<deferred_cases<<'\n';if(!deferred_cases && !ir_call_short && !aot::compiled_memory_misses)return 3;}
+    if(deferred){std::cerr<<"Deferred cases: "<<deferred_cases<<'\n';if(!deferred_cases && !ir_call_short)return 3;}
 #endif
 }

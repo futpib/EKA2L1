@@ -36,7 +36,7 @@ int main(int argc,char**argv) {
    else if(arg=="--ir-mode" && i+1<argc) {
     const std::string mode=argv[++i];
     if(!eka2l1::arm::aot::parse_arm_ir_policy(mode.c_str(),ir_policy))
-        throw std::invalid_argument("IR mode must be an integer from 0 to 15");
+        throw std::invalid_argument("IR mode must be 0, 4, 5, 6, 7 or 17");
    }
    else if(arg=="--region" && i+2<argc) {
     const auto pc=std::stoul(argv[++i],nullptr,0), size=std::stoul(argv[++i],nullptr,0);
@@ -46,7 +46,7 @@ int main(int argc,char**argv) {
   }
   if(argc<3) throw std::invalid_argument("missing arguments");
  } catch(const std::exception &e) {
-  std::cerr<<"compiler_probe GAME_EXE NEW_DIRECTORY [--defer-memory] [--inline-leaves] [--ir-mode 0/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15] [--region PC SIZE]...\n"<<e.what()<<"\n";return 1;
+  std::cerr<<"compiler_probe GAME_EXE NEW_DIRECTORY [--defer-memory] [--inline-leaves] [--ir-mode 0/4/5/6/7/17] [--region PC SIZE]...\n"<<e.what()<<"\n";return 1;
  }
  if(regions.empty()) regions={{0x7006370cu,0xf0u},{0x70013edcu,0x1cu}};
  if(!std::filesystem::create_directory(argv[2]))return 2;
@@ -95,7 +95,7 @@ int main(int argc,char**argv) {
    return std::vector<std::uint8_t>(begin,begin+64);
   };
   auto t=translate_arm_block(src.bytes.data()+pc-0x70000000,size,pc,nullptr,nullptr,true,true,true,true,inline_leaves?&resolve:nullptr,defer_memory,ir_policy);
-  std::cout<<pc<<" region_end "<<t.end_address<<" body_bytes "<<t.func.body.size()<<" dependencies "<<t.dependencies.size()<<" guarded_ir "<<bool(t.func.outlined_callee)<<" ir_stack_values "<<t.ir_stack_values<<" ir_segments "<<t.ir_segments<<" ir_max_segment_length "<<t.ir_max_segment_length<<" ir_segment_instructions "<<t.ir_segment_instructions<<" ir_memory_guards "<<t.ir_memory_guards<<" ir_proved_reads "<<t.ir_proved_reads<<" ir_proved_writes "<<t.ir_proved_writes<<" ir_flag_instructions "<<t.ir_flag_instructions<<" ir_inline_transfers "<<t.ir_inline_transfers<<" ir_conditional_instructions "<<t.ir_conditional_instructions<<" ir_outlined_segments "<<t.ir_outlined_segments<<" proved_reads "<<t.proved_reads<<" proved_writes "<<t.proved_writes<<" budget_chunks "<<t.budget_chunks<<" deferred_count_updates "<<t.deferred_count_updates<<" ir_cold_values "<<t.ir_cold_values<<" ir_cold_halves "<<t.ir_cold_halves<<" ir_policy "<<static_cast<int>(ir_policy)<<"\n";
+  std::cout<<pc<<" region_end "<<t.end_address<<" body_bytes "<<t.func.body.size()<<" dependencies "<<t.dependencies.size()<<" guarded_memory "<<bool(t.func.outlined_callee)<<" proved_reads "<<t.proved_reads<<" proved_writes "<<t.proved_writes<<" budget_chunks "<<t.budget_chunks<<" loop_budget_chunks "<<t.loop_budget_chunks<<" ir_policy "<<static_cast<int>(ir_policy)<<"\n";
   for(const auto &dependency:t.dependencies) {
    const auto name=prefix+"-leaf-"+std::to_string(dependency.address);
    std::ofstream(name+".arm",std::ios::binary).write((const char*)dependency.bytes.data(),dependency.bytes.size());

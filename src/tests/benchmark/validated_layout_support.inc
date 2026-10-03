@@ -43,12 +43,12 @@ API void layout_mutate(unsigned mode) {
 API unsigned layout_mapping_calls(){return layout_resolutions;}
 API std::uintptr_t layout_state(){return reinterpret_cast<std::uintptr_t>(state);}
 API unsigned layout_compare(std::uintptr_t a, std::uintptr_t b, unsigned size) {
- const auto compare = aot::code_compare_mode == 4 ? aot::select_code_comparator(size) : aot::equal_code_bytes;
+ const auto compare = aot::equal_code_bytes;
  return compare(reinterpret_cast<const unsigned char *>(a),
      reinterpret_cast<const unsigned char *>(b), size);
 }
 API void layout_compare_mode(unsigned mode) {
- if(mode>4)throw std::runtime_error("unknown exact comparison mode");
+ if(mode!=0 && mode!=2)throw std::runtime_error("unknown exact comparison mode");
  aot::code_compare_mode=mode;
 }
 }

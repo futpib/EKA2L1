@@ -49,19 +49,6 @@ std::uint64_t compiled_function_count() { return completed_function_count.load(s
 // Optional differential execution. Guest memory is changed only by compiled
 // execution; the reference interpreter uses a private byte overlay.
 static std::uint32_t hot_rom_base = 0, hot_rom_size = 0;
-bool rom_inline_leaves = false;
-bool rom_bounded_calls = false;
-std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
-    std::uint32_t base, std::uint32_t size, std::uint32_t target) {
-    if (!host || (target & 3) || target < base) return {};
-    const auto offset = target - base;
-    if (offset >= size) return {};
-    // Never cross the supplied image extent or the 32-bit guest address space.
-    const auto available = std::min<std::uint64_t>(size - offset,
-        (std::uint64_t{1} << 32) - target);
-    const auto bytes = std::min<std::uint64_t>(leaf_instruction_limit * 4, available) & ~std::uint64_t{3};
-    return {host + offset, host + offset + bytes};
-}
 common::diagnostics::flag diagnostics_enabled = false;
 bool validation_running = false;
 static bool validating = false;
@@ -143,22 +130,12 @@ void validation_end(ARMul_State *cpu, std::uint32_t count) {
             return reference_write(a, &value) ? 1 : 0;
         };
     }
-    unsigned reference_svc_count = 0, reference_svc_number = 0;
-    auto pre_svc_reservation = monitor.snapshot(0);
-    reference.system_call_handler = [&](unsigned number) {
-        ++reference_svc_count; reference_svc_number = number;
-        pre_svc_reservation = monitor.snapshot(0);
-    };
     reference.load_context(validation_before);
     validation_running = true;
     reference.run(count);
     validation_running = false;
-    const auto pending = compiled_svc_enabled && (cpu->aot_exit & svc_pending);
-    const auto expected_calls = pending && (cpu->aot_exit & svc_taken) ? 1u : 0u;
-    bool same = reference_svc_count == expected_calls
-        && (!expected_calls || reference_svc_number == (cpu->aot_exit & 0x00ffffffu));
-    if (!same) fprintf(stderr,"AOT VERIFY SVC request pc=%08X\n",validation_before.cpu_registers[15]);
-    const auto expected_reservation = expected_calls ? pre_svc_reservation : monitor.snapshot(0);
+    bool same = true;
+    const auto expected_reservation = monitor.snapshot(0);
     if (validation_monitor && !(expected_reservation == validation_monitor->snapshot(cpu->parent()->core_number()))) {
         fprintf(stderr, "AOT VERIFY exclusive reservation pc=%08X\n", validation_before.cpu_registers[15]);
         same = false;
@@ -243,6 +220,7 @@ void configure_hot_rom(const std::uint8_t *host, std::uint32_t base, std::uint32
     ir_policy = arm_ir_policy::configured;
     const char *ir = std::getenv("EKA2L1_AOT_IR_MODE");
     parse_arm_ir_policy(ir, ir_policy);
+    if (enabled) fprintf(stderr, "AOT: ir_policy=%d\n", static_cast<int>(ir_policy));
 }
 
 void invalidate_ram_code(std::uint32_t address, std::size_t size) {
@@ -391,7 +369,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
         ++result.blocks;
         result.instructions += count;
-        if ((compiled_svc_enabled && (cpu->aot_exit & svc_pending)) || !count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
+        if (!count || !cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
         cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
         // This stays inside the compiled runner. Every RAM successor retains
         // mapping/lifetime validation. Byte-mutation detection is policy-dependent;
@@ -502,11 +480,8 @@ void observe_hot_pc(ARMul_State *cpu) {
     if (++count != 8) return;
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(chaining_enabled ? primary_window_bytes : 128u, hot_rom_size - offset);
-    leaf_resolver leaves = [](std::uint32_t target) {
-        return resolve_rom_leaf(hot_rom, hot_rom_base, hot_rom_size, target);
-    };
     auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
-                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, rom_inline_leaves ? &leaves : nullptr, defer_memory_enabled, ir_policy);
+                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, nullptr, defer_memory_enabled, ir_policy);
     if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
     hot_pending.push_back(std::move(tr.func));

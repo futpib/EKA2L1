@@ -12,10 +12,8 @@
 #include <unordered_map>
 
 namespace eka2l1::arm::aot {
-    extern unsigned code_compare_mode; // 0: original, 1: overlapping tail, 2: four-vector loop, 3: fixed short sizes + grouped, 4: stored comparator
+    extern unsigned code_compare_mode; // 0: original, 2: four-vector loop
     bool equal_code_bytes(const std::uint8_t *a, const std::uint8_t *b, std::size_t size);
-    using code_comparator = bool (*)(const std::uint8_t *, const std::uint8_t *, std::size_t);
-    code_comparator select_code_comparator(std::size_t size);
 
     // Mapping/lifetime checks apply in every mode. Instruction-byte validation
     // follows the selected executable-byte policy.
@@ -31,7 +29,6 @@ namespace eka2l1::arm::aot {
             std::uint32_t address;
             const std::uint8_t *backing;
             std::vector<std::uint8_t> code;
-            code_comparator comparator = equal_code_bytes;
         };
         struct block {
             std::uint64_t key;
@@ -45,8 +42,6 @@ namespace eka2l1::arm::aot {
             bool rejected = false;
             std::uint64_t mapping_generation = 0;
             const std::atomic<std::uint64_t> *mapping_source = nullptr;
-            // Snapshot length stays fixed until this version is discarded.
-            code_comparator comparator = equal_code_bytes;
         };
 
         static std::uint64_t key(std::uint32_t space, std::uint32_t pc_mode) {
@@ -123,7 +118,6 @@ namespace eka2l1::arm::aot {
             versions_.push_back({k, version, view.bytes, {view.bytes, view.bytes + size}});
             current_[k] = version;
             auto &entry = versions_.back();
-            if (code_compare_mode == 4) entry.comparator = select_code_comparator(size);
             entry.guard_begin = reinterpret_cast<std::uintptr_t>(view.bytes);
             entry.guard_end = entry.guard_begin + size;
             return entry;
@@ -131,8 +125,7 @@ namespace eka2l1::arm::aot {
 
         static void add_dependency(block &entry, std::uint32_t address,
             const std::uint8_t *backing, const std::vector<std::uint8_t> &bytes) {
-            entry.dependencies.push_back({address, backing, bytes,
-                code_compare_mode == 4 ? select_code_comparator(bytes.size()) : equal_code_bytes});
+            entry.dependencies.push_back({address, backing, bytes});
             const auto begin = reinterpret_cast<std::uintptr_t>(backing);
             entry.guard_begin = std::min(entry.guard_begin, begin);
             entry.guard_end = std::max(entry.guard_end, begin + bytes.size());
@@ -175,8 +168,6 @@ namespace eka2l1::arm::aot {
     private:
         template <typename Snapshot>
         static bool snapshot_equal(const Snapshot &snapshot) {
-            if (code_compare_mode == 4)
-                return snapshot.comparator(snapshot.backing, snapshot.code.data(), snapshot.code.size());
             return equal_code_bytes(snapshot.backing, snapshot.code.data(), snapshot.code.size());
         }
         static bool bytes_match(block &entry) {

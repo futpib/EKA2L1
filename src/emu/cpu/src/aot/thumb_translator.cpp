@@ -163,9 +163,7 @@ namespace eka2l1::arm::aot {
         void store_reg(int r, std::uint32_t local) { store_i32(S::reg(r), local); }
 
         // Call imported function (index relative to imports)
-        unsigned slow_calls = 0;
         void slow_call(std::uint32_t func_idx) {
-            ++slow_calls;
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
@@ -654,7 +652,7 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers, const sibling_map *bounded_targets)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -667,9 +665,7 @@ namespace eka2l1::arm::aot {
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
         //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
         const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
-        const bool link_calls = direct_memory && bounded_targets;
-        result.num_locals = link_calls ? 13 : direct_memory ? 11 : 6;
-        const unsigned CALL_BUDGET = 12, CALL_COUNT = 13;
+        result.num_locals = direct_memory ? 11 : 6;
         result.num_f32_locals = 2;
         result.num_f64_locals = 1;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
@@ -887,37 +883,7 @@ namespace eka2l1::arm::aot {
                             auto target = insn_addr + 4 + displacement + ((suffix & 0x7FF) << 1);
                             if (kind == 0xE800) { target &= ~3u; w.store_i32_const(S::TFLAG, 0); }
                             w.store_i32_const(S::LR, (insn_addr + 4) | 1);
-                            // Only a callback-free prefix can omit the runner's
-                            // TLB synchronization boundary. Targets are unlinked
-                            // immutable ROM base functions in this same module;
-                            // linked clones never call one another.
-                            if (link_calls && kind == 0xF800 && !w.slow_calls &&
-                                bounded_targets->count(target | 1u)) {
-                                const auto count = insn_idx + 2;
-                                w.store_i32_const(S::PC, target);
-                                w.load_i32(S::AOT_BUDGET); w.i32_const(count);
-                                w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
-                                w.bail(target, count, exit_census::guard); w.op(op_end);
-                                w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
-                                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
-                                w.op(op_i32_or); w.op(op_i32_eqz);
-                                w.op(op_if); w.op(type_void);
-                                w.bail(target, count, exit_census::guard); w.op(op_end);
-                                w.load_i32(S::NIRQ); w.op(op_i32_eqz);
-                                w.load_i32(S::CPSR); w.i32_const(0x80);
-                                w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
-                                w.op(op_if); w.op(type_void);
-                                w.bail(target, count, exit_census::interrupt); w.op(op_end);
-                                w.load_i32(S::AOT_BUDGET); w.set_local(CALL_BUDGET);
-                                w.get_local(CALL_BUDGET); w.i32_const(count); w.op(op_i32_sub);
-                                w.set_local(CALL_COUNT); w.store_i32(S::AOT_BUDGET, CALL_COUNT);
-                                w.state_ptr(); w.slow_call(bounded_targets->at(target | 1u));
-                                w.set_local(CALL_COUNT);
-                                w.store_i32(S::AOT_BUDGET, CALL_BUDGET);
-                                w.get_local(CALL_COUNT); w.i32_const(count); w.op(op_i32_add);
-                                w.ret();
-                                ++tr.bounded_direct_calls;
-                            } else w.bail(target, insn_idx + 2);
+                            w.bail(target, insn_idx + 2);
                             tr.resume_points.push_back(insn_addr + 2);
                             tr.resume_points.push_back(insn_addr + 4);
                             decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
@@ -3563,16 +3529,7 @@ namespace eka2l1::arm::aot {
             } else if ((insn & 0xF000) == 0xD000) {
                 // Conditional branch: B<cond> offset
                 std::uint8_t cond = (insn >> 8) & 0xF;
-                if (bounded && compiled_svc_enabled && cond == 15) {
-                w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.i32_const(1); w.op(op_i32_eq);
-                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_if); w.op(type_void);
-                w.bail(insn_addr, insn_idx); w.op(op_end);
-                    w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken
-                        | (((insn_addr + 2) & 4095) ? 0 : svc_page_end) | (insn & 255));
-                    w.bail(insn_addr + 2, insn_idx + 1);
-                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
-                    ++insn_idx; break;
-                }
+
                 if (cond >= 0xE) {
                     // SVC or undefined — bail
                     w.bail_unsupported(insn_addr, insn_idx);

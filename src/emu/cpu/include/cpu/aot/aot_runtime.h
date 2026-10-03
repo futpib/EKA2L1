@@ -29,22 +29,8 @@
 struct ARMul_State;
 
 namespace eka2l1::arm::aot {
-    // Generated SVC returns a pending trap to the outer loop, where the exact
-    // cumulative instruction count and kernel callback contract are available.
-    inline bool compiled_svc_enabled = false;
-    // Compile deferred scalar/span misses through the existing memory helpers.
-    // Frozen before initialization; disabled until coverage and timing acceptance.
-    inline bool compiled_memory_misses = false;
-    inline constexpr std::uint32_t svc_pending = 0x80000000u;
-    inline constexpr std::uint32_t svc_taken = 0x40000000u;
-    inline constexpr std::uint32_t svc_page_end = 0x20000000u;
-    // Opt-in immutable ROM leaf fusion; frozen before CPU initialization.
-    extern bool rom_inline_leaves;
-    extern bool rom_bounded_calls;
     // Frozen before execution: 0 general lookup, 2 trusted cache specialization.
     inline unsigned hotpath_policy = 0;
-    std::vector<std::uint8_t> resolve_rom_leaf(const std::uint8_t *host,
-        std::uint32_t base, std::uint32_t size, std::uint32_t target);
     extern common::diagnostics::flag diagnostics_enabled;
     extern bool hot_compilation_enabled;
     extern bool ram_compilation_enabled;

@@ -1,5 +1,8 @@
 # Retired compiler experiments and instrumentation
 
+[The second cleanup](RETIRED_EXPERIMENTS_ROUND2.md) supersedes the retained-policy
+list below: policies 8 and 18 and seven other experiment groups were removed.
+
 The cleanup removes implementations and configuration plumbing that were disabled
 or rejected, while preserving the adopted browser execution path. It is not a
 new speedup claim. Historical experiment reports and measurements remain in Git.

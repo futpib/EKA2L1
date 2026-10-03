@@ -77,9 +77,8 @@ namespace eka2l1::arm::aot {
         std::vector<code_dependency> dependencies;
         wasm_func_def func;
         bool entry_supported = true;
-        unsigned bounded_direct_calls = 0;
         // Research coverage metadata; never used to select guest addresses.
-        unsigned proved_reads = 0, proved_writes = 0, budget_chunks = 0, loop_budget_chunks = 0, deferred_count_updates = 0;
+        unsigned proved_reads = 0, proved_writes = 0, budget_chunks = 0, loop_budget_chunks = 0;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call
         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling
@@ -141,10 +140,6 @@ namespace eka2l1::arm::aot {
     // code_size: size in bytes
     // siblings: optional map of address → WASM func index for BL target inlining
     // dll_code: optional full-DLL code window for resolving BLX imm veneers
-    // bounded_targets: mode-tagged Thumb ROM addresses -> absolute WASM
-    // indices of unlinked base functions in the SAME module. The module owner
-    // must exclude RAM and linked clones; this keeps host call depth bounded.
-    // Used only by bounded direct-memory translation, without prior callbacks.
     //
     // Returns a wasm_func_def ready to be included in a WASM module.
     // Returns empty body on failure.
@@ -154,6 +149,5 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings = nullptr,
-        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false,
-        const sibling_map *bounded_targets = nullptr);
+        const code_window *dll_code = nullptr, bool bounded = false, bool stop_after_store = false, bool cache_registers = false);
 }

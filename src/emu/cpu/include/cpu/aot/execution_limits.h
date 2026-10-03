@@ -4,12 +4,6 @@
 #include <string>
 namespace eka2l1::arm::aot {
     inline bool predicated_leaves = false; // Separate original-emitter experiment.
-    // Additional eligibility under the predicated original-emitter experiment:
-    // bit 0 multiply, bit 1 scalar extra/conditional memory, bit 2 forward B.
-    // Bits: multiply=1, scalar memory=2, forward joins=4, nested-call prefixes=8.
-    // Bit 16 declines prefixes that would displace an eligible returning leaf.
-    // Bit 32 fuses single unconditional branch veneers, retaining their exit.
-    // Bit 64 fuses register-only prefixes ending in an unconditional branch.
     // Bit 128 fuses literal LDR-PC veneers, retaining the runtime load and exit.
     inline unsigned leaf_features = 0;
     // Translation/runner limits, fixed before guest execution. These do not

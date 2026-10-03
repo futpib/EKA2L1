@@ -113,12 +113,6 @@ namespace eka2l1::arm::aot {
     // Format: comma-separated DLL specs, each is "dll_name" or "dll_name:sym1:sym2"
     std::vector<dll_config> parse_config_string(const std::string &config_str);
 
-    // Register all built-in AOT functions into the global catalog.
-    void register_builtin_functions();
-
-    // Default config string for hardcoded AOT entries.
-    const char *default_config_string();
-
     // --- Module map for per-DLL instruction tracking ---
     struct module_range {
         std::uint32_t base;

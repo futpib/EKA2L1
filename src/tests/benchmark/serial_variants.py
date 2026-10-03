@@ -11,14 +11,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('assets', type=Path)
 parser.add_argument('output', type=Path)
 parser.add_argument('builds', nargs='+', help='NAME=ARCHIVED_BUILD')
-parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/4/5/6/7/8/17/18',
+parser.add_argument('--ir-mode', action='append', default=[], metavar='NAME=0/4/5/6/7/17',
                     help='Select compiler policy within an archived binary')
-parser.add_argument('--eager-regions', action='append', default=[], metavar='NAME=0/1',
-                    help='Select eager ROM region compilation within an archived binary')
 parser.add_argument('--tlb-hash', action='append', default=[], metavar='NAME=0/1')
-parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/1/2/3/4')
+parser.add_argument('--code-compare', action='append', default=[], metavar='NAME=0/2')
 parser.add_argument('--unsafe-code',action='append',default=[],metavar='NAME=0/3')
-parser.add_argument('--leaf-features',action='append',default=[],metavar='NAME=MASK')
+parser.add_argument('--leaf-features',action='append',default=[],metavar='NAME=0/128')
 parser.add_argument('--predicated-leaves', action='append', default=[], metavar='NAME=0/1')
 parser.add_argument('--execution-limits', action='append', default=[], metavar='NAME=WINDOW,LEAF,SITES,RUNNER')
 parser.add_argument('--input', action='append', default=[], metavar='NAME=INPUT', help='Optional per-variant guest input route')
@@ -36,20 +34,14 @@ for item in args.builds:
 modes = {}
 for item in args.ir_mode:
     name, separator, value = item.partition('=')
-    if not separator or name not in dict(variants) or name in modes or value not in ('0', '4', '5', '6', '7', '8', '17', '18'):
-        parser.error('IR mode requires a unique known NAME=0/4/5/6/7/8/17/18')
+    if not separator or name not in dict(variants) or name in modes or value not in ('0', '4', '5', '6', '7', '17'):
+        parser.error('IR mode requires a unique known NAME=0/4/5/6/7/17')
     modes[name] = int(value)
-eager_modes = {}
-for item in args.eager_regions:
-    name, separator, value = item.partition('=')
-    if not separator or name not in dict(variants) or name in eager_modes or value not in ('0', '1'):
-        parser.error('Eager regions requires a unique known NAME=0/1')
-    eager_modes[name] = int(value)
 compare_modes = {}
 for item in args.code_compare:
     name, separator, value = item.partition('=')
-    if not separator or name not in dict(variants) or name in compare_modes or value not in ('0', '1', '2', '3', '4'):
-        parser.error('Code compare requires a unique known NAME=0/1/2/3/4')
+    if not separator or name not in dict(variants) or name in compare_modes or value not in ('0', '2'):
+        parser.error('Code compare requires a unique known NAME=0/2')
     compare_modes[name] = int(value)
 hash_modes = {}
 for item in args.tlb_hash:
@@ -65,8 +57,8 @@ for item in args.unsafe_code:
 features = {}
 for item in args.leaf_features:
     name,separator,value=item.partition('=')
-    if not separator or name not in dict(variants) or name in features or value not in tuple(map(str,range(256))):
-        parser.error('Leaf features require unique known NAME=0..63')
+    if not separator or name not in dict(variants) or name in features or value not in ('0','128'):
+        parser.error('Leaf features require unique known NAME=0/128')
     features[name]=int(value)
 predicates = {}
 for item in args.predicated_leaves:
@@ -104,9 +96,6 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
         for key in ('PROFILE_GATE', 'EKA2L1_AOT_VERIFY', 'EKA2L1_GUEST_PROFILE',
                     'EKA2L1_AOT_DIAGNOSTICS', 'EKA2L1_EXIT_CENSUS', 'EKA2L1_V8_FLAGS', 'EKA2L1_V8_DUMP'):
             env.pop(key, None)
-        env.pop('EKA2L1_AOT_EAGER_REGIONS', None)
-        if name in eager_modes:
-            env['EKA2L1_AOT_EAGER_REGIONS'] = str(eager_modes[name])
         env.pop('EKA2L1_PROFILE_INPUT', None)
         if name in inputs:
             env['EKA2L1_PROFILE_INPUT'] = str(inputs[name])
@@ -138,18 +127,15 @@ for repetition, order in ((1, variants), (2, list(reversed(variants)))):
             raise RuntimeError('Wrong execution limits or diagnostic census active in timing')
         if report.get('ir_mode', -1) != modes.get(name, 17):
             raise RuntimeError('Profile did not record the requested IR policy')
-        if report.get('eager_regions', -1) != eager_modes.get(name, 17):
-            raise RuntimeError('Profile did not record the requested eager ROM policy')
-        if report.get('code_compare', -1) != compare_modes.get(name, 17):
+        if report.get('code_compare', -1) != compare_modes.get(name, -1):
             raise RuntimeError('Profile did not record requested exact comparison policy')
-        if report.get('tlb_hash', -1) != hash_modes.get(name, 17):
+        if report.get('tlb_hash', -1) != hash_modes.get(name, -1):
             raise RuntimeError('Profile did not record requested TLB index policy')
         if name in inputs and report['input_sha256'] != hashlib.sha256(inputs[name].read_bytes()).hexdigest():
             raise RuntimeError('Profile did not use requested input route')
         if report['measurement']['first_virtual_us'] != args.start_us or report['measurement']['last_virtual_us'] != args.end_us:
             raise RuntimeError('Profile did not use requested guest window')
         row = dict(unsafe_code=report['unsafe_code'],leaf_features=report['leaf_features'],predicated_leaves=report['predicated_leaves'], runtime_footprint=report.get('runtime_footprint'), warmup_seconds=report['warmup_seconds'], execution_limits=report['execution_limits'], tlb_hash=report.get('tlb_hash', -1), input_sha256=report['input_sha256'], code_compare=report.get('code_compare', -1), name=label, build=str(build), ir_mode=report.get('ir_mode', -1),
-                   eager_regions=report.get('eager_regions', -1),
                    wasm_sha256=report['wasm_sha256'], loader_sha256=report['loader_sha256'],
                    measurement=report['measurement'])
         rows.append(row)

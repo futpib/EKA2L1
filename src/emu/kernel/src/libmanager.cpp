@@ -50,7 +50,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <string_view>
-#include <xxhash.h>
 
 namespace eka2l1::hle {
     static std::array<std::u16string, 2> LDD_SKIP_LOAD_LIST = {
@@ -205,57 +204,8 @@ namespace eka2l1::hle {
         return res;
     }
 
-    static void try_snakes_n80_native_resolution(loader::e32img &img, const std::u16string &path) {
-        if (img.header.uid3 != 0x2000730F || get_e32_codeseg_name_from_path(path) != "6r45_1b.exe") {
-            return;
-        }
-
-        const char *enabled = std::getenv("EKA2L1_SNAKES_N80_NATIVE_RESOLUTION");
-        if (!enabled || std::strcmp(enabled, "1") != 0) {
-            return;
-        }
-
-        // Match the unrelocated code from the benchmark SIS before changing it.
-        // Other releases can have the same UID but different instruction offsets.
-        if (img.header.code_size != 485908 || img.header.code_offset > img.data.size()
-            || img.header.code_size > img.data.size() - img.header.code_offset) {
-            LOG_WARN(KERNEL, "Snakes N80 native resolution skipped: unknown code size");
-            return;
-        }
-        char *code = img.data.data() + img.header.code_offset;
-        if (XXH32(code, img.header.code_size, 0x5B001101) != 0x3A0D7287) {
-            LOG_WARN(KERNEL, "Snakes N80 native resolution skipped: unknown code hash");
-            return;
-        }
-
-        struct instruction_patch {
-            std::uint32_t offset;
-            std::uint32_t original;
-            std::uint32_t replacement;
-        };
-        const instruction_patch patches[] = {
-            { 0x1134, 0xE3A01004, 0xE3A01002 }, // 352x416: normal blit instead of doubling.
-            { 0x1DB4, 0xE3A030D0, 0xE3A03E1A }, // Render height: 208 -> 416.
-            { 0x1DBC, 0xE3A030B0, 0xE3A03E16 }, // Render width: 176 -> 352.
-        };
-        for (const auto &patch : patches) {
-            std::uint32_t instruction;
-            std::memcpy(&instruction, code + patch.offset, sizeof(instruction));
-            if (instruction != patch.original) {
-                LOG_WARN(KERNEL, "Snakes N80 native resolution skipped: unexpected instruction");
-                return;
-            }
-        }
-        for (const auto &patch : patches) {
-            std::memcpy(code + patch.offset, &patch.replacement, sizeof(patch.replacement));
-        }
-        LOG_INFO(KERNEL, "Snakes N80 native resolution enabled (352x416)");
-    }
-
     static codeseg_ptr import_e32img(loader::e32img *img, memory_system *mem, kernel_system *kern, hle::lib_manager &mngr,
         const std::u16string &path = u"", const address force_code_addr = 0) {
-        // Apply before the codeseg copies the image and before any CPU translation.
-        try_snakes_n80_native_resolution(*img, path);
         std::uint32_t data_seg_size = img->header.data_size + img->header.bss_size;
         kernel::codeseg_create_info info;
 

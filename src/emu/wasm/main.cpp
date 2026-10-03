@@ -174,14 +174,6 @@ namespace {
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_snakes_n80_native_resolution_configure(int enabled) {
-    if (g_state || (enabled != 0 && enabled != 1)) return -1;
-    if (enabled) setenv("EKA2L1_SNAKES_N80_NATIVE_RESOLUTION", "1", 1);
-    else unsetenv("EKA2L1_SNAKES_N80_NATIVE_RESOLUTION");
-    return 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
 int eka2l1_graphics_diagnostics_configure(int enabled) {
     if (g_state || (enabled != 0 && enabled != 1)) return -1;
     if (enabled) setenv("EKA2L1_GL_DIAGNOSTICS", "1", 1);
@@ -220,22 +212,6 @@ int eka2l1_ir_configure(int mode) {
     return 0;
 }
 
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_compiled_memory_misses_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::compiled_memory_misses = mode != 0;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_compiled_memory_misses_report() { return eka2l1::arm::aot::compiled_memory_misses; }
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_compiled_svc_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::compiled_svc_enabled = mode != 0;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_compiled_svc_report() { return eka2l1::arm::aot::compiled_svc_enabled; }
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_arm_exclusive_configure(int mode) {
     if (g_state || mode < 0 || mode > 1) return -1;
@@ -290,28 +266,10 @@ int eka2l1_unsafe_code_report() { return common::code_tracking::unsafe_code_mode
 // Exact byte-scanner research control, frozen before guest execution.
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_code_compare_configure(int mode) {
-    if (g_state || mode < 0 || mode > 4) return -1;
+    if (g_state || (mode != 0 && mode != 2)) return -1;
     eka2l1::arm::aot::code_compare_mode = static_cast<unsigned>(mode);
     return 0;
 }
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_rom_leaves_configure(int enabled) {
-    if (g_state || enabled < 0 || enabled > 1) return -1;
-    eka2l1::arm::aot::rom_inline_leaves = enabled != 0;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_rom_leaves_report() { return eka2l1::arm::aot::rom_inline_leaves; }
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_rom_calls_configure(int enabled) {
-    if (g_state || enabled < 0 || enabled > 1) return -1;
-    eka2l1::arm::aot::rom_bounded_calls = enabled != 0;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_rom_calls_report() { return eka2l1::arm::aot::rom_bounded_calls; }
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_hotpath_configure(int policy) {
@@ -321,15 +279,6 @@ int eka2l1_hotpath_configure(int policy) {
 }
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_hotpath_report() { return eka2l1::arm::aot::hotpath_policy; }
-
-// Eager ROM compilation research control. Ordinary startup keeps basic blocks.
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_eager_regions_configure(int enabled) {
-    if (g_state || enabled < 0 || enabled > 1) return -1;
-    if (enabled) setenv("EKA2L1_AOT_EAGER_REGIONS", "1", 1);
-    else unsetenv("EKA2L1_AOT_EAGER_REGIONS");
-    return 0;
-}
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_audio_configure() {
@@ -353,11 +302,7 @@ int eka2l1_live_configure() {
     if (g_state) return -1;
     common::benchmark::interactive = true;
     setenv("EKA2L1_BENCHMARK", "1", 1);
-    // The N80 experiment currently passes replay with the interpreter; its
-    // ROM stalls during startup with compiled exports as well as regions.
-    const char *n80_resolution = std::getenv("EKA2L1_SNAKES_N80_NATIVE_RESOLUTION");
-    const bool n80_experiment = n80_resolution && std::strcmp(n80_resolution, "1") == 0;
-    return eka2l1_aot_configure(n80_experiment ? 0 : 5, 0, 0);
+    return eka2l1_aot_configure(5, 0, 0);
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -414,7 +359,7 @@ int eka2l1_leaf_predication_configure(int enabled) {
 }
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_leaf_features_configure(int features) {
-    if(g_state || features<0 || features>255)return -1;
+    if(g_state || (features != 0 && features != 128))return -1;
     arm::aot::leaf_features=static_cast<unsigned>(features);return 0;
 }
 EMSCRIPTEN_KEEPALIVE
