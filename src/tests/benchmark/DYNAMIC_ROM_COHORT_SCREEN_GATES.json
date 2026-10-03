@@ -162,7 +162,8 @@
           "EKA2L1_SHARED_AUDIO": "1"
         }
       },
-      "dynamic_group_staging_messages": 632
+      "dynamic_group_log_mentions": 632,
+      "dynamic_group_staging_messages": 316
     },
     "standard": {
       "comparison": {
@@ -299,7 +300,8 @@
           "EKA2L1_SHARED_AUDIO": "1"
         }
       },
-      "dynamic_group_staging_messages": 616
+      "dynamic_group_log_mentions": 616,
+      "dynamic_group_staging_messages": 308
     }
   },
   "retained_procedural_failures": "Initial git apply check and application rejected the aot_runtime.h context because V29 added hotpath_policy beside it. No compiler/runtime patch was applied on that attempt; subsequent test/harness edits did run because the shell lacked set -e. The remaining patch was verified and applied with that header excluded, then its single extern was inserted into the current header. No build or measurement used the intermediate incomplete source.\n\nThe first short Snakes comparison started before its new native reference had finished, yielding FileNotFoundError. Preserve v30-short-replay-standard-compare.json as the failed comparison attempt. The browser capture itself completed. Wait for native references, then compare the retained browser captures without rerunning gameplay or altering the oracle.\n",
@@ -315,5 +317,6 @@
   "size_bytes": {
     "control": 11136984,
     "candidate": 11147372
-  }
+  },
+  "count_correction": "Earlier staging field counted staging and instantiation mentions together. Corrected from retained logs; no runtime or test rerun."
 }
