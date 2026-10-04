@@ -18,11 +18,13 @@
  */
 
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/memory_experiment.h>
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/exit_census.h>
 #include <cpu/aot/execution_limits.h>
 #include <common/performance.h>
+#include <common/deterministic.h>
 #include <common/guest_profile.h>
 #include <cpu/dyncom/armstate.h>
 #include <common/log.h>
@@ -284,8 +286,16 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     return lookup_compiled_impl<false>(cpu);
 }
 
-template<bool Verify, bool Profile, bool TrustBytes = false>
+template<bool Verify, bool Profile, bool TrustBytes = false, bool Experimental = false>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+    struct memory_scope {
+        ARMul_State *cpu;
+        bool enabled;
+        explicit memory_scope(ARMul_State *state):cpu(state),enabled(Experimental && bool(state->parent()->experimental_memory)) {
+            if(enabled) cpu->aot_tlb=static_cast<std::uint32_t>(cpu->parent()->experimental_memory(true));
+        }
+        ~memory_scope(){if(enabled)cpu->parent()->experimental_memory(false);}
+    } memory(cpu);
     const auto budget = cpu->aot_budget;
     compiled_run result;
     // The owning core and its embedded TLB storage outlive this chain. Entries
@@ -298,7 +308,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         cpu->aot_budget = budget - result.instructions;
         if constexpr (Profile) count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);
-        cpu->aot_tlb = Verify && validating ? 0 : tlb_address;
+        if constexpr(!Experimental) cpu->aot_tlb = Verify && validating ? 0 : tlb_address;
         cpu->aot_exit = 0;
         const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
         if constexpr(Profile) if(exit_census::enabled) {
@@ -382,17 +392,27 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
             : !function ? "successor_unavailable" : (runner_region_limit && result.blocks==runner_region_limit) ? "region_cap" : "zero_progress";
         ++exit_census::runners[why];
     }
+    if constexpr(Experimental){++memory_experiment::stats.chains;memory_experiment::stats.instructions+=result.instructions;}
     return result;
 }
 
-compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+template<bool Experimental> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
     // Select verification, diagnostics and the trusted cache once per chain.
-    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available>(cpu, function);
+    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available, false, Experimental>(cpu, function);
     if (common::performance::enabled && common::performance::detailed)
-        return execute_chain_impl<false, true>(cpu, function);
+        return execute_chain_impl<false, true, false, Experimental>(cpu, function);
     if (hotpath_policy == 2 && common::code_tracking::skip_code_scans())
-        return execute_chain_impl<false, false, true>(cpu, function);
-    return execute_chain_impl<false, false>(cpu, function);
+        return execute_chain_impl<false, false, true, Experimental>(cpu, function);
+    return execute_chain_impl<false, false, false, Experimental>(cpu, function);
+}
+
+compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+    if(memory_experiment::mode==2 && !memory_experiment::identity_active
+            && common::benchmark::virtual_us.load()>=memory_experiment::activation_us) {
+        memory_experiment::activated_us=common::benchmark::virtual_us.load();
+        memory_experiment::activate_identity();
+    }
+    return memory_experiment::enabled() ? execute_chain_selected<true>(cpu,function) : execute_chain_selected<false>(cpu,function);
 }
 
 std::uint32_t execute_single(ARMul_State *cpu, aot_func function) {
@@ -437,8 +457,9 @@ void observe_hot_pc(ARMul_State *cpu) {
             const auto bytes = std::min(std::size_t(leaf_instruction_limit*4), leaf.size);
             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
         };
-        auto tr = cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
-                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled, &leaves, defer_memory_enabled, ir_policy);
+        auto translate = [&] {return cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
+                            : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled, &leaves, defer_memory_enabled, ir_policy);};
+        auto tr = translate();
         if (tr.func.body.empty() || !tr.entry_supported) {
             // Cache rejection against these exact bytes; retry only after mutation.
             ram_cache.insert(key, view, std::min(size, std::size_t(cpu->TFlag ? 2 : 4))).rejected = true;
@@ -468,6 +489,14 @@ void observe_hot_pc(ARMul_State *cpu) {
             validated_code_cache::add_dependency(entry, dependency.address, leaf.bytes, dependency.bytes);
         }
         tr.func.export_name = "r_" + std::to_string(entry.version) + "_pc_" + std::to_string(pc);
+        if(memory_experiment::mode==2 && !memory_experiment::identity_active) {
+            memory_experiment::mode=0;
+            auto warmup=translate();
+            memory_experiment::mode=2;
+            if(warmup.func.body.empty() || !warmup.entry_supported) std::abort();
+            warmup.func.export_name=tr.func.export_name+"__warmup";
+            hot_pending.push_back(std::move(warmup.func));
+        }
         hot_pending.push_back(std::move(tr.func));
         if (common::performance::counting()) ++common::performance::ram_blocks_compiled;
         if (hot_pending.size() >= 32) flush_hot_blocks();
@@ -480,10 +509,19 @@ void observe_hot_pc(ARMul_State *cpu) {
     if (++count != 8) return;
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(chaining_enabled ? primary_window_bytes : 128u, hot_rom_size - offset);
-    auto tr = cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
-                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, nullptr, defer_memory_enabled, ir_policy);
+    auto translate = [&] {return cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
+                        : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, nullptr, defer_memory_enabled, ir_policy);};
+    auto tr = translate();
     if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
+    if(memory_experiment::mode==2 && !memory_experiment::identity_active) {
+        memory_experiment::mode=0;
+        auto warmup=translate();
+        memory_experiment::mode=2;
+        if(warmup.func.body.empty() || !warmup.entry_supported) std::abort();
+        warmup.func.export_name=tr.func.export_name+"__warmup";
+        hot_pending.push_back(std::move(warmup.func));
+    }
     hot_pending.push_back(std::move(tr.func));
     if (hot_pending.size() >= 32) flush_hot_blocks();
     ++hot_compiled;
@@ -495,6 +533,14 @@ void observe_hot_pc(ARMul_State *cpu) {
 // Generated arithmetic keeps NZCVT separate from the packed CPSR. Publish them
 // after the emitter's state barrier and before a memory/exception callback reads
 // the owning core's CPSR. Direct mapped accesses do not call these trampolines.
+template<bool Experimental> struct memory_callback_scope {
+    ARMul_State *state;
+    bool enabled;
+    explicit memory_callback_scope(ARMul_State *s):state(s),enabled(Experimental && memory_experiment::enabled() && bool(s->parent()->experimental_memory)) {
+        if(enabled)state->parent()->experimental_memory(false);
+    }
+    ~memory_callback_scope(){if(enabled)state->aot_tlb=static_cast<std::uint32_t>(state->parent()->experimental_memory(true));}
+};
 static void publish_callback_cpsr(ARMul_State *state) {
     state->Cpsr = (state->Cpsr & 0x0fffffdfu) | (state->NFlag << 31)
         | (state->ZFlag << 30) | (state->CFlag << 29) | (state->VFlag << 28)
@@ -550,24 +596,25 @@ extern "C" {
 // WASM imports use full i32 parameters; narrow inside C++, never in the caller ABI.
 // Uninstrumented internal imports. The checked variants above are selected only
 // for verifier runs; ordinary memory accesses contain no validation hook.
-static std::uint32_t raw_read32(ARMul_State *s, std::uint32_t a) { publish_callback_cpsr(s); return s->ReadMemory32(a); }
-static std::uint32_t raw_read16(ARMul_State *s, std::uint32_t a) { publish_callback_cpsr(s); return s->ReadMemory16(a); }
-static std::uint32_t raw_read8(ARMul_State *s, std::uint32_t a) { publish_callback_cpsr(s); return s->ReadMemory8(a); }
-static void raw_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { publish_callback_cpsr(s); s->WriteMemory32(a, v); }
-static void raw_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { publish_callback_cpsr(s); s->WriteMemory16(a, v); }
-static void raw_write8(ARMul_State *s, std::uint32_t a, std::uint32_t v) { publish_callback_cpsr(s); s->WriteMemory8(a, v); }
+template<bool Experimental=false> static std::uint32_t raw_read32(ARMul_State *s, std::uint32_t a) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); return s->ReadMemory32(a); }
+template<bool Experimental=false> static std::uint32_t raw_read16(ARMul_State *s, std::uint32_t a) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); return s->ReadMemory16(a); }
+template<bool Experimental=false> static std::uint32_t raw_read8(ARMul_State *s, std::uint32_t a) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); return s->ReadMemory8(a); }
+template<bool Experimental=false> static void raw_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); s->WriteMemory32(a, v); }
+template<bool Experimental=false> static void raw_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); s->WriteMemory16(a, v); }
+template<bool Experimental=false> static void raw_write8(ARMul_State *s, std::uint32_t a, std::uint32_t v) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); s->WriteMemory8(a, v); }
 
 template<unsigned Index> static void count_memory() {
     if (common::performance::counting()) ++common::guest_profile::state.memory_calls[Index];
 }
-static std::uint32_t prof_read32(ARMul_State *s, std::uint32_t a) { count_memory<0>(); return raw_read32(s,a); }
-static void prof_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<1>(); raw_write32(s,a,v); }
-static std::uint32_t prof_read8(ARMul_State *s, std::uint32_t a) { count_memory<2>(); return raw_read8(s,a); }
-static void prof_write8(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<3>(); raw_write8(s,a,v); }
-static std::uint32_t prof_read16(ARMul_State *s, std::uint32_t a) { count_memory<4>(); return raw_read16(s,a); }
-static void prof_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<5>(); raw_write16(s,a,v); }
+template<bool Experimental> static std::uint32_t prof_read32(ARMul_State *s, std::uint32_t a) { count_memory<0>(); return raw_read32<Experimental>(s,a); }
+template<bool Experimental> static void prof_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<1>(); raw_write32<Experimental>(s,a,v); }
+template<bool Experimental> static std::uint32_t prof_read8(ARMul_State *s, std::uint32_t a) { count_memory<2>(); return raw_read8<Experimental>(s,a); }
+template<bool Experimental> static void prof_write8(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<3>(); raw_write8<Experimental>(s,a,v); }
+template<bool Experimental> static std::uint32_t prof_read16(ARMul_State *s, std::uint32_t a) { count_memory<4>(); return raw_read16<Experimental>(s,a); }
+template<bool Experimental> static void prof_write16(ARMul_State *s, std::uint32_t a, std::uint32_t v) { count_memory<5>(); raw_write16<Experimental>(s,a,v); }
 
-static void raw_arm_exclusive(ARMul_State *s, std::uint32_t instruction) {
+template<bool Experimental=false> static void raw_arm_exclusive(ARMul_State *s, std::uint32_t instruction) {
+    memory_callback_scope<Experimental> memory(s);
     // DynCom's exclusive path calls the monitor directly: it does not repack
     // CPSR before the callback. The generated barrier publishes registers and
     // split flags, but must retain that existing packed-CPSR visibility.
@@ -587,7 +634,7 @@ static void raw_arm_exclusive(ARMul_State *s, std::uint32_t instruction) {
 // JS function that instantiates a WASM module and returns exported function
 // addresses as a comma-separated string of "name:table_idx" pairs.
 // Returns empty string on failure.
-EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const std::uintptr_t *helpers), {
+EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const std::uintptr_t *helpers, int identity_active), {
     try {
         var wasmBytes = new Uint8Array(wasmMemory.buffer, bytes, len);
         // Copy the bytes — the buffer may be detached during instantiation
@@ -599,7 +646,7 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
         // Outer export/thread-entry abort handling remains enabled unchanged.
         var raw = index => WebAssembly.Table.prototype.get.call(wasmTable, HEAPU32[(helpers >>> 2) + index]);
         var importObj = {env: {
-            memory: wasmMemory,
+            memory: wasmMemory, guest_memory: globalThis.ekaIdentityMemory,
             tlb_read32: raw(0), tlb_write32: raw(1),
             tlb_read8: raw(2), tlb_write8: raw(3),
             tlb_read16: raw(4), tlb_write16: raw(5), arm_exclusive: raw(6)
@@ -610,12 +657,14 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
         // Collect exports and add them to Emscripten's function table
         var results = [];
         for (var name in instance.exports) {
-            if (name === 'memory') continue;
+            if (name === 'memory' || name.endsWith('__warmup')) continue;
             var func = instance.exports[name];
             if (typeof func !== 'function') continue;
 
             // Add to Emscripten's indirect function table
-            var tableIdx = addFunction(func, 'ii'); // (i32) -> i32
+            var warmup=instance.exports[name+'__warmup'];
+            var tableIdx = addFunction(!identity_active && warmup ? warmup : func, 'ii');
+            if(!identity_active && warmup) (globalThis.ekaIdentityPending ||= []).push([tableIdx,func]);
             results.push(name + ':' + tableIdx);
         }
 
@@ -654,16 +703,17 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
 
     const bool verify = verification_stride() != 0;
     const std::uintptr_t helpers[] = {
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read32 : common::guest_profile::enabled ? prof_read32 : raw_read32),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write32 : common::guest_profile::enabled ? prof_write32 : raw_write32),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : common::guest_profile::enabled ? prof_read8 : raw_read8),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : common::guest_profile::enabled ? prof_write8 : raw_write8),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : common::guest_profile::enabled ? prof_read16 : raw_read16),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? prof_write16 : raw_write16),
-        reinterpret_cast<std::uintptr_t>(raw_arm_exclusive)
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read32 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_read32<true> : prof_read32<false>) : memory_experiment::mode ? raw_read32<true> : raw_read32<false>),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write32 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_write32<true> : prof_write32<false>) : memory_experiment::mode ? raw_write32<true> : raw_write32<false>),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_read8<true> : prof_read8<false>) : memory_experiment::mode ? raw_read8<true> : raw_read8<false>),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_write8<true> : prof_write8<false>) : memory_experiment::mode ? raw_write8<true> : raw_write8<false>),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_read16<true> : prof_read16<false>) : memory_experiment::mode ? raw_read16<true> : raw_read16<false>),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_write16<true> : prof_write16<false>) : memory_experiment::mode ? raw_write16<true> : raw_write16<false>),
+        reinterpret_cast<std::uintptr_t>(memory_experiment::mode ? raw_arm_exclusive<true> : raw_arm_exclusive<false>)
     };
+    if(memory_experiment::mode==2)memory_experiment::initialize_identity_memory();
     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
-        static_cast<int>(wasm_bytes.size()), helpers);
+        static_cast<int>(wasm_bytes.size()), helpers, memory_experiment::identity_active);
 
     if (!result_str || result_str[0] == '\0') {
         if (result_str) free(result_str);

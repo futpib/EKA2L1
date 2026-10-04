@@ -20,6 +20,7 @@
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/state_locals.h>
+#include <cpu/aot/memory_emission.h>
 #include <cpu/aot/exit_census.h>
 #include <cpu/12l1r/tlb.h>
 #include <common/code_tracking.h>
@@ -88,6 +89,7 @@ namespace eka2l1::arm::aot {
         state_local_cache cache;
         bool direct_memory = false;
         static constexpr unsigned ADDRESS = 7, VALUE = 8, HOST = 9, ENTRY = 10, SPAN_HOST = 11;
+        static constexpr unsigned M=12;
         bool span_active = false;
         bool memory_write = false;
         bool entry_supported = true;
@@ -167,6 +169,7 @@ namespace eka2l1::arm::aot {
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
+            if(memory_experiment::mode==1){i32_const(0);set_local(M+1);}
         }
 
         // A whole one-page register transfer can reuse one TLB proof. On
@@ -176,6 +179,12 @@ namespace eka2l1::arm::aot {
             span_active = direct_memory && words > 1 && (!write ||
                 common::code_tracking::skip_code_write_guards());
             if (!span_active) return;
+            if(memory_experiment::mode) {
+                experimental_host(*this,address_local,words*4,write,4);
+                get_local(HOST);op(op_if);op(type_i32);
+                get_local(HOST);get_local(address_local);op(op_i32_sub);i32_const(1);op(op_i32_add);
+                op(op_else);i32_const(0);op(op_end);set_local(SPAN_HOST);return;
+            }
             i32_const(0); set_local(SPAN_HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
             op(op_if); op(type_void);
@@ -209,11 +218,14 @@ namespace eka2l1::arm::aot {
             set_local(ADDRESS); set_local(HOST); // consume imported state argument
             if (span_active) {
                 get_local(SPAN_HOST); op(op_if); op(write?type_void:type_i32);
-                get_local(SPAN_HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add);
+                get_local(SPAN_HOST); get_local(ADDRESS); if(!memory_experiment::mode){i32_const(4095); op(op_i32_and);} op(op_i32_add);
+                if(memory_experiment::mode){i32_const(1);op(op_i32_sub);}
                 if (write) get_local(VALUE);
-                op(write?op_i32_store:op_i32_load); leb(b,2); leb(b,0);
+                guest_memory_op(*this,write?op_i32_store:op_i32_load,2);
                 op(op_else);
             }
+            if(memory_experiment::mode) experimental_host(*this,ADDRESS,size,write,size);
+            else {
             i32_const(0); set_local(HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
             op(op_if); op(type_void);
@@ -231,11 +243,11 @@ namespace eka2l1::arm::aot {
             get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
             op(op_i32_add); set_local(HOST);
             op(op_end); op(op_end); op(op_end);
+            }
             get_local(HOST); op(op_if); op(write ? type_void : type_i32);
             get_local(HOST); if (write) get_local(VALUE);
-            op(write ? (size == 4 ? op_i32_store : size == 2 ? op_i32_store16 : op_i32_store8)
-                     : (size == 4 ? op_i32_load : size == 2 ? op_i32_load16_u : op_i32_load8_u));
-            leb(b, size == 4 ? 2 : size == 2 ? 1 : 0); leb(b, 0);
+            guest_memory_op(*this, write ? (size == 4 ? op_i32_store : size == 2 ? op_i32_store16 : op_i32_store8)
+                     : (size == 4 ? op_i32_load : size == 2 ? op_i32_load16_u : op_i32_load8_u),size==4?2:size==2?1:0);
             op(op_else);
             state_ptr(); get_local(ADDRESS); if (write) get_local(VALUE);
             slow_call(func_idx);
@@ -657,7 +669,7 @@ namespace eka2l1::arm::aot {
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
         //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
         const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
-        result.num_locals = direct_memory ? 11 : 6;
+        result.num_locals = memory_experiment::mode ? 15 : direct_memory ? 11 : 6;
         result.num_f32_locals = 2;
         result.num_f64_locals = 1;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;

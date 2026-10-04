@@ -78,6 +78,7 @@ set(SOURCE_DYNCOM
         src/dyncom/armsupp.cpp)
 
 set(SOURCE_AOT
+        src/aot/memory_experiment.cpp
         include/cpu/aot/aot_registry.h
         include/cpu/aot/aot_runtime.h
     include/cpu/aot/code_cache.h

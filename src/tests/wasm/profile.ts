@@ -48,6 +48,10 @@ const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(
 if (![-1,0,2].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
 const unsafeText=process.env.EKA2L1_UNSAFE_CODE ?? '3';
 if(!/^[03]$/.test(unsafeText))throw Error('Invalid unsafe code mode');
+const memoryImpl=Number(process.env.EKA2L1_MEMORY_IMPL ?? '0');
+const memoryActivation=Number(process.env.EKA2L1_MEMORY_ACTIVATE_US ?? '0');
+if(!Number.isSafeInteger(memoryActivation) || memoryActivation<0 || memoryActivation>120000000 || (memoryActivation && memoryImpl!==2))throw Error('Invalid identity activation time');
+if(!/^[0-3]$/.test(process.env.EKA2L1_MEMORY_IMPL ?? '0'))throw Error('Invalid memory implementation');
 const unsafeCode=Number(unsafeText);
 if(![0,3].includes(unsafeCode))throw Error('Invalid unsafe code mode');
 const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES || '0');
@@ -141,7 +145,7 @@ try {
   if (diagnosticsAvailable === false && (detailedProfile || guestProfile || exitCensus || aotDiagnostics))
     throw new Error('Custom diagnostics require a build with -DEKA2L1_WASM_DIAGNOSTICS=ON');
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, memoryActivation, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -208,7 +212,14 @@ try {
       if (g.Module.ccall('eka2l1_arm_memory_report', 'number', [], []) !== armMemory)
         throw Error('ARM memory policy readback mismatch');
     }
+    if(typeof g.Module._eka2l1_memory_impl_configure==='function') {
+      call('eka2l1_memory_impl_configure',['number'],[memoryImpl]);
+      if(memoryActivation)call('eka2l1_memory_impl_activation',['number'],[memoryActivation]);
+      if(g.Module._eka2l1_memory_impl_report()!==memoryImpl)throw Error('Memory implementation readback mismatch');
+    } else if(memoryImpl)throw Error('Memory implementation API unavailable');
     call('eka2l1_init', ['string'], ['/data']);
+    if(typeof g.Module._eka2l1_memory_impl_configure==='function' && g.Module._eka2l1_memory_impl_configure(memoryImpl)!==-1)
+      throw Error('Memory implementation was not frozen');
     if (hotpathPolicy !== -1 && (g.Module._eka2l1_hotpath_configure(hotpathPolicy ^ 2) !== -1
         || g.Module._eka2l1_hotpath_report() !== hotpathPolicy)) throw Error('Hotpath policy changed after initialization');
     if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
@@ -240,7 +251,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], [appUid]);
-  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, memoryActivation, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -270,6 +281,7 @@ try {
     await client.send('Profiler.setSamplingInterval', {interval: sampleInterval});
     await client.send('Profiler.start');
   }));
+  const memoryBefore = await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;});
   const cpuBefore = await sampleCpuTime(system);
   await page.evaluate(() => {
     performance.mark('eka2l1:measurement-start');
@@ -318,6 +330,8 @@ try {
     }
   } else await waitPhase(3);
   const cpuAfter = await sampleCpuTime(system);
+  const memoryAfter = await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;});
+  const memoryWork = memoryBefore && memoryAfter ? Object.fromEntries(['rebuilds','chains','instructions','bytes_in','bytes_out'].map(key=>[key,memoryAfter[key]-memoryBefore[key]])) : null;
   const cpuTime = cpuTimeDelta(cpuBefore, cpuAfter);
   fs.writeFileSync(path.join(output, 'cpu-time.json'), JSON.stringify({before: cpuBefore, after: cpuAfter, summary: cpuTime}, null, 2));
   await page.evaluate(() => performance.mark('eka2l1:measurement-end'));
@@ -399,7 +413,7 @@ try {
     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
+    aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_activation_us:memoryActivation, memory_impl_work:memoryWork, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     runtime_footprint: await page.evaluate(() => {
       const m=(window as any).Module;
       return typeof m._eka2l1_monitor_report==='function' ? JSON.parse(m.ccall('eka2l1_monitor_report','string',[],[])) : null;

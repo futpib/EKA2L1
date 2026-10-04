@@ -21,6 +21,7 @@
 #include <cpu/aot/arm_translator.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/state_locals.h>
+#include <cpu/aot/memory_emission.h>
 #include <cpu/aot/exit_census.h>
 #include <cpu/aot/execution_limits.h>
 #include <cpu/12l1r/tlb.h>
@@ -65,6 +66,7 @@ namespace eka2l1::arm::aot {
         bool pc_written = false;
         // Reserved i32 locals for region instruction count and memory fast path.
         // Short blocks do not use a dynamic count; local 9 records a callback.
+        static constexpr unsigned M=14;
         static constexpr unsigned CALLBACK=9;
         static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13;
         bool memory_write = false;
@@ -160,6 +162,7 @@ namespace eka2l1::arm::aot {
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
+            if(memory_experiment::mode==1){i32_const(0);set_local(M+1);}
             if (region) {
                 store_i32_const(S::AOT_EXIT, 1); census_effect(1);
             }
@@ -188,11 +191,13 @@ namespace eka2l1::arm::aot {
                 // their permissions and physical non-alias with current code.
                 proved_host(); get_local(HOST);
                 if (write) get_local(VALUE);
-                op(write ? op_i32_store : op_i32_load); leb(b, 2); leb(b, 0);
+                guest_memory_op(*this, write ? op_i32_store : op_i32_load, 2);
                 return;
             }
             // Each access checks the current TLB mapping and permissions.
             op(op_block); op(write ? type_void : type_i32);
+            if(memory_experiment::mode) experimental_host(*this, ADDRESS, size, write, size);
+            else {
             i32_const(0); set_local(HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
             op(op_if); op(type_void);
@@ -206,6 +211,7 @@ namespace eka2l1::arm::aot {
             op(op_if); op(type_void);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
             op(op_end); op(op_end);
+            }
             get_local(HOST); op(op_i32_eqz); op(op_if); op(type_void);
             if (defer_memory && restartable_access) {
                 get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT);
@@ -216,13 +222,14 @@ namespace eka2l1::arm::aot {
                 op(op_br); leb(b,1); // leave result block, preserving helper result
             }
             op(op_end);
-            get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
-            op(op_i32_add); set_local(HOST);
+            if(!memory_experiment::mode) {
+                get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+                op(op_i32_add); set_local(HOST);
+            }
             get_local(HOST);
             if (write) get_local(VALUE);
-            op(write ? (size==4 ? op_i32_store : size==2 ? op_i32_store16 : op_i32_store8)
-                     : (size==4 ? op_i32_load : size==2 ? op_i32_load16_u : op_i32_load8_u));
-            leb(b, size==4 ? 2 : size==2 ? 1 : 0); leb(b,0);
+            guest_memory_op(*this, write ? (size==4 ? op_i32_store : size==2 ? op_i32_store16 : op_i32_store8)
+                     : (size==4 ? op_i32_load : size==2 ? op_i32_load16_u : op_i32_load8_u), size==4?2:size==2?1:0);
             if (write) {
                 if (!common::code_tracking::skip_code_write_guards()) {
                 // Backing-address guard catches writes through guest aliases.
@@ -238,6 +245,7 @@ namespace eka2l1::arm::aot {
         // contained in one permitted TLB page; otherwise use the existing
         // per-access path, including its fault/endian behavior.
         void block_transfer_host(unsigned address_local, unsigned bytes, bool write, unsigned alignment = 4) {
+            if(memory_experiment::mode){experimental_host(*this,address_local,bytes,write,alignment);return;}
             i32_const(0); set_local(HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
             op(op_if); op(type_void);
@@ -770,7 +778,7 @@ namespace eka2l1::arm::aot {
         // A fixed i64 prefix keeps its index independent of lazily allocated i32 register locals.
         // Locals: 0=state_ptr(param), 1=wide result, 2..8=i32 scratch.
         const bool direct_blocks = bounded && cache_registers && !region && arm_direct_memory;
-        result.num_locals = region || direct_blocks ? 12 : 7;
+        result.num_locals = memory_experiment::mode ? 16 : region || direct_blocks ? 12 : 7;
         result.num_prefix_i64_locals = 1;
         result.num_f32_locals = 0;
         result.num_f64_locals = 0;
@@ -1538,11 +1546,11 @@ namespace eka2l1::arm::aot {
                         if (!(reglist & (1u << r))) continue;
                         w.get_local(arm_emit::HOST);
                         if (load) {
-                            w.op(op_i32_load); leb(result.body,2); leb(result.body,offset);
+                            guest_memory_op(w,op_i32_load,2,offset);
                             w.set_local(TMP2); w.store_reg(r,TMP2);
                         } else {
                             if (r == 15) w.i32_const(insn_addr + 8); else w.load_reg(r);
-                            w.op(op_i32_store); leb(result.body,2); leb(result.body,offset);
+                            guest_memory_op(w,op_i32_store,2,offset);
                             w.memory_write = true;
                         }
                         offset += 4;

@@ -24,6 +24,7 @@
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/memory_experiment.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
 #include <kernel/kernel.h>
@@ -255,11 +256,17 @@ namespace eka2l1::arm::aot {
                 const auto key = c.func_addr | (c.is_arm ? 0u : 1u);
                 if (!visited.insert(key).second) continue;
                 const auto size = std::min(c.func_size, chaining_enabled ? 512u : 128u);
-                auto tr = c.is_arm
+                auto translate=[&]{return c.is_arm
                     ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled)
-                    : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled);
+                    : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled);};
+                auto tr=translate();
                 if (tr.func.body.empty() || !tr.entry_supported) continue;
                 tr.func.export_name = "f_" + std::to_string(key);
+                if(memory_experiment::mode==2 && !memory_experiment::identity_active) {
+                    memory_experiment::mode=0;auto warmup=translate();memory_experiment::mode=2;
+                    if(warmup.func.body.empty() || !warmup.entry_supported) std::abort();
+                    warmup.func.export_name=tr.func.export_name+"__warmup";all_funcs.push_back(std::move(warmup.func));
+                }
                 all_funcs.push_back(std::move(tr.func));
                 ++accepted;
                 if (max_exports >= 0 && accepted >= static_cast<std::size_t>(max_exports)) break;

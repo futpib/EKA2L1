@@ -120,6 +120,8 @@ namespace eka2l1::arm {
             std::size_t size = 0;
         };
         std::function<bool(address, code_mapping &)> resolve_code;
+        // Experimental memory ownership: enter publishes a current view, leave flushes guest stores.
+        std::function<std::uintptr_t(bool)> experimental_memory;
         // Optional mapping contract: the MMU updates the space on switches and
         // advances the generation on every mapping/permission/lifetime change.
         // Code contents are deliberately not covered and must still be checked.

@@ -24,6 +24,8 @@
 #include <mem/mmu.h>
 
 #include <mem/model/flexible/mmu.h>
+#include <cpu/aot/memory_experiment.h>
+#include <stdexcept>
 #include <mem/model/multiple/mmu.h>
 
 namespace eka2l1::mem {
@@ -31,6 +33,31 @@ namespace eka2l1::mem {
         : manager_(manager)
         , cpu_(cpu)
         , conf_(conf) {
+        using namespace arm::aot;
+        if (memory_experiment::mode) {
+            if (manager_->page_size_bits_ != 12) throw std::runtime_error("Memory experiments require 4 KiB guest pages");
+            auto view = std::make_shared<memory_experiment::view>();
+            cpu->experimental_memory = [this, view](bool enter) -> std::uintptr_t {
+                if (!enter) { view->leave(); return 0; }
+                return view->enter(mapping_generation.load(std::memory_order_acquire), current_addr_space(), [this] {
+                    std::vector<memory_experiment::binding> pages;
+                    for (std::uint32_t table=0; table<4096; ++table) {
+                        // A missing table returns null even when its first page
+                        // would be uncommitted. Resolve through the manager to
+                        // preserve the multiple model's global-directory rules.
+                        if (!manager_->get_page_info(current_addr_space(),table<<20)) continue;
+                        for (std::uint32_t page=0;page<256;++page) {
+                            const auto guest=(table<<20)|(page<<12);
+                            const auto *info=manager_->get_page_info(current_addr_space(),guest);
+                            if(guest && info && info->host_addr) pages.push_back({guest,
+                                static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(info->host_addr)),
+                                static_cast<std::uint32_t>(info->perm)});
+                        }
+                    }
+                    return pages;
+                });
+            };
+        }
         cpu->code_mapping_generation = &mapping_generation;
         cpu->code_address_space = 0;
         // Set CPU read/write functions

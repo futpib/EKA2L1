@@ -18,6 +18,7 @@
  */
 
 #include <cpu/aot/wasm_emitter.h>
+#include <cpu/aot/memory_experiment.h>
 #include <cstring>
 
 namespace eka2l1::arm::aot {
@@ -123,7 +124,7 @@ namespace eka2l1::arm::aot {
         // === Section 2: Import ===
         {
             std::vector<std::uint8_t> sec;
-            leb128(sec, num_imports + 1); // function imports + memory
+            leb128(sec, num_imports + 1 + (memory_experiment::mode==2)); // functions and memories
 
             // Import shared memory (required for i32.load/store on state_ptr)
             emit_str(sec, "env");
@@ -134,6 +135,10 @@ namespace eka2l1::arm::aot {
             leb128(sec, 256);    // min pages
             leb128(sec, 65536);  // max pages
 
+            if(memory_experiment::mode==2) {
+                emit_str(sec,"env");emit_str(sec,"guest_memory");sec.push_back(2);sec.push_back(1);
+                leb128(sec,65536);leb128(sec,65536);
+            }
             // Import functions
             for (std::uint32_t i = 0; i < num_imports; i++) {
                 emit_str(sec, imports[i].module_name);
