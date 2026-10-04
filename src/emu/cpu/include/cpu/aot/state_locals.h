@@ -19,6 +19,8 @@ namespace eka2l1::arm::aot {
         std::set<std::uint32_t> written;
         struct barrier { std::size_t position; bool reload; };
         std::vector<barrier> barriers;
+        // Re-establish derived memory locals at entry and after every helper.
+        std::vector<std::uint8_t> reload_suffix;
 
         bool accepts(std::uint32_t offset) const {
             using S = state_offsets;
@@ -58,6 +60,7 @@ namespace eka2l1::arm::aot {
                     out.push_back(op_i32_store); leb(out, 2); leb(out, offset);
                 }
             }
+            if (reload) out.insert(out.end(), reload_suffix.begin(), reload_suffix.end());
         }
         void finish(wasm_func_def &function) {
             if (!enabled) return;

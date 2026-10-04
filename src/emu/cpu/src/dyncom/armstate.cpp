@@ -9,6 +9,13 @@
 #include <cpu/dyncom/armstate.h>
 #include <cpu/dyncom/vfp/vfp.h>
 
+namespace {
+    struct memory_publication_scope {
+        eka2l1::arm::core *cpu;
+        ~memory_publication_scope() { cpu->publish_memory_view(); }
+    };
+}
+
 ARMul_State::ARMul_State(eka2l1::arm::dyncom_core *core, PrivilegeMode initial_mode)
     : core(core) {
     flush_block_l1_cache();
@@ -191,14 +198,17 @@ void ARMul_State::PublishMemoryCallbackCpsr() const {
 }
 
 void ARMul_State::RaiseException(const int type, const std::uint32_t data) {
+    memory_publication_scope publication{core};
     core->exception_handler(static_cast<eka2l1::arm::exception_type>(type), data);
 }
 
 void ARMul_State::RaiseSystemCall(std::uint32_t val) {
+    memory_publication_scope publication{core};
     core->system_call_handler(val);
 }
 
 std::uint8_t ARMul_State::ReadMemory8Slow(std::uint32_t address) const {
+    memory_publication_scope publication{core};
     PublishMemoryCallbackCpsr();
     std::uint8_t value = 0;
     bool result = core->read_8bit(address, &value);
@@ -217,6 +227,7 @@ std::uint8_t ARMul_State::ReadMemory8Slow(std::uint32_t address) const {
 }
 
 std::uint16_t ARMul_State::ReadMemory16Slow(std::uint32_t address) const {
+    memory_publication_scope publication{core};
     PublishMemoryCallbackCpsr();
     std::uint16_t value = 0;
     bool result = core->read_16bit(address, &value);
@@ -238,6 +249,7 @@ std::uint16_t ARMul_State::ReadMemory16Slow(std::uint32_t address) const {
 }
 
 std::uint32_t ARMul_State::ReadMemory32Slow(std::uint32_t address) const {
+    memory_publication_scope publication{core};
     PublishMemoryCallbackCpsr();
     std::uint32_t value = 0;
     bool result = core->read_32bit(address, &value);
@@ -268,6 +280,7 @@ std::uint32_t ARMul_State::ReadCode(std::uint32_t address) const {
         return *ptr;
     }
 
+    memory_publication_scope publication{core};
     std::uint32_t value = 0;
     bool result = core->read_code(address, &value);
 
@@ -285,6 +298,7 @@ std::uint32_t ARMul_State::ReadCode(std::uint32_t address) const {
 }
 
 std::uint64_t ARMul_State::ReadMemory64Slow(std::uint32_t address) const {
+    memory_publication_scope publication{core};
     PublishMemoryCallbackCpsr();
     std::uint64_t value = 0;
     bool result = core->read_64bit(address, &value);
@@ -306,6 +320,7 @@ std::uint64_t ARMul_State::ReadMemory64Slow(std::uint32_t address) const {
 }
 
 void ARMul_State::WriteMemory8Slow(std::uint32_t address, std::uint8_t data) {
+    memory_publication_scope publication{core};
     PublishMemoryCallbackCpsr();
     bool result = core->write_8bit(address, &data);
 
@@ -321,6 +336,7 @@ void ARMul_State::WriteMemory8Slow(std::uint32_t address, std::uint8_t data) {
 }
 
 void ARMul_State::WriteMemory16Slow(std::uint32_t address, std::uint16_t data) {
+    memory_publication_scope publication{core};
     PublishMemoryCallbackCpsr();
     bool result = core->write_16bit(address, &data);
 
@@ -336,6 +352,7 @@ void ARMul_State::WriteMemory16Slow(std::uint32_t address, std::uint16_t data) {
 }
 
 void ARMul_State::WriteMemory32Slow(std::uint32_t address, std::uint32_t data) {
+    memory_publication_scope publication{core};
     PublishMemoryCallbackCpsr();
     bool result = core->write_32bit(address, &data);
 
@@ -351,6 +368,7 @@ void ARMul_State::WriteMemory32Slow(std::uint32_t address, std::uint32_t data) {
 }
 
 void ARMul_State::WriteMemory64Slow(std::uint32_t address, std::uint64_t data) {
+    memory_publication_scope publication{core};
     PublishMemoryCallbackCpsr();
     bool result = core->write_64bit(address, &data);
 

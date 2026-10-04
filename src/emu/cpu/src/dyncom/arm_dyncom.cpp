@@ -41,6 +41,7 @@ namespace eka2l1::arm {
     }
 
     void dyncom_core::run(const std::uint32_t instruction_count) {
+        publish_memory_view();
         ticks_executed_ = 0;
         state_->NumInstrsToExecute = instruction_count;
 
@@ -52,6 +53,7 @@ namespace eka2l1::arm {
     }
 
     void dyncom_core::step() {
+        publish_memory_view();
         ticks_executed_ = 0;
         state_->NumInstrsToExecute = 1;
 

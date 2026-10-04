@@ -92,6 +92,7 @@ namespace eka2l1::arm::aot {
         static constexpr unsigned M=12;
         bool span_active = false;
         bool memory_write = false;
+        bool compact_memory_used = false;
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
         // Number of early-exit bails emitted into the function body.
@@ -170,7 +171,8 @@ namespace eka2l1::arm::aot {
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
             if(memory_experiment::mode==1){i32_const(0);set_local(M+1);}
-            if(memory_experiment::mode==2){i32_const(0);set_local(M+3);}
+            if(memory_experiment::mode==2 && !memory_experiment::compact_direct()){i32_const(0);set_local(M+3);}
+            if(memory_experiment::compact_direct() && !cache.enabled) compact_memory_setup(*this);
         }
 
         // A whole one-page register transfer can reuse one TLB proof. On
@@ -670,7 +672,7 @@ namespace eka2l1::arm::aot {
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
         //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
         const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
-        result.num_locals = memory_experiment::mode ? 15 : direct_memory ? 11 : 6;
+        result.num_locals = memory_experiment::compact_direct() ? 14 : memory_experiment::mode ? 15 : direct_memory ? 11 : 6;
         result.num_f32_locals = 2;
         result.num_f64_locals = 1;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
@@ -4333,6 +4335,7 @@ namespace eka2l1::arm::aot {
         if (bounded) w.bail(start_address + decoded_end_offset, insn_idx, decoded_end_offset>=code_size?exit_census::source_end:exit_census::emission_end);
         else { w.i32_const(num_insns); w.ret(); }
 
+        finish_memory_locals(w);
         w.cache.finish(result);
         tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;

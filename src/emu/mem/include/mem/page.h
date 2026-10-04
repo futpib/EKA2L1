@@ -24,6 +24,7 @@
 #include <vector>
 #include <array>
 #include <atomic>
+#include <memory>
 
 namespace eka2l1::mem {
     enum : uint32_t {
@@ -107,7 +108,23 @@ namespace eka2l1::mem {
     // Conservative process-wide generation: mappings are mutated under the
     // emulator's existing memory/scheduler ownership, never by this cache.
     inline std::atomic<std::uint64_t> mapping_generation{1};
-    inline void mapping_changed() { mapping_generation.fetch_add(1, std::memory_order_release); }
+    // Registration and mutation share the existing memory/scheduler ownership.
+    // Weak references cannot outlive their CPU, even during manager teardown.
+    inline std::vector<std::weak_ptr<std::atomic<bool>>> mapping_observers;
+    inline std::shared_ptr<std::atomic<bool>> observe_mapping_changes() {
+        auto pending = std::make_shared<std::atomic<bool>>(true);
+        mapping_observers.emplace_back(pending);
+        return pending;
+    }
+    inline void mapping_changed() {
+        mapping_generation.fetch_add(1, std::memory_order_release);
+        for (auto it = mapping_observers.begin(); it != mapping_observers.end();) {
+            if (auto pending = it->lock()) {
+                pending->store(true, std::memory_order_release);
+                ++it;
+            } else it = mapping_observers.erase(it);
+        }
+    }
 
     struct page_info {
         prot perm; ///< The permission of this page.

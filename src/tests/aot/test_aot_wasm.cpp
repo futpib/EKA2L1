@@ -4998,6 +4998,126 @@ static bool test_memory_implementations() {
     return true;
 }
 
+static bool test_direct_memory_cuts() {
+#ifdef __EMSCRIPTEN__
+    using namespace memory_experiment;
+    struct restore {
+        unsigned policy=direct_policy, implementation=mode;
+        ~restore(){direct_policy=policy;mode=implementation;}
+    } saved;
+    for (unsigned policy:{1u,2u,3u}) {
+        direct_policy=policy;
+        if (!test_memory_implementations()) return false;
+    }
+    direct_policy=3;mode=2;
+    namespace mem=eka2l1::mem;
+    eka2l1::config::state conf;
+    r12l1::exclusive_monitor monitor(1);
+    mem::basic_page_table_allocator allocator;
+    mem::control_multiple control(&monitor,&allocator,&conf,12,false);
+    auto first=std::make_unique<mem::multiple_mem_model_process>(&control);
+    auto second=std::make_unique<mem::multiple_mem_model_process>(&control);
+    mem::mem_model_chunk_creation_info info{};
+    info.size=0x100000;info.flags=mem::MEM_MODEL_CHUNK_REGION_USER_LOCAL|mem::MEM_MODEL_CHUNK_TYPE_NORMAL;
+    info.perm=prot_read_write;
+    mem::mem_model_chunk *chunks[2]{};
+    mem::multiple_mem_model_process *processes[]={first.get(),second.get()};
+    for(unsigned i=0;i<2;++i) {
+        if(processes[i]->create_chunk(chunks[i],info) || chunks[i]->commit(0,4096)!=4096)return false;
+        static_cast<std::uint32_t*>(chunks[i]->host_base())[64]=0xe1a00000; // MOV r0,r0
+    }
+    // Exercise both arena edges and invalidate hoisted state inside a Thumb
+    // invocation. The arena has canonical storage even at its uncommitted tail;
+    // mode 2 deliberately assumes mapped/permitted accesses inside that window.
+    {
+        const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+        auto *arena=static_cast<std::uint8_t*>(control.direct_local_memory(first->address_space_id()));
+        std::memset(arena,0x31,4);std::memset(arena+direct_size-4,0x57,4);
+        const auto host=static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(arena));
+        view mapping;
+        auto resolve=[&]{return std::vector<binding>{{direct_begin,host,3}};};
+        const auto pointer=mapping.enter(1,1,resolve,{direct_begin,direct_size,host,3});
+        g_test_mem=nullptr;g_memory_boundary={};
+        for(unsigned width:{1u,2u,4u}) {
+            const std::uint16_t code=width==1?0x7808:width==2?0x8808:0x6808;
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(&code),2,0x1000,nullptr,nullptr,true,false,true);
+            auto module=build_wasm_module({tr.func},imports);
+            for(auto address:{direct_begin-width,direct_begin,direct_begin+1,direct_begin+direct_size-width,direct_begin+direct_size,0xfffffffcu}) {
+                alignas(8)std::uint32_t state[256]{};
+                state[1]=address;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=48;
+                state[state_offsets::TFLAG/4]=1;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=1;state[state_offsets::AOT_TLB/4]=pointer;
+                g_all_memory_helper_calls=0;
+                const bool fast=(address&(width-1))==0 && address>=direct_begin && std::uint64_t(address)+width<=direct_begin+direct_size;
+                std::uint32_t expected=0;if(fast)std::memcpy(&expected,arena+address-direct_begin,width);
+                auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+                if(count!=1 || state[0]!=expected || g_all_memory_helper_calls!=!fast) {
+                    printf("FAIL compact arena edge width=%u address=%x value=%x expected=%x calls=%u\n",width,address,state[0],expected,g_all_memory_helper_calls);return false;
+                }
+            }
+        }
+        const std::uint16_t code[]={0x6808,0x682a,0x680b};
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
+        auto module=build_wasm_module({tr.func},imports);
+        for(unsigned change:{0u,1u,2u}) {
+            alignas(8)std::uint32_t state[256]{};
+            state[1]=direct_begin;state[5]=0x90000000;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=48;
+            state[state_offsets::TFLAG/4]=1;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=3;
+            state[state_offsets::AOT_TLB/4]=change==2?0:pointer;
+            g_read32_observer=[&](auto p,auto address){auto *s=reinterpret_cast<std::uint32_t*>(p);
+                if(address==0x90000000) {
+                    if(change==0)s[state_offsets::CPSR/4]|=0x200;
+                    else if(change==1)s[state_offsets::AOT_TLB/4]=0;
+                    else s[state_offsets::AOT_TLB/4]=pointer;
+                }
+            };
+            g_all_memory_helper_calls=0;
+            auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            g_read32_observer={};
+            if(count!=3 || g_all_memory_helper_calls!=2 || state[3]!=(change==2?0x31313131u:0u))return false;
+        }
+        mapping.leave();
+    }
+    auto cpu=std::make_unique<dyncom_core>(&monitor,12);
+    auto *mmu=control.get_or_create_mmu(cpu.get());
+    const auto guest=chunks[0]->base(first.get());
+    auto fail=[](int line){printf("FAIL direct publication at line %d\n",line);return false;};
+    if(!cpu->experimental_dirty || !mmu->set_current_addr_space(first->address_space_id()))return fail(__LINE__);
+    cpu->set_pc(guest+256);cpu->set_cpsr(16);cpu->run(1);
+    auto *view=reinterpret_cast<direct_view*>(cpu->experimental_pointer);
+    if(!view || view->arena_mask!=~0u || cpu->experimental_dirty->load())return fail(__LINE__);
+    const auto generation=mem::mapping_generation.load();
+    if(!mmu->set_current_addr_space(second->address_space_id()) || !cpu->experimental_dirty->load()
+            || mem::mapping_generation.load()!=generation)return fail(__LINE__);
+    cpu->set_pc(guest+256);cpu->step();
+    if(cpu->experimental_dirty->load() || view->host!=reinterpret_cast<std::uintptr_t>(control.direct_local_memory(second->address_space_id())))return fail(__LINE__);
+    auto *page=control.get_page_info(second->address_space_id(),guest);
+    const auto old_host=page->host_addr;
+    // A system call changes a mapping without another CPU::run entry.
+    cpu->system_call_handler=[&](auto){page->assign(chunks[0]->host_base(),prot_read_write);};
+    auto *state=eka2l1::arm::matched_kernel_access::state(*cpu);
+    state->RaiseSystemCall(0);
+    if(cpu->experimental_dirty->load() || view->arena_mask ||
+            reinterpret_cast<memory_experiment::page*>(view->pages)[guest>>12].read!=reinterpret_cast<std::uintptr_t>(chunks[0]->host_base()))return fail(__LINE__);
+    // Slow-memory callbacks also publish before generated code can resume.
+    cpu->read_8bit=[&](auto,std::uint8_t *out){page->assign(old_host,prot_read);*out=7;return true;};
+    if(state->ReadMemory8Slow(guest)!=7 || cpu->experimental_dirty->load() || view->arena_mask!=~0u ||
+            reinterpret_cast<memory_experiment::page*>(view->pages)[guest>>12].write)return fail(__LINE__);
+    cpu->exception_handler=[&](auto,auto){page->clear();return true;};
+    state->RaiseException(exception_type_access_violation_read,guest);
+    if(cpu->experimental_dirty->load() || reinterpret_cast<memory_experiment::page*>(view->pages)[guest>>12].read)return fail(__LINE__);
+    page->assign(old_host,prot_read_write);
+    auto weak=std::weak_ptr<std::atomic<bool>>(cpu->experimental_dirty);
+    mmu->set_current_addr_space(0);
+    first.reset();second.reset();
+    cpu.reset();
+    mem::mapping_changed();
+    if(!weak.expired())return fail(__LINE__);
+    printf("PASS direct memory cuts: three policies, CPU entry, ASID switch, syscall, memory/exception callbacks, permissions and observer lifetime\n");
+#endif
+    return true;
+}
+
 int main(int argc, char **argv) {
     // Production module staging logs its result; standalone tests have no sink.
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
@@ -5013,6 +5133,7 @@ int main(int argc, char **argv) {
     // and their intentional stale-code behavior.
     eka2l1::common::code_tracking::unsafe_code_mode = 0;
     if(argc==2 && std::string(argv[1])=="--memory-implementations-only")return test_memory_implementations()?0:1;
+    if(argc==2 && std::string(argv[1])=="--direct-cuts-only")return test_direct_memory_cuts()?0:1;
     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
     if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;

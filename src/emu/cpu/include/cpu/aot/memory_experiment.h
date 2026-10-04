@@ -7,6 +7,10 @@
 namespace eka2l1::arm::aot::memory_experiment {
     // Frozen before guest initialization. Zero keeps the production TLB path.
     inline unsigned mode = 0;
+    // Frozen before initialization: 0 original, 1 cached view, 2 compact
+    // emission, 3 compact emission with mapping-change notifications.
+    inline unsigned direct_policy = 0;
+    inline bool compact_direct() { return mode == 2 && direct_policy >= 2; }
     inline std::uint64_t activation_us = 0, activated_us = 0;
     inline bool identity_active = true;
     inline bool enabled(){return mode && (mode!=2 || identity_active);}
@@ -26,7 +30,10 @@ namespace eka2l1::arm::aot::memory_experiment {
     // A bounded local-address arena shares the runtime's primary WASM memory.
     // Other addresses use the page table, including physical aliases.
     inline constexpr std::uint32_t direct_begin = 0x00400000, direct_size = 64 * 1024 * 1024;
-    struct direct_view { std::uint32_t begin, size, host, pages; };
+    struct direct_view {
+        std::uint32_t begin, size, host, pages;
+        std::uint32_t bias = 0, arena_mask = 0;
+    };
 
     class view {
         std::uint64_t generation_ = 0;

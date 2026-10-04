@@ -286,15 +286,32 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     return lookup_compiled_impl<false>(cpu);
 }
 
-template<bool Verify, bool Profile, bool TrustBytes = false, bool Experimental = false>
+static std::uint32_t prepare_cached_memory(ARMul_State *cpu) {
+    auto *core=cpu->parent();
+    const auto generation=core->code_mapping_generation ? core->code_mapping_generation->load(std::memory_order_acquire) : 0;
+    if (!core->experimental_pointer || !core->code_mapping_generation || generation!=core->experimental_generation
+            || core->code_address_space!=core->experimental_space) {
+        core->experimental_pointer=static_cast<std::uint32_t>(core->experimental_memory(true));
+        core->experimental_memory(false);
+        core->experimental_generation=generation;
+        core->experimental_space=core->code_address_space;
+    }
+    return core->experimental_pointer;
+}
+
+template<bool Verify, bool Profile, bool TrustBytes = false, bool Experimental = false, bool CachedMemory = false, bool PublishedMemory = false>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     struct memory_scope {
         ARMul_State *cpu;
         bool enabled;
         explicit memory_scope(ARMul_State *state):cpu(state),enabled(Experimental && bool(state->parent()->experimental_memory)) {
-            if(enabled) cpu->aot_tlb=static_cast<std::uint32_t>(cpu->parent()->experimental_memory(true));
+            if(enabled) {
+                if constexpr(PublishedMemory) cpu->aot_tlb=cpu->parent()->experimental_pointer;
+                else if constexpr(CachedMemory) cpu->aot_tlb=prepare_cached_memory(cpu);
+                else cpu->aot_tlb=static_cast<std::uint32_t>(cpu->parent()->experimental_memory(true));
+            }
         }
-        ~memory_scope(){if(enabled)cpu->parent()->experimental_memory(false);}
+        ~memory_scope(){if constexpr(!CachedMemory) if(enabled)cpu->parent()->experimental_memory(false);}
     } memory(cpu);
     const auto budget = cpu->aot_budget;
     compiled_run result;
@@ -392,18 +409,18 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
             : !function ? "successor_unavailable" : (runner_region_limit && result.blocks==runner_region_limit) ? "region_cap" : "zero_progress";
         ++exit_census::runners[why];
     }
-    if constexpr(Experimental){++memory_experiment::stats.chains;memory_experiment::stats.instructions+=result.instructions;}
+    if constexpr(Experimental && !CachedMemory){++memory_experiment::stats.chains;memory_experiment::stats.instructions+=result.instructions;}
     return result;
 }
 
-template<bool Experimental> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
+template<bool Experimental, bool CachedMemory = false, bool PublishedMemory = false> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
     // Select verification, diagnostics and the trusted cache once per chain.
-    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available, false, Experimental>(cpu, function);
+    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available, false, Experimental, CachedMemory, PublishedMemory>(cpu, function);
     if (common::performance::enabled && common::performance::detailed)
-        return execute_chain_impl<false, true, false, Experimental>(cpu, function);
+        return execute_chain_impl<false, true, false, Experimental, CachedMemory, PublishedMemory>(cpu, function);
     if (hotpath_policy == 2 && common::code_tracking::skip_code_scans())
-        return execute_chain_impl<false, false, true, Experimental>(cpu, function);
-    return execute_chain_impl<false, false, false, Experimental>(cpu, function);
+        return execute_chain_impl<false, false, true, Experimental, CachedMemory, PublishedMemory>(cpu, function);
+    return execute_chain_impl<false, false, false, Experimental, CachedMemory, PublishedMemory>(cpu, function);
 }
 
 compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
@@ -412,6 +429,8 @@ compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
         memory_experiment::activated_us=common::benchmark::virtual_us.load();
         memory_experiment::activate_identity();
     }
+    if(memory_experiment::mode==2 && memory_experiment::direct_policy==3) return execute_chain_selected<true,true,true>(cpu,function);
+    if(memory_experiment::mode==2 && memory_experiment::direct_policy) return execute_chain_selected<true,true>(cpu,function);
     return memory_experiment::enabled() ? execute_chain_selected<true>(cpu,function) : execute_chain_selected<false>(cpu,function);
 }
 
@@ -537,9 +556,15 @@ template<bool Experimental> struct memory_callback_scope {
     ARMul_State *state;
     bool enabled;
     explicit memory_callback_scope(ARMul_State *s):state(s),enabled(Experimental && memory_experiment::enabled() && bool(s->parent()->experimental_memory)) {
-        if(enabled)state->parent()->experimental_memory(false);
+        if(enabled && !(memory_experiment::mode==2 && memory_experiment::direct_policy))state->parent()->experimental_memory(false);
     }
-    ~memory_callback_scope(){if(enabled)state->aot_tlb=static_cast<std::uint32_t>(state->parent()->experimental_memory(true));}
+    ~memory_callback_scope(){if(enabled) {
+        if (memory_experiment::mode==2 && memory_experiment::direct_policy==3) {
+            state->parent()->publish_memory_view();
+            state->aot_tlb=state->parent()->experimental_pointer;
+        } else state->aot_tlb=memory_experiment::mode==2 && memory_experiment::direct_policy ? prepare_cached_memory(state)
+            : static_cast<std::uint32_t>(state->parent()->experimental_memory(true));
+    }}
 };
 static void publish_callback_cpsr(ARMul_State *state) {
     state->Cpsr = (state->Cpsr & 0x0fffffdfu) | (state->NFlag << 31)
@@ -702,14 +727,15 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
     if (wasm_bytes.empty()) return 0;
 
     const bool verify = verification_stride() != 0;
+    const bool experimental = memory_experiment::mode != 0;
     const std::uintptr_t helpers[] = {
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read32 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_read32<true> : prof_read32<false>) : memory_experiment::mode ? raw_read32<true> : raw_read32<false>),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write32 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_write32<true> : prof_write32<false>) : memory_experiment::mode ? raw_write32<true> : raw_write32<false>),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_read8<true> : prof_read8<false>) : memory_experiment::mode ? raw_read8<true> : raw_read8<false>),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_write8<true> : prof_write8<false>) : memory_experiment::mode ? raw_write8<true> : raw_write8<false>),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_read16<true> : prof_read16<false>) : memory_experiment::mode ? raw_read16<true> : raw_read16<false>),
-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_write16<true> : prof_write16<false>) : memory_experiment::mode ? raw_write16<true> : raw_write16<false>),
-        reinterpret_cast<std::uintptr_t>(memory_experiment::mode ? raw_arm_exclusive<true> : raw_arm_exclusive<false>)
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read32 : common::guest_profile::enabled ? (experimental ? prof_read32<true> : prof_read32<false>) : experimental ? raw_read32<true> : raw_read32<false>),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write32 : common::guest_profile::enabled ? (experimental ? prof_write32<true> : prof_write32<false>) : experimental ? raw_write32<true> : raw_write32<false>),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : common::guest_profile::enabled ? (experimental ? prof_read8<true> : prof_read8<false>) : experimental ? raw_read8<true> : raw_read8<false>),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : common::guest_profile::enabled ? (experimental ? prof_write8<true> : prof_write8<false>) : experimental ? raw_write8<true> : raw_write8<false>),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : common::guest_profile::enabled ? (experimental ? prof_read16<true> : prof_read16<false>) : experimental ? raw_read16<true> : raw_read16<false>),
+        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? (experimental ? prof_write16<true> : prof_write16<false>) : experimental ? raw_write16<true> : raw_write16<false>),
+        reinterpret_cast<std::uintptr_t>(experimental ? raw_arm_exclusive<true> : raw_arm_exclusive<false>)
     };
     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
         static_cast<int>(wasm_bytes.size()), helpers, memory_experiment::identity_active);

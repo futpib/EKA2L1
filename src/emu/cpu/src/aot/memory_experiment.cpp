@@ -56,7 +56,9 @@ namespace eka2l1::arm::aot::memory_experiment {
                 if (!direct.size) stats.direct_pages=0;
                 else ++stats.direct_rebuilds;
                 direct_={direct.begin,direct.size,direct.host,
-                    static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(pages_.data()))};
+                    static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(pages_.data())),
+                    direct.host-direct_begin,
+                    direct.begin==direct_begin && direct.size==direct_size ? ~0u : 0u};
             }
             generation_=generation; space_=space; ++stats.rebuilds;
             stats.mapped_pages=bindings_.size(); stats.ranges=ranges_.size(); stats.largest_range=0;

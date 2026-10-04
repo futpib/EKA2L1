@@ -47,6 +47,7 @@ namespace eka2l1::mem::flexible {
 
         cur_dir_ = associated_dir;
         cpu_->code_address_space = id;
+        if (cpu_->experimental_dirty) cpu_->experimental_dirty->store(true, std::memory_order_release);
         return true;
     }
 

@@ -120,8 +120,20 @@ namespace eka2l1::arm {
             std::size_t size = 0;
         };
         std::function<bool(address, code_mapping &)> resolve_code;
-        // Experimental memory ownership: enter publishes a current view, leave flushes guest stores.
+        // Experimental view preparation. Direct backing is shared; leave does
+        // not copy guest stores. Mapping notifications are consumed at entry
+        // from the scheduler and when a host callback returns.
         std::function<std::uintptr_t(bool)> experimental_memory;
+        std::uint64_t experimental_generation = 0;
+        std::uint32_t experimental_space = ~0u, experimental_pointer = 0;
+        std::shared_ptr<std::atomic<bool>> experimental_dirty;
+        void publish_memory_view() {
+            if (experimental_dirty && experimental_dirty->load(std::memory_order_acquire) && experimental_memory) {
+                experimental_dirty->store(false, std::memory_order_release);
+                experimental_pointer = static_cast<std::uint32_t>(experimental_memory(true));
+                experimental_memory(false);
+            }
+        }
         // Optional mapping contract: the MMU updates the space on switches and
         // advances the generation on every mapping/permission/lifetime change.
         // Code contents are deliberately not covered and must still be checked.
