@@ -1,0 +1,512 @@
+diff --git a/src/emu/cpu/include/cpu/aot/memory_emission.h b/src/emu/cpu/include/cpu/aot/memory_emission.h
+index 8d3051b4f..455017695 100644
+--- a/src/emu/cpu/include/cpu/aot/memory_emission.h
++++ b/src/emu/cpu/include/cpu/aot/memory_emission.h
+@@ -4,9 +4,18 @@
+ #include <cpu/aot/state_locals.h>
+ 
+ namespace eka2l1::arm::aot {
++    template<class W> void memory_census(W &w, unsigned counter, unsigned amount=1) {
++        if(memory_experiment::mode!=2 || memory_experiment::research!=16)return;
++        const auto pointer=static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&memory_experiment::access_census[counter]));
++        auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
++        w.i32_const(pointer);w.i32_const(pointer);w.op(0x29);imm(3);imm(0); // i64.load
++        w.i32_const(amount);w.op(0xad);w.op(op_i64_add); // extend unsigned i32
++        w.op(0x37);imm(3);imm(0); // i64.store
++    }
+     // Shared ARM/Thumb experimental address lowering. M..M+3 are scratch
+     // locals, or the last contiguous allocation's begin/size/backing/permissions.
+     template<class W> void experimental_host(W &w, unsigned address, unsigned bytes, bool write, unsigned alignment) {
++        memory_census(w,0);memory_census(w,4,bytes);
+         using S=state_offsets;
+         auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
+         auto load=[&](unsigned offset){w.op(op_i32_load);imm(2);imm(offset);};
+@@ -41,12 +50,14 @@ namespace eka2l1::arm::aot {
+         } else {
+             // Cache the process arena for this region. Callbacks invalidate it.
+             w.get_local(W::M+3);w.op(op_i32_eqz);w.op(op_if);w.op(type_void);
++            memory_census(w,3);
+             for(unsigned n=0;n<4;++n){w.load_i32(S::AOT_TLB);load(n*4);w.set_local(W::M+n);}
+             w.op(op_end);
+             w.get_local(W::M+1);w.i32_const(bytes);w.op(op_i32_ge_u);
+             w.get_local(address);w.get_local(W::M);w.op(op_i32_sub);
+             w.get_local(W::M+1);w.i32_const(bytes);w.op(op_i32_sub);w.op(op_i32_le_u);w.op(op_i32_and);
+             w.op(op_if);w.op(type_void);
++            memory_census(w,1);memory_census(w,5,bytes);
+             w.get_local(W::M+2);w.get_local(address);w.get_local(W::M);w.op(op_i32_sub);w.op(op_i32_add);w.set_local(W::HOST);
+             w.op(op_else);
+             w.get_local(address);w.i32_const(4095);w.op(op_i32_and);w.i32_const(4096-bytes);w.op(op_i32_le_u);
+@@ -54,6 +65,7 @@ namespace eka2l1::arm::aot {
+             w.get_local(W::M+3);w.get_local(address);w.i32_const(12);w.op(op_i32_shr_u);
+             w.i32_const(3);w.op(op_i32_shl);w.op(op_i32_add);load(write?4:0);w.tee_local(W::HOST);
+             w.op(op_if);w.op(type_void);
++            memory_census(w,2);memory_census(w,6,bytes);
+             w.get_local(W::HOST);w.get_local(address);w.i32_const(4095);w.op(op_i32_and);w.op(op_i32_add);w.set_local(W::HOST);
+             w.op(op_end);w.op(op_end);w.op(op_end);
+         }
+diff --git a/src/emu/cpu/include/cpu/aot/memory_experiment.h b/src/emu/cpu/include/cpu/aot/memory_experiment.h
+index 212e6b0d6..3800a4f75 100644
+--- a/src/emu/cpu/include/cpu/aot/memory_experiment.h
++++ b/src/emu/cpu/include/cpu/aot/memory_experiment.h
+@@ -7,9 +7,14 @@
+ namespace eka2l1::arm::aot::memory_experiment {
+     // Frozen before guest initialization. Zero keeps the production TLB path.
+     inline unsigned mode = 0;
++    // Attribution-only controls: 3 removes unchanged-view callbacks/counters;
++    // 4 keeps arena allocation but uses the production TLB; 16 emits a census.
++    inline unsigned research = 0;
++    inline std::uint64_t access_census[7]{};
++    inline unsigned emission_mode() { return mode==2 && research==4 ? 0 : mode; }
+     inline std::uint64_t activation_us = 0, activated_us = 0;
+     inline bool identity_active = true;
+-    inline bool enabled(){return mode && (mode!=2 || identity_active);}
++    inline bool enabled(){return mode && (mode!=2 || (identity_active && research!=4));}
+     void activate_identity();
+     // The ROM loader supplies backing bounds; its guest permission bits are RWX.
+     inline std::uintptr_t immutable_rom_begin = 0, immutable_rom_end = 0;
+diff --git a/src/emu/cpu/include/cpu/arm_interface.h b/src/emu/cpu/include/cpu/arm_interface.h
+index a86ee1690..e85f05191 100644
+--- a/src/emu/cpu/include/cpu/arm_interface.h
++++ b/src/emu/cpu/include/cpu/arm_interface.h
+@@ -122,6 +122,8 @@ namespace eka2l1::arm {
+         std::function<bool(address, code_mapping &)> resolve_code;
+         // Experimental memory ownership: enter publishes a current view, leave flushes guest stores.
+         std::function<std::uintptr_t(bool)> experimental_memory;
++        std::uint64_t experimental_generation = 0;
++        std::uint32_t experimental_space = ~0u, experimental_pointer = 0;
+         // Optional mapping contract: the MMU updates the space on switches and
+         // advances the generation on every mapping/permission/lifetime change.
+         // Code contents are deliberately not covered and must still be checked.
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index 79ecaa539..9b592ef89 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -286,15 +286,31 @@ aot_func lookup_compiled(ARMul_State *cpu) {
+     return lookup_compiled_impl<false>(cpu);
+ }
+ 
+-template<bool Verify, bool Profile, bool TrustBytes = false, bool Experimental = false>
++static std::uint32_t prepare_cached_memory(ARMul_State *cpu) {
++    auto *core=cpu->parent();
++    const auto generation=core->code_mapping_generation ? core->code_mapping_generation->load(std::memory_order_acquire) : 0;
++    if (!core->experimental_pointer || !core->code_mapping_generation || generation!=core->experimental_generation
++            || core->code_address_space!=core->experimental_space) {
++        core->experimental_pointer=static_cast<std::uint32_t>(core->experimental_memory(true));
++        core->experimental_memory(false);
++        core->experimental_generation=generation;
++        core->experimental_space=core->code_address_space;
++    }
++    return core->experimental_pointer;
++}
++
++template<bool Verify, bool Profile, bool TrustBytes = false, bool Experimental = false, bool CachedMemory = false>
+ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+     struct memory_scope {
+         ARMul_State *cpu;
+         bool enabled;
+         explicit memory_scope(ARMul_State *state):cpu(state),enabled(Experimental && bool(state->parent()->experimental_memory)) {
+-            if(enabled) cpu->aot_tlb=static_cast<std::uint32_t>(cpu->parent()->experimental_memory(true));
++            if(enabled) {
++                if constexpr(CachedMemory) cpu->aot_tlb=prepare_cached_memory(cpu);
++                else cpu->aot_tlb=static_cast<std::uint32_t>(cpu->parent()->experimental_memory(true));
++            }
+         }
+-        ~memory_scope(){if(enabled)cpu->parent()->experimental_memory(false);}
++        ~memory_scope(){if constexpr(!CachedMemory) if(enabled)cpu->parent()->experimental_memory(false);}
+     } memory(cpu);
+     const auto budget = cpu->aot_budget;
+     compiled_run result;
+@@ -392,18 +408,18 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
+             : !function ? "successor_unavailable" : (runner_region_limit && result.blocks==runner_region_limit) ? "region_cap" : "zero_progress";
+         ++exit_census::runners[why];
+     }
+-    if constexpr(Experimental){++memory_experiment::stats.chains;memory_experiment::stats.instructions+=result.instructions;}
++    if constexpr(Experimental && !CachedMemory){++memory_experiment::stats.chains;memory_experiment::stats.instructions+=result.instructions;}
+     return result;
+ }
+ 
+-template<bool Experimental> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
++template<bool Experimental, bool CachedMemory = false> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
+     // Select verification, diagnostics and the trusted cache once per chain.
+-    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available, false, Experimental>(cpu, function);
++    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available, false, Experimental, CachedMemory>(cpu, function);
+     if (common::performance::enabled && common::performance::detailed)
+-        return execute_chain_impl<false, true, false, Experimental>(cpu, function);
++        return execute_chain_impl<false, true, false, Experimental, CachedMemory>(cpu, function);
+     if (hotpath_policy == 2 && common::code_tracking::skip_code_scans())
+-        return execute_chain_impl<false, false, true, Experimental>(cpu, function);
+-    return execute_chain_impl<false, false, false, Experimental>(cpu, function);
++        return execute_chain_impl<false, false, true, Experimental, CachedMemory>(cpu, function);
++    return execute_chain_impl<false, false, false, Experimental, CachedMemory>(cpu, function);
+ }
+ 
+ compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+@@ -412,6 +428,7 @@ compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
+         memory_experiment::activated_us=common::benchmark::virtual_us.load();
+         memory_experiment::activate_identity();
+     }
++    if(memory_experiment::mode==2 && memory_experiment::research==3) return execute_chain_selected<true,true>(cpu,function);
+     return memory_experiment::enabled() ? execute_chain_selected<true>(cpu,function) : execute_chain_selected<false>(cpu,function);
+ }
+ 
+@@ -537,9 +554,12 @@ template<bool Experimental> struct memory_callback_scope {
+     ARMul_State *state;
+     bool enabled;
+     explicit memory_callback_scope(ARMul_State *s):state(s),enabled(Experimental && memory_experiment::enabled() && bool(s->parent()->experimental_memory)) {
+-        if(enabled)state->parent()->experimental_memory(false);
++        if(enabled && memory_experiment::research!=3)state->parent()->experimental_memory(false);
+     }
+-    ~memory_callback_scope(){if(enabled)state->aot_tlb=static_cast<std::uint32_t>(state->parent()->experimental_memory(true));}
++    ~memory_callback_scope(){if(enabled) {
++        state->aot_tlb=memory_experiment::research==3 ? prepare_cached_memory(state)
++            : static_cast<std::uint32_t>(state->parent()->experimental_memory(true));
++    }}
+ };
+ static void publish_callback_cpsr(ARMul_State *state) {
+     state->Cpsr = (state->Cpsr & 0x0fffffdfu) | (state->NFlag << 31)
+@@ -702,14 +722,15 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
+     if (wasm_bytes.empty()) return 0;
+ 
+     const bool verify = verification_stride() != 0;
++    const bool experimental = memory_experiment::mode && !(memory_experiment::mode==2 && memory_experiment::research==4);
+     const std::uintptr_t helpers[] = {
+-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read32 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_read32<true> : prof_read32<false>) : memory_experiment::mode ? raw_read32<true> : raw_read32<false>),
+-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write32 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_write32<true> : prof_write32<false>) : memory_experiment::mode ? raw_write32<true> : raw_write32<false>),
+-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_read8<true> : prof_read8<false>) : memory_experiment::mode ? raw_read8<true> : raw_read8<false>),
+-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_write8<true> : prof_write8<false>) : memory_experiment::mode ? raw_write8<true> : raw_write8<false>),
+-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_read16<true> : prof_read16<false>) : memory_experiment::mode ? raw_read16<true> : raw_read16<false>),
+-        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_write16<true> : prof_write16<false>) : memory_experiment::mode ? raw_write16<true> : raw_write16<false>),
+-        reinterpret_cast<std::uintptr_t>(memory_experiment::mode ? raw_arm_exclusive<true> : raw_arm_exclusive<false>)
++        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read32 : common::guest_profile::enabled ? (experimental ? prof_read32<true> : prof_read32<false>) : experimental ? raw_read32<true> : raw_read32<false>),
++        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write32 : common::guest_profile::enabled ? (experimental ? prof_write32<true> : prof_write32<false>) : experimental ? raw_write32<true> : raw_write32<false>),
++        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read8 : common::guest_profile::enabled ? (experimental ? prof_read8<true> : prof_read8<false>) : experimental ? raw_read8<true> : raw_read8<false>),
++        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write8 : common::guest_profile::enabled ? (experimental ? prof_write8<true> : prof_write8<false>) : experimental ? raw_write8<true> : raw_write8<false>),
++        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_read16 : common::guest_profile::enabled ? (experimental ? prof_read16<true> : prof_read16<false>) : experimental ? raw_read16<true> : raw_read16<false>),
++        reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? (experimental ? prof_write16<true> : prof_write16<false>) : experimental ? raw_write16<true> : raw_write16<false>),
++        reinterpret_cast<std::uintptr_t>(experimental ? raw_arm_exclusive<true> : raw_arm_exclusive<false>)
+     };
+     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
+         static_cast<int>(wasm_bytes.size()), helpers, memory_experiment::identity_active);
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index 8c48313be..e8cbe1b25 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -162,8 +162,8 @@ namespace eka2l1::arm::aot {
+             cache.barrier_at(b.size());
+             op(op_call); leb(b, func_idx);
+             cache.barrier_at(b.size(), true);
+-            if(memory_experiment::mode==1){i32_const(0);set_local(M+1);}
+-            if(memory_experiment::mode==2){i32_const(0);set_local(M+3);}
++            if(memory_experiment::emission_mode()==1){i32_const(0);set_local(M+1);}
++            if(memory_experiment::emission_mode()==2){i32_const(0);set_local(M+3);}
+             if (region) {
+                 store_i32_const(S::AOT_EXIT, 1); census_effect(1);
+             }
+@@ -197,7 +197,7 @@ namespace eka2l1::arm::aot {
+             }
+             // Each access checks the current TLB mapping and permissions.
+             op(op_block); op(write ? type_void : type_i32);
+-            if(memory_experiment::mode) experimental_host(*this, ADDRESS, size, write, size);
++            if(memory_experiment::emission_mode()) experimental_host(*this, ADDRESS, size, write, size);
+             else {
+             i32_const(0); set_local(HOST);
+             load_i32(S::AOT_TLB); tee_local(ENTRY);
+@@ -223,7 +223,7 @@ namespace eka2l1::arm::aot {
+                 op(op_br); leb(b,1); // leave result block, preserving helper result
+             }
+             op(op_end);
+-            if(!memory_experiment::mode) {
++            if(!memory_experiment::emission_mode()) {
+                 get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+                 op(op_i32_add); set_local(HOST);
+             }
+@@ -246,7 +246,7 @@ namespace eka2l1::arm::aot {
+         // contained in one permitted TLB page; otherwise use the existing
+         // per-access path, including its fault/endian behavior.
+         void block_transfer_host(unsigned address_local, unsigned bytes, bool write, unsigned alignment = 4) {
+-            if(memory_experiment::mode){experimental_host(*this,address_local,bytes,write,alignment);return;}
++            if(memory_experiment::emission_mode()){experimental_host(*this,address_local,bytes,write,alignment);return;}
+             i32_const(0); set_local(HOST);
+             load_i32(S::AOT_TLB); tee_local(ENTRY);
+             op(op_if); op(type_void);
+@@ -779,7 +779,7 @@ namespace eka2l1::arm::aot {
+         // A fixed i64 prefix keeps its index independent of lazily allocated i32 register locals.
+         // Locals: 0=state_ptr(param), 1=wide result, 2..8=i32 scratch.
+         const bool direct_blocks = bounded && cache_registers && !region && arm_direct_memory;
+-        result.num_locals = memory_experiment::mode ? 16 : region || direct_blocks ? 12 : 7;
++        result.num_locals = memory_experiment::emission_mode() ? 16 : region || direct_blocks ? 12 : 7;
+         result.num_prefix_i64_locals = 1;
+         result.num_f32_locals = 0;
+         result.num_f64_locals = 0;
+diff --git a/src/emu/cpu/src/aot/thumb_translator.cpp b/src/emu/cpu/src/aot/thumb_translator.cpp
+index d501ba952..fadfe1133 100644
+--- a/src/emu/cpu/src/aot/thumb_translator.cpp
++++ b/src/emu/cpu/src/aot/thumb_translator.cpp
+@@ -169,8 +169,8 @@ namespace eka2l1::arm::aot {
+             cache.barrier_at(b.size());
+             op(op_call); leb(b, func_idx);
+             cache.barrier_at(b.size(), true);
+-            if(memory_experiment::mode==1){i32_const(0);set_local(M+1);}
+-            if(memory_experiment::mode==2){i32_const(0);set_local(M+3);}
++            if(memory_experiment::emission_mode()==1){i32_const(0);set_local(M+1);}
++            if(memory_experiment::emission_mode()==2){i32_const(0);set_local(M+3);}
+         }
+ 
+         // A whole one-page register transfer can reuse one TLB proof. On
+@@ -180,7 +180,7 @@ namespace eka2l1::arm::aot {
+             span_active = direct_memory && words > 1 && (!write ||
+                 common::code_tracking::skip_code_write_guards());
+             if (!span_active) return;
+-            if(memory_experiment::mode) {
++            if(memory_experiment::emission_mode()) {
+                 experimental_host(*this,address_local,words*4,write,4);
+                 get_local(HOST);op(op_if);op(type_i32);
+                 get_local(HOST);get_local(address_local);op(op_i32_sub);i32_const(1);op(op_i32_add);
+@@ -219,13 +219,13 @@ namespace eka2l1::arm::aot {
+             set_local(ADDRESS); set_local(HOST); // consume imported state argument
+             if (span_active) {
+                 get_local(SPAN_HOST); op(op_if); op(write?type_void:type_i32);
+-                get_local(SPAN_HOST); get_local(ADDRESS); if(!memory_experiment::mode){i32_const(4095); op(op_i32_and);} op(op_i32_add);
+-                if(memory_experiment::mode){i32_const(1);op(op_i32_sub);}
++                get_local(SPAN_HOST); get_local(ADDRESS); if(!memory_experiment::emission_mode()){i32_const(4095); op(op_i32_and);} op(op_i32_add);
++                if(memory_experiment::emission_mode()){i32_const(1);op(op_i32_sub);}
+                 if (write) get_local(VALUE);
+                 guest_memory_op(*this,write?op_i32_store:op_i32_load,2);
+                 op(op_else);
+             }
+-            if(memory_experiment::mode) experimental_host(*this,ADDRESS,size,write,size);
++            if(memory_experiment::emission_mode()) experimental_host(*this,ADDRESS,size,write,size);
+             else {
+             i32_const(0); set_local(HOST);
+             load_i32(S::AOT_TLB); tee_local(ENTRY);
+@@ -670,7 +670,7 @@ namespace eka2l1::arm::aot {
+         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
+         //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
+         const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
+-        result.num_locals = memory_experiment::mode ? 15 : direct_memory ? 11 : 6;
++        result.num_locals = memory_experiment::emission_mode() ? 15 : direct_memory ? 11 : 6;
+         result.num_f32_locals = 2;
+         result.num_f64_locals = 1;
+         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
+diff --git a/src/emu/wasm/main.cpp b/src/emu/wasm/main.cpp
+index 50deb0f95..3afc74a9a 100644
+--- a/src/emu/wasm/main.cpp
++++ b/src/emu/wasm/main.cpp
+@@ -270,6 +270,11 @@ int eka2l1_memory_impl_configure(int mode) {
+     eka2l1::arm::aot::memory_experiment::mode=mode;return 0;
+ }
+ EMSCRIPTEN_KEEPALIVE
++int eka2l1_memory_research_configure(int policy) {
++    if(g_state || (policy!=0 && policy!=3 && policy!=4 && policy!=16))return -1;
++    eka2l1::arm::aot::memory_experiment::research=policy;return 0;
++}
++EMSCRIPTEN_KEEPALIVE
+ int eka2l1_memory_impl_activation(int microseconds) {
+     if(g_state || microseconds<0 || microseconds>120000000) return -1;
+     eka2l1::arm::aot::memory_experiment::activation_us=microseconds;
+@@ -284,6 +289,10 @@ const char *eka2l1_memory_impl_stats(){
+     static std::string text;
+     text=fmt::format("{{\"activation_requested_us\":{},\"activated_us\":{},\"mode\":{},\"rebuilds\":{},\"chains\":{},\"instructions\":{},\"bytes_in\":{},\"bytes_out\":{},\"alias_pages\":{},\"mapped_pages\":{},\"ranges\":{},\"largest_range\":{},\"arena_bytes\":{},\"direct_pages\":{},\"direct_rebuilds\":{}}}",
+         eka2l1::arm::aot::memory_experiment::activation_us,eka2l1::arm::aot::memory_experiment::activated_us,eka2l1::arm::aot::memory_experiment::mode,s.rebuilds,s.chains,s.instructions,s.bytes_in,s.bytes_out,s.alias_pages,s.mapped_pages,s.ranges,s.largest_range,s.arena_bytes,s.direct_pages,s.direct_rebuilds);
++    const auto &c=eka2l1::arm::aot::memory_experiment::access_census;
++    text.pop_back();
++    text+=fmt::format(",\"research\":{},\"span_attempts\":{},\"direct_spans\":{},\"table_spans\":{},\"metadata_loads\":{},\"attempt_bytes\":{},\"direct_bytes\":{},\"table_bytes\":{}}}",
++        eka2l1::arm::aot::memory_experiment::research,c[0],c[1],c[2],c[3],c[4],c[5],c[6]);
+     return text.c_str();
+ }
+ EMSCRIPTEN_KEEPALIVE
+diff --git a/src/tests/benchmark/memory_implementations.py b/src/tests/benchmark/memory_implementations.py
+index 8a5131e45..fffc03d3c 100644
+--- a/src/tests/benchmark/memory_implementations.py
++++ b/src/tests/benchmark/memory_implementations.py
+@@ -10,12 +10,13 @@ import wave
+ 
+ p = argparse.ArgumentParser(description=__doc__)
+ p.add_argument('output', type=Path)
+-p.add_argument('phase', choices=['replays', 'timings'])
++p.add_argument('phase', choices=['replays', 'timings', 'census'])
+ p.add_argument('--build', type=Path, required=True)
+ p.add_argument('--snakes-assets', type=Path, required=True)
+ p.add_argument('--sky-assets', type=Path, required=True)
+ p.add_argument('--reference-root', type=Path, required=True)
+ p.add_argument('--modes', nargs='+', type=int, choices=range(4), default=[0,1,2,3])
++p.add_argument('--research', nargs='+', type=int, choices=[0,3,4,16], default=[0])
+ p.add_argument('--games', nargs='+', choices=['standard','combat'], default=['standard','combat'])
+ p.add_argument('--rounds', type=int, default=2)
+ p.add_argument('--window-us', type=int, default=0, help='Override the measured guest window; zero uses 4/6 seconds')
+@@ -24,6 +25,8 @@ p.add_argument('--frames', type=int, default=60, help='Replay prefix length, up
+ a = p.parse_args()
+ if a.rounds < 1 or a.window_us < 0 or not 0 <= a.activation_lead_us < 21000000 or not 1 <= a.frames <= 60:
+     p.error('Invalid rounds, window, activation lead or frame count')
++if a.activation_lead_us and any(a.research):p.error('Research controls require activation from boot')
++if (16 in a.research) != (a.phase=='census'):p.error('Census policy requires census phase')
+ a.output.mkdir(parents=True, exist_ok=False)
+ repo = Path(__file__).resolve().parents[3]
+ names = ['tlb','allocation','direct','flat-pages']
+@@ -53,14 +56,15 @@ for game in a.games:
+     frame_journal=None
+     assets = a.snakes_assets if game=='standard' else a.sky_assets
+     route = repo/'src/tests/benchmark'/('snakes.input' if game=='standard' else 'sky-force-combat.input')
+-    for repetition in range(1 if a.phase=='replays' else a.rounds):
+-        order = a.modes if repetition%2==0 else list(reversed(a.modes))
+-        for mode in order:
+-            name=f'{game}-{repetition}-{names[mode]}';out=a.output/name
++    variants=[(m,r) for m in a.modes for r in a.research if m==2 or r==0]
++    for repetition in range(1 if a.phase in ['replays','census'] else a.rounds):
++        order = variants if repetition%2==0 else list(reversed(variants))
++        for mode,research in order:
++            name=f'{game}-{repetition}-{names[mode]}-r{research}';out=a.output/name
+             config = dict(EKA2L1_BENCHMARK_AOT='5',EKA2L1_CODE_COMPARE='2',EKA2L1_PREDICATED_LEAVES='1',
+                 EKA2L1_LEAF_FEATURES='128',EKA2L1_UNSAFE_CODE='3',EKA2L1_SHARED_AUDIO='1',
+                 EKA2L1_ARM_MEMORY='0',EKA2L1_ARM_EXCLUSIVE='0',EKA2L1_AOT_IR_MODE='17',
+-                EKA2L1_HOTPATH='2',EKA2L1_THUMB_MEMORY='1',EKA2L1_MEMORY_IMPL=str(mode),
++                EKA2L1_HOTPATH='2',EKA2L1_THUMB_MEMORY='1',EKA2L1_MEMORY_IMPL=str(mode),EKA2L1_MEMORY_RESEARCH=str(research),
+                 EKA2L1_WASM_BUILD_DIR=str(a.build.resolve()),EKA2L1_PROFILE_DETAIL='0',EKA2L1_CHROME_TRACE='off')
+             if mode==2 and a.activation_lead_us:config['EKA2L1_MEMORY_ACTIVATE_US']=str(start-a.activation_lead_us)
+             if game=='combat':
+@@ -76,16 +80,18 @@ for game in a.games:
+             print('START',name,flush=True);beg=time.monotonic()
+             with (a.output/(name+'.log')).open('w') as log:
+                 subprocess.run(args,cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,timeout=1800,check=True)
+-            row=dict(game=game,mode=mode,name=name,elapsed_seconds=time.monotonic()-beg,command=command)
++            row=dict(game=game,mode=mode,research=research,name=name,elapsed_seconds=time.monotonic()-beg,command=command)
+             report=json.loads((out/'report.json').read_text())
+-            assert report['memory_impl']==mode
++            assert report['memory_impl']==mode and report['memory_research']==research
++            assert report['memory_impl_stats']['research']==research
+             hashes=(report['wasm_sha256'],report['loader_sha256'])
+             if build_hashes is None:build_hashes=hashes
+             assert hashes==build_hashes, 'Build changed during the campaign'
+             if mode==2 and a.activation_lead_us:assert start-a.activation_lead_us<=report['memory_impl_stats']['activated_us']<start
+             if mode==2:
+                 assert report['memory_impl_stats']['bytes_in']==report['memory_impl_stats']['bytes_out']==0
+-                assert report['memory_impl_stats']['direct_rebuilds']>0
++                if research!=4:assert report['memory_impl_stats']['direct_rebuilds']>0
++                else:assert report['memory_impl_stats']['arena_bytes']>0 or a.phase=='replays'
+             row['report']=report
+             if a.phase=='replays':
+                 comparison=subprocess.run(['python3',str(repo/'src/tests/benchmark/compare.py'),str(reference),str(out)],capture_output=True,text=True)
+@@ -96,7 +102,7 @@ for game in a.games:
+                 row['instructions']=measured['last_instructions']-measured['first_instructions']
+                 if work is None:work=row['instructions']
+                 assert row['instructions']==work,report
+-                assert report['purpose']=='throughput' and report['chrome_trace']['scope']=='off' and not report['sampling']
++                assert report['purpose']==('diagnostic' if a.phase=='census' else 'throughput') and report['chrome_trace']['scope']=='off' and not report['sampling']
+                 journal=(out/'frames.jsonl').read_bytes()
+                 if frame_journal is None:frame_journal=journal
+                 assert journal==frame_journal, 'Presentation journal changed between implementations'
+diff --git a/src/tests/wasm/benchmark.ts b/src/tests/wasm/benchmark.ts
+index 91674c10c..488a0a61a 100644
+--- a/src/tests/wasm/benchmark.ts
++++ b/src/tests/wasm/benchmark.ts
+@@ -26,6 +26,8 @@ if (![-1,0,2].includes(codeCompare)) throw new Error('Invalid exact comparison p
+ const exitCensus = process.env.EKA2L1_EXIT_CENSUS === '1';
+ const unsafeText=process.env.EKA2L1_UNSAFE_CODE ?? '3';
+ if(!/^[03]$/.test(unsafeText))throw Error('Invalid unsafe code mode');
++const memoryResearch=Number(process.env.EKA2L1_MEMORY_RESEARCH ?? '0');
++if(![0,3,4,16].includes(memoryResearch))throw Error('Invalid memory research policy');
+ const memoryImpl=Number(process.env.EKA2L1_MEMORY_IMPL ?? '0');
+ const memoryActivation=Number(process.env.EKA2L1_MEMORY_ACTIVATE_US ?? '0');
+ if(!Number.isSafeInteger(memoryActivation) || memoryActivation<0 || memoryActivation>120000000 || (memoryActivation && memoryImpl!==2))throw Error('Invalid identity activation time');
+@@ -99,7 +101,7 @@ try {
+   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
+   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
+   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
+-  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, memoryActivation, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
++  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, memoryActivation, memoryResearch, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+     const g = window as any;
+     const call = (name: string, types: string[], args: unknown[]) => {
+       const code = g.Module.ccall(name, 'number', types, args);
+@@ -170,7 +172,9 @@ try {
+       if(memoryActivation)call('eka2l1_memory_impl_activation',['number'],[memoryActivation]);
+       if(g.Module._eka2l1_memory_impl_report()!==memoryImpl)throw Error('Memory implementation readback mismatch');
+     } else if(memoryImpl)throw Error('Memory implementation API unavailable');
++    if(memoryResearch)call('eka2l1_memory_research_configure',['number'],[memoryResearch]);
+     call('eka2l1_init', ['string'], ['/data']);
++    if(memoryResearch && g.Module._eka2l1_memory_research_configure(memoryResearch)!==-1)throw Error('Research policy was not frozen');
+     if(typeof g.Module._eka2l1_memory_impl_configure==='function' && g.Module._eka2l1_memory_impl_configure(memoryImpl)!==-1)
+       throw Error('Memory implementation was not frozen');
+     if (hotpathPolicy !== -1 && (g.Module._eka2l1_hotpath_configure(hotpathPolicy ^ 2) !== -1
+@@ -205,7 +209,7 @@ try {
+     }
+     // N80 also registers a different ROM-bundled game with the caption Snakes.
+     call('eka2l1_run', ['string'], [appUid]);
+-  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, memoryActivation, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
++  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, memoryActivation, memoryResearch, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+   const start = performance.now();
+   let lastCount = -1;
+   let firstCanvas: Buffer | undefined;
+@@ -257,7 +261,7 @@ try {
+   if (failures.length) throw new Error(failures.join('\n'));
+   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
+     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
+-    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_activation_us:memoryActivation, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
++    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_research:memoryResearch, memory_activation_us:memoryActivation, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
+   console.log('PASS: captured benchmark');
+ } finally {
+   await browser?.close();
+diff --git a/src/tests/wasm/profile.ts b/src/tests/wasm/profile.ts
+index c3a61a5f8..0bc6c6a7c 100644
+--- a/src/tests/wasm/profile.ts
++++ b/src/tests/wasm/profile.ts
+@@ -48,6 +48,8 @@ const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(
+ if (![-1,0,2].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
+ const unsafeText=process.env.EKA2L1_UNSAFE_CODE ?? '3';
+ if(!/^[03]$/.test(unsafeText))throw Error('Invalid unsafe code mode');
++const memoryResearch=Number(process.env.EKA2L1_MEMORY_RESEARCH ?? '0');
++if(![0,3,4,16].includes(memoryResearch))throw Error('Invalid memory research policy');
+ const memoryImpl=Number(process.env.EKA2L1_MEMORY_IMPL ?? '0');
+ const memoryActivation=Number(process.env.EKA2L1_MEMORY_ACTIVATE_US ?? '0');
+ if(!Number.isSafeInteger(memoryActivation) || memoryActivation<0 || memoryActivation>120000000 || (memoryActivation && memoryImpl!==2))throw Error('Invalid identity activation time');
+@@ -145,7 +147,7 @@ try {
+   if (diagnosticsAvailable === false && (detailedProfile || guestProfile || exitCensus || aotDiagnostics))
+     throw new Error('Custom diagnostics require a build with -DEKA2L1_WASM_DIAGNOSTICS=ON');
+   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
+-  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, memoryActivation, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
++  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, memoryActivation, memoryResearch, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+     const g = window as any;
+     const call = (name: string, types: string[], args: unknown[]) => {
+       const code = g.Module.ccall(name, 'number', types, args);
+@@ -217,7 +219,9 @@ try {
+       if(memoryActivation)call('eka2l1_memory_impl_activation',['number'],[memoryActivation]);
+       if(g.Module._eka2l1_memory_impl_report()!==memoryImpl)throw Error('Memory implementation readback mismatch');
+     } else if(memoryImpl)throw Error('Memory implementation API unavailable');
++    if(memoryResearch)call('eka2l1_memory_research_configure',['number'],[memoryResearch]);
+     call('eka2l1_init', ['string'], ['/data']);
++    if(memoryResearch && g.Module._eka2l1_memory_research_configure(memoryResearch)!==-1)throw Error('Research policy was not frozen');
+     if(typeof g.Module._eka2l1_memory_impl_configure==='function' && g.Module._eka2l1_memory_impl_configure(memoryImpl)!==-1)
+       throw Error('Memory implementation was not frozen');
+     if (hotpathPolicy !== -1 && (g.Module._eka2l1_hotpath_configure(hotpathPolicy ^ 2) !== -1
+@@ -251,7 +255,7 @@ try {
+       }
+     }
+     call('eka2l1_run', ['string'], [appUid]);
+-  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, memoryActivation, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
++  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, memoryActivation, memoryResearch, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+   async function waitPhase(phase: number) {
+     const deadline = performance.now() + 1800000;
+     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
+@@ -331,7 +335,7 @@ try {
+   } else await waitPhase(3);
+   const cpuAfter = await sampleCpuTime(system);
+   const memoryAfter = await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;});
+-  const memoryWork = memoryBefore && memoryAfter ? Object.fromEntries(['rebuilds','chains','instructions','bytes_in','bytes_out'].map(key=>[key,memoryAfter[key]-memoryBefore[key]])) : null;
++  const memoryWork = memoryBefore && memoryAfter ? Object.fromEntries(['rebuilds','chains','instructions','bytes_in','bytes_out','span_attempts','direct_spans','table_spans','metadata_loads','attempt_bytes','direct_bytes','table_bytes'].map(key=>[key,memoryAfter[key]-memoryBefore[key]])) : null;
+   const cpuTime = cpuTimeDelta(cpuBefore, cpuAfter);
+   fs.writeFileSync(path.join(output, 'cpu-time.json'), JSON.stringify({before: cpuBefore, after: cpuAfter, summary: cpuTime}, null, 2));
+   await page.evaluate(() => performance.mark('eka2l1:measurement-end'));
+@@ -408,12 +412,12 @@ try {
+   if (failures.length) throw new Error(failures.join('\n'));
+ 
+   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
+-    purpose: sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
++    purpose: memoryResearch===16 || sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
+     cpu_time: cpuTime,
+     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
+     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
+     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
+-    aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_activation_us:memoryActivation, memory_impl_work:memoryWork, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
++    aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_research:memoryResearch, memory_activation_us:memoryActivation, memory_impl_work:memoryWork, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
+     runtime_footprint: await page.evaluate(() => {
+       const m=(window as any).Module;
+       return typeof m._eka2l1_monitor_report==='function' ? JSON.parse(m.ccall('eka2l1_monitor_report','string',[],[])) : null;

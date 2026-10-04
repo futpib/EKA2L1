@@ -4,6 +4,10 @@ Mode 2 (`EKA2L1_MEMORY_IMPL=2`) now shares canonical guest backing with C++.
 The copying implementation has been removed. The experiment is enabled from
 boot; mode 0 remains the default.
 
+The [regression attribution follow-up](DIRECT_MEMORY_ATTRIBUTION.md) measures
+the runtime wrapper, arena allocation and compiler costs separately. Its research
+controls are preserved as a patch; production behavior remains unchanged.
+
 ## CPU-time results
 
 **Direct did not win. Retain TLB as the default and keep all four modes.**
