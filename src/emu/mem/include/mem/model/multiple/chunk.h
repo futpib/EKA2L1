@@ -59,6 +59,7 @@ namespace eka2l1::mem {
         bool is_local{ false };
         bool is_code{ false };
         bool is_external_host{ false };
+        bool is_direct_host{ false };
 
         explicit multiple_mem_model_chunk(control_base *control, const asid id)
             : mem_model_chunk(control, id) {

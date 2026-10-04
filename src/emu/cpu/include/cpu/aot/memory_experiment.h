@@ -17,32 +17,28 @@ namespace eka2l1::arm::aot::memory_experiment {
         std::uint64_t rebuilds = 0, chains = 0, instructions = 0;
         std::uint64_t bytes_in = 0, bytes_out = 0, alias_pages = 0;
         std::uint64_t mapped_pages = 0, ranges = 0, largest_range = 0;
+        std::uint64_t arena_bytes = 0, direct_pages = 0, direct_rebuilds = 0;
     };
     inline statistics stats;
     struct binding { std::uint32_t guest, host, permissions; };
     struct range { std::uint32_t begin, size, host, permissions; };
     struct page { std::uint32_t read, write; };
-    struct identity_view { std::uint32_t aliases, dirty; };
-
-    // The second memory belongs to the CPU worker. Copies are real WASM calls,
-    // with no JS transition after initialization.
-    void initialize_identity_memory();
-    void copy_to_identity(std::uint32_t guest, std::uint32_t host, std::uint32_t size);
-    void copy_from_identity(std::uint32_t host, std::uint32_t guest, std::uint32_t size);
+    // A bounded local-address arena shares the runtime's primary WASM memory.
+    // Other addresses use the page table, including physical aliases.
+    inline constexpr std::uint32_t direct_begin = 0x00400000, direct_size = 64 * 1024 * 1024;
+    struct direct_view { std::uint32_t begin, size, host, pages; };
 
     class view {
         std::uint64_t generation_ = 0;
         std::uint32_t space_ = ~0u;
         std::vector<binding> bindings_;
-        std::vector<range> ranges_, range_pages_, refresh_ranges_;
+        std::vector<range> ranges_, range_pages_;
         std::vector<page> pages_;
-        std::vector<std::uint32_t> aliases_;
-        std::vector<std::uint8_t> dirty_;
-        identity_view identity_{};
+        direct_view direct_{};
         bool active_ = false;
     public:
         std::uintptr_t enter(std::uint64_t generation, std::uint32_t space,
-            const std::function<std::vector<binding>()> &resolve);
+            const std::function<std::vector<binding>()> &resolve, range direct = {});
         void leave();
     };
 }

@@ -22,6 +22,7 @@
 #include <mem/control.h>
 #include <mem/model/multiple/mmu.h>
 #include <vector>
+#include <array>
 
 namespace eka2l1::mem {
     class control_multiple : public control_base {
@@ -41,10 +42,15 @@ namespace eka2l1::mem {
         linear_section kernel_mapping_sec_;
 
         std::vector<std::unique_ptr<mmu_multiple>> mmus_;
+        std::array<void *, 256> direct_local_{};
 
     public:
         explicit control_multiple(arm::exclusive_monitor *monitor, page_table_allocator *alloc, config::state *conf, std::size_t psize_bits = 10, const bool mem_map_old = false);
         ~control_multiple() override;
+
+        void *direct_local_memory(asid id) const {
+            return id >= 0 && static_cast<std::size_t>(id) < direct_local_.size() ? direct_local_[id] : nullptr;
+        }
 
         mmu_base *get_or_create_mmu(arm::core *cc) override;
 

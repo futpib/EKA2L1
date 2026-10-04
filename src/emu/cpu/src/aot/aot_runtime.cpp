@@ -646,7 +646,7 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
         // Outer export/thread-entry abort handling remains enabled unchanged.
         var raw = index => WebAssembly.Table.prototype.get.call(wasmTable, HEAPU32[(helpers >>> 2) + index]);
         var importObj = {env: {
-            memory: wasmMemory, guest_memory: globalThis.ekaIdentityMemory,
+            memory: wasmMemory,
             tlb_read32: raw(0), tlb_write32: raw(1),
             tlb_read8: raw(2), tlb_write8: raw(3),
             tlb_read16: raw(4), tlb_write16: raw(5), arm_exclusive: raw(6)
@@ -711,7 +711,6 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
         reinterpret_cast<std::uintptr_t>(verify ? aot_tlb_write16 : common::guest_profile::enabled ? (memory_experiment::mode ? prof_write16<true> : prof_write16<false>) : memory_experiment::mode ? raw_write16<true> : raw_write16<false>),
         reinterpret_cast<std::uintptr_t>(memory_experiment::mode ? raw_arm_exclusive<true> : raw_arm_exclusive<false>)
     };
-    if(memory_experiment::mode==2)memory_experiment::initialize_identity_memory();
     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
         static_cast<int>(wasm_bytes.size()), helpers, memory_experiment::identity_active);
 

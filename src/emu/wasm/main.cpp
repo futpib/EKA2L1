@@ -282,8 +282,8 @@ EMSCRIPTEN_KEEPALIVE
 const char *eka2l1_memory_impl_stats(){
     const auto &s=eka2l1::arm::aot::memory_experiment::stats;
     static std::string text;
-    text=fmt::format("{{\"activation_requested_us\":{},\"activated_us\":{},\"mode\":{},\"rebuilds\":{},\"chains\":{},\"instructions\":{},\"bytes_in\":{},\"bytes_out\":{},\"alias_pages\":{},\"mapped_pages\":{},\"ranges\":{},\"largest_range\":{}}}",
-        eka2l1::arm::aot::memory_experiment::activation_us,eka2l1::arm::aot::memory_experiment::activated_us,eka2l1::arm::aot::memory_experiment::mode,s.rebuilds,s.chains,s.instructions,s.bytes_in,s.bytes_out,s.alias_pages,s.mapped_pages,s.ranges,s.largest_range);
+    text=fmt::format("{{\"activation_requested_us\":{},\"activated_us\":{},\"mode\":{},\"rebuilds\":{},\"chains\":{},\"instructions\":{},\"bytes_in\":{},\"bytes_out\":{},\"alias_pages\":{},\"mapped_pages\":{},\"ranges\":{},\"largest_range\":{},\"arena_bytes\":{},\"direct_pages\":{},\"direct_rebuilds\":{}}}",
+        eka2l1::arm::aot::memory_experiment::activation_us,eka2l1::arm::aot::memory_experiment::activated_us,eka2l1::arm::aot::memory_experiment::mode,s.rebuilds,s.chains,s.instructions,s.bytes_in,s.bytes_out,s.alias_pages,s.mapped_pages,s.ranges,s.largest_range,s.arena_bytes,s.direct_pages,s.direct_rebuilds);
     return text.c_str();
 }
 EMSCRIPTEN_KEEPALIVE

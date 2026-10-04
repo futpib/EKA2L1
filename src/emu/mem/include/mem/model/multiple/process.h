@@ -33,6 +33,8 @@ namespace eka2l1::mem {
         asid addr_space_id_;
         linear_section user_local_sec_;
         linear_section user_dll_static_data_sec_;
+        void *direct_local_ = nullptr;
+        void *direct_local_backing(vm_address address, std::size_t size);
 
         std::vector<std::unique_ptr<multiple_mem_model_chunk>> chunks_;
         std::vector<multiple_mem_model_chunk *> attached_;
@@ -42,8 +44,7 @@ namespace eka2l1::mem {
     public:
         explicit multiple_mem_model_process(control_base *ctrl);
 
-        ~multiple_mem_model_process() override {
-        }
+        ~multiple_mem_model_process() override;
 
         const asid address_space_id() const override {
             return addr_space_id_;

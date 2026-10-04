@@ -1,6 +1,6 @@
 if(EMSCRIPTEN)
     add_executable(test_aot_wasm test_aot_wasm.cpp)
-    target_link_libraries(test_aot_wasm PRIVATE cpu)
+    target_link_libraries(test_aot_wasm PRIVATE cpu epocmem config)
     target_link_options(test_aot_wasm PRIVATE
         "SHELL:-s PTHREAD_POOL_SIZE=1"
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"

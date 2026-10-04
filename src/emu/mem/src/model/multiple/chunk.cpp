@@ -26,6 +26,7 @@
 
 #include <common/log.h>
 #include <cpu/arm_interface.h>
+#include <cstring>
 
 namespace eka2l1::mem {
     std::size_t multiple_mem_model_chunk::commit(const vm_address offset, const std::size_t size, bool ignore_committed) {
@@ -360,7 +361,15 @@ namespace eka2l1::mem {
             host_base_ = create_info.host_map;
             is_external_host = true;
         } else {
-            host_base_ = common::map_memory(max_size_);
+            if (is_local && own_process_)
+                host_base_ = static_cast<multiple_mem_model_process *>(own_process_)->direct_local_backing(base_, max_size_);
+            is_direct_host = host_base_ != nullptr;
+            if (is_direct_host) {
+                // A newly allocated chunk must not inherit a previous chunk's bytes.
+                std::memset(host_base_, 0, max_size_);
+            } else {
+                host_base_ = common::map_memory(max_size_);
+            }
             is_external_host = false;
         }
 
@@ -414,7 +423,7 @@ namespace eka2l1::mem {
         }
 
         // Ignore the result, just unmap things
-        if (!is_external_host)
+        if (!is_external_host && !is_direct_host)
             common::unmap_memory(host_base_, max_size_);
     }
 }

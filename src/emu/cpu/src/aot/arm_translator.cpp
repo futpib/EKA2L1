@@ -163,6 +163,7 @@ namespace eka2l1::arm::aot {
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
             if(memory_experiment::mode==1){i32_const(0);set_local(M+1);}
+            if(memory_experiment::mode==2){i32_const(0);set_local(M+3);}
             if (region) {
                 store_i32_const(S::AOT_EXIT, 1); census_effect(1);
             }

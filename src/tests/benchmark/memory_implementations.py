@@ -19,14 +19,14 @@ p.add_argument('--modes', nargs='+', type=int, choices=range(4), default=[0,1,2,
 p.add_argument('--games', nargs='+', choices=['standard','combat'], default=['standard','combat'])
 p.add_argument('--rounds', type=int, default=2)
 p.add_argument('--window-us', type=int, default=0, help='Override the measured guest window; zero uses 4/6 seconds')
-p.add_argument('--activation-lead-us', type=int, default=1000, help='Guest time to warm identity memory before measurement')
+p.add_argument('--activation-lead-us', type=int, default=0, help='Optional delayed mode-2 activation; zero runs direct memory from boot')
 p.add_argument('--frames', type=int, default=60, help='Replay prefix length, up to 60 native reference frames')
 a = p.parse_args()
-if a.rounds < 1 or a.window_us < 0 or not 0 < a.activation_lead_us < 21000000 or not 1 <= a.frames <= 60:
+if a.rounds < 1 or a.window_us < 0 or not 0 <= a.activation_lead_us < 21000000 or not 1 <= a.frames <= 60:
     p.error('Invalid rounds, window, activation lead or frame count')
 a.output.mkdir(parents=True, exist_ok=False)
 repo = Path(__file__).resolve().parents[3]
-names = ['tlb','allocation','identity','flat-pages']
+names = ['tlb','allocation','direct','flat-pages']
 rows = []
 build_hashes = None
 for game in a.games:
@@ -62,7 +62,7 @@ for game in a.games:
                 EKA2L1_ARM_MEMORY='0',EKA2L1_ARM_EXCLUSIVE='0',EKA2L1_AOT_IR_MODE='17',
                 EKA2L1_HOTPATH='2',EKA2L1_THUMB_MEMORY='1',EKA2L1_MEMORY_IMPL=str(mode),
                 EKA2L1_WASM_BUILD_DIR=str(a.build.resolve()),EKA2L1_PROFILE_DETAIL='0',EKA2L1_CHROME_TRACE='off')
-            if mode==2:config['EKA2L1_MEMORY_ACTIVATE_US']=str(start-a.activation_lead_us)
+            if mode==2 and a.activation_lead_us:config['EKA2L1_MEMORY_ACTIVATE_US']=str(start-a.activation_lead_us)
             if game=='combat':
                 config.update(EKA2L1_APP_UID='0xa020d913',EKA2L1_ASSET_MANIFEST=str(repo/'src/tests/benchmark/sky-force-assets.json'))
             if a.phase=='replays':
@@ -82,7 +82,10 @@ for game in a.games:
             hashes=(report['wasm_sha256'],report['loader_sha256'])
             if build_hashes is None:build_hashes=hashes
             assert hashes==build_hashes, 'Build changed during the campaign'
-            if mode==2:assert start-a.activation_lead_us<=report['memory_impl_stats']['activated_us']<start
+            if mode==2 and a.activation_lead_us:assert start-a.activation_lead_us<=report['memory_impl_stats']['activated_us']<start
+            if mode==2:
+                assert report['memory_impl_stats']['bytes_in']==report['memory_impl_stats']['bytes_out']==0
+                assert report['memory_impl_stats']['direct_rebuilds']>0
             row['report']=report
             if a.phase=='replays':
                 comparison=subprocess.run(['python3',str(repo/'src/tests/benchmark/compare.py'),str(reference),str(out)],capture_output=True,text=True)

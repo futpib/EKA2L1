@@ -26,6 +26,7 @@
 #include <mem/mmu.h>
 
 #include <cpu/arm_interface.h>
+#include <cpu/aot/memory_experiment.h>
 
 namespace eka2l1::mem {
     multiple_mem_model_process::multiple_mem_model_process(control_base *ctrl)
@@ -36,6 +37,34 @@ namespace eka2l1::mem {
     }
 
     static constexpr std::size_t MAX_CHUNK_ALLOW_PER_PROCESS = 1024;
+
+    void *multiple_mem_model_process::direct_local_backing(vm_address address, std::size_t size) {
+#ifdef __EMSCRIPTEN__
+        using namespace arm::aot::memory_experiment;
+        if (mode != 2 || addr_space_id_ <= 0 || addr_space_id_ > 255 || address < direct_begin || std::uint64_t(address) + size > direct_begin + direct_size)
+            return nullptr;
+        if (!direct_local_) {
+            auto *allocation = common::map_memory(direct_size);
+            if (!allocation || allocation == reinterpret_cast<void *>(-1)) return nullptr;
+            direct_local_ = allocation;
+            static_cast<control_multiple *>(control_)->direct_local_[addr_space_id_] = allocation;
+            stats.arena_bytes += direct_size;
+        }
+        return static_cast<std::uint8_t *>(direct_local_) + address - direct_begin;
+#else
+        return nullptr;
+#endif
+    }
+
+    multiple_mem_model_process::~multiple_mem_model_process() {
+        // Chunks release their mappings before the shared arena is released.
+        chunks_.clear();
+        if (direct_local_) {
+            static_cast<control_multiple *>(control_)->direct_local_[addr_space_id_] = nullptr;
+            common::unmap_memory(direct_local_, arm::aot::memory_experiment::direct_size);
+            arm::aot::memory_experiment::stats.arena_bytes -= arm::aot::memory_experiment::direct_size;
+        }
+    }
 
     multiple_mem_model_chunk *multiple_mem_model_process::allocate_chunk_struct_ptr() {
         if (chunks_.size() >= MAX_CHUNK_ALLOW_PER_PROCESS) {

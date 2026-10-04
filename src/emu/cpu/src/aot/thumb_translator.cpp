@@ -170,6 +170,7 @@ namespace eka2l1::arm::aot {
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
             if(memory_experiment::mode==1){i32_const(0);set_local(M+1);}
+            if(memory_experiment::mode==2){i32_const(0);set_local(M+3);}
         }
 
         // A whole one-page register transfer can reuse one TLB proof. On

@@ -1,6 +1,11 @@
 # Four guest-memory implementations
 
-## Results
+Mode 2 has since been replaced by a shared-backing direct-memory experiment.
+See [the zero-copy rerun](DIRECT_MEMORY_RESULTS.md) for its implementation and
+measurements. The results below are historical and describe the removed copying
+prototype at commit `6f03de309`.
+
+## Historical results
 
 **Retain mode 0.** Allocation ranges consistently regressed. The full page table
 showed a small Snakes improvement but no consistent Sky Force gain, and consumed

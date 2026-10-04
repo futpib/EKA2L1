@@ -27,6 +27,7 @@
 #include <cpu/aot/memory_experiment.h>
 #include <stdexcept>
 #include <mem/model/multiple/mmu.h>
+#include <mem/model/multiple/control.h>
 
 namespace eka2l1::mem {
     mmu_base::mmu_base(control_base *manager, arm::core *cpu, config::state *conf)
@@ -39,6 +40,12 @@ namespace eka2l1::mem {
             auto view = std::make_shared<memory_experiment::view>();
             cpu->experimental_memory = [this, view](bool enter) -> std::uintptr_t {
                 if (!enter) { view->leave(); return 0; }
+                memory_experiment::range direct{};
+                if (memory_experiment::mode == 2 && manager_->model_type() == mem_model_type::multiple) {
+                    auto *host = static_cast<control_multiple *>(manager_)->direct_local_memory(current_addr_space());
+                    if (host) direct = {memory_experiment::direct_begin, memory_experiment::direct_size,
+                        static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(host)), 3};
+                }
                 return view->enter(mapping_generation.load(std::memory_order_acquire), current_addr_space(), [this] {
                     std::vector<memory_experiment::binding> pages;
                     for (std::uint32_t table=0; table<4096; ++table) {
@@ -55,7 +62,7 @@ namespace eka2l1::mem {
                         }
                     }
                     return pages;
-                });
+                }, direct);
             };
         }
         cpu->code_mapping_generation = &mapping_generation;
