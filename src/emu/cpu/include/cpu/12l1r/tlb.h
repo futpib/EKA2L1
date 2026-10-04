@@ -46,27 +46,22 @@ namespace eka2l1::arm::r12l1 {
     static constexpr std::uint32_t TLB_ENTRY_COUNT = 1 << TLB_LOOKUP_BIT_COUNT;
     static constexpr std::uint32_t TLB_ENTRY_MASK = TLB_ENTRY_COUNT - 1;
 
-    // Research configuration, frozen before DynCom cores/regions are created.
-    // Native 12l1r cores retain their fixed low-bit index contract.
-    inline bool dyncom_folded_tlb = false;
-
     struct tlb {
     public:
         tlb_entry entries[TLB_ENTRY_COUNT];
 
         std::size_t page_bits;
         std::size_t page_mask;
-        const bool folded_index;
 
-        explicit tlb(std::size_t page_bits, bool folded = false)
-            : page_bits(page_bits), folded_index(folded) {
+        explicit tlb(std::size_t page_bits)
+            : page_bits(page_bits) {
             page_mask = (1 << page_bits) - 1;
             flush();
         }
 
         std::size_t index(vaddress addr) const {
             const auto page = addr >> page_bits;
-            return (folded_index ? page ^ (page >> TLB_LOOKUP_BIT_COUNT) : page) & TLB_ENTRY_MASK;
+            return page & TLB_ENTRY_MASK;
         }
 
         void flush() {

@@ -244,14 +244,6 @@ int eka2l1_thumb_memory_report() {
     return eka2l1::arm::aot::thumb_direct_memory;
 }
 
-// DynCom and generated guards must select the same index before initialization.
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_tlb_hash_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::r12l1::dyncom_folded_tlb = mode != 0;
-    return 0;
-}
-
 // WASM defaults to mode 3 (immutable executable bytes); explicit mode 0
 // restores mutation compatibility. The selection is frozen at CPU initialization.
 EMSCRIPTEN_KEEPALIVE

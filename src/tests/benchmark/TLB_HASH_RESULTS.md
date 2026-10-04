@@ -1,4 +1,6 @@
-# Folded data-TLB indexing: delivered
+# Folded data-TLB indexing: historical results
+
+Historical experiment, superseded by [the memory-cache comparison](MEMORY_CACHE_RESULTS.md). Production now uses only the original low-bit TLB index; the folded implementation and selection controls have been removed. The description and measurements below record the earlier implementation.
 
 The launcher at https://claude-laptop.lan:8188/ selects the verified
 `tlb-hash-candidate-v2` archive, compiler policy 7, eager regions 0, and TLB hash 1.

@@ -1310,41 +1310,37 @@ TEST_CASE("DynCom block writeback follows memory callbacks", "[cpu][memory]") {
     }
 }
 
-TEST_CASE("Folded DynCom TLB indexing preserves invalidation and permissions", "[aot][cpu][memory]") {
+TEST_CASE("TLB indexing preserves invalidation and permissions", "[aot][cpu][memory]") {
     using namespace eka2l1::arm::r12l1;
     std::array<std::uint8_t,4096> a{}, b{}, c{};
-    for (bool folded : {false,true}) {
-        tlb cache(12, folded);
-        const unsigned first=0x201000, second=0x401000;
-        cache.add(first,a.data(),prot_read);
-        cache.add(second,b.data(),prot_read_write);
-        CHECK(cache.lookup_access<prot_read>(second+12)==b.data()+12);
-        CHECK(cache.lookup_access<prot_write>(first)==nullptr);
-        CHECK(cache.lookup_access<prot_read>(first)==(folded?a.data():nullptr));
-        cache.make_dirty(first);
-        CHECK(cache.lookup_access<prot_read>(first)==nullptr);
-        CHECK(cache.lookup_access<prot_read>(second)==b.data());
-        cache.add(first,c.data(),prot_read);
-        CHECK(cache.lookup_access<prot_read>(first)==c.data());
-        cache.add(0,a.data(),prot_read_write);
-        CHECK(cache.lookup_access<prot_read>(0)==nullptr);
-        cache.flush();
-        CHECK(cache.lookup_access<prot_read>(first)==nullptr);
-        CHECK(cache.lookup_access<prot_read>(second)==nullptr);
-    }
-    // A true folded collision replaces all tags; invalidating its old page
-    // must not erase the replacement, regardless of its permissions.
-    tlb folded(12,true);
-    const unsigned first=0x201000;
-    unsigned collision=first+4096;
-    while (folded.index(collision)!=folded.index(first)) collision+=4096;
-    folded.add(first,a.data(),prot_read_write);
-    folded.add(collision,b.data(),prot_exec);
-    folded.make_dirty(first);
-    CHECK(folded.lookup_access<prot_read>(collision)==nullptr);
-    CHECK(folded.lookup_access<prot_exec>(collision)==b.data());
-    folded.make_dirty(collision);
-    CHECK(folded.lookup(collision)==nullptr);
+    tlb cache(12);
+    const unsigned first=0x201000, second=0x401000;
+    cache.add(first,a.data(),prot_read);
+    CHECK(cache.lookup_access<prot_read>(first)==a.data());
+    CHECK(cache.lookup_access<prot_write>(first)==nullptr);
+    cache.add(second,b.data(),prot_read_write);
+    CHECK(cache.lookup_access<prot_read>(second+12)==b.data()+12);
+    CHECK(cache.lookup_access<prot_read>(first)==nullptr);
+    cache.make_dirty(first);
+    CHECK(cache.lookup_access<prot_read>(second)==b.data());
+    cache.add(first,c.data(),prot_read);
+    CHECK(cache.lookup_access<prot_read>(first)==c.data());
+    CHECK(cache.lookup_access<prot_read>(second)==nullptr);
+    cache.add(0,a.data(),prot_read_write);
+    CHECK(cache.lookup_access<prot_read>(0)==nullptr);
+    cache.flush();
+    CHECK(cache.lookup_access<prot_read>(first)==nullptr);
+    CHECK(cache.lookup_access<prot_read>(second)==nullptr);
+    // A collision replaces all tags; invalidating its old page must not
+    // erase the replacement, regardless of its permissions.
+    cache.add(first,a.data(),prot_read_write);
+    cache.add(second,b.data(),prot_exec);
+    cache.make_dirty(first);
+    CHECK(cache.lookup_access<prot_read>(second)==nullptr);
+    CHECK(cache.lookup_access<prot_write>(second)==nullptr);
+    CHECK(cache.lookup_access<prot_exec>(second)==b.data());
+    cache.make_dirty(second);
+    CHECK(cache.lookup(second)==nullptr);
 }
 
 TEST_CASE("Diagnostic code guard overlap excludes interval gaps", "[aot][cpu][diagnostic]") {

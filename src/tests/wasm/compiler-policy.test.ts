@@ -10,7 +10,7 @@ process.env.EKA2L1_WASM_BUILD_DIR = temp;
 const { startServer, compilerPolicyFromEnv } = await import('./server.ts');
 const servers: any[] = [];
 try {
-  for (const name of ['EKA2L1_HOTPATH','EKA2L1_THUMB_MEMORY','EKA2L1_AOT_IR_MODE','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_TLB_HASH','EKA2L1_CODE_COMPARE','EKA2L1_CODE_LOOKUP','EKA2L1_PREDICATED_LEAVES','EKA2L1_LEAF_FEATURES','EKA2L1_EXECUTION_LIMITS','EKA2L1_UNSAFE_CODE','EKA2L1_OMIT_GUARD_PUBLICATION']) delete process.env[name];
+  for (const name of ['EKA2L1_HOTPATH','EKA2L1_THUMB_MEMORY','EKA2L1_AOT_IR_MODE','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_TLB_HASH','EKA2L1_MEMORY_CACHE','EKA2L1_CODE_COMPARE','EKA2L1_CODE_LOOKUP','EKA2L1_PREDICATED_LEAVES','EKA2L1_LEAF_FEATURES','EKA2L1_EXECUTION_LIMITS','EKA2L1_UNSAFE_CODE','EKA2L1_OMIT_GUARD_PUBLICATION']) delete process.env[name];
   assert.deepEqual(compilerPolicyFromEnv(), {hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17});
   for (const mode of [0,2]) {
     process.env.EKA2L1_CODE_COMPARE = String(mode);
@@ -21,7 +21,7 @@ try {
     assert.throws(compilerPolicyFromEnv, /Invalid exact comparison policy/);
   }
   delete process.env.EKA2L1_CODE_COMPARE;
-  for (const name of ['EKA2L1_CODE_LOOKUP','EKA2L1_OMIT_GUARD_PUBLICATION','EKA2L1_ROM_DISPATCH','EKA2L1_SYNCHRONOUS_COMPILATION','EKA2L1_CODE_WRITE_PROTECT','EKA2L1_COMPILED_MEMORY_MISSES','EKA2L1_COMPILED_SVC','EKA2L1_ROM_CALLS','EKA2L1_ROM_LEAVES','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_SNAKES_N80_NATIVE_RESOLUTION']) {
+  for (const name of ['EKA2L1_TLB_HASH','EKA2L1_MEMORY_CACHE','EKA2L1_CODE_LOOKUP','EKA2L1_OMIT_GUARD_PUBLICATION','EKA2L1_ROM_DISPATCH','EKA2L1_SYNCHRONOUS_COMPILATION','EKA2L1_CODE_WRITE_PROTECT','EKA2L1_COMPILED_MEMORY_MISSES','EKA2L1_COMPILED_SVC','EKA2L1_ROM_CALLS','EKA2L1_ROM_LEAVES','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_SNAKES_N80_NATIVE_RESOLUTION']) {
     for (const value of ['0','1']) {
       process.env[name] = value;
       assert.throws(compilerPolicyFromEnv, /Retired compiler option/);
@@ -42,15 +42,15 @@ try {
   delete process.env.EKA2L1_AOT_IR_MODE;
   const responses: {html:string; etag:string|null}[] = [];
   for (const mode of [0,2]) {
-    const {server,port} = await startServer(0, {}, undefined, {compilerPolicy:{irMode:7,tlbHash:1,codeCompare:mode}});
+    const {server,port} = await startServer(0, {}, undefined, {compilerPolicy:{irMode:7,codeCompare:mode}});
     servers.push(server);
     const response = await fetch(`http://127.0.0.1:${port}/`);
     const html = await response.text(); responses.push({html,etag:response.headers.get('etag')});
     const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('window.ekaCompilerPolicy ='))!;
     assert.ok(script);
     const calls: [string,number][] = [];
-    const entries = ['ir','tlb_hash','code_compare'].map(n=>'eka2l1_'+n+'_configure');
-    const expected = [7,1,mode];
+    const entries = ['ir','code_compare'].map(n=>'eka2l1_'+n+'_configure');
+    const expected = [7,mode];
     let starts = 0;
     const context = vm.createContext({window:{}, startEmulator:async()=>{++starts;}, Module:{
       ...Object.fromEntries(entries.map(n=>['_'+n,()=>0])),
@@ -74,7 +74,7 @@ try {
   }
   assert.equal(new Set(responses.map(r=>r.etag)).size,responses.length);
   for (const invalid of [-1,5,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeCompare:invalid}}),/Invalid compiler policy/);
-  for (const policy of [{codeLookup:0},{omitGuardPublication:0}]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:policy as any}),/Invalid compiler policy/);
+  for (const policy of [{tlbHash:0},{tlbHash:1},{memoryCache:1},{codeLookup:0},{omitGuardPublication:0}]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:policy as any}),/Invalid compiler policy/);
   for (const [envName,key,valid,invalid] of [
     ['EKA2L1_HOTPATH','hotpath',['0','2'],['','1','3','4','5','6','7','8','-1','2.0','02']],
     ['EKA2L1_THUMB_MEMORY','thumbMemory',['0','1'],['','2','-1','1.0']],

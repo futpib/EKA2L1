@@ -30,7 +30,7 @@ namespace eka2l1::arm {
         : monitor_(monitor)
         , state_(nullptr)
         , ticks_executed_(0)
-        , mem_cache_(page_bits, r12l1::dyncom_folded_tlb) {
+        , mem_cache_(page_bits) {
         state_ = std::make_unique<ARMul_State>(this, USER32MODE);
         // Cache the data TLB on the state so the inline memory accessors can hit
         // it without needing the full dyncom_core definition in armstate.h.

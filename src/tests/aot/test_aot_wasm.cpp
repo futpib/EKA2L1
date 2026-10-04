@@ -2253,7 +2253,7 @@ static bool test_bounded_execution() {
             set(state_offsets::NUM_INSTRS_TO_EXECUTE,budget);
             set(state_offsets::CFLAG,carry); set(state_offsets::VFLAG,1);
             set(state_offsets::TFLAG,p.thumb); set(state_offsets::AOT_BUDGET,budget); set(state_offsets::NIRQ,1);
-            r12l1::tlb direct(12,r12l1::dyncom_folded_tlb);
+            r12l1::tlb direct(12);
             if (region && variant >= 5) {
                 for (unsigned a=0;a<test_mem::SIZE;a+=4096) direct.add(a,actual.data.data()+a,7);
                 set(state_offsets::AOT_TLB,reinterpret_cast<std::uintptr_t>(direct.entries));
@@ -2342,7 +2342,7 @@ static bool test_region_code_alias(arm_ir_policy policy = arm_ir_policy::configu
     for (unsigned address : {0x1000u,0x8000u}) {
         test_mem memory;
         std::memcpy(memory.data.data()+0x1000,words,sizeof(words));
-        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        r12l1::tlb tlb(12);
         tlb.add(address,memory.data.data()+0x1000,7);
         alignas(8) std::uint32_t state[256]{};
         state[0]=0xe3a04001; state[3]=state[0]; state[1]=address; state[15]=0x1000;
@@ -2370,7 +2370,7 @@ static bool test_region_code_alias(arm_ir_policy policy = arm_ir_policy::configu
             reinterpret_cast<const std::uint8_t *>(alias_words)+sizeof(alias_words)});
         const auto prior = memory.data;
         const unsigned backing = code_alias ? 0x1000 : 0x8000;
-        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        r12l1::tlb tlb(12);
         tlb.add(0x8000,memory.data.data()+backing,prot_write);
         tlb.add(0x9000,memory.data.data()+backing,prot_read);
         alignas(8) std::uint32_t state[256]{};
@@ -2432,7 +2432,7 @@ static bool test_inlined_leaves(arm_ir_policy policy = arm_ir_policy::configured
             }
             cpu->set_cpsr(0x10);state[state_offsets::CPSR/4]=0x10;state[state_offsets::MODE/4]=16;
             state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NIRQ/4]=1;
-            r12l1::tlb direct(12,r12l1::dyncom_folded_tlb);
+            r12l1::tlb direct(12);
             if(fast) {
                 for(unsigned a=0;a<test_mem::SIZE;a+=4096)direct.add(a,actual.data.data()+a,7);
                 state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(direct.entries);
@@ -2495,7 +2495,7 @@ static bool test_deferred_memory_exits() {
         for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
         for(unsigned address:{0x8000u,0x8001u,0x8ffcu,0u})for(unsigned budget:{0u,1u,2u}) {
             test_mem memory;const auto before=memory.data;
-            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(address==0?0x200000:0x8000,memory.data.data()+0x8000,permission);
+            r12l1::tlb tlb(12);tlb.add(address==0?0x200000:0x8000,memory.data.data()+0x8000,permission);
             alignas(8) unsigned state[256]{};state[0]=17;state[1]=address;state[2]=19;state[3]=23;state[15]=0x1000;
             state[state_offsets::CPSR/4]=16|endian;state[state_offsets::AOT_BUDGET/4]=budget;
             state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
@@ -2526,7 +2526,7 @@ static bool test_block_transfer_guards() {
         for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
             for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0u}) {
                 test_mem memory;
-                r12l1::tlb direct(12,r12l1::dyncom_folded_tlb); direct.add(address == 0 ? 0x200000 : 0x8000,memory.data.data()+0x8000,permission);
+                r12l1::tlb direct(12); direct.add(address == 0 ? 0x200000 : 0x8000,memory.data.data()+0x8000,permission);
                 alignas(8) std::uint32_t state[256]{};
                 state[0]=17; state[1]=address; state[2]=19; state[3]=23; state[15]=0x1000;
                 state[state_offsets::CPSR/4]=0x10|endian;
@@ -2672,7 +2672,7 @@ static bool test_proved_read_spans() {
             test_mem reference_memory = actual;
             r12l1::exclusive_monitor monitor(1);
             auto reference = make_cpu(reference_memory, monitor);
-            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            r12l1::tlb tlb(12);
             tlb.add(0x8000, actual.data.data() + 0x8000, permission);
             tlb.add(0x1000, actual.data.data() + 0x1000, permission);
             alignas(8) std::uint32_t state[256]{};
@@ -2774,7 +2774,7 @@ static bool test_invariant_reads(arm_ir_policy policy = arm_ir_policy::invariant
             test_mem reference_memory = actual;
             r12l1::exclusive_monitor monitor(1);
             auto reference = make_cpu(reference_memory, monitor);
-            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            r12l1::tlb tlb(12);
             tlb.add(0x8000, actual.data.data() + 0x8000, permission);
             tlb.add(0x1000, actual.data.data() + 0x1000, permission);
             alignas(8) std::uint32_t state[256]{};
@@ -2886,7 +2886,7 @@ static bool test_budget_chunks(arm_ir_policy policy = arm_ir_policy::budget_chun
             test_mem reference_memory = actual;
             r12l1::exclusive_monitor monitor(1);
             auto reference = make_cpu(reference_memory, monitor);
-            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            r12l1::tlb tlb(12);
             tlb.add(0x8000, actual.data.data() + 0x8000, permission);
             tlb.add(0x1000, actual.data.data() + 0x1000, permission);
             alignas(8) std::uint32_t state[256]{};
@@ -2985,7 +2985,7 @@ static bool test_loop_budget_chunks() {
             memory.write32(0x8000,0x7fffffff); memory.write32(0x8004,0x80000000);
             test_mem reference_memory = memory;
             r12l1::exclusive_monitor monitor(1); auto reference = make_cpu(reference_memory,monitor);
-            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            r12l1::tlb tlb(12);
             tlb.add(0x8000,memory.data.data()+0x8000,permission);
             tlb.add(0x1000,memory.data.data()+0x1000,permission);
             alignas(8) std::uint32_t state[256]{};
@@ -3092,7 +3092,7 @@ static bool test_invariant_writes(arm_ir_policy policy = arm_ir_policy::invarian
             test_mem reference_memory = actual;
             r12l1::exclusive_monitor monitor(1);
             auto reference = make_cpu(reference_memory, monitor);
-            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            r12l1::tlb tlb(12);
             tlb.add(0x8000, actual.data.data() + (alias ? 0x1000 : 0x8000), permission);
             tlb.add(0x1000, actual.data.data() + 0x1000, permission);
             alignas(8) std::uint32_t state[256]{};
@@ -3186,7 +3186,7 @@ static bool test_repeated_read_guards() {
             std::vector<std::uint8_t> code(sizeof(words)); std::memcpy(code.data(),words,sizeof(words));
             memory.write_code(0x1000,code);
             for (unsigned a=0x8000;a<0xa000;a+=4) { memory.write32(a,a*37); }
-            r12l1::tlb direct(12,r12l1::dyncom_folded_tlb); direct.add(address == 0 ? 0x200000 : 0x8000,memory.data.data()+0x8000,permission);
+            r12l1::tlb direct(12); direct.add(address == 0 ? 0x200000 : 0x8000,memory.data.data()+0x8000,permission);
             alignas(8) std::uint32_t state[256]{};
             state[1]=address; state[15]=0x1000;
             state[state_offsets::CPSR/4]=0x10|endian;
@@ -3226,7 +3226,7 @@ static bool test_memory_displacements() {
         auto *second=memory.data.data()+(alias?0x8000:0x9000);
         std::uint32_t a=0x87654321u,b=0xabcdef01u;
         std::memcpy(first+0xfe0,&a,4);std::memcpy(first+0xfe4,&b,4);
-        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(page,first,3);tlb.add(next,second,3);
+        r12l1::tlb tlb(12);tlb.add(page,first,3);tlb.add(next,second,3);
         alignas(8) unsigned state[256]{};state[1]=page+0xfe0;state[3]=next+0xfe0;state[15]=0x1000;
         state[state_offsets::CPSR/4]=16;state[state_offsets::AOT_BUDGET/4]=budget;
         state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
@@ -3660,9 +3660,9 @@ static bool test_arm_short_block_memory() {
 #ifdef __EMSCRIPTEN__
     namespace tracking=eka2l1::common::code_tracking;
     struct restore {
-        bool direct=arm_direct_memory,folded=r12l1::dyncom_folded_tlb;
+        bool direct=arm_direct_memory;
         unsigned mode=tracking::unsafe_code_mode;
-        ~restore(){arm_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
+        ~restore(){arm_direct_memory=direct;
             tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
     } saved;
     std::vector<unsigned> ops={0xe5910000,0xe5810000,0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,
@@ -3676,8 +3676,8 @@ static bool test_arm_short_block_memory() {
         ops.push_back(0xe8010000u|addressing|(load?1u<<20:0)|(writeback?1u<<21:0)|mask);
     }
     unsigned checks=0;
-    for(bool folded:{false,true})for(unsigned mode:{0u,3u})for(unsigned opcode:ops) {
-        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+    for(unsigned mode:{0u,3u})for(unsigned opcode:ops) {
+        tracking::unsafe_code_mode=mode;
         const unsigned code[]={0xe3b02007,opcode,0xe2844001};
         std::vector<std::uint8_t> modules[2];
         for(unsigned enabled=0;enabled<2;++enabled) {
@@ -3691,7 +3691,7 @@ static bool test_arm_short_block_memory() {
         const auto initial=memory.data;
         for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
         for(unsigned address:{0u,0x8040u,0x8001u,0x8ffeu,0x8ffcu})for(unsigned budget:{0u,1u,2u,3u}) {
-            r12l1::tlb tlb(12,folded);if(permission)tlb.add(0x8000,memory.data.data()+0x8000,permission);
+            r12l1::tlb tlb(12);if(permission)tlb.add(0x8000,memory.data.data()+0x8000,permission);
             alignas(8) std::array<unsigned,256> states[2]{};int counts[2];unsigned helpers[2];std::vector<unsigned char> expected;
             for(unsigned enabled=0;enabled<2;++enabled) {
                 std::copy(initial.begin(),initial.end(),memory.data.begin());
@@ -3710,8 +3710,8 @@ static bool test_arm_short_block_memory() {
             const unsigned expected_count=loads_pc?std::min(budget,2u):budget;
             if(counts[0]!=int(expected_count)||counts[1]!=counts[0]||states[0]!=states[1]||memory.data!=expected
                 ||(budget>=2&&address==0x8040&&!endian&&(permission&(write?2:1))&&(!write||mode==3)&&helpers[1])) {
-                printf(" FAIL ARM short memory op=%x mode=%u folded=%u perm=%u endian=%x address=%x budget=%u count=%d/%d helpers=%u/%u\n",
-                    opcode,mode,folded,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
+                printf(" FAIL ARM short memory op=%x mode=%u perm=%u endian=%x address=%x budget=%u count=%d/%d helpers=%u/%u\n",
+                    opcode,mode,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
             }
             ++checks;
         }
@@ -3721,7 +3721,7 @@ static bool test_arm_short_block_memory() {
     for(unsigned budget:{2u,3u,4u})for(unsigned endian:{0u,0x200u}) {
         const unsigned code[]={0xe5910000,0xe5923000,0xe5914004,0xe2844001};
         test_mem before,after;before.write32(0x8000,11);after.write32(0x8004,0x12345678);after.write32(0xa000,22);
-        r12l1::tlb old_tlb(12,r12l1::dyncom_folded_tlb),new_tlb(12,r12l1::dyncom_folded_tlb);
+        r12l1::tlb old_tlb(12),new_tlb(12);
         old_tlb.add(0x8000,before.data.data()+0x8000,1);new_tlb.add(0x8000,after.data.data()+0x8000,1);
         alignas(8) std::array<unsigned,256> states[2]{};int counts[2];bool seen[2]{};
         for(unsigned enabled=0;enabled<2;++enabled) {
@@ -3749,16 +3749,16 @@ static bool test_arm_short_block_memory() {
     // Stop/IRQ is observed after the whole memory instruction, including
     // multi-register writeback, but before the following arithmetic opcode.
     arm_direct_memory=true;
-    for (bool folded : {false,true}) for (unsigned mode : {0u,3u})
+    for (unsigned mode : {0u,3u})
     for (unsigned opcode : {0xe5910000u,0xe8b1000du})
     for (unsigned action : {0u,1u,2u,3u,4u}) {
-        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        tracking::unsafe_code_mode=mode;
         const unsigned code[]={0xe3b02007,opcode,0xe2844001};
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,false);
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         test_mem memory;memory.write32(0x8000,11);memory.write32(0x8004,22);memory.write32(0x8008,33);
-        r12l1::tlb tlb(12,folded);
+        r12l1::tlb tlb(12);
         alignas(8) std::array<unsigned,256> state{};
         state[1]=0x8000;state[4]=99;state[15]=0x1000;
         state[state_offsets::CPSR/4]=0x10;state[state_offsets::AOT_BUDGET/4]=3;
@@ -3785,7 +3785,7 @@ static bool test_arm_short_block_memory() {
         if(!visible || calls!=(multi?3u:1u) || count!=(stopped?2:3)
             || state[0]!=11 || state[4]!=(stopped?99u:100u) || state[15]!=(stopped?0x1008u:0x100cu)
             || state[1]!=(multi?0x800cu:0x8000u) || (multi && (state[2]!=22 || state[3]!=33))) {
-            printf(" FAIL ARM callback boundary opcode=%x mode=%u folded=%u action=%u count=%d calls=%u\n",opcode,mode,folded,action,count,calls);return false;
+            printf(" FAIL ARM callback boundary opcode=%x mode=%u action=%u count=%d calls=%u\n",opcode,mode,action,count,calls);return false;
         }
         ++checks;
     }
@@ -3872,16 +3872,16 @@ static bool test_thumb_transfer_spans() {
 #ifdef __EMSCRIPTEN__
     namespace tracking = eka2l1::common::code_tracking;
     struct restore {
-        bool direct=thumb_direct_memory, folded=r12l1::dyncom_folded_tlb;
+        bool direct=thumb_direct_memory;
         unsigned mode=tracking::unsafe_code_mode;
-        ~restore(){thumb_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
+        ~restore(){thumb_direct_memory=direct;
             tracking::unsafe_code_mode=mode;g_test_mem=nullptr;}
     } saved;
     unsigned checks=0;
-    for(bool folded:{false,true})for(unsigned mode:{0u,3u})
+    for(unsigned mode:{0u,3u})
     for(unsigned opcode:{0xb400u,0xb401u,0xb403u,0xb5ffu,0xbc00u,0xbc01u,0xbc03u,0xbdffu,
                         0xc100u,0xc101u,0xc103u,0xc1ffu,0xc900u,0xc901u,0xc903u,0xc9ffu}) {
-        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+        tracking::unsafe_code_mode=mode;
         const std::uint16_t code=opcode;
         std::vector<std::uint8_t> modules[2];
         for(unsigned enabled=0;enabled<2;++enabled) {
@@ -3895,7 +3895,7 @@ static bool test_thumb_transfer_spans() {
             test_mem memory;
             for(unsigned a=0;a<test_mem::SIZE;++a)memory.data[a]=static_cast<std::uint8_t>(a*37+19);
             const auto initial=memory.data;
-            r12l1::tlb tlb(12,folded);
+            r12l1::tlb tlb(12);
             if(permission)tlb.add(0x8000,memory.data.data()+0x8000,permission);
             alignas(8) unsigned states[2][256]{};int counts[2];unsigned helpers[2];std::vector<std::uint8_t> expected;
             for(unsigned enabled=0;enabled<2;++enabled) {
@@ -3931,15 +3931,15 @@ static bool test_thumb_direct_memory() {
 #ifdef __EMSCRIPTEN__
     namespace tracking = eka2l1::common::code_tracking;
     struct restore {
-        bool direct=thumb_direct_memory, folded=r12l1::dyncom_folded_tlb;
+        bool direct=thumb_direct_memory;
         unsigned mode=tracking::unsafe_code_mode;
-        ~restore(){thumb_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
+        ~restore(){thumb_direct_memory=direct;
             tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
     } saved;
     unsigned checks=0;
     const unsigned ops[]={0x6808,0x6008,0x7808,0x7008,0x8808,0x8008};
-    for(bool folded:{false,true})for(unsigned mode:{0u,3u})for(unsigned index=0;index<6;++index) {
-        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
+    for(unsigned mode:{0u,3u})for(unsigned index=0;index<6;++index) {
+        tracking::unsafe_code_mode=mode;
         const std::uint16_t code[]={0x2207,static_cast<std::uint16_t>(ops[index]),0x3301};
         std::vector<std::uint8_t> modules[2];
         for(unsigned enabled=0;enabled<2;++enabled) {
@@ -3953,7 +3953,7 @@ static bool test_thumb_direct_memory() {
             test_mem actual,control;
             for(unsigned a=0;a<test_mem::SIZE;++a)actual.data[a]=static_cast<std::uint8_t>(a*37+19);
             control=actual;
-            r12l1::tlb tlb(12,folded);tlb.add(0x8000,actual.data.data()+0x8000,permission);
+            r12l1::tlb tlb(12);tlb.add(0x8000,actual.data.data()+0x8000,permission);
             alignas(8) unsigned states[2][256]{};
             int counts[2]{};unsigned helpers[2]{};
             for(unsigned enabled=0;enabled<2;++enabled) {
@@ -3971,8 +3971,8 @@ static bool test_thumb_direct_memory() {
                 && !(address&(size-1)) && (!write || mode==3);
             if(counts[0]!=int(budget)||counts[1]!=counts[0]||std::memcmp(states[0],states[1],sizeof(states[0]))||actual.data!=control.data
                 || helpers[0]!=(budget>=2?1u:0u)||helpers[1]!=(budget>=2&&!fast?1u:0u)) {
-                printf(" FAIL Thumb memory op=%x folded=%d mode=%u perm=%u endian=%x address=%x budget=%u count=%d/%d helpers=%u/%u\n",
-                    ops[index],folded,mode,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
+                printf(" FAIL Thumb memory op=%x mode=%u perm=%u endian=%x address=%x budget=%u count=%d/%d helpers=%u/%u\n",
+                    ops[index],mode,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
             }
             ++checks;
         }
@@ -3986,7 +3986,7 @@ static bool test_thumb_direct_memory() {
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         test_mem memory;memory.write32(0x8000,20);memory.write32(0x9000,30);
-        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        r12l1::tlb tlb(12);
         alignas(8) unsigned state[256]{};state[1]=0x8000;state[3]=0xA000;state[15]=0x1000;
         state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=4;
         state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
@@ -4015,7 +4015,7 @@ static bool test_thumb_direct_memory() {
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         test_mem memory;memory.write32(0x8000,20);memory.write32(0x8004,30);memory.write32(0x9000,40);
-        r12l1::tlb old_tlb(12,r12l1::dyncom_folded_tlb),new_tlb(12,r12l1::dyncom_folded_tlb);
+        r12l1::tlb old_tlb(12),new_tlb(12);
         new_tlb.add(0x9000,memory.data.data()+0x9000,1);
         alignas(8) unsigned state[256]{};state[1]=0x8000;state[3]=0x9000;state[4]=99;state[15]=0x1000;
         state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=4;
@@ -4083,10 +4083,8 @@ EM_JS(void, js_export_flag_probe, (const std::uint8_t *bytes, unsigned size), {
 });
 #endif
 
-static bool test_folded_tlb_guards() {
+static bool test_tlb_guards() {
 #ifdef __EMSCRIPTEN__
-    struct restore { bool old=r12l1::dyncom_folded_tlb; ~restore(){r12l1::dyncom_folded_tlb=old;} } restore_mode;
-    r12l1::dyncom_folded_tlb=true;
     for (unsigned kind=0;kind<3;++kind) {
         const bool block=kind==1, proof=kind==2;
         const std::vector<std::uint32_t> words=proof
@@ -4098,13 +4096,13 @@ static bool test_folded_tlb_guards() {
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         const unsigned expected_proofs=3;
         if(proof && (tr.proved_reads!=expected_proofs || tr.proved_writes!=expected_proofs)) {
-            printf("  FAIL folded TLB entry proof policy mismatch\n");return false;
+            printf("  FAIL TLB entry proof policy mismatch\n");return false;
         }
         for(unsigned budget=0;budget<=words.size()+1;++budget) {
             std::array<std::uint32_t,1024> input{},output{};input[0]=0x12345678;input[1]=0xabcdef01;input[2]=0x31415926;
-            r12l1::tlb cache(12,true);cache.add(0x201000,reinterpret_cast<std::uint8_t*>(input.data()),prot_read);
-            cache.add(0x401000,reinterpret_cast<std::uint8_t*>(output.data()),prot_write);
-            alignas(8) std::uint32_t state[256]{};state[1]=0x201000;state[2]=0x401000;state[15]=0x1000;
+            r12l1::tlb cache(12);cache.add(0x201000,reinterpret_cast<std::uint8_t*>(input.data()),prot_read);
+            cache.add(0x402000,reinterpret_cast<std::uint8_t*>(output.data()),prot_write);
+            alignas(8) std::uint32_t state[256]{};state[1]=0x201000;state[2]=0x402000;state[15]=0x1000;
             state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(cache.entries);
             state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::NIRQ/4]=1;
             const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
@@ -4115,12 +4113,12 @@ static bool test_folded_tlb_guards() {
                 || output[0]!=((expected>=(proof?4u:2u))?input[0]:0)
                 || output[1]!=(((block && expected==2)||(proof && expected>=5))?input[1]:0)
                 || output[2]!=((proof && expected>=6)?input[2]:0)) {
-                printf("  FAIL folded TLB kind=%u budget=%u count=%d pc=%x\n",kind,budget,count,state[15]);return false;
+                printf("  FAIL TLB kind=%u budget=%u count=%d pc=%x\n",kind,budget,count,state[15]);return false;
             }
         }
     }
 #endif
-    printf("  PASS folded TLB scalar/block/entry guards and exact budgets\n");return true;
+    printf("  PASS TLB scalar/block/entry guards and exact budgets\n");return true;
 }
 
 static bool test_boundary_details() {
@@ -4173,7 +4171,7 @@ static bool test_boundary_details() {
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        r12l1::tlb tlb(12);
         for(unsigned page:{0x1000u,0x2000u,0x3000u})tlb.add(page,memory.data.data()+page,3);
         validated_code_cache cache;core::code_mapping view{1,memory.data.data()+0x1000,8};auto &entry=cache.insert(0x1000,view,8);
         validated_code_cache::add_dependency(entry,0x2000,memory.data.data()+0x2000,{memory.data.begin()+0x2000,memory.data.begin()+0x2004});
@@ -4202,7 +4200,7 @@ static bool test_boundary_details() {
         const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
         auto module=build_wasm_module({candidate.func},imports),original=build_wasm_module({control.func},imports);
-        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+        r12l1::tlb tlb(12);
         for(unsigned page:{0x1000u,0x2000u,0x3000u})tlb.add(page,memory.data.data()+page,permission);
         validated_code_cache cache;core::code_mapping view{1,memory.data.data()+0x1000,sizeof(code)};auto &entry=cache.insert(0x1000,view,sizeof(code));
         validated_code_cache::add_dependency(entry,0x2000,memory.data.data()+0x2000,{memory.data.begin()+0x2000,memory.data.begin()+0x2004});
@@ -4236,16 +4234,16 @@ static bool test_boundary_details() {
 static bool test_literal_pc_veneers() {
 #ifdef __EMSCRIPTEN__
     struct restore {
-        bool flag=predicated_leaves, hash=r12l1::dyncom_folded_tlb;
+        bool flag=predicated_leaves;
         unsigned features=leaf_features; std::string limits=execution_limits_text();
-        ~restore(){predicated_leaves=flag;leaf_features=features;r12l1::dyncom_folded_tlb=hash;
+        ~restore(){predicated_leaves=flag;leaf_features=features;
             parse_execution_limits(limits.c_str());g_test_mem=nullptr;g_read32_observer={};}
     } saved;
     configure_execution_limits(512,16,8,512);predicated_leaves=true;
     unsigned checks=0;
-    for(bool hash:{false,true}) for(unsigned literal:{0x1ffcu,0x2004u,0x2010u,0x3000u})
+    for(unsigned literal:{0x1ffcu,0x2004u,0x2010u,0x3000u})
     for(unsigned features:{0u,128u}) {
-        r12l1::dyncom_folded_tlb=hash;leaf_features=features;
+        leaf_features=features;
         const unsigned caller[]={0xe2844001u,0xeb0003fdu,0xe28bb001u};
         const unsigned op=(literal>=0x2008u?0xe59ff000u:0xe51ff000u) |
             (literal>=0x2008u?literal-0x2008u:0x2008u-literal);
@@ -4281,7 +4279,7 @@ static bool test_literal_pc_veneers() {
                 actual.write32(literal,0x6000); // stale unmapped backing must not supply the target
             }
             test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
-            r12l1::tlb tlb(12,hash);
+            r12l1::tlb tlb(12);
             if(mapping){tlb.add(page,actual.data.data()+backing,3);reference->set_tlb_page(page,expected.data.data()+backing,prot_read_write);}
             alignas(8) unsigned state[256]{};
             for(unsigned reg=0;reg<16;++reg){state[reg]=reg==14?0x6001:reg==15?0x1000:reg;reference->set_reg(reg,state[reg]);}
@@ -4304,8 +4302,8 @@ static bool test_literal_pc_veneers() {
                 // The dispatcher aligns the raw loaded PC on the next entry.
                 if(reg==15)value &= state[state_offsets::TFLAG/4]?~1u:~3u;
                 if(value!=reference->get_reg(reg)) {
-                    printf(" FAIL literal veneer literal=%x target=%x features=%u hash=%u mapping=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",
-                        literal,target,features,hash,mapping,flags,budget,count,reg,value,reference->get_reg(reg));return false;
+                    printf(" FAIL literal veneer literal=%x target=%x features=%u mapping=%u flags=%u budget=%u count=%d R%u=%x expected=%x\n",
+                        literal,target,features,mapping,flags,budget,count,reg,value,reference->get_reg(reg));return false;
                 }
             }
             for(auto f:{std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},{state_offsets::ZFLAG,30},
@@ -4353,7 +4351,7 @@ static bool test_predicated_leaves(arm_ir_policy policy = arm_ir_policy::write_b
             const unsigned values[]={0,1,0x7fffffffu,0x80000000u,0xffffffffu};
             actual.write32(0x8000,values[flags%5]);actual.write32(0x9000,values[(flags+2)%5]);actual.write32(0xa000,0x12345678);
             test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
-            r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);
+            r12l1::tlb tlb(12);
             if(mapping!=1)tlb.add(0x8000,actual.data.data()+0x8000,3);
             if(mapping!=2)tlb.add(0x9000,actual.data.data()+0x9000,3);
             if(mapping!=3)tlb.add(0xa000,actual.data.data()+(mapping==4?0x1000:0xa000),3);
@@ -4620,7 +4618,7 @@ static bool test_exit_census() {
         auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         test_mem memory;memory.write32(0x1000,f.op);memory.write32(0x8000,123);
-        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x1000,memory.data.data()+0x1000,3);
+        r12l1::tlb tlb(12);tlb.add(0x1000,memory.data.data()+0x1000,3);
         alignas(8) std::uint32_t state[256]{};state[0]=0xe2800002;state[1]=f.op==0xe5810000?0x1000:0x8000;
         state[14]=0x2000;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;
         state[state_offsets::TFLAG/4]=f.thumb;state[state_offsets::NIRQ/4]=f.op==0xeafffffe?0:1;
@@ -4678,7 +4676,7 @@ static bool test_unsafe_code_diagnostic() {
             proof?arm_ir_policy::write_budget_chunks:arm_ir_policy::disabled);
         const auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
             {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-        r12l1::tlb tlb(12,r12l1::dyncom_folded_tlb);tlb.add(0x1000,memory.data.data()+0x1000,3);
+        r12l1::tlb tlb(12);tlb.add(0x1000,memory.data.data()+0x1000,3);
         alignas(8) unsigned state[256]{};state[0]=0xe2822007;state[1]=0x1004;state[15]=0x1000;
         state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;
         state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
@@ -4811,13 +4809,7 @@ int main(int argc, char **argv) {
     }
     if(argc==2 && std::string(argv[1])=="--lookup-only") return test_code_cache_lifecycle()?0:1;
     if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
-    if(argc==2 && std::string(argv[1])=="--folded-tlb-only") return test_folded_tlb_guards()?0:1;
-    if (argc == 2 && std::string(argv[1]).rfind("--tlb-hash=",0)==0) {
-        const std::string value=std::string(argv[1]).substr(11);
-        if(value!="0" && value!="1") {printf("Invalid TLB index mode\n");return 1;}
-        r12l1::dyncom_folded_tlb=value=="1";argc=1;
-    }
-    printf("TEST_TLB_HASH %u\n",unsigned(r12l1::dyncom_folded_tlb));
+    if(argc==2 && std::string(argv[1])=="--tlb-only") return test_tlb_guards()?0:1;
 #ifdef __EMSCRIPTEN__
     if (argc == 2 && std::string(argv[1]) == "--emit-flags") {
         // Generic flag-overwrite/consumer fixtures, unrelated to game PCs.
@@ -5425,7 +5417,7 @@ int main(int argc, char **argv) {
     if (test_registry_lookup_lifecycle()) passed++; else failed++;
     if (test_arm_short_block_memory()) passed++; else failed++;
     if (test_bounded_execution()) passed++; else failed++;
-    if (test_folded_tlb_guards()) passed++; else failed++;
+    if (test_tlb_guards()) passed++; else failed++;
     if (test_unsafe_code_diagnostic()) passed++; else failed++;
     if (test_code_cache_lifecycle()) passed++; else failed++;
     if (test_exact_code_compare()) passed++; else failed++;

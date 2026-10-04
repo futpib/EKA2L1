@@ -19,7 +19,6 @@ p.add_argument('--predicated-leaves', type=int, choices=(0,1))
 p.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
 p.add_argument('--ir-policy', type=int, choices=(0,4,5,6,7,17), help='Require explicit matching probe-policy markers')
 p.add_argument('--code-compare', type=int, choices=(0,2))
-p.add_argument('--tlb-hash', type=int, choices=(0,1))
 a = p.parse_args()
 
 def load(path):
@@ -47,10 +46,6 @@ def load(path):
         markers = [line for line in lines if line.startswith('PROBE_COMPARE ')]
         if markers != [f'PROBE_COMPARE {a.code_compare}']:
             raise ValueError(f'{path}: wrong comparison policy {markers}')
-    if a.tlb_hash is not None:
-        markers = [line for line in lines if line.startswith('PROBE_TLB_HASH ')]
-        if markers != [f'PROBE_TLB_HASH {a.tlb_hash}']:
-            raise ValueError(f'{path}: wrong TLB index policy {markers}')
     rows = [json.loads(line[6:]) for line in lines if line.startswith('FAULT ')]
     if len(rows) != a.cases or [r['id'] for r in rows] != list(range(a.cases)):
         raise ValueError(f'{path}: incomplete or duplicated probe output')
@@ -85,8 +80,6 @@ result = {'verified_unsafe_code':a.unsafe_code,'verified_leaf_features':a.leaf_f
           'differences': differences}
 if a.execution_limits is not None:
     result['verified_execution_limits']=a.execution_limits
-if a.tlb_hash is not None:
-    result['verified_tlb_hash'] = a.tlb_hash
 if a.code_compare is not None:
     result['verified_code_compare'] = a.code_compare
 if a.ir_policy is not None:

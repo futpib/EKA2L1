@@ -1,5 +1,7 @@
 # Fold higher virtual-page bits into the DynCom data TLB index
 
+Historical experiment, superseded by [the memory-cache comparison](MEMORY_CACHE_RESULTS.md). Production now uses only the original low-bit TLB index; the folded implementation and selection controls have been removed. The description and measurements below record the earlier implementation.
+
 ZERO_LITERAL_RESULTS.md records repeated conflicts between instruction literals
 and data at the same low-bit TLB slot. The experimental index is
 (page ^ (page >> 9)) & 511, retaining 512 entries and all permission tags.

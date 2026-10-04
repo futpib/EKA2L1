@@ -1,8 +1,10 @@
 # Software page-cache comparison
 
-The software TLB pays for itself in these workloads. Original-index TLB-only had the best mean: **39% higher wall throughput in Snakes and 31% in Sky Force than no software page caches**. The current two-cache configuration gained **26% and 25%**. Adding more cache machinery did not produce a consistent improvement.
+The software TLB pays for itself in these workloads. Original-index TLB-only had the best mean: **39% higher wall throughput in Snakes and 31% in Sky Force than no software page caches**. The previous two-cache configuration gained **26% and 25%**. Adding more cache machinery did not produce a consistent improvement.
 
-All eight configurations use one frozen experimental WASM binary based on `91427bdd651fcc5f1578f19183d2ec19933d44eb`. Production compiler code, defaults and the LAN deployment are unchanged. The experiment is preserved as a [patch](memory_cache_matrix.patch), [serial runner](memory_cache_matrix.py) and [complete measurements](MEMORY_CACHE_RESULTS.json).
+**Adopted:** production now uses the original low-bit 512-entry TLB directly. ARM scalar last-page caches, folded indexing and the TLB selection API have been removed. `EKA2L1_TLB_HASH` and `EKA2L1_MEMORY_CACHE` are rejected as retired options. ARM/Thumb whole-instruction span proofs and existing permission, alignment, endian, callback and code-write behavior remain.
+
+All measurements below use one frozen experimental WASM binary based on `91427bdd651fcc5f1578f19183d2ec19933d44eb`; they are not measurements of the final hardwired binary. No new performance panel was run during adoption. [Complete measurements](MEMORY_CACHE_RESULTS.json) remain here; the discarded experiment implementations and serial runner are available in Git commit `0bf3049697e143015354efbe5d442363a7f10dc3`.
 
 ## Results
 
@@ -15,7 +17,7 @@ Two retained runs per configuration and game; speedup is mean no-cache seconds d
 | 3 | Original TLB only | 2.301 | 1.389× | 9.800 | 1.308× |
 | 4 | Folded TLB only | 2.643 | 1.210× | 10.550 | 1.215× |
 | 5 | Original TLB + last-page | 2.479 | 1.290× | 10.985 | 1.167× |
-| 6 | Folded TLB + last-page (current policy) | 2.532 | 1.262× | 10.288 | 1.246× |
+| 6 | Folded TLB + last-page (previous policy) | 2.532 | 1.262× | 10.288 | 1.246× |
 | 7 | Current caches, older guards | 2.384 | 1.341× | 10.193 | 1.258× |
 | 8 | Current caches + span reuse | 2.370 | 1.349× | 11.595 | 1.106× |
 
@@ -28,13 +30,13 @@ The corresponding CPU measurements are for the busiest matched renderer thread. 
 | 3 | Original TLB only | 2.0068 | 1.447× | 9.0958 | 1.330× |
 | 4 | Folded TLB only | 2.3149 | 1.254× | 9.8239 | 1.231× |
 | 5 | Original TLB + last-page | 2.1924 | 1.324× | 10.2981 | 1.175× |
-| 6 | Folded TLB + last-page (current policy) | 2.2023 | 1.318× | 9.5623 | 1.265× |
+| 6 | Folded TLB + last-page (previous policy) | 2.2023 | 1.318× | 9.5623 | 1.265× |
 | 7 | Folded TLB + last-page, older guards | 2.0547 | 1.413× | 9.5050 | 1.273× |
 | 8 | Folded TLB + last-page + span reuse | 2.0477 | 1.418× | 10.8668 | 1.113× |
 
-Original TLB-only was about **10% faster than the current configuration in Snakes and 5% in Sky Force** by wall time. That is a candidate for a focused production comparison, not a default change made by this experiment.
+Original TLB-only was about **10% faster than the previous configuration in Snakes and 5% in Sky Force** by wall time. That is a candidate for a focused production comparison, not a default change made by this experiment.
 
-The additional last-page cache is not a general win over TLB-only. Folded indexing also depends on the surrounding configuration. Older versus compact guards are effectively tied in Sky Force; older guards led the Snakes means. Span reuse improved Snakes over the current policy by about 7% wall throughput, but reduced Sky Force throughput by about 11%. These fresh results do not establish a universally best hash, guard shape or extra cache layer.
+The additional last-page cache is not a general win over TLB-only. Folded indexing also depends on the surrounding configuration. Older versus compact guards are effectively tied in Sky Force; older guards led the Snakes means. Span reuse improved Snakes over the previous policy by about 7% wall throughput, but reduced Sky Force throughput by about 11%. These fresh results do not establish a universally best hash, guard shape or extra cache layer.
 
 ## What no cache means
 
@@ -42,9 +44,9 @@ The 512-entry software TLB and generated ARM scalar last-page cache are disabled
 
 No-cache ARM and Thumb still execute direct WASM loads/stores. Address translation walks the active authoritative directory/table/page metadata for the 4 KiB geometry used by these assets. Missing mappings, permissions, alignment and endianness retain normal fallback behavior. Disabled TLBs perform no fill, flush or dirty-entry maintenance. A mapped page can be resolved directly even when it would have missed in the finite TLB, so this includes both hit cost and existing miss/fallback cost.
 
-The last-page cache can sit over either the TLB or direct walks. The older-guards row restores the previous scalar guard control flow on the current compiler; it is not a complete historical binary. Span reuse extends cached translations to ARM block/entry spans.
+The last-page cache can sit over either the TLB or direct walks. The older-guards row restores the previous scalar guard control flow on the baseline compiler; it is not a complete historical binary. Span reuse extends cached translations to ARM block/entry spans.
 
-The current-policy row uses the current cache policy inside the experimental binary. All modes share added selection/view-publication code. These numbers do not establish the exact absolute performance of an unmodified production binary or every possible uncached implementation.
+The row named `current` uses the pre-adoption cache policy inside the experimental binary. All modes share added selection/view-publication code. These numbers do not establish the exact absolute performance of an unmodified production binary or every possible uncached implementation.
 
 ## Method and interference
 
@@ -66,9 +68,28 @@ The added matrix passes **129,960 ARM/Thumb cases** across 12 policy/hash combin
 
 Every configuration in both games passes **60 unique native-reference frames**, including every pixel, guest timing/instruction records, PCM and audio event timing. Those 16 correctness replays use the established SwiftShader reference path and are excluded from timing. The timing runs do not save PCM or per-frame PNGs; their frame metadata agrees across all 36 runs.
 
-Additional full-window hardware captures of the current policy match the first 60 native-reference frames in both games. Every final browser screenshot from the timing runs matches either the last or penultimate captured presentation. This confirms the occasional screenshot difference is a presentation offset; browser screenshots are not used as aligned frame oracles.
+Additional full-window hardware captures of the previous policy match the first 60 native-reference frames in both games. Every final browser screenshot from the timing runs matches either the last or penultimate captured presentation. This confirms the occasional screenshot difference is a presentation offset; browser screenshots are not used as aligned frame oracles.
 
-## Reproduction
+## Hardwired adoption validation
+
+The production build uses WASM SHA-256 `a2756fde454861ec5159d6dad8709622a33403e6f410b0cf59049b83701e616f` (10,791,546 bytes). [Adoption evidence](MEMORY_CACHE_ADOPTION.json) records binary hashes, test logs, replay comparisons and the live launcher checks. Artifacts are in `/home/claude/.scratch/eka-tlb-adoption/`.
+
+- The AOT suite passed 167 tests with no unexpected failures; the existing harness XFAIL and two diagnostics-only skips remain.
+- Native AOT tests passed all 335 assertions across 30 cases, including TLB collision replacement, invalidation and permissions.
+- Snakes and Sky Force each matched 60 unique native-reference frames pixel-for-pixel, along with guest timing/instruction records, PCM and audio event timing. These correctness captures used the established SwiftShader path.
+- Browser API and launcher policy tests passed, including absent cache-selection exports and rejection of retired configuration.
+- The HTTPS launcher serves the exact validated WASM/loader hashes. Sky Force starts through the game picker and displays its title screen using hardware Vulkan; the default compiler policy is 17 and no TLB selector is injected.
+
+No performance measurements were repeated during adoption. The expected Sky Force combat rate from the earlier panel is about 19.6 presentations per wall second (192 presentations / 9.80044 seconds), or 0.61 times real time. This is a workload-specific estimate, not a new measurement of the hardwired build.
+
+## Historical experiment reproduction
+
+The patch and runner were removed after adoption. Retrieve them from `0bf3049697e143015354efbe5d442363a7f10dc3` before following these historical instructions:
+
+```sh
+git show 0bf304969:src/tests/benchmark/memory_cache_matrix.patch > memory_cache_matrix.patch
+git show 0bf304969:src/tests/benchmark/memory_cache_matrix.py > memory_cache_matrix.py
+```
 
 Apply `memory_cache_matrix.patch` to a separate source snapshot of the baseline commit. Use the same initialized submodules and `src/tests/wasm` Node dependencies. The patch contains experimental compiler/runtime changes, focused tests and harness controls; do not apply it to production merely to read these results.
 
@@ -89,7 +110,7 @@ node "$CACHE_MATRIX_ROOT/build/src/tests/aot/test_aot_wasm.js" --memory-cache-on
 
 Run `memory_cache_matrix.py ROOT replays --snakes-assets PATH --sky-assets PATH --reference-root PATH`, then the same command with `timings`. The reference root must contain `replay-standard` and `replay-combat`. The driver refuses existing output directories, records exact commands and binary hashes, and requires identical guest work. `confirm` runs another two sweeps if needed. Run on a quiet host; the one-off process watcher used here is not installed as a service.
 
-Experimental `EKA2L1_MEMORY_CACHE` bits: 1=TLB, 2=scalar last-page cache, 4=older guards, 8=span reuse. Accepted modes are 0, 1, 2, 3, 7 and 11. `EKA2L1_TLB_HASH` selects original (0) or folded (1). These controls exist only in the archived patch.
+Experimental `EKA2L1_MEMORY_CACHE` bits: 1=TLB, 2=scalar last-page cache, 4=older guards, 8=span reuse. Accepted modes are 0, 1, 2, 3, 7 and 11. `EKA2L1_TLB_HASH` selects original (0) or folded (1). The memory-cache control exists only in that historical patch; TLB hash selection also existed in production and has now been removed.
 
 Artifact root: `/home/claude/.scratch/eka-memory-cache-matrix`. All measured variants use WASM SHA-256 `0fd1e60ad8e357389191f0be7e565fe5057c868453b76145f94f15384a97d366`.
 

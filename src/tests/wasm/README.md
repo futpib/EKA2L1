@@ -39,6 +39,11 @@ The existing HTTPS host/certificate and compiler-policy environment variables
 still apply; see [LAN setup](../benchmark/REALTIME_PLAYABILITY.md#lan-https-launcher).
 The local launcher is at <https://claude-laptop.lan:8188/>.
 
+Memory translation uses the fixed original-index 512-entry TLB, without an ARM
+scalar last-page cache. `EKA2L1_TLB_HASH` and `EKA2L1_MEMORY_CACHE` are retired
+and must be removed from launch environments. See the
+[cache comparison and adoption](../benchmark/MEMORY_CACHE_RESULTS.md).
+
 Run the actual browser integration check against a running launcher:
 
 ```sh

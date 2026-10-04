@@ -1,0 +1,168 @@
+{
+  "baseline": {
+    "head": "0bf3049697e143015354efbe5d442363a7f10dc3",
+    "wasm_sha256": "4ac9062069ac530ca9dadb6de4a97d52302d250776f9dd353fef384a8f5cf5e1"
+  },
+  "binary_hashes": {
+    "eka2l1.js": "f257d4c94715d0fa2ff49fd32a176648cf6a224eb96056f3284485a051cdd9ff",
+    "eka2l1.html": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+    "eka2l1.data": "34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+    "eka2l1.wasm": "a2756fde454861ec5159d6dad8709622a33403e6f410b0cf59049b83701e616f"
+  },
+  "performance_remeasured": false,
+  "tests": {
+    "aot-tests.log": {
+      "path": "/home/claude/.scratch/eka-tlb-adoption/aot-tests.log",
+      "sha256": "1c96538bde439e97bef09b37697848b5ee36da6a0ced35a1c5f13c24736211ce",
+      "tail": [
+        "  PASS arm_conditional_exec",
+        "  PASS arm_bl_resume_point",
+        "  PASS arm_ldrh_strh",
+        "  PASS arm_mvn",
+        "  PASS arm_rsb",
+        "  PASS arm_clz",
+        "",
+        "167 passed, 0 failed"
+      ]
+    },
+    "native-tests.log": {
+      "path": "/home/claude/.scratch/eka-tlb-adoption/native-tests.log",
+      "sha256": "0f96a81ddafeb2ddae640196582ec07a905e5d0e42fce8944728c21492cddff2",
+      "tail": [
+        "    NFlag: 804",
+        "    ZFlag: 808",
+        "    CFlag: 812",
+        "    VFlag: 816",
+        "    TFlag: 828",
+        "===============================================================================",
+        "All tests passed (335 assertions in 30 test cases)",
+        ""
+      ]
+    },
+    "browser-tests.log": {
+      "path": "/home/claude/.scratch/eka-tlb-adoption/browser-tests.log",
+      "sha256": "349b0f1549ed88f871d075d308b8b56778411ea694f696fc46bbd85a13b359b2",
+      "tail": [
+        "TEST 5: eka2l1_init...",
+        "  PASS",
+        "TEST 6: eka2l1_shutdown...",
+        "  PASS",
+        "TEST 7: No fatal page errors...",
+        "  PASS",
+        "",
+        "All tests passed!"
+      ]
+    }
+  },
+  "replays": [
+    {
+      "game": "standard",
+      "variant": "winner",
+      "output": "/home/claude/.scratch/eka-tlb-adoption/replays-standard-0-winner",
+      "command": "/home/claude/.scratch/eka-tlb-adoption/replays-standard-0-winner-command.json",
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1143727,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+          "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+          "writes": 0,
+          "callbacks": 2330,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 2330,
+          "gameplay_nonzero_samples": 264002,
+          "gameplay_peak": 206
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 23827651,
+        "instructions": 3012361007
+      }
+    },
+    {
+      "game": "combat",
+      "variant": "winner",
+      "output": "/home/claude/.scratch/eka-tlb-adoption/replays-combat-0-winner",
+      "command": "/home/claude/.scratch/eka-tlb-adoption/replays-combat-0-winner-command.json",
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2105509,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f86fd7c8908cee93c5b8215ec3e4891ddf6a54a8a79783fea5d584bbf4290cab",
+          "sha256_events": "54699bb0cb4fcd867b4a437f0fc65f5f0a5fc28e723b8750fc3b97667e05e6e2",
+          "writes": 0,
+          "callbacks": 4210,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4210,
+          "gameplay_nonzero_samples": 176458,
+          "gameplay_peak": 4041
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 43864773,
+        "instructions": 15827750304
+      }
+    }
+  ],
+  "live_launcher": {
+    "url": "https://claude-laptop.lan:8188/",
+    "errors": [],
+    "games": [
+      "snakes",
+      "sky-force",
+      "custom"
+    ],
+    "eka2l1.js": "f257d4c94715d0fa2ff49fd32a176648cf6a224eb96056f3284485a051cdd9ff",
+    "eka2l1.wasm": "a2756fde454861ec5159d6dad8709622a33403e6f410b0cf59049b83701e616f",
+    "displayColors": 241,
+    "state": {
+      "secure": true,
+      "isolated": true,
+      "policy": {
+        "requested": {
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "irMode": 17,
+          "codeCompare": 2,
+          "predicatedLeaves": 1,
+          "leafFeatures": 128,
+          "executionLimits": [
+            512,
+            16,
+            8,
+            512
+          ],
+          "unsafeCode": 3
+        },
+        "applied": true,
+        "observed": {
+          "hotpath": 2,
+          "thumbMemory": 1,
+          "predicatedLeaves": 1,
+          "leafFeatures": 128,
+          "unsafeCode": 3,
+          "executionLimits": [
+            512,
+            16,
+            8,
+            512
+          ]
+        }
+      },
+      "uid": "0xa020d913",
+      "retiredAbsent": true
+    }
+  },
+  "validation": {
+    "native_cpu": "335 assertions in 30 aot cases passed",
+    "wasm_aot": "167 passed, zero unexpected failures; one existing XFAIL and two diagnostics-only skips",
+    "browser_api": "Passed, including missing retired cache exports",
+    "launcher_policy": "Passed, including rejected retired environment and policy options",
+    "python_drivers": "AST parse passed",
+    "game_replays": "60 unique pixel-exact native-reference frames per game, guest records, PCM and audio events matched"
+  }
+}

@@ -180,10 +180,6 @@ namespace eka2l1::arm::aot {
             load_i32(S::AOT_TLB); tee_local(ENTRY);
             op(op_if); op(type_void);
             get_local(address_local); i32_const(12); op(op_i32_shr_u);
-            if (r12l1::dyncom_folded_tlb) {
-                get_local(address_local); i32_const(12 + r12l1::TLB_LOOKUP_BIT_COUNT);
-                op(op_i32_shr_u); op(op_i32_xor);
-            }
             i32_const(r12l1::TLB_ENTRY_MASK); op(op_i32_and);
             i32_const(4); op(op_i32_shl); get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,write?4:0);
@@ -222,10 +218,6 @@ namespace eka2l1::arm::aot {
             load_i32(S::AOT_TLB); tee_local(ENTRY);
             op(op_if); op(type_void);
             get_local(ADDRESS); i32_const(12); op(op_i32_shr_u);
-            if (r12l1::dyncom_folded_tlb) {
-                get_local(ADDRESS); i32_const(12 + r12l1::TLB_LOOKUP_BIT_COUNT);
-                op(op_i32_shr_u); op(op_i32_xor);
-            }
             i32_const(r12l1::TLB_ENTRY_MASK); op(op_i32_and);
             i32_const(4); op(op_i32_shl); get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
             get_local(ENTRY); op(op_i32_load); leb(b, 2); leb(b, write ? 4 : 0);

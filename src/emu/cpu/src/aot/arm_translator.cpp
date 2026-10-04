@@ -66,7 +66,7 @@ namespace eka2l1::arm::aot {
         // Reserved i32 locals for region instruction count and memory fast path.
         // Short blocks do not use a dynamic count; local 9 records a callback.
         static constexpr unsigned CALLBACK=9;
-        static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13, READ_PAGE=14, READ_BASE=15, WRITE_PAGE=16, WRITE_BASE=17;
+        static constexpr unsigned COUNT=9, ADDRESS=10, VALUE=11, HOST=12, ENTRY=13;
         bool memory_write = false;
         bool instruction_may_exit = true;
         bool entry_supported = true;
@@ -164,17 +164,9 @@ namespace eka2l1::arm::aot {
                 store_i32_const(S::AOT_EXIT, 1); census_effect(1);
             }
             if (direct_block_memory) { i32_const(1); set_local(CALLBACK); }
-            if (region || direct_block_memory) {
-                i32_const(-1); set_local(READ_PAGE);
-                i32_const(-1); set_local(WRITE_PAGE);
-            }
         }
         void tlb_index(unsigned address_local) {
             get_local(address_local); i32_const(12); op(op_i32_shr_u);
-            if (r12l1::dyncom_folded_tlb) {
-                get_local(address_local); i32_const(12 + r12l1::TLB_LOOKUP_BIT_COUNT);
-                op(op_i32_shr_u); op(op_i32_xor);
-            }
             i32_const(r12l1::TLB_ENTRY_MASK); op(op_i32_and); i32_const(4); op(op_i32_shl);
         }
         void call(std::uint32_t func_idx) {
@@ -199,15 +191,8 @@ namespace eka2l1::arm::aot {
                 op(write ? op_i32_store : op_i32_load); leb(b, 2); leb(b, 0);
                 return;
             }
-            const auto page_local = write ? WRITE_PAGE : READ_PAGE;
-            const auto base_local = write ? WRITE_BASE : READ_BASE;
-            // Invalid keys are -1, which no aligned page/alignment mask can
-            // produce. A key match therefore proves base, permission and endian
-            // validity without a second base test or a final HOST branch.
+            // Each access checks the current TLB mapping and permissions.
             op(op_block); op(write ? type_void : type_i32);
-            get_local(ADDRESS); i32_const(-4096 | (size-1)); op(op_i32_and);
-            get_local(page_local); op(op_i32_ne);
-            op(op_if); op(type_void);
             i32_const(0); set_local(HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
             op(op_if); op(type_void);
@@ -228,13 +213,10 @@ namespace eka2l1::arm::aot {
             } else {
                 state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
                 slow_call(func_idx);
-                op(op_br); leb(b,2); // leave result block, preserving helper result
+                op(op_br); leb(b,1); // leave result block, preserving helper result
             }
             op(op_end);
-            get_local(HOST); set_local(base_local);
-            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); set_local(page_local);
-            op(op_end); // key miss
-            get_local(base_local); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+            get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
             op(op_i32_add); set_local(HOST);
             get_local(HOST);
             if (write) get_local(VALUE);
@@ -788,7 +770,7 @@ namespace eka2l1::arm::aot {
         // A fixed i64 prefix keeps its index independent of lazily allocated i32 register locals.
         // Locals: 0=state_ptr(param), 1=wide result, 2..8=i32 scratch.
         const bool direct_blocks = bounded && cache_registers && !region && arm_direct_memory;
-        result.num_locals = region || direct_blocks ? 16 : 7;
+        result.num_locals = region || direct_blocks ? 12 : 7;
         result.num_prefix_i64_locals = 1;
         result.num_f32_locals = 0;
         result.num_f64_locals = 0;
@@ -1083,10 +1065,6 @@ namespace eka2l1::arm::aot {
         w.set_local(PC_IDX);
 
         if (region || direct_blocks) { w.i32_const(0); w.set_local(arm_emit::COUNT); }
-        if (region || direct_blocks) {
-            w.i32_const(-1); w.set_local(arm_emit::READ_PAGE);
-            w.i32_const(-1); w.set_local(arm_emit::WRITE_PAGE);
-        }
 
         std::uint32_t proof_call_offset = 0;
         if (prove_memory) {
@@ -1164,13 +1142,6 @@ namespace eka2l1::arm::aot {
             if (bounded && !region && stop_after_store && w.memory_write) break;
             const auto inst = instruction.opcode;
             const auto insn_addr = instruction.address;
-            if (direct_blocks) {
-                // A short block proves each instruction independently. Only
-                // accesses within one instruction reuse its page permission;
-                // every callback also invalidates both keys in slow_call.
-                w.i32_const(-1); w.set_local(arm_emit::READ_PAGE);
-                w.i32_const(-1); w.set_local(arm_emit::WRITE_PAGE);
-            }
             w.census_pc=insn_addr;w.census_opcode=inst;
             const auto refusal=exit_census::enabled && !instruction.leaf && refusals.count(i)?refusals.at(i):exit_census::leaf_refusal{};
             w.census_constraint=refusal.constraint;

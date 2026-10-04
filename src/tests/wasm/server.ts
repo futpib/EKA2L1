@@ -62,7 +62,7 @@ autoStart();
 
 export const compilerDefaults = {thumbMemory: 1, irMode: 17, hotpath: 2} as const;
 
-export type CompilerPolicy = { hotpath?: number; thumbMemory?: number; irMode?: number; tlbHash?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; executionLimits?: [number,number,number,number] };
+export type CompilerPolicy = { hotpath?: number; thumbMemory?: number; irMode?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; executionLimits?: [number,number,number,number] };
 
 export type LauncherGame = { id: string; title: string; uid: string; sis: string };
 
@@ -79,7 +79,7 @@ function validExecutionLimits(limits: unknown): limits is [number,number,number,
 }
 
 export function rejectRetiredCompilerOptions(): void {
-  for (const name of ['EKA2L1_SYNCHRONOUS_COMPILATION', 'EKA2L1_ROM_DISPATCH', 'EKA2L1_CODE_WRITE_PROTECT', 'EKA2L1_CODE_LOOKUP', 'EKA2L1_OMIT_GUARD_PUBLICATION', 'EKA2L1_COMPILED_MEMORY_MISSES', 'EKA2L1_COMPILED_SVC', 'EKA2L1_ROM_CALLS', 'EKA2L1_ROM_LEAVES', 'EKA2L1_AOT_EAGER_REGIONS', 'EKA2L1_SNAKES_N80_NATIVE_RESOLUTION']) {
+  for (const name of ['EKA2L1_TLB_HASH', 'EKA2L1_MEMORY_CACHE', 'EKA2L1_SYNCHRONOUS_COMPILATION', 'EKA2L1_ROM_DISPATCH', 'EKA2L1_CODE_WRITE_PROTECT', 'EKA2L1_CODE_LOOKUP', 'EKA2L1_OMIT_GUARD_PUBLICATION', 'EKA2L1_COMPILED_MEMORY_MISSES', 'EKA2L1_COMPILED_SVC', 'EKA2L1_ROM_CALLS', 'EKA2L1_ROM_LEAVES', 'EKA2L1_AOT_EAGER_REGIONS', 'EKA2L1_SNAKES_N80_NATIVE_RESOLUTION']) {
     if (process.env[name] !== undefined) throw Error('Retired compiler option: ' + name);
   }
 }
@@ -89,7 +89,6 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
   const hotpath = process.env.EKA2L1_HOTPATH ?? String(compilerDefaults.hotpath);
   const thumb = process.env.EKA2L1_THUMB_MEMORY ?? String(compilerDefaults.thumbMemory);
   const ir = process.env.EKA2L1_AOT_IR_MODE ?? String(compilerDefaults.irMode);
-  const tlb = process.env.EKA2L1_TLB_HASH;
   const compare = process.env.EKA2L1_CODE_COMPARE;
   const predicates = process.env.EKA2L1_PREDICATED_LEAVES;
   const features = process.env.EKA2L1_LEAF_FEATURES;
@@ -108,10 +107,6 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
     policy.irMode = Number(ir);
   }
 
-  if (tlb !== undefined) {
-    if (!/^[01]$/.test(tlb)) throw new Error("Invalid TLB index policy");
-    policy.tlbHash = Number(tlb);
-  }
   if (compare !== undefined) {
     if (!/^[02]$/.test(compare)) throw new Error("Invalid exact comparison policy");
     policy.codeCompare = Number(compare);
@@ -136,12 +131,11 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
 
 function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   if (!policy) return "";
-  const allowed = ['hotpath','thumbMemory','irMode','tlbHash','codeCompare','predicatedLeaves','leafFeatures','unsafeCode','executionLimits'];
+  const allowed = ['hotpath','thumbMemory','irMode','codeCompare','predicatedLeaves','leafFeatures','unsafeCode','executionLimits'];
   if (Object.keys(policy).some(key => !allowed.includes(key))) throw Error('Invalid compiler policy');
   if ((policy.hotpath !== undefined && ![0,2].includes(policy.hotpath))
       || (policy.thumbMemory !== undefined && ![0,1].includes(policy.thumbMemory))
       || (policy.irMode !== undefined && ![-1,0,4,5,6,7,17].includes(policy.irMode))
-      || (policy.tlbHash !== undefined && ![0,1].includes(policy.tlbHash))
       || (policy.codeCompare !== undefined && ![0,2].includes(policy.codeCompare))
       || (policy.unsafeCode !== undefined && ![0,3].includes(policy.unsafeCode))
       || (policy.predicatedLeaves !== undefined && ![0,1].includes(policy.predicatedLeaves))
@@ -155,7 +149,7 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
   startEmulator = async function() {
     const state = window.ekaCompilerPolicy;
     if (!state.applied) {
-      for (const [key, entry] of [['hotpath','eka2l1_hotpath_configure'], ['thumbMemory','eka2l1_thumb_memory_configure'], ['irMode','eka2l1_ir_configure'], ['tlbHash','eka2l1_tlb_hash_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure'], ['unsafeCode','eka2l1_unsafe_code_configure']]) {
+      for (const [key, entry] of [['hotpath','eka2l1_hotpath_configure'], ['thumbMemory','eka2l1_thumb_memory_configure'], ['irMode','eka2l1_ir_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure'], ['unsafeCode','eka2l1_unsafe_code_configure']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function'
             || Module.ccall(entry, 'number', ['number'], [state.requested[key]]) !== 0)

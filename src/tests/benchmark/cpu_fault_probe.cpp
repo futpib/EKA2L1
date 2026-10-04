@@ -331,13 +331,6 @@ int main(int argc, char **argv){
         --argc;
     }
     std::cout<<"PROBE_LIMITS "<<aot::execution_limits_text()<<"\n";
-    if (argc > 1 && std::strncmp(argv[argc-1],"--tlb-hash=",11) == 0) {
-        const std::string value(argv[argc-1]+11);
-        if(value!="0" && value!="1") {std::cerr<<"Invalid TLB index policy\n";return 1;}
-        r12l1::dyncom_folded_tlb=value=="1";
-        --argc;
-    }
-    std::cout << "PROBE_TLB_HASH " << r12l1::dyncom_folded_tlb << "\n";
     if (argc > 1 && std::strncmp(argv[argc-1],"--code-compare=",15) == 0) {
         const std::string value(argv[argc-1]+15);
         if(value!="0" && value!="2") {std::cerr<<"Invalid comparison policy\n";return 1;}
@@ -469,7 +462,6 @@ int main(int argc, char **argv){
     for(unsigned address:addresses)for(unsigned endian:{0u,0x200u})for(unsigned permission:arm_leaf_memory?std::vector<unsigned>{0u,1u,3u}:std::vector<unsigned>{0u,1u})for(unsigned partial=0;partial<(!invariant_remap && !region_spans && (op&0x0e000000u)==0x08000000u?2u:1u);++partial){
 #if defined(__EMSCRIPTEN__) || defined(EKA_MATCHED_REFERENCE)
         r12l1::exclusive_monitor monitor(1); dyncom_core cpu(&monitor,12);
-        if(cpu.mem_cache()->folded_index!=r12l1::dyncom_folded_tlb) {std::cerr<<"TLB index not selected\n";return 4;}
 #else
         dynarmic_exclusive_monitor monitor(1); dynarmic_core cpu(&monitor);
 #endif

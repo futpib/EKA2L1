@@ -124,7 +124,7 @@ async function runTests(): Promise<void> {
       for (const mode of [0,4,5,6,7,17]) if (configure(mode) !== 0)
         throw new Error('Compiler policy rejected');
       if (configure(-1) !== 0) throw new Error('IR default restoration failed');
-      for (const name of ['rom_dispatch','synchronous_compilation','code_write_protect','code_lookup','omit_guard_publication','compiled_svc','compiled_memory_misses','rom_calls','rom_leaves','eager_regions','snakes_n80_native_resolution']) {
+      for (const name of ['tlb_hash','memory_cache','rom_dispatch','synchronous_compilation','code_write_protect','code_lookup','omit_guard_publication','compiled_svc','compiled_memory_misses','rom_calls','rom_leaves','eager_regions','snakes_n80_native_resolution']) {
         for (const suffix of ['configure','report']) if (typeof m['_eka2l1_' + name + '_' + suffix] !== 'undefined')
           throw Error('Retired configuration API is still exported: ' + name);
       }
@@ -185,14 +185,6 @@ async function runTests(): Promise<void> {
     });
     console.log("  PASS");
 
-    console.log("TEST TLB hash: pre-init policy validation...");
-    await page.evaluate(() => {
-      const configure = (n: number) => (window as any).Module.ccall('eka2l1_tlb_hash_configure','number',['number'],[n]);
-      if(configure(-1)!==-1 || configure(2)!==-1 || configure(1)!==0 || configure(0)!==0)
-        throw Error('TLB index policy validation failed');
-    });
-    console.log("  PASS");
-
     console.log("TEST custom diagnostics: build capability and opt-in configuration...");
     await page.evaluate(() => {
       const m = (window as any).Module;
@@ -220,8 +212,6 @@ async function runTests(): Promise<void> {
     await page.evaluate(() => {
       if ((window as any).Module._eka2l1_thumb_memory_configure(1) !== -1)
         throw Error('Thumb memory policy changed after initialization');
-      if ((window as any).Module.ccall('eka2l1_tlb_hash_configure','number',['number'],[1]) !== -1)
-        throw Error('TLB index policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_leaf_predication_configure','number',['number'],[1]) !== -1)
         throw Error('Leaf predication changed after initialization');
       if ((window as any).Module.ccall('eka2l1_execution_limits_configure','number',['number','number','number','number'],[1024,32,16,0]) !== -1)

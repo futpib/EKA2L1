@@ -17,7 +17,6 @@ parser.add_argument('--execution-limits', help='Explicit window,leaf,sites,runne
 parser.add_argument('--ir-policy', type=int, choices=(0,4,5,6,7,17), required=True)
 parser.add_argument('--long', action='store_true', help='Include 128-instruction coverage fixture')
 parser.add_argument('--code-compare', type=int, choices=(0,2))
-parser.add_argument('--tlb-hash', type=int, choices=(0,1))
 a = parser.parse_args()
 a.output.mkdir()
 root = Path(__file__).resolve().parents[3]
@@ -38,9 +37,6 @@ if a.long:
     cases.insert(0,('ir-long',96))
 probe_compare = [] if a.code_compare is None else [f'--code-compare={a.code_compare}']
 compare_args = [] if a.code_compare is None else ['--code-compare',str(a.code_compare)]
-if a.tlb_hash is not None:
-    probe_compare += [f'--tlb-hash={a.tlb_hash}']
-    compare_args += ['--tlb-hash',str(a.tlb_hash)]
 if a.execution_limits is not None:
     probe_compare += [f'--execution-limits={a.execution_limits}']
     compare_args += ['--execution-limits',a.execution_limits]
@@ -69,6 +65,6 @@ for name, count in cases:
                     '--cases',str(count),'--ir-policy',str(a.ir_policy),'--require-equal']+compare_args,
                    check=True,stdout=subprocess.DEVNULL)
     results.append(json.loads(result.read_text()))
-    (a.output/'summary.json').write_text(json.dumps(dict(unsafe_code=a.unsafe_code,literal_pc_veneers=a.literal_pc_veneers,leaf_features=a.leaf_features,exit_census=a.exit_census,predicated_leaves=a.predicated_leaves,execution_limits=a.execution_limits,ir_policy=a.ir_policy, tlb_hash=a.tlb_hash, code_compare=a.code_compare,
+    (a.output/'summary.json').write_text(json.dumps(dict(unsafe_code=a.unsafe_code,literal_pc_veneers=a.literal_pc_veneers,leaf_features=a.leaf_features,exit_census=a.exit_census,predicated_leaves=a.predicated_leaves,execution_limits=a.execution_limits,ir_policy=a.ir_policy, code_compare=a.code_compare,
         completed_cases=sum(x['cases'] for x in results),results=results),indent=2)+'\n')
     print(name,'PASS',count,'policy',a.ir_policy,flush=True)

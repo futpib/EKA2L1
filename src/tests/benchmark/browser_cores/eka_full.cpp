@@ -23,7 +23,7 @@ static void init(){
  if(cpu)return;
  eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
  eka2l1::log::filterings->reset_all(spdlog::level::off);
- r12l1::dyncom_folded_tlb=true;aot::code_compare_mode=2;
+ aot::code_compare_mode=2;
  setenv("EKA2L1_AOT_RAM","1",1);setenv("EKA2L1_AOT_CHAIN","1",1);
  setenv("EKA2L1_AOT_REGION","1",1);setenv("EKA2L1_AOT_IR_MODE","7",1);
  cpu=std::make_unique<dyncom_core>(&monitor,12);cpu->set_asid(1);
