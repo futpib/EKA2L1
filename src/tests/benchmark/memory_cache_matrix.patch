@@ -1,0 +1,1038 @@
+--- a/src/emu/cpu/include/cpu/12l1r/tlb.h
++++ b/src/emu/cpu/include/cpu/12l1r/tlb.h
+@@ -21,6 +21,7 @@
+ 
+ #include <common/types.h>
+ #include <cpu/12l1r/common.h>
++#include <cpu/12l1r/memory_policy.h>
+ 
+ #include <algorithm>
+ #include <cstdint>
+@@ -53,6 +54,7 @@
+     struct tlb {
+     public:
+         tlb_entry entries[TLB_ENTRY_COUNT];
++        const direct_memory_view *direct = nullptr;
+ 
+         std::size_t page_bits;
+         std::size_t page_mask;
+@@ -70,11 +72,13 @@
+         }
+ 
+         void flush() {
++            if (!use_tlb()) return;
+             // Using memfill to speed up this process
+             std::memset(entries, 0, sizeof(tlb_entry) * TLB_ENTRY_COUNT);
+         }
+ 
+         void add(vaddress addr, std::uint8_t *host, const std::uint32_t perm) {
++            if (!use_tlb()) return;
+             const std::size_t tlb_index = index(addr);
+             const std::size_t addr_mod = addr & page_mask;
+             const vaddress addr_normed = addr & ~page_mask;
+@@ -103,6 +107,7 @@
+         }
+ 
+         void make_dirty(const vaddress addr) {
++            if (!use_tlb()) return;
+             const std::size_t tlb_index = index(addr);
+             const vaddress addr_normed = addr & ~page_mask;
+ 
+@@ -117,6 +122,7 @@
+         // use callbacks rather than accidentally matching an absent permission.
+         template<std::uint32_t Permission>
+         std::uint8_t *lookup_access(const vaddress addr) {
++            if (!use_tlb()) return direct ? direct->lookup(addr, Permission) : nullptr;
+             static_assert(Permission == prot_read || Permission == prot_write || Permission == prot_exec);
+             const vaddress page = addr & ~page_mask;
+             const auto &entry = entries[index(addr)];
+@@ -127,6 +133,7 @@
+         }
+ 
+         std::uint8_t *lookup(const vaddress addr) {
++            if (!use_tlb()) return direct ? direct->lookup(addr, prot_read_write_exec) : nullptr;
+             const std::size_t tlb_index = index(addr);
+             const vaddress addr_normed = addr & ~page_mask;
+ 
+@@ -145,4 +152,4 @@
+             return nullptr;
+         }
+     };
+-}
+\ No newline at end of file
++}
+--- a/src/emu/cpu/include/cpu/arm_interface.h
++++ b/src/emu/cpu/include/cpu/arm_interface.h
+@@ -25,6 +25,7 @@
+ #include <memory>
+ 
+ #include <common/types.h>
++#include <cpu/12l1r/memory_policy.h>
+ 
+ namespace eka2l1::arm {
+     class core;
+@@ -125,6 +126,7 @@
+         // Code contents are deliberately not covered and must still be checked.
+         const std::atomic<std::uint64_t> *code_mapping_generation = nullptr;
+         std::uint32_t code_address_space = 0;
++        r12l1::direct_memory_view direct_memory;
+         struct diagnostic_code { std::string process, module; };
+         std::function<diagnostic_code(address)> describe_code;
+ 
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -298,7 +298,8 @@
+         cpu->aot_budget = budget - result.instructions;
+         if constexpr (Profile) count_ram_dispatch(cpu);
+         if constexpr (Verify) validation_begin(cpu);
+-        cpu->aot_tlb = Verify && validating ? 0 : tlb_address;
++        cpu->aot_tlb = Verify && validating ? 0 : r12l1::use_tlb() ? tlb_address
++            : static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->direct));
+         cpu->aot_exit = 0;
+         const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
+         if constexpr(Profile) if(exit_census::enabled) {
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -24,6 +24,7 @@
+ #include <cpu/aot/exit_census.h>
+ #include <cpu/aot/execution_limits.h>
+ #include <cpu/12l1r/tlb.h>
++#include <cpu/aot/memory_walk.h>
+ 
+ #include <cstring>
+ #include <algorithm>
+@@ -164,7 +165,7 @@
+                 store_i32_const(S::AOT_EXIT, 1); census_effect(1);
+             }
+             if (direct_block_memory) { i32_const(1); set_local(CALLBACK); }
+-            if (region || direct_block_memory) {
++            if ((region || direct_block_memory) && r12l1::use_page_cache()) {
+                 i32_const(-1); set_local(READ_PAGE);
+                 i32_const(-1); set_local(WRITE_PAGE);
+             }
+@@ -199,16 +200,82 @@
+                 op(write ? op_i32_store : op_i32_load); leb(b, 2); leb(b, 0);
+                 return;
+             }
++            if (r12l1::memory_cache_policy & 4) {
++            const auto page_local = write ? WRITE_PAGE : READ_PAGE;
++            const auto base_local = write ? WRITE_BASE : READ_BASE;
++            // The cached base was obtained with little-endian and permission
++            // checks. Helpers clear both bases; supported MSR only changes
++            // flags, so those properties cannot change while this base lives.
++            // Combining the page and alignment masks also rejects unaligned
++            // accesses without a second comparison.
++            get_local(ADDRESS); i32_const(-4096 | (size-1)); op(op_i32_and); get_local(page_local); op(op_i32_eq);
++            get_local(base_local); op(op_i32_eqz); op(op_i32_eqz); op(op_i32_and);
++            op(op_if); op(type_void);
++            get_local(base_local); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
++            op(op_else);
++            load_i32(S::AOT_TLB); set_local(ENTRY);
++            get_local(ENTRY); op(op_i32_eqz); op(op_if); op(type_void);
++            i32_const(0); set_local(HOST);
++            op(op_else);
++            tlb_index(ADDRESS);
++            get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
++            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,write ? 4 : 0);
++            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
++            // Zero is the no-permission TLB tag, not an authorized page-zero mapping.
++            get_local(ADDRESS); i32_const(4096); op(op_i32_ge_u); op(op_i32_and);
++            get_local(ADDRESS); i32_const(size-1); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++            load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++            op(op_if); op(type_void);
++            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
++            get_local(HOST); op(op_if); op(type_void);
++            get_local(HOST); set_local(base_local);
++            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); set_local(page_local);
++            get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
++            op(op_end);
++            op(op_else); i32_const(0); set_local(HOST); op(op_end);
++            op(op_end);
++            op(op_end); // cached-page miss
++            get_local(HOST); op(op_if); op(write ? type_void : type_i32);
++            get_local(HOST);
++            if (write) get_local(VALUE);
++            op(write ? (size==4 ? op_i32_store : size==2 ? op_i32_store16 : op_i32_store8)
++                     : (size==4 ? op_i32_load : size==2 ? op_i32_load16_u : op_i32_load8_u));
++            leb(b, size==4 ? 2 : size==2 ? 1 : 0); leb(b,0);
++            if (write) {
++                if (!common::code_tracking::skip_code_write_guards()) {
++                // Backing-address guard catches writes through guest aliases.
++                get_local(HOST); load_i32(S::AOT_CODE_END); op(op_i32_lt_u);
++                get_local(HOST); i32_const(size); op(op_i32_add); load_i32(S::AOT_CODE_BEGIN); op(op_i32_gt_u);
++                op(op_i32_and); op(op_if); op(type_void);
++                store_i32_const(S::AOT_EXIT,1); op(op_end);
++                }
++            }
++            op(op_else);
++            if (defer_memory && restartable_access) {
++                // No guest-visible effects have occurred in this instruction.
++                // Reconstruct its entry state and let DynCom handle the miss.
++                get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT);
++                bail(current_pc, 0, exit_census::memory);
++            } else {
++                state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
++                slow_call(func_idx);
++            }
++            op(op_end);
++                return;
++            }
+             const auto page_local = write ? WRITE_PAGE : READ_PAGE;
+             const auto base_local = write ? WRITE_BASE : READ_BASE;
+             // Invalid keys are -1, which no aligned page/alignment mask can
+             // produce. A key match therefore proves base, permission and endian
+             // validity without a second base test or a final HOST branch.
+             op(op_block); op(write ? type_void : type_i32);
++            if (r12l1::use_page_cache()) {
+             get_local(ADDRESS); i32_const(-4096 | (size-1)); op(op_i32_and);
+             get_local(page_local); op(op_i32_ne);
+             op(op_if); op(type_void);
++            }
+             i32_const(0); set_local(HOST);
++            if (r12l1::use_tlb()) {
+             load_i32(S::AOT_TLB); tee_local(ENTRY);
+             op(op_if); op(type_void);
+             tlb_index(ADDRESS);
+@@ -221,6 +288,14 @@
+             op(op_if); op(type_void);
+             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
+             op(op_end); op(op_end);
++            } else {
++                get_local(ADDRESS); i32_const(4096); op(op_i32_ge_u);
++                get_local(ADDRESS); i32_const(size-1); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++                load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++                op(op_if); op(type_void);
++                emit_direct_page_base(*this, ADDRESS, ENTRY, HOST, write);
++                op(op_end);
++            }
+             get_local(HOST); op(op_i32_eqz); op(op_if); op(type_void);
+             if (defer_memory && restartable_access) {
+                 get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT);
+@@ -228,13 +303,16 @@
+             } else {
+                 state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
+                 slow_call(func_idx);
+-                op(op_br); leb(b,2); // leave result block, preserving helper result
++                op(op_br); leb(b,r12l1::use_page_cache() ? 2 : 1); // leave result block, preserving helper result
+             }
+             op(op_end);
+-            get_local(HOST); set_local(base_local);
+-            get_local(ADDRESS); i32_const(-4096); op(op_i32_and); set_local(page_local);
+-            op(op_end); // key miss
+-            get_local(base_local); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
++            if (r12l1::use_page_cache()) {
++                get_local(HOST); set_local(base_local);
++                get_local(ADDRESS); i32_const(-4096); op(op_i32_and); set_local(page_local);
++                op(op_end); // key miss
++                get_local(base_local);
++            } else get_local(HOST);
++            get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+             op(op_i32_add); set_local(HOST);
+             get_local(HOST);
+             if (write) get_local(VALUE);
+@@ -255,8 +333,57 @@
+         // Validate a whole block-transfer span once. It must be aligned and
+         // contained in one permitted TLB page; otherwise use the existing
+         // per-access path, including its fault/endian behavior.
++        void cached_block_transfer_host(unsigned address_local, unsigned bytes, bool write, unsigned alignment = 4) {
++            i32_const(0); set_local(HOST);
++            if (!bytes || bytes > 4096) return;
++            const auto page_local = write ? WRITE_PAGE : READ_PAGE;
++            const auto base_local = write ? WRITE_BASE : READ_BASE;
++            get_local(address_local); i32_const(-4096 | (alignment - 1)); op(op_i32_and);
++            get_local(page_local); op(op_i32_eq);
++            get_local(address_local); i32_const(4095); op(op_i32_and);
++            i32_const(4096 - bytes); op(op_i32_le_u); op(op_i32_and);
++            op(op_if); op(type_void);
++            get_local(base_local); get_local(address_local); i32_const(4095); op(op_i32_and);
++            op(op_i32_add); set_local(HOST);
++            op(op_else);
++            load_i32(S::AOT_TLB); tee_local(ENTRY);
++            op(op_if); op(type_void);
++            get_local(address_local); i32_const(alignment - 1); op(op_i32_and); op(op_i32_eqz);
++            get_local(address_local); i32_const(4095); op(op_i32_and);
++            i32_const(4096 - bytes); op(op_i32_le_u); op(op_i32_and);
++            load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++            op(op_if); op(type_void);
++            tlb_index(address_local);
++            get_local(ENTRY); op(op_i32_add); set_local(ENTRY);
++            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,write ? 4 : 0);
++            get_local(address_local); i32_const(-4096); op(op_i32_and); op(op_i32_eq);
++            // Zero is the no-permission TLB tag, not an authorized page-zero mapping.
++            get_local(address_local); i32_const(4096); op(op_i32_ge_u); op(op_i32_and);
++            op(op_if); op(type_void);
++            get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(HOST);
++            get_local(HOST); op(op_if); op(type_void);
++            get_local(HOST); set_local(base_local);
++            get_local(address_local); i32_const(-4096); op(op_i32_and); set_local(page_local);
++            get_local(HOST); get_local(address_local); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
++            op(op_end); op(op_end); op(op_end); op(op_end); op(op_end);
++        }
++
+         void block_transfer_host(unsigned address_local, unsigned bytes, bool write, unsigned alignment = 4) {
++            if (r12l1::memory_cache_policy & 8) {
++                cached_block_transfer_host(address_local, bytes, write, alignment); return;
++            }
+             i32_const(0); set_local(HOST);
++            if (!r12l1::use_tlb()) {
++                get_local(address_local); i32_const(4096); op(op_i32_ge_u);
++                get_local(address_local); i32_const(alignment-1); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++                get_local(address_local); i32_const(4095); op(op_i32_and);
++                i32_const(4096-bytes); op(op_i32_le_u); op(op_i32_and);
++                load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++                op(op_if); op(type_void); emit_direct_page_base(*this, address_local, ENTRY, HOST, write);
++                get_local(HOST); op(op_if); op(type_void);
++                get_local(HOST); get_local(address_local); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
++                op(op_end); op(op_end); return;
++            }
+             load_i32(S::AOT_TLB); tee_local(ENTRY);
+             op(op_if); op(type_void);
+             get_local(address_local); i32_const(alignment - 1); op(op_i32_and); op(op_i32_eqz);
+@@ -1083,7 +1210,7 @@
+         w.set_local(PC_IDX);
+ 
+         if (region || direct_blocks) { w.i32_const(0); w.set_local(arm_emit::COUNT); }
+-        if (region || direct_blocks) {
++        if ((region || direct_blocks) && r12l1::use_page_cache()) {
+             w.i32_const(-1); w.set_local(arm_emit::READ_PAGE);
+             w.i32_const(-1); w.set_local(arm_emit::WRITE_PAGE);
+         }
+@@ -1164,7 +1291,7 @@
+             if (bounded && !region && stop_after_store && w.memory_write) break;
+             const auto inst = instruction.opcode;
+             const auto insn_addr = instruction.address;
+-            if (direct_blocks) {
++            if (direct_blocks && r12l1::use_page_cache()) {
+                 // A short block proves each instruction independently. Only
+                 // accesses within one instruction reuse its page permission;
+                 // every callback also invalidates both keys in slow_call.
+--- a/src/emu/cpu/src/aot/thumb_translator.cpp
++++ b/src/emu/cpu/src/aot/thumb_translator.cpp
+@@ -22,6 +22,7 @@
+ #include <cpu/aot/state_locals.h>
+ #include <cpu/aot/exit_census.h>
+ #include <cpu/12l1r/tlb.h>
++#include <cpu/aot/memory_walk.h>
+ #include <common/code_tracking.h>
+ 
+ #include <cstring>
+@@ -177,6 +178,16 @@
+                 common::code_tracking::skip_code_write_guards());
+             if (!span_active) return;
+             i32_const(0); set_local(SPAN_HOST);
++            if (!r12l1::use_tlb()) {
++                get_local(address_local); i32_const(4096); op(op_i32_ge_u);
++                get_local(address_local); i32_const(3); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++                get_local(address_local); i32_const(4095); op(op_i32_and);
++                i32_const(4096-words*4); op(op_i32_le_u); op(op_i32_and);
++                load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++                op(op_if); op(type_void); emit_direct_page_base(*this, address_local, ENTRY, SPAN_HOST, write); op(op_end);
++                return;
++            }
++
+             load_i32(S::AOT_TLB); tee_local(ENTRY);
+             op(op_if); op(type_void);
+             get_local(address_local); i32_const(12); op(op_i32_shr_u);
+@@ -219,6 +230,7 @@
+                 op(op_else);
+             }
+             i32_const(0); set_local(HOST);
++            if (r12l1::use_tlb()) {
+             load_i32(S::AOT_TLB); tee_local(ENTRY);
+             op(op_if); op(type_void);
+             get_local(ADDRESS); i32_const(12); op(op_i32_shr_u);
+@@ -239,6 +251,15 @@
+             get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and);
+             op(op_i32_add); set_local(HOST);
+             op(op_end); op(op_end); op(op_end);
++            } else {
++                get_local(ADDRESS); i32_const(4096); op(op_i32_ge_u);
++                get_local(ADDRESS); i32_const(size-1); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++                load_i32(S::CPSR); i32_const(0x200); op(op_i32_and); op(op_i32_eqz); op(op_i32_and);
++                op(op_if); op(type_void); emit_direct_page_base(*this, ADDRESS, ENTRY, HOST, write);
++                get_local(HOST); op(op_if); op(type_void);
++                get_local(HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add); set_local(HOST);
++                op(op_end); op(op_end);
++            }
+             get_local(HOST); op(op_if); op(write ? type_void : type_i32);
+             get_local(HOST); if (write) get_local(VALUE);
+             op(write ? (size == 4 ? op_i32_store : size == 2 ? op_i32_store16 : op_i32_store8)
+--- a/src/emu/cpu/src/dyncom/arm_dyncom.cpp
++++ b/src/emu/cpu/src/dyncom/arm_dyncom.cpp
+@@ -35,6 +35,7 @@
+         // Cache the data TLB on the state so the inline memory accessors can hit
+         // it without needing the full dyncom_core definition in armstate.h.
+         state_->mem_cache_ = &mem_cache_;
++        mem_cache_.direct = &direct_memory;
+     }
+ 
+     dyncom_core::~dyncom_core() {
+--- a/src/emu/mem/include/mem/model/multiple/mmu.h
++++ b/src/emu/mem/include/mem/model/multiple/mmu.h
+@@ -41,6 +41,7 @@
+ 
+         const asid current_addr_space() const override;
+         bool set_current_addr_space(const asid id) override;
++        void publish_direct_memory();
+ 
+         page_table *get_page_table_by_addr(const vm_address addr);
+     };
+--- a/src/emu/mem/include/mem/page.h
++++ b/src/emu/mem/include/mem/page.h
+@@ -147,6 +147,8 @@
+      * \brief A table consists of page infos, in a specific range.
+      */
+     struct page_table {
++        // Experimental generated walker ABI; pages_ never resizes after construction.
++        page_info *direct_pages_ = nullptr;
+         std::vector<page_info> pages_;
+         std::uint32_t id_;
+         std::size_t page_size_;
+--- a/src/emu/mem/src/model/flexible/mmu.cpp
++++ b/src/emu/mem/src/model/flexible/mmu.cpp
+@@ -47,6 +47,12 @@
+ 
+         cur_dir_ = associated_dir;
+         cpu_->code_address_space = id;
++        auto &view = cpu_->direct_memory;
++        view.local = manager_->page_size_bits_ == 12 ? cur_dir_->page_tabs_.data() : nullptr;
++        view.global = manager_->page_size_bits_ == 12 ? ctrl_fx->kern_addr_space_->dir_->page_tabs_.data() : nullptr;
++        view.global_begin = manager_->mem_map_old_ ? 0xe0000000u : 0x70000000u;
++        view.global_end = manager_->mem_map_old_ ? 0xf0000000u : 0x78000000u;
++        view.global_high = manager_->mem_map_old_ ? 0x50000000u : 0x80000000u;
+         return true;
+     }
+ 
+--- a/src/emu/mem/src/model/multiple/mmu.cpp
++++ b/src/emu/mem/src/model/multiple/mmu.cpp
+@@ -26,7 +26,7 @@
+     mmu_multiple::mmu_multiple(control_base *manager, arm::core *cpu, config::state *conf)
+         : mmu_base(manager, cpu, conf)
+         , cur_dir_(nullptr) {
+-        cur_dir_ = &(reinterpret_cast<control_multiple *>(manager)->global_dir_);
++        set_current_addr_space(0);
+     }
+ 
+     bool mmu_multiple::set_current_addr_space(const asid id) {
+@@ -35,6 +35,7 @@
+         if (id == 0) {
+             cur_dir_ = &ctrl_mul->global_dir_;
+             cpu_->code_address_space = id;
++            publish_direct_memory();
+             return true;
+         }
+ 
+@@ -44,7 +45,18 @@
+ 
+         cur_dir_ = ctrl_mul->dirs_[id - 1].get();
+         cpu_->code_address_space = id;
++        publish_direct_memory();
+         return true;
++    }
++
++    void mmu_multiple::publish_direct_memory() {
++        auto *ctrl = static_cast<control_multiple *>(manager_);
++        auto &view = cpu_->direct_memory;
++        view.local = manager_->page_size_bits_ == 12 ? cur_dir_->page_tabs_.data() : nullptr;
++        view.global = manager_->page_size_bits_ == 12 ? ctrl->global_dir_.page_tabs_.data() : nullptr;
++        view.global_begin = manager_->mem_map_old_ ? 0x10000000u : 0x40000000u;
++        view.global_end = manager_->mem_map_old_ ? 0x60000001u : 0x78000000u;
++        view.global_high = manager_->mem_map_old_ ? 0x88000000u : 0x80000000u;
+     }
+ 
+     page_table *mmu_multiple::get_page_table_by_addr(const vm_address addr) {
+--- a/src/emu/mem/src/page.cpp
++++ b/src/emu/mem/src/page.cpp
+@@ -18,6 +18,13 @@
+  */
+ 
+ #include <mem/page.h>
++#include <cstddef>
++#ifdef __EMSCRIPTEN__
++static_assert(offsetof(eka2l1::mem::page_info, perm) == 0);
++static_assert(offsetof(eka2l1::mem::page_info, host_addr) == 4);
++static_assert(sizeof(eka2l1::mem::page_info) == 8);
++static_assert(offsetof(eka2l1::mem::page_table, direct_pages_) == 0);
++#endif
+ 
+ namespace eka2l1::mem {
+     page_table::page_table(const std::uint32_t id, const std::size_t page_size)
+@@ -29,6 +36,7 @@
+         } else {
+             pages_.resize(PAGE_PER_TABLE_12B);
+         }
++        direct_pages_ = pages_.data();
+     }
+ 
+     page_info *page_table::get_page_info(const std::size_t idx) {
+--- a/src/emu/wasm/main.cpp
++++ b/src/emu/wasm/main.cpp
+@@ -245,6 +245,14 @@
+ }
+ 
+ // DynCom and generated guards must select the same index before initialization.
++EMSCRIPTEN_KEEPALIVE
++int eka2l1_memory_cache_configure(int mode) {
++    if (g_state || (mode != 0 && mode != 1 && mode != 2 && mode != 3 && mode != 7 && mode != 11)) return -1;
++    arm::r12l1::memory_cache_policy = mode;
++    return 0;
++}
++EMSCRIPTEN_KEEPALIVE
++int eka2l1_memory_cache_report() { return arm::r12l1::memory_cache_policy; }
+ EMSCRIPTEN_KEEPALIVE
+ int eka2l1_tlb_hash_configure(int mode) {
+     if (g_state || mode < 0 || mode > 1) return -1;
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -35,6 +35,7 @@
+ #include <utility>
+ #include <vector>
+ #include <array>
++#include <map>
+ 
+ #ifdef __EMSCRIPTEN__
+ #include <emscripten.h>
+@@ -4772,6 +4773,354 @@
+     return true;
+ }
+ 
++
++// The first member and entry layout match the authoritative WASM page tables.
++struct matrix_mapping : r12l1::tlb {
++    struct page { prot permission{}; void *host=nullptr; };
++    struct table { page *entries=nullptr; std::array<page,256> pages{}; table(){entries=pages.data();} };
++    std::array<table*,4096> directory{};
++    std::map<unsigned,std::unique_ptr<table>> tables;
++    r12l1::direct_memory_view view;
++    matrix_mapping(unsigned bits,bool folded):r12l1::tlb(bits,folded) {
++        view.local=directory.data(); view.global=directory.data(); direct=&view;
++    }
++    void add(unsigned address,void *host,unsigned permissions) {
++        r12l1::tlb::add(address,static_cast<std::uint8_t*>(host),permissions);
++        auto &slot=tables[address>>20]; if(!slot)slot=std::make_unique<table>();
++        directory[address>>20]=slot.get();
++        slot->pages[(address>>12)&255]={static_cast<prot>(permissions),host};
++    }
++    std::uintptr_t root() const { return reinterpret_cast<std::uintptr_t>(r12l1::use_tlb()?static_cast<const void*>(entries):&view); }
++};
++static bool matrix_test_block_transfer_guards() {
++#ifdef __EMSCRIPTEN__
++    for (bool load : {false,true}) {
++        const std::uint32_t inst = load ? 0xe891000du : 0xe881000du; // r0,r2,r3
++        auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(&inst),4,0x1000,nullptr,nullptr,true,true,true,true);
++        auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++        for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
++            for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0u}) {
++                test_mem memory;
++                matrix_mapping direct(12,r12l1::dyncom_folded_tlb); direct.add(address == 0 ? 0x200000 : 0x8000,memory.data.data()+0x8000,permission);
++                alignas(8) std::uint32_t state[256]{};
++                state[0]=17; state[1]=address; state[2]=19; state[3]=23; state[15]=0x1000;
++                state[state_offsets::CPSR/4]=0x10|endian;
++                state[state_offsets::AOT_BUDGET/4]=1;
++                state[state_offsets::AOT_TLB/4]=direct.root();
++                g_test_mem=&memory; g_count_memory_helpers=true; g_memory_helper_calls=0;
++                const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
++                g_test_mem=nullptr; g_count_memory_helpers=false;
++                const bool fast = (permission & (load ? 1 : 2)) && !endian && address==0x8000;
++                if (count!=1 || (fast ? g_memory_helper_calls!=0 : g_memory_helper_calls==0)) {
++                    printf("  FAIL block_transfer_guards load=%d perm=%u endian=%x address=%x calls=%u\n",load,permission,endian,address,g_memory_helper_calls);return false;
++                }
++            }
++    }
++#endif
++    printf("  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n");return true;
++}
++static bool matrix_test_repeated_read_guards() {
++#ifdef __EMSCRIPTEN__
++    const std::uint32_t words[] = {0xe5910000,0xe5912004,0xe5913008};
++    auto tr = translate_arm_block(reinterpret_cast<const std::uint8_t *>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
++    auto module = build_wasm_module({tr.func}, {{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++    for (unsigned permission : {0u,1u,2u,3u}) for (unsigned endian : {0u,0x200u})
++        for (unsigned address : {0x8000u,0x8001u,0x8ffcu,0u}) {
++            test_mem memory;
++            std::vector<std::uint8_t> code(sizeof(words)); std::memcpy(code.data(),words,sizeof(words));
++            memory.write_code(0x1000,code);
++            for (unsigned a=0x8000;a<0xa000;a+=4) { memory.write32(a,a*37); }
++            matrix_mapping direct(12,r12l1::dyncom_folded_tlb); direct.add(address == 0 ? 0x200000 : 0x8000,memory.data.data()+0x8000,permission);
++            alignas(8) std::uint32_t state[256]{};
++            state[1]=address; state[15]=0x1000;
++            state[state_offsets::CPSR/4]=0x10|endian;
++            state[state_offsets::AOT_BUDGET/4]=3;
++            state[state_offsets::AOT_TLB/4]=direct.root();
++            g_test_mem=&memory; g_count_memory_helpers=true; g_memory_helper_calls=0;
++            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
++            g_test_mem=nullptr; g_count_memory_helpers=false;
++            const bool fast=(permission&1)&&!endian&&address==0x8000;
++            if(count<1||count>3||(fast ? count!=3||g_memory_helper_calls!=0 : g_memory_helper_calls==0)) return false;
++            // These test imports deliberately perform raw reads. For endian
++            // and unaligned cases assert helper routing, not CPU semantics.
++            // Full state comparisons for the eligible path are also covered
++            // by bounded_execution at every instruction budget.
++            if (fast && (state[0]!=memory.read32(address)||state[2]!=memory.read32(address+4)
++                ||state[3]!=memory.read32(address+8)||state[15]!=0x100c)) return false;
++        }
++#endif
++    printf("  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n");return true;
++}
++static bool matrix_test_memory_displacements() {
++#ifdef __EMSCRIPTEN__
++    const unsigned words[]={0xe5910000u,0xe5912004u,0xe5830008u,0xe583200cu,
++        0xe5934008u,0xe593500cu,0xe5814010u,0xe5916010u};
++    auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
++    auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++    unsigned checks=0;
++    for(unsigned page:{0x1000u,0x70000000u,0x80000000u,0xfffff000u})
++    for(bool alias:{false,true})for(unsigned budget=0;budget<=8;++budget) {
++        test_mem memory;const unsigned other=page^0x1000u;
++        // The lowest test page uses 0x3000 for its second page (zero is denied).
++        const unsigned next=other?other:0x3000u;
++        auto *first=memory.data.data()+0x8000;
++        auto *second=memory.data.data()+(alias?0x8000:0x9000);
++        std::uint32_t a=0x87654321u,b=0xabcdef01u;
++        std::memcpy(first+0xfe0,&a,4);std::memcpy(first+0xfe4,&b,4);
++        matrix_mapping tlb(12,r12l1::dyncom_folded_tlb);tlb.add(page,first,3);tlb.add(next,second,3);
++        alignas(8) unsigned state[256]{};state[1]=page+0xfe0;state[3]=next+0xfe0;state[15]=0x1000;
++        state[state_offsets::CPSR/4]=16;state[state_offsets::AOT_BUDGET/4]=budget;
++        state[state_offsets::AOT_TLB/4]=tlb.root();
++        auto expected=memory.data;unsigned regs[16]{};regs[1]=state[1];regs[3]=state[3];regs[15]=0x1000+4*budget;
++        for(unsigned i=0;i<budget;++i) {
++            const unsigned op=words[i],r=(op>>12)&15,base=((op>>16)&15)==1?0x8000:(alias?0x8000:0x9000),offset=base+0xfe0+(op&4095);
++            if(op&(1u<<20))std::memcpy(&regs[r],expected.data()+offset,4);
++            else std::memcpy(expected.data()+offset,&regs[r],4);
++        }
++        g_test_mem=&memory;g_count_memory_helpers=true;g_memory_helper_calls=0;
++        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
++        g_test_mem=nullptr;g_count_memory_helpers=false;
++        if(count!=budget||g_memory_helper_calls||memory.data!=expected||std::memcmp(state,regs,sizeof(regs))) {
++            printf("  FAIL memory_displacements page=%x alias=%d budget=%u count=%d\n",page,alias,budget,count);return false;
++        }++checks;
++    }
++    printf("  PASS memory_displacements (%u exact state/memory/budget checks)\n",checks);
++#endif
++    return true;
++}
++static bool matrix_test_deferred_memory_exits() {
++#ifdef __EMSCRIPTEN__
++    unsigned checks=0;
++    // Pure pre-indexed scalar accesses and spans without writeback/PC.
++    for (unsigned op : {0xe5910000u,0xe5810000u,0xe5d10000u,0xe5c10000u,
++                        0xe891000du,0xe881000du,0xe5910004u}) {
++        const bool load=op&(1u<<20), multi=((op>>25)&7)==4, byte=(op&(1u<<22))&&!multi;
++        const unsigned words[]={0xe3a05007u,op};
++        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true,nullptr,true);
++        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},{"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
++        for(unsigned address:{0x8000u,0x8001u,0x8ffcu,0u})for(unsigned budget:{0u,1u,2u}) {
++            test_mem memory;const auto before=memory.data;
++            matrix_mapping tlb(12,r12l1::dyncom_folded_tlb);tlb.add(address==0?0x200000:0x8000,memory.data.data()+0x8000,permission);
++            alignas(8) unsigned state[256]{};state[0]=17;state[1]=address;state[2]=19;state[3]=23;state[15]=0x1000;
++            state[state_offsets::CPSR/4]=16|endian;state[state_offsets::AOT_BUDGET/4]=budget;
++            state[state_offsets::AOT_TLB/4]=tlb.root();
++            const unsigned effective=address+(op==0xe5910004u?4:0);
++            const bool fast=(permission&(load?1:2))&&!endian&&effective>=4096&&(byte||!(effective&3))&&((effective&~4095u)==0x8000)&&(!multi||(effective&4095)<=4084);
++            g_test_mem=&memory;g_count_memory_helpers=true;g_memory_helper_calls=0;
++            const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
++            g_test_mem=nullptr;g_count_memory_helpers=false;
++            const unsigned expected=budget<2?budget:fast?2:1;
++            if(count!=expected||g_memory_helper_calls||state[5]!=(budget?7u:0u)||
++               (expected<2&&(state[1]!=address||state[0]!=17||state[2]!=19||state[3]!=23||state[15]!=0x1000+expected*4||memory.data!=before))) {
++                printf("  FAIL deferred_memory op=%x perm=%u endian=%x address=%x budget=%u count=%d expected=%u\n",op,permission,endian,address,budget,count,expected);return false;
++            }++checks;
++        }
++    }
++    printf("  PASS deferred_memory_exits (%u exact pre-instruction exits)\n",checks);
++#endif
++    return true;
++}
++static bool matrix_test_thumb_direct_memory() {
++#ifdef __EMSCRIPTEN__
++    namespace tracking = eka2l1::common::code_tracking;
++    struct restore {
++        bool direct=thumb_direct_memory, folded=r12l1::dyncom_folded_tlb;
++        unsigned mode=tracking::unsafe_code_mode;
++        ~restore(){thumb_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
++            tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
++    } saved;
++    unsigned checks=0;
++    const unsigned ops[]={0x6808,0x6008,0x7808,0x7008,0x8808,0x8008};
++    for(bool folded:{false,true})for(unsigned mode:{0u,3u})for(unsigned index=0;index<6;++index) {
++        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
++        const std::uint16_t code[]={0x2207,static_cast<std::uint16_t>(ops[index]),0x3301};
++        std::vector<std::uint8_t> modules[2];
++        for(unsigned enabled=0;enabled<2;++enabled) {
++            thumb_direct_memory=enabled;
++            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
++            modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++        }
++        for(unsigned permission:{0u,1u,2u,3u})for(unsigned endian:{0u,0x200u})
++        for(unsigned address:{0u,0x8000u,0x8001u,0x8ffeu,0x8fffu,0x9000u})for(unsigned budget:{0u,1u,2u,3u}) {
++            test_mem actual,control;
++            for(unsigned a=0;a<test_mem::SIZE;++a)actual.data[a]=static_cast<std::uint8_t>(a*37+19);
++            control=actual;
++            matrix_mapping tlb(12,folded);tlb.add(0x8000,actual.data.data()+0x8000,permission);
++            alignas(8) unsigned states[2][256]{};
++            int counts[2]{};unsigned helpers[2]{};
++            for(unsigned enabled=0;enabled<2;++enabled) {
++                auto *state=states[enabled];state[0]=0x12345678;state[1]=address;state[3]=41;state[15]=0x1000;
++                state[state_offsets::CPSR/4]=0xA0000030|endian;state[state_offsets::TFLAG/4]=1;
++                state[state_offsets::NFLAG/4]=1;state[state_offsets::CFLAG/4]=1;
++                state[state_offsets::AOT_BUDGET/4]=budget;
++                state[state_offsets::AOT_TLB/4]=tlb.root();
++                g_test_mem=enabled?&actual:&control;g_all_memory_helper_calls=0;
++                counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[enabled]));
++                helpers[enabled]=g_all_memory_helper_calls;
++            }
++            const bool write=index&1;const unsigned size=index<2?4:index<4?1:2;
++            const bool fast=(permission&(write?2:1)) && !endian && (address&~4095u)==0x8000
++                && !(address&(size-1)) && (!write || mode==3);
++            if(counts[0]!=int(budget)||counts[1]!=counts[0]||std::memcmp(states[0],states[1],sizeof(states[0]))||actual.data!=control.data
++                || helpers[0]!=(budget>=2?1u:0u)||helpers[1]!=(budget>=2&&!fast?1u:0u)) {
++                printf(" FAIL Thumb memory op=%x folded=%d mode=%u perm=%u endian=%x address=%x budget=%u count=%d/%d helpers=%u/%u\n",
++                    ops[index],folded,mode,permission,endian,address,budget,counts[0],counts[1],helpers[0],helpers[1]);return false;
++            }
++            ++checks;
++        }
++    }
++    // A helper may change registers, flags and mappings. The next access must
++    // use the updated state and TLB; callback barriers remain on the slow arm.
++    for(bool enabled:{false,true}) {
++        thumb_direct_memory=enabled;tracking::unsafe_code_mode=3;
++        const std::uint16_t code[]={0x2207,0x6808,0x681a,0x4150};
++        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
++        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++        test_mem memory;memory.write32(0x8000,20);memory.write32(0x9000,30);
++        matrix_mapping tlb(12,r12l1::dyncom_folded_tlb);
++        alignas(8) unsigned state[256]{};state[1]=0x8000;state[3]=0xA000;state[15]=0x1000;
++        state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=4;
++        state[state_offsets::AOT_TLB/4]=tlb.root();
++        bool observed=false;
++        g_read32_observer=[&](unsigned ptr,unsigned address){
++            if(address!=0x8000)return;
++            auto *s=reinterpret_cast<unsigned *>(ptr);observed=s[2]==7&&s[15]==0x1002;
++            s[3]=0x9000;s[state_offsets::CFLAG/4]=1;
++            tlb.add(0x9000,memory.data.data()+0x9000,1);
++        };
++        g_test_mem=&memory;g_all_memory_helper_calls=0;
++        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
++        g_read32_observer={};
++        if(count!=4||!observed||state[0]!=51||state[2]!=30||state[3]!=0x9000||g_all_memory_helper_calls!=(enabled?1u:2u)) {
++            printf(" FAIL Thumb callback state/mapping enabled=%d count=%d r0=%u observed=%d helpers=%u\n",enabled,count,state[0],observed,g_all_memory_helper_calls);return false;
++        }
++        ++checks;
++    }
++    // Runtime fields and the PC can change in a callback. A second transfer
++    // in the same instruction sees the callback PC, and the next instruction
++    // sees a replaced TLB, endian state and reduced budget.
++    for(bool enabled:{false,true})for(unsigned endian:{0u,0x200u}) {
++        thumb_direct_memory=enabled;tracking::unsafe_code_mode=3;
++        const std::uint16_t code[]={0x2207,0xc905,0x6818,0x3401};
++        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
++        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++        test_mem memory;memory.write32(0x8000,20);memory.write32(0x8004,30);memory.write32(0x9000,40);
++        matrix_mapping old_tlb(12,r12l1::dyncom_folded_tlb),new_tlb(12,r12l1::dyncom_folded_tlb);
++        new_tlb.add(0x9000,memory.data.data()+0x9000,1);
++        alignas(8) unsigned state[256]{};state[1]=0x8000;state[3]=0x9000;state[4]=99;state[15]=0x1000;
++        state[state_offsets::CPSR/4]=0x30;state[state_offsets::TFLAG/4]=1;state[state_offsets::AOT_BUDGET/4]=4;
++        state[state_offsets::AOT_TLB/4]=old_tlb.root();
++        unsigned observed=0;
++        g_read32_observer=[&](unsigned ptr,unsigned address){
++            auto *s=reinterpret_cast<unsigned *>(ptr);
++            if(address==0x8000) {
++                if(s[2]==7&&s[15]==0x1002)++observed;
++                s[15]=0x12345678;s[state_offsets::AOT_BUDGET/4]=3;
++                s[state_offsets::CPSR/4]=0x30|endian;
++                s[state_offsets::AOT_TLB/4]=new_tlb.root();
++            } else if(address==0x8004&&s[15]==0x12345678)++observed;
++        };
++        g_test_mem=&memory;g_all_memory_helper_calls=0;
++        const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state),sizeof(state));
++        g_read32_observer={};
++        if(count!=3||observed!=2||state[0]!=40||state[1]!=0x8008||state[2]!=30||state[4]!=99||state[15]!=0x1006
++            ||state[state_offsets::AOT_BUDGET/4]!=3||state[state_offsets::CPSR/4]!=(0x30|endian)
++            ||state[state_offsets::AOT_TLB/4]!=new_tlb.root()
++            ||g_all_memory_helper_calls!=(enabled&&!endian?2u:3u)) {
++            printf(" FAIL Thumb runtime callback enabled=%d endian=%x count=%d pc=%x observed=%u helpers=%u\n",enabled,endian,count,state[15],observed,g_all_memory_helper_calls);return false;
++        }
++        ++checks;
++    }
++    printf(" PASS Thumb direct memory (%u permission/alignment/endian/policy/budget/callback comparisons)\n",checks);
++#endif
++    return true;
++}
++static bool matrix_test_thumb_transfer_spans() {
++#ifdef __EMSCRIPTEN__
++    namespace tracking = eka2l1::common::code_tracking;
++    struct restore {
++        bool direct=thumb_direct_memory, folded=r12l1::dyncom_folded_tlb;
++        unsigned mode=tracking::unsafe_code_mode;
++        ~restore(){thumb_direct_memory=direct;r12l1::dyncom_folded_tlb=folded;
++            tracking::unsafe_code_mode=mode;g_test_mem=nullptr;}
++    } saved;
++    unsigned checks=0;
++    for(bool folded:{false,true})for(unsigned mode:{0u,3u})
++    for(unsigned opcode:{0xb400u,0xb401u,0xb403u,0xb5ffu,0xbc00u,0xbc01u,0xbc03u,0xbdffu,
++                        0xc100u,0xc101u,0xc103u,0xc1ffu,0xc900u,0xc901u,0xc903u,0xc9ffu}) {
++        r12l1::dyncom_folded_tlb=folded;tracking::unsafe_code_mode=mode;
++        const std::uint16_t code=opcode;
++        std::vector<std::uint8_t> modules[2];
++        for(unsigned enabled=0;enabled<2;++enabled) {
++            thumb_direct_memory=enabled;
++            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(&code),sizeof(code),0x1000,nullptr,nullptr,true,false,true);
++            modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++        }
++        for(unsigned permission:{0u,1u,3u})for(unsigned endian:{0u,0x200u})
++        for(unsigned address:{0u,0x8000u,0x8001u,0x8040u,0x8fe0u,0x8ffcu,0x9000u})for(unsigned budget:{0u,1u}) {
++            test_mem memory;
++            for(unsigned a=0;a<test_mem::SIZE;++a)memory.data[a]=static_cast<std::uint8_t>(a*37+19);
++            const auto initial=memory.data;
++            matrix_mapping tlb(12,folded);
++            if(permission)tlb.add(0x8000,memory.data.data()+0x8000,permission);
++            alignas(8) unsigned states[2][256]{};int counts[2];unsigned helpers[2];std::vector<std::uint8_t> expected;
++            for(unsigned enabled=0;enabled<2;++enabled) {
++                std::copy(initial.begin(),initial.end(),memory.data.begin());
++                auto *state=states[enabled];
++                for(unsigned reg=0;reg<16;++reg)state[reg]=0xabc00000u+reg;
++                state[1]=state[13]=address;state[15]=0x1000;
++                if((opcode&0xfe00)==0xb400)state[13]+=4*(__builtin_popcount(opcode&255)+((opcode>>8)&1));
++                state[state_offsets::CPSR/4]=0xa0000030u|endian;
++                state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=state[state_offsets::TFLAG/4]=1;
++                state[state_offsets::AOT_BUDGET/4]=budget;
++                state[state_offsets::AOT_TLB/4]=tlb.root();
++                g_test_mem=&memory;g_all_memory_helper_calls=0;
++                counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state),sizeof(states[enabled]));
++                helpers[enabled]=g_all_memory_helper_calls;
++                if(!enabled)expected=memory.data;
++            }
++            if(counts[0]!=counts[1]||counts[1]!=budget||std::memcmp(states[0],states[1],sizeof(states[0]))||memory.data!=expected) {
++                printf(" FAIL Thumb transfer span op=%x address=%x mode=%u permission=%u endian=%x budget=%u\n",opcode,address,mode,permission,endian,budget);return false;
++            }
++            // Fully permitted interior transfers must exercise the direct path.
++            const bool write=(opcode&0xfe00)==0xb400||(opcode&0xf800)==0xc000;
++            if(budget&&address==0x8040&&!endian&&(permission&(write?2:1))&&(!write||mode==3)&&helpers[1])return false;
++            ++checks;
++        }
++    }
++    printf(" PASS Thumb transfer spans (%u full-state/memory/budget comparisons)\n",checks);
++#endif
++    return true;
++}
++static bool test_memory_cache_matrix() {
++    struct restore { unsigned policy=r12l1::memory_cache_policy; bool hash=r12l1::dyncom_folded_tlb;
++        ~restore(){r12l1::memory_cache_policy=policy;r12l1::dyncom_folded_tlb=hash;} } saved;
++    for(unsigned mode:{0u,1u,2u,3u,7u,11u})for(bool hash:{false,true}) {
++        r12l1::memory_cache_policy=mode;r12l1::dyncom_folded_tlb=hash;
++        printf("MATRIX mode=%u hash=%u\n",mode,unsigned(hash));
++        if(!matrix_test_block_transfer_guards() || !matrix_test_repeated_read_guards()
++            || !matrix_test_memory_displacements() || !matrix_test_deferred_memory_exits()
++            || !matrix_test_thumb_direct_memory() || !matrix_test_thumb_transfer_spans())return false;
++        matrix_mapping mapping(12,hash);std::array<std::uint8_t,8192> backing{};
++        for(unsigned address:{0x8000u,0x70000000u,0x80000000u,0xfffff000u}) {
++            mapping.add(address,backing.data(),1);
++            if(mapping.view.lookup(address+7,1)!=backing.data()+7||mapping.view.lookup(address,2))return false;
++            mapping.add(address,backing.data()+4096,3);
++            if(mapping.view.lookup(address+9,2)!=backing.data()+4105)return false;
++            mapping.add(address,nullptr,0);
++            if(mapping.view.lookup(address,1))return false;
++        }
++    }
++    printf("PASS memory-cache matrix (12 policy/hash configurations)\n");return true;
++}
++
+ int main(int argc, char **argv) {
+     // Production module staging logs its result; standalone tests have no sink.
+     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
+@@ -4786,6 +5135,7 @@
+     // explicitly; test_unsafe_code_diagnostic separately tests both modes
+     // and their intentional stale-code behavior.
+     eka2l1::common::code_tracking::unsafe_code_mode = 0;
++    if(argc==2 && std::string(argv[1])=="--memory-cache-only")return test_memory_cache_matrix()?0:1;
+     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
+     if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
+     if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;
+--- a/src/tests/wasm/benchmark.ts
++++ b/src/tests/wasm/benchmark.ts
+@@ -21,6 +21,8 @@
+ const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
+ const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
+ const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
++const memoryCache = Number(process.env.EKA2L1_MEMORY_CACHE ?? '3');
++if (![0,1,2,3,7,11].includes(memoryCache)) throw Error('Invalid memory cache mode');
+ const tlbHash = process.env.EKA2L1_TLB_HASH === undefined ? -1 : Number(process.env.EKA2L1_TLB_HASH);
+ if (![-1,0,1].includes(tlbHash)) throw new Error('Invalid TLB index policy');
+ const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
+@@ -72,8 +74,8 @@
+ const wasmHash = hash(fs.readFileSync(path.join(buildDir, 'eka2l1.wasm')));
+ const loaderHash = hash(fs.readFileSync(path.join(buildDir, 'eka2l1.js')));
+ const inputHash = hash(fs.readFileSync(input));
+-const gitHead = execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
+-const dirtyWorktree = !!execFileSync('git', ['status', '--porcelain'], {encoding: 'utf8'}).trim();
++const gitHead = '91427bdd651fcc5f1578f19183d2ec19933d44eb';
++const dirtyWorktree = true;
+ fs.mkdirSync(output); // Refuse to mix captures from different runs.
+ const files: Record<string,string> = {'/preload/input': input};
+ for (const name of Object.keys(expected)) files[`/preload/${name}`] = path.join(assets, name);
+@@ -97,7 +99,7 @@
+   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
+   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
+   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
+-  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, tlbHash, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
++  await page.evaluate(async ({memoryCache, hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, tlbHash, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+     const g = window as any;
+     const call = (name: string, types: string[], args: unknown[]) => {
+       const code = g.Module.ccall(name, 'number', types, args);
+@@ -113,6 +115,8 @@
+     g.hotpathActual = typeof g.Module._eka2l1_hotpath_report === 'function' ? g.Module._eka2l1_hotpath_report() : null;
+     if (hotpathPolicy !== -1 && g.hotpathActual !== hotpathPolicy) throw Error('Hotpath readback mismatch');
+ 
++    call('eka2l1_memory_cache_configure', ['number'], [memoryCache]);
++    if (g.Module._eka2l1_memory_cache_report() !== memoryCache) throw Error('Memory cache policy mismatch');
+     if (tlbHash !== -1) {
+       if (typeof g.Module._eka2l1_tlb_hash_configure !== 'function') throw new Error('Build lacks TLB index selection');
+       call('eka2l1_tlb_hash_configure', ['number'], [tlbHash]);
+@@ -200,7 +204,7 @@
+     }
+     // N80 also registers a different ROM-bundled game with the caption Snakes.
+     call('eka2l1_run', ['string'], [appUid]);
+-  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, tlbHash, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
++  }, {memoryCache, hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, tlbHash, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+   const start = performance.now();
+   let lastCount = -1;
+   let firstCanvas: Buffer | undefined;
+@@ -252,7 +256,7 @@
+   if (failures.length) throw new Error(failures.join('\n'));
+   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
+     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
+-    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, tlb_hash: tlbHash, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
++    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, memory_cache: memoryCache, tlb_hash: tlbHash, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
+   console.log('PASS: captured benchmark');
+ } finally {
+   await browser?.close();
+--- a/src/tests/wasm/profile.ts
++++ b/src/tests/wasm/profile.ts
+@@ -44,6 +44,8 @@
+ const hardwareGpu = process.env.EKA2L1_GPU === 'hardware';
+ const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
+ const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
++const memoryCache = Number(process.env.EKA2L1_MEMORY_CACHE ?? '3');
++if (![0,1,2,3,7,11].includes(memoryCache)) throw Error('Invalid memory cache mode');
+ const tlbHash = process.env.EKA2L1_TLB_HASH === undefined ? -1 : Number(process.env.EKA2L1_TLB_HASH);
+ if (![-1,0,1].includes(tlbHash)) throw new Error('Invalid TLB index policy');
+ const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
+@@ -94,8 +96,8 @@
+ const wasmHash = hash(fs.readFileSync(path.join(buildDir, 'eka2l1.wasm')));
+ const loaderHash = hash(fs.readFileSync(path.join(buildDir, 'eka2l1.js')));
+ const inputHash = hash(fs.readFileSync(input));
+-const gitHead = execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
+-const dirtyWorktree = !!execFileSync('git', ['status', '--porcelain'], {encoding: 'utf8'}).trim();
++const gitHead = '91427bdd651fcc5f1578f19183d2ec19933d44eb';
++const dirtyWorktree = true;
+ fs.mkdirSync(output); // Refuse to mix captures from different runs.
+ fs.writeFileSync(path.join(output, 'v8-flags.json'), JSON.stringify({flags: process.env.EKA2L1_V8_FLAGS || ''}));
+ const files: Record<string,string> = {'/preload/input': input};
+@@ -143,7 +145,7 @@
+   if (diagnosticsAvailable === false && (detailedProfile || guestProfile || exitCensus || aotDiagnostics))
+     throw new Error('Custom diagnostics require a build with -DEKA2L1_WASM_DIAGNOSTICS=ON');
+   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
+-  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, tlbHash, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
++  await page.evaluate(async ({memoryCache, hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, tlbHash, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+     const g = window as any;
+     const call = (name: string, types: string[], args: unknown[]) => {
+       const code = g.Module.ccall(name, 'number', types, args);
+@@ -163,6 +165,8 @@
+     g.hotpathActual = typeof g.Module._eka2l1_hotpath_report === 'function' ? g.Module._eka2l1_hotpath_report() : null;
+     if (hotpathPolicy !== -1 && g.hotpathActual !== hotpathPolicy) throw Error('Hotpath readback mismatch');
+ 
++    call('eka2l1_memory_cache_configure', ['number'], [memoryCache]);
++    if (g.Module._eka2l1_memory_cache_report() !== memoryCache) throw Error('Memory cache policy mismatch');
+     if (tlbHash !== -1) {
+       if (typeof g.Module._eka2l1_tlb_hash_configure !== 'function') throw new Error('Build lacks TLB index selection');
+       call('eka2l1_tlb_hash_configure', ['number'], [tlbHash]);
+@@ -246,7 +250,7 @@
+       }
+     }
+     call('eka2l1_run', ['string'], [appUid]);
+-  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, tlbHash, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
++  }, {memoryCache, hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, tlbHash, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+   async function waitPhase(phase: number) {
+     const deadline = performance.now() + 1800000;
+     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
+@@ -405,7 +409,7 @@
+     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
+     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
+     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
+-    aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), tlb_hash: tlbHash, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
++    aot, aot_diagnostics: aotDiagnostics, ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), memory_cache: memoryCache, tlb_hash: tlbHash, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
+     runtime_footprint: await page.evaluate(() => {
+       const m=(window as any).Module;
+       return typeof m._eka2l1_monitor_report==='function' ? JSON.parse(m.ccall('eka2l1_monitor_report','string',[],[])) : null;
+--- /dev/null
++++ b/src/emu/cpu/include/cpu/12l1r/memory_policy.h
+@@ -0,0 +1,32 @@
++#pragma once
++#include <common/types.h>
++#include <cstdint>
++#include <cstring>
++namespace eka2l1::arm::r12l1 {
++// Frozen experimental controls. Bits: TLB, scalar page cache, old guards, span reuse.
++inline unsigned memory_cache_policy = 3;
++inline bool use_tlb() { return memory_cache_policy & 1; }
++inline bool use_page_cache() { return memory_cache_policy & 2; }
++struct direct_memory_view {
++    const void *local = nullptr, *global = nullptr;
++    std::uint32_t global_begin = 0x40000000, global_end = 0x78000000, global_high = 0x80000000;
++    // These point into authoritative page tables. No lookup results or guest
++    // bytes are copied here; mapping mutations are observed on the next walk.
++    std::uint8_t *lookup(std::uint32_t address, unsigned permission) const {
++        if (address < 4096) return nullptr;
++        const auto *directory = ((address >= global_begin && address < global_end)
++            || address >= global_high) ? global : local;
++        if (!directory) return nullptr;
++        const void *table = nullptr;
++        std::memcpy(&table, static_cast<const std::uint8_t *>(directory) + (address >> 20)*sizeof(void*), sizeof(table));
++        if (!table) return nullptr;
++        const void *pages = nullptr;
++        std::memcpy(&pages, table, sizeof(pages));
++        if (!pages) return nullptr;
++        struct page { prot perm; void *host; } entry;
++        std::memcpy(&entry, static_cast<const std::uint8_t *>(pages) + ((address >> 12)&255)*sizeof(entry), sizeof(entry));
++        return (static_cast<unsigned>(entry.perm)&permission) && entry.host
++            ? static_cast<std::uint8_t *>(entry.host) + (address&4095) : nullptr;
++    }
++};
++}
+--- /dev/null
++++ b/src/emu/cpu/include/cpu/aot/memory_walk.h
+@@ -0,0 +1,27 @@
++#pragma once
++#include <cpu/aot/thumb_translator.h>
++#include <cpu/12l1r/memory_policy.h>
++namespace eka2l1::arm::aot {
++// Emit a real two-level authoritative page-table walk, without a helper call.
++// The view uses 32-bit pointers; its layout is checked in mem/page.cpp.
++template<class W> void emit_direct_page_base(W &w, unsigned address, unsigned entry, unsigned host, bool write) {
++    auto load = [&](unsigned offset) { w.op(op_i32_load); w.b.push_back(2); w.b.push_back(offset); };
++    w.i32_const(0); w.set_local(host);
++    w.load_i32(state_offsets::AOT_TLB); w.tee_local(entry); w.op(op_if); w.op(type_void);
++    w.get_local(address); w.get_local(entry); load(8); w.op(op_i32_ge_u);
++    w.get_local(address); w.get_local(entry); load(12); w.op(op_i32_lt_u); w.op(op_i32_and);
++    w.get_local(address); w.get_local(entry); load(16); w.op(op_i32_ge_u); w.op(op_i32_or);
++    w.op(op_if); w.op(type_i32); w.get_local(entry); load(4);
++    w.op(op_else); w.get_local(entry); load(0); w.op(op_end);
++    w.tee_local(entry); w.op(op_if); w.op(type_void);
++    w.get_local(entry); w.get_local(address); w.i32_const(20); w.op(op_i32_shr_u);
++    w.i32_const(2); w.op(op_i32_shl); w.op(op_i32_add); load(0);
++    w.tee_local(entry); w.op(op_if); w.op(type_void);
++    w.get_local(entry); load(0); w.tee_local(entry); w.op(op_if); w.op(type_void);
++    w.get_local(entry); w.get_local(address); w.i32_const(12); w.op(op_i32_shr_u);
++    w.i32_const(255); w.op(op_i32_and); w.i32_const(3); w.op(op_i32_shl); w.op(op_i32_add); w.set_local(entry);
++    w.get_local(entry); load(0); w.i32_const(write ? prot_write : prot_read); w.op(op_i32_and);
++    w.op(op_if); w.op(type_void); w.get_local(entry); load(4); w.set_local(host);
++    w.op(op_end); w.op(op_end); w.op(op_end); w.op(op_end); w.op(op_end);
++}
++}

@@ -35,7 +35,8 @@ from normal play.
 
 Arguments after the paths are capture mode, CPU sampling (0/1), and ending guest
 time in microseconds. Mode 1 skips PNG compression while retaining readback and
-frame hashes. The default window is 21–25 guest seconds. For Sky Force combat,
+frame metadata; it does not save pixel hashes. The default window is 21–25 guest
+seconds. For Sky Force combat,
 use its asset directory and add:
 
 ```sh
