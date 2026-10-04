@@ -286,33 +286,11 @@ aot_func lookup_compiled(ARMul_State *cpu) {
     return lookup_compiled_impl<false>(cpu);
 }
 
-static std::uint32_t prepare_cached_memory(ARMul_State *cpu) {
-    auto *core=cpu->parent();
-    const auto generation=core->code_mapping_generation ? core->code_mapping_generation->load(std::memory_order_acquire) : 0;
-    if (!core->experimental_pointer || !core->code_mapping_generation || generation!=core->experimental_generation
-            || core->code_address_space!=core->experimental_space) {
-        core->experimental_pointer=static_cast<std::uint32_t>(core->experimental_memory(true));
-        core->experimental_memory(false);
-        core->experimental_generation=generation;
-        core->experimental_space=core->code_address_space;
-    }
-    return core->experimental_pointer;
-}
-
-template<bool Verify, bool Profile, bool TrustBytes = false, bool Experimental = false, bool CachedMemory = false, bool PublishedMemory = false>
+template<bool Verify, bool Profile, bool TrustBytes = false, bool Direct = false>
 static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
-    struct memory_scope {
-        ARMul_State *cpu;
-        bool enabled;
-        explicit memory_scope(ARMul_State *state):cpu(state),enabled(Experimental && bool(state->parent()->experimental_memory)) {
-            if(enabled) {
-                if constexpr(PublishedMemory) cpu->aot_tlb=cpu->parent()->experimental_pointer;
-                else if constexpr(CachedMemory) cpu->aot_tlb=prepare_cached_memory(cpu);
-                else cpu->aot_tlb=static_cast<std::uint32_t>(cpu->parent()->experimental_memory(true));
-            }
-        }
-        ~memory_scope(){if constexpr(!CachedMemory) if(enabled)cpu->parent()->experimental_memory(false);}
-    } memory(cpu);
+    if constexpr(Direct) {
+        if(cpu->parent()->experimental_memory) cpu->aot_tlb=cpu->parent()->experimental_pointer;
+    }
     const auto budget = cpu->aot_budget;
     compiled_run result;
     // The owning core and its embedded TLB storage outlive this chain. Entries
@@ -325,7 +303,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         cpu->aot_budget = budget - result.instructions;
         if constexpr (Profile) count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);
-        if constexpr(!Experimental) cpu->aot_tlb = Verify && validating ? 0 : tlb_address;
+        if constexpr(!Direct) cpu->aot_tlb = Verify && validating ? 0 : tlb_address;
         cpu->aot_exit = 0;
         const auto entry_pc = cpu->Reg[15] | cpu->TFlag;
         if constexpr(Profile) if(exit_census::enabled) {
@@ -409,28 +387,20 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
             : !function ? "successor_unavailable" : (runner_region_limit && result.blocks==runner_region_limit) ? "region_cap" : "zero_progress";
         ++exit_census::runners[why];
     }
-    if constexpr(Experimental && !CachedMemory){++memory_experiment::stats.chains;memory_experiment::stats.instructions+=result.instructions;}
     return result;
 }
 
-template<bool Experimental, bool CachedMemory = false, bool PublishedMemory = false> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
+template<bool Direct> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
     // Select verification, diagnostics and the trusted cache once per chain.
-    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available, false, Experimental, CachedMemory, PublishedMemory>(cpu, function);
+    if (verification_stride()) return execute_chain_impl<true, common::diagnostics::available, false, Direct>(cpu, function);
     if (common::performance::enabled && common::performance::detailed)
-        return execute_chain_impl<false, true, false, Experimental, CachedMemory, PublishedMemory>(cpu, function);
+        return execute_chain_impl<false, true, false, Direct>(cpu, function);
     if (hotpath_policy == 2 && common::code_tracking::skip_code_scans())
-        return execute_chain_impl<false, false, true, Experimental, CachedMemory, PublishedMemory>(cpu, function);
-    return execute_chain_impl<false, false, false, Experimental, CachedMemory, PublishedMemory>(cpu, function);
+        return execute_chain_impl<false, false, true, Direct>(cpu, function);
+    return execute_chain_impl<false, false, false, Direct>(cpu, function);
 }
 
 compiled_run execute_chain(ARMul_State *cpu, aot_func function) {
-    if(memory_experiment::mode==2 && !memory_experiment::identity_active
-            && common::benchmark::virtual_us.load()>=memory_experiment::activation_us) {
-        memory_experiment::activated_us=common::benchmark::virtual_us.load();
-        memory_experiment::activate_identity();
-    }
-    if(memory_experiment::mode==2 && memory_experiment::direct_policy==3) return execute_chain_selected<true,true,true>(cpu,function);
-    if(memory_experiment::mode==2 && memory_experiment::direct_policy) return execute_chain_selected<true,true>(cpu,function);
     return memory_experiment::enabled() ? execute_chain_selected<true>(cpu,function) : execute_chain_selected<false>(cpu,function);
 }
 
@@ -508,14 +478,6 @@ void observe_hot_pc(ARMul_State *cpu) {
             validated_code_cache::add_dependency(entry, dependency.address, leaf.bytes, dependency.bytes);
         }
         tr.func.export_name = "r_" + std::to_string(entry.version) + "_pc_" + std::to_string(pc);
-        if(memory_experiment::mode==2 && !memory_experiment::identity_active) {
-            memory_experiment::mode=0;
-            auto warmup=translate();
-            memory_experiment::mode=2;
-            if(warmup.func.body.empty() || !warmup.entry_supported) std::abort();
-            warmup.func.export_name=tr.func.export_name+"__warmup";
-            hot_pending.push_back(std::move(warmup.func));
-        }
         hot_pending.push_back(std::move(tr.func));
         if (common::performance::counting()) ++common::performance::ram_blocks_compiled;
         if (hot_pending.size() >= 32) flush_hot_blocks();
@@ -533,14 +495,6 @@ void observe_hot_pc(ARMul_State *cpu) {
     auto tr = translate();
     if (tr.func.body.empty() || !tr.entry_supported) return;
     tr.func.export_name = "f_" + std::to_string(key);
-    if(memory_experiment::mode==2 && !memory_experiment::identity_active) {
-        memory_experiment::mode=0;
-        auto warmup=translate();
-        memory_experiment::mode=2;
-        if(warmup.func.body.empty() || !warmup.entry_supported) std::abort();
-        warmup.func.export_name=tr.func.export_name+"__warmup";
-        hot_pending.push_back(std::move(warmup.func));
-    }
     hot_pending.push_back(std::move(tr.func));
     if (hot_pending.size() >= 32) flush_hot_blocks();
     ++hot_compiled;
@@ -552,19 +506,15 @@ void observe_hot_pc(ARMul_State *cpu) {
 // Generated arithmetic keeps NZCVT separate from the packed CPSR. Publish them
 // after the emitter's state barrier and before a memory/exception callback reads
 // the owning core's CPSR. Direct mapped accesses do not call these trampolines.
-template<bool Experimental> struct memory_callback_scope {
+template<bool Direct> struct memory_callback_scope {
     ARMul_State *state;
-    bool enabled;
-    explicit memory_callback_scope(ARMul_State *s):state(s),enabled(Experimental && memory_experiment::enabled() && bool(s->parent()->experimental_memory)) {
-        if(enabled && !(memory_experiment::mode==2 && memory_experiment::direct_policy))state->parent()->experimental_memory(false);
-    }
-    ~memory_callback_scope(){if(enabled) {
-        if (memory_experiment::mode==2 && memory_experiment::direct_policy==3) {
+    explicit memory_callback_scope(ARMul_State *s):state(s) {}
+    ~memory_callback_scope() {
+        if constexpr(Direct) {
             state->parent()->publish_memory_view();
             state->aot_tlb=state->parent()->experimental_pointer;
-        } else state->aot_tlb=memory_experiment::mode==2 && memory_experiment::direct_policy ? prepare_cached_memory(state)
-            : static_cast<std::uint32_t>(state->parent()->experimental_memory(true));
-    }}
+        }
+    }
 };
 static void publish_callback_cpsr(ARMul_State *state) {
     state->Cpsr = (state->Cpsr & 0x0fffffdfu) | (state->NFlag << 31)
@@ -659,7 +609,7 @@ template<bool Experimental=false> static void raw_arm_exclusive(ARMul_State *s, 
 // JS function that instantiates a WASM module and returns exported function
 // addresses as a comma-separated string of "name:table_idx" pairs.
 // Returns empty string on failure.
-EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const std::uintptr_t *helpers, int identity_active), {
+EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const std::uintptr_t *helpers), {
     try {
         var wasmBytes = new Uint8Array(wasmMemory.buffer, bytes, len);
         // Copy the bytes — the buffer may be detached during instantiation
@@ -682,14 +632,12 @@ EM_JS(char*, js_instantiate_aot_module, (const uint8_t* bytes, int len, const st
         // Collect exports and add them to Emscripten's function table
         var results = [];
         for (var name in instance.exports) {
-            if (name === 'memory' || name.endsWith('__warmup')) continue;
+            if (name === 'memory') continue;
             var func = instance.exports[name];
             if (typeof func !== 'function') continue;
 
             // Add to Emscripten's indirect function table
-            var warmup=instance.exports[name+'__warmup'];
-            var tableIdx = addFunction(!identity_active && warmup ? warmup : func, 'ii');
-            if(!identity_active && warmup) (globalThis.ekaIdentityPending ||= []).push([tableIdx,func]);
+            var tableIdx = addFunction(func, 'ii');
             results.push(name + ':' + tableIdx);
         }
 
@@ -738,7 +686,7 @@ static int do_instantiate(const std::vector<std::uint8_t> &wasm_bytes,
         reinterpret_cast<std::uintptr_t>(experimental ? raw_arm_exclusive<true> : raw_arm_exclusive<false>)
     };
     char *result_str = js_instantiate_aot_module(wasm_bytes.data(),
-        static_cast<int>(wasm_bytes.size()), helpers, memory_experiment::identity_active);
+        static_cast<int>(wasm_bytes.size()), helpers);
 
     if (!result_str || result_str[0] == '\0') {
         if (result_str) free(result_str);

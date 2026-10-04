@@ -1,5 +1,8 @@
 # Compact direct-memory lowering and mapping notifications
 
+> Historical experiment: current code retains only TLB (0) and the all-cuts direct implementation (2). To reproduce the controls in this report, use commit `5bcfde371`.
+> See [current selection and commands](README.md#memory-implementations); removed controls below require the historical source revision.
+
 All cuts reduce Snakes worker CPU by **8.5% versus cached direct** and **9.6%
 versus TLB** in these runs. Sky Force averages **5.1% less worker CPU than cached
 direct**, but its observations vary substantially and average **2.8% more than

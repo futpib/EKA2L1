@@ -1,5 +1,8 @@
 # Direct shared-backing memory experiment
 
+> Historical experiment: current code retains only TLB (0) and the all-cuts direct implementation (2).
+> See [current selection and commands](README.md#memory-implementations); removed controls below require the historical source revision.
+
 Mode 2 (`EKA2L1_MEMORY_IMPL=2`) now shares canonical guest backing with C++.
 The copying implementation has been removed. The experiment is enabled from
 boot; mode 0 remains the default.

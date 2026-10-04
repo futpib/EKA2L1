@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replay or time the four memory implementations serially on fixed guest work."""
+"""Replay or time TLB and direct memory serially on fixed guest work."""
 import argparse
 import json
 import os
@@ -15,20 +15,17 @@ p.add_argument('--build', type=Path, required=True)
 p.add_argument('--snakes-assets', type=Path, required=True)
 p.add_argument('--sky-assets', type=Path, required=True)
 p.add_argument('--reference-root', type=Path, required=True)
-p.add_argument('--modes', nargs='+', type=int, choices=range(4), default=[0,1,2,3])
-p.add_argument('--direct-policies', nargs='+', type=int, choices=range(4), default=[0])
+p.add_argument('--modes', nargs='+', type=int, choices=[0,2], default=[0,2])
 p.add_argument('--games', nargs='+', choices=['standard','combat'], default=['standard','combat'])
 p.add_argument('--rounds', type=int, default=2)
 p.add_argument('--window-us', type=int, default=0, help='Override the measured guest window; zero uses 4/6 seconds')
-p.add_argument('--activation-lead-us', type=int, default=0, help='Optional delayed mode-2 activation; zero runs direct memory from boot')
 p.add_argument('--frames', type=int, default=60, help='Replay prefix length, up to 60 native reference frames')
 a = p.parse_args()
-if a.rounds < 1 or a.window_us < 0 or not 0 <= a.activation_lead_us < 21000000 or not 1 <= a.frames <= 60:
-    p.error('Invalid rounds, window, activation lead or frame count')
-if a.activation_lead_us and any(a.direct_policies):p.error('Direct policies require activation from boot')
+if a.rounds < 1 or a.window_us < 0 or not 1 <= a.frames <= 60:
+    p.error('Invalid rounds, window or frame count')
 a.output.mkdir(parents=True, exist_ok=False)
 repo = Path(__file__).resolve().parents[3]
-names = ['tlb','allocation','direct','flat-pages']
+names = {0:'tlb',2:'direct'}
 rows = []
 build_hashes = None
 for game in a.games:
@@ -55,18 +52,15 @@ for game in a.games:
     frame_journal=None
     assets = a.snakes_assets if game=='standard' else a.sky_assets
     route = repo/'src/tests/benchmark'/('snakes.input' if game=='standard' else 'sky-force-combat.input')
-    variants=[(m,d) for m in a.modes for d in a.direct_policies if m==2 or d==0]
-    if 0 in a.modes and (0,0) not in variants:variants.insert(0,(0,0))
     for repetition in range(1 if a.phase=='replays' else a.rounds):
-        order = variants if repetition%2==0 else list(reversed(variants))
-        for mode,direct_policy in order:
-            name=f'{game}-{repetition}-{names[mode]}-p{direct_policy}';out=a.output/name
+        order = a.modes if repetition%2==0 else list(reversed(a.modes))
+        for mode in order:
+            name=f'{game}-{repetition}-{names[mode]}';out=a.output/name
             config = dict(EKA2L1_BENCHMARK_AOT='5',EKA2L1_CODE_COMPARE='2',EKA2L1_PREDICATED_LEAVES='1',
                 EKA2L1_LEAF_FEATURES='128',EKA2L1_UNSAFE_CODE='3',EKA2L1_SHARED_AUDIO='1',
                 EKA2L1_ARM_MEMORY='0',EKA2L1_ARM_EXCLUSIVE='0',EKA2L1_AOT_IR_MODE='17',
-                EKA2L1_HOTPATH='2',EKA2L1_THUMB_MEMORY='1',EKA2L1_MEMORY_IMPL=str(mode),EKA2L1_DIRECT_POLICY=str(direct_policy),
+                EKA2L1_HOTPATH='2',EKA2L1_THUMB_MEMORY='1',EKA2L1_MEMORY_IMPL=str(mode),
                 EKA2L1_WASM_BUILD_DIR=str(a.build.resolve()),EKA2L1_PROFILE_DETAIL='0',EKA2L1_CHROME_TRACE='off')
-            if mode==2 and a.activation_lead_us:config['EKA2L1_MEMORY_ACTIVATE_US']=str(start-a.activation_lead_us)
             if game=='combat':
                 config.update(EKA2L1_APP_UID='0xa020d913',EKA2L1_ASSET_MANIFEST=str(repo/'src/tests/benchmark/sky-force-assets.json'))
             if a.phase=='replays':
@@ -80,16 +74,13 @@ for game in a.games:
             print('START',name,flush=True);beg=time.monotonic()
             with (a.output/(name+'.log')).open('w') as log:
                 subprocess.run(args,cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,timeout=1800,check=True)
-            row=dict(game=game,mode=mode,direct_policy=direct_policy,name=name,elapsed_seconds=time.monotonic()-beg,command=command)
+            row=dict(game=game,mode=mode,name=name,elapsed_seconds=time.monotonic()-beg,command=command)
             report=json.loads((out/'report.json').read_text())
-            assert report['memory_impl']==mode and report['direct_policy']==direct_policy
-            assert report['memory_impl_stats']['direct_policy']==direct_policy
+            assert report['memory_impl']==mode and report['memory_impl_stats']['mode']==mode
             hashes=(report['wasm_sha256'],report['loader_sha256'])
             if build_hashes is None:build_hashes=hashes
             assert hashes==build_hashes, 'Build changed during the campaign'
-            if mode==2 and a.activation_lead_us:assert start-a.activation_lead_us<=report['memory_impl_stats']['activated_us']<start
             if mode==2:
-                assert report['memory_impl_stats']['bytes_in']==report['memory_impl_stats']['bytes_out']==0
                 assert report['memory_impl_stats']['direct_rebuilds']>0
             row['report']=report
             if a.phase=='replays':

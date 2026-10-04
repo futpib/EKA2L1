@@ -35,7 +35,7 @@ namespace eka2l1::mem {
         , cpu_(cpu)
         , conf_(conf) {
         using namespace arm::aot;
-        if (memory_experiment::mode == 2 && memory_experiment::direct_policy == 3)
+        if (memory_experiment::enabled())
             cpu->experimental_dirty = observe_mapping_changes();
         if (memory_experiment::mode) {
             if (manager_->page_size_bits_ != 12) throw std::runtime_error("Memory experiments require 4 KiB guest pages");

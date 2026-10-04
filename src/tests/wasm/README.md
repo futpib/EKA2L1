@@ -39,10 +39,15 @@ The existing HTTPS host/certificate and compiler-policy environment variables
 still apply; see [LAN setup](../benchmark/REALTIME_PLAYABILITY.md#lan-https-launcher).
 The local launcher is at <https://claude-laptop.lan:8188/>.
 
-Memory translation uses the fixed original-index 512-entry TLB, without an ARM
+Memory translation defaults to the fixed original-index 512-entry TLB, without an ARM
 scalar last-page cache. `EKA2L1_TLB_HASH` and `EKA2L1_MEMORY_CACHE` are retired
 and must be removed from launch environments. See the
 [cache comparison and adoption](../benchmark/MEMORY_CACHE_RESULTS.md).
+
+The replay and profiling harnesses also support `EKA2L1_MEMORY_IMPL=2` for the
+retained direct-memory implementation. Only values 0 (TLB) and 2 (direct) are
+supported; the separate direct-policy and delayed-activation controls are
+removed. See [memory implementation selection](../benchmark/README.md#memory-implementations).
 
 Run the actual browser integration check against a running launcher:
 

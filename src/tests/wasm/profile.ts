@@ -48,12 +48,10 @@ const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(
 if (![-1,0,2].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
 const unsafeText=process.env.EKA2L1_UNSAFE_CODE ?? '3';
 if(!/^[03]$/.test(unsafeText))throw Error('Invalid unsafe code mode');
-const directPolicy=Number(process.env.EKA2L1_DIRECT_POLICY ?? '0');
-if(![0,1,2,3].includes(directPolicy))throw Error('Invalid direct memory policy');
+if (process.env.EKA2L1_DIRECT_POLICY !== undefined || process.env.EKA2L1_MEMORY_ACTIVATE_US !== undefined)
+  throw Error('Direct policy and delayed activation were removed; select EKA2L1_MEMORY_IMPL=0 (TLB) or 2 (direct)');
 const memoryImpl=Number(process.env.EKA2L1_MEMORY_IMPL ?? '0');
-const memoryActivation=Number(process.env.EKA2L1_MEMORY_ACTIVATE_US ?? '0');
-if(!Number.isSafeInteger(memoryActivation) || memoryActivation<0 || memoryActivation>120000000 || (memoryActivation && memoryImpl!==2))throw Error('Invalid identity activation time');
-if(!/^[0-3]$/.test(process.env.EKA2L1_MEMORY_IMPL ?? '0'))throw Error('Invalid memory implementation');
+if(!/^[02]$/.test(process.env.EKA2L1_MEMORY_IMPL ?? '0'))throw Error('Memory implementation must be 0 (TLB) or 2 (direct)');
 const unsafeCode=Number(unsafeText);
 if(![0,3].includes(unsafeCode))throw Error('Invalid unsafe code mode');
 const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES || '0');
@@ -147,7 +145,7 @@ try {
   if (diagnosticsAvailable === false && (detailedProfile || guestProfile || exitCensus || aotDiagnostics))
     throw new Error('Custom diagnostics require a build with -DEKA2L1_WASM_DIAGNOSTICS=ON');
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, directPolicy, memoryActivation, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -216,12 +214,14 @@ try {
     }
     if(typeof g.Module._eka2l1_memory_impl_configure==='function') {
       call('eka2l1_memory_impl_configure',['number'],[memoryImpl]);
-      if(directPolicy)call('eka2l1_direct_memory_configure',['number'],[directPolicy]);
-      if(memoryActivation)call('eka2l1_memory_impl_activation',['number'],[memoryActivation]);
-      if(g.Module._eka2l1_memory_impl_report()!==memoryImpl)throw Error('Memory implementation readback mismatch');
+      for(const removed of [-1,1,3,4]) {
+        if(g.Module._eka2l1_memory_impl_configure(removed)!==-1)throw Error('Removed memory implementation was accepted');
+        if(g.Module._eka2l1_memory_impl_report()!==memoryImpl)throw Error('Rejected memory configuration changed the active mode');
+      }
+      if(g.Module._eka2l1_direct_memory_configure || g.Module._eka2l1_memory_impl_activation)
+        throw Error('Removed direct policy or activation API is still exported');
     } else if(memoryImpl)throw Error('Memory implementation API unavailable');
     call('eka2l1_init', ['string'], ['/data']);
-    if(directPolicy && g.Module._eka2l1_direct_memory_configure(directPolicy)!==-1)throw Error('Direct policy was not frozen');
     if(typeof g.Module._eka2l1_memory_impl_configure==='function' && g.Module._eka2l1_memory_impl_configure(memoryImpl)!==-1)
       throw Error('Memory implementation was not frozen');
     if (hotpathPolicy !== -1 && (g.Module._eka2l1_hotpath_configure(hotpathPolicy ^ 2) !== -1
@@ -255,7 +255,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], [appUid]);
-  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, directPolicy, memoryActivation, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -335,7 +335,7 @@ try {
   } else await waitPhase(3);
   const cpuAfter = await sampleCpuTime(system);
   const memoryAfter = await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;});
-  const memoryWork = memoryBefore && memoryAfter ? Object.fromEntries(['rebuilds','chains','instructions','bytes_in','bytes_out'].map(key=>[key,memoryAfter[key]-memoryBefore[key]])) : null;
+  const memoryWork = memoryBefore && memoryAfter ? Object.fromEntries(['rebuilds','direct_rebuilds'].map(key=>[key,memoryAfter[key]-memoryBefore[key]])) : null;
   const cpuTime = cpuTimeDelta(cpuBefore, cpuAfter);
   fs.writeFileSync(path.join(output, 'cpu-time.json'), JSON.stringify({before: cpuBefore, after: cpuAfter, summary: cpuTime}, null, 2));
   await page.evaluate(() => performance.mark('eka2l1:measurement-end'));
@@ -417,7 +417,7 @@ try {
     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
     gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, direct_policy:directPolicy, memory_activation_us:memoryActivation, memory_impl_work:memoryWork, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
+    aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_impl_work:memoryWork, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree, browser: await browser.version(),
     runtime_footprint: await page.evaluate(() => {
       const m=(window as any).Module;
       return typeof m._eka2l1_monitor_report==='function' ? JSON.parse(m.ccall('eka2l1_monitor_report','string',[],[])) : null;

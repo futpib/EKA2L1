@@ -26,12 +26,10 @@ if (![-1,0,2].includes(codeCompare)) throw new Error('Invalid exact comparison p
 const exitCensus = process.env.EKA2L1_EXIT_CENSUS === '1';
 const unsafeText=process.env.EKA2L1_UNSAFE_CODE ?? '3';
 if(!/^[03]$/.test(unsafeText))throw Error('Invalid unsafe code mode');
-const directPolicy=Number(process.env.EKA2L1_DIRECT_POLICY ?? '0');
-if(![0,1,2,3].includes(directPolicy))throw Error('Invalid direct memory policy');
+if (process.env.EKA2L1_DIRECT_POLICY !== undefined || process.env.EKA2L1_MEMORY_ACTIVATE_US !== undefined)
+  throw Error('Direct policy and delayed activation were removed; select EKA2L1_MEMORY_IMPL=0 (TLB) or 2 (direct)');
 const memoryImpl=Number(process.env.EKA2L1_MEMORY_IMPL ?? '0');
-const memoryActivation=Number(process.env.EKA2L1_MEMORY_ACTIVATE_US ?? '0');
-if(!Number.isSafeInteger(memoryActivation) || memoryActivation<0 || memoryActivation>120000000 || (memoryActivation && memoryImpl!==2))throw Error('Invalid identity activation time');
-if(!/^[0-3]$/.test(process.env.EKA2L1_MEMORY_IMPL ?? '0'))throw Error('Invalid memory implementation');
+if(!/^[02]$/.test(process.env.EKA2L1_MEMORY_IMPL ?? '0'))throw Error('Memory implementation must be 0 (TLB) or 2 (direct)');
 const unsafeCode=Number(unsafeText);
 if(![0,3].includes(unsafeCode))throw Error('Invalid unsafe code mode');
 const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES || '0');
@@ -101,7 +99,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, directPolicy, memoryActivation, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -169,12 +167,14 @@ try {
     }
     if(typeof g.Module._eka2l1_memory_impl_configure==='function') {
       call('eka2l1_memory_impl_configure',['number'],[memoryImpl]);
-      if(directPolicy)call('eka2l1_direct_memory_configure',['number'],[directPolicy]);
-      if(memoryActivation)call('eka2l1_memory_impl_activation',['number'],[memoryActivation]);
-      if(g.Module._eka2l1_memory_impl_report()!==memoryImpl)throw Error('Memory implementation readback mismatch');
+      for(const removed of [-1,1,3,4]) {
+        if(g.Module._eka2l1_memory_impl_configure(removed)!==-1)throw Error('Removed memory implementation was accepted');
+        if(g.Module._eka2l1_memory_impl_report()!==memoryImpl)throw Error('Rejected memory configuration changed the active mode');
+      }
+      if(g.Module._eka2l1_direct_memory_configure || g.Module._eka2l1_memory_impl_activation)
+        throw Error('Removed direct policy or activation API is still exported');
     } else if(memoryImpl)throw Error('Memory implementation API unavailable');
     call('eka2l1_init', ['string'], ['/data']);
-    if(directPolicy && g.Module._eka2l1_direct_memory_configure(directPolicy)!==-1)throw Error('Direct policy was not frozen');
     if(typeof g.Module._eka2l1_memory_impl_configure==='function' && g.Module._eka2l1_memory_impl_configure(memoryImpl)!==-1)
       throw Error('Memory implementation was not frozen');
     if (hotpathPolicy !== -1 && (g.Module._eka2l1_hotpath_configure(hotpathPolicy ^ 2) !== -1
@@ -209,7 +209,7 @@ try {
     }
     // N80 also registers a different ROM-bundled game with the caption Snakes.
     call('eka2l1_run', ['string'], [appUid]);
-  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, directPolicy, memoryActivation, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -261,7 +261,7 @@ try {
   if (failures.length) throw new Error(failures.join('\n'));
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
-    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, direct_policy:directPolicy, memory_activation_us:memoryActivation, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
+    shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');
 } finally {
   await browser?.close();

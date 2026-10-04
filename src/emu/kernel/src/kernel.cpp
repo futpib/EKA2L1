@@ -24,7 +24,6 @@
 #include <thread>
 
 #include <cpu/aot/aot_registry.h>
-#include <cpu/aot/memory_experiment.h>
 #include <cpu/arm_analyser.h>
 #include <cpu/arm_interface.h>
 #include <cpu/arm_utils.h>
@@ -1427,10 +1426,7 @@ namespace eka2l1 {
         LOG_TRACE(KERNEL, "Rom mapped to address: 0x{:x}", reinterpret_cast<std::uint64_t>(rom_map_));
 
         const std::size_t chunk_size = rebase_offset + rom_size;
-        if(arm::aot::memory_experiment::mode==2) {
-            arm::aot::memory_experiment::immutable_rom_begin=reinterpret_cast<std::uintptr_t>(rom_map_);
-            arm::aot::memory_experiment::immutable_rom_end=arm::aot::memory_experiment::immutable_rom_begin+((chunk_size+4095)&~std::size_t(4095));
-        }
+
 
         // Don't care about the result as long as it's not null.
         kernel::chunk *rom_chunk = create<kernel::chunk>(mem_, nullptr, "ROM", 0,
@@ -1448,7 +1444,6 @@ namespace eka2l1 {
     }
 
     void kernel_system::unmap_rom() {
-        arm::aot::memory_experiment::immutable_rom_begin=arm::aot::memory_experiment::immutable_rom_end=0;
         if (rom_map_) {
             if (rom_map_size_) {
                 common::unmap_memory(rom_map_, rom_map_size_);

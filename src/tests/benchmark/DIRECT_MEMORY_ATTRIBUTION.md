@@ -1,5 +1,8 @@
 # Direct-memory regression attribution
 
+> Historical experiment: current code retains only TLB (0) and the all-cuts direct implementation (2).
+> See [current selection and commands](README.md#memory-implementations); removed controls below require the historical source revision.
+
 The largest measured cause in Sky Force is the experimental runtime wrapper:
 repeatedly entering/leaving an unchanged memory view and updating chain counters.
 Removing that group saves **0.912 worker CPU seconds**, approximately **72% of

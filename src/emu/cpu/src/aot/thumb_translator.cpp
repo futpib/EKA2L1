@@ -92,7 +92,7 @@ namespace eka2l1::arm::aot {
         static constexpr unsigned M=12;
         bool span_active = false;
         bool memory_write = false;
-        bool compact_memory_used = false;
+        bool direct_memory_used = false;
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
         // Number of early-exit bails emitted into the function body.
@@ -170,9 +170,7 @@ namespace eka2l1::arm::aot {
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
-            if(memory_experiment::mode==1){i32_const(0);set_local(M+1);}
-            if(memory_experiment::mode==2 && !memory_experiment::compact_direct()){i32_const(0);set_local(M+3);}
-            if(memory_experiment::compact_direct() && !cache.enabled) compact_memory_setup(*this);
+            if(memory_experiment::enabled() && !cache.enabled) direct_memory_setup(*this);
         }
 
         // A whole one-page register transfer can reuse one TLB proof. On
@@ -183,7 +181,7 @@ namespace eka2l1::arm::aot {
                 common::code_tracking::skip_code_write_guards());
             if (!span_active) return;
             if(memory_experiment::mode) {
-                experimental_host(*this,address_local,words*4,write,4);
+                direct_host(*this,address_local,words*4,write,4);
                 get_local(HOST);op(op_if);op(type_i32);
                 get_local(HOST);get_local(address_local);op(op_i32_sub);i32_const(1);op(op_i32_add);
                 op(op_else);i32_const(0);op(op_end);set_local(SPAN_HOST);return;
@@ -227,7 +225,7 @@ namespace eka2l1::arm::aot {
                 guest_memory_op(*this,write?op_i32_store:op_i32_load,2);
                 op(op_else);
             }
-            if(memory_experiment::mode) experimental_host(*this,ADDRESS,size,write,size);
+            if(memory_experiment::mode) direct_host(*this,ADDRESS,size,write,size);
             else {
             i32_const(0); set_local(HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
@@ -672,7 +670,7 @@ namespace eka2l1::arm::aot {
         // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
         //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
         const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
-        result.num_locals = memory_experiment::compact_direct() ? 14 : memory_experiment::mode ? 15 : direct_memory ? 11 : 6;
+        result.num_locals = memory_experiment::enabled() ? 14 : direct_memory ? 11 : 6;
         result.num_f32_locals = 2;
         result.num_f64_locals = 1;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;

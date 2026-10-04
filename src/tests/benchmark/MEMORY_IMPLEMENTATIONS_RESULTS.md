@@ -1,5 +1,8 @@
 # Four guest-memory implementations
 
+> Historical experiment: current code retains only TLB (0) and the all-cuts direct implementation (2).
+> See [current selection and commands](README.md#memory-implementations); removed controls below require the historical source revision.
+
 Mode 2 has since been replaced by a shared-backing direct-memory experiment.
 See [the zero-copy rerun](DIRECT_MEMORY_RESULTS.md) for its implementation and
 measurements. The results below are historical and describe the removed copying

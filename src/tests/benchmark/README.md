@@ -94,6 +94,43 @@ Set `CHROMIUM_PATH` if Chromium is not at `/usr/bin/chromium`. The local server 
 
 The benchmark is scoped to this fixed Snakes/device replay in fresh processes. It does not promise deterministic network, compressed audio, microphone input, arbitrary host services, save-state resumes, or hardware-accurate instruction timing.
 
+## Memory implementations
+
+The browser harnesses support two implementations, selected before guest
+initialization with `EKA2L1_MEMORY_IMPL` or `eka2l1_memory_impl_configure(mode)`:
+
+| # | Value | Implementation |
+|---|---:|---|
+| 1 | 0 | Default 512-entry TLB |
+| 2 | 2 | Direct memory with compact ARM/Thumb lowering and mapping-change notifications |
+
+Direct mode retains the [all-cuts implementation](DIRECT_MEMORY_CUTS_RESULTS.md).
+Its process-local arena shares C++'s backing in the primary WASM memory. The
+fallback page directory handles aliases and addresses outside that arena; it
+is part of direct mode, not a separate selectable implementation. Direct mode
+requires compiled regions, disabled AOT verification and the unsafe code-write
+policy. The driver below supplies these settings.
+
+Allocation-range mode, standalone flat-page mode, earlier direct variants and
+delayed activation have been removed. Values 1 and 3 are rejected. Remove
+`EKA2L1_DIRECT_POLICY` and `EKA2L1_MEMORY_ACTIVATE_US` from harness environments;
+there is no direct-policy or activation API. Direct mode always uses the best
+retained implementation from boot. Historical benchmark reports retain their
+original results and reproduction commands for the source revisions they name.
+
+Run correctness comparisons before collecting CPU timings. Use a frozen browser
+build and fresh output directories:
+
+```sh
+node build-wasm/src/tests/aot/test_aot_wasm.js --memory-implementations-only
+python3 src/tests/benchmark/memory_implementations.py "$OUT/replays" replays \
+  --build "$BUILD" --snakes-assets "$SNAKES_ASSETS" --sky-assets "$SKY_ASSETS" \
+  --reference-root "$REFERENCES" --modes 0 2 --frames 60
+python3 src/tests/benchmark/memory_implementations.py "$OUT/timings" timings \
+  --build "$BUILD" --snakes-assets "$SNAKES_ASSETS" --sky-assets "$SKY_ASSETS" \
+  --reference-root "$REFERENCES" --modes 0 2 --rounds 2
+```
+
 ## Gameplay and clock validation
 
 ```sh

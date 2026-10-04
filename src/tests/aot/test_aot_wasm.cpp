@@ -4789,7 +4789,7 @@ static bool test_thumb_register_exchange() {
 }
 
 
-static bool test_memory_implementations() {
+static bool test_direct_memory_translation() {
 #ifdef __EMSCRIPTEN__
     using namespace memory_experiment;
     const auto old_unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
@@ -4804,7 +4804,7 @@ static bool test_memory_implementations() {
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
     unsigned checks=0;
     auto memory_failure=[](int line){printf("FAIL memory implementations at line %d\n",line);return false;};
-    for(unsigned candidate:{1u,2u,3u}) for(unsigned program=0;program<5;++program) {
+    for(unsigned program=0;program<5;++program) {
         std::vector<std::uint8_t> code;
         if(program<3) {code.resize(programs[program].size()*4);std::memcpy(code.data(),programs[program].data(),code.size());}
         else {const std::uint16_t scalar[]={0x6808,0x684a,0x688b,0x6020,0x6825}, block[]={0xc90d,0xc40d};const auto *thumb=program==3?scalar:block;code.resize(program==3?sizeof(scalar):sizeof(block));std::memcpy(code.data(),thumb,code.size());}
@@ -4814,7 +4814,7 @@ static bool test_memory_implementations() {
                 :translate_arm_block(code.data(),code.size(),0x1000,nullptr,nullptr,true,true,true,true,nullptr,false,arm_ir_policy::loop_budget_chunks);
             return build_wasm_module({tr.func},imports);
         };
-        const auto baseline=compile(0),tested=compile(candidate);
+        const auto baseline=compile(0),tested=compile(2);
         for(unsigned address:{0x8000u,0x8ffcu,0x9ff8u,0x8001u}) for(unsigned budget=0;budget<=22;++budget) {
             test_mem expected,actual;
             for(unsigned a=0x7000;a<0xc000;a+=4)expected.write32(a,a*37);
@@ -4826,7 +4826,7 @@ static bool test_memory_implementations() {
             alignas(8) std::uint32_t states[2][256]{};
             int counts[2];
             for(unsigned variant=0;variant<2;++variant) {
-                mode=variant?candidate:0;
+                mode=variant?2:0;
                 auto &memory=variant?actual:expected;auto *state=states[variant];
                 r12l1::tlb tlb(12);view mapping;
                 auto resolve=[&] {
@@ -4854,7 +4854,7 @@ static bool test_memory_implementations() {
             bool equal=counts[0]>=0 && counts[0]==counts[1] && actual.data==expected.data;
             for(unsigned reg=0;reg<16;++reg)equal &= states[0][reg]==states[1][reg];
             for(unsigned f:{state_offsets::NFLAG,state_offsets::ZFLAG,state_offsets::CFLAG,state_offsets::VFLAG,state_offsets::TFLAG})equal &= states[0][f/4]==states[1][f/4];
-            if(!equal){printf("FAIL memory implementation mode=%u program=%u address=%x budget=%u counts=%d/%d\n",candidate,program,address,budget,counts[0],counts[1]);return memory_failure(__LINE__);}
+            if(!equal){printf("FAIL memory implementation mode=%u program=%u address=%x budget=%u counts=%d/%d\n",2u,program,address,budget,counts[0],counts[1]);return memory_failure(__LINE__);}
             test_mem reference_memory;reference_memory.data=seed;
             r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
             for(unsigned reg=0;reg<16;++reg)reference->set_reg(reg,0);
@@ -4862,16 +4862,16 @@ static bool test_memory_implementations() {
             reference->set_pc(0x1000);reference->set_cpsr(16|(program>=3?32:0));
             if(counts[1])reference->run(counts[1]);
             for(unsigned reg=0;reg<16;++reg) if(states[1][reg]!=reference->get_reg(reg)) {
-                printf("FAIL independent memory oracle mode=%u program=%u address=%x budget=%u register=%u actual=%x expected=%x\n",candidate,program,address,budget,reg,states[1][reg],reference->get_reg(reg));return memory_failure(__LINE__);
+                printf("FAIL independent memory oracle mode=%u program=%u address=%x budget=%u register=%u actual=%x expected=%x\n",2u,program,address,budget,reg,states[1][reg],reference->get_reg(reg));return memory_failure(__LINE__);
             }
-            if(actual.data!=reference_memory.data){printf("FAIL independent memory oracle bytes mode=%u program=%u address=%x budget=%u\n",candidate,program,address,budget);return memory_failure(__LINE__);}
+            if(actual.data!=reference_memory.data){printf("FAIL independent memory oracle bytes mode=%u program=%u address=%x budget=%u\n",2u,program,address,budget);return memory_failure(__LINE__);}
             ++checks;
         }
     }
     // Aliases must be coherent inside one generated region. High guest
     // addresses must remain unsigned offsets into the fallback table.
-    for(unsigned candidate:{1u,2u,3u}) {
-        mode=candidate;test_mem memory;
+    {
+        mode=2;test_mem memory;
         const std::uint32_t words[]={0xe5810000,0xe5923000};
         auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(words),sizeof(words),0x1000,nullptr,nullptr,true,true,true,true);
         auto module=build_wasm_module({tr.func},imports);
@@ -4882,12 +4882,12 @@ static bool test_memory_implementations() {
         state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=2;
         state[state_offsets::AOT_TLB/4]=mapping.enter(1,1,resolve);
         auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));mapping.leave();
-        if(count!=2 || state[3]!=state[0] || memory.read32(0x8000)!=state[0]){printf("FAIL identity/flat/allocation alias mode=%u count=%d value=%x\n",candidate,count,state[3]);return memory_failure(__LINE__);}
+        if(count!=2 || state[3]!=state[0] || memory.read32(0x8000)!=state[0]){printf("FAIL direct alias mode=%u count=%d value=%x\n",2u,count,state[3]);return memory_failure(__LINE__);}
         ++checks;
     }
 
-    for(unsigned candidate:{1u,2u,3u}) {
-        mode=candidate;test_mem memory;view mapping;bool remapped=false;
+    {
+        mode=2;test_mem memory;view mapping;bool remapped=false;
         auto resolve=[&] {
             const auto host=static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(memory.data.data()+(remapped?0x9000:0x8000)));
             return std::vector<binding>{{0x8000,host,3}};
@@ -4907,30 +4907,23 @@ static bool test_memory_implementations() {
         g_test_mem=&memory;g_all_memory_helper_calls=0;
         auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));mapping.leave();g_memory_boundary={};
         if(count!=3 || state[0]!=0x11223344 || state[3]!=0x55667788 || g_all_memory_helper_calls!=1) {
-            printf("FAIL callback remap mode=%u count=%d old=%x new=%x helpers=%u\n",candidate,count,state[0],state[3],g_all_memory_helper_calls);return memory_failure(__LINE__);
+            printf("FAIL callback remap mode=%u count=%d old=%x new=%x helpers=%u\n",2u,count,state[0],state[3],g_all_memory_helper_calls);return memory_failure(__LINE__);
         }
         ++checks;
         // Same generation, different process; then reuse the ID with a new generation.
         for(unsigned space:{2u,1u}) {
             remapped=!remapped;const auto pointer=mapping.enter(space==2?2:3,space,resolve);
             const auto host=resolve()[0].host;
-            if(candidate==1) {
-                const auto &entry=reinterpret_cast<const range*>(pointer)[8];
-                if(entry.begin!=0x8000 || entry.size!=4096 || entry.host!=host || entry.permissions!=3)return memory_failure(__LINE__);
-            } else {
-                const auto pages=candidate==2?reinterpret_cast<const direct_view*>(pointer)->pages:pointer;
-                if(reinterpret_cast<const page*>(pages)[8].read!=host)return memory_failure(__LINE__);
-            }
+            const auto pages=reinterpret_cast<const direct_view*>(pointer)->pages;
+            if(reinterpret_cast<const page*>(pages)[8].read!=host)return memory_failure(__LINE__);
             mapping.leave();++checks;
         }
         for(unsigned permission:{0u,1u,2u,3u}) {
             auto permissions=[&]{auto b=resolve();b[0].permissions=permission;return b;};
             const auto pointer=mapping.enter(10+permission,1,permissions);
-            if(candidate==3 || candidate==2) {
-                const auto pages=candidate==2?reinterpret_cast<const direct_view*>(pointer)->pages:pointer;
-                const auto &entry=reinterpret_cast<const page*>(pages)[8];const auto host=permissions()[0].host;
-                if(entry.read!=(permission&1?host:0) || entry.write!=(permission&2?host:0))return memory_failure(__LINE__);
-            } else if(reinterpret_cast<const range*>(pointer)[8].permissions!=permission)return memory_failure(__LINE__);
+            const auto pages=reinterpret_cast<const direct_view*>(pointer)->pages;
+            const auto &entry=reinterpret_cast<const page*>(pages)[8];const auto host=permissions()[0].host;
+            if(entry.read!=(permission&1?host:0) || entry.write!=(permission&2?host:0))return memory_failure(__LINE__);
             mapping.leave();++checks;
         }
     }
@@ -4991,25 +4984,22 @@ static bool test_memory_implementations() {
         if(control.direct_local_memory(id) || *static_cast<std::uint32_t*>(chunks[1]->host_base())!=457)return memory_failure(__LINE__);
         ++checks;
     }
-    if(stats.arena_bytes || stats.bytes_in || stats.bytes_out)return memory_failure(__LINE__);
+    if(stats.arena_bytes)return memory_failure(__LINE__);
     mode=0;eka2l1::common::code_tracking::unsafe_code_mode=old_unsafe;
     printf("PASS memory implementations (%u exact ARM/Thumb state, memory, budget, crossing and alias comparisons)\n",checks);
 #endif
     return true;
 }
 
-static bool test_direct_memory_cuts() {
+static bool test_memory_implementations() {
 #ifdef __EMSCRIPTEN__
     using namespace memory_experiment;
     struct restore {
-        unsigned policy=direct_policy, implementation=mode;
-        ~restore(){direct_policy=policy;mode=implementation;}
+        unsigned implementation=mode;
+        ~restore(){mode=implementation;}
     } saved;
-    for (unsigned policy:{1u,2u,3u}) {
-        direct_policy=policy;
-        if (!test_memory_implementations()) return false;
-    }
-    direct_policy=3;mode=2;
+    if (!test_direct_memory_translation()) return false;
+    mode=2;
     namespace mem=eka2l1::mem;
     eka2l1::config::state conf;
     r12l1::exclusive_monitor monitor(1);
@@ -5113,7 +5103,7 @@ static bool test_direct_memory_cuts() {
     cpu.reset();
     mem::mapping_changed();
     if(!weak.expired())return fail(__LINE__);
-    printf("PASS direct memory cuts: three policies, CPU entry, ASID switch, syscall, memory/exception callbacks, permissions and observer lifetime\n");
+    printf("PASS direct memory: CPU entry, ASID switch, syscall, memory/exception callbacks, permissions and observer lifetime\n");
 #endif
     return true;
 }
@@ -5133,7 +5123,6 @@ int main(int argc, char **argv) {
     // and their intentional stale-code behavior.
     eka2l1::common::code_tracking::unsafe_code_mode = 0;
     if(argc==2 && std::string(argv[1])=="--memory-implementations-only")return test_memory_implementations()?0:1;
-    if(argc==2 && std::string(argv[1])=="--direct-cuts-only")return test_direct_memory_cuts()?0:1;
     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
     if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;

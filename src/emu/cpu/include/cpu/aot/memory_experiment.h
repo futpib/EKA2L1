@@ -5,22 +5,11 @@
 #include <vector>
 
 namespace eka2l1::arm::aot::memory_experiment {
-    // Frozen before guest initialization. Zero keeps the production TLB path.
+    // Frozen before guest initialization: 0 is TLB (default), 2 is direct.
     inline unsigned mode = 0;
-    // Frozen before initialization: 0 original, 1 cached view, 2 compact
-    // emission, 3 compact emission with mapping-change notifications.
-    inline unsigned direct_policy = 0;
-    inline bool compact_direct() { return mode == 2 && direct_policy >= 2; }
-    inline std::uint64_t activation_us = 0, activated_us = 0;
-    inline bool identity_active = true;
-    inline bool enabled(){return mode && (mode!=2 || identity_active);}
-    void activate_identity();
-    // The ROM loader supplies backing bounds; its guest permission bits are RWX.
-    inline std::uintptr_t immutable_rom_begin = 0, immutable_rom_end = 0;
+    inline bool enabled() { return mode == 2; }
     struct statistics {
-        std::uint64_t rebuilds = 0, chains = 0, instructions = 0;
-        std::uint64_t bytes_in = 0, bytes_out = 0, alias_pages = 0;
-        std::uint64_t mapped_pages = 0, ranges = 0, largest_range = 0;
+        std::uint64_t rebuilds = 0, mapped_pages = 0;
         std::uint64_t arena_bytes = 0, direct_pages = 0, direct_rebuilds = 0;
     };
     inline statistics stats;
@@ -39,7 +28,6 @@ namespace eka2l1::arm::aot::memory_experiment {
         std::uint64_t generation_ = 0;
         std::uint32_t space_ = ~0u;
         std::vector<binding> bindings_;
-        std::vector<range> ranges_, range_pages_;
         std::vector<page> pages_;
         direct_view direct_{};
         bool active_ = false;

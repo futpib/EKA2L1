@@ -124,8 +124,7 @@ namespace eka2l1::arm {
         // not copy guest stores. Mapping notifications are consumed at entry
         // from the scheduler and when a host callback returns.
         std::function<std::uintptr_t(bool)> experimental_memory;
-        std::uint64_t experimental_generation = 0;
-        std::uint32_t experimental_space = ~0u, experimental_pointer = 0;
+        std::uint32_t experimental_pointer = 0;
         std::shared_ptr<std::atomic<bool>> experimental_dirty;
         void publish_memory_view() {
             if (experimental_dirty && experimental_dirty->load(std::memory_order_acquire) && experimental_memory) {
