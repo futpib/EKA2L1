@@ -113,6 +113,8 @@ policy. The driver below supplies these settings.
 
 The [slow32 census](SLOW32_CENSUS.md) measures load-guard failures, helper calls
 and interpreter deferrals for both implementations in Snakes and Sky Force.
+The [ARM short-block reassessment](ARM_MEMORY_REASSESSMENT.md) compares the
+separate `EKA2L1_ARM_MEMORY` option on the current implementations.
 
 Allocation-range mode, standalone flat-page mode, earlier direct variants and
 delayed activation have been removed. Values 1 and 3 are rejected. Remove
