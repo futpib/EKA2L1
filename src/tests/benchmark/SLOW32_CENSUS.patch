@@ -1,0 +1,219 @@
+diff --git a/src/emu/cpu/include/cpu/aot/memory_emission.h b/src/emu/cpu/include/cpu/aot/memory_emission.h
+index cbf63bbbc..7942032e5 100644
+--- a/src/emu/cpu/include/cpu/aot/memory_emission.h
++++ b/src/emu/cpu/include/cpu/aot/memory_emission.h
+@@ -64,8 +64,18 @@ namespace eka2l1::arm::aot {
+         if (alignment>1) w.op(op_end);
+     }
+ 
++    template<class W> void count_slow32(W &w, unsigned index, unsigned amount=1) {
++        const auto pointer=static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(&memory_experiment::slow32_census[index]));
++        auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
++        w.i32_const(pointer);w.i32_const(pointer);
++        w.op(0x29);imm(3);imm(0);
++        w.i32_const(amount);w.op(0xad);w.op(op_i64_add);
++        w.op(0x37);imm(3);imm(0);
++    }
++
+     template<class W> void guest_memory_op(W &w, std::uint8_t opcode, unsigned alignment, unsigned offset=0) {
+         auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
++        if(opcode==op_i32_load)count_slow32(w,0);
+         w.op(opcode);imm(alignment);imm(offset);
+     }
+ }
+diff --git a/src/emu/cpu/include/cpu/aot/memory_experiment.h b/src/emu/cpu/include/cpu/aot/memory_experiment.h
+index dcce75e29..49c4f2f80 100644
+--- a/src/emu/cpu/include/cpu/aot/memory_experiment.h
++++ b/src/emu/cpu/include/cpu/aot/memory_experiment.h
+@@ -13,6 +13,7 @@ namespace eka2l1::arm::aot::memory_experiment {
+         std::uint64_t arena_bytes = 0, direct_pages = 0, direct_rebuilds = 0;
+     };
+     inline statistics stats;
++    inline std::uint64_t slow32_census[8]{};
+     struct binding { std::uint32_t guest, host, permissions; };
+     struct range { std::uint32_t begin, size, host, permissions; };
+     struct page { std::uint32_t read, write; };
+diff --git a/src/emu/cpu/src/aot/aot_runtime.cpp b/src/emu/cpu/src/aot/aot_runtime.cpp
+index f200ffc4f..ad4cb069b 100644
+--- a/src/emu/cpu/src/aot/aot_runtime.cpp
++++ b/src/emu/cpu/src/aot/aot_runtime.cpp
+@@ -571,7 +571,7 @@ extern "C" {
+ // WASM imports use full i32 parameters; narrow inside C++, never in the caller ABI.
+ // Uninstrumented internal imports. The checked variants above are selected only
+ // for verifier runs; ordinary memory accesses contain no validation hook.
+-template<bool Experimental=false> static std::uint32_t raw_read32(ARMul_State *s, std::uint32_t a) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); return s->ReadMemory32(a); }
++template<bool Experimental=false> static std::uint32_t raw_read32(ARMul_State *s, std::uint32_t a) { ++eka2l1::arm::aot::memory_experiment::slow32_census[5]; memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); return s->ReadMemory32(a); }
+ template<bool Experimental=false> static std::uint32_t raw_read16(ARMul_State *s, std::uint32_t a) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); return s->ReadMemory16(a); }
+ template<bool Experimental=false> static std::uint32_t raw_read8(ARMul_State *s, std::uint32_t a) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); return s->ReadMemory8(a); }
+ template<bool Experimental=false> static void raw_write32(ARMul_State *s, std::uint32_t a, std::uint32_t v) { memory_callback_scope<Experimental> memory(s); publish_callback_cpsr(s); s->WriteMemory32(a, v); }
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index c9a8cded0..6785672dd 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -180,6 +180,7 @@ namespace eka2l1::arm::aot {
+             if ((!region && !direct_block_memory) || func_idx > 5
+                     || (direct_block_memory && write &&
+                         !common::code_tracking::skip_code_write_guards())) {
++                if(func_idx==0)count_slow32(*this,4);
+                 slow_call(func_idx); return;
+             }
+             const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
+@@ -195,6 +196,7 @@ namespace eka2l1::arm::aot {
+                 guest_memory_op(*this, write ? op_i32_store : op_i32_load, 2);
+                 return;
+             }
++            if(func_idx==0)count_slow32(*this,1);
+             // Each access checks the current TLB mapping and permissions.
+             op(op_block); op(write ? type_void : type_i32);
+             if(memory_experiment::mode) direct_host(*this, ADDRESS, size, write, size);
+@@ -215,9 +217,11 @@ namespace eka2l1::arm::aot {
+             }
+             get_local(HOST); op(op_i32_eqz); op(op_if); op(type_void);
+             if (defer_memory && restartable_access) {
++                if(func_idx==0)count_slow32(*this,3);
+                 get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT);
+                 bail(current_pc, 0, exit_census::memory);
+             } else {
++                if(func_idx==0)count_slow32(*this,2);
+                 state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
+                 slow_call(func_idx);
+                 op(op_br); leb(b,1); // leave result block, preserving helper result
+@@ -1569,6 +1573,7 @@ namespace eka2l1::arm::aot {
+                     // must not suppress PC publication before fallback helpers.
+                     if (!proved_span) w.pc_written = pc_written_before_span;
+                     if (!proved_span && w.defer_memory && !writeback && !has_pc) {
++                        if(load){count_slow32(w,6);count_slow32(w,7,count);}
+                         // DynCom publishes block-transfer writeback before its
+                         // callbacks, unlike this compiled/native contract. Keep
+                         // writeback forms on the existing helper path.
+diff --git a/src/emu/cpu/src/aot/thumb_translator.cpp b/src/emu/cpu/src/aot/thumb_translator.cpp
+index 4128244b6..9a1f20dc6 100644
+--- a/src/emu/cpu/src/aot/thumb_translator.cpp
++++ b/src/emu/cpu/src/aot/thumb_translator.cpp
+@@ -212,6 +212,7 @@ namespace eka2l1::arm::aot {
+             // endian state; no proof survives a callback or a mapping change.
+             if (!direct_memory || func_idx > 5 || (write &&
+                     !common::code_tracking::skip_code_write_guards())) {
++                if(func_idx==0)count_slow32(*this,4);
+                 slow_call(func_idx); return;
+             }
+             const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
+@@ -225,6 +226,7 @@ namespace eka2l1::arm::aot {
+                 guest_memory_op(*this,write?op_i32_store:op_i32_load,2);
+                 op(op_else);
+             }
++            if(func_idx==0)count_slow32(*this,1);
+             if(memory_experiment::mode) direct_host(*this,ADDRESS,size,write,size);
+             else {
+             i32_const(0); set_local(HOST);
+@@ -250,6 +252,7 @@ namespace eka2l1::arm::aot {
+             guest_memory_op(*this, write ? (size == 4 ? op_i32_store : size == 2 ? op_i32_store16 : op_i32_store8)
+                      : (size == 4 ? op_i32_load : size == 2 ? op_i32_load16_u : op_i32_load8_u),size==4?2:size==2?1:0);
+             op(op_else);
++            if(func_idx==0)count_slow32(*this,2);
+             state_ptr(); get_local(ADDRESS); if (write) get_local(VALUE);
+             slow_call(func_idx);
+             op(op_end);
+diff --git a/src/emu/wasm/main.cpp b/src/emu/wasm/main.cpp
+index 54e350a48..fd9127149 100644
+--- a/src/emu/wasm/main.cpp
++++ b/src/emu/wasm/main.cpp
+@@ -277,6 +277,16 @@ const char *eka2l1_memory_impl_stats(){
+     static std::string text;
+     text=fmt::format("{{\"mode\":{},\"rebuilds\":{},\"mapped_pages\":{},\"arena_bytes\":{},\"direct_pages\":{},\"direct_rebuilds\":{}}}",
+         eka2l1::arm::aot::memory_experiment::mode,s.rebuilds,s.mapped_pages,s.arena_bytes,s.direct_pages,s.direct_rebuilds);
++    text.pop_back();
++    text+=fmt::format(",\"fast32_loads\":{}",eka2l1::arm::aot::memory_experiment::slow32_census[0]);
++    text+=fmt::format(",\"guard32_attempts\":{}",eka2l1::arm::aot::memory_experiment::slow32_census[1]);
++    text+=fmt::format(",\"guard32_helper\":{}",eka2l1::arm::aot::memory_experiment::slow32_census[2]);
++    text+=fmt::format(",\"guard32_interpreter\":{}",eka2l1::arm::aot::memory_experiment::slow32_census[3]);
++    text+=fmt::format(",\"unconditional32_helper\":{}",eka2l1::arm::aot::memory_experiment::slow32_census[4]);
++    text+=fmt::format(",\"actual32_helper\":{}",eka2l1::arm::aot::memory_experiment::slow32_census[5]);
++    text+=fmt::format(",\"block32_interpreter\":{}",eka2l1::arm::aot::memory_experiment::slow32_census[6]);
++    text+=fmt::format(",\"block32_interpreter_words\":{}",eka2l1::arm::aot::memory_experiment::slow32_census[7]);
++    text+="}";
+     return text.c_str();
+ }
+ EMSCRIPTEN_KEEPALIVE
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+index bfd3aeed2..e0cc2d768 100644
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -4991,6 +4991,56 @@ static bool test_direct_memory_translation() {
+     return true;
+ }
+ 
++static bool test_slow32_census() {
++#ifdef __EMSCRIPTEN__
++    using namespace memory_experiment;
++    const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
++    thumb_direct_memory=true;arm_direct_memory=false;
++    for(unsigned implementation:{0u,2u})for(unsigned scenario=0;scenario<8;++scenario) {
++        mode=implementation;
++        const bool thumb=scenario<2, mapped=scenario==0||scenario==2||scenario==7;
++        const bool defer=scenario==4||scenario==6;
++        const bool block=scenario>=6;
++        const std::uint16_t thumb_code=0x6808;
++        const std::uint32_t arm_code=block?0xe8910005:0xe5910000;
++        auto tr=thumb?translate_thumb_block(reinterpret_cast<const std::uint8_t*>(&thumb_code),2,0x1000,nullptr,nullptr,true,false,true)
++            :translate_arm_block(reinterpret_cast<const std::uint8_t*>(&arm_code),4,0x1000,nullptr,nullptr,true,false,true,scenario!=5,nullptr,defer,arm_ir_policy::loop_budget_chunks);
++        auto module=build_wasm_module({tr.func},imports);
++        test_mem memory;memory.write32(0x8000,123);memory.write32(0x8004,456);
++        r12l1::tlb tlb(12);tlb.add(0x8000,memory.data.data()+0x8000,3);
++        view mapping;
++        auto resolve=[&]{return std::vector<binding>{{0x8000,static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(memory.data.data()+0x8000)),3}};};
++        const auto pointer=implementation?mapping.enter(1,1,resolve):reinterpret_cast<std::uintptr_t>(tlb.entries);
++        alignas(8)std::uint32_t state[256]{};
++        state[1]=0x8000;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=16|(thumb?32:0);
++        state[state_offsets::TFLAG/4]=thumb;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=1;
++        state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=1;state[state_offsets::AOT_TLB/4]=mapped?pointer:0;
++        g_test_mem=&memory;g_memory_boundary={};g_all_memory_helper_calls=0;
++        std::fill(std::begin(slow32_census),std::end(slow32_census),0);
++        const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
++        std::uint64_t expected[8]{};
++        if(scenario<5) {
++            expected[1]=1;
++            if(mapped)expected[0]=1;
++            else expected[defer?3:2]=1;
++        } else if(scenario==5)expected[4]=1;
++        else if(scenario==6){expected[6]=1;expected[7]=2;}
++        else expected[0]=2;
++        if(count!=(defer?0:1) || g_all_memory_helper_calls!=expected[2]+expected[4]
++            || std::memcmp(expected,slow32_census,sizeof(expected))) {
++            printf("FAIL slow32 census mode=%u scenario=%u count=%d helpers=%u counters=",implementation,scenario,count,g_all_memory_helper_calls);
++            for(auto value:slow32_census)printf(" %llu",static_cast<unsigned long long>(value));
++            printf("\n");return false;
++        }
++        mapping.leave();
++    }
++    mode=0;g_test_mem=nullptr;
++    printf("PASS slow32 census: 16 TLB/direct scalar, forced-helper, block, and interpreter-deferral cases\n");
++#endif
++    return true;
++}
++
+ static bool test_memory_implementations() {
+ #ifdef __EMSCRIPTEN__
+     using namespace memory_experiment;
+@@ -5122,6 +5172,7 @@ int main(int argc, char **argv) {
+     // explicitly; test_unsafe_code_diagnostic separately tests both modes
+     // and their intentional stale-code behavior.
+     eka2l1::common::code_tracking::unsafe_code_mode = 0;
++    if(argc==2 && std::string(argv[1])=="--slow32-census-only")return test_slow32_census()?0:1;
+     if(argc==2 && std::string(argv[1])=="--memory-implementations-only")return test_memory_implementations()?0:1;
+     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
+     if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
+diff --git a/src/tests/wasm/profile.ts b/src/tests/wasm/profile.ts
+index 1c28d259d..236ac592f 100644
+--- a/src/tests/wasm/profile.ts
++++ b/src/tests/wasm/profile.ts
+@@ -335,7 +335,7 @@ try {
+   } else await waitPhase(3);
+   const cpuAfter = await sampleCpuTime(system);
+   const memoryAfter = await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;});
+-  const memoryWork = memoryBefore && memoryAfter ? Object.fromEntries(['rebuilds','direct_rebuilds'].map(key=>[key,memoryAfter[key]-memoryBefore[key]])) : null;
++  const memoryWork = memoryBefore && memoryAfter ? Object.fromEntries(['rebuilds', 'direct_rebuilds', 'fast32_loads', 'guard32_attempts', 'guard32_helper', 'guard32_interpreter', 'unconditional32_helper', 'actual32_helper', 'block32_interpreter', 'block32_interpreter_words'].map(key=>[key,memoryAfter[key]-memoryBefore[key]])) : null;
+   const cpuTime = cpuTimeDelta(cpuBefore, cpuAfter);
+   fs.writeFileSync(path.join(output, 'cpu-time.json'), JSON.stringify({before: cpuBefore, after: cpuAfter, summary: cpuTime}, null, 2));
+   await page.evaluate(() => performance.mark('eka2l1:measurement-end'));

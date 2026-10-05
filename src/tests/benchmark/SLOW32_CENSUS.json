@@ -1,0 +1,422 @@
+{
+  "source_head": "7181f3350",
+  "date": "2026-10-05",
+  "purpose": "Exact memory-path execution counts; instrumented timings are not performance evidence",
+  "counter_names": [
+    "fast32_loads",
+    "guard32_attempts",
+    "guard32_helper",
+    "guard32_interpreter",
+    "unconditional32_helper",
+    "actual32_helper",
+    "block32_interpreter",
+    "block32_interpreter_words"
+  ],
+  "census_build_hashes": {
+    "eka2l1.js": "3ed025e782d08c677b3d75e953175b66003787abc37823330f075ae2a1d3e014",
+    "eka2l1.wasm": "574cb82bbfa8f2aa25fe019ed587113ed69cb50c85d1c84681d5d24a18786415",
+    "eka2l1.data": "34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+    "eka2l1.html": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+  },
+  "instrumentation_patch_sha256": "3871d384b4e752c66c05510e3f353d8dd50ccfc559a73c825d103346f18ed818",
+  "counter_tests": "TEST_UNSAFE_CODE_DEFAULT 3\nPASS slow32 census: 16 TLB/direct scalar, forced-helper, block, and interpreter-deferral cases\n",
+  "memory_tests": "TEST_UNSAFE_CODE_DEFAULT 3\nPASS memory implementations (471 exact ARM/Thumb state, memory, budget, crossing and alias comparisons)\nPASS direct memory: CPU entry, ASID switch, syscall, memory/exception callbacks, permissions and observer lifetime\n",
+  "observations": [
+    {
+      "game": "Snakes",
+      "implementation": "TLB",
+      "mode": 0,
+      "instruction_start": 2549856574,
+      "instruction_end": 3194584805,
+      "guest_instructions": 644728231,
+      "guest_start_us": 21000000,
+      "guest_end_us": 25000000,
+      "presentations": 84,
+      "counters": {
+        "rebuilds": 0,
+        "direct_rebuilds": 0,
+        "fast32_loads": 134380395,
+        "guard32_attempts": 75665905,
+        "guard32_helper": 8140,
+        "guard32_interpreter": 2440181,
+        "unconditional32_helper": 2290,
+        "actual32_helper": 10430,
+        "block32_interpreter": 2105,
+        "block32_interpreter_words": 6695
+      },
+      "cumulative_before": {
+        "fast32_loads": 485538706,
+        "guard32_attempts": 307526025,
+        "guard32_helper": 62102,
+        "guard32_interpreter": 3507553,
+        "unconditional32_helper": 1669641,
+        "actual32_helper": 1731743,
+        "block32_interpreter": 8443,
+        "block32_interpreter_words": 24435
+      },
+      "cumulative_after": {
+        "fast32_loads": 619919101,
+        "guard32_attempts": 383191930,
+        "guard32_helper": 70242,
+        "guard32_interpreter": 5947734,
+        "unconditional32_helper": 1671931,
+        "actual32_helper": 1742173,
+        "block32_interpreter": 10548,
+        "block32_interpreter_words": 31130
+      },
+      "scalar_failures": 2448321,
+      "scalar_failure_percent": 3.23569909062741,
+      "scalar_failures_per_guest_second": 612080.25,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/profile.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-slow32-census/captures/standard-0-tlb",
+          "1",
+          "0",
+          "25000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "0",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-slow32-census/census-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_START_US": "21000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "frame_journal_sha256": "1a34838ff593890b96c93cc867285205071bff47a712063da834d06e5740aa65",
+      "raw_report": "/home/claude/.scratch/eka-slow32-census/captures/standard-0-tlb/report.json"
+    },
+    {
+      "game": "Snakes",
+      "implementation": "Direct",
+      "mode": 2,
+      "instruction_start": 2549856574,
+      "instruction_end": 3194584805,
+      "guest_instructions": 644728231,
+      "guest_start_us": 21000000,
+      "guest_end_us": 25000000,
+      "presentations": 84,
+      "counters": {
+        "rebuilds": 0,
+        "direct_rebuilds": 0,
+        "fast32_loads": 136165654,
+        "guard32_attempts": 74930436,
+        "guard32_helper": 0,
+        "guard32_interpreter": 0,
+        "unconditional32_helper": 2290,
+        "actual32_helper": 2290,
+        "block32_interpreter": 0,
+        "block32_interpreter_words": 0
+      },
+      "cumulative_before": {
+        "fast32_loads": 488226915,
+        "guard32_attempts": 306454167,
+        "guard32_helper": 0,
+        "guard32_interpreter": 0,
+        "unconditional32_helper": 1669641,
+        "actual32_helper": 1669641,
+        "block32_interpreter": 34,
+        "block32_interpreter_words": 68
+      },
+      "cumulative_after": {
+        "fast32_loads": 624392569,
+        "guard32_attempts": 381384603,
+        "guard32_helper": 0,
+        "guard32_interpreter": 0,
+        "unconditional32_helper": 1671931,
+        "actual32_helper": 1671931,
+        "block32_interpreter": 34,
+        "block32_interpreter_words": 68
+      },
+      "scalar_failures": 0,
+      "scalar_failure_percent": 0.0,
+      "scalar_failures_per_guest_second": 0.0,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/profile.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-slow32-census/captures/standard-0-direct",
+          "1",
+          "0",
+          "25000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "2",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-slow32-census/census-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_START_US": "21000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+      },
+      "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+      "frame_journal_sha256": "1a34838ff593890b96c93cc867285205071bff47a712063da834d06e5740aa65",
+      "raw_report": "/home/claude/.scratch/eka-slow32-census/captures/standard-0-direct/report.json"
+    },
+    {
+      "game": "Sky Force",
+      "implementation": "TLB",
+      "mode": 0,
+      "instruction_start": 15147789887,
+      "instruction_end": 17318833812,
+      "guest_instructions": 2171043925,
+      "guest_start_us": 42000001,
+      "guest_end_us": 48000000,
+      "presentations": 192,
+      "counters": {
+        "rebuilds": 0,
+        "direct_rebuilds": 0,
+        "fast32_loads": 669774044,
+        "guard32_attempts": 133586857,
+        "guard32_helper": 253348,
+        "guard32_interpreter": 88808,
+        "unconditional32_helper": 2040,
+        "actual32_helper": 255388,
+        "block32_interpreter": 2951,
+        "block32_interpreter_words": 8410
+      },
+      "cumulative_before": {
+        "fast32_loads": 4812113546,
+        "guard32_attempts": 997704564,
+        "guard32_helper": 1522594,
+        "guard32_interpreter": 455720,
+        "unconditional32_helper": 848426,
+        "actual32_helper": 2371020,
+        "block32_interpreter": 19686,
+        "block32_interpreter_words": 57384
+      },
+      "cumulative_after": {
+        "fast32_loads": 5481887590,
+        "guard32_attempts": 1131291421,
+        "guard32_helper": 1775942,
+        "guard32_interpreter": 544528,
+        "unconditional32_helper": 850466,
+        "actual32_helper": 2626408,
+        "block32_interpreter": 22637,
+        "block32_interpreter_words": 65794
+      },
+      "scalar_failures": 342156,
+      "scalar_failure_percent": 0.25612998739838605,
+      "scalar_failures_per_guest_second": 57026.00950433492,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/profile.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-slow32-census/captures/combat-0-tlb",
+          "1",
+          "0",
+          "48000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "0",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-slow32-census/census-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_START_US": "42000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+      },
+      "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+      "frame_journal_sha256": "680ac882f3ef374aa41646314385354fbf06122516ae58bf9630a64fb584669d",
+      "raw_report": "/home/claude/.scratch/eka-slow32-census/captures/combat-0-tlb/report.json"
+    },
+    {
+      "game": "Sky Force",
+      "implementation": "Direct",
+      "mode": 2,
+      "instruction_start": 15147789887,
+      "instruction_end": 17318833812,
+      "guest_instructions": 2171043925,
+      "guest_start_us": 42000001,
+      "guest_end_us": 48000000,
+      "presentations": 192,
+      "counters": {
+        "rebuilds": 0,
+        "direct_rebuilds": 0,
+        "fast32_loads": 670075590,
+        "guard32_attempts": 133140243,
+        "guard32_helper": 0,
+        "guard32_interpreter": 0,
+        "unconditional32_helper": 2040,
+        "actual32_helper": 2040,
+        "block32_interpreter": 0,
+        "block32_interpreter_words": 0
+      },
+      "cumulative_before": {
+        "fast32_loads": 4813905455,
+        "guard32_attempts": 994955671,
+        "guard32_helper": 0,
+        "guard32_interpreter": 0,
+        "unconditional32_helper": 848426,
+        "actual32_helper": 848426,
+        "block32_interpreter": 34,
+        "block32_interpreter_words": 68
+      },
+      "cumulative_after": {
+        "fast32_loads": 5483981045,
+        "guard32_attempts": 1128095914,
+        "guard32_helper": 0,
+        "guard32_interpreter": 0,
+        "unconditional32_helper": 850466,
+        "actual32_helper": 850466,
+        "block32_interpreter": 34,
+        "block32_interpreter_words": 68
+      },
+      "scalar_failures": 0,
+      "scalar_failure_percent": 0.0,
+      "scalar_failures_per_guest_second": 0.0,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/profile.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-slow32-census/captures/combat-0-direct",
+          "1",
+          "0",
+          "48000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "2",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-slow32-census/census-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_START_US": "42000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "assets": {
+        "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+        "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+        "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+      },
+      "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+      "frame_journal_sha256": "680ac882f3ef374aa41646314385354fbf06122516ae58bf9630a64fb584669d",
+      "raw_report": "/home/claude/.scratch/eka-slow32-census/captures/combat-0-direct/report.json"
+    }
+  ],
+  "restored_normal_build": {
+    "build-wasm/src/emu/wasm/eka2l1.js": {
+      "before_sha256": "442348ce1bbf9f6fff5b8d6bf2c12d3d98db140650e7f02a7a7d50d42e98052b",
+      "restored_sha256": "442348ce1bbf9f6fff5b8d6bf2c12d3d98db140650e7f02a7a7d50d42e98052b",
+      "identical": true
+    },
+    "build-wasm/src/emu/wasm/eka2l1.html": {
+      "before_sha256": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+      "restored_sha256": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+      "identical": true
+    },
+    "build-wasm/src/emu/wasm/eka2l1.data": {
+      "before_sha256": "34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+      "restored_sha256": "34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+      "identical": true
+    },
+    "build-wasm/src/emu/wasm/audio-worklet.js": {
+      "before_sha256": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "restored_sha256": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "identical": true
+    },
+    "build-wasm/src/emu/wasm/audio.js": {
+      "before_sha256": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "restored_sha256": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "identical": true
+    },
+    "build-wasm/src/emu/wasm/eka2l1.wasm": {
+      "before_sha256": "dc472adad9d3aa4b668f987b619299c7b3266350bad95fabcf3f24de4276b6c6",
+      "restored_sha256": "dc472adad9d3aa4b668f987b619299c7b3266350bad95fabcf3f24de4276b6c6",
+      "identical": true
+    },
+    "build-wasm/src/tests/aot/test_aot_wasm.wasm": {
+      "before_sha256": "de5f32b73d71d1f159da5950002f55b591342e5f41208f902f49c6beec8ad5d6",
+      "restored_sha256": "de5f32b73d71d1f159da5950002f55b591342e5f41208f902f49c6beec8ad5d6",
+      "identical": true
+    },
+    "build-wasm/src/tests/aot/test_aot_wasm.js": {
+      "before_sha256": "9c7ad0acabbda3abff979a951da7aed2eb105801866681bd03ad3f65c7fa38a8",
+      "restored_sha256": "9c7ad0acabbda3abff979a951da7aed2eb105801866681bd03ad3f65c7fa38a8",
+      "identical": true
+    }
+  }
+}

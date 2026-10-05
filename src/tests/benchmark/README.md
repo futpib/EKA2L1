@@ -111,6 +111,9 @@ is part of direct mode, not a separate selectable implementation. Direct mode
 requires compiled regions, disabled AOT verification and the unsafe code-write
 policy. The driver below supplies these settings.
 
+The [slow32 census](SLOW32_CENSUS.md) measures load-guard failures, helper calls
+and interpreter deferrals for both implementations in Snakes and Sky Force.
+
 Allocation-range mode, standalone flat-page mode, earlier direct variants and
 delayed activation have been removed. Values 1 and 3 are rejected. Remove
 `EKA2L1_DIRECT_POLICY` and `EKA2L1_MEMORY_ACTIVATE_US` from harness environments;
