@@ -39,6 +39,7 @@ namespace eka2l1::epoc {
         drivers::graphics_command_builder &builder_;
         std::uint32_t total_redrawed_;
         canvas_base *streaming_window_ = nullptr;
+        bitmap_cache *bitmap_cache_ = nullptr;
 
         explicit window_drawer_walker(drivers::graphics_command_builder &builder)
             : builder_(builder)
@@ -51,6 +52,7 @@ namespace eka2l1::epoc {
             }
 
             epoc::canvas_base *cv = reinterpret_cast<epoc::canvas_base*>(win);
+            bitmap_cache_ = cv->client->get_ws().get_bitmap_cache();
 
             if (cv->can_be_physically_seen() && cv->surface_streaming()) {
                 streaming_window_ = cv;
@@ -125,7 +127,7 @@ namespace eka2l1::epoc {
         data.second = nullptr;
     }
 
-    screen::screen(const int number, epoc::config::screen &scr_conf)
+    screen::screen(const int number, epoc::config::screen &scr_conf, bool reserve_host_focus)
         : number(number)
         , ui_rotation(0)
         , refresh_rate(60)
@@ -154,6 +156,13 @@ namespace eka2l1::epoc {
         , screen_redraw_callbacks(screen_redraw_callback_free_check_func, screen_redraw_callback_free_func)
         , screen_mode_change_callbacks(screen_mode_change_callback_free_check_func, screen_mode_change_callback_free_func) {
         root = std::make_unique<epoc::window>(nullptr, this, nullptr);
+        if (reserve_host_focus) {
+            // The host launcher replaces the guest shell at normal priority. A group
+            // sent to the back must stay behind it until the app brings itself forward.
+            auto launcher = std::make_unique<window_group>(nullptr, this, root.get(), 0);
+            launcher->set_receive_focus(true);
+            host_launcher_group = std::move(launcher);
+        }
         disp_mode = current_mode().disp_mode;
         dsa_disp_mode = current_mode().dsa_disp_mode;
         dsa_disp_mode_initial = current_mode().dsa_disp_mode;
@@ -493,6 +502,10 @@ namespace eka2l1::epoc {
         window_drawer_walker adrawwalker(builder);
         root->walk_tree_back_to_front(&adrawwalker);
 
+        if (adrawwalker.bitmap_cache_) {
+            adrawwalker.bitmap_cache_->flush_retired(builder);
+        }
+
         // Done! Unbind and submit this to the driver
         builder.bind_bitmap(0);
 
@@ -596,7 +609,7 @@ namespace eka2l1::epoc {
             next_to_focus = reinterpret_cast<epoc::window_group *>(next_to_focus->sibling);
         }
 
-        return next_to_focus;
+        return next_to_focus && next_to_focus->client ? next_to_focus : nullptr;
     }
 
     void screen::restore_from_config(drivers::graphics_driver *driver,

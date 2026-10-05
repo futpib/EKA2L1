@@ -55,6 +55,13 @@ namespace eka2l1::drivers {
                 *p = position;
                 return true;
             }
+            void drained() {
+                if (!playing)
+                    return;
+                playing = false;
+                if (drained_callback_)
+                    drained_callback_();
+            }
         };
         class clock_driver final : public audio_driver {
         public:
@@ -90,6 +97,7 @@ namespace eka2l1::drivers {
                     const auto n = static_cast<unsigned>(std::min<std::uint64_t>(quantum, target - frames));
                     std::array<float, quantum * 2> sum{};
                     const auto current = streams;
+                    std::vector<clock_stream *> drained;
                     for (auto *stream : current) {
                         if (std::find(streams.begin(), streams.end(), stream) == streams.end() || !stream->playing || stream->paused || suspending())
                             continue;
@@ -104,6 +112,8 @@ namespace eka2l1::drivers {
                                 sum[i * 2 + ch] += output[i * channels + (channels == 1 ? 0 : ch)] * gain;
                         if (retain)
                             events << "{\"virtual_us\":" << us << ",\"stream\":" << stream->id << ",\"event\":\"render\",\"value\":" << got << ",\"rate\":" << stream->get_sample_rate() << ",\"channels\":" << unsigned(channels) << ",\"gain\":" << gain << "}\n";
+                        if (got < n)
+                            drained.push_back(stream);
                     }
                     std::vector<std::array<std::int16_t, 2>> packet(n);
                     for (unsigned i = 0; i < n; ++i)
@@ -124,6 +134,11 @@ namespace eka2l1::drivers {
                         }
                     }
                     frames += n;
+                    // The final samples belong to this guest-clock interval.
+                    // Publish them before delivering completion to the guest.
+                    for (auto *stream : drained)
+                        if (std::find(streams.begin(), streams.end(), stream) != streams.end())
+                            stream->drained();
                 }
             }
         };

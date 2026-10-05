@@ -26,9 +26,15 @@ target_link_libraries(ekatests PRIVATE
     epocservs
     epocdispatch
     drivers
+    gdbstub
     mbedtls
     libtess2
     lunasvg)
+
+if (EKA2L1_HAVE_FFMPEG)
+    target_link_libraries(ekatests PRIVATE ffmpeg)
+    target_compile_definitions(ekatests PRIVATE EKA2L1_HAS_FFMPEG=1)
+endif()
 
 # The fixtures are copied next to the executable, and the tests open them by a
 # relative path. Multi-config generators put the executable in a per-config
@@ -106,3 +112,4 @@ endif()
 include(${CMAKE_CURRENT_SOURCE_DIR}/benchmark/matched_kernel.cmake)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/benchmark/audio_probe.cmake)
+add_assets(ekatests "${CMAKE_CURRENT_SOURCE_DIR}/epoc/drivers/assets/" "audioassets")

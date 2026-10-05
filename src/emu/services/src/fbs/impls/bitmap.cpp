@@ -1539,7 +1539,7 @@ namespace eka2l1 {
                     for (std::size_t y = 0; y < bitmap->header_.size_pixels.y; y++) {
                         for (std::size_t x = 0; x < bitmap->header_.size_pixels.x; x++) {
                             const std::uint8_t pixel = *reinterpret_cast<const std::uint8_t *>(packed_data + y * byte_width + x);
-                            std::uint32_t palette_color = epoc::get_suitable_palette_256(sysver, false)[pixel];
+                            std::uint32_t palette_color = epoc::get_suitable_palette_256(sysver)[pixel];
 
                             file.write(reinterpret_cast<const char *>(&palette_color) + 2, 1);
                             file.write(reinterpret_cast<const char *>(&palette_color) + 1, 1);
@@ -1683,12 +1683,11 @@ namespace eka2l1 {
             }
 
             switch (dpm) {
-            case epoc::display_mode::color256:
+            case epoc::display_mode::color256: {
+                const epoc::palette_256 &palette = serv->palette_256();
+
                 for (std::size_t y = 0; y < header.size_pixels.y; y++) {
                     current_to_look->seek(y * byte_width, common::seek_where::beg);
-                    
-                    epoc::palette_256 &palette = epoc::get_suitable_palette_256(serv->get_kernel_object_owner()->get_epoc_version(),
-                        serv->get_system()->is_s80_device_active());
 
                     for (std::size_t x = 0; x < header.size_pixels.x; x++) {
                         std::uint8_t pixel = 0;
@@ -1708,6 +1707,7 @@ namespace eka2l1 {
                 }
 
                 break;
+            }
 
             case epoc::display_mode::color4k:
                 for (std::size_t y = 0; y < header.size_pixels.y; y++) {
@@ -1799,6 +1799,27 @@ namespace eka2l1 {
 
                 break;
             }
+
+            case epoc::display_mode::gray4:
+                for (std::size_t y = 0; y < header.size_pixels.y; y++) {
+                    current_to_look->seek(y * byte_width, common::seek_where::beg);
+                    std::uint8_t packed = 0;
+
+                    for (std::size_t x = 0; x < header.size_pixels.x; x++) {
+                        if ((x % 4 == 0) && (current_to_look->read(&packed, 1) != 1)) {
+                            return false;
+                        }
+
+                        const std::uint8_t level = ((packed >> ((x % 4) * 2)) & 3) * 85;
+                        const std::uint8_t alpha = make_standard_mask ? ((level == 255) ? 255 : 0) : 255;
+                        dest.write(&level, 1);
+                        dest.write(&level, 1);
+                        dest.write(&level, 1);
+                        dest.write(&alpha, 1);
+                    }
+                }
+
+                break;
 
             case epoc::display_mode::gray256:
                 for (std::size_t y = 0; y < header.size_pixels.y; y++) {

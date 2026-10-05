@@ -323,19 +323,10 @@ namespace eka2l1 {
             return false;
         }
 
-        // Getting our localised resource info
         if (reg.localised_info_rsc_path.empty()) {
-            // Assume default path is used
-            reg.localised_info_rsc_path.append(1, drive_to_char16(land_drive));
-            reg.localised_info_rsc_path += u":\\resource\\apps\\";
-
-            std::u16string name_rsc = eka2l1::replace_extension(eka2l1::filename(reg.rsc_path), u"");
-
-            if (common::lowercase_ucs2_string(name_rsc.substr(name_rsc.length() - 4, 4)) == u"_reg") {
-                name_rsc.erase(name_rsc.length() - 4, 4);
-            }
-
-            reg.localised_info_rsc_path += name_rsc + u".rsc";
+            // Localisable resources are optional, including for background app services.
+            const std::lock_guard<std::mutex> guard(list_access_mut_);
+            return commit_registry(regs, std::move(reg));
         }
 
         // Absolute the localised info path
@@ -1045,8 +1036,9 @@ namespace eka2l1 {
             LOG_TRACE(SERVICE_APPLIST, "AppList::AppForDocument datatype left empty!");
         }
 
-        ctx.write_data_to_descriptor_argument<applist_app_for_document>(0, app);
-        ctx.complete(epoc::error_none);
+        const int result_slot = (legacy_level() == APA_LEGACY_LEVEL_S60V2) ? 1 : 0;
+        ctx.complete(ctx.write_data_to_descriptor_argument<applist_app_for_document>(result_slot, app)
+            ? epoc::error_none : epoc::error_argument);
     }
 
     void applist_server::get_app_for_document_by_file_handle(service::ipc_context &ctx) {
@@ -1063,7 +1055,9 @@ namespace eka2l1 {
     }
 
     void applist_server::get_app_for_document(service::ipc_context &ctx) {
-        std::optional<std::u16string> path = ctx.get_argument_value<std::u16string>(2);
+        // The 7.0s/8.0 client sends the filename in slot 0 and the 272-byte result in slot 1.
+        const int filename_slot = (legacy_level() == APA_LEGACY_LEVEL_S60V2) ? 0 : 2;
+        std::optional<std::u16string> path = ctx.get_argument_value<std::u16string>(filename_slot);
         if (!path.has_value()) {
             ctx.complete(epoc::error_argument);
             return;
@@ -1344,6 +1338,10 @@ namespace eka2l1 {
             }
         } else if (llevel == APA_LEGACY_LEVEL_S60V2) {
             switch (ctx->msg->function) {
+            case applist_request_s60v2_app_for_document:
+                server<applist_server>()->get_app_for_document(*ctx);
+                break;
+
             case applist_request_s60v2_app_info:
                 server<applist_server>()->get_app_info(*ctx);
                 break;

@@ -7,6 +7,7 @@ set(CORE_TEST_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/services/bluetooth/suspend.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/devices.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/drivers/audio.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/gdbstub.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/graphics/openvg.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/descriptor_copy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mem.cpp
@@ -38,6 +39,9 @@ set(CORE_TEST_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/services/window/surface.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/window/scale.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/window/protocol.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/services/window/keyboard.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/services/window/gctx.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/services/window/visibility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/centralrepo/crebinloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/domain/domain.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/framework/objects.cpp
@@ -46,6 +50,7 @@ set(CORE_TEST_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/services/internet/connmonitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/internet/tls.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/loader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/services/posix.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/timezone/rules.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/centralrepo/creiniloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/services/sms/common.cpp

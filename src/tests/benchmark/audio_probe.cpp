@@ -1,4 +1,5 @@
 // Identical fixtures exercise Qt's FFmpeg/shared DSP and WASM's PCM/shared DSP.
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -47,6 +48,50 @@ int main(int argc, char **argv) {
         return 0;
     }
 #endif
+    // Clip completion follows the resampler's final output, once only. Explicit
+    // stops cancel completion, including for streams that require resampling.
+    for (unsigned rate : { 44100, 48000 })
+        for (unsigned channels : { 1, 2 }) {
+            auto driver = make_clocked_audio_driver(false, true);
+            std::size_t remaining = 600, calls = 0, completions = 0, pumping_frames = 0;
+            auto stream = driver->new_output_stream(rate, channels, [&](std::int16_t *out, std::size_t n) {
+                ++calls;
+                const auto got = std::min(n, remaining);
+                std::fill_n(out, got * channels, 12000);
+                remaining -= got;
+                return got;
+            });
+            stream->set_drained_callback([&] {
+                ++completions;
+                require(!stream->is_playing() && remaining == 0);
+                std::array<std::int16_t, 19200> output{};
+                const auto got = read_clocked_audio(output.data(), output.size() / 2);
+                require(got == pumping_frames && std::any_of(output.begin(), output.begin() + got * 2,
+                    [](auto sample) { return sample != 0; }));
+            });
+            require(stream->start());
+            for (unsigned step = 1; step <= 10; ++step) {
+                pumping_frames = step * 480;
+                pump_clocked_audio(step * 10000);
+            }
+            require(completions == 1 && !stream->is_playing());
+            const auto completed_calls = calls;
+            pump_clocked_audio(200000);
+            require(completions == 1 && calls == completed_calls);
+            stream.reset();
+
+            stream = driver->new_output_stream(rate, channels, [&](std::int16_t *out, std::size_t n) {
+                std::fill_n(out, n * channels, 12000);
+                return n;
+            });
+            stream->set_drained_callback([&] { ++completions; });
+            require(stream->start());
+            pump_clocked_audio(210000);
+            require(stream->stop());
+            pump_clocked_audio(300000);
+            require(completions == 1);
+        }
+    std::puts("PASS: clocked clip drain, resampling and stop cancellation");
     for (unsigned rate : { 8000, 11025, 22050, 44100, 48000 })
         for (unsigned channels : { 1, 2 })
             for (unsigned bits : { 8, 16 }) {

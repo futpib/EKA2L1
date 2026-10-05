@@ -18,6 +18,7 @@
 #include <services/fbs/bitmap.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <map>
 #include <thread>
@@ -59,15 +60,17 @@ namespace {
             destination.resize(source.size());
             for (std::size_t i = 0; i < source.size(); ++i) {
                 const double alpha = source[i / 4 * 4 + 3] / 255.0;
-                const auto factor = [alpha](drivers::blend_factor value) {
+                const auto factor = [&, alpha](drivers::blend_factor value) {
                     if (value == drivers::blend_factor::one) return 1.0;
                     if (value == drivers::blend_factor::frag_out_alpha) return alpha;
                     if (value == drivers::blend_factor::one_minus_frag_out_alpha) return 1.0 - alpha;
+                    if (value == drivers::blend_factor::one_minus_frag_out_color) return 1.0 - source[i] / 255.0;
+                    if (value == drivers::blend_factor::one_minus_current_color) return 1.0 - destination[i] / 255.0;
                     return 0.0;
                 };
                 const int offset = i % 4 == 3 ? 2 : 0;
-                destination[i] = static_cast<std::uint8_t>(std::min(255.0,
-                    source[i] * factor(factors_[offset]) + destination[i] * factor(factors_[offset + 1])));
+                destination[i] = static_cast<std::uint8_t>(std::lround(std::min(255.0,
+                    source[i] * factor(factors_[offset]) + destination[i] * factor(factors_[offset + 1]))));
             }
         }
 
@@ -379,6 +382,40 @@ TEST_CASE("Retained GDI pixels preserve alpha and redraw clears expose the surfa
     REQUIRE(driver.images[ui] == std::vector<std::uint8_t>{ 0, 0, 0, 0 });
 }
 
+TEST_CASE("Binary-colour XOR rectangles preserve destination pixels and undo themselves", "[window_surface]") {
+    const bool premultiplied = GENERATE(false, true);
+    surface_driver driver;
+    epoc::bitmap_cache cache(nullptr);
+    drivers::graphics_command_builder builder;
+    const auto target = drivers::create_bitmap(&driver, { 1, 1 }, 32);
+    const std::vector<std::uint8_t> original{ 0x12, 0x34, 0x56, 255 };
+    driver.images[target] = original;
+    builder.bind_bitmap(target);
+    common::region clip;
+    clip.add_rect(rect({ 0, 0 }, { 1, 1 }));
+    epoc::gdi_command_builder gdi(&driver, builder, cache, drivers::filter_option::nearest,
+        { 0, 0 }, 1.0f, clip, premultiplied);
+    epoc::gdi_store_command rectangle;
+    rectangle.opcode_ = epoc::gdi_store_command_xor_rect;
+    auto &data = rectangle.get_data_struct<epoc::gdi_store_command_draw_rect_data>();
+    data.rect_ = rect({ 0, 0 }, { 1, 1 });
+    data.color_ = { 255, 0, 255, 0 };
+    REQUIRE(epoc::gdi_store_command_draws_pixels(rectangle.opcode_));
+    gdi.build_single_command(rectangle);
+    submit(driver, builder);
+    REQUIRE(driver.images[target] == std::vector<std::uint8_t>{ 0xED, 0x34, 0xA9, 255 });
+
+    gdi.build_single_command(rectangle);
+    submit(driver, builder);
+    REQUIRE(driver.images[target] == original);
+
+    rectangle.opcode_ = epoc::gdi_store_command_draw_rect;
+    data.color_ = { 0, 127, 255, 255 };
+    gdi.build_single_command(rectangle);
+    submit(driver, builder);
+    REQUIRE(driver.images[target] == std::vector<std::uint8_t>{ 0, 127, 255, 255 });
+}
+
 TEST_CASE("Initial GDI replay consumes pending uploads without repeating pixel draws", "[window_surface]") {
     surface_driver driver;
     epoc::bitmap_cache cache(nullptr);
@@ -448,4 +485,84 @@ TEST_CASE("Retained GDI accepts both straight and premultiplied alpha bitmaps", 
         submit(driver, builder);
         REQUIRE(driver.images[ui] == std::vector<std::uint8_t>{ 128, 0, 0, 128 });
     }
+}
+
+
+TEST_CASE("Deferred bitmap versions survive mutation eviction and queued draws", "[window_surface]") {
+    struct bitmap_fixture {
+        epoc::bitwise_bitmap bitmap{};
+        std::uint8_t pixels[8]{ 12, 34, 56, 255, 78, 90, 12, 255 };
+
+        bitmap_fixture() {
+            bitmap.header_.header_len = sizeof(loader::sbm_header);
+            bitmap.header_.bitmap_size = sizeof(loader::sbm_header) + 4;
+            bitmap.header_.size_pixels = vec2(1, 1);
+            bitmap.header_.bit_per_pixels = 32;
+            bitmap.header_.color = epoc::color_bitmap_with_alpha;
+            bitmap.byte_width_ = 4;
+            bitmap.data_offset_ = offsetof(bitmap_fixture, pixels);
+            bitmap.settings_.initial_display_mode(epoc::display_mode::color16ma);
+        }
+    };
+    surface_driver driver;
+    epoc::bitmap_cache cache(nullptr);
+    bitmap_fixture source;
+    drivers::graphics_command_builder builder;
+    std::shared_ptr<drivers::handle> first;
+    const auto first_handle = cache.add_or_get(&driver, &source.bitmap, &builder, nullptr, &first);
+    submit(driver, builder);
+    REQUIRE(first);
+    REQUIRE(*first == first_handle);
+    REQUIRE(driver.images[first_handle] == std::vector<std::uint8_t>{ 12, 34, 56, 255 });
+
+    std::shared_ptr<drivers::handle> same;
+    REQUIRE(cache.add_or_get(&driver, &source.bitmap, &builder, nullptr, &same) == first_handle);
+    REQUIRE(same == first);
+    REQUIRE(driver.uploads == 1);
+    same.reset();
+
+    source.pixels[0] = 99;
+    std::shared_ptr<drivers::handle> second;
+    const auto second_handle = cache.add_or_get(&driver, &source.bitmap, &builder, nullptr, &second);
+    REQUIRE(second_handle != first_handle);
+    submit(driver, builder);
+    REQUIRE(driver.images[first_handle][0] == 12);
+    REQUIRE(driver.images[second_handle][0] == 99);
+
+    // The store may release a version after recording a draw but before submitting it.
+    const auto target = drivers::create_bitmap(&driver, { 1, 1 }, 32);
+    builder.bind_bitmap(target);
+    builder.draw_bitmap(first_handle, 0, rect({ 0, 0 }, { 1, 1 }), {});
+    first.reset();
+    cache.flush_retired(builder);
+    submit(driver, builder);
+    REQUIRE(driver.images[target][0] == 12);
+    REQUIRE(driver.images.count(first_handle) == 0);
+
+    SECTION("a resize retains the old dimensions and pixels") {
+        source.bitmap.header_.size_pixels = vec2(2, 1);
+        source.bitmap.header_.bitmap_size += 4;
+        source.bitmap.byte_width_ = 8;
+        std::shared_ptr<drivers::handle> resized;
+        const auto handle = cache.add_or_get(&driver, &source.bitmap, &builder, nullptr, &resized);
+        REQUIRE(handle != second_handle);
+        submit(driver, builder);
+        REQUIRE(driver.images[handle].size() == 8);
+        REQUIRE(driver.images[second_handle].size() == 4);
+    }
+    SECTION("eviction retains a version still owned by a command") {
+        std::vector<bitmap_fixture> bitmaps(epoc::MAX_CACHE_SIZE);
+        for (auto &bitmap : bitmaps) {
+            cache.add_or_get(&driver, &bitmap.bitmap, &builder);
+        }
+        cache.flush_retired(builder);
+        submit(driver, builder);
+        REQUIRE(driver.images.count(second_handle) == 1);
+    }
+    second.reset();
+    cache.clean(&driver);
+    REQUIRE(driver.images.size() == 1);
+    REQUIRE_FALSE(driver.invalid_use);
+    builder.destroy_bitmap(target);
+    submit(driver, builder);
 }
