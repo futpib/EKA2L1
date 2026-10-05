@@ -132,6 +132,12 @@ checks. The original combined patch is preserved separately.
 `compare_memory_builds.py` runs paired comparisons of
 two frozen browser builds through the existing memory benchmark driver.
 
+The [direct entry-span extension](DIRECT_SPAN_RESULTS.md) tried two-access
+proofs, predictable pointer updates and spans larger than a page inside the
+arena. It passed correctness checks but was not adopted: Snakes had no
+repeatable CPU gain and Sky Force used 2.85% more worker CPU. Its implementation,
+tests and complete measurements are preserved in the evidence file.
+
 Allocation-range mode, standalone flat-page mode, earlier direct variants and
 delayed activation have been removed. Values 1 and 3 are rejected. Remove
 `EKA2L1_DIRECT_POLICY` and `EKA2L1_MEMORY_ACTIVATE_US` from harness environments;
