@@ -123,6 +123,12 @@ on/off comparison that preceded adoption. The [slow32 census](SLOW32_CENSUS.md)
 records the earlier load-guard failures, helper calls and interpreter deferrals
 with short ARM memory inlining disabled.
 
+The [scalar alignment experiment](UNALIGNED_SCALAR_RESULTS.md) compares removing
+the direct arena's scalar alignment check and replacing page-based scalar
+alignment with a page-end check. Its patch is preserved separately; the combined
+candidate is not adopted. `compare_memory_builds.py` runs paired comparisons of
+two frozen browser builds through the existing memory benchmark driver.
+
 Allocation-range mode, standalone flat-page mode, earlier direct variants and
 delayed activation have been removed. Values 1 and 3 are rejected. Remove
 `EKA2L1_DIRECT_POLICY` and `EKA2L1_MEMORY_ACTIVATE_US` from harness environments;
