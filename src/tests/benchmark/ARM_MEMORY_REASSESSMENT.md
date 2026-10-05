@@ -1,5 +1,9 @@
 # Reassessing the ARM short-block memory default
 
+> Historical assessment at `6959d5bd5`: ARM short-block inline memory has since
+> been adopted as fixed behavior. `EKA2L1_ARM_MEMORY` and its API are retired.
+> The on/off reproduction commands below require the historical revision.
+
 `EKA2L1_ARM_MEMORY` remains disabled by default. This investigation changes no
 emulator source, configuration default or deployment. It runs the existing switch
 against both currently retained memory implementations using one frozen normal

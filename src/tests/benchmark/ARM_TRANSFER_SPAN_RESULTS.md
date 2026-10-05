@@ -1,5 +1,9 @@
 # ARM short-block register-transfer spans
 
+> Historical experiment: ARM short-block inline memory and its span lowering
+> are now fixed behavior for eligible blocks. See the
+> [reassessment](ARM_MEMORY_REASSESSMENT.md) and [current behavior](README.md#memory-implementations).
+
 The opt-in ARM short-block path can prove an entire multi-register transfer
 within one aligned, permitted, little-endian page. Successful proof removes
 repeated per-word page checks. Otherwise the original per-access path retains

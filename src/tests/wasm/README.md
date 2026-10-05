@@ -44,6 +44,11 @@ scalar last-page cache. `EKA2L1_TLB_HASH` and `EKA2L1_MEMORY_CACHE` are retired
 and must be removed from launch environments. See the
 [cache comparison and adoption](../benchmark/MEMORY_CACHE_RESULTS.md).
 
+Eligible ARM short blocks always use inline memory access. `EKA2L1_ARM_MEMORY`
+is retired and must be removed from launch environments. The TLB/direct backend
+selection below remains independent of this fixed compiler behavior. See the
+[eligibility and adoption checks](../benchmark/ARM_MEMORY_ADOPTION.md).
+
 The replay and profiling harnesses also support `EKA2L1_MEMORY_IMPL=2` for the
 retained direct-memory implementation. Only values 0 (TLB) and 2 (direct) are
 supported; the separate direct-policy and delayed-activation controls are

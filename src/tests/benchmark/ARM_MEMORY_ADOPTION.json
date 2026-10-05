@@ -1,0 +1,724 @@
+{
+  "purpose": "Validate fixed ARM short-block inline memory; no new performance comparison",
+  "source_base": "6959d5bd5bb67792b355590f4afe2b50a754e98a",
+  "production_diff_sha256": "ae3d7233a3b518eb8b66f0c6c444877605979668101991235ca3ba4708377030",
+  "source_state": "Graduation changes on wasm-port, before commit",
+  "diagnostics_available": false,
+  "build": {
+    "command": [
+      "cmake",
+      "--build",
+      "build-wasm",
+      "--target",
+      "eka2l1_wasm",
+      "test_aot_wasm",
+      "eka_cpu_fault_wasm",
+      "-j8"
+    ],
+    "exit_code": 0,
+    "hashes": {
+      "eka2l1.js": "e3649c75c768c59ef91c91b8b44c0eb53eefbf1aaa34b0870614a8f8a5d5c577",
+      "eka2l1.html": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+      "eka2l1.data": "34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "eka2l1.wasm": "696d33e0e828173e8f689d46594b73a07b6dc597b9479879a1e77e51cc81ab7f"
+    }
+  },
+  "test_rebuild": {
+    "command": [
+      "cmake",
+      "--build",
+      "build-wasm",
+      "--target",
+      "test_aot_wasm",
+      "-j8"
+    ],
+    "exit_code": 0
+  },
+  "final_test_artifacts": {
+    "test_aot_wasm.js": "644d31064b6f2be7f65402625c96002aa37b64536d24367fa9d51eed1083d8d1",
+    "test_aot_wasm.wasm": "f5c13ffdb3d415a90c401cc189036a0b109cd92833cb0c2c121aaaa5f64f1a35"
+  },
+  "tests": [
+    {
+      "command": {
+        "args": [
+          "node",
+          "src/tests/wasm/compiler-policy.test.ts"
+        ],
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "exit_code": 0,
+      "stdout": "PASS scanner and fusion policies, retired-option rejection, exact mode/limit readback, rejected configuration and policy-dependent HTML ETags\n"
+    },
+    {
+      "command": {
+        "args": [
+          "node",
+          "build-wasm/src/tests/aot/test_aot_wasm.js"
+        ],
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "exit_code": 1,
+      "stdout": "TEST_UNSAFE_CODE_DEFAULT 3\nRunning 74 AOT WASM correctness tests...\n\n PASS Thumb register exchange (5632 full-state short-budget/PC/LR/interworking checks)\n  PASS MOVS R0, #42\n  PASS MOVS R0, #0 (zero flag)\n  PASS ADDS R0, R0, #1\n  PASS SUBS R0, R0, #1\n  PASS SUBS to zero\n  PASS CMP R0, R1 equal\n  PASS CMP R0, R1 greater\n  PASS CMP R0, R1 less\n  PASS CMP R0, #0\n  PASS CMP R0, #5 when R0=5\n  PASS MOVS R1, R0 (LSLS #0)\n  PASS LSLS R0, R1, #4\n  PASS LSRS R0, R1, #1\n  PASS ANDS R0, R1\n  PASS ORRS R0, R1\n  PASS EORS R0, R1\n  PASS MVNS R0, R1\n  PASS ADDS R0, #100\n  PASS SUBS R0, #1 to zero\n  PASS MOV R8, R0 (high reg)\n  PASS LDR R0, [R1, #0]\n  PASS LDR R0, [R1, #4]\n  PASS STR R0, [R1, #0]\n  PASS LDR R0, [R1, R2]\n  PASS LDR R0, [SP, #8]\n  PASS STR R0, [SP, #0]\n  PASS LDRB R0, [R1, #0]\n  PASS STRB R0, [R1, #0]\n  PASS LDRB R0, [R1, R2]\n  PASS LDRH R0, [R1, #0]\n  PASS SUBS R0, R1, R2\n  PASS ADDS R0, R1, R2\n  PASS ASRS R0, R1, #4\n  PASS ASRS R0, R1 (reg)\n  PASS MULS R0, R1\n  PASS BICS R0, R1\n  PASS NEGS R0, R1\n  PASS TST R0, R1 (nonzero)\n  PASS TST R0, R1 (zero)\n  PASS ADD R0, SP, #16\n  PASS SUB SP, #8\n  PASS ADD SP, #8\n  PASS LDR R0, [PC, #0]\n  PASS LDRSB R0, [R1, R2]\n  PASS CMN R0, R1\n  PASS CMP R8, R0\n  PASS LSLS R0, R1 (reg)\n  PASS LSRS R0, R1 (reg)\n  PASS MOVS+ADDS sequence\n  PASS MOVS+SUBS+SUBS\n  PASS PUSH+POP roundtrip\n  PASS PUSH {R4,LR} then BL bail\n  PASS MOVS + BL offset 0\n  PASS MOVS + BL +10\n  PASS ADD R5, R0 (T2)\n  PASS ADD R8, R0 (high Rdn)\n  PASS CMP R3, LR (T2 low Rn)\n  PASS LDRSH R0, [R1, R2]\n  PASS STRH R0, [R1, R2]\n  PASS LDRH R0, [R1, R2]\n  PASS STR R0, [R1, R2]\n  PASS STRB R0, [R1, R2]\n  PASS ADR R0, #0\n  PASS ADR R2, #20\n  PASS STMIA R1!, {R0,R2}\n  PASS LDMIA R1!, {R0,R2}\n  PASS BEQ forward not taken\n  PASS BEQ forward taken\n  PASS B forward\n  PASS Backward loop BNE\n  FAIL crash-repro 0x8046506E (harness limitation): Z=0 (wasm) vs 1 (interp)\n  XFAIL crash-repro 0x8046506E (harness limitation) (known failure, see test comment)\n  PASS crash-repro 0x80464BBE\n  PASS Backward branch to non-entry\n  PASS Forward target reused as backward\n\nRunning translator-level tests...\n\n  PASS resume_points_blx_rm\n  PASS resume_points_bl_imm\n  PASS blx_veneer_inlining\n  PASS function_end_stops_at_pop_pc\n  PASS function_end_stops_at_bx_lr\n  PASS branch_targets_include_bl_next_pc\n  PASS branch_targets_include_beq_target\n  PASS literal_pool_between_early_return_and_target\n  PASS wide_push_pop\n  PASS stop_at_wide_bail\n  PASS wide_movw_movt\n  PASS wide_ldr_str_imm12\n  PASS wide_add_sub_imm\n  PASS wide_and_orr_eor_bic_imm\n  PASS wide_ldr_str_reg\n  PASS wide_ldr_neg_offset\n  PASS wide_b_uncond\n  PASS wide_ldrd_strd\n  PASS wide_ubfx_sbfx\n  PASS wide_bfi_bfc\n  PASS wide_uxtb_sxth\n  PASS wide_clz\n  PASS wide_mul_mla_mls\n  PASS wide_sdiv_udiv\n  PASS wide_shifted_reg\n  PASS wide_addw_subw\n  PASS wide_mov_mvn_imm\n  PASS wide_strb_imm12\n  PASS vfp_vldr_vadd_vstr\n  PASS vfp_vcvt_vcmp_vmrs\n  PASS vfp_f64_instantiation\n  PASS resume_points_beyond_1024\n  PASS sibling_bl_resume_point\n\nRunning ARM translator-level tests...\n\n  PASS inlined_leaves policy=-1 (3840 exact budget/state/memory comparisons)\n PASS registry lookup lifecycle (160000 oracle comparisons)\n PASS ARM short block memory (21146 full-state/memory/budget/callback comparisons)\n  PASS bounded_execution (520016 exact budget/state/memory comparisons)\n  PASS TLB scalar/block/entry guards and exact budgets\n UNSAFE_EMISSION mode=0 proof=0 budget=1 bytes=595 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=2 bytes=595 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=0 budget=8 bytes=595 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=1 bytes=595 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=2 bytes=595 count=1 exit=1\n UNSAFE_EMISSION mode=0 proof=1 budget=8 bytes=595 count=1 exit=1\n UNSAFE_EMISSION mode=3 proof=0 budget=1 bytes=550 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=2 bytes=550 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=0 budget=8 bytes=550 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=1 bytes=550 count=1 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=2 bytes=550 count=2 exit=0\n UNSAFE_EMISSION mode=3 proof=1 budget=8 bytes=550 count=2 exit=0\n UNSAFE_PROOF_EMISSION mode=0 proved_writes=4 bytes=2606\n UNSAFE_PROOF_EMISSION mode=3 proved_writes=4 bytes=2359\n PASS unsafe_code_diagnostic (18 checks; expected stale primary/dependency bytes and stale post-store execution; mapping, lifetime and budget checks retained)\n  PASS code_cache_lifecycle (original/grouped comparators, short/long snapshots, dependencies, mappings, rejection)\n  PASS exact_code_compare (original/grouped modes, unaligned/tails/mutations)\n  PASS region_cpsr_callback\n  PASS block_transfer_callback_pc\n  PASS repeated_read_guards (32 permission/endian/alignment/page/sentinel cases)\n  PASS outlined_callee_indices\n  PASS proved_read_spans (30976 exact state/memory/budget comparisons)\n  PASS invariant_reads policy=4 (25600 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=5 (16896 exact state/memory/budget comparisons)\n SKIP exit census: build with EKA2L1_WASM_DIAGNOSTICS=ON\n PASS execution limits validation and 270 real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor checks\n PASS guard publication: 24 real lookup/runner sentinel checks; both modes always publish\n PASS frozen cache (4096 ASID/generation/source/remap/dependency/extent/invalidation comparisons)\n PASS inline leaf/site bounds and 640 exact interpreter budget comparisons\n PASS predicated leaves (29120 exact condition/flag/budget/guard/physical-alias comparisons; unsupported forms rejected)\n PASS literal PC veneers (7680 exact state/budget/runtime-target/mapping comparisons)\n SKIP boundary details: build with EKA2L1_WASM_DIAGNOSTICS=ON\n PASS loop_budget_chunks (24192 exact interpreter state/memory/budget comparisons)\n  PASS inlined_leaves policy=17 (3840 exact budget/state/memory comparisons)\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS region_cpsr_callback\n  PASS budget_chunks policy=6 (26880 exact state/memory/budget comparisons)\n  PASS budget_chunks policy=7 (26880 exact state/memory/budget comparisons)\n  PASS invariant_writes policy=7 (16896 exact state/memory/budget comparisons)\n  PASS memory_displacements (72 exact state/memory/budget checks)\n  PASS deferred_memory_exits (672 exact pre-instruction exits)\n  PASS block_transfer_guards (64 permission/endian/alignment/page/sentinel cases)\n  PASS region_loop_interrupts (42 precise pending/masked IRQ checks)\n  PASS region_code_alias (single, multiple and entry-proved alias stores)\n  PASS conditional_alu_select (229376 exact budget/state comparisons)\n  PASS compare_conditions (64512 exact budget/state comparisons)\n  PASS arm_long_multiply (92160 exact budget/state comparisons)\n  exclusive decode checks: 12000\n PASS Thumb direct memory (2310 permission/alignment/endian/policy/budget/callback comparisons)\n  PASS thumb_call_boundaries (288 full-state budget/stop/IRQ checks)\n PASS Thumb transfer spans (2688 full-state/memory/budget comparisons)\n  FAIL cached_callback_state count=2 observed=1 r3=11 r4=0 r5=0\n  PASS msr_privilege_guard\n  PASS arm_mov_imm\n  PASS arm_add_sub_imm\n  PASS arm_cmp_beq\n  PASS arm_ldr_str_imm\n  PASS arm_ldm_stm\n  PASS arm_mul\n  PASS arm_bic_orr_eor\n  PASS arm_shifted_reg\n  PASS arm_conditional_exec\n  PASS arm_bl_resume_point\n  PASS arm_ldrh_strh\n  PASS arm_mvn\n  PASS arm_rsb\n  PASS arm_clz\n\n166 passed, 1 failed\n",
+      "resolution": "166 cases passed; cached_callback_state alone failed because its zero-initialized state requested stop and IRQ. Initialized NumInstrsToExecute=4 and NIRQ=1; changed no production code; reran the ARM matrix and callback test below. Existing XFAIL and two diagnostics-only skips are retained in stdout."
+    },
+    {
+      "command": {
+        "args": [
+          "node",
+          "build-wasm/src/tests/aot/test_aot_wasm.js",
+          "--arm-memory-only"
+        ],
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "exit_code": 0,
+      "stdout": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS ARM short block memory (21146 full-state/memory/budget/callback comparisons)\n  PASS cached_callback_state\n"
+    },
+    {
+      "command": {
+        "args": [
+          "node",
+          "build-wasm/src/tests/aot/test_aot_wasm.js",
+          "--memory-implementations-only"
+        ],
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "exit_code": 0,
+      "stdout": "TEST_UNSAFE_CODE_DEFAULT 3\nPASS memory implementations (471 exact ARM/Thumb state, memory, budget, crossing and alias comparisons)\nPASS direct memory: CPU entry, ASID switch, syscall, memory/exception callbacks, permissions and observer lifetime\n"
+    }
+  ],
+  "retired_environment_checks": [
+    {
+      "args": [
+        "node",
+        "src/tests/wasm/benchmark.ts",
+        "/missing-assets",
+        "/home/claude/.scratch/eka-arm-memory-graduation/must-not-exist"
+      ],
+      "value": "",
+      "exit_code": 1,
+      "message": "Retired compiler option: EKA2L1_ARM_MEMORY",
+      "output_directory_created": false
+    },
+    {
+      "args": [
+        "node",
+        "src/tests/wasm/benchmark.ts",
+        "/missing-assets",
+        "/home/claude/.scratch/eka-arm-memory-graduation/must-not-exist"
+      ],
+      "value": "-1",
+      "exit_code": 1,
+      "message": "Retired compiler option: EKA2L1_ARM_MEMORY",
+      "output_directory_created": false
+    },
+    {
+      "args": [
+        "node",
+        "src/tests/wasm/benchmark.ts",
+        "/missing-assets",
+        "/home/claude/.scratch/eka-arm-memory-graduation/must-not-exist"
+      ],
+      "value": "0",
+      "exit_code": 1,
+      "message": "Retired compiler option: EKA2L1_ARM_MEMORY",
+      "output_directory_created": false
+    },
+    {
+      "args": [
+        "node",
+        "src/tests/wasm/benchmark.ts",
+        "/missing-assets",
+        "/home/claude/.scratch/eka-arm-memory-graduation/must-not-exist"
+      ],
+      "value": "1",
+      "exit_code": 1,
+      "message": "Retired compiler option: EKA2L1_ARM_MEMORY",
+      "output_directory_created": false
+    },
+    {
+      "args": [
+        "node",
+        "src/tests/wasm/profile.ts",
+        "/missing-assets",
+        "/home/claude/.scratch/eka-arm-memory-graduation/must-not-exist"
+      ],
+      "value": "",
+      "exit_code": 1,
+      "message": "Retired compiler option: EKA2L1_ARM_MEMORY",
+      "output_directory_created": false
+    },
+    {
+      "args": [
+        "node",
+        "src/tests/wasm/profile.ts",
+        "/missing-assets",
+        "/home/claude/.scratch/eka-arm-memory-graduation/must-not-exist"
+      ],
+      "value": "-1",
+      "exit_code": 1,
+      "message": "Retired compiler option: EKA2L1_ARM_MEMORY",
+      "output_directory_created": false
+    },
+    {
+      "args": [
+        "node",
+        "src/tests/wasm/profile.ts",
+        "/missing-assets",
+        "/home/claude/.scratch/eka-arm-memory-graduation/must-not-exist"
+      ],
+      "value": "0",
+      "exit_code": 1,
+      "message": "Retired compiler option: EKA2L1_ARM_MEMORY",
+      "output_directory_created": false
+    },
+    {
+      "args": [
+        "node",
+        "src/tests/wasm/profile.ts",
+        "/missing-assets",
+        "/home/claude/.scratch/eka-arm-memory-graduation/must-not-exist"
+      ],
+      "value": "1",
+      "exit_code": 1,
+      "message": "Retired compiler option: EKA2L1_ARM_MEMORY",
+      "output_directory_created": false
+    }
+  ],
+  "replays": [
+    {
+      "game": "standard",
+      "mode": 0,
+      "name": "standard-0-tlb",
+      "elapsed_seconds": 20.453444901038893,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/benchmark.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-arm-memory-graduation/replays/standard-0-tlb",
+          "60",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+          "21000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "0",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-arm-memory-graduation/candidate-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "arm_exclusive": 0,
+        "thumb_memory": 1,
+        "app_uid": "0x2000730f",
+        "frames": 60,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 15.173115269999998,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "696d33e0e828173e8f689d46594b73a07b6dc597b9479879a1e77e51cc81ab7f",
+        "loader_sha256": "e3649c75c768c59ef91c91b8b44c0eb53eefbf1aaa34b0870614a8f8a5d5c577",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "memory_impl": 0,
+        "memory_impl_stats": {
+          "mode": 0,
+          "rebuilds": 0,
+          "mapped_pages": 0,
+          "arena_bytes": 0,
+          "direct_pages": 0,
+          "direct_rebuilds": 0
+        },
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "code_compare": 2,
+        "verify_aot": 0,
+        "git_head": "6959d5bd5bb67792b355590f4afe2b50a754e98a",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1143727,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+          "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+          "writes": 0,
+          "callbacks": 2330,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 2330,
+          "gameplay_nonzero_samples": 264002,
+          "gameplay_peak": 206
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 23827651,
+        "instructions": 3012361007
+      }
+    },
+    {
+      "game": "standard",
+      "mode": 2,
+      "name": "standard-0-direct",
+      "elapsed_seconds": 20.505442359950393,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/benchmark.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-arm-memory-graduation/replays/standard-0-direct",
+          "60",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+          "21000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "2",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-arm-memory-graduation/candidate-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "arm_exclusive": 0,
+        "thumb_memory": 1,
+        "app_uid": "0x2000730f",
+        "frames": 60,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 15.161777302000003,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "696d33e0e828173e8f689d46594b73a07b6dc597b9479879a1e77e51cc81ab7f",
+        "loader_sha256": "e3649c75c768c59ef91c91b8b44c0eb53eefbf1aaa34b0870614a8f8a5d5c577",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "memory_impl": 2,
+        "memory_impl_stats": {
+          "mode": 2,
+          "rebuilds": 1115,
+          "mapped_pages": 19517,
+          "arena_bytes": 0,
+          "direct_pages": 1431,
+          "direct_rebuilds": 1043
+        },
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "code_compare": 2,
+        "verify_aot": 0,
+        "git_head": "6959d5bd5bb67792b355590f4afe2b50a754e98a",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1143727,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+          "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+          "writes": 0,
+          "callbacks": 2330,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 2330,
+          "gameplay_nonzero_samples": 264002,
+          "gameplay_peak": 206
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 23827651,
+        "instructions": 3012361007
+      }
+    },
+    {
+      "game": "combat",
+      "mode": 0,
+      "name": "combat-0-tlb",
+      "elapsed_seconds": 92.65013385401107,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/benchmark.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-arm-memory-graduation/replays/combat-0-tlb",
+          "60",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "42000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "0",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-arm-memory-graduation/candidate-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "arm_exclusive": 0,
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 60,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 87.286110727,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "696d33e0e828173e8f689d46594b73a07b6dc597b9479879a1e77e51cc81ab7f",
+        "loader_sha256": "e3649c75c768c59ef91c91b8b44c0eb53eefbf1aaa34b0870614a8f8a5d5c577",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "memory_impl": 0,
+        "memory_impl_stats": {
+          "mode": 0,
+          "rebuilds": 0,
+          "mapped_pages": 0,
+          "arena_bytes": 0,
+          "direct_pages": 0,
+          "direct_rebuilds": 0
+        },
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "code_compare": 2,
+        "verify_aot": 0,
+        "git_head": "6959d5bd5bb67792b355590f4afe2b50a754e98a",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2105509,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f86fd7c8908cee93c5b8215ec3e4891ddf6a54a8a79783fea5d584bbf4290cab",
+          "sha256_events": "54699bb0cb4fcd867b4a437f0fc65f5f0a5fc28e723b8750fc3b97667e05e6e2",
+          "writes": 0,
+          "callbacks": 4210,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4210,
+          "gameplay_nonzero_samples": 176458,
+          "gameplay_peak": 4041
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 43864773,
+        "instructions": 15827750304
+      }
+    },
+    {
+      "game": "combat",
+      "mode": 2,
+      "name": "combat-0-direct",
+      "elapsed_seconds": 89.75003074901178,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/benchmark.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-arm-memory-graduation/replays/combat-0-direct",
+          "60",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "42000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "2",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-arm-memory-graduation/candidate-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "arm_exclusive": 0,
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 60,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 83.809845294,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "696d33e0e828173e8f689d46594b73a07b6dc597b9479879a1e77e51cc81ab7f",
+        "loader_sha256": "e3649c75c768c59ef91c91b8b44c0eb53eefbf1aaa34b0870614a8f8a5d5c577",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "memory_impl": 2,
+        "memory_impl_stats": {
+          "mode": 2,
+          "rebuilds": 366,
+          "mapped_pages": 18610,
+          "arena_bytes": 0,
+          "direct_pages": 787,
+          "direct_rebuilds": 295
+        },
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "code_compare": 2,
+        "verify_aot": 0,
+        "git_head": "6959d5bd5bb67792b355590f4afe2b50a754e98a",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2105509,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f86fd7c8908cee93c5b8215ec3e4891ddf6a54a8a79783fea5d584bbf4290cab",
+          "sha256_events": "54699bb0cb4fcd867b4a437f0fc65f5f0a5fc28e723b8750fc3b97667e05e6e2",
+          "writes": 0,
+          "callbacks": 4210,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4210,
+          "gameplay_nonzero_samples": 176458,
+          "gameplay_peak": 4041
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 43864773,
+        "instructions": 15827750304
+      }
+    }
+  ],
+  "profile_harness_smoke": [
+    {
+      "name": "standard-0-tlb",
+      "mode": 0,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/profile.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-arm-memory-graduation/profile-smoke/standard-0-tlb",
+          "1",
+          "0",
+          "21100000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "0",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-arm-memory-graduation/candidate-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_START_US": "21000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "instructions": 16019994,
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 21100000,
+        "first_instructions": 2549856574,
+        "last_instructions": 2565876568,
+        "wall_seconds": 0.0610652,
+        "presentations": 2
+      },
+      "wasm_sha256": "696d33e0e828173e8f689d46594b73a07b6dc597b9479879a1e77e51cc81ab7f",
+      "loader_sha256": "e3649c75c768c59ef91c91b8b44c0eb53eefbf1aaa34b0870614a8f8a5d5c577",
+      "presentation_journal_sha256": "3dc436446c4619a6d7c7d02b849ea2e49c9cc96c51b861c133dbbe8c6b1cdd4f",
+      "use_as_timing_evidence": false
+    },
+    {
+      "name": "standard-0-direct",
+      "mode": 2,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/profile.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-arm-memory-graduation/profile-smoke/standard-0-direct",
+          "1",
+          "0",
+          "21100000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "2",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-arm-memory-graduation/candidate-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_START_US": "21000000",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "instructions": 16019994,
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 21100000,
+        "first_instructions": 2549856574,
+        "last_instructions": 2565876568,
+        "wall_seconds": 0.0464901,
+        "presentations": 2
+      },
+      "wasm_sha256": "696d33e0e828173e8f689d46594b73a07b6dc597b9479879a1e77e51cc81ab7f",
+      "loader_sha256": "e3649c75c768c59ef91c91b8b44c0eb53eefbf1aaa34b0870614a8f8a5d5c577",
+      "presentation_journal_sha256": "3dc436446c4619a6d7c7d02b849ea2e49c9cc96c51b861c133dbbe8c6b1cdd4f",
+      "use_as_timing_evidence": false
+    }
+  ],
+  "extra_fault_probe": {
+    "command": {
+      "args": [
+        "node",
+        "build-wasm/src/tests/aot/eka_cpu_fault_wasm.js",
+        "--arm-leaf-memory",
+        "--unsafe-code=0"
+      ],
+      "cwd": "/home/claude/code/EKA2L1"
+    },
+    "exit_code": 2,
+    "stdout": "PROBE_UNSAFE_CODE 0\nPROBE_LEAF_FEATURES 0\nPROBE_EXIT_CENSUS 0\nPROBE_PREDICATED_LEAVES 0\nPROBE_LIMITS 512,16,8,512\nPROBE_COMPARE 0\nPROBE_POLICY -1\nPROBE_ARM_LEAF_MEMORY 1\nUnexpected generated instruction count at case 0\n",
+    "status": "not validated",
+    "reason": "Generated-instruction assertion uses aot_instructions; the normal diagnostics-free runtime compiles out updates to that counter. No fault comparison is claimed for this invocation."
+  },
+  "scratch_root": "/home/claude/.scratch/eka-arm-memory-graduation"
+}

@@ -1,5 +1,9 @@
 # ARM short-block runtime state cache
 
+> Historical experiment: this state caching is now part of the fixed ARM
+> short-block inline-memory path. See the
+> [reassessment](ARM_MEMORY_REASSESSMENT.md) and [current behavior](README.md#memory-implementations).
+
 The opt-in direct ARM short-block path now keeps PC and runtime fields
 (including budget, CPSR endian state and TLB pointer) in locals. Existing
 callback barriers publish written state and reload the live values; final

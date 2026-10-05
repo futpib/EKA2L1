@@ -29,8 +29,6 @@ if (![-1,0,1].includes(thumbMemory)) throw Error('Invalid Thumb memory policy');
 rejectRetiredCompilerOptions();
 const armExclusive = process.env.EKA2L1_ARM_EXCLUSIVE === undefined ? -1 : Number(process.env.EKA2L1_ARM_EXCLUSIVE);
 if (![-1,0,1].includes(armExclusive)) throw Error('ARM exclusive must be 0 or 1');
-const armMemory = process.env.EKA2L1_ARM_MEMORY === undefined ? -1 : Number(process.env.EKA2L1_ARM_MEMORY);
-if (![-1,0,1].includes(armMemory)) throw Error('Invalid ARM memory policy');
 const appUid = process.env.EKA2L1_APP_UID || '0x2000730f';
 if (!/^0x[0-9a-fA-F]{1,8}$/.test(appUid) || Number(appUid) === 0) throw Error('Invalid application UID');
 const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
@@ -145,7 +143,7 @@ try {
   if (diagnosticsAvailable === false && (detailedProfile || guestProfile || exitCensus || aotDiagnostics))
     throw new Error('Custom diagnostics require a build with -DEKA2L1_WASM_DIAGNOSTICS=ON');
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -207,11 +205,8 @@ try {
     if (armExclusive !== -1) call('eka2l1_arm_exclusive_configure', ['number'], [armExclusive]);
     g.armExclusiveActual = typeof g.Module._eka2l1_arm_exclusive_report === 'function' ? g.Module._eka2l1_arm_exclusive_report() : null;
     if (armExclusive !== -1 && g.armExclusiveActual !== armExclusive) throw Error('ARM exclusive readback mismatch');
-    if (armMemory !== -1) {
-      call('eka2l1_arm_memory_configure', ['number'], [armMemory]);
-      if (g.Module.ccall('eka2l1_arm_memory_report', 'number', [], []) !== armMemory)
-        throw Error('ARM memory policy readback mismatch');
-    }
+    if (g.Module._eka2l1_arm_memory_configure || g.Module._eka2l1_arm_memory_report)
+      throw Error('Retired ARM memory configuration API is still exported');
     if(typeof g.Module._eka2l1_memory_impl_configure==='function') {
       call('eka2l1_memory_impl_configure',['number'],[memoryImpl]);
       for(const removed of [-1,1,3,4]) {
@@ -229,8 +224,6 @@ try {
     if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
       throw Error('Thumb memory policy changed after initialization');
     if (armExclusive !== -1 && g.Module._eka2l1_arm_exclusive_configure(1-armExclusive) !== -1) throw Error('ARM exclusive changed after initialization');
-    if (armMemory !== -1 && g.Module._eka2l1_arm_memory_configure(1 - armMemory) !== -1)
-      throw Error('ARM memory policy changed after initialization');
     if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
       if(g.Module._eka2l1_unsafe_code_report()!==unsafeCode || g.Module._eka2l1_unsafe_code_configure(unsafeCode===3?0:3)!==-1)
         throw Error('Unsafe mode changed or remained configurable after CPU initialization');
@@ -255,7 +248,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], [appUid]);
-  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+  }, {hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -411,7 +404,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
 
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
     purpose: sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
     cpu_time: cpuTime,
     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,

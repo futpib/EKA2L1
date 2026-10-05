@@ -1,5 +1,9 @@
 # Slow32 frequency in Snakes and Sky Force
 
+> Historical census at `7181f3350`, with ARM short-block inline memory disabled.
+> That path is now enabled for all eligible blocks and `EKA2L1_ARM_MEMORY` is
+> retired. These counts and the reproduction patch describe the historical build.
+
 Direct had zero ordinary 32-bit load-guard failures in both measured gameplay
 windows. TLB failed 3.235699% of these checks in Snakes and 0.256130% in Sky Force.
 These are execution counts, not a timing comparison or a claim about all gameplay.

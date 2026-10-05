@@ -23,8 +23,6 @@
 #include <functional>
 
 namespace eka2l1::arm::aot {
-    // Independent of connected-region selection; fixed before translation.
-    inline bool arm_direct_memory = false;
     // Shared instruction support, fixed before any module is translated.
     inline bool arm_exclusive_memory = false;
     inline bool supported_exclusive_word(std::uint32_t op) {

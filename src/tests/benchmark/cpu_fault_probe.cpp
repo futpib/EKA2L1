@@ -357,7 +357,6 @@ int main(int argc, char **argv){
     std::cout << "PROBE_POLICY " << static_cast<int>(ir_policy) << "\n";
     if (argc > 2 || (argc == 2 && std::string(argv[1]) != "--arm-exclusive"
         && std::string(argv[1]) != "--arm-leaf-memory"
-        && std::string(argv[1]) != "--arm-leaf-memory-control"
         && std::string(argv[1]) != "--deferred"
         && std::string(argv[1]) != "--entry-budget"
         && std::string(argv[1]) != "--entry-budget-deferred"
@@ -401,10 +400,8 @@ int main(int argc, char **argv){
     if(argc==2 && std::string(argv[1])=="--thumb-calls")return thumb_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-memory")return thumb_memory_fault_probe(true);
     if(argc==2 && std::string(argv[1])=="--thumb-memory-control")return thumb_memory_fault_probe(false);
-    const bool arm_leaf_memory_control=argc==2 && std::string(argv[1])=="--arm-leaf-memory-control";
-    const bool arm_leaf_memory=arm_leaf_memory_control || (argc==2 && std::string(argv[1])=="--arm-leaf-memory");
-    aot::arm_direct_memory=arm_leaf_memory && !arm_leaf_memory_control;
-    std::cout<<"PROBE_ARM_LEAF_MEMORY "<<aot::arm_direct_memory<<"\n";
+    const bool arm_leaf_memory=argc==2 && std::string(argv[1])=="--arm-leaf-memory";
+    std::cout<<"PROBE_ARM_LEAF_MEMORY "<<arm_leaf_memory<<"\n";
     const bool invariant_write_remap=argc==2 && std::string(argv[1])=="--invariant-write-remap";
     const bool invariant_remap=invariant_write_remap || (argc==2 && std::string(argv[1])=="--invariant-remap");
     const bool read_spans=argc==2 && std::string(argv[1])=="--read-spans";

@@ -1,5 +1,9 @@
 # ARM short-block direct memory experiment
 
+> Historical experiment: eligible ARM short blocks now always use inline memory.
+> The option and its API have been retired; see the later
+> [reassessment](ARM_MEMORY_REASSESSMENT.md) and [current behavior](README.md#memory-implementations).
+
 The opt-in shared ARM path uses the existing permission/alignment/endian TLB
 lowering in bounded, register-cached short blocks. It is independent of ROM
 region selection. Eligible accesses avoid callbacks; exceptional accesses keep

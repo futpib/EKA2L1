@@ -222,18 +222,6 @@ int eka2l1_arm_exclusive_configure(int mode) {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_arm_exclusive_report() { return eka2l1::arm::aot::arm_exclusive_memory; }
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_arm_memory_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::arm_direct_memory = mode != 0;
-    return 0;
-}
-
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_arm_memory_report() {
-    return eka2l1::arm::aot::arm_direct_memory;
-}
-
-EMSCRIPTEN_KEEPALIVE
 int eka2l1_thumb_memory_configure(int mode) {
     if (g_state || mode < 0 || mode > 1) return -1;
     eka2l1::arm::aot::thumb_direct_memory = mode != 0;

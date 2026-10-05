@@ -14,8 +14,6 @@ if (![-1,0,1].includes(thumbMemory)) throw Error('Invalid Thumb memory policy');
 rejectRetiredCompilerOptions();
 const armExclusive = process.env.EKA2L1_ARM_EXCLUSIVE === undefined ? -1 : Number(process.env.EKA2L1_ARM_EXCLUSIVE);
 if (![-1,0,1].includes(armExclusive)) throw Error('ARM exclusive must be 0 or 1');
-const armMemory = process.env.EKA2L1_ARM_MEMORY === undefined ? -1 : Number(process.env.EKA2L1_ARM_MEMORY);
-if (![-1,0,1].includes(armMemory)) throw Error('Invalid ARM memory policy');
 const appUid = process.env.EKA2L1_APP_UID || '0x2000730f';
 if (!/^0x[0-9a-fA-F]{1,8}$/.test(appUid) || Number(appUid) === 0) throw Error('Invalid application UID');
 const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
@@ -99,7 +97,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -160,11 +158,8 @@ try {
     if (armExclusive !== -1) call('eka2l1_arm_exclusive_configure', ['number'], [armExclusive]);
     g.armExclusiveActual = typeof g.Module._eka2l1_arm_exclusive_report === 'function' ? g.Module._eka2l1_arm_exclusive_report() : null;
     if (armExclusive !== -1 && g.armExclusiveActual !== armExclusive) throw Error('ARM exclusive readback mismatch');
-    if (armMemory !== -1) {
-      call('eka2l1_arm_memory_configure', ['number'], [armMemory]);
-      if (g.Module.ccall('eka2l1_arm_memory_report', 'number', [], []) !== armMemory)
-        throw Error('ARM memory policy readback mismatch');
-    }
+    if (g.Module._eka2l1_arm_memory_configure || g.Module._eka2l1_arm_memory_report)
+      throw Error('Retired ARM memory configuration API is still exported');
     if(typeof g.Module._eka2l1_memory_impl_configure==='function') {
       call('eka2l1_memory_impl_configure',['number'],[memoryImpl]);
       for(const removed of [-1,1,3,4]) {
@@ -182,8 +177,6 @@ try {
     if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
       throw Error('Thumb memory policy changed after initialization');
     if (armExclusive !== -1 && g.Module._eka2l1_arm_exclusive_configure(1-armExclusive) !== -1) throw Error('ARM exclusive changed after initialization');
-    if (armMemory !== -1 && g.Module._eka2l1_arm_memory_configure(1 - armMemory) !== -1)
-      throw Error('ARM memory policy changed after initialization');
     if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
       if(g.Module._eka2l1_unsafe_code_report()!==unsafeCode || g.Module._eka2l1_unsafe_code_configure(unsafeCode===3?0:3)!==-1)
         throw Error('Unsafe mode changed or remained configurable after CPU initialization');
@@ -209,7 +202,7 @@ try {
     }
     // N80 also registers a different ROM-bundled game with the caption Snakes.
     call('eka2l1_run', ['string'], [appUid]);
-  }, {hotpathPolicy, armExclusive, thumbMemory, armMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+  }, {hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -259,7 +252,7 @@ try {
 
   await page.evaluate(() => (window as any).Module._eka2l1_shutdown());
   if (failures.length) throw new Error(failures.join('\n'));
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, arm_memory: armMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');

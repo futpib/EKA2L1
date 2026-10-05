@@ -111,10 +111,17 @@ is part of direct mode, not a separate selectable implementation. Direct mode
 requires compiled regions, disabled AOT verification and the unsafe code-write
 policy. The driver below supplies these settings.
 
-The [slow32 census](SLOW32_CENSUS.md) measures load-guard failures, helper calls
-and interpreter deferrals for both implementations in Snakes and Sky Force.
-The [ARM short-block reassessment](ARM_MEMORY_REASSESSMENT.md) compares the
-separate `EKA2L1_ARM_MEMORY` option on the current implementations.
+Eligible bounded, register-cached ARM short blocks always use inline memory
+access. `EKA2L1_ARM_MEMORY` and its configuration/readback API are retired;
+remove the variable from launch and benchmark environments. TLB/direct selection
+still uses `EKA2L1_MEMORY_IMPL`. Uncached and unbounded standalone translations
+retain their helper path, and connected ARM regions retain their existing inline
+path. See the [adoption checks and eligibility](ARM_MEMORY_ADOPTION.md).
+
+The [ARM short-block reassessment](ARM_MEMORY_REASSESSMENT.md) records the
+on/off comparison that preceded adoption. The [slow32 census](SLOW32_CENSUS.md)
+records the earlier load-guard failures, helper calls and interpreter deferrals
+with short ARM memory inlining disabled.
 
 Allocation-range mode, standalone flat-page mode, earlier direct variants and
 delayed activation have been removed. Values 1 and 3 are rejected. Remove

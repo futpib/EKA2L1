@@ -58,7 +58,7 @@ for game in a.games:
             name=f'{game}-{repetition}-{names[mode]}';out=a.output/name
             config = dict(EKA2L1_BENCHMARK_AOT='5',EKA2L1_CODE_COMPARE='2',EKA2L1_PREDICATED_LEAVES='1',
                 EKA2L1_LEAF_FEATURES='128',EKA2L1_UNSAFE_CODE='3',EKA2L1_SHARED_AUDIO='1',
-                EKA2L1_ARM_MEMORY='0',EKA2L1_ARM_EXCLUSIVE='0',EKA2L1_AOT_IR_MODE='17',
+                EKA2L1_ARM_EXCLUSIVE='0',EKA2L1_AOT_IR_MODE='17',
                 EKA2L1_HOTPATH='2',EKA2L1_THUMB_MEMORY='1',EKA2L1_MEMORY_IMPL=str(mode),
                 EKA2L1_WASM_BUILD_DIR=str(a.build.resolve()),EKA2L1_PROFILE_DETAIL='0',EKA2L1_CHROME_TRACE='off')
             if game=='combat':

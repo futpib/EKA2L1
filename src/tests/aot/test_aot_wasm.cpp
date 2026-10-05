@@ -3678,10 +3678,8 @@ static bool test_arm_short_block_memory() {
 #ifdef __EMSCRIPTEN__
     namespace tracking=eka2l1::common::code_tracking;
     struct restore {
-        bool direct=arm_direct_memory;
         unsigned mode=tracking::unsafe_code_mode;
-        ~restore(){arm_direct_memory=direct;
-            tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
+        ~restore(){tracking::unsafe_code_mode=mode;g_test_mem=nullptr;g_read32_observer={};}
     } saved;
     std::vector<unsigned> ops={0xe5910000,0xe5810000,0xe5d10000,0xe5c10000,0xe1d100b0,0xe1c100b0,
         0xe1d100d0,0xe1d100f0,0xe8b1000d,0xe8a1000d};
@@ -3693,15 +3691,15 @@ static bool test_arm_short_block_memory() {
         if(writeback && (mask&2))continue;
         ops.push_back(0xe8010000u|addressing|(load?1u<<20:0)|(writeback?1u<<21:0)|mask);
     }
+    // Uncached helper lowering is the reference for cached inline accesses.
     unsigned checks=0;
     for(unsigned mode:{0u,3u})for(unsigned opcode:ops) {
         tracking::unsafe_code_mode=mode;
         const unsigned code[]={0xe3b02007,opcode,0xe2844001};
         std::vector<std::uint8_t> modules[2];
-        for(unsigned enabled=0;enabled<2;++enabled) {
-            arm_direct_memory=enabled;
-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,false);
-            modules[enabled]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        for(unsigned cached=0;cached<2;++cached) {
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,cached,false);
+            modules[cached]=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
                 {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
         }
         test_mem memory;
@@ -3711,16 +3709,16 @@ static bool test_arm_short_block_memory() {
         for(unsigned address:{0u,0x8040u,0x8001u,0x8ffeu,0x8ffcu})for(unsigned budget:{0u,1u,2u,3u}) {
             r12l1::tlb tlb(12);if(permission)tlb.add(0x8000,memory.data.data()+0x8000,permission);
             alignas(8) std::array<unsigned,256> states[2]{};int counts[2];unsigned helpers[2];std::vector<unsigned char> expected;
-            for(unsigned enabled=0;enabled<2;++enabled) {
+            for(unsigned cached=0;cached<2;++cached) {
                 std::copy(initial.begin(),initial.end(),memory.data.begin());
-                auto &state=states[enabled];for(unsigned reg=0;reg<16;++reg)state[reg]=0xabc00000u+reg;
+                auto &state=states[cached];for(unsigned reg=0;reg<16;++reg)state[reg]=0xabc00000u+reg;
                 state[1]=address;state[15]=0x1000;state[state_offsets::CPSR/4]=0xa0000010|endian;
                 state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=1;
                 state[state_offsets::AOT_BUDGET/4]=budget;state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(tlb.entries);
                 state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;
                 g_test_mem=&memory;g_all_memory_helper_calls=0;
-                counts[enabled]=js_run_aot_wasm(modules[enabled].data(),modules[enabled].size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
-                helpers[enabled]=g_all_memory_helper_calls;if(!enabled)expected=memory.data;
+                counts[cached]=js_run_aot_wasm(modules[cached].data(),modules[cached].size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));
+                helpers[cached]=g_all_memory_helper_calls;if(!cached)expected=memory.data;
             }
             const bool block=(opcode&0x0e000000u)==0x08000000u;
             const bool write=!(opcode&(1u<<20));
@@ -3742,22 +3740,21 @@ static bool test_arm_short_block_memory() {
         r12l1::tlb old_tlb(12),new_tlb(12);
         old_tlb.add(0x8000,before.data.data()+0x8000,1);new_tlb.add(0x8000,after.data.data()+0x8000,1);
         alignas(8) std::array<unsigned,256> states[2]{};int counts[2];bool seen[2]{};
-        for(unsigned enabled=0;enabled<2;++enabled) {
-            arm_direct_memory=enabled;
-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,true,false);
+        for(unsigned cached=0;cached<2;++cached) {
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(code),sizeof(code),0x1000,nullptr,nullptr,true,false,cached,false);
             auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
                 {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
-            auto &state=states[enabled];state[1]=0x8000;state[2]=0xa000;state[15]=0x1000;
+            auto &state=states[cached];state[1]=0x8000;state[2]=0xa000;state[15]=0x1000;
             state[state_offsets::CPSR/4]=0x10;state[state_offsets::AOT_BUDGET/4]=4;
             state[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(old_tlb.entries);
             state[state_offsets::NIRQ/4]=1;state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=16;
             g_test_mem=&before;
             g_read32_observer=[&](unsigned ptr,unsigned address){
                 if(address!=0xa000)return;auto *v=reinterpret_cast<unsigned *>(ptr);
-                seen[enabled]=v[0]==11&&v[15]==0x1004;v[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(new_tlb.entries);
+                seen[cached]=v[0]==11&&v[15]==0x1004;v[state_offsets::AOT_TLB/4]=reinterpret_cast<std::uintptr_t>(new_tlb.entries);
                 v[state_offsets::AOT_BUDGET/4]=budget;v[state_offsets::CPSR/4]=0x10|endian;v[state_offsets::CFLAG/4]=1;g_test_mem=&after;
             };
-            counts[enabled]=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));g_read32_observer={};
+            counts[cached]=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t *>(state.data()),sizeof(state));g_read32_observer={};
         }
         if(!seen[0]||!seen[1]||counts[0]!=int(budget)||counts[1]!=counts[0]||states[0]!=states[1]) {
             printf(" FAIL ARM short callback state/budget/TLB endian=%u budget=%u\n",endian,budget);return false;
@@ -3766,7 +3763,6 @@ static bool test_arm_short_block_memory() {
     }
     // Stop/IRQ is observed after the whole memory instruction, including
     // multi-register writeback, but before the following arithmetic opcode.
-    arm_direct_memory=true;
     for (unsigned mode : {0u,3u})
     for (unsigned opcode : {0xe5910000u,0xe8b1000du})
     for (unsigned action : {0u,1u,2u,3u,4u}) {
@@ -4076,6 +4072,8 @@ static bool test_cached_callback_state() {
     state[1] = 0x8000;
     state[state_offsets::PC / 4] = 0x1000;
     state[state_offsets::AOT_BUDGET / 4] = 4;
+    state[state_offsets::NUM_INSTRS_TO_EXECUTE / 4] = 4;
+    state[state_offsets::NIRQ / 4] = 1;
     test_mem memory;
     memory.write32(0x8000, 20);
     g_test_mem = &memory;
@@ -5122,6 +5120,7 @@ int main(int argc, char **argv) {
     // explicitly; test_unsafe_code_diagnostic separately tests both modes
     // and their intentional stale-code behavior.
     eka2l1::common::code_tracking::unsafe_code_mode = 0;
+    if(argc==2 && std::string(argv[1])=="--arm-memory-only")return test_arm_short_block_memory() && test_cached_callback_state()?0:1;
     if(argc==2 && std::string(argv[1])=="--memory-implementations-only")return test_memory_implementations()?0:1;
     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
     if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
