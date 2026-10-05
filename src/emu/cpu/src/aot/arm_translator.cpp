@@ -197,7 +197,7 @@ namespace eka2l1::arm::aot {
             }
             // Each access checks the current TLB mapping and permissions.
             op(op_block); op(write ? type_void : type_i32);
-            if(memory_experiment::mode) direct_host(*this, ADDRESS, size, write, size);
+            if(memory_experiment::mode) direct_host(*this, ADDRESS, size, write, 1);
             else {
             i32_const(0); set_local(HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);

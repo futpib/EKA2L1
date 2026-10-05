@@ -225,7 +225,7 @@ namespace eka2l1::arm::aot {
                 guest_memory_op(*this,write?op_i32_store:op_i32_load,2);
                 op(op_else);
             }
-            if(memory_experiment::mode) direct_host(*this,ADDRESS,size,write,size);
+            if(memory_experiment::mode) direct_host(*this,ADDRESS,size,write,1);
             else {
             i32_const(0); set_local(HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);

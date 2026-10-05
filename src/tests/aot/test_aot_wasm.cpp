@@ -4813,7 +4813,7 @@ static bool test_direct_memory_translation() {
             return build_wasm_module({tr.func},imports);
         };
         const auto baseline=compile(0),tested=compile(2);
-        for(unsigned address:{0x8000u,0x8ffcu,0x9ff8u,0x8001u}) for(unsigned budget=0;budget<=22;++budget) {
+        for(unsigned address:{0x8000u,0x8ffcu,0x8ffdu,0x8ffeu,0x8fffu,0x9ff8u,0x8001u}) for(unsigned budget=0;budget<=22;++budget) {
             test_mem expected,actual;
             for(unsigned a=0x7000;a<0xc000;a+=4)expected.write32(a,a*37);
             expected.write_code(0x1000,code);
@@ -4849,20 +4849,34 @@ static bool test_direct_memory_translation() {
                 counts[variant]=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(states[0]));
                 if(variant)mapping.leave();g_memory_boundary={};
             }
-            bool equal=counts[0]>=0 && counts[0]==counts[1] && actual.data==expected.data;
+            bool equal=actual.data==expected.data;
             for(unsigned reg=0;reg<16;++reg)equal &= states[0][reg]==states[1][reg];
             for(unsigned f:{state_offsets::NFLAG,state_offsets::ZFLAG,state_offsets::CFLAG,state_offsets::VFLAG,state_offsets::TFLAG})equal &= states[0][f/4]==states[1][f/4];
-            if(!equal){printf("FAIL memory implementation mode=%u program=%u address=%x budget=%u counts=%d/%d\n",2u,program,address,budget,counts[0],counts[1]);return memory_failure(__LINE__);}
-            test_mem reference_memory;reference_memory.data=seed;
-            r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
-            for(unsigned reg=0;reg<16;++reg)reference->set_reg(reg,0);
-            reference->set_reg(1,address);reference->set_reg(4,program==2?0x7000:0xb000);reference->set_reg(14,0x8008);
-            reference->set_pc(0x1000);reference->set_cpsr(16|(program>=3?32:0));
-            if(counts[1])reference->run(counts[1]);
-            for(unsigned reg=0;reg<16;++reg) if(states[1][reg]!=reference->get_reg(reg)) {
-                printf("FAIL independent memory oracle mode=%u program=%u address=%x budget=%u register=%u actual=%x expected=%x\n",2u,program,address,budget,reg,states[1][reg],reference->get_reg(reg));return memory_failure(__LINE__);
+            if(counts[0]==counts[1] && !equal){printf("FAIL memory implementation mode=%u program=%u address=%x budget=%u counts=%d/%d\n",2u,program,address,budget,counts[0],counts[1]);return memory_failure(__LINE__);}
+            // A helper can end a TLB region before direct finishes its budget.
+            // Compare each backend with the interpreter at its own exit point.
+            for(unsigned variant=0;variant<2;++variant) {
+                const unsigned policy=variant?2:0;
+                if(counts[variant]<0 || unsigned(counts[variant])>budget) {
+                    printf("FAIL memory budget mode=%u program=%u address=%x budget=%u count=%d\n",policy,program,address,budget,counts[variant]);return memory_failure(__LINE__);
+                }
+                test_mem reference_memory;reference_memory.data=seed;
+                r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(reference_memory,monitor);
+                for(unsigned reg=0;reg<16;++reg)reference->set_reg(reg,0);
+                reference->set_reg(1,address);reference->set_reg(4,program==2?0x7000:0xb000);reference->set_reg(14,0x8008);
+                reference->set_pc(0x1000);reference->set_cpsr(16|(program>=3?32:0));
+                if(counts[variant])reference->run(counts[variant]);
+                for(unsigned reg=0;reg<16;++reg) if(states[variant][reg]!=reference->get_reg(reg)) {
+                    printf("FAIL independent memory oracle mode=%u program=%u address=%x budget=%u register=%u actual=%x expected=%x\n",policy,program,address,budget,reg,states[variant][reg],reference->get_reg(reg));return memory_failure(__LINE__);
+                }
+                for(auto f:{std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},{state_offsets::ZFLAG,30},
+                        {state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}}) {
+                    if(states[variant][f.first/4]!=((reference->get_cpsr()>>f.second)&1)) {
+                        printf("FAIL independent memory oracle flags mode=%u program=%u address=%x budget=%u flag=%u\n",policy,program,address,budget,f.first);return memory_failure(__LINE__);
+                    }
+                }
+                if((variant?actual:expected).data!=reference_memory.data){printf("FAIL independent memory oracle bytes mode=%u program=%u address=%x budget=%u\n",policy,program,address,budget);return memory_failure(__LINE__);}
             }
-            if(actual.data!=reference_memory.data){printf("FAIL independent memory oracle bytes mode=%u program=%u address=%x budget=%u\n",2u,program,address,budget);return memory_failure(__LINE__);}
             ++checks;
         }
     }
@@ -5031,12 +5045,14 @@ static bool test_memory_implementations() {
             const std::uint16_t code=width==1?0x7808:width==2?0x8808:0x6808;
             auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(&code),2,0x1000,nullptr,nullptr,true,false,true);
             auto module=build_wasm_module({tr.func},imports);
-            for(auto address:{direct_begin-width,direct_begin,direct_begin+1,direct_begin+direct_size-width,direct_begin+direct_size,0xfffffffcu}) {
+            for(auto address:{direct_begin-width,direct_begin,direct_begin+1,direct_begin+4095,
+                    direct_begin+direct_size-width-1,direct_begin+direct_size-width,
+                    direct_begin+direct_size-width+1,direct_begin+direct_size,0xfffffffcu}) {
                 alignas(8)std::uint32_t state[256]{};
                 state[1]=address;state[15]=0x1000;state[state_offsets::MODE/4]=16;state[state_offsets::CPSR/4]=48;
                 state[state_offsets::TFLAG/4]=1;state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=1;state[state_offsets::AOT_TLB/4]=pointer;
                 g_all_memory_helper_calls=0;
-                const bool fast=(address&(width-1))==0 && address>=direct_begin && std::uint64_t(address)+width<=direct_begin+direct_size;
+                const bool fast=address>=direct_begin && std::uint64_t(address)+width<=direct_begin+direct_size;
                 std::uint32_t expected=0;if(fast)std::memcpy(&expected,arena+address-direct_begin,width);
                 auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
                 if(count!=1 || state[0]!=expected || g_all_memory_helper_calls!=!fast) {

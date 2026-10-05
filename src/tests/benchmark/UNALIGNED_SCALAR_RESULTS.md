@@ -1,6 +1,6 @@
 # Scalar alignment guard experiment
 
-Direct shows a small repeatable gain: 1.3% less worker CPU in Snakes and 0.8% less in Sky Force combat. TLB has no useful gain: 1.4% more CPU in Snakes and effectively flat in Sky Force. The combined candidate is not adopted; its patch and all observations are preserved, and the production emitters are restored.
+Direct shows a small repeatable gain: 1.3% less worker CPU in Snakes and 0.8% less in Sky Force combat. TLB has no useful gain: 1.4% more CPU in Snakes and effectively flat in Sky Force. The direct half is now adopted; TLB retains its alignment checks. The original combined patch and all observations are preserved below.
 
 [All observations and exact commands](UNALIGNED_SCALAR_RESULTS.json); [candidate patch](UNALIGNED_SCALAR.patch).
 
@@ -62,3 +62,29 @@ python3 src/tests/benchmark/compare_memory_builds.py BASELINE_BUILD CANDIDATE_BU
 The JSON retains every underlying profile command, configuration and artifact
 hash. The normal build has no custom diagnostic counters. This comparison
 does not deploy either frozen build to the LAN server.
+
+## Direct-only adoption
+
+The production change passes alignment 1 to `direct_host` for ordinary ARM and
+Thumb scalar loads/stores. No extra configuration switch is added. TLB stays
+the default backend and its emitted access checks are unchanged. Span and
+exclusive paths retain their existing alignment requirements.
+
+[Adoption evidence](DIRECT_UNALIGNED_ADOPTION.json) records the production
+diff, frozen build hashes, commands and results:
+
+- 816 focused ARM/Thumb state, memory, budget, crossing and alias cases, plus
+  direct CPU/MMU publication and callback checks, passed. Arena-edge tests
+  also assert helper use, including unaligned and cross-page arena accesses.
+- Each backend is checked against the independent interpreter at its returned
+  instruction count, including registers, flags and memory. An unaligned TLB
+  helper can return to dispatch earlier than the direct inline path; equal
+  instruction counts still require identical results between backends.
+- The 21,146-case ARM short-block memory matrix and cached callback test passed.
+- Snakes and Sky Force combat each passed a 60-frame direct browser replay
+  against the native reference, including exact images, instruction counts,
+  guest timestamps, PCM and audio events.
+
+This adoption reruns focused correctness checks, not the timing campaign or
+full compiler suite. The direct CPU gains at the top are from the preceding
+combined experiment, not newly measured values for this build.

@@ -53,6 +53,10 @@ The replay and profiling harnesses also support `EKA2L1_MEMORY_IMPL=2` for the
 retained direct-memory implementation. Only values 0 (TLB) and 2 (direct) are
 supported; the separate direct-policy and delayed-activation controls are
 removed. See [memory implementation selection](../benchmark/README.md#memory-implementations).
+Direct scalar loads/stores permit unaligned addresses: the arena checks the
+whole access range, and the fallback table requires the access to fit in one
+page. TLB retains its alignment checks. See the
+[alignment measurements and adoption](../benchmark/UNALIGNED_SCALAR_RESULTS.md).
 
 Run the actual browser integration check against a running launcher:
 

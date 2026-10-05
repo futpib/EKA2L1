@@ -33,6 +33,9 @@ endianness. Multi-register transfers can validate a whole span; failed span
 checks fall back to the individual access paths. A miss uses the runtime helper.
 Short-block stores also use helpers when executable-code write tracking is
 required. TLB (`EKA2L1_MEMORY_IMPL=0`) and direct (`2`) remain separate choices.
+Subsequent [direct scalar alignment adoption](UNALIGNED_SCALAR_RESULTS.md)
+removes natural-alignment checks in direct mode; its whole-access arena range
+and fallback page-end checks remain. TLB keeps the original scalar checks.
 
 ## Before and after
 

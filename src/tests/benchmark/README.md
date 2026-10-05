@@ -125,8 +125,11 @@ with short ARM memory inlining disabled.
 
 The [scalar alignment experiment](UNALIGNED_SCALAR_RESULTS.md) compares removing
 the direct arena's scalar alignment check and replacing page-based scalar
-alignment with a page-end check. Its patch is preserved separately; the combined
-candidate is not adopted. `compare_memory_builds.py` runs paired comparisons of
+alignment with a page-end check. The direct half is now fixed behavior: ordinary
+scalar accesses need no natural alignment inside the arena, while the fallback
+table checks that the entire access fits in one page. TLB retains its alignment
+checks. The original combined patch is preserved separately.
+`compare_memory_builds.py` runs paired comparisons of
 two frozen browser builds through the existing memory benchmark driver.
 
 Allocation-range mode, standalone flat-page mode, earlier direct variants and

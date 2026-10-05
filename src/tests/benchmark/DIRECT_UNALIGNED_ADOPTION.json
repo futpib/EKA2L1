@@ -1,0 +1,255 @@
+{
+  "source_base": "3652847ad6e63078830e08131f216e8ba4b9873a",
+  "production_diff": "diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp\nindex b6f417e4c..37d76a7ce 100644\n--- a/src/emu/cpu/src/aot/arm_translator.cpp\n+++ b/src/emu/cpu/src/aot/arm_translator.cpp\n@@ -197,7 +197,7 @@ namespace eka2l1::arm::aot {\n             }\n             // Each access checks the current TLB mapping and permissions.\n             op(op_block); op(write ? type_void : type_i32);\n-            if(memory_experiment::mode) direct_host(*this, ADDRESS, size, write, size);\n+            if(memory_experiment::mode) direct_host(*this, ADDRESS, size, write, 1);\n             else {\n             i32_const(0); set_local(HOST);\n             load_i32(S::AOT_TLB); tee_local(ENTRY);\ndiff --git a/src/emu/cpu/src/aot/thumb_translator.cpp b/src/emu/cpu/src/aot/thumb_translator.cpp\nindex 4128244b6..c30a3bcc9 100644\n--- a/src/emu/cpu/src/aot/thumb_translator.cpp\n+++ b/src/emu/cpu/src/aot/thumb_translator.cpp\n@@ -225,7 +225,7 @@ namespace eka2l1::arm::aot {\n                 guest_memory_op(*this,write?op_i32_store:op_i32_load,2);\n                 op(op_else);\n             }\n-            if(memory_experiment::mode) direct_host(*this,ADDRESS,size,write,size);\n+            if(memory_experiment::mode) direct_host(*this,ADDRESS,size,write,1);\n             else {\n             i32_const(0); set_local(HOST);\n             load_i32(S::AOT_TLB); tee_local(ENTRY);\n",
+  "build_command": [
+    "cmake",
+    "--build",
+    "build-wasm",
+    "--target",
+    "eka2l1_wasm",
+    "test_aot_wasm",
+    "-j8"
+  ],
+  "build_exit_code": 0,
+  "build_hashes": {
+    "eka2l1.wasm": "54070f1050ff2fceec7dfa8fbf5a7139b8494513e4cf124639777eef0172b8b8",
+    "eka2l1.js": "e3649c75c768c59ef91c91b8b44c0eb53eefbf1aaa34b0870614a8f8a5d5c577",
+    "eka2l1.html": "4e2beae78c9de039b614a6fe379e326fac0fad714652e3dbc1f3bf7029571d5b",
+    "eka2l1.data": "34b40aa84dad5d9f96e5d4b43c25a42ebc50fef673dad1bef650bbe55a1f6ad4",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+  },
+  "test_wasm_sha256": "fb12bb92560bb35e4963c37195dafe3c0b91cab8db6e9ba4e55f4defbc176600",
+  "tests": [
+    {
+      "command": [
+        "node",
+        "build-wasm/src/tests/aot/test_aot_wasm.js",
+        "--memory-implementations-only"
+      ],
+      "exit_code": 0,
+      "output": "TEST_UNSAFE_CODE_DEFAULT 3\nPASS memory implementations (816 exact ARM/Thumb state, memory, budget, crossing and alias comparisons)\nPASS direct memory: CPU entry, ASID switch, syscall, memory/exception callbacks, permissions and observer lifetime\n"
+    },
+    {
+      "command": [
+        "node",
+        "build-wasm/src/tests/aot/test_aot_wasm.js",
+        "--arm-memory-only"
+      ],
+      "exit_code": 0,
+      "output": "TEST_UNSAFE_CODE_DEFAULT 3\n PASS ARM short block memory (21146 full-state/memory/budget/callback comparisons)\n  PASS cached_callback_state\n"
+    }
+  ],
+  "replays": [
+    {
+      "game": "standard",
+      "mode": 2,
+      "name": "standard-0-direct",
+      "elapsed_seconds": 20.6082724010339,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/benchmark.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-direct-unaligned-adoption/replays/standard-0-direct",
+          "60",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+          "21000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "2",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-direct-unaligned-adoption/candidate-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "arm_exclusive": 0,
+        "thumb_memory": 1,
+        "app_uid": "0x2000730f",
+        "frames": 60,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 15.275094789999999,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "54070f1050ff2fceec7dfa8fbf5a7139b8494513e4cf124639777eef0172b8b8",
+        "loader_sha256": "e3649c75c768c59ef91c91b8b44c0eb53eefbf1aaa34b0870614a8f8a5d5c577",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "memory_impl": 2,
+        "memory_impl_stats": {
+          "mode": 2,
+          "rebuilds": 1115,
+          "mapped_pages": 19517,
+          "arena_bytes": 0,
+          "direct_pages": 1431,
+          "direct_rebuilds": 1043
+        },
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "code_compare": 2,
+        "verify_aot": 0,
+        "git_head": "3652847ad6e63078830e08131f216e8ba4b9873a",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1143727,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+          "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+          "writes": 0,
+          "callbacks": 2330,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 2330,
+          "gameplay_nonzero_samples": 264002,
+          "gameplay_peak": 206
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 23827651,
+        "instructions": 3012361007
+      }
+    },
+    {
+      "game": "combat",
+      "mode": 2,
+      "name": "combat-0-direct",
+      "elapsed_seconds": 80.67781611898681,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/benchmark.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-direct-unaligned-adoption/replays/combat-0-direct",
+          "60",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "42000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "2",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-direct-unaligned-adoption/candidate-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "arm_exclusive": 0,
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 60,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 75.41776022299999,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "54070f1050ff2fceec7dfa8fbf5a7139b8494513e4cf124639777eef0172b8b8",
+        "loader_sha256": "e3649c75c768c59ef91c91b8b44c0eb53eefbf1aaa34b0870614a8f8a5d5c577",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "memory_impl": 2,
+        "memory_impl_stats": {
+          "mode": 2,
+          "rebuilds": 366,
+          "mapped_pages": 18610,
+          "arena_bytes": 0,
+          "direct_pages": 787,
+          "direct_rebuilds": 295
+        },
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "code_compare": 2,
+        "verify_aot": 0,
+        "git_head": "3652847ad6e63078830e08131f216e8ba4b9873a",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2105509,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f86fd7c8908cee93c5b8215ec3e4891ddf6a54a8a79783fea5d584bbf4290cab",
+          "sha256_events": "54699bb0cb4fcd867b4a437f0fc65f5f0a5fc28e723b8750fc3b97667e05e6e2",
+          "writes": 0,
+          "callbacks": 4210,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4210,
+          "gameplay_nonzero_samples": 176458,
+          "gameplay_peak": 4041
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 43864773,
+        "instructions": 15827750304
+      }
+    }
+  ],
+  "performance_evidence": "UNALIGNED_SCALAR_RESULTS.json",
+  "timing_repeated": false,
+  "scope": "Direct scalar ARM/Thumb alignment removal only; TLB emitter unchanged. Dedicated compiler memory tests and two direct browser native-reference replays passed; the full compiler suite and TLB browser replays were not repeated.",
+  "scratch": "/home/claude/.scratch/eka-direct-unaligned-adoption"
+}
