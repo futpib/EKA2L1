@@ -1,5 +1,8 @@
 # Thumb continuations with static instruction counts
 
+The later [state-transfer gate experiment](THUMB_TRANSFER_GATE_RESULTS.md)
+rejects added cached fields and helper-bearing prefixes; it is also not enabled.
+
 This experiment is **not adopted**. Production sources and the browser build
 are restored to the baseline; the LAN service was never changed. Sky Force used
 **2.70% more worker CPU** on average and Snakes **1.93% more**. The latter pairs

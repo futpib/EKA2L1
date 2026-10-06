@@ -34,7 +34,7 @@ const rows=[];
 for(let k=0;k<probes.length;k+=2) {
     assert.equal(probes[k].variant,0);assert.equal(probes[k+1].variant,1);assert.equal(probes[k].name,probes[k+1].name);
     const instances=probes.slice(k,k+2).map(p=>new WebAssembly.Instance(counted(Buffer.from(p.wasm,'base64')),{env}));
-    const name=probes[k].name, isStatic=/^(long_|tail_|condition_)/.test(name);
+    const name=probes[k].name, isStatic=probes[k+1].accepted!==undefined?probes[k+1].accepted>0:/^(long_|tail_|condition_)/.test(name);
     if(!isStatic)assert.equal(probes[k].wasm,probes[k+1].wasm,'Rejected fixture must remain byte-identical: '+name);
     else assert.notEqual(probes[k].wasm,probes[k+1].wasm,'Fixture must exercise the optimization: '+name);
     const flags=name.startsWith('condition_')?[...Array(16).keys()]:[0];
@@ -56,6 +56,8 @@ for(let k=0;k<probes.length;k+=2) {
             instance.exports.steps.value=0n;
             let executed=0,calls=0;
             while(calls<1000) {
+                // Real compiled entry follows the outer loop's stop/IRQ checks.
+                if(probes[k+1].accepted!==undefined && (!(words[(state+840)/4]||words[(state+844)/4]) || (!words[(state+876)/4] && !(words[(state+784)/4]&128))))break;
                 const fn=instance.exports['f_'+(words[state/4+15]&~1)];
                 if(!fn || (calls && executed>=budget))break;
                 words[(state+848)/4]=budget-executed;
