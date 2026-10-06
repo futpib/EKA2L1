@@ -88,7 +88,11 @@ def main():
                 data['comparisons'].append(dict(phase=phase, experiment=experiment['name'], game=game,
                     original_report=experiment['report'], **summarize(subset, expected)))
     complete = [row for row in data['comparisons'] if row['complete']]
-    data['complete'] = len(complete) == len(data['comparisons'])
+    data['measurements_complete'] = len(complete) == len(data['comparisons'])
+    data['host_restoration_complete'] = all(phase['host_states'] and
+        all(state.get('restored') is True for state in phase['host_states'].values())
+        for phase in data['phases'].values())
+    data['complete'] = data['measurements_complete'] and data['host_restoration_complete']
     data['valid_observations'] = sum(row['valid'] for row in data['comparisons'])
     data['expected_observations'] = sum(row['expected'] for row in data['comparisons'])
     data['invalid_observations'] = sum(row['invalid'] for row in data['comparisons'])
@@ -125,8 +129,9 @@ def main():
         if pending:
             names = ', '.join(f"{row['experiment']}/{row['game']} ({row['valid']}/{row['expected']})" for row in pending)
             lines.append(f'- {phase}: {names}.')
-    if data['complete']:
-        lines.append('None.')
+    if data['measurements_complete']:
+        lines.append('None. ' + ('Host restoration records are complete.' if data['host_restoration_complete']
+                                 else 'Host restoration is not yet verified.'))
     args.output_stem.with_suffix('.md').write_text('\n'.join(lines) + '\n')
     print(f"{len(complete)}/{len(data['comparisons'])} comparisons, "
           f"{data['valid_observations']}/{data['expected_observations']} valid observations")
