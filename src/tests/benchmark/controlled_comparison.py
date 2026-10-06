@@ -81,6 +81,9 @@ def validate_clock(report, plan):
                 scaling_min_freq=str(plan['frequency_khz']), scaling_max_freq=str(plan['frequency_khz'])):
             errors.append('Requested CPU policy changed')
         if plan.get('isolated_cpus'):
+            if plan.get('require_support_affinity') and (not row.get('monitor_affinity') or
+                    set(row['monitor_affinity']) & set(plan['isolated_cpus'])):
+                errors.append('Measurement monitor can run on the reserved core')
             groups = row.get('cgroup_cpus', {})
             if not groups:
                 errors.append('Missing CPU isolation observation')
@@ -133,6 +136,8 @@ def main():
         siblings = cpu_set(Path(f"/sys/devices/system/cpu/cpu{plan['worker_cpu']}/topology/thread_siblings_list").read_text())
         if not siblings <= set(plan['isolated_cpus']) or set(plan['support_cpus']) & set(plan['isolated_cpus']):
             parser.error('Reserve every worker sibling and exclude them from support CPUs')
+        if plan.get('require_support_affinity') and set(os.sched_getaffinity(0)) & set(plan['isolated_cpus']):
+            parser.error('The frequency wrapper must exclude its controller from the reserved core')
     args.output.mkdir(exist_ok=True, parents=True)
     evidence = args.output / 'observations.json'
     rows = json.loads(evidence.read_text()) if evidence.exists() else []

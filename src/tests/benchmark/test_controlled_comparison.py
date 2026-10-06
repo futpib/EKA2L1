@@ -50,12 +50,18 @@ class ClockValidation(unittest.TestCase):
 
     def test_isolation_and_sibling_activity(self):
         self.plan['isolated_cpus'] = [7, 15]
+        self.plan['require_support_affinity'] = True
         self.plan['clock_rules']['max_sibling_busy_fraction'] = .02
         for index, sample in enumerate(self.report['clock_samples']):
+            sample['monitor_affinity'] = [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14]
             sample['cgroup_cpus'] = {'/sys/fs/cgroup/user.slice/cpuset.cpus.effective': '0-6,8-14',
                                     '/sys/fs/cgroup/ekabench.slice/cpuset.cpus.effective': '0-15'}
             sample['cpu_ticks'] = {'cpu15': [0, 0, 0, 100 * index, 0, 0, 0, 0]}
         self.assertTrue(validate_clock(self.report, self.plan)['valid'])
+        for affinity in (None, [7], [15]):
+            bad = copy.deepcopy(self.report)
+            bad['clock_samples'][-1]['monitor_affinity'] = affinity
+            self.assertFalse(validate_clock(bad, self.plan)['valid'])
         bad = copy.deepcopy(self.report)
         bad['clock_samples'][-1]['cpu_ticks']['cpu15'][0] = 10
         self.assertFalse(validate_clock(bad, self.plan)['valid'])

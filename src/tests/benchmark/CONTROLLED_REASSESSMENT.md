@@ -18,18 +18,18 @@ optimization or default is changed by this task.
 
 | # | Phase | Comparison | Original report |
 | ---: | --- | --- | --- |
-| 1 | isolated | compact-dispatch | [DISPATCH_AND_DIVISION_RESULTS](DISPATCH_AND_DIVISION_RESULTS.md) |
-| 2 | isolated | division-digits | [DISPATCH_AND_DIVISION_RESULTS](DISPATCH_AND_DIVISION_RESULTS.md) |
-| 3 | isolated | state-pruning | [RUNTIME_STATE_RESULTS](RUNTIME_STATE_RESULTS.md) |
-| 4 | isolated | trusted-lookup-inline | [RUNTIME_STATE_RESULTS](RUNTIME_STATE_RESULTS.md) |
-| 5 | isolated | entry-only-pruning | [RUNTIME_STATE_RESULTS](RUNTIME_STATE_RESULTS.md) |
-| 6 | isolated | store-only-pruning | [RUNTIME_STATE_RESULTS](RUNTIME_STATE_RESULTS.md) |
-| 7 | isolated | direct-span-two | [DIRECT_SPAN_RESULTS](DIRECT_SPAN_RESULTS.md) |
-| 8 | isolated | direct-span-three | [DIRECT_SPAN_THREE_RESULTS](DIRECT_SPAN_THREE_RESULTS.md) |
-| 9 | isolated | thumb-static | [THUMB_STATIC_REGION_RESULTS](THUMB_STATIC_REGION_RESULTS.md) |
-| 10 | isolated | thumb-transfer-gate | [THUMB_TRANSFER_GATE_RESULTS](THUMB_TRANSFER_GATE_RESULTS.md) |
-| 11 | isolated | batched-counts | [BATCHED_INSTRUCTION_COUNTS](BATCHED_INSTRUCTION_COUNTS.md) |
-| 12 | isolated | span-page-reuse | [SPAN_PAGE_REUSE_RESULTS](SPAN_PAGE_REUSE_RESULTS.md) |
+| 1 | reserved | compact-dispatch | [DISPATCH_AND_DIVISION_RESULTS](DISPATCH_AND_DIVISION_RESULTS.md) |
+| 2 | reserved | division-digits | [DISPATCH_AND_DIVISION_RESULTS](DISPATCH_AND_DIVISION_RESULTS.md) |
+| 3 | reserved | state-pruning | [RUNTIME_STATE_RESULTS](RUNTIME_STATE_RESULTS.md) |
+| 4 | reserved | trusted-lookup-inline | [RUNTIME_STATE_RESULTS](RUNTIME_STATE_RESULTS.md) |
+| 5 | reserved | entry-only-pruning | [RUNTIME_STATE_RESULTS](RUNTIME_STATE_RESULTS.md) |
+| 6 | reserved | store-only-pruning | [RUNTIME_STATE_RESULTS](RUNTIME_STATE_RESULTS.md) |
+| 7 | reserved | direct-span-two | [DIRECT_SPAN_RESULTS](DIRECT_SPAN_RESULTS.md) |
+| 8 | reserved | direct-span-three | [DIRECT_SPAN_THREE_RESULTS](DIRECT_SPAN_THREE_RESULTS.md) |
+| 9 | reserved | thumb-static | [THUMB_STATIC_REGION_RESULTS](THUMB_STATIC_REGION_RESULTS.md) |
+| 10 | reserved | thumb-transfer-gate | [THUMB_TRANSFER_GATE_RESULTS](THUMB_TRANSFER_GATE_RESULTS.md) |
+| 11 | reserved | batched-counts | [BATCHED_INSTRUCTION_COUNTS](BATCHED_INSTRUCTION_COUNTS.md) |
+| 12 | reserved | span-page-reuse | [SPAN_PAGE_REUSE_RESULTS](SPAN_PAGE_REUSE_RESULTS.md) |
 | 13 | architecture | dynamic-rom-cohorts | [DYNAMIC_ROM_COHORT_TIMING_RESULTS](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) |
 | 14 | architecture | sparse-rom-lookup | [SPARSE_ROM_LOOKUP_TIMING_RESULTS](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
 | 15 | architecture | compiled-syscalls | [COMPILED_SVC_TIMING_RESULTS](COMPILED_SVC_TIMING_RESULTS.md) |
@@ -170,3 +170,29 @@ the first invocation stopped and restored the host. `isolated-host-resume1.json`
 records the explicit resume. The resumed driver waits for known compiler/build
 processes before each trial; this start rule does not retroactively discard
 valid observations. The same frozen plan and measurement-validity limits apply.
+
+## Corrected support-thread isolation
+
+A live `/proc` check found the Python measurement process allowed on CPUs 0-15,
+with last CPU 15. It and its clock thread were inside the benchmark cgroup, so
+excluding other cgroups did not isolate the core from the measurement machinery.
+The Chrome support threads themselves were correctly excluded. This gap could
+interfere with the guest worker; it is not an established explanation for any
+particular slow observation.
+
+The old `isolated` cohort is preserved in full as
+[preliminary results](CONTROLLED_PRELIMINARY_RESULTS.md), with 48 observations
+valid under its earlier rules plus all invalid observations and interrupted
+artifacts. No selected slow result is removed. All completed pairs are repeated
+in a fresh `reserved` phase. Its plan requires controller and monitor affinity
+to exclude the reserved CPUs. Later, not-yet-started phase plans require the
+same check. `reserved-plan.json` and `reserved-runs/` identify the corrected
+campaign, while old paths and hashes remain intact.
+
+The frequency helper now gives itself and its children the support CPU mask.
+The scheduler probe also pins itself before spawning its monitoring thread,
+and records that monitor's actual affinity in every sample. A live failing-child
+test confirmed the child inherited only support CPUs and host policy/masks were
+restored afterward; the unit validator rejects missing or conflicting monitor
+affinity. Three fresh Snakes browser runs also passed: every clock sample recorded worker
+affinity `[7]` and monitor affinity `[0,1,2,3,4,5,6,8,9,10,11,12,13,14]`.

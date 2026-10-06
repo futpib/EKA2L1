@@ -165,6 +165,8 @@ def main():
     support_cpus = set(map(int, args.support_cpus.split(','))) if args.support_cpus else None
     if support_cpus is not None and (not support_cpus or args.worker_cpu in support_cpus):
         p.error('Support CPUs must be nonempty and exclude the guest CPU')
+    if support_cpus is not None:
+        os.sched_setaffinity(0, support_cpus)
     output = args.output.resolve()
     output.mkdir()
     gate = output / 'resume'
@@ -227,6 +229,7 @@ def main():
                                 for name, fd in fds.items():
                                     row[name] = list(struct.unpack('=QQQ', os.read(fd, 24)))
                                 row['affinity'] = sorted(os.sched_getaffinity(worker['tid']))
+                                row['monitor_affinity'] = sorted(os.sched_getaffinity(0))
                                 policy = Path(f'/sys/devices/system/cpu/cpufreq/policy{args.worker_cpu}')
                                 row['policy'] = {name: (policy / name).read_text().strip() for name in
                                                  ('scaling_governor', 'scaling_min_freq', 'scaling_max_freq')}

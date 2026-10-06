@@ -10,6 +10,11 @@ Use `fixed_frequency.py` to request equal minimum and maximum CPU frequencies
 for the duration of the command. On the benchmark host, CPU 7 and SMT sibling
 15 form one physical core. The guest worker runs on CPU 7; other benchmark
 threads and unrelated user-space cgroups use the remaining CPUs. The root
+helper and comparison controller also inherit this support-only CPU mask. The
+Python measurement process pins itself before spawning its clock-monitor thread;
+every clock sample checks that monitor's affinity too. Reserving a core from
+other cgroups alone would still leave these measuring processes eligible for it.
+The root
 helper must run in the top-level `ekabench.slice`, so it can reserve the core
 without restricting its own child. It restores the saved frequency policies
 and CPU placement after completion, failure or a handled interruption.

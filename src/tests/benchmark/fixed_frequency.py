@@ -102,6 +102,10 @@ def main():
     try:
         for path, values in placements.items():
             write(path, values['requested'])
+        if args.isolate_cpus:
+            record['helper_affinity_before'] = sorted(os.sched_getaffinity(0))
+            os.sched_setaffinity(0, allowed)
+            record['helper_affinity'] = sorted(os.sched_getaffinity(0))
         for path in before:
             write(Path(path) / 'scaling_governor', 'performance')
         for attempt in range(5):

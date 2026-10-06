@@ -59,7 +59,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('campaign_root', type=Path)
     parser.add_argument('output_stem', type=Path)
-    parser.add_argument('--phases', nargs='+', default=['isolated', 'architecture', 'extended', 'inlining', 'memory'])
+    parser.add_argument('--phases', nargs='+', default=['reserved', 'architecture', 'extended', 'inlining', 'memory'])
     args = parser.parse_args()
     data = dict(phases={}, comparisons=[], observations=[])
     for phase in args.phases:
@@ -114,6 +114,11 @@ def main():
         'and do not establish the same effect on the current production branch.', '',
         '| # | Experiment | Game | CPU throughput | Wall throughput | Native instructions | Paired CPU range | Faster pairs | Invalid |',
         '| ---: | --- | --- | ---: | ---: | ---: | --- | ---: | ---: |']
+    if 'reserved' in args.phases:
+        lines[4:4] = ['[Earlier partial-isolation measurements](CONTROLLED_PRELIMINARY_RESULTS.md)',
+            'remain separate: their measurement process could use the reserved core.',
+            'The corrected campaign excludes the monitor and controller too, and checks',
+            'the monitor affinity in every clock sample.', '']
     for index, row in enumerate(complete, 1):
         pairs = row['paired_cpu_throughput_changes_percent']
         game = 'Snakes' if row['game'] == 'standard' else 'Sky Force'
