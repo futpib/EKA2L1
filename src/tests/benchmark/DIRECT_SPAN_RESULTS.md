@@ -6,6 +6,9 @@ both pairs. The production compiler is restored. The complete implementation
 and tests remain in the evidence file's `source_patch`; no runtime option or
 LAN deployment is added.
 
+The [three-access follow-up](DIRECT_SPAN_THREE_RESULTS.md) raises only the
+selection threshold and repeats the comparison against production.
+
 ## Implementation
 
 The candidate extends the existing ARM entry-span proof in direct mode:

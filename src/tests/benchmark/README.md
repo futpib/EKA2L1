@@ -137,6 +137,8 @@ proofs, predictable pointer updates and spans larger than a page inside the
 arena. It passed correctness checks but was not adopted: Snakes had no
 repeatable CPU gain and Sky Force used 2.85% more worker CPU. Its implementation,
 tests and complete measurements are preserved in the evidence file.
+The [three-access follow-up](DIRECT_SPAN_THREE_RESULTS.md) also found no
+repeatable Snakes gain and 2.44% more Sky Force worker CPU; it remains unadopted.
 
 Allocation-range mode, standalone flat-page mode, earlier direct variants and
 delayed activation have been removed. Values 1 and 3 are rejected. Remove
