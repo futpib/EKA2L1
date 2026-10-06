@@ -105,15 +105,17 @@ export function profileCost(directory) {
         state_finalization:name=>name.includes('state_local_cache::finish'),
         allocation:name=>/malloc|(?:^|::)operator new|emscripten_builtin_free/.test(name)};
     const inclusive_us=Object.fromEntries(Object.keys(categories).map(k=>[k,0]));
-    let guest_self_us=0,sampled_us=0;
+    let rom_self_us=0,ram_self_us=0,private_self_us=0,sampled_us=0;
     for(let i=0;i<profile.samples.length;++i) {
         const id=profile.samples[i],dt=profile.timeDeltas[i],ancestors=[];
         assert(nodes.has(id)&&dt>=0);sampled_us+=dt;
-        if(/^f_\d+$/.test(names(id)))guest_self_us+=dt;
+        if(/^f_\d+$/.test(names(id)))rom_self_us+=dt;
+        if(/^r_\d+_pc_\d+$/.test(names(id)))ram_self_us+=dt;
+        if(/^f_\d+_(?:budget_short|memory_fallback)$/.test(names(id)))private_self_us+=dt;
         for(let n=id;n!==undefined;n=parents.get(n))ancestors.push(names(n));
         for(const [category,predicate]of Object.entries(categories))
             if(ancestors.some(predicate))inclusive_us[category]+=dt;
     }
-    return {file,sha256:sha256(raw),sampled_us,guest_self_us,inclusive_us,
+    return {file,sha256:sha256(raw),sampled_us,guest_self_us:rom_self_us+ram_self_us+private_self_us,rom_self_us,ram_self_us,private_self_us,inclusive_us,
         scope:'Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection.'};
 }

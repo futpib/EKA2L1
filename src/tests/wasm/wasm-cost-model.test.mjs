@@ -40,19 +40,22 @@ assert.equal(comparisons.fixtures['local savings'].class_growth.control,1);
 assert.equal(comparisons.fixtures['local savings'].growth_examples.control.context.budget,2);
 assert.throws(()=>comparisons.add('incomplete',{operations:0,classes:{}},{operations:0,classes:{}}),/incomplete/);
 
-function relocated(extra,value=7) {
+function relocated(extra,value=7,name='f_4096',includeRam=false) {
     const out=[0,97,115,109,1,0,0,0],section=(id,b)=>out.push(id,b.length,...b);
     section(1,[1,0x60,1,0x7f,1,0x7f]);
     const bodies=[[0,0x20,0,0x10,extra?2:1,0x0b],
         ...(extra?[[0,0x41,0,0x0b]]:[]),[0,0x20,0,0x41,value,0x6a,0x0b]];
     section(3,[bodies.length,...bodies.map(()=>0)]);
-    section(7,[1,6,...Buffer.from('f_4096'),0,0]);
+    section(7,[1,name.length,...Buffer.from(name),0,0]);
     section(10,[bodies.length,...bodies.flatMap(b=>[b.length,...b])]);
-    const bytes=Uint8Array.from(out);assert(WebAssembly.validate(bytes));return moduleCosts(bytes).f_4096;
+    const bytes=Uint8Array.from(out);assert(WebAssembly.validate(bytes));return moduleCosts(bytes,{includeRam})[name];
 }
 const original=relocated(false),moved=relocated(true),changed=relocated(false,8);
 assert.notEqual(original.raw_sha256,moved.raw_sha256);
 assert.equal(original.normalized_sha256,moved.normalized_sha256);
 assert.notEqual(original.normalized_sha256,changed.normalized_sha256);
 assert.equal(original.operations,2);
+assert.equal(relocated(false,7,'r_1_pc_4096'),undefined);
+assert.equal(relocated(false,7,'r_1_pc_4096',true).normalized_sha256,original.normalized_sha256);
+assert.equal(relocated(false,7,'r_other',true),undefined);
 console.log('PASS shared WASM cost specification, decoding and executed class counters');

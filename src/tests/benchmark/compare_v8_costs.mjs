@@ -22,7 +22,7 @@ const result={scope:'Static native inventories of sampled changed functions, not
 for(const row of [...input.changed].sort((a,b)=>b.before_self_us+b.after_self_us-a.before_self_us-a.after_self_us).slice(0,Number(limit))) {
     const native={};
     for(const variant of ['before','after']) {
-        const file=path.join(input[variant].directory,row[variant].module),wasm=moduleCosts(fs.readFileSync(file))[row.name];
+        const file=path.join(input[variant].directory,row[variant].module),wasm=moduleCosts(fs.readFileSync(file),{includeRam:true})[row.name];
         assert.equal(wasm.normalized_sha256,row[variant].normalized_sha256,'Module comparison is stale');
         native[variant]=await lowerWithChromium(file,wasm.function_index,path.resolve(output,`${row.name}-${variant}`),wrapper);
     }

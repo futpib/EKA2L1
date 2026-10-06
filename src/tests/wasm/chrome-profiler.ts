@@ -72,8 +72,9 @@ export class ChromeTrace {
 // Decode them after capture, retaining the raw identity and module URL; RAM
 // versions at the same guest PC must not be merged. A PC is not an instruction
 // offset or a DLL name, and an entry can include inlined guest callees.
+// Private fallback names carry a PC but no version; retain their module identity.
 export function guestEntry(name: string) {
-  const rom = /^f_(\d+)$/.exec(name);
+  const rom = /^f_(\d+)(?:_(?:budget_short|memory_fallback))?$/.exec(name);
   const ram = /^r_(\d+)_pc_(\d+)$/.exec(name);
   if (!rom && !ram) return null;
   const address = Number(rom ? rom[1] : ram![2]);

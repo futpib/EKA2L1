@@ -10,7 +10,7 @@ function reader(bytes) {
         string(){return Buffer.from(this.take(this.u())).toString('utf8');},
         limits(){const flags=this.u();if(flags&~3)throw Error('Unsupported memory limits');this.u();if(flags&1)this.u();}};
 }
-export function moduleCosts(bytes) {
+export function moduleCosts(bytes,{includeRam=false}={}) {
     if(Buffer.from(bytes.subarray(0,8)).toString('hex')!=='0061736d01000000')throw Error('Bad WASM header');
     const file=reader(bytes);file.pos=8;
     const imports=[],exports=new Map(),bodies=[];
@@ -54,6 +54,7 @@ export function moduleCosts(bytes) {
             body_bytes:body.length,locals,operations,classes};
         memo.set(index,result);pending.delete(index);return result;
     }
-    return Object.fromEntries([...exports].filter(([index,name])=>index>=imports.length&&name.startsWith('f_'))
+    return Object.fromEntries([...exports].filter(([index,name])=>index>=imports.length
+        &&(name.startsWith('f_')||(includeRam&&/^r_\d+_pc_\d+$/.test(name))))
         .map(([index,name])=>[name,analyze(index)]));
 }

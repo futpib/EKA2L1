@@ -36,10 +36,13 @@ try {
     fs.writeFileSync(path.join(dir,'capture-worker.json'),JSON.stringify({selected:'worker-7'}));
     const node=(id,name,children=[])=>({id,callFrame:{functionName:name},children});
     fs.writeFileSync(path.join(dir,'worker-7.cpuprofile'),JSON.stringify({nodes:[
-        node(1,'root',[2,5]),node(2,'translate_arm',[3]),node(3,'state_local_cache::finish',[4]),
-        node(4,'malloc'),node(5,'f_4096')],samples:[4,3,2,5],timeDeltas:[10,20,30,40]}));
+        node(1,'root',[2,5,6,7,8,9]),node(2,'translate_arm',[3]),node(3,'state_local_cache::finish',[4]),
+        node(4,'malloc'),node(5,'f_4096'),node(6,'r_7_pc_4096'),node(7,'f_8192_budget_short'),
+        node(8,'f_8192_memory_fallback'),node(9,'not_guest_f_8192')],
+        samples:[4,3,2,5,6,7,8,9],timeDeltas:[10,20,30,40,50,60,70,80]}));
     const p=profileCost(dir);
-    assert.equal(p.sampled_us,100);assert.equal(p.guest_self_us,40);
+    assert.equal(p.sampled_us,360);assert.equal(p.guest_self_us,220);
+    assert.equal(p.rom_self_us,40);assert.equal(p.ram_self_us,50);assert.equal(p.private_self_us,130);
     assert.deepEqual(p.inclusive_us,{translation:60,state_finalization:30,allocation:10});
 } finally {fs.rmSync(dir,{recursive:true,force:true});}
 console.log('PASS native inventory and overlapping compiler profile attribution');

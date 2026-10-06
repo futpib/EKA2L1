@@ -6,7 +6,9 @@ test('guest identities retain RAM versions and reject non-address names', () => 
   assert.equal(guestEntry('f_2149177368')?.pc, '0x8019d818');
   assert.equal(guestEntry('f_4097')?.pc, '0x00001000');
   assert.equal(guestEntry('r_42_pc_4096')?.version, 42);
-  for (const name of ['f_4294967296', 'f_-1', 'f_12x', 'wasm-function[9]', 'rom_dispatch'])
+  assert.equal(guestEntry('f_4096_budget_short')?.pc, '0x00001000');
+  assert.equal(guestEntry('f_8192_memory_fallback')?.pc, '0x00002000');
+  for (const name of ['f_4294967296', 'f_-1', 'f_12x', 'f_4096_unknown', 'wasm-function[9]', 'rom_dispatch'])
     assert.equal(guestEntry(name), null);
 });
 
@@ -31,4 +33,9 @@ test('time weighting preserves distinct stacks and modules; labels do not alter 
   assert.deepEqual(labelled.timeDeltas, original.timeDeltas);
   assert.equal(labelled.nodes[0].callFrame.functionName, 'guest 0x00001000 [f_4096]');
   assert.equal(labelled.nodes[2].callFrame.functionName, 'f_4096');
+  const privateProfile = {startTime: 0, endTime: 30, nodes: [
+    frame(1, 'f_4096_budget_short', 'wasm://wasm/one'),
+    frame(2, 'f_4096_memory_fallback', 'wasm://wasm/two'),
+  ], samples: [1, 2], timeDeltas: [10, 20]};
+  assert.equal(summarizeProfile('worker-13', privateProfile).generated_self_us, 30);
 });
