@@ -1,5 +1,9 @@
 # Compact connected Thumb regions
 
+A later [static-count continuation experiment](THUMB_STATIC_REGION_RESULTS.md)
+removes runtime count accounting and enforces a compiler-time cost bound. It
+also did not establish a game-level CPU win; its tested source is preserved.
+
 Neither tested variant is adopted. Production translation and the LAN build
 remain at `bf12facd3`. The broad variant measured **4.40% more Sky Force worker
 CPU**. Keeping selected shapes measured **1.91% less on average**, but the two

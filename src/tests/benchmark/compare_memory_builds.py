@@ -16,6 +16,7 @@ p.add_argument('--reference-root', type=Path, required=True)
 p.add_argument('--games', nargs='+', choices=['standard', 'combat'], default=['standard', 'combat'])
 p.add_argument('--modes', nargs='+', type=int, choices=[0, 2], default=[0, 2])
 p.add_argument('--rounds', type=int, default=2)
+p.add_argument('--window-us', type=int, help='Override the fixed guest-time measurement window')
 a = p.parse_args()
 if a.rounds < 1:
     p.error('Rounds must be positive')
@@ -40,6 +41,8 @@ for game in a.games:
                         '--sky-assets', str(a.sky_assets.resolve()),
                         '--reference-root', str(a.reference_root.resolve()),
                         '--games', game, '--modes', str(mode), '--rounds', '1']
+                if a.window_us is not None:
+                    args += ['--window-us', str(a.window_us)]
                 print('START', name, flush=True)
                 with (a.output / (name + '.log')).open('w') as log:
                     subprocess.run(args, cwd=repo, stdout=log, stderr=subprocess.STDOUT,

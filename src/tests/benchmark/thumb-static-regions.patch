@@ -1,0 +1,767 @@
+diff --git a/src/emu/cpu/include/cpu/aot/state_locals.h b/src/emu/cpu/include/cpu/aot/state_locals.h
+index 5f0acb0ac..558895618 100644
+--- a/src/emu/cpu/include/cpu/aot/state_locals.h
++++ b/src/emu/cpu/include/cpu/aot/state_locals.h
+@@ -2,6 +2,7 @@
+
+ #include <cpu/aot/thumb_translator.h>
+ #include <map>
++#include <memory>
+ #include <set>
+
+ namespace eka2l1::arm::aot {
+@@ -11,13 +12,25 @@ namespace eka2l1::arm::aot {
+         bool enabled = false;
+         bool runtime_fields = false;
+         bool program_counter = false;
++        // A specialized emitter assigns PC before every observation. Callback
++        // reloads still include it; only the initial dead read is omitted.
++        bool omit_entry_pc = false;
+         // A result block carries the instruction count to one final writeback.
+         // Helper barriers still flush/reload at their original positions.
+         bool shared_return = false;
+         std::uint32_t first_local = 0;
+         std::map<std::uint32_t, std::uint32_t> locals;
+         std::set<std::uint32_t> written;
+-        struct barrier { std::size_t position; bool reload; };
++        struct transfer_scope {
++            std::set<std::uint32_t> reads, writes;
++            bool memory = false;
++        };
++        std::shared_ptr<const transfer_scope> entry_scope, active_scope;
++        struct barrier {
++            std::size_t position;
++            bool reload;
++            std::shared_ptr<const transfer_scope> scope;
++        };
+         std::vector<barrier> barriers;
+         // Re-establish derived memory locals at entry and after every helper.
+         std::vector<std::uint8_t> reload_suffix;
+@@ -39,7 +52,7 @@ namespace eka2l1::arm::aot {
+             return slot;
+         }
+         void barrier_at(std::size_t position, bool reload = false) {
+-            if (enabled) barriers.push_back({position, reload});
++            if (enabled) barriers.push_back({position, reload, active_scope});
+         }
+         static void leb(std::vector<std::uint8_t> &out, std::uint32_t value) {
+             do {
+@@ -48,8 +61,11 @@ namespace eka2l1::arm::aot {
+                 out.push_back(byte | (value ? 128 : 0));
+             } while (value);
+         }
+-        void transfer(std::vector<std::uint8_t> &out, bool reload) const {
++        void transfer(std::vector<std::uint8_t> &out, bool reload, bool entry = false,
++                const transfer_scope *scope = nullptr) const {
+             for (const auto &[offset, slot] : locals) {
++                if (scope && !(reload ? scope->reads : scope->writes).count(offset)) continue;
++                if (entry && omit_entry_pc && offset == state_offsets::PC) continue;
+                 if (!reload && !written.count(offset)) continue;
+                 out.push_back(op_local_get); leb(out, 0);
+                 if (reload) {
+@@ -60,30 +76,40 @@ namespace eka2l1::arm::aot {
+                     out.push_back(op_i32_store); leb(out, 2); leb(out, offset);
+                 }
+             }
+-            if (reload) out.insert(out.end(), reload_suffix.begin(), reload_suffix.end());
++            if (reload && (!scope || scope->memory)) out.insert(out.end(), reload_suffix.begin(), reload_suffix.end());
+         }
+         void finish(wasm_func_def &function) {
+             if (!enabled) return;
+
+             std::vector<std::uint8_t> body;
+-            transfer(body, true);
++            transfer(body, true, true, entry_scope.get());
+             if (shared_return) { body.push_back(op_block); body.push_back(type_i32); }
+             // Segment call operands were recorded before deferred barriers.
+             // Relocate them using the final cache layout, before inserting bytes.
+             std::vector<std::uint8_t> flush;
+             transfer(flush, false);
+-            const auto reload_size = body.size() - (shared_return ? 2u : 0u);
++            auto reload_size = body.size() - (shared_return ? 2u : 0u);
++            if (!function.outlined_calls.empty()) {
++                std::vector<std::uint8_t> reload;
++                transfer(reload, true);
++                reload_size = reload.size();
++            }
+             for (auto &call : function.outlined_calls) {
+                 const auto original = call.call_offset;
+                 call.call_offset += static_cast<std::uint32_t>(body.size());
+-                for (const auto &point : barriers) if (point.position <= original)
+-                    call.call_offset += static_cast<std::uint32_t>(point.reload ? reload_size : flush.size());
++                for (const auto &point : barriers) if (point.position <= original) {
++                    if (point.scope) {
++                        std::vector<std::uint8_t> scoped;
++                        transfer(scoped, point.reload, false, point.scope.get());
++                        call.call_offset += static_cast<std::uint32_t>(scoped.size());
++                    } else call.call_offset += static_cast<std::uint32_t>(point.reload ? reload_size : flush.size());
++                }
+             }
+             std::size_t previous = 0;
+             for (const auto &point : barriers) {
+                 body.insert(body.end(), function.body.begin() + previous,
+                     function.body.begin() + point.position);
+-                transfer(body, point.reload);
++                transfer(body, point.reload, false, point.scope.get());
+                 previous = point.position;
+             }
+             body.insert(body.end(), function.body.begin() + previous, function.body.end());
+diff --git a/src/emu/cpu/include/cpu/aot/thumb_translator.h b/src/emu/cpu/include/cpu/aot/thumb_translator.h
+index 8a6201c60..02d17b996 100644
+--- a/src/emu/cpu/include/cpu/aot/thumb_translator.h
++++ b/src/emu/cpu/include/cpu/aot/thumb_translator.h
+@@ -30,6 +30,8 @@
+ namespace eka2l1::arm::aot {
+     // Pre-initialization experiment, shared by eager ROM and hot translations.
+     inline bool thumb_direct_memory = false;
++    // Translation-time policy; accepted continuations have constant counts.
++    inline bool thumb_static_regions = true;
+     // ARMul_State field offsets (must match the actual struct layout)
+     struct state_offsets {
+         static constexpr std::uint32_t REG = 0;          // Reg[0]
+@@ -79,6 +81,8 @@ namespace eka2l1::arm::aot {
+         bool entry_supported = true;
+         // Research coverage metadata; never used to select guest addresses.
+         unsigned proved_reads = 0, proved_writes = 0, budget_chunks = 0, loop_budget_chunks = 0;
++        unsigned static_edges = 0;
++        int static_cost_bound = 0;
+         bool complete;  // true if entire block was translated without bailing
+         // Addresses where execution may resume after a bail-out call
+         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling
+diff --git a/src/emu/cpu/src/aot/thumb_translator.cpp b/src/emu/cpu/src/aot/thumb_translator.cpp
+index b53dabd1b..302ba5969 100644
+--- a/src/emu/cpu/src/aot/thumb_translator.cpp
++++ b/src/emu/cpu/src/aot/thumb_translator.cpp
+@@ -88,6 +88,9 @@ namespace eka2l1::arm::aot {
+         std::vector<std::uint8_t> &b;
+         state_local_cache cache;
+         bool direct_memory = false;
++        unsigned helper_calls = 0;
++        bool capture_returns = false;
++        std::set<std::size_t> return_constants;
+         static constexpr unsigned ADDRESS = 7, VALUE = 8, HOST = 9, ENTRY = 10, SPAN_HOST = 11;
+         static constexpr unsigned M=12;
+         bool span_active = false;
+@@ -167,6 +170,7 @@ namespace eka2l1::arm::aot {
+
+         // Call imported function (index relative to imports)
+         void slow_call(std::uint32_t func_idx) {
++            ++helper_calls;
+             cache.barrier_at(b.size());
+             op(op_call); leb(b, func_idx);
+             cache.barrier_at(b.size(), true);
+@@ -311,6 +315,7 @@ namespace eka2l1::arm::aot {
+         // Bail: set PC, return instruction count (normal control flow exit)
+         void bail(std::uint32_t pc, std::uint32_t instr_count, unsigned why=exit_census::control) {
+             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
++            if (capture_returns) return_constants.insert(b.size());
+             i32_const(static_cast<std::int32_t>(instr_count));
+             ret(why);
+             bail_count++;
+@@ -321,6 +326,7 @@ namespace eka2l1::arm::aot {
+         // Leaves the state's PC alone so the interpreter dispatches at the
+         // computed target instead of re-running the current instruction.
+         void bail_preserve_pc(std::uint32_t instr_count) {
++            if (capture_returns) return_constants.insert(b.size());
+             i32_const(static_cast<std::int32_t>(instr_count));
+             ret();
+             bail_count++;
+@@ -683,12 +689,40 @@ namespace eka2l1::arm::aot {
+         return targets;
+     }
+
+-    translate_result translate_thumb_block(
++    struct thumb_metrics {
++        state_local_cache cache;
++        bool memory = false;
++        unsigned helpers = 0;
++        std::vector<std::uint8_t> semantic;
++        std::vector<state_local_cache::barrier> barriers;
++        std::set<std::size_t> returns;
++    };
++
++    // Capture the existing opcode lowering before its deferred state barriers
++    // are inserted. The static-region compiler reuses it without reimplementing
++    // ARM semantics. One-instruction calls are the only capture users.
++    struct thumb_capture {
++        emit &w;
++        thumb_metrics *out;
++        std::size_t begin;
++        ~thumb_capture() {
++            if (!out) return;
++            out->semantic.assign(w.b.begin() + begin, w.b.end());
++            for (const auto &p : w.cache.barriers)
++                if (p.position >= begin && p.position <= w.b.size())
++                    out->barriers.push_back({p.position - begin, p.reload});
++            for (auto p : w.return_constants)
++                if (p >= begin && p < w.b.size()) out->returns.insert(p - begin);
++        }
++    };
++
++    static translate_result translate_thumb_impl(
+         const std::uint8_t *code,
+         std::size_t code_size,
+         std::uint32_t start_address,
+         const sibling_map *siblings,
+-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers)
++        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers,
++        thumb_metrics *metrics = nullptr, bool capture = false)
+     {
+         // Bounded blocks exit on branches instead of recursively calling siblings.
+         // Keep guest-visible instructions (including veneers) in the execution stream.
+@@ -711,6 +745,7 @@ namespace eka2l1::arm::aot {
+
+         emit w{result.body};
+         w.direct_memory = direct_memory;
++        w.capture_returns = capture;
+         w.cache.enabled = bounded && cache_registers;
+         // Keep repeated PC, budget, endian and TLB accesses in locals. Slow
+         // callbacks still publish/reload the complete cached state.
+@@ -950,6 +985,7 @@ namespace eka2l1::arm::aot {
+                 }
+             }
+
++            thumb_capture semantic{w, capture ? metrics : nullptr, w.b.size()};
+             if (bounded && emit_bounded_alu(w, insn)) {
+                 ++insn_idx;
+                 decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+@@ -4364,6 +4400,11 @@ namespace eka2l1::arm::aot {
+         else { w.i32_const(num_insns); w.ret(); }
+
+         finish_memory_locals(w);
++        if (metrics) {
++            metrics->cache = w.cache;
++            metrics->memory = w.direct_memory_used;
++            metrics->helpers = w.helper_calls;
++        }
+         w.cache.finish(result);
+         tr.entry_supported = w.entry_supported;
+         tr.complete = !w.unsupported;
+@@ -4371,4 +4412,6 @@ namespace eka2l1::arm::aot {
+         tr.bail_count = w.bail_count;
+         return tr;
+     }
++#include "thumb_static_regions.inc"
++
+ }
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+index 019b438de..4c0fd8a4a 100644
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -5181,6 +5181,210 @@ static bool test_memory_implementations() {
+     return true;
+ }
+
++
++#ifdef __EMSCRIPTEN__
++EM_JS(int, js_run_thumb_chain, (const std::uint8_t *bytes, unsigned size, unsigned *state, unsigned budget), {
++    const mod = new WebAssembly.Module(new Uint8Array(HEAPU8.subarray(bytes, bytes + size)));
++    const instance = new WebAssembly.Instance(mod, {env: {memory: wasmMemory,
++        tlb_read32: Module._test_tlb_read32, tlb_write32: Module._test_tlb_write32,
++        tlb_read8: Module._test_tlb_read8, tlb_write8: Module._test_tlb_write8,
++        tlb_read16: Module._test_tlb_read16, tlb_write16: Module._test_tlb_write16}});
++    budget >>>= 0;
++    let executed = 0, first = true;
++    for (let calls = 0; calls < 1024; calls++) {
++        const pc = HEAPU32[(state + 60) / 4];
++        const fn = instance.exports['f_' + pc];
++        if (!fn || (!first && executed >= budget)) break;
++        HEAPU32[(state + 848) / 4] = budget - executed;
++        const n = fn(state) >>> 0;
++        if (n > budget - executed) return -1;
++        executed += n; first = false;
++        if (!n || (HEAPU32[(state+840)/4] === 0 && HEAPU32[(state+844)/4] === 0)
++            || (HEAPU32[(state+876)/4] === 0 && !(HEAPU32[(state+784)/4] & 128))) break;
++    }
++    return executed;
++});
++EM_JS(void, js_export_thumb_regions, (const char *name, unsigned variant, const std::uint8_t *bytes, unsigned size), {
++    console.log('THUMB_REGIONS ' + JSON.stringify({name:UTF8ToString(name),variant,
++        wasm:Buffer.from(HEAPU8.subarray(bytes,bytes+size)).toString('base64')}));
++});
++#endif
++
++static bool test_thumb_static_regions(bool export_probes = false) {
++#ifdef __EMSCRIPTEN__
++    struct restore {
++        bool connected=thumb_static_regions, direct=thumb_direct_memory;
++        unsigned memory=memory_experiment::mode, unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
++        ~restore(){thumb_static_regions=connected;thumb_direct_memory=direct;
++            memory_experiment::mode=memory;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
++            g_test_mem=nullptr;g_read32_observer={};}
++    } saved;
++    memory_experiment::mode=2;eka2l1::common::code_tracking::unsafe_code_mode=3;
++    thumb_direct_memory=true;
++    const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
++    std::vector<std::pair<std::string,std::vector<std::uint16_t>>> programs={
++        {"diamond",{0x2800,0xd101,0x2201,0xe000,0x2202,0x601a,0x4770}},
++        {"loop",{0x3801,0xd1fd,0x4770}},
++        {"infinite",{0xe7fe}},
++        {"nested",{0x2800,0xd103,0x2900,0xd103,0x2201,0xe002,0x2202,0xe000,0x2203,0x4770}},
++        {"literal_gap",{0xe001,0xffff,0xffff,0x2201,0x4770}},
++        {"early_return",{0x2800,0xd100,0x4770,0x3001,0x4770}},
++        {"load_loop",{0x681a,0x3001,0x2804,0xd1fb,0x4770}},
++        {"store_loop",{0x6018,0x3001,0x2804,0xd1fb,0x4770}},
++        {"join_load",{0x681a,0x2a00,0xd101,0x2201,0xe000,0x2202,0x681c,0x4770}},
++        {"stack_diamond",{0xb510,0x2800,0xd101,0x2401,0xe000,0x2402,0x602c,0xbd10}},
++        {"nonentry_backedge",{0x2200,0x3201,0x2a03,0xd1fc,0x4770}},
++        {"outside_branch",{0x2800,0xd17f,0x2900,0xd100,0x2201,0x4770}},
++    };
++    for(bool memory : {false,true}) {
++        std::vector<std::uint16_t> code{0x4674}; // MOV r4,lr
++        if(memory)code.push_back(0x681a); // LDR r2,[r3]
++        for(unsigned i=0;i<12;++i)code.push_back(0x2201);
++        auto conditional=code;
++        conditional.insert(conditional.end(),{0x2800,0xd100,0x4770,0x681a,0x4770});
++        if(!memory)conditional[conditional.size()-2]=0x2202;
++        programs.push_back({memory?"long_memory":"long_conditional",conditional});
++        code.insert(code.end(),{0xe001,0xffff,0xffff,0x2202,0x4770});
++        programs.push_back({memory?"long_memory_jump":"long_jump",code});
++    }
++    for(unsigned cond=0;cond<14;++cond) {
++        std::vector<std::uint16_t> code(13,0x4612); // MOV r2,r2 preserves flags
++        code.insert(code.end(),{std::uint16_t(0xd000|(cond<<8)),0x4770,0x2202,0x4770});
++        programs.push_back({"condition_"+std::to_string(cond),code});
++    }
++    for(auto [name,body]:std::vector<std::pair<std::string,std::vector<std::uint16_t>>>{
++            {"tail_memory",{0x681a,0x685c,0x6018,0x4770}},
++            {"tail_widths",{0x781a,0x881c,0x7018,0x801c,0x4770}},
++            {"tail_stack",{0xb510,0x2403,0xbd10}},
++            {"tail_multiple",{0xc305,0x3b08,0xcb05,0x4770}}}) {
++        std::vector<std::uint16_t> code{0x681a};
++        code.insert(code.end(),13,0x2201);
++        code.insert(code.end(),{0xe001,0xffff,0xffff});
++        code.insert(code.end(),body.begin(),body.end());
++        programs.push_back({name,code});
++    }
++    unsigned checks=0,accepted=0;
++    for(const auto &[name,ops]:programs) {
++        const auto *code=reinterpret_cast<const std::uint8_t*>(ops.data());
++        const auto size=ops.size()*2;
++        std::vector<std::uint8_t> modules[2];
++        for(unsigned variant=0;variant<2;++variant) {
++            thumb_static_regions=variant;
++            std::vector<wasm_func_def> funcs;
++            for(unsigned off=0;off<size;off+=2) {
++                auto tr=translate_thumb_block(code+off,size-off,0x1000+off,nullptr,nullptr,true,false,true);
++                if(variant && tr.static_edges) {
++                    ++accepted;
++                    if(tr.static_cost_bound>0)return false;
++                    if(off==0)printf("STATIC_ACCEPT %s bound=%d\n",name.c_str(),tr.static_cost_bound);
++                }
++                funcs.push_back(std::move(tr.func));
++            }
++            modules[variant]=build_wasm_module(funcs,imports);
++            if(export_probes)js_export_thumb_regions(name.c_str(),variant,modules[variant].data(),modules[variant].size());
++        }
++        if(export_probes)continue;
++        std::vector<unsigned> flag_values{0,15};
++        if(name.rfind("condition_",0)==0) {flag_values.clear();for(unsigned f=0;f<16;++f)flag_values.push_back(f);}
++        std::vector<unsigned> budgets;for(unsigned b=0;b<=40;++b)budgets.push_back(b);
++        if(name.rfind("long_",0)==0 || name.rfind("tail_",0)==0 || name.rfind("condition_",0)==0)
++            budgets.insert(budgets.end(),{0x7fffffffu,0xffffffffu});
++        for(unsigned flags:flag_values)for(unsigned seed:{0u,3u})for(unsigned budget:budgets) {
++            test_mem actual,reference;
++            for(auto *m:{&actual,&reference}) {m->write_code(0x1000,{code,code+size});m->write32(0x8000,seed);}
++            std::array<unsigned,256> states[2]{};
++            int counts[2]{};
++            for(unsigned variant=0;variant<2;++variant) {
++                auto &st=states[variant];
++                st[0]=seed;st[1]=seed;st[3]=st[5]=st[13]=0x8000;st[14]=0x2001;st[15]=0x1000;
++                st[state_offsets::CPSR/4]=(flags<<28)|48;st[state_offsets::MODE/4]=16;
++                st[state_offsets::NFLAG/4]=(flags>>3)&1;st[state_offsets::ZFLAG/4]=(flags>>2)&1;
++                st[state_offsets::CFLAG/4]=(flags>>1)&1;st[state_offsets::VFLAG/4]=flags&1;
++                st[state_offsets::TFLAG/4]=1;st[state_offsets::NIRQ/4]=1;st[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=budget;
++                g_test_mem=variant?&actual:&reference;
++                counts[variant]=js_run_thumb_chain(modules[variant].data(),modules[variant].size(),st.data(),budget);
++                st[state_offsets::AOT_BUDGET/4]=0;
++            }
++            if(counts[0]<0 || counts[0]!=counts[1] || states[0]!=states[1] || actual.data!=reference.data) {
++                printf("FAIL connected chain %s flags=%u seed=%u budget=%u counts=%d,%d\n",name.c_str(),flags,seed,budget,counts[0],counts[1]);
++                for(unsigned j=0;j<256;++j)if(states[0][j]!=states[1][j])printf("field %u: %x vs %x\n",j*4,states[0][j],states[1][j]);
++                return false;
++            }
++            // The independent interpreter verifies exact guest work, rather
++            // than trusting matching translator implementations alone.
++            test_mem interpreted;interpreted.write_code(0x1000,{code,code+size});interpreted.write32(0x8000,seed);
++            r12l1::exclusive_monitor monitor(1);auto cpu=make_cpu(interpreted,monitor);
++            cpu->set_reg(0,seed);cpu->set_reg(1,seed);cpu->set_reg(3,0x8000);cpu->set_reg(5,0x8000);
++            cpu->set_reg(13,0x8000);cpu->set_reg(14,0x2001);cpu->set_reg(15,0x1000);cpu->set_cpsr((flags<<28)|48);
++            if(counts[1])cpu->run(counts[1]);
++            for(unsigned r=0;r<16;++r)if(cpu->get_reg(r)!=(r==15 ? states[1][r] & (states[1][state_offsets::TFLAG/4] ? ~1u : ~3u) : states[1][r])) {
++                printf("FAIL connected interpreter %s seed=%u budget=%u r%u %x vs %x count=%d\n",name.c_str(),seed,budget,r,states[1][r],cpu->get_reg(r),counts[1]);return false;
++            }
++            const auto cpsr=cpu->get_cpsr();
++            for(auto [offset,bit]:{std::pair<unsigned,unsigned>{state_offsets::NFLAG,31},{state_offsets::ZFLAG,30},
++                    {state_offsets::CFLAG,29},{state_offsets::VFLAG,28},{state_offsets::TFLAG,5}})
++                if(states[1][offset/4]!=((cpsr>>bit)&1))return false;
++            if(actual.data!=interpreted.data)return false;
++            ++checks;
++        }
++        // A slow load can request stop/IRQ or change the cached register,
++        // endian and mapping state before an internal branch.
++        if(name=="load_loop" || name=="join_load" || name=="long_memory")for(unsigned change=0;change<6;++change) {
++            std::array<unsigned,256> states[2]{};int counts[2]{};
++            for(unsigned variant=0;variant<2;++variant) {
++                auto &st=states[variant];st[3]=0x8000;st[13]=0x8000;st[14]=0x2001;st[15]=0x1000;
++                st[state_offsets::CPSR/4]=48|(change==2?128:0);st[state_offsets::MODE/4]=16;
++                st[state_offsets::TFLAG/4]=1;st[state_offsets::NIRQ/4]=1;st[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=20;
++                test_mem mem;mem.write32(0x8000,1);g_test_mem=&mem;
++                unsigned calls=0;
++                g_read32_observer=[&](unsigned p,unsigned){if(++calls!=1)return;auto *s=reinterpret_cast<unsigned*>(p);
++                    if(change==0)s[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;
++                    else if(change==1 || change==2)s[state_offsets::NIRQ/4]=0;
++                    else if(change==3){s[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=0;s[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=1;}
++                    else if(change==4){s[0]=2;s[state_offsets::CPSR/4]|=512;}
++                    else s[state_offsets::AOT_BUDGET/4]=3;
++                };
++                counts[variant]=js_run_thumb_chain(modules[variant].data(),modules[variant].size(),st.data(),20);
++                st[state_offsets::AOT_BUDGET/4]=0;g_read32_observer={};
++            }
++            if(counts[0]!=counts[1] || states[0]!=states[1]) {
++                printf("FAIL connected callback %s change=%u counts=%d,%d\n",name.c_str(),change,counts[0],counts[1]);return false;
++            }
++            ++checks;
++        }
++    }
++    if(!accepted){printf("FAIL no static continuation accepted\n");return false;}
++    if(!export_probes)printf("PASS static Thumb regions: %u exact comparisons, %u accepted entries\n",checks,accepted);
++#endif
++    return true;
++}
++
++
++#ifdef __EMSCRIPTEN__
++EM_JS(unsigned, js_static_rom_size, (const char *path), {return require('fs').statSync(UTF8ToString(path)).size;});
++EM_JS(void, js_static_rom_read, (const char *path, std::uint8_t *out), {HEAPU8.set(require('fs').readFileSync(UTF8ToString(path)),out);});
++static int inspect_static_thumb_rom(int argc, char **argv) {
++    std::vector<std::uint8_t> rom(js_static_rom_size(argv[2]));
++    if(rom.size()<0x90)return 1;
++    js_static_rom_read(argv[2],rom.data());
++    unsigned base;std::memcpy(&base,rom.data()+0x8c,4);
++    memory_experiment::mode=2;eka2l1::common::code_tracking::unsafe_code_mode=3;thumb_direct_memory=true;
++    for(int i=3;i<argc;++i) {
++        const unsigned pc=std::strtoul(argv[i],nullptr,0)&~1u;
++        if(pc<base || pc-base>=rom.size())return 1;
++        const auto size=std::min<std::size_t>(512,rom.size()-(pc-base));
++        thumb_static_regions=false;
++        auto before=translate_thumb_block(rom.data()+pc-base,size,pc,nullptr,nullptr,true,false,true);
++        thumb_static_regions=true;
++        auto after=translate_thumb_block(rom.data()+pc-base,size,pc,nullptr,nullptr,true,false,true);
++        printf("STATIC_ROM {\"pc\":%u,\"edges\":%u,\"bound\":%d,\"before_bytes\":%zu,\"after_bytes\":%zu}\n",
++            pc,after.static_edges,after.static_cost_bound,before.func.body.size(),after.func.body.size());
++    }
++    return 0;
++}
++#endif
++
+ int main(int argc, char **argv) {
+     // Production module staging logs its result; standalone tests have no sink.
+     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
+@@ -5202,8 +5406,11 @@ int main(int argc, char **argv) {
+     // Fixtures using raw TLB entries need that backend; direct tests select 2.
+     memory_experiment::mode = 0;
+ #ifdef __EMSCRIPTEN__
++    if(argc>=4 && std::string(argv[1])=="--thumb-static-rom")return inspect_static_thumb_rom(argc,argv);
+     if(argc==2 && std::string(argv[1])=="--emit-memory-probes") {emit_memory_probes();return 0;}
+ #endif
++    if(argc==2 && std::string(argv[1])=="--thumb-static-only")return test_thumb_static_regions()?0:1;
++    if(argc==2 && std::string(argv[1])=="--emit-thumb-static")return test_thumb_static_regions(true)?0:1;
+     if(argc==2 && std::string(argv[1])=="--shared-spans-only")return test_thumb_transfer_spans()
+         && test_thumb_direct_memory() && test_invariant_reads(arm_ir_policy::write_budget_chunks)
+         && test_invariant_writes(arm_ir_policy::write_budget_chunks) && test_block_transfer_callback_pc()?0:1;
+@@ -5880,6 +6087,7 @@ int main(int argc, char **argv) {
+     if (test_arm_exclusive_decode()) passed++; else failed++;
+     if (test_thumb_direct_memory()) passed++; else failed++;
+     if (test_thumb_call_boundaries()) passed++; else failed++;
++    if (test_thumb_static_regions()) passed++; else failed++;
+     if (test_thumb_transfer_spans()) passed++; else failed++;
+     if (test_cached_callback_state()) passed++; else failed++;
+     if (test_msr_privilege_guard()) passed++; else failed++;
+diff --git a/src/emu/cpu/src/aot/thumb_static_regions.inc b/src/emu/cpu/src/aot/thumb_static_regions.inc
+new file mode 100644
+index 000000000..6e6fc00ce
+--- /dev/null
++++ b/src/emu/cpu/src/aot/thumb_static_regions.inc
+@@ -0,0 +1,280 @@
++// Included in the translator namespace to reuse its instruction emitter.
++// All guest counts below are C++ translation-time values, never WASM locals.
++namespace {
++    struct static_thumb_piece {
++        translate_result translation;
++        thumb_metrics metrics;
++    };
++
++    bool static_thumb_opcode(unsigned op) {
++        const unsigned rd = (op & 7) | ((op >> 4) & 8), rm = (op >> 3) & 15;
++        return op < 0x4400 || (op < 0x4700 && rd != 15 && rm != 15)
++            || (op & 0xFF00) == 0x4700 || (op >= 0x4800 && op < 0xB000)
++            || (op & 0xFF00) == 0xB000
++            || ((op & 0xF600) == 0xB400 && (op & 0x1FF))
++            || ((op & 0xF000) == 0xC000 && (op & 0xFF))
++            || (op >= 0xD000 && op < 0xDE00) || (op & 0xF800) == 0xE000;
++    }
++    bool static_thumb_return(unsigned op) {
++        return (op & 0xFF00) == 0x4700 || (op & 0xFF00) == 0xBD00;
++    }
++    unsigned static_thumb_target(unsigned op, unsigned pc) {
++        const int displacement = (op & 0xF800) == 0xE000
++            ? (static_cast<std::int16_t>((op & 0x7FF) << 5) >> 5) * 2
++            : static_cast<std::int8_t>(op & 255) * 2;
++        return pc + 4 + displacement;
++    }
++    bool static_thumb_branch(unsigned op) {
++        return (op >= 0xD000 && op < 0xDE00) || (op & 0xF800) == 0xE000;
++    }
++    void static_thumb_condition(emit &w, unsigned cond) {
++        switch (cond) {
++        case 0: w.load_i32(S::ZFLAG); break;
++        case 1: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); break;
++        case 2: w.load_i32(S::CFLAG); break;
++        case 3: w.load_i32(S::CFLAG); w.op(op_i32_eqz); break;
++        case 4: w.load_i32(S::NFLAG); break;
++        case 5: w.load_i32(S::NFLAG); w.op(op_i32_eqz); break;
++        case 6: w.load_i32(S::VFLAG); break;
++        case 7: w.load_i32(S::VFLAG); w.op(op_i32_eqz); break;
++        case 8: w.load_i32(S::CFLAG); w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.op(op_i32_and); break;
++        case 9: w.load_i32(S::CFLAG); w.op(op_i32_eqz); w.load_i32(S::ZFLAG); w.op(op_i32_or); break;
++        case 10: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); break;
++        case 11: w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); break;
++        case 12: w.load_i32(S::ZFLAG); w.op(op_i32_eqz); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_eq); w.op(op_i32_and); break;
++        case 13: w.load_i32(S::ZFLAG); w.load_i32(S::NFLAG); w.load_i32(S::VFLAG); w.op(op_i32_ne); w.op(op_i32_or); break;
++        }
++    }
++
++    // Remap cached state locals in an unchanged opcode body. Scratch locals and
++    // contained memory-control labels retain their meaning. Return constants are
++    // replaced by the path's statically known guest count.
++    bool copy_static_thumb(emit &w, const thumb_metrics &m, unsigned count) {
++        const auto &bytes = m.semantic;
++        w.bail_count += m.returns.size();
++        std::map<unsigned, unsigned> locals;
++        for (const auto &[field, slot] : m.cache.locals) locals[slot] = w.cache.local(field);
++        w.cache.written.insert(m.cache.written.begin(), m.cache.written.end());
++        w.direct_memory_used |= m.memory;
++        std::size_t p = 0, barrier = 0;
++        unsigned depth = 0;
++        auto uleb = [&]() {
++            unsigned n = 0, shift = 0, b;
++            do { b = bytes.at(p++); n |= (b & 127) << shift; shift += 7; } while (b & 128);
++            return n;
++        };
++        auto skip_leb = [&]() { while (bytes.at(p++) & 128) {} };
++        auto barriers = [&]() {
++            while (barrier < m.barriers.size() && m.barriers[barrier].position == p) {
++                w.cache.barrier_at(w.b.size(), m.barriers[barrier].reload); ++barrier;
++            }
++        };
++        while (p < bytes.size()) {
++            barriers();
++            const auto begin = p;
++            const auto op = bytes[p++];
++            if (op == op_local_get || op == op_local_set || op == op_local_tee) {
++                auto slot = uleb();
++                if (slot >= m.cache.first_local) slot = locals.at(slot);
++                w.op(op); leb(w.b, slot); continue;
++            }
++            if (op == op_i32_const && m.returns.count(begin)) {
++                skip_leb(); w.i32_const(count); continue;
++            }
++            if (op == op_block || op == op_loop || op == op_if) { skip_leb(); ++depth; }
++            else if (op == op_end) { if (!depth) return false; --depth; }
++            else if (op == op_br || op == op_br_if) { if (uleb() >= depth) return false; }
++            else if (op == op_call) uleb();
++            else if (op >= 0x28 && op <= 0x3E) { uleb(); uleb(); }
++            else if (op == op_i32_const || op == op_i64_const) skip_leb();
++            else if (!(op == op_else || op == op_return || op == op_drop || op == op_select
++                    || (op >= 0x45 && op <= 0xC4))) return false;
++            w.b.insert(w.b.end(), bytes.begin() + begin, bytes.begin() + p);
++        }
++        barriers();
++        return !depth && barrier == m.barriers.size();
++    }
++
++    struct static_thumb_compiler {
++        const std::uint8_t *code;
++        std::size_t size;
++        unsigned start;
++        std::map<unsigned, static_thumb_piece> entries, instructions;
++        unsigned chosen = 0, emitted = 0;
++        bool valid = true;
++
++        unsigned opcode(unsigned pc) const { const auto i = pc - start; return code[i] | (code[i + 1] << 8); }
++        static_thumb_piece &entry(unsigned pc) {
++            auto [it, added] = entries.try_emplace(pc);
++            if (added) it->second.translation = translate_thumb_impl(code + (pc - start), size - (pc - start), pc,
++                nullptr, nullptr, true, false, true, &it->second.metrics);
++            return it->second;
++        }
++        static_thumb_piece &instruction(unsigned pc) {
++            auto [it, added] = instructions.try_emplace(pc);
++            if (added) it->second.translation = translate_thumb_impl(code + (pc - start), 2, pc,
++                nullptr, nullptr, true, false, true, &it->second.metrics, true);
++            return it->second;
++        }
++        bool short_entry(unsigned pc) {
++            if (pc < start || pc - start + 1 >= size) return false;
++            const auto &tr = entry(pc).translation;
++            if (!tr.entry_supported || tr.end_address <= pc || tr.end_address - pc > 64) return false;
++            for (auto at = pc; at < tr.end_address; at += 2) if (!static_thumb_opcode(opcode(at))) return false;
++            return true;
++        }
++        void edge_guards(emit &w, unsigned target, unsigned count) {
++            // Test the budget first: an exhausted slice needs no additional
++            // stop/IRQ work. Counts and comparisons remain immediate constants.
++            w.load_i32(S::AOT_BUDGET); w.i32_const(count); w.op(op_i32_le_u);
++            w.op(op_if); w.op(type_void); w.bail(target, count); w.op(op_end);
++            w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
++            w.op(op_i32_or); w.op(op_i32_eqz);
++            w.op(op_if); w.op(type_void); w.bail(target, count); w.op(op_end);
++            w.load_i32(S::NIRQ); w.op(op_i32_eqz);
++            // This narrow subset never changes CPSR control bits itself.
++            // Read it here, without growing entry/callback register transfers.
++            w.state_ptr(); w.op(op_i32_load); leb(w.b, 2); leb(w.b, S::CPSR);
++            w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz); w.op(op_i32_and);
++            w.op(op_if); w.op(type_void); w.bail(target, count); w.op(op_end);
++        }
++        std::shared_ptr<state_local_cache::transfer_scope> scope(unsigned pc) {
++            const auto &m = entries.at(pc).metrics;
++            auto result = std::make_shared<state_local_cache::transfer_scope>();
++            for (const auto &[field, slot] : m.cache.locals) result->reads.insert(field);
++            result->writes = m.cache.written; result->memory = m.memory;
++            return result;
++        }
++        void transition(emit &w, unsigned from, unsigned to) {
++            auto source = scope(from), target = scope(to);
++            auto flush = std::make_shared<state_local_cache::transfer_scope>();
++            for (auto field : source->writes) if (!target->writes.count(field)) flush->writes.insert(field);
++            w.cache.active_scope = flush; w.cache.barrier_at(w.b.size());
++            auto reload = std::make_shared<state_local_cache::transfer_scope>();
++            for (auto field : target->reads) if (!source->reads.count(field)) reload->reads.insert(field);
++            reload->memory = target->memory && !source->memory;
++            w.cache.active_scope = reload; w.cache.barrier_at(w.b.size(), true);
++            w.cache.active_scope = target;
++        }
++        void path(emit &w, unsigned begin, unsigned count, bool continuation) {
++            const auto end = entry(begin).translation.end_address;
++            for (auto pc = begin; pc < end; pc += 2, ++count) {
++                if (++emitted > 64 || count >= 32) { valid = false; return; }
++                const auto op = opcode(pc);
++                w.load_i32(S::AOT_BUDGET); w.i32_const(count); w.op(op_i32_le_u);
++                w.op(op_if); w.op(type_void); w.bail(pc, count); w.op(op_end);
++                if (static_thumb_branch(op)) {
++                    const bool conditional = (op & 0xF800) != 0xE000;
++                    if (conditional) { static_thumb_condition(w, (op >> 8) & 15); w.op(op_if); w.op(type_void); }
++                    const auto target = static_thumb_target(op, pc);
++                    if (pc == chosen && !continuation) {
++                        edge_guards(w, target, count + 1);
++                        transition(w, begin, target); path(w, target, count + 1, true);
++                        w.cache.active_scope = scope(begin);
++                    } else w.bail(target, count + 1);
++                    if (conditional) w.op(op_end);
++                    else return;
++                } else {
++                    const auto &piece = instruction(pc);
++                    if (!piece.translation.complete || !piece.translation.entry_supported || piece.metrics.semantic.empty()) { valid = false; return; }
++                    // Only a callback can observe the current instruction PC.
++                    // Every exit and register branch writes its own outgoing PC.
++                    if (piece.metrics.helpers) w.store_i32_const(S::PC, pc);
++                    if (!copy_static_thumb(w, piece.metrics, count + 1)) { valid = false; return; }
++                    if (static_thumb_return(op)) return;
++                }
++            }
++            w.bail(end, count);
++        }
++
++        // Corresponding opcode bodies and callback transfers are identical.
++        // Only PC publication, entry/exit transfers and edge guards differ.
++        // Each transferred field costs exactly three WASM operations. No credit
++        // is taken for the removed C++ runner/lookup or reused memory setup.
++        bool prove(int &bound) {
++            int worst = -1000000, joined_worst = -1000000;
++            auto exit = [&](int delta, bool joined) {
++                worst = std::max(worst, delta);
++                if (joined) joined_worst = std::max(joined_worst, delta);
++            };
++            auto walk = [&](auto &&self, unsigned begin, int delta, bool joined) -> void {
++                const auto &old = entries.at(begin);
++                for (auto pc = begin; pc < old.translation.end_address; pc += 2) {
++                    const auto op = opcode(pc);
++                    // Old code publishes PC before even its budget test.
++                    exit(delta - 2, joined);
++                    const unsigned helpers = static_thumb_branch(op) ? 0 : instructions.at(pc).metrics.helpers;
++                    if (!helpers) delta -= 2;
++                    if (static_thumb_branch(op)) {
++                        if (pc == chosen && !joined) {
++                            // Budget, stop, IRQ failures cost 4, 11, 21 extra
++                            // operations before the unchanged return sequence.
++                            exit(delta + 4, false);
++                            exit(delta + 11, false);
++                            exit(delta + 21, false);
++                            const auto target = static_thumb_target(op, pc);
++                            auto before = scope(begin), after = scope(target);
++                            unsigned common_reads = 0, common_writes = 0;
++                            for (auto field : after->reads) common_reads += before->reads.count(field);
++                            for (auto field : after->writes) common_writes += before->writes.count(field);
++                            // Remove the four-op return and two-op callee PC_IDX
++                            // initialization, then only transfer nonshared fields.
++                            self(self, target, delta + 21 - 6 - 3 * int(common_reads + common_writes), true);
++                        } else exit(delta, joined);
++                        if ((op & 0xF800) == 0xE000) return;
++                    } else if (static_thumb_return(op)) { exit(delta, joined); return; }
++                }
++                exit(delta, joined);
++            };
++            // Entry keeps precisely the original cache, omitting its dead PC
++            // load (three ops) and unused PC_IDX initialization (two ops).
++            walk(walk, start, -5, false);
++            bound = worst;
++            return worst <= 0 && joined_worst < 0;
++        }
++        translate_result compile(unsigned source) {
++            chosen = source; emitted = 0; valid = true;
++            translate_result result = entries.at(start).translation;
++            result.func.body.clear(); result.func.num_locals = 14;
++            emit w{result.func.body};
++            w.direct_memory = true; w.cache.enabled = true; w.cache.runtime_fields = true;
++            w.cache.program_counter = true; w.cache.omit_entry_pc = true; w.cache.first_local = 15;
++            w.cache.entry_scope = w.cache.active_scope = scope(start);
++            path(w, start, 0, false);
++            if (!valid) return {};
++            finish_memory_locals(w);
++            if (!prove(result.static_cost_bound)) return {};
++            w.cache.finish(result.func);
++            const auto &next = entries.at(static_thumb_target(opcode(source), source)).translation;
++            result.end_address = std::max(result.end_address, next.end_address);
++            result.branch_targets.insert(result.branch_targets.end(), next.branch_targets.begin(), next.branch_targets.end());
++            result.resume_points.insert(result.resume_points.end(), next.resume_points.begin(), next.resume_points.end());
++            result.complete = result.complete && next.complete;
++            result.bail_count = w.bail_count;
++            result.static_edges = 1;
++            return result;
++        }
++    };
++}
++
++translate_result translate_thumb_block(const std::uint8_t *code, std::size_t size, std::uint32_t start,
++        const sibling_map *siblings, const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers) {
++    const bool eligible = thumb_static_regions && bounded && !stop_after_store && cache_registers
++        && thumb_direct_memory && memory_experiment::mode == 2
++        && common::code_tracking::unsafe_code_mode == 3 && !exit_census::enabled;
++    if (!eligible) return translate_thumb_impl(code, size, start, siblings, dll_code, bounded, stop_after_store, cache_registers);
++    static_thumb_compiler compiler{code, size, start};
++    auto &original = compiler.entry(start).translation;
++    if (!compiler.short_entry(start)) return std::move(original);
++    // Later edges have more opportunity to amortize their retained stop checks.
++    for (unsigned pc = original.end_address; pc > start;) {
++        pc -= 2;
++        const auto op = compiler.opcode(pc);
++        if (!static_thumb_branch(op)) continue;
++        const auto target = static_thumb_target(op, pc);
++        if (target <= pc || !compiler.short_entry(target)) continue;
++        auto candidate = compiler.compile(pc);
++        if (candidate.static_edges) return candidate;
++    }
++    return std::move(original);
++}
