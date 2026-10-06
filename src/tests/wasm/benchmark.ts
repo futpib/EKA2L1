@@ -26,8 +26,6 @@ const unsafeText=process.env.EKA2L1_UNSAFE_CODE ?? '3';
 if(!/^[03]$/.test(unsafeText))throw Error('Invalid unsafe code mode');
 if (process.env.EKA2L1_DIRECT_POLICY !== undefined || process.env.EKA2L1_MEMORY_ACTIVATE_US !== undefined)
   throw Error('Direct policy and delayed activation were removed; select EKA2L1_MEMORY_IMPL=0 (TLB) or 2 (direct)');
-const memoryImpl=Number(process.env.EKA2L1_MEMORY_IMPL ?? '0');
-if(!/^[02]$/.test(process.env.EKA2L1_MEMORY_IMPL ?? '0'))throw Error('Memory implementation must be 0 (TLB) or 2 (direct)');
 const unsafeCode=Number(unsafeText);
 if(![0,3].includes(unsafeCode))throw Error('Invalid unsafe code mode');
 const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES || '0');
@@ -48,6 +46,10 @@ if (!Number.isSafeInteger(verifyAot) || verifyAot < 0 || verifyAot > 2147483647)
   throw new Error('EKA2L1_AOT_VERIFY must be a nonnegative integer stride');
 const aot = Number(process.env.EKA2L1_BENCHMARK_AOT || "0");
 if (![0,1,2,3,4,5].includes(aot)) throw new Error("AOT mode must be 0, 1, 2, 3, 4 or 5");
+// Direct memory is the compiled-play default; interpreter/verifier runs need TLB.
+const memoryText = process.env.EKA2L1_MEMORY_IMPL ?? (aot === 5 && !verifyAot && unsafeCode === 3 ? '2' : '0');
+if (!/^[02]$/.test(memoryText)) throw Error('Memory implementation must be 0 (TLB) or 2 (direct)');
+const memoryImpl = Number(memoryText);
 const assets = path.resolve(assetArg), output = path.resolve(outputArg), frames = Number(frameArg);
 if (!Number.isInteger(frames) || frames < 1 || frames > 100000) throw new Error('Invalid frame count');
 const input = path.resolve(inputArg);

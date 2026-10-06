@@ -96,20 +96,30 @@ The benchmark is scoped to this fixed Snakes/device replay in fresh processes. I
 
 ## Memory implementations
 
-The browser harnesses support two implementations, selected before guest
+The browser launcher and harnesses support two implementations, selected before guest
 initialization with `EKA2L1_MEMORY_IMPL` or `eka2l1_memory_impl_configure(mode)`:
 
 | # | Value | Implementation |
 |---|---:|---|
-| 1 | 0 | Default 512-entry TLB |
-| 2 | 2 | Direct memory with compact ARM/Thumb lowering and mapping-change notifications |
+| 1 | 0 | Optional 512-entry TLB |
+| 2 | 2 | Default direct memory with compact ARM/Thumb lowering and mapping-change notifications |
 
 Direct mode retains the [all-cuts implementation](DIRECT_MEMORY_CUTS_RESULTS.md).
 Its process-local arena shares C++'s backing in the primary WASM memory. The
 fallback page directory handles aliases and addresses outside that arena; it
 is part of direct mode, not a separate selectable implementation. Direct mode
 requires compiled regions, disabled AOT verification and the unsafe code-write
-policy. The driver below supplies these settings.
+policy. The driver below supplies these settings. The WASM runtime and normal
+launcher default to direct memory; native cores retain their TLB backend.
+Replay/profile harnesses also default to direct with AOT mode 5, verification
+disabled and unsafe code mode 3. Interpreter, verifier and mutation-compatible
+runs select TLB unless explicitly overridden. Set `EKA2L1_MEMORY_IMPL=0` to
+select TLB in the launcher or harnesses.
+
+[Default-selection validation](DIRECT_MEMORY_DEFAULT_RESULTS.json) records
+mode 2 in both games through the browser picker and the LAN launcher, controls
+and browser audio checks, explicit TLB selection, and the default Snakes replay's
+exact match to 60 native reference frames and audio.
 
 Eligible bounded, register-cached ARM short blocks always use inline memory
 access. `EKA2L1_ARM_MEMORY` and its configuration/readback API are retired;

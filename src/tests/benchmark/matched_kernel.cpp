@@ -2,8 +2,10 @@
 #include "matched_kernel_reference.h"
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/aot/arm_translator.h>
+#include <cpu/aot/memory_experiment.h>
 #include <cpu/aot/wasm_emitter.h>
 #include <common/log.h>
+#include <common/code_tracking.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -121,6 +123,10 @@ extern "C" API unsigned check_edges() {
 #include "validated_layout_support.inc"
 
 int main(int argc,char **argv){
+ // These fixtures publish raw TLB entries rather than a process memory view.
+ aot::memory_experiment::mode=0;
+ // The reference's overlap scenarios require code-write guards.
+ eka2l1::common::code_tracking::unsafe_code_mode=0;
  eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();eka2l1::log::filterings->reset_all(spdlog::level::off);
 #ifndef __EMSCRIPTEN__
  if(argc!=2)throw std::runtime_error("matched_kernel NATIVE_ORACLE_DIR");

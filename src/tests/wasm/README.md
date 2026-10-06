@@ -39,8 +39,9 @@ The existing HTTPS host/certificate and compiler-policy environment variables
 still apply; see [LAN setup](../benchmark/REALTIME_PLAYABILITY.md#lan-https-launcher).
 The local launcher is at <https://claude-laptop.lan:8188/>.
 
-Memory translation defaults to the fixed original-index 512-entry TLB, without an ARM
-scalar last-page cache. `EKA2L1_TLB_HASH` and `EKA2L1_MEMORY_CACHE` are retired
+Memory translation defaults to direct memory (mode 2) in WASM play. Set
+`EKA2L1_MEMORY_IMPL=0` before starting the launcher to use the original-index
+512-entry TLB. `EKA2L1_TLB_HASH` and `EKA2L1_MEMORY_CACHE` are retired
 and must be removed from launch environments. See the
 [cache comparison and adoption](../benchmark/MEMORY_CACHE_RESULTS.md).
 
@@ -49,8 +50,11 @@ is retired and must be removed from launch environments. The TLB/direct backend
 selection below remains independent of this fixed compiler behavior. See the
 [eligibility and adoption checks](../benchmark/ARM_MEMORY_ADOPTION.md).
 
-The replay and profiling harnesses also support `EKA2L1_MEMORY_IMPL=2` for the
-retained direct-memory implementation. Only values 0 (TLB) and 2 (direct) are
+The replay and profiling harnesses default to direct memory with compiled
+regions (`EKA2L1_BENCHMARK_AOT=5`), verification off and unsafe code mode 3.
+Interpreter, verifier and mutation-compatible runs select TLB unless explicitly
+overridden. The launcher also selects TLB for `EKA2L1_UNSAFE_CODE=0` when no
+memory override is supplied. Only values 0 (TLB) and 2 (direct) are
 supported; the separate direct-policy and delayed-activation controls are
 removed. See [memory implementation selection](../benchmark/README.md#memory-implementations).
 Direct scalar loads/stores permit unaligned addresses: the arena checks the

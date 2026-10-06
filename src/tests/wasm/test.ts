@@ -205,6 +205,11 @@ async function runTests(): Promise<void> {
     // Test 5: eka2l1_init
     console.log("TEST 5: eka2l1_init...");
     const initResult = await page.evaluate(() => {
+      const m = (window as any).Module;
+      if (m._eka2l1_memory_impl_report() !== 2) throw Error('Direct memory is not the WASM default');
+      // This API smoke test selected the interpreter above.
+      if (m._eka2l1_memory_impl_configure(0) !== 0 || m._eka2l1_memory_impl_report() !== 0)
+        throw Error('TLB selection failed');
       // @ts-expect-error Module is a global from Emscripten
       return Module.ccall("eka2l1_init", "number", ["string"], ["/data"]);
     });

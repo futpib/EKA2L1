@@ -3,6 +3,7 @@
 #include <cpu/dyncom/arm_dyncom.h>
 #include <cpu/12l1r/exclusive_monitor.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/memory_experiment.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/arm_translator.h>
@@ -301,6 +302,8 @@ static int thumb_exchange_probe() {
 }
 
 int main(int argc, char **argv){
+    // Standalone callback fixtures use the TLB without an emulated MMU.
+    aot::memory_experiment::mode=0;
     if(argc>1 && std::strncmp(argv[argc-1],"--unsafe-code=",14)==0) {
         const std::string value(argv[argc-1]+14);
         if(value!="0" && value!="3")return 1;

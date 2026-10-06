@@ -5177,11 +5177,17 @@ int main(int argc, char **argv) {
         printf("FAIL WASM executable-byte default must be 3\n"); return 1;
     }
     printf("TEST_UNSAFE_CODE_DEFAULT 3\n");
+    if (memory_experiment::mode != 2) {
+        printf("FAIL WASM memory default must be 2\n"); return 1;
+    }
+    printf("TEST_MEMORY_DEFAULT 2\n");
 #endif
     // This suite exercises precise code mutation semantics. Select that policy
     // explicitly; test_unsafe_code_diagnostic separately tests both modes
     // and their intentional stale-code behavior.
     eka2l1::common::code_tracking::unsafe_code_mode = 0;
+    // Fixtures using raw TLB entries need that backend; direct tests select 2.
+    memory_experiment::mode = 0;
 #ifdef __EMSCRIPTEN__
     if(argc==2 && std::string(argv[1])=="--emit-memory-probes") {emit_memory_probes();return 0;}
 #endif

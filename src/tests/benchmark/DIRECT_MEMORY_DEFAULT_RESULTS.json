@@ -1,0 +1,306 @@
+{
+  "source_base": "46a03200d884056f45710808c51571d61eeb609e",
+  "wasm_default": 2,
+  "native_default": 0,
+  "artifact_hashes": {
+    "eka2l1.js": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+    "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+    "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "eka2l1.wasm": "310beed9381150c2a20a1681399be43f923d77c28d6453b71b67687f1d7e5c2f"
+  },
+  "tests": {
+    "memory": "TEST_UNSAFE_CODE_DEFAULT 3\nTEST_MEMORY_DEFAULT 2\nPASS memory implementations (816 exact ARM/Thumb state, memory, budget, crossing and alias comparisons)\nPASS direct memory: CPU entry, ASID switch, syscall, memory/exception callbacks, permissions and observer lifetime\n",
+    "compiler_policy": "PASS scanner and fusion policies, retired-option rejection, exact mode/limit readback, rejected configuration and policy-dependent HTML ETags\n",
+    "browser_api": "Build: /home/claude/code/EKA2L1/build-wasm/src/emu/wasm\nWASM SHA-256: 310beed9381150c2a20a1681399be43f923d77c28d6453b71b67687f1d7e5c2f\nServing WASM build at http://127.0.0.1:37397/\nTEST 1: Page loads...\n  PASS\nTEST 2: WASM Module object...\n  PASS\nTEST 3: Canvas element...\n  PASS\nTEST 4: Exported C functions...\n  PASS\nTEST IR: pre-init compiler mode validation...\n  PASS\nTEST leaf predication: pre-init validation/readback...\n  PASS\nTEST execution limits: pre-init bounds and readback...\n  PASS\nTEST Thumb direct memory: configuration and readback...\n  PASS\nTEST exact scanner: pre-init policy validation...\n  PASS\nTEST custom diagnostics: build capability and opt-in configuration...\n  PASS\nTEST 5: eka2l1_init...\n  PASS\nTEST 6: eka2l1_shutdown...\n  PASS\nTEST 7: No fatal page errors...\n  PASS\n\nAll tests passed!\n",
+    "matched_tlb_edges": "PASS matched TLB kernel edges 528\n"
+  },
+  "browser_game_picker": {
+    "url": "http://127.0.0.1:8197/",
+    "started": "2026-10-06T09:43:02.303Z",
+    "browser": "Chrome/153.0.8010.52",
+    "games": [
+      {
+        "id": "sky-force",
+        "launch": {
+          "app": "0xa020d913",
+          "memory": {
+            "mode": 2,
+            "rebuilds": 1,
+            "mapped_pages": 17397,
+            "arena_bytes": 67108864,
+            "direct_pages": 19,
+            "direct_rebuilds": 1
+          },
+          "secure": true,
+          "isolated": true,
+          "policy": {
+            "requested": {
+              "hotpath": 2,
+              "thumbMemory": 1,
+              "irMode": 17,
+              "unsafeCode": 3
+            },
+            "applied": true,
+            "observed": {
+              "hotpath": 2,
+              "thumbMemory": 1,
+              "unsafeCode": 3
+            }
+          },
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+            "/eka2l1.js": "/eka2l1.js?v=84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=310beed9381150c2a20a1681399be43f923d77c28d6453b71b67687f1d7e5c2f"
+          },
+          "sound": null,
+          "sources": 0,
+          "selectedFiles": [
+            0,
+            0,
+            0
+          ]
+        },
+        "start": {
+          "guestUs": 28066909,
+          "frames": 856,
+          "inputs": 10,
+          "audio": {}
+        },
+        "end": {
+          "guestUs": 47358375,
+          "frames": 1473,
+          "inputs": 16,
+          "audio": {
+            "queued": 0,
+            "resyncs": 0,
+            "underruns": 95,
+            "dropped": 0,
+            "played": 919200,
+            "nonzero": 918693
+          }
+        },
+        "hostSeconds": 31.570884197999998,
+        "realtimeRatio": 0.6110524456335026,
+        "presentationsPerSecond": 19.543323402994417
+      },
+      {
+        "id": "snakes",
+        "launch": {
+          "app": "0x2000730f",
+          "memory": {
+            "mode": 2,
+            "rebuilds": 1,
+            "mapped_pages": 17404,
+            "arena_bytes": 67108864,
+            "direct_pages": 19,
+            "direct_rebuilds": 1
+          },
+          "secure": true,
+          "isolated": true,
+          "policy": {
+            "requested": {
+              "hotpath": 2,
+              "thumbMemory": 1,
+              "irMode": 17,
+              "unsafeCode": 3
+            },
+            "applied": true,
+            "observed": {
+              "hotpath": 2,
+              "thumbMemory": 1,
+              "unsafeCode": 3
+            }
+          },
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+            "/eka2l1.js": "/eka2l1.js?v=84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=310beed9381150c2a20a1681399be43f923d77c28d6453b71b67687f1d7e5c2f"
+          },
+          "sound": null,
+          "sources": 0,
+          "selectedFiles": [
+            0,
+            0,
+            0
+          ]
+        },
+        "start": {
+          "guestUs": 23050000,
+          "frames": 474,
+          "inputs": 20,
+          "audio": {}
+        },
+        "end": {
+          "guestUs": 54560000,
+          "frames": 1141,
+          "inputs": 26,
+          "audio": {
+            "queued": 4448,
+            "resyncs": 0,
+            "underruns": 0,
+            "dropped": 0,
+            "played": 1503232,
+            "nonzero": 1488962
+          }
+        },
+        "hostSeconds": 31.510897121000003,
+        "realtimeRatio": 0.9999715298172389,
+        "presentationsPerSecond": 21.16728055817513
+      }
+    ],
+    "errors": [],
+    "passed": true
+  },
+  "native_replay": {
+    "memory_mode": 2,
+    "wasm_sha256": "310beed9381150c2a20a1681399be43f923d77c28d6453b71b67687f1d7e5c2f",
+    "comparison": {
+      "match": true,
+      "audio": {
+        "sample_frames": 1143727,
+        "sample_rate": 48000,
+        "channels": 2,
+        "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+        "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+        "writes": 0,
+        "callbacks": 2330,
+        "backend": "shared-dsp-cubeb-resampler",
+        "render_callbacks": 2330,
+        "gameplay_nonzero_samples": 264002,
+        "gameplay_peak": 206
+      },
+      "frames": 60,
+      "unique_images": 60,
+      "last_virtual_us": 23827651,
+      "instructions": 3012361018
+    },
+    "environment": {
+      "EKA2L1_MEMORY_IMPL": "unset",
+      "EKA2L1_BENCHMARK_AOT": "5",
+      "EKA2L1_SHARED_AUDIO": "1"
+    }
+  },
+  "lan": {
+    "url": "https://claude-laptop.lan:8188/",
+    "games": [
+      {
+        "game": "sky-force",
+        "memory": {
+          "mode": 2,
+          "rebuilds": 350,
+          "mapped_pages": 18610,
+          "arena_bytes": 268435456,
+          "direct_pages": 787,
+          "direct_rebuilds": 279
+        },
+        "guestUs": 2051922,
+        "frames": 52,
+        "policy": {
+          "requested": {
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "irMode": 17,
+            "codeCompare": 2,
+            "predicatedLeaves": 1,
+            "leafFeatures": 128,
+            "executionLimits": [
+              512,
+              16,
+              8,
+              512
+            ],
+            "unsafeCode": 3
+          },
+          "applied": true,
+          "observed": {
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "predicatedLeaves": 1,
+            "leafFeatures": 128,
+            "unsafeCode": 3,
+            "executionLimits": [
+              512,
+              16,
+              8,
+              512
+            ]
+          }
+        },
+        "wasm": "310beed9381150c2a20a1681399be43f923d77c28d6453b71b67687f1d7e5c2f",
+        "isolated": true,
+        "secure": true
+      },
+      {
+        "game": "snakes",
+        "memory": {
+          "mode": 2,
+          "rebuilds": 404,
+          "mapped_pages": 18882,
+          "arena_bytes": 268435456,
+          "direct_pages": 796,
+          "direct_rebuilds": 332
+        },
+        "guestUs": 2120000,
+        "frames": 45,
+        "policy": {
+          "requested": {
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "irMode": 17,
+            "codeCompare": 2,
+            "predicatedLeaves": 1,
+            "leafFeatures": 128,
+            "executionLimits": [
+              512,
+              16,
+              8,
+              512
+            ],
+            "unsafeCode": 3
+          },
+          "applied": true,
+          "observed": {
+            "hotpath": 2,
+            "thumbMemory": 1,
+            "predicatedLeaves": 1,
+            "leafFeatures": 128,
+            "unsafeCode": 3,
+            "executionLimits": [
+              512,
+              16,
+              8,
+              512
+            ]
+          }
+        },
+        "wasm": "310beed9381150c2a20a1681399be43f923d77c28d6453b71b67687f1d7e5c2f",
+        "isolated": true,
+        "secure": true
+      }
+    ],
+    "errors": [],
+    "passed": true
+  },
+  "local_artifacts": "/home/claude/.scratch/eka-memory-default",
+  "notes": [
+    "Browser gameplay checks used hardware Vulkan and an isolated PipeWire null sink. The host audio clock was stalled even for a plain oscillator; no desktop audio service was restarted and physical speaker output is not claimed.",
+    "The initial one-frame replay had an empty gameplay audio interval; the retained 60-frame replay passes exact native comparison.",
+    "The standalone fault probe was rebuilt with explicit TLB selection. Its compiled-count assertions require diagnostics, which this production build omits; that run is not claimed as a validation pass. The 816-case memory suite and 528 matched TLB edge checks pass."
+  ]
+}

@@ -5,8 +5,13 @@
 #include <vector>
 
 namespace eka2l1::arm::aot::memory_experiment {
-    // Frozen before guest initialization: 0 is TLB (default), 2 is direct.
+    // Frozen before guest initialization: WASM defaults to direct memory (2).
+    // Native cores retain TLB (0); direct host pointers address WASM memory.
+#ifdef __EMSCRIPTEN__
+    inline unsigned mode = 2;
+#else
     inline unsigned mode = 0;
+#endif
     inline bool enabled() { return mode == 2; }
     struct statistics {
         std::uint64_t rebuilds = 0, mapped_pages = 0;

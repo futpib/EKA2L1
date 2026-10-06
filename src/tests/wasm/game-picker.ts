@@ -49,14 +49,19 @@ try {
   for (const [id, uid] of [['sky-force', '0xa020d913'], ['snakes', '0x2000730f']]) {
     await choose(id);
     await page.waitForFunction(() => (window as any)._gameRunning, {timeout: 180000});
+    await page.waitForFunction(() => JSON.parse((window as any).Module.ccall(
+      'eka2l1_memory_impl_stats', 'string', [], [])).direct_rebuilds > 0, {timeout: 180000});
     const launch = await page.evaluate(() => {
       const g = window as any;
       return {app: (document.querySelector('#app-name') as HTMLInputElement).value,
+        memory: JSON.parse(g.Module.ccall('eka2l1_memory_impl_stats', 'string', [], [])),
         secure: isSecureContext, isolated: crossOriginIsolated, policy: g.ekaCompilerPolicy, assets: g.ekaAssetUrls,
         sound: g.EkaAudio.context?.state ?? null, sources: g._inputSources.size,
         selectedFiles: ['rom-file', 'rpkg-file', 'sis-file'].map(id => (document.getElementById(id) as HTMLInputElement).files!.length)};
     });
     assert.equal(launch.app, uid); assert.ok(launch.secure && launch.isolated && launch.policy.applied);
+    assert.equal(launch.memory.mode, 2);
+    assert.ok(launch.memory.direct_rebuilds > 0, 'Default direct memory was not used');
     assert.equal(launch.sound, null); assert.equal(launch.sources, 0);
     assert.deepEqual(launch.selectedFiles, [0, 0, 0]);
     if (id === 'sky-force') {
