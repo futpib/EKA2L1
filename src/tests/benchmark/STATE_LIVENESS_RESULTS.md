@@ -1,5 +1,8 @@
 # State transfer pruning and V8 cost validation
 
+Follow-up runtime measurements and retained dispatch changes are recorded in
+[Runtime state traffic](RUNTIME_STATE_RESULTS.md).
+
 ARM and Thumb translations now omit cached-state loads whose values are never
 used and stores whose fields have not changed. The analysis runs while compiling;
 guest execution gains no dirty flags, counters, extra branches or profitability

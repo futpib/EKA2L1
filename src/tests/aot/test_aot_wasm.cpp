@@ -4507,9 +4507,12 @@ static bool test_execution_limits() {
 
 static bool publication_test_ok=true;
 static unsigned publication_test_calls=0;
+static bool publication_skip_initial=false,publication_skip_next=false;
 static std::uint32_t publication_test_function(ARMul_State *cpu) {
-    publication_test_ok &= cpu->aot_code_begin==0 && cpu->aot_code_end==0;
-    // Every subsequent lookup must replace these sentinels.
+    const bool skip=publication_test_calls?publication_skip_next:publication_skip_initial;
+    publication_test_ok &= cpu->aot_code_begin==(skip?0x12345678u:0u)
+        && cpu->aot_code_end==(skip?0x23456789u:0u);
+    // Trusted lookups preserve these sentinels; guarded lookups replace them.
     cpu->aot_code_begin=0x12345678;cpu->aot_code_end=0x23456789;
     ++publication_test_calls;++cpu->Reg[0];return 1;
 }
@@ -4602,9 +4605,11 @@ static bool test_guard_publication() {
     namespace gp=eka2l1::common::guest_profile;
     struct restore {
         bool ram=ram_compilation_enabled;
+        bool initial=publication_skip_initial,next=publication_skip_next;
         bool enabled=perf::enabled,detailed=perf::detailed,guest=gp::enabled;
         unsigned mode=tracking::unsafe_code_mode, policy=hotpath_policy;
         ~restore(){ram_compilation_enabled=ram;
+            publication_skip_initial=initial;publication_skip_next=next;
             perf::enabled=enabled;perf::detailed=detailed;gp::enabled=guest;
             tracking::unsafe_code_mode=mode;hotpath_policy=policy;global_registry().unregister_function(0x54340);}
     } saved;
@@ -4613,11 +4618,14 @@ static bool test_guard_publication() {
     global_registry().register_function(0x54340,publication_test_function);
     auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);
     unsigned checks=0;
-    for(unsigned policy:{0u,2u})for(unsigned mode:{0u,3u})for(bool detailed:{false,true})
+    for(unsigned policy:{0u,2u})for(unsigned mode:{0u,3u})for(bool detailed:{false,true})for(bool guest:{false,true})
     for(unsigned budget:{1u,2u,5u}) {
         tracking::unsafe_code_mode=mode;hotpath_policy=policy;
-        perf::enabled=detailed;perf::detailed=detailed;gp::enabled=detailed;
+        perf::enabled=detailed;perf::detailed=detailed;gp::enabled=guest;
         publication_test_ok=true;publication_test_calls=0;
+        publication_skip_initial=policy==2 && mode==3
+            && !(gp::enabled && perf::enabled && perf::detailed);
+        publication_skip_next=policy==2 && mode==3 && !(perf::enabled && perf::detailed);
         auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54340;cpu.TFlag=0;
         cpu.NumInstrsToExecute=budget;cpu.aot_budget=budget;cpu.NirqSig=1;cpu.Cpsr=16;
         cpu.aot_code_begin=0x12345678;cpu.aot_code_end=0x23456789;
@@ -4630,7 +4638,7 @@ static bool test_guard_publication() {
         }
         ++checks;
     }
-    printf(" PASS guard publication: %u real lookup/runner sentinel checks; both modes always publish\n",checks);
+    printf(" PASS guard publication: %u real lookup/runner sentinel checks; trusted chains omit unused stores; guarded paths publish\n",checks);
     return true;
 }
 

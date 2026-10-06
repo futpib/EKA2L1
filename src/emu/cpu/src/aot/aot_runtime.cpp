@@ -237,11 +237,14 @@ __attribute__((always_inline))
 #endif
 static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     if constexpr(Profile) if(exit_census::enabled)census_entry=nullptr;
-    if (validation_running) return nullptr;
+    // TrustBytes is selected only after the frozen verifier stride is zero.
+    if constexpr(!TrustBytes) if (validation_running) return nullptr;
     const auto pc = cpu->Reg[15], pc_mode = pc | cpu->TFlag;
     // Existing ROM functions use immutable bytes and need no mapping lookup.
     if (!ram_compilation_enabled || (pc >= hot_rom_base && pc - hot_rom_base < hot_rom_size)) {
-        cpu->aot_code_begin = cpu->aot_code_end = 0; // ROM is immutable.
+        // Trusted-byte chains emit no interval readers. Keep publication for
+        // mutation-compatible execution and diagnostic/reference paths.
+        if constexpr(!TrustBytes) cpu->aot_code_begin = cpu->aot_code_end = 0;
         auto function = global_registry().lookup(pc_mode);
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
         return function;
@@ -253,7 +256,7 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
             : ram_cache.find(pc_mode, *cpu->parent());
         if (!entry) return nullptr;
         if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
-        {
+        if constexpr(!TrustBytes) {
             cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
             cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
         }
@@ -271,7 +274,7 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
     }
     if (!mapped || !entry) return nullptr;
     if constexpr(Profile) if(exit_census::enabled)census_entry=entry;
-    {
+    if constexpr(!TrustBytes) {
         cpu->aot_code_begin = static_cast<std::uint32_t>(entry->guard_begin);
         cpu->aot_code_end = static_cast<std::uint32_t>(entry->guard_end);
     }

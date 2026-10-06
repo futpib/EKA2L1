@@ -1,0 +1,2698 @@
+{
+  "base_commit": "9528333482c7c1582999847dc835a2b39f8d3bb9",
+  "scope": "State-pruning measurements, rejected alternatives, and retained runtime-only trusted-dispatch cuts; no performance data omitted.",
+  "production_change": "Omit interval publication and validation_running checks only in the existing verifier-disabled trusted lookup specialization.",
+  "builds": {
+    "grouped": {
+      "eka2l1.js": "37e69edb207495ed04f89ea2aa82207b07aa033616f95cc96516358f8cc6ddc0",
+      "eka2l1.wasm": "490a28fbbfd0d7f4920b86964208b756c72f249fcc41bb52f19956b9671c306a",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "workspace": {
+      "eka2l1.js": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+      "eka2l1.wasm": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "entry": {
+      "eka2l1.js": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+      "eka2l1.wasm": "2f141940673122eb3b7e12c76a59ff96a3d04e5e8f0714ada3e14adb81e63edd",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "stores": {
+      "eka2l1.js": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+      "eka2l1.wasm": "7c542b86b26b1619671f1278e351c9ca21da48f9090016a6c53a97cdbfcbc184",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "inline": {
+      "eka2l1.js": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+      "eka2l1.wasm": "214e88e023c9484c2fd50de2c34d3343e2eb51866f2bd46f0e6375cbdc7095c1",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "publication": {
+      "eka2l1.js": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+      "eka2l1.wasm": "94d8b11a7e6240c3144cdef492a9a5d662ef2f8b56be90cac3be868c1a32c184",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "quiet": {
+      "eka2l1.js": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+      "eka2l1.wasm": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    }
+  },
+  "unpruned_control": {
+    "eka2l1.js": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+    "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+    "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "eka2l1.wasm": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6"
+  },
+  "campaigns": {
+    "grouped-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/grouped-hardware-standard-0-baseline",
+          "cpu_seconds": 5.01006458,
+          "native_instructions": 41439196355,
+          "user_cycles": 19180413469,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.059960311,
+          "wall_seconds": 6.05647,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "db15a0702b692fdff2f89f656a3c42ad1648b94f03d722e604408dd1ae5501fe",
+          "report_sha256": "e1e468ea41f87cd1228192aff1d2ef19325ad978580dacba54492e064fe6fe87",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/grouped-hardware-standard-1-candidate",
+          "cpu_seconds": 5.297067011,
+          "native_instructions": 41990622757,
+          "user_cycles": 19035264728,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.055319045000001,
+          "wall_seconds": 6.35342,
+          "wasm_sha256": "490a28fbbfd0d7f4920b86964208b756c72f249fcc41bb52f19956b9671c306a",
+          "loader_sha256": "37e69edb207495ed04f89ea2aa82207b07aa033616f95cc96516358f8cc6ddc0",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "3e39ae51b896b2c5f31679a574af860b0e9c53038875f21aa02ea4fa33aeaffe",
+          "report_sha256": "cdb9be3a366207a2512c4b64b75201f7066749e856b0ad5b250cdd8fb923bc6a",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/grouped-hardware-standard-2-candidate",
+          "cpu_seconds": 5.277951857,
+          "native_instructions": 41986690864,
+          "user_cycles": 19041222347,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.311035004999997,
+          "wall_seconds": 6.31331,
+          "wasm_sha256": "490a28fbbfd0d7f4920b86964208b756c72f249fcc41bb52f19956b9671c306a",
+          "loader_sha256": "37e69edb207495ed04f89ea2aa82207b07aa033616f95cc96516358f8cc6ddc0",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "d679bef973af2a94aef4eaae2630129723cfc0705fbc6bee333f0b12884df281",
+          "report_sha256": "b27ceb564555796dac9e688fb880bc9383c772c63bb5ea53bb6f1ba5aa3e896e",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/grouped-hardware-standard-3-baseline",
+          "cpu_seconds": 5.199764003,
+          "native_instructions": 41441015334,
+          "user_cycles": 18873851653,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.05223134,
+          "wall_seconds": 6.26753,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "98fd84e2fb26844d5e6065e788910c51698b086cab769af1064e39c41926f006",
+          "report_sha256": "81382c4657c33fd82bcb95c6d18598e17235cb53fa48ffcae0a9fae874d19a36",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 5.1049142915,
+            "candidate": 5.287509434,
+            "delta_percent": 3.5768503068510427
+          },
+          "native_instructions": {
+            "baseline": 41440105844.5,
+            "candidate": 41988656810.5,
+            "delta_percent": 1.3237199925559606
+          },
+          "user_cycles": {
+            "baseline": 19027132561,
+            "candidate": 19038243537.5,
+            "delta_percent": 0.0583954332812775
+          },
+          "wall_seconds": {
+            "baseline": 6.162,
+            "candidate": 6.333365000000001,
+            "delta_percent": 2.78099642973062
+          }
+        },
+        "combat": {}
+      }
+    },
+    "workspace-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/workspace-hardware-standard-0-baseline",
+          "cpu_seconds": 4.901827326,
+          "native_instructions": 41431158332,
+          "user_cycles": 18937383972,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 11.805365403,
+          "wall_seconds": 5.9196,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "4365f621b1fd2a15b3615d9635d96a28b9c32467a7cbf99532d817c4027330e6",
+          "report_sha256": "e76540ebf2c73bb508551910272cb3fcfd0680592904baabafddfce811609b83",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/workspace-hardware-standard-1-candidate",
+          "cpu_seconds": 5.182833069,
+          "native_instructions": 41935099251,
+          "user_cycles": 19101846432,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.30783884,
+          "wall_seconds": 6.19924,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "4536b6170111b2e24dc2c79f56ab75a62719b818a8ed80836a04b320577bd6de",
+          "report_sha256": "bdd70d901ee54d4c63582616f646421511e673893973c28283fbb18372f6b302",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/workspace-hardware-standard-2-candidate",
+          "cpu_seconds": 5.123554054,
+          "native_instructions": 41939765845,
+          "user_cycles": 18973564345,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 11.801468009000002,
+          "wall_seconds": 6.12635,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "12cddda5126a1dba94da1e3ebea0ceb3f830a16a36dce7ab0f9afbd62eb227d2",
+          "report_sha256": "dcb0782efffb0dbef820b9d1ad0f6f0540b9e718cbfd233d816eb98dfbcf7ea5",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/workspace-hardware-standard-3-baseline",
+          "cpu_seconds": 5.117084253,
+          "native_instructions": 41429549915,
+          "user_cycles": 18888752924,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.057489147,
+          "wall_seconds": 6.13078,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "d5edf35c1368e1b8f937b912e1be53c3df64ae61efc26d2718039ce397614931",
+          "report_sha256": "2c0a58ed9d9539c6d6b2d949a6cf4b739bf0e126d552cab91c4e532857075ec9",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 5.0094557895000005,
+            "candidate": 5.1531935615,
+            "delta_percent": 2.8693290856319997
+          },
+          "native_instructions": {
+            "baseline": 41430354123.5,
+            "candidate": 41937432548,
+            "delta_percent": 1.223929737574636
+          },
+          "user_cycles": {
+            "baseline": 18913068448,
+            "candidate": 19037705388.5,
+            "delta_percent": 0.658999045251063
+          },
+          "wall_seconds": {
+            "baseline": 6.02519,
+            "candidate": 6.162795,
+            "delta_percent": 2.2838283937933967
+          }
+        },
+        "combat": {}
+      }
+    },
+    "entry-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/entry-hardware-standard-0-baseline",
+          "cpu_seconds": 4.783712092,
+          "native_instructions": 41436163340,
+          "user_cycles": 18972434710,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 11.803457062000001,
+          "wall_seconds": 5.7727,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "23c672b08a9e4904276d58fb6879c479dca0109877703e3454ebd9590763e4fe",
+          "report_sha256": "b9a14ad9de28ae5e0ecad9aef06e956b80a4b86e57e29b51c37682d7440fc53f",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/entry-hardware-standard-1-candidate",
+          "cpu_seconds": 5.158464339,
+          "native_instructions": 41608624498,
+          "user_cycles": 18728131708,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.055743427,
+          "wall_seconds": 6.19985,
+          "wasm_sha256": "2f141940673122eb3b7e12c76a59ff96a3d04e5e8f0714ada3e14adb81e63edd",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "2691eb69f12dc74b03de12d965e6d2991a3228096fbce77233baf5b4a1274976",
+          "report_sha256": "00333ee86a3170c7b6201d0df6261c7e6559e73cf0328531d766c8967ba99758",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/entry-hardware-standard-2-candidate",
+          "cpu_seconds": 5.338832584,
+          "native_instructions": 41610299439,
+          "user_cycles": 18745668980,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 11.799277726,
+          "wall_seconds": 6.3721,
+          "wasm_sha256": "2f141940673122eb3b7e12c76a59ff96a3d04e5e8f0714ada3e14adb81e63edd",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "1eab8afda4ece91c4094d19e76ad036256e0eb437955400f549cf69ba2678b51",
+          "report_sha256": "013f444d9da160800bbc528f6132be697c4af606cf1dca26caf296a28a0102c0",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/entry-hardware-standard-3-baseline",
+          "cpu_seconds": 5.13267616,
+          "native_instructions": 41432187761,
+          "user_cycles": 18726313408,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.055244497,
+          "wall_seconds": 6.19384,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "0dc35493dd7c28c2c953a79cfe41392d17043743da3526fe8752eaff3111340a",
+          "report_sha256": "ba07cabb3989494539643c3552e968e062e92941d77fc50cfd8292e6afe171fb",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 4.958194126,
+            "candidate": 5.2486484615,
+            "delta_percent": 5.858067032448422
+          },
+          "native_instructions": {
+            "baseline": 41434175550.5,
+            "candidate": 41609461968.5,
+            "delta_percent": 0.42304792039691286
+          },
+          "user_cycles": {
+            "baseline": 18849374059,
+            "candidate": 18736900344,
+            "delta_percent": -0.5966973473386927
+          },
+          "wall_seconds": {
+            "baseline": 5.98327,
+            "candidate": 6.285975,
+            "delta_percent": 5.0591900415658975
+          }
+        },
+        "combat": {}
+      }
+    },
+    "stores-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/stores-hardware-standard-0-baseline",
+          "cpu_seconds": 5.079488239,
+          "native_instructions": 41435168698,
+          "user_cycles": 18741842044,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 11.555482901,
+          "wall_seconds": 6.1154,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "efe9330f07524cc03a54f468bc0e83d8be22d59227ee6fa6fbe1a049654908dc",
+          "report_sha256": "bfb9b3b0be7db4ab5feebe3ae9240db351331fe35ceb17430ae9476f8df7e876",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/stores-hardware-standard-1-candidate",
+          "cpu_seconds": 5.081919729,
+          "native_instructions": 41640194267,
+          "user_cycles": 18746083650,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.308732159,
+          "wall_seconds": 6.11292,
+          "wasm_sha256": "7c542b86b26b1619671f1278e351c9ca21da48f9090016a6c53a97cdbfcbc184",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "dea7e5b23b8f68aa919134466e21dc4ef0c17f63b1821c3251edef03cc0a077d",
+          "report_sha256": "b648b6bf5662a022dd713d260b8ab5dee5faac257f845ef7c5d5fc6121e52b84",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/stores-hardware-standard-2-candidate",
+          "cpu_seconds": 5.222952062,
+          "native_instructions": 41646466352,
+          "user_cycles": 18818342512,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.307533443,
+          "wall_seconds": 6.27697,
+          "wasm_sha256": "7c542b86b26b1619671f1278e351c9ca21da48f9090016a6c53a97cdbfcbc184",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "4d5669b3a2c981ee9290129fe59cf8cc9b6c881391621b88198ba00519081a1f",
+          "report_sha256": "86b28337d78020ec5e5b315f8b85dedf6337251f504cf5015677737c59b19f9c",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/stores-hardware-standard-3-baseline",
+          "cpu_seconds": 5.230884555,
+          "native_instructions": 41441046831,
+          "user_cycles": 18895483846,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.058228777,
+          "wall_seconds": 6.2684,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "27f2209c7aa929973818f0af4c4134d168cd21bc18bce093f61ebd21c1d45ca3",
+          "report_sha256": "cacd29856170b158e3e6124097e13d4e170f9102e50e6d5e0b094ba1a06e0262",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 5.155186397,
+            "candidate": 5.1524358955,
+            "delta_percent": -0.05335406497813944
+          },
+          "native_instructions": {
+            "baseline": 41438107764.5,
+            "candidate": 41643330309.5,
+            "delta_percent": 0.49525076329814954
+          },
+          "user_cycles": {
+            "baseline": 18818662945,
+            "candidate": 18782213081,
+            "delta_percent": -0.19368997737262417
+          },
+          "wall_seconds": {
+            "baseline": 6.1919,
+            "candidate": 6.194945000000001,
+            "delta_percent": 0.04917715079377771
+          }
+        },
+        "combat": {}
+      }
+    },
+    "warm-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/warm-hardware-standard-0-baseline",
+          "cpu_seconds": 8.502711015,
+          "native_instructions": 70700526404,
+          "user_cycles": 30890414558,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 39.94154134,
+          "wall_seconds": 10.0717,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "d156c5bbacd60f489e7f05a0bdcb4df3d7ad1c81e25e8c9e1c2ad53c34c6ba82",
+          "report_sha256": "c381ab113d705be4ef3d2159715a760c0981f5bde72ba6c91461beccd2cc06c4",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/warm-hardware-standard-1-candidate",
+          "cpu_seconds": 7.792004536,
+          "native_instructions": 70631507076,
+          "user_cycles": 30352062197,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 39.685773147,
+          "wall_seconds": 9.29554,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "692d2def0771559d7340a75df5131cdf594d186ac3a2741a6fbf9e370e90b79b",
+          "report_sha256": "8456c4c4bec18cf50f089b9269012ca08ab68b05a6c567337a4f4ee540e15ed6",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/warm-hardware-standard-2-candidate",
+          "cpu_seconds": 8.289936327,
+          "native_instructions": 70638040671,
+          "user_cycles": 30935568754,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 39.687207567,
+          "wall_seconds": 9.80158,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "d7a0b8a4e8556b449cace5269d0a81d1387749d06e633be60521a8256a5debd6",
+          "report_sha256": "85e7d601ed0c6c9f28f87f1e52a2b849de022aa1002f518cf7900f4c21b92115",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/warm-hardware-standard-3-baseline",
+          "cpu_seconds": 8.330479075,
+          "native_instructions": 70706245065,
+          "user_cycles": 30567347589,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 40.18789498300001,
+          "wall_seconds": 9.86576,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "9d62d180adcc4eea7b5f0e28076ab3ba78a2de8191573782580e75e80a5e1f80",
+          "report_sha256": "a038120e5fa282df089f53e77a1dd27f5413ee13f4bc7fae84d633790ea125f4",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/warm-hardware-combat-0-baseline",
+          "cpu_seconds": 23.438049781,
+          "native_instructions": 238895095139,
+          "user_cycles": 97791803085,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 65.541373279,
+          "wall_seconds": 25.6795,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "71d064a5cb435aa2a5a6444621f238f793ba3553e3233d5a48dc73db66251f06",
+          "report_sha256": "d0f505443dca38926ff7780f473db83876d6acb77fb6bfd3790d474fedac125e",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/warm-hardware-combat-1-candidate",
+          "cpu_seconds": 23.580409348,
+          "native_instructions": 235663689473,
+          "user_cycles": 98004632885,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 66.04916737699999,
+          "wall_seconds": 25.8703,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "4d9cac32c07d6e1fb2d13edbf8e2f7aa97c35b44da0e5b1c4a60adc0c58f56e7",
+          "report_sha256": "b693dbb1e82f2d033b0822435019e5041980425db3037f559dd81ab7502fef84",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/warm-hardware-combat-2-candidate",
+          "cpu_seconds": 24.371190398,
+          "native_instructions": 235664999021,
+          "user_cycles": 96130947248,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 64.537102779,
+          "wall_seconds": 26.6812,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "d8719aa05d42dda6b35442606b5dac2471f7453221f939531992d12acb492140",
+          "report_sha256": "dfcf15dafe50130fa1cb18d6845f2661e05e26a99dd2c790d7825d3b52a025f1",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/warm-hardware-combat-3-baseline",
+          "cpu_seconds": 23.563586789,
+          "native_instructions": 238894451899,
+          "user_cycles": 98207688113,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 65.80259670600002,
+          "wall_seconds": 25.8586,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "1c77440b44575baffcf9fbd55d95d81b169e69364362d67e750d42d4f4ff0630",
+          "report_sha256": "5264a0b90b6adf4e9ea1bb3c3e852dfc97736c4d426681d2199b03ce637106c6",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 8.416595045,
+            "candidate": 8.0409704315,
+            "delta_percent": -4.462904672158896
+          },
+          "native_instructions": {
+            "baseline": 70703385734.5,
+            "candidate": 70634773873.5,
+            "delta_percent": -0.09704183227893237
+          },
+          "user_cycles": {
+            "baseline": 30728881073.5,
+            "candidate": 30643815475.5,
+            "delta_percent": -0.2768262137385791
+          },
+          "wall_seconds": {
+            "baseline": 9.96873,
+            "candidate": 9.54856,
+            "delta_percent": -4.214879929539672
+          }
+        },
+        "combat": {
+          "cpu_seconds": {
+            "baseline": 23.500818285,
+            "candidate": 23.975799873,
+            "delta_percent": 2.0211278698459845
+          },
+          "native_instructions": {
+            "baseline": 238894773519,
+            "candidate": 235664344247,
+            "delta_percent": -1.352239408344813
+          },
+          "user_cycles": {
+            "baseline": 97999745599,
+            "candidate": 97067790066.5,
+            "delta_percent": -0.9509775018329281
+          },
+          "wall_seconds": {
+            "baseline": 25.76905,
+            "candidate": 26.275750000000002,
+            "delta_percent": 1.9663123009967531
+          }
+        }
+      }
+    },
+    "inline-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/inline-hardware-standard-0-baseline",
+          "cpu_seconds": 8.258077834,
+          "native_instructions": 70613365279,
+          "user_cycles": 30551776396,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 39.937884861,
+          "wall_seconds": 9.77627,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "b60a18c3f91679210fbd64c21fe533b061e9a778277dc60f09f71d1fb91fb47c",
+          "report_sha256": "4299fd4bca25bba3bfe5bbbfb322a0b299c86def577b05ef7ab6903bbe6e39a9",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/inline-hardware-standard-1-candidate",
+          "cpu_seconds": 7.961119584,
+          "native_instructions": 70636498642,
+          "user_cycles": 30883864256,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 40.182833777,
+          "wall_seconds": 9.42315,
+          "wasm_sha256": "214e88e023c9484c2fd50de2c34d3343e2eb51866f2bd46f0e6375cbdc7095c1",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "7a3f514e5c50ad85e8eb33afc58797b788c8dc9418df7b28c64c2e05f09b4bcc",
+          "report_sha256": "99175f47e83ec046dbc62fe49eba346cbda263b7beeaed7adbf88dde0b4da191",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/inline-hardware-standard-2-candidate",
+          "cpu_seconds": 7.965798139,
+          "native_instructions": 70613344065,
+          "user_cycles": 30708627802,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 40.936121778,
+          "wall_seconds": 9.46175,
+          "wasm_sha256": "214e88e023c9484c2fd50de2c34d3343e2eb51866f2bd46f0e6375cbdc7095c1",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "daf9314fd008b216d6859d874ae2bea4d56255d578b3b927e6bb94b8ac1220d2",
+          "report_sha256": "59f20f7994a3c2a4643f6794eadf95eee14c49af48fd3b066bc11423840955be",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/inline-hardware-standard-3-baseline",
+          "cpu_seconds": 8.022439923,
+          "native_instructions": 70649355871,
+          "user_cycles": 31229202114,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 39.432392265000004,
+          "wall_seconds": 9.45683,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "d09b390151a2147249ad940fb3d9ab25d870b8d01ecaa62aa167aebea054bee8",
+          "report_sha256": "386b4796f2667301981c5c58b166b6fbaf03ebc2d04f268f5c3a6b9f73f2a652",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 8.1402588785,
+            "candidate": 7.9634588615,
+            "delta_percent": -2.1719213066670684
+          },
+          "native_instructions": {
+            "baseline": 70631360575,
+            "candidate": 70624921353.5,
+            "delta_percent": -0.00911666071214956
+          },
+          "user_cycles": {
+            "baseline": 30890489255,
+            "candidate": 30796246029,
+            "delta_percent": -0.30508816232085456
+          },
+          "wall_seconds": {
+            "baseline": 9.61655,
+            "candidate": 9.442450000000001,
+            "delta_percent": -1.8104205770260617
+          }
+        },
+        "combat": {}
+      }
+    },
+    "publication-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/publication-hardware-standard-0-baseline",
+          "cpu_seconds": 8.103290248,
+          "native_instructions": 70636720674,
+          "user_cycles": 31423432341,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 40.18391888000001,
+          "wall_seconds": 9.54206,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "a10f63849d3ad99bc83166c48c5d7e342d9082dc35ae874ba0d0fd3e1a655b1c",
+          "report_sha256": "d4b5169f150c07ac774df62aceef4017d8c5f6c7f6dbc20555a218b4793bb30a",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/publication-hardware-standard-1-candidate",
+          "cpu_seconds": 8.164979907,
+          "native_instructions": 69997710736,
+          "user_cycles": 30905256976,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 40.18399882399999,
+          "wall_seconds": 9.64049,
+          "wasm_sha256": "94d8b11a7e6240c3144cdef492a9a5d662ef2f8b56be90cac3be868c1a32c184",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "805f39475624112d1a864224fd8d1823395e0b21c85bab1a0df5dfa44888b535",
+          "report_sha256": "071783b4384397d6c03db919e5dcfb21c7790eb4e4fccbdd13535cf42550f283",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/publication-hardware-standard-2-candidate",
+          "cpu_seconds": 8.257643458,
+          "native_instructions": 70000344959,
+          "user_cycles": 31134658174,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 42.452481148000004,
+          "wall_seconds": 9.7303,
+          "wasm_sha256": "94d8b11a7e6240c3144cdef492a9a5d662ef2f8b56be90cac3be868c1a32c184",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "23c5faac8697cccd229fe9d3e72b543e9ffdb5c5bf3a5bc178a189042ba70b5e",
+          "report_sha256": "b5b96be8d8b74fe297b3928666b6f307ae4afe6d5f39039d42cefeb7917336de",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/publication-hardware-standard-3-baseline",
+          "cpu_seconds": 8.445630951,
+          "native_instructions": 70611351039,
+          "user_cycles": 31041715035,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 41.443999702,
+          "wall_seconds": 9.97672,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "fa419fdee5335d0870b82a309c1463e679d78b7194f9da75964658d9926a3d25",
+          "report_sha256": "b5fec017020f44f0a307cea9accf9570f49bc6a8d8330dc1afa25cf8fdf2a1cd",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 8.2744605995,
+            "candidate": 8.2113116825,
+            "delta_percent": -0.7631786536492213
+          },
+          "native_instructions": {
+            "baseline": 70624035856.5,
+            "candidate": 69999027847.5,
+            "delta_percent": -0.8849791737616686
+          },
+          "user_cycles": {
+            "baseline": 31232573688,
+            "candidate": 31019957575,
+            "delta_percent": -0.6807511770369756
+          },
+          "wall_seconds": {
+            "baseline": 9.75939,
+            "candidate": 9.685395,
+            "delta_percent": -0.7581928788582104
+          }
+        },
+        "combat": {}
+      }
+    },
+    "quiet-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/quiet-hardware-standard-0-baseline",
+          "cpu_seconds": 8.810117384,
+          "native_instructions": 70634467891,
+          "user_cycles": 31823134796,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 41.720741685,
+          "wall_seconds": 10.32,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "95bae70f7612947efd3a6104ab996553d892bfc101570c3f72914fc4e80fabbd",
+          "report_sha256": "36cfeb3bb5852af2c17c1d260b2ee590ba53cdf01b6e76eb339332ae0f9ac393",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/quiet-hardware-standard-1-candidate",
+          "cpu_seconds": 8.420789786,
+          "native_instructions": 69302580458,
+          "user_cycles": 30729053583,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 40.689849408,
+          "wall_seconds": 9.98619,
+          "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "702819e838510e0bc7dd5bdfb9352feeb279a8ce08149b6c77589c6f7d6fa409",
+          "report_sha256": "0f320ffad89182b6f30410e17364bb5dbeb5e1e8ab34d29d069d71bfacdd95ba",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/quiet-hardware-standard-2-candidate",
+          "cpu_seconds": 8.249650918,
+          "native_instructions": 69332214555,
+          "user_cycles": 30186381669,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 39.927789614,
+          "wall_seconds": 9.80943,
+          "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "2711b3bef5658cb8e05ad57aefc7dacf2169542dfc56c167ab4343119fd81751",
+          "report_sha256": "df2be5bc8e4875aa75f1d8ac35628b865e87968e7e52987f1c3a675c2f1d11a6",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/quiet-hardware-standard-3-baseline",
+          "cpu_seconds": 8.116775688,
+          "native_instructions": 70613037389,
+          "user_cycles": 31287360245,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 48.263595648,
+          "wall_seconds": 9.57433,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "42ea512b11ccf17c2da79050d06979aa1d231b60840751db11ca098581890f7b",
+          "report_sha256": "3b087689e535507ae82eb4458e2b414a6761affb14f4ab322ff2dc096db1af13",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/quiet-hardware-combat-0-baseline",
+          "cpu_seconds": 24.830851457,
+          "native_instructions": 235652092251,
+          "user_cycles": 96331734464,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 69.82345765900001,
+          "wall_seconds": 27.1084,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "c5f8ed6db9155c932f09aa34879c6d5218e8c5b386da41b0364440e904c26b5c",
+          "report_sha256": "913db014fe25c74eb0a24a846f9170afda77c00f3d078c2107250495f3791acd",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/quiet-hardware-combat-1-candidate",
+          "cpu_seconds": 23.06225606,
+          "native_instructions": 232270597583,
+          "user_cycles": 96053809722,
+          "other_thread_counter_errors": [
+            {
+              "thread": "1313074:1313074",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313074",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313075",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313075",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313076",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313076",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313077",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313077",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313078",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313078",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313079",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313079",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313080",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1313074:1313080",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            }
+          ],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 66.051662394,
+          "wall_seconds": 25.3342,
+          "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "bce560b66936d076a9250faae50ec2772f97cc07628c229fac6278c2f26432f1",
+          "report_sha256": "98e3c680780a2b270c49e20cbb4b3deb36b7d43d18bd17b71aafae7256f60cf8",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-speed/quiet-hardware-combat-2-candidate",
+          "cpu_seconds": 22.888248799,
+          "native_instructions": 232265952390,
+          "user_cycles": 95369209557,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 65.038994976,
+          "wall_seconds": 25.1266,
+          "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "22f5fe61893b022a3dd815cf55b83135faf12d79bb38e9da78c63799e8e6beaa",
+          "report_sha256": "5c75a8e9521d7411929e89dd0dccf61600220b000ba18ec2d6a4ee8cc4f4aa59",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-speed/quiet-hardware-combat-3-baseline",
+          "cpu_seconds": 23.212995036,
+          "native_instructions": 235658613383,
+          "user_cycles": 96234722193,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 65.041327115,
+          "wall_seconds": 25.4494,
+          "wasm_sha256": "d75c632084b11d65e6a6655b156e1ab908c72f0ef3dceea3e2d4c046bdbbba8d",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "0f1f51fcc5a142e1c83525a6d70d5a42c56a6a408159f935a20679855250474f",
+          "report_sha256": "4d046369369674c6733cce24ecd8504e772bcf0e6e1a45a6d5bf9ab8d1e787ac",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 8.463446536,
+            "candidate": 8.335220352,
+            "delta_percent": -1.5150587110650204
+          },
+          "native_instructions": {
+            "baseline": 70623752640,
+            "candidate": 69317397506.5,
+            "delta_percent": -1.84973905331689
+          },
+          "user_cycles": {
+            "baseline": 31555247520.5,
+            "candidate": 30457717626,
+            "delta_percent": -3.4781216461286957
+          },
+          "wall_seconds": {
+            "baseline": 9.947165,
+            "candidate": 9.89781,
+            "delta_percent": -0.49617152223774275
+          }
+        },
+        "combat": {
+          "cpu_seconds": {
+            "baseline": 24.021923246500002,
+            "candidate": 22.9752524295,
+            "delta_percent": -4.357148286003709
+          },
+          "native_instructions": {
+            "baseline": 235655352817,
+            "candidate": 232268274986.5,
+            "delta_percent": -1.4373014616520297
+          },
+          "user_cycles": {
+            "baseline": 96283228328.5,
+            "candidate": 95711509639.5,
+            "delta_percent": -0.5937884498943058
+          },
+          "wall_seconds": {
+            "baseline": 26.2789,
+            "candidate": 25.2304,
+            "delta_percent": -3.9898930320523385
+          }
+        }
+      }
+    }
+  },
+  "profiles": {
+    "warm-baseline": {
+      "file": "/home/claude/.scratch/eka-state-speed/profile-warm-baseline/worker-13.cpuprofile",
+      "sha256": "20f4fcb7d7dc00c79012390cb18a5223072ca34d879b486064581ffcb77c406f",
+      "sampled_us": 9162730,
+      "guest_self_us": 4637711,
+      "rom_self_us": 935647,
+      "ram_self_us": 3660433,
+      "private_self_us": 41631,
+      "inclusive_us": {
+        "translation": 21703,
+        "state_finalization": 3360,
+        "allocation": 12941
+      },
+      "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+    },
+    "warm-full": {
+      "file": "/home/claude/.scratch/eka-state-speed/profile-warm-full/worker-13.cpuprofile",
+      "sha256": "0755cf69232a6896b27b2d7346a7c18a6608a511568f5ecf37fa2a154d182696",
+      "sampled_us": 9167654,
+      "guest_self_us": 4619631,
+      "rom_self_us": 907522,
+      "ram_self_us": 3667077,
+      "private_self_us": 45032,
+      "inclusive_us": {
+        "translation": 43870,
+        "state_finalization": 24470,
+        "allocation": 11112
+      },
+      "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+    },
+    "workspace": {
+      "file": "/home/claude/.scratch/eka-state-speed/profile-workspace/worker-13.cpuprofile",
+      "sha256": "6637d83c540f45d6f3a22c7b2f8e9f8fb8ffd766b566f1fc48d005a415da4252",
+      "sampled_us": 5896543,
+      "guest_self_us": 2793311,
+      "rom_self_us": 583615,
+      "ram_self_us": 2189121,
+      "private_self_us": 20575,
+      "inclusive_us": {
+        "translation": 106568,
+        "state_finalization": 58160,
+        "allocation": 14383
+      },
+      "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+    },
+    "entry": {
+      "file": "/home/claude/.scratch/eka-state-speed/profile-entry/worker-13.cpuprofile",
+      "sha256": "aea05da6d7ca825a3625baff14f84aef3d3ec9e80a9f0706274b7a6a08647652",
+      "sampled_us": 6395691,
+      "guest_self_us": 3038194,
+      "rom_self_us": 620624,
+      "ram_self_us": 2387062,
+      "private_self_us": 30508,
+      "inclusive_us": {
+        "translation": 100068,
+        "state_finalization": 42846,
+        "allocation": 16695
+      },
+      "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+    }
+  },
+  "ram_native": {
+    "scope": "Static native inventories of sampled changed functions, not executed path counts. Compiler time and native execution require separate validation.",
+    "selection": "Largest summed baseline/candidate self sample times; changed common exports only.",
+    "before_profile": {
+      "file": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13.cpuprofile",
+      "sha256": "3b5d6192eb61a9bee49937b0b03d2074ccddaa02517cdbb13ccf2c08f565fa2b",
+      "sampled_us": 6403951,
+      "guest_self_us": 2912811,
+      "rom_self_us": 594814,
+      "ram_self_us": 2317997,
+      "inclusive_us": {
+        "translation": 67699,
+        "state_finalization": 11155,
+        "allocation": 22289
+      },
+      "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+    },
+    "after_profile": {
+      "file": "/home/claude/.scratch/eka-state-speed/profile-workspace/worker-13.cpuprofile",
+      "sha256": "6637d83c540f45d6f3a22c7b2f8e9f8fb8ffd766b566f1fc48d005a415da4252",
+      "sampled_us": 5896543,
+      "guest_self_us": 2772736,
+      "rom_self_us": 583615,
+      "ram_self_us": 2189121,
+      "inclusive_us": {
+        "translation": 106568,
+        "state_finalization": 58160,
+        "allocation": 14383
+      },
+      "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+    },
+    "rows": [
+      {
+        "name": "r_773_pc_1879048636",
+        "guest_pc": "0x700001bc",
+        "thumb": null,
+        "before_self_us": 163978,
+        "after_self_us": 160440,
+        "wasm": {
+          "before": {
+            "function_index": 15,
+            "normalized_sha256": "79f4bfacfcae8eb765cd2253c72bdac37beab8cce6ba4d40f190c013227d02c3",
+            "raw_sha256": "95fe4220da100f53b5cf0e4d5a75597bd5636dede0f23d3d4c17424855407037",
+            "body_bytes": 22158,
+            "locals": 40,
+            "operations": 9696,
+            "classes": {
+              "local": 5489,
+              "constant": 800,
+              "load": 992,
+              "store": 867,
+              "control": 485,
+              "call": 36,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 1027,
+              "division": 0
+            },
+            "module": "worker-13-module-305.wasm"
+          },
+          "after": {
+            "function_index": 15,
+            "normalized_sha256": "399073d779799e2ac95ef5a37480a4490ecef5b7c1e8aed5588695c7523431c7",
+            "raw_sha256": "9e034bfc17257772d77da46c2c173c3d2003d0f353f792e3c452b7c387d0e1d7",
+            "body_bytes": 21482,
+            "locals": 40,
+            "operations": 9435,
+            "classes": {
+              "local": 5315,
+              "constant": 800,
+              "load": 941,
+              "store": 831,
+              "control": 485,
+              "call": 36,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 1027,
+              "division": 0
+            },
+            "module": "worker-13-module-305.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-305.wasm",
+            "module_sha256": "5ee503a965559d3197422970e2f4a9c7fa0b96e7b4f727f468991fb9522ebb9f",
+            "function_index": 15,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=15",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "ebdde6abaff0597a8092453cacf0a01ef3738e6777cacef2db28f233617d33da",
+            "code_bytes": 47664,
+            "executable_bytes": 47608,
+            "table_bytes": 56,
+            "table_offsets": [
+              47608
+            ],
+            "instructions": 9694,
+            "padding_instructions": 6,
+            "memory_instructions": 6057,
+            "stack_memory_instructions": 3253,
+            "conditional_branches": 550,
+            "calls": 49
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-speed/profile-workspace/worker-13-module-305.wasm",
+            "module_sha256": "fd0145df9ab2edc85b213a5da848d4a9bfd9f3182c068699e3f1ec80c192b57e",
+            "function_index": 15,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=15",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "397113116e226f0239a0f4e73544f7e70b9bb17621697ac188bbaf811a95eb64",
+            "code_bytes": 46416,
+            "executable_bytes": 46360,
+            "table_bytes": 56,
+            "table_offsets": [
+              46360
+            ],
+            "instructions": 9357,
+            "padding_instructions": 6,
+            "memory_instructions": 5843,
+            "stack_memory_instructions": 3235,
+            "conditional_branches": 550,
+            "calls": 49
+          }
+        },
+        "delta": {
+          "instructions": -337,
+          "code_bytes": -1248,
+          "memory_instructions": -214,
+          "stack_memory_instructions": -18,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "r_235_pc_1879455500",
+        "guest_pc": "0x7006370c",
+        "thumb": null,
+        "before_self_us": 123033,
+        "after_self_us": 134886,
+        "wasm": {
+          "before": {
+            "function_index": 8,
+            "normalized_sha256": "80495b8f5c0fe8a4e46a34cfbacd8dc561f34186acb4255e020cc4f7b51cf203",
+            "raw_sha256": "9aabf75865ef611e53509d566305f6171b5b2384bfcf72e46cc4b6a5791f0de4",
+            "body_bytes": 10306,
+            "locals": 34,
+            "operations": 4709,
+            "classes": {
+              "local": 2402,
+              "constant": 543,
+              "load": 393,
+              "store": 273,
+              "control": 303,
+              "call": 16,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 779,
+              "division": 0
+            },
+            "module": "worker-13-module-251.wasm"
+          },
+          "after": {
+            "function_index": 8,
+            "normalized_sha256": "b8fee5a0f85611f4f992d08632531fdf1f4f5342471e5677d77634018bab960e",
+            "raw_sha256": "8dd2bc4f0728f054ca2c6a2905484d7becae3c075df184251135a67760169ce6",
+            "body_bytes": 8836,
+            "locals": 34,
+            "operations": 4106,
+            "classes": {
+              "local": 2000,
+              "constant": 543,
+              "load": 303,
+              "store": 162,
+              "control": 303,
+              "call": 16,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 779,
+              "division": 0
+            },
+            "module": "worker-13-module-251.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-251.wasm",
+            "module_sha256": "70e883784ceb03ab0b1b5b64d0d1e1a368127f4083b9d9bc205ef6badb32207e",
+            "function_index": 8,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=8",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "a97f7f012bcc459aabe398d46ab99cce5980e5ff61bdbac6a1e8bcacb05eb79e",
+            "code_bytes": 31492,
+            "executable_bytes": 31492,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 7068,
+            "padding_instructions": 2,
+            "memory_instructions": 3301,
+            "stack_memory_instructions": 1700,
+            "conditional_branches": 534,
+            "calls": 30
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-speed/profile-workspace/worker-13-module-251.wasm",
+            "module_sha256": "80cd3943c321a43c062e1e18b7187ad098922f024983ad84228857380a9c582f",
+            "function_index": 8,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=8",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "bdb2b8275c72a0e40a3b2121e19d8366971f081640321586d5241880909936f6",
+            "code_bytes": 28924,
+            "executable_bytes": 28924,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 6510,
+            "padding_instructions": 2,
+            "memory_instructions": 2850,
+            "stack_memory_instructions": 1509,
+            "conditional_branches": 534,
+            "calls": 30
+          }
+        },
+        "delta": {
+          "instructions": -558,
+          "code_bytes": -2568,
+          "memory_instructions": -451,
+          "stack_memory_instructions": -191,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "r_755_pc_1879094644",
+        "guest_pc": "0x7000b574",
+        "thumb": null,
+        "before_self_us": 121678,
+        "after_self_us": 126706,
+        "wasm": {
+          "before": {
+            "function_index": 6,
+            "normalized_sha256": "8aafcd81496e53b2d260f998acef159e4f727b0fc351610488aa971b30846647",
+            "raw_sha256": "c233aec9ae60c9721a0b39b344f675b2422eaf1f8d7a16adc6b2a5450ecda394",
+            "body_bytes": 27242,
+            "locals": 39,
+            "operations": 12085,
+            "classes": {
+              "local": 7023,
+              "constant": 955,
+              "load": 1110,
+              "store": 1076,
+              "control": 565,
+              "call": 44,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 1312,
+              "division": 0
+            },
+            "module": "worker-13-module-304.wasm"
+          },
+          "after": {
+            "function_index": 6,
+            "normalized_sha256": "013d5974b2295718f4c08df0d047d0a3a86a672713154ef8ccd83cb3e5946af8",
+            "raw_sha256": "999e96aa5567461dd5ec3211e30b02b6553a6d02777640da432de605c47d99fb",
+            "body_bytes": 25644,
+            "locals": 39,
+            "operations": 11455,
+            "classes": {
+              "local": 6603,
+              "constant": 955,
+              "load": 985,
+              "store": 991,
+              "control": 565,
+              "call": 44,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 1312,
+              "division": 0
+            },
+            "module": "worker-13-module-304.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-304.wasm",
+            "module_sha256": "22f21ce0505cae160e5ddbeab310ab2327651d5a7f7328b0ac3217fb420c40ff",
+            "function_index": 6,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=6",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "cd568db00e9ed967bfda533f75cff0b19ff20c578ca270c424a0d9b471d4c36b",
+            "code_bytes": 60664,
+            "executable_bytes": 60576,
+            "table_bytes": 88,
+            "table_offsets": [
+              60576
+            ],
+            "instructions": 12470,
+            "padding_instructions": 3,
+            "memory_instructions": 7566,
+            "stack_memory_instructions": 4290,
+            "conditional_branches": 645,
+            "calls": 58
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-speed/profile-workspace/worker-13-module-304.wasm",
+            "module_sha256": "b78f56cbbf0f846bc49b2cb1a644808661da7524e14d3eee97f502fcf7a54f6a",
+            "function_index": 6,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=6",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "8bb16770c385096762382c18ff52080c5f6bb9c52125e6b36db640f6b377baef",
+            "code_bytes": 57544,
+            "executable_bytes": 57456,
+            "table_bytes": 88,
+            "table_offsets": [
+              57456
+            ],
+            "instructions": 11984,
+            "padding_instructions": 3,
+            "memory_instructions": 7083,
+            "stack_memory_instructions": 4107,
+            "conditional_branches": 645,
+            "calls": 58
+          }
+        },
+        "delta": {
+          "instructions": -486,
+          "code_bytes": -3120,
+          "memory_instructions": -483,
+          "stack_memory_instructions": -183,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "r_762_pc_1879095064",
+        "guest_pc": "0x7000b718",
+        "thumb": null,
+        "before_self_us": 123388,
+        "after_self_us": 110024,
+        "wasm": {
+          "before": {
+            "function_index": 14,
+            "normalized_sha256": "775f8808330824fc07bf8b334f6db4f7826dd0931fd69f0be65a61d32314a5b7",
+            "raw_sha256": "e8ddcfe6b6a9d97e736e686738241ca0cf67e6fcd3388e371b9f1f6e058531d7",
+            "body_bytes": 31118,
+            "locals": 39,
+            "operations": 13736,
+            "classes": {
+              "local": 7973,
+              "constant": 1056,
+              "load": 1351,
+              "store": 1241,
+              "control": 626,
+              "call": 52,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 1437,
+              "division": 0
+            },
+            "module": "worker-13-module-304.wasm"
+          },
+          "after": {
+            "function_index": 14,
+            "normalized_sha256": "b051d2fe7b7d2226cfa9f7c8c45f9117779ea0822db40c5829cd3096a5554450",
+            "raw_sha256": "5a3a11ed7116eee3344e1be6d088f18c00662a3f67b9a51ea54f8d092f0ecc5a",
+            "body_bytes": 29110,
+            "locals": 39,
+            "operations": 12944,
+            "classes": {
+              "local": 7445,
+              "constant": 1056,
+              "load": 1187,
+              "store": 1141,
+              "control": 626,
+              "call": 52,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 1437,
+              "division": 0
+            },
+            "module": "worker-13-module-304.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-304.wasm",
+            "module_sha256": "22f21ce0505cae160e5ddbeab310ab2327651d5a7f7328b0ac3217fb420c40ff",
+            "function_index": 14,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=14",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "132da5cedf95f38a19eddd3f90985913c4f12f4e3da8c36ab420157a6e44760e",
+            "code_bytes": 67288,
+            "executable_bytes": 67208,
+            "table_bytes": 80,
+            "table_offsets": [
+              67208
+            ],
+            "instructions": 13847,
+            "padding_instructions": 3,
+            "memory_instructions": 8484,
+            "stack_memory_instructions": 4738,
+            "conditional_branches": 705,
+            "calls": 66
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-speed/profile-workspace/worker-13-module-304.wasm",
+            "module_sha256": "b78f56cbbf0f846bc49b2cb1a644808661da7524e14d3eee97f502fcf7a54f6a",
+            "function_index": 14,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=14",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "d6f53bfd049c1d3d2d3808856e3a6f9668b0002c956873553e36fe01cbd456a4",
+            "code_bytes": 63000,
+            "executable_bytes": 62920,
+            "table_bytes": 80,
+            "table_offsets": [
+              62920
+            ],
+            "instructions": 13077,
+            "padding_instructions": 2,
+            "memory_instructions": 7889,
+            "stack_memory_instructions": 4501,
+            "conditional_branches": 705,
+            "calls": 66
+          }
+        },
+        "delta": {
+          "instructions": -770,
+          "code_bytes": -4288,
+          "memory_instructions": -595,
+          "stack_memory_instructions": -237,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "r_248_pc_1879068556",
+        "guest_pc": "0x70004f8c",
+        "thumb": null,
+        "before_self_us": 111713,
+        "after_self_us": 87812,
+        "wasm": {
+          "before": {
+            "function_index": 21,
+            "normalized_sha256": "41878ec9be501fff976d9a2af4743ad2789101094116f33a302cf6921eb1601d",
+            "raw_sha256": "ae4e929f3e817ab1e5c69d38106eb916d91388b2e9204550b25e658368981a28",
+            "body_bytes": 6341,
+            "locals": 31,
+            "operations": 2882,
+            "classes": {
+              "local": 1551,
+              "constant": 333,
+              "load": 135,
+              "store": 157,
+              "control": 243,
+              "call": 5,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 458,
+              "division": 0
+            },
+            "module": "worker-13-module-251.wasm"
+          },
+          "after": {
+            "function_index": 21,
+            "normalized_sha256": "11edfde65755a6834707161a944f89db2f67076eb0e7ef8054b96964dfac5c6e",
+            "raw_sha256": "1791d34b5d496715e648806e5772cbb30e9c37615bbd69519afaf332f2b43805",
+            "body_bytes": 5888,
+            "locals": 31,
+            "operations": 2699,
+            "classes": {
+              "local": 1429,
+              "constant": 333,
+              "load": 131,
+              "store": 100,
+              "control": 243,
+              "call": 5,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 458,
+              "division": 0
+            },
+            "module": "worker-13-module-251.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-251.wasm",
+            "module_sha256": "70e883784ceb03ab0b1b5b64d0d1e1a368127f4083b9d9bc205ef6badb32207e",
+            "function_index": 21,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=21",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "41b871c72c6d75296be2618bc75c2c3a19ef68cec6e282a111047f837c75bc94",
+            "code_bytes": 12716,
+            "executable_bytes": 12716,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 2902,
+            "padding_instructions": 2,
+            "memory_instructions": 1333,
+            "stack_memory_instructions": 836,
+            "conditional_branches": 193,
+            "calls": 11
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-speed/profile-workspace/worker-13-module-251.wasm",
+            "module_sha256": "80cd3943c321a43c062e1e18b7187ad098922f024983ad84228857380a9c582f",
+            "function_index": 21,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=21",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "2dc4a9712a083f85d171a2bbe301add2152e2a95274c184dd7c272926780fc78",
+            "code_bytes": 12248,
+            "executable_bytes": 12248,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 2781,
+            "padding_instructions": 2,
+            "memory_instructions": 1206,
+            "stack_memory_instructions": 800,
+            "conditional_branches": 193,
+            "calls": 11
+          }
+        },
+        "delta": {
+          "instructions": -121,
+          "code_bytes": -468,
+          "memory_instructions": -127,
+          "stack_memory_instructions": -36,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "r_1123_pc_1879453380",
+        "guest_pc": "0x70062ec4",
+        "thumb": null,
+        "before_self_us": 41672,
+        "after_self_us": 52185,
+        "wasm": {
+          "before": {
+            "function_index": 8,
+            "normalized_sha256": "e61bc72f1029d6ac0d5e397bf18a50d81ba44937ca95174c07efd35b62875835",
+            "raw_sha256": "a8c7205703af0dc8f2e4859c94b48863fac6afafb1c5068af1d3cf3e78cc998a",
+            "body_bytes": 1428,
+            "locals": 27,
+            "operations": 628,
+            "classes": {
+              "local": 326,
+              "constant": 72,
+              "load": 56,
+              "store": 40,
+              "control": 43,
+              "call": 3,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 88,
+              "division": 0
+            },
+            "module": "worker-13-module-332.wasm"
+          },
+          "after": {
+            "function_index": 8,
+            "normalized_sha256": "f593816b6b25f5de21f8b1c9c4f1df03f0481a202fb65c7eb83a3c8d53762cf5",
+            "raw_sha256": "0b0efc6ff44f7f20d57c378ac6b6f9e4055e06ec1500dc20d4ac414896653a48",
+            "body_bytes": 1261,
+            "locals": 27,
+            "operations": 562,
+            "classes": {
+              "local": 282,
+              "constant": 72,
+              "load": 47,
+              "store": 27,
+              "control": 43,
+              "call": 3,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 88,
+              "division": 0
+            },
+            "module": "worker-13-module-332.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-332.wasm",
+            "module_sha256": "3f527369d68ffc8978112511564c4b33653d6e8429b8a3650216c786bd129f89",
+            "function_index": 8,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=8",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "ec19a1a28b167ee9e09edcb58b493eab18918b0404ad502b9369305f95f010c0",
+            "code_bytes": 2380,
+            "executable_bytes": 2380,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 537,
+            "padding_instructions": 2,
+            "memory_instructions": 259,
+            "stack_memory_instructions": 121,
+            "conditional_branches": 43,
+            "calls": 5
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-speed/profile-workspace/worker-13-module-332.wasm",
+            "module_sha256": "d8764205d3de36d6083121af4645f8b8dea05114bd57387f6177a4d804fc7fc5",
+            "function_index": 8,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=8",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "da900b35237d2870f9d2169c0569b1affe483c3c9d89289580f867b27c4a4368",
+            "code_bytes": 2216,
+            "executable_bytes": 2216,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 507,
+            "padding_instructions": 1,
+            "memory_instructions": 229,
+            "stack_memory_instructions": 113,
+            "conditional_branches": 43,
+            "calls": 5
+          }
+        },
+        "delta": {
+          "instructions": -30,
+          "code_bytes": -164,
+          "memory_instructions": -30,
+          "stack_memory_instructions": -8,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "r_1225_pc_1879455124",
+        "guest_pc": "0x70063594",
+        "thumb": null,
+        "before_self_us": 39922,
+        "after_self_us": 45486,
+        "wasm": {
+          "before": {
+            "function_index": 21,
+            "normalized_sha256": "fbad78d746d78910389be290d2071d968cf4c7c0e8c01bb401d1c946a3004cf0",
+            "raw_sha256": "7b05802651e92c64f0a9db96064fba84ff4914d698815aca587303fb29f4e21c",
+            "body_bytes": 11564,
+            "locals": 35,
+            "operations": 5426,
+            "classes": {
+              "local": 2697,
+              "constant": 682,
+              "load": 364,
+              "store": 258,
+              "control": 364,
+              "call": 13,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 1048,
+              "division": 0
+            },
+            "module": "worker-13-module-338.wasm"
+          },
+          "after": {
+            "function_index": 21,
+            "normalized_sha256": "bcc2c030d275e800e0ec1c0c2026ba97efa2a9c4defbf472b11e0cdd011b0103",
+            "raw_sha256": "6740727c28e1c065674eef28c10042cf37803eb7a034fbeb3bd3954d43f5645e",
+            "body_bytes": 10341,
+            "locals": 35,
+            "operations": 4928,
+            "classes": {
+              "local": 2365,
+              "constant": 682,
+              "load": 275,
+              "store": 181,
+              "control": 364,
+              "call": 13,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 1048,
+              "division": 0
+            },
+            "module": "worker-13-module-338.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-338.wasm",
+            "module_sha256": "cefac12b52ed213e9b087cc71e29e007f4cca715a7fcd1382796b02d85a3105f",
+            "function_index": 21,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=21",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "7a438f2441ea0712dc96c59ffc7f154b83de8d4f42f9c564c4f6d167226b3fbe",
+            "code_bytes": 34948,
+            "executable_bytes": 34948,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 7705,
+            "padding_instructions": 2,
+            "memory_instructions": 3304,
+            "stack_memory_instructions": 1954,
+            "conditional_branches": 647,
+            "calls": 18
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-speed/profile-workspace/worker-13-module-338.wasm",
+            "module_sha256": "1204ab7a825cf8a8e24cc12318b361351bac28e0bfe032605e4bf2d6db18fc69",
+            "function_index": 21,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=21",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "69ebc6b084187f56a68c6734f77713b0b9be88343254893107b91d8f30279b88",
+            "code_bytes": 33536,
+            "executable_bytes": 33536,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 7426,
+            "padding_instructions": 2,
+            "memory_instructions": 3083,
+            "stack_memory_instructions": 1855,
+            "conditional_branches": 647,
+            "calls": 18
+          }
+        },
+        "delta": {
+          "instructions": -279,
+          "code_bytes": -1412,
+          "memory_instructions": -221,
+          "stack_memory_instructions": -99,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "r_1124_pc_1879453360",
+        "guest_pc": "0x70062eb0",
+        "thumb": null,
+        "before_self_us": 46215,
+        "after_self_us": 36716,
+        "wasm": {
+          "before": {
+            "function_index": 9,
+            "normalized_sha256": "d5fc947f4d4e85df19212204796cde0d4a854375aa79c930a459bcf9daf536c7",
+            "raw_sha256": "bde9f842f3a01ac2acb4801a2e258df6c7de995b912004706aa5b4e828307399",
+            "body_bytes": 1747,
+            "locals": 27,
+            "operations": 751,
+            "classes": {
+              "local": 393,
+              "constant": 85,
+              "load": 66,
+              "store": 55,
+              "control": 55,
+              "call": 4,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 93,
+              "division": 0
+            },
+            "module": "worker-13-module-332.wasm"
+          },
+          "after": {
+            "function_index": 9,
+            "normalized_sha256": "cc9510b62fcb88fcd97b5e34dcf39886195845614f234f6c9d83e5f00f101054",
+            "raw_sha256": "7e0aefd0655699169c6654840ac20390db0a9800dc2e91402ccc157a8edd7489",
+            "body_bytes": 1546,
+            "locals": 27,
+            "operations": 670,
+            "classes": {
+              "local": 339,
+              "constant": 85,
+              "load": 60,
+              "store": 34,
+              "control": 55,
+              "call": 4,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 93,
+              "division": 0
+            },
+            "module": "worker-13-module-332.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-332.wasm",
+            "module_sha256": "3f527369d68ffc8978112511564c4b33653d6e8429b8a3650216c786bd129f89",
+            "function_index": 9,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=9",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "6ddc45ef436596f4bce7941983497cbc6f747f34b35f4545970a7f5a562f6642",
+            "code_bytes": 3772,
+            "executable_bytes": 3772,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 839,
+            "padding_instructions": 1,
+            "memory_instructions": 436,
+            "stack_memory_instructions": 199,
+            "conditional_branches": 70,
+            "calls": 8
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-speed/profile-workspace/worker-13-module-332.wasm",
+            "module_sha256": "d8764205d3de36d6083121af4645f8b8dea05114bd57387f6177a4d804fc7fc5",
+            "function_index": 9,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=9",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "69c5d65a360f942a038ce092493c4cd03b20f06253a3fbdb452a8c715c5029be",
+            "code_bytes": 3656,
+            "executable_bytes": 3656,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 817,
+            "padding_instructions": 2,
+            "memory_instructions": 380,
+            "stack_memory_instructions": 182,
+            "conditional_branches": 70,
+            "calls": 8
+          }
+        },
+        "delta": {
+          "instructions": -22,
+          "code_bytes": -116,
+          "memory_instructions": -56,
+          "stack_memory_instructions": -17,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      }
+    ]
+  },
+  "generated_identity": {
+    "common": 12684,
+    "unchanged": 12684,
+    "changed": [],
+    "before_only": [],
+    "after_only": []
+  },
+  "liveness": {
+    "comparisons": 7680,
+    "reduced": 5440,
+    "unchanged": 2240
+  },
+  "memory": {
+    "reductions": 15432,
+    "unchanged": 4248
+  },
+  "replays": [
+    {
+      "game": "standard",
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1143727,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+          "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+          "writes": 0,
+          "callbacks": 2330,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 2330,
+          "gameplay_nonzero_samples": 264002,
+          "gameplay_peak": 206
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 23827651,
+        "instructions": 3012361018
+      },
+      "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6"
+    },
+    {
+      "game": "combat",
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2105509,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f86fd7c8908cee93c5b8215ec3e4891ddf6a54a8a79783fea5d584bbf4290cab",
+          "sha256_events": "54699bb0cb4fcd867b4a437f0fc65f5f0a5fc28e723b8750fc3b97667e05e6e2",
+          "writes": 0,
+          "callbacks": 4210,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4210,
+          "gameplay_nonzero_samples": 176458,
+          "gameplay_peak": 4041
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 43864773,
+        "instructions": 15827750326
+      },
+      "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6"
+    }
+  ],
+  "rejected_stores_only_test_limit": "All 24 emitted semantic fixtures matched in 7680 JS comparisons. The following C++ relocation assertion expected entry-load removal and failed with load pruning disabled. This prototype was not accepted as a fully passing test target.",
+  "deployment": "LAN remains on its pre-existing frozen build; no live-play speedup or deployment claimed.",
+  "artifacts": [
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/all-module-costs.json",
+      "sha256": "4ead1e8f1a99e6b034761486e3db86e87d3fc45c3ecb17939c63a652245f2ebc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/build-entry.log",
+      "sha256": "65750dbd8d30cbd0051162b2f37e3fbe79c4fb01268a078596920c45c027904d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/build-grouped.log",
+      "sha256": "75a3ebfc8a0a11e39ba62ee163d4e70e993ec919144fc0e12dfac8b596ccc797"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/build-inline.log",
+      "sha256": "c78be5a40d2df8ecfa776046be2737e3f3c5e16f64a7353cb8376f4b6a6dabc6"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/build-publication.log",
+      "sha256": "e1e5a719b1d208623444abb35e04d747b9ffc003ad70a7099f01775f53b3aa4c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/build-quiet.log",
+      "sha256": "121561ef4294b2f292781c15c8354563e3a6ab46d2eae6e15918bd3704af770b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/build-stores.log",
+      "sha256": "60f6743f3dd6502588707f45051272af30782ade8b0b3502970a46dce5f94e3e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/build-workspace.log",
+      "sha256": "3048623b7178f5433754b2e8cde0f9f882c7753accfef028415197c7aefa4530"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/campaigns.json",
+      "sha256": "0dbbb9cacf572c954b28828b0f4ad116b51dccb31d7f33815a8eaf652425c491"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/chrome-profiler-test.log",
+      "sha256": "8b8819b5d970570ceb2eeed314d5f25efe8e0a77ea56aa504f6cf85c11af3cd7"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/entry-aot.log",
+      "sha256": "7b9a5cf307385271c38264e084f4297cd7c96d2f427c80d14119c51b5900cc84"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/entry-hardware-standard-0-baseline-command.json",
+      "sha256": "5a7d121887f44737447622fa87f2e28f2acbf65b2294706a077d85490f2a2010"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/entry-hardware-standard-1-candidate-command.json",
+      "sha256": "687d02be7f7355ed3a46889471c3140e228355945fa7d5087530f48279fb5e8e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/entry-hardware-standard-2-candidate-command.json",
+      "sha256": "20c6ebe2a75204e17d5900350cacea20e0c4010c56ba444951f355cd0f18021c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/entry-hardware-standard-3-baseline-command.json",
+      "sha256": "562645b75d969c6fa753b95f7c84271d245f8a0b36831374b0f778b6ecfed7e1"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/entry-hashes.json",
+      "sha256": "5bb23b6f37dc43fcadf0b52c40eaab528c508d71d15a054d5f3661aa35c97124"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/entry-profile-command.json",
+      "sha256": "d254dc938413455e9637a1aa6dedbc456ce8400efea84a6e690eebc60c5efb66"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/entry-state_liveness.cpp",
+      "sha256": "b60932b8f461a6562b5b5340c3ec051e1e9f508875773a1415ce5d5575c077c9"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/finalize.py",
+      "sha256": "6bab6ffd06fe3de9e7b4d328248d80253cdf64d25fe6d6bd22006adc4a4be4cd"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/full-runtime-base.patch",
+      "sha256": "292f91fe5ab3c1c07bffc5beee15bc6fca286e46e46c537240619a9f98e19cba"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/grouped-hardware-standard-0-baseline-command.json",
+      "sha256": "74baa095eee9ae3a5d9788818e74b31ba34d5316a4cbc4d40d19698f98ec516f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/grouped-hardware-standard-1-candidate-command.json",
+      "sha256": "3a9bf7f2025b2d83c97e9b9eb913887d1f6885a00c21f87f5e51da0e5a47c323"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/grouped-hardware-standard-2-candidate-command.json",
+      "sha256": "a985d03b423ce223175c4e4b42603b20c345b195d0bad5b3db254c7488dfce2a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/grouped-hardware-standard-3-baseline-command.json",
+      "sha256": "1985f04943fd5d1a65369482e0c577d30f3d969de8a82e9a473d442575211f78"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/grouped-hashes.json",
+      "sha256": "e0247d1ad62364f1efbec64b832fc973aef3006c04369c52c90601729895ee4e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/hardware-entry.py",
+      "sha256": "a17ed1a2b748755208299faf7f293f937797cd704e13b3d77096e30948be4611"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/hardware-grouped.py",
+      "sha256": "537fa0404eabd6a576dd1f8de06f657f14ede41e1fbf8cbcf45e49ef1adb9fdb"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/hardware-inline.py",
+      "sha256": "75e5eb55f090a5d767a99c21d143973d91417b63a9ef849e926185491880049d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/hardware-publication.py",
+      "sha256": "5a4c3e4dad84437fd2c1b1651ea35b2b93773b271455ff09cc0c25726e8f30fe"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/hardware-quiet.py",
+      "sha256": "a55208895ad74f3f3442a3f12884559462a225ca2411460babdcbd208a47a464"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/hardware-stores.py",
+      "sha256": "e6d84d7a7618e69e58ca957c533a7c3fe4674221d8057bc783e2c6e39f347acf"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/hardware-warm.py",
+      "sha256": "a0b6284ee709899252489295ff927e781b6f74a8239f3dfed0b31082176c88d4"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/hardware-workspace.py",
+      "sha256": "4b137cba6e0f8244c5d60472786838d37e8b08a188ddd45956979a775f3a1cdf"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/inline-hardware-standard-0-baseline-command.json",
+      "sha256": "7fa2bae193fa7ef7ed0b8035864693cade6f2f0f835b6fd9d2c9045dc0d2ee81"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/inline-hardware-standard-1-candidate-command.json",
+      "sha256": "d9d7719735619cf991f09a40b15f0b606310646da800f1e91093a2dd579e6f7e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/inline-hardware-standard-2-candidate-command.json",
+      "sha256": "4e8ef95dbfec8f4e7d9e038a743ffd55112050c4393ae2045a6bc2e52f7bbbb6"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/inline-hardware-standard-3-baseline-command.json",
+      "sha256": "87ab896388d796e689835c9157dab67559e05ad6e65e114df7d894ec404cf9ab"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/inline-hashes.json",
+      "sha256": "78e8f5e6da483f09287ca096a5df7a0f6bd9ecc8e8c06dddfbd236eb3c7a58a3"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/inline-probes.log",
+      "sha256": "d3b68071a36e8f1bfe4502be5487d9264010b0a2bc62986e284f9f36d59b0998"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/inline-state-counts.json",
+      "sha256": "22dcc797ca1e435811374c4e1c51ea46dc19eeb9becd36016b188deec114bed2"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/native-cost-test.log",
+      "sha256": "8a22518b59a494ec44ca291356797b6f3c48c5c78b8d2df7246408114988f5b9"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/profile-costs.json",
+      "sha256": "9490546d18067108b28a816977a6dbb6e005e1eff7029756d74da621e5c03f63"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/publication-hardware-standard-0-baseline-command.json",
+      "sha256": "ec3b8c26861d32be09b5f0b4bcfa4a716a3809382db382faee274908cb4081f8"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/publication-hardware-standard-1-candidate-command.json",
+      "sha256": "f43741fa2595dd3823d99d84c7464af5032cabf90f23f88602cd1cb44f91d884"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/publication-hardware-standard-2-candidate-command.json",
+      "sha256": "c6b32778a81ad91d0f04869b5d1bd3058566b01ebc945170693a677bac19ac1c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/publication-hardware-standard-3-baseline-command.json",
+      "sha256": "6513a511c33c21e459d966649e84cbcc3dd207463cabe3e97701863aa82bd597"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/publication-hashes.json",
+      "sha256": "1bd51bdc122beb10402461cac5edf405bfd78c6eaaa2737bd8e5da8358f16ca1"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/publication-runtime.cpp",
+      "sha256": "87e888123a2dffe1c19637a5c5915b7221c13c28353dc3233f3d9639053302ef"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet--frozen-cache-only.log",
+      "sha256": "372cf21bfe68a78f67a3095574a743c261a770e6ba82daa53d07d8764e4e1612"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet--guard-publication-only.log",
+      "sha256": "139da973d086c4d6c4a1ff3a354ed7e6d00b2c52c90bd9882bf1e22556d763bc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet--lookup-only.log",
+      "sha256": "b1efbaf7d749f59282f68068281bbb17d1249326d65599d3de82ee15b1139ac6"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet--memory-implementations-only.log",
+      "sha256": "76c7749976e1f47df497a05679de920fa2e23f48513fb9f88d950a614d2cd2f1"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet--unsafe-code-only.log",
+      "sha256": "b27ab10be18074633ee67f1352f0120bd05330e59fc9d37e8f0c5a7e0f4d9639"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet--verification-protection-only.log",
+      "sha256": "bb9ea04e755cd8b44d5aa8174fa2dfeabd2b2fbf396d7dd9f9c78502b21086d6"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-hardware-combat-0-baseline-command.json",
+      "sha256": "83d46895986c1f0417c484eacbdc26db02a4d604307e0598fa4cb0e5b476ed6e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-hardware-combat-1-candidate-command.json",
+      "sha256": "65f8412af63a56fe645fb0f2e46c414ec79291c92fcaeb0d67e3a40ff83c7be6"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-hardware-combat-2-candidate-command.json",
+      "sha256": "a1841fd3bd1326461ec6acc69d7d13f98c5aaa9c1388bbcfe6c484d0ea751c5a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-hardware-combat-3-baseline-command.json",
+      "sha256": "11cb8fdddc0b14eb4a6b6564798839fae1ed457935483060d537dddaccb052df"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-hardware-standard-0-baseline-command.json",
+      "sha256": "4bddbca223102b5495926b1e723e3057d75fe9442e60322e06954f5cdebab889"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-hardware-standard-1-candidate-command.json",
+      "sha256": "a502104a0e7f3e35c468f3643f896cab6b6089401442f440e2b759a2845d3ded"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-hardware-standard-2-candidate-command.json",
+      "sha256": "3b68f5e94c590a7570f1c7229f6ca6dc91012dcf3399e8c7843a4b8a6d164d6a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-hardware-standard-3-baseline-command.json",
+      "sha256": "3ca4a5f61e984b0ba2511d84cd866eb7482d2f0a4c1f820ac74f46351c1ffe0b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-hashes.json",
+      "sha256": "67192ddd96a5142e546dc0342c123cf82bd7a4f9f43867a13ae89163ce0027fa"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-memory-counts.json",
+      "sha256": "70b44d317d59fea65178acdd6a27d15ac7a4fee1252d69470f212fe0c3ff7e35"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-memory-counts.log",
+      "sha256": "e99c2f0b1e763e0fd433a8e43f42b6de7bdb1a7468e5f3e097bab058fe428ac3"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/quiet-memory-probes.log",
+      "sha256": "8ad801b25cc7bec63fc4383c4b59b7adc715ea526616aa3af49b50ae0bf6417e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/costs.json",
+      "sha256": "a8a0100b28ced8564aa2b6019a1ef9b79d3da916e0daa7fcb779bc0c514c370e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_1123_pc_1879453380-after.asm",
+      "sha256": "907bae90293c6313fe9561b8712bc234723e7f228672984a808b840512b97ec0"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_1123_pc_1879453380-before.asm",
+      "sha256": "867a2e3a05104738c6fdb8ab964153c57b5e9535ae08dcbafbb1faef160f235f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_1124_pc_1879453360-after.asm",
+      "sha256": "3c4f07ff823b30d661fb08fd2273e548cd59189e4e87b56f50003f1d59f2c298"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_1124_pc_1879453360-before.asm",
+      "sha256": "3203edec8cd64424f05f45942c609622428b895f2936741f50571aff7e6b5689"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_1225_pc_1879455124-after.asm",
+      "sha256": "661a29f48e29aba467cac6b944321aa8e94ad4356e0e5b077802756e74c95993"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_1225_pc_1879455124-before.asm",
+      "sha256": "804d08054d26dd22330f12237a56527018762288cbf138b46403dde2d8f5f6de"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_235_pc_1879455500-after.asm",
+      "sha256": "ec4ec4cfd3aac738666c766bf95dc4a4510228e4944167b58dc97ee15e8264cf"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_235_pc_1879455500-before.asm",
+      "sha256": "1c5b669c84b9320a0e3507c0f3e9b613d13288cb6d549afab38ad3581bdf9519"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_248_pc_1879068556-after.asm",
+      "sha256": "3e5a1f02a7abaa189c7b1cb599fbad728956fe7599feebb30b008e4faf3bf59d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_248_pc_1879068556-before.asm",
+      "sha256": "5f1f84814efb4ef71fcd2bc024eec4516d16c44cf1065dc40a0af541f88e074c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_755_pc_1879094644-after.asm",
+      "sha256": "ed476129dc333729b190db18ab49e4fde1e7b3353d93df8a4157292d9bda8a0f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_755_pc_1879094644-before.asm",
+      "sha256": "7631764c95d3199f96fe80c85428e97dd5efaa273f33406484fc1d7c661c9e4e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_762_pc_1879095064-after.asm",
+      "sha256": "3fbfefca39bf74831b0dad99055f1ac8dedb594889e47b039ba3b67b31564c20"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_762_pc_1879095064-before.asm",
+      "sha256": "dbecf58cfe379fe3102ef6d51823bd6c15235d9c3270332e266cc80b157038fa"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_773_pc_1879048636-after.asm",
+      "sha256": "0444d2cf1cb60ddd71a1c6e35f730dabac48a2387b55abe0180245dcf2a20910"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/ram-native/r_773_pc_1879048636-before.asm",
+      "sha256": "edfcb155ee88264dda19a275c0581d5bf7499b02a6c8870180032b24db61a32a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/rejected-cache-inline.patch",
+      "sha256": "6fee17b8fd7a84b7f838fbf9f1966ead42f15293cbb8e9bde6bb3b2c9679e2fc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/replays-quiet/combat-0-direct-command.json",
+      "sha256": "0d8877489721c342ef9fde22ca5ada7a3106610040b6124600b66efb519af263"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/replays-quiet/combat-0-direct-compare.log",
+      "sha256": "ece445cf776117921af6b359e7c8f416d1c18f77844cdc2ac274d24ef1577f53"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/replays-quiet/results.json",
+      "sha256": "de319e004c8ed0687753143b437fb732bbe2b951882ecf25e7d55820bcf05c6f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/replays-quiet/standard-0-direct-command.json",
+      "sha256": "8bd0c68cc3021954269b3ed08d39d4e1d53cb0e5e444c6fa4b09708ad53e726c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/replays-quiet/standard-0-direct-compare.log",
+      "sha256": "3aa6f7b6aece93169f1676515b7ecc1d7a33d55ac4661764a1401a6a5e90243f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/stores-hardware-standard-0-baseline-command.json",
+      "sha256": "5f58c07f3136b3547e1d61d065b5a1daa383056eb1ba937039ae3f11b1d042de"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/stores-hardware-standard-1-candidate-command.json",
+      "sha256": "aa873b2383f634358692afb0b04fe2722a60bebef795b39c92ab89acb5bb60ab"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/stores-hardware-standard-2-candidate-command.json",
+      "sha256": "12839aaacb8f8cf95bb7cbc9b590111ec8348677f2649f2c3f3b8af76fc65c73"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/stores-hardware-standard-3-baseline-command.json",
+      "sha256": "f94fbaedc16ee100f193e59c0e397b8eed88f771bc386b694accf166b21c26d3"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/stores-hashes.json",
+      "sha256": "2561f33c7ed9b228e9f6e9e77b3d4b1d91e18ac549e01fac19d2e315009758db"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/stores-state_liveness.cpp",
+      "sha256": "14e3a6db820b7a28886313c3f2f6d5443dbba6b6952ce953e2b60a6ff309ba79"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/summarize.py",
+      "sha256": "16b125dfae16f43c9217a3cfca971714326b042ddb59cc7ad83cd9a48bc99ef9"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/warm-baseline-profile-command.json",
+      "sha256": "92568a9a1091d60ac6bca02faf7ff7d52ff50ef729828eae882eecad709c0190"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/warm-full-profile-command.json",
+      "sha256": "01da7fb18b1d7d5f2fc8ccd6c0a853d441b868e9f9d5d8d0bd029a163931105b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/warm-hardware-combat-0-baseline-command.json",
+      "sha256": "2569f2b023d2f6562b3d9939294915ed972b87cfb2411fbb45e699428bfdb34e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/warm-hardware-combat-1-candidate-command.json",
+      "sha256": "373e2bc55f5627cdb686880a032db80716b127d5b3da7359521a8acd2b476f6b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/warm-hardware-combat-2-candidate-command.json",
+      "sha256": "338fcdb75cecf94e0ea9a624cc8ec607e03773508e7604ca8a4fabc6397996f0"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/warm-hardware-combat-3-baseline-command.json",
+      "sha256": "f62d4934d076f52e86c4d3f1f542914a78f08c25d0d258fc5fd8fbd2a9d856cb"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/warm-hardware-standard-0-baseline-command.json",
+      "sha256": "3c13dca5c585091a0784023d4447cd22d26ba698d3ab4ea9b6c3440ff9cf73af"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/warm-hardware-standard-1-candidate-command.json",
+      "sha256": "2a0a0deefa09001fdae22152d6d0830b697e5d354072e250c6816caeb6f668c1"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/warm-hardware-standard-2-candidate-command.json",
+      "sha256": "487b355ae76c05bf2e86ef5d4da04fd51d0508bf27c78e4c9958c8a53c0e6b75"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/warm-hardware-standard-3-baseline-command.json",
+      "sha256": "93f8a38224404ee1d5d0dad867a55ba308f8bdf605702764b5661fba9de8f114"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/workspace-hardware-standard-0-baseline-command.json",
+      "sha256": "88b07bd11a980089eefea938f5d848c4ce194942f6e6c7de613ef58066d2588f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/workspace-hardware-standard-1-candidate-command.json",
+      "sha256": "c44a66ec87c0c00d4762d938c59d62d1cf58c9b39e299ddc825d5fdca9772e23"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/workspace-hardware-standard-2-candidate-command.json",
+      "sha256": "8c1e10b955c73acc3c8cc9451f2146867e9eca460cd55c1a0e151cdb08ba75ba"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/workspace-hardware-standard-3-baseline-command.json",
+      "sha256": "79f10f46e5fb11c7774ad283bcbcc24992dbe7096dc5cd51a40ddb140fdc1e76"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/workspace-hashes.json",
+      "sha256": "5919cae5a8877b771afcff714e48bec956805f17217c41725cd439b3a7cc303c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/workspace-identity.json",
+      "sha256": "f6481edb6ace9ba6398ae971316b340c71b2b81f45615c7091cd8a47c24e0a3e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/workspace-profile-command.json",
+      "sha256": "9340f7de16f7968e06f78de8e397f9ac332085de886f17e2f161052f2d51855a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-speed/final-source.patch",
+      "sha256": "ef6856e4b49bf660392be92f934ce3a0e65484b285b973bc6a626a5d612f12e9"
+    }
+  ]
+}
