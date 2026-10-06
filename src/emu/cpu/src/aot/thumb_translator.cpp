@@ -242,6 +242,13 @@ namespace eka2l1::arm::aot {
             const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
             if (write) set_local(VALUE);
             set_local(ADDRESS); set_local(HOST); // consume imported state argument
+            if(memory_experiment::enabled()) {
+                direct_access(*this,size,write,[&] {
+                    state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
+                    slow_call(func_idx);
+                });
+                return;
+            }
             if (span_active && !memory_experiment::enabled()) {
                 get_local(SPAN_HOST); op(op_if); op(write?type_void:type_i32);
                 get_local(SPAN_HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add);

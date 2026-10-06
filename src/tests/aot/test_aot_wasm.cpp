@@ -4126,14 +4126,27 @@ static void emit_memory_probes() {
             {"arm-conditional",{0x05910000,0x15812004,0x05913008,0x1581400c}},
             {"arm-loop",{0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe2566001,0x1afffff9}},
             {"arm-unproved",{0xe5910000,0xe5912004}},
-            {"arm-transfer",{0xe891001d,0xe881001d}}}) {
-            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(item.second.data()),
-                item.second.size()*4,0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
-            auto module=build_wasm_module({tr.func},imports);
-            js_export_memory_probe(item.first.c_str(),module.data(),module.size(),mode,0,0);
+            {"arm-transfer",{0xe891001d,0xe881001d}},
+            {"arm-scalar-read32",{0xe5910000}}, {"arm-scalar-write32",{0xe5810000}},
+            {"arm-scalar-read8",{0xe5d10000}}, {"arm-scalar-write8",{0xe5c10000}},
+            {"arm-scalar-read16",{0xe1d100b0}}, {"arm-scalar-write16",{0xe1c100b0}},
+            {"arm-scalar-signed8",{0xe1d100d0}}, {"arm-scalar-signed16",{0xe1d100f0}},
+            {"arm-scalar-pre-read",{0xe5b10004}}, {"arm-scalar-pre-write",{0xe5a10004}},
+            {"arm-scalar-post-read",{0xe4910004}}, {"arm-scalar-post-write",{0xe4810004}},
+            {"arm-scalar-register-read",{0xe7910006}}, {"arm-scalar-register-write",{0xe7810006}},
+            {"arm-scalar-read-pc",{0xe591f000}}}) {
+            for(bool defer:{false,true}) {
+                auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(item.second.data()),
+                    item.second.size()*4,0x1000,nullptr,nullptr,true,false,true,defer,nullptr,true,arm_ir_policy::write_budget_chunks);
+                auto module=build_wasm_module({tr.func},imports);
+                const auto name=item.first+(defer?"-deferred":"-helper");
+                js_export_memory_probe(name.c_str(),module.data(),module.size(),mode,0,0);
+            }
         }
         for(unsigned opcode:{0xb400u,0xb401u,0xb403u,0xb40fu,0xb5ffu,0xbc00u,0xbc01u,0xbc03u,0xbc0fu,0xbdffu,
-                0xc100u,0xc101u,0xc103u,0xc10fu,0xc1ffu,0xc900u,0xc901u,0xc903u,0xc90fu,0xc9ffu}) {
+                0xc100u,0xc101u,0xc103u,0xc10fu,0xc1ffu,0xc900u,0xc901u,0xc903u,0xc90fu,0xc9ffu,
+                0x6808u,0x6008u,0x7808u,0x7008u,0x8808u,0x8008u,0x5988u,0x5188u,
+                0x5d88u,0x5588u,0x5b88u,0x5388u,0x5788u,0x5f88u,0x9800u,0x9000u}) {
             const std::uint16_t code=opcode;
             auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(&code),sizeof(code),0x1000,
                 nullptr,nullptr,true,false,true);

@@ -122,7 +122,8 @@ function init(probe,scenario,budget,z) {
 const scenarios=[{name:'valid'},{name:'read-only',permission:1},{name:'write-only',permission:2},
     {name:'denied',permission:0},{name:'null-view',nullView:true},{name:'zero-host',zeroHost:true},
     {name:'endian',endian:true},{name:'unaligned',address:0x8001},{name:'cross-page',address:0x8ffc},
-    {name:'page-zero',address:0},{name:'arena',address:0x408040,arena:true},
+    {name:'word-cross-page',address:0x8fff},{name:'half-cross-page',address:0x8ffe},
+    {name:'page-zero',address:0},{name:'address-wrap',address:0xfffffffe},{name:'arena',address:0x408040,arena:true},
     {name:'arena-cross-page',address:0x408ffc,arena:true}];
 const rows=[];let reductions=0,unchanged=0;
 for(let i=0;i<before.probes.length;i++) {

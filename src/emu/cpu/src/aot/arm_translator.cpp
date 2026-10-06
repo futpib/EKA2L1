@@ -195,6 +195,18 @@ namespace eka2l1::arm::aot {
                 guest_memory_op(*this, write ? op_i32_store : op_i32_load, 2);
                 return;
             }
+            if (memory_experiment::enabled() && (!write || common::code_tracking::skip_code_write_guards())) {
+                direct_access(*this, size, write, [&] {
+                    if (defer_memory && restartable_access) {
+                        get_local(COUNT); i32_const(1); op(op_i32_sub); set_local(COUNT);
+                        bail(current_pc, 0, exit_census::memory);
+                    } else {
+                        state_ptr(); get_local(ADDRESS); if(write) get_local(VALUE);
+                        slow_call(func_idx);
+                    }
+                });
+                return;
+            }
             // Each access checks the current TLB mapping and permissions.
             op(op_block); op(write ? type_void : type_i32);
             if(memory_experiment::mode) direct_host(*this, ADDRESS, size, write, 1);
