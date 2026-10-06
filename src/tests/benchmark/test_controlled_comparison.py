@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""Reject measurement confounders independently of the observed speed."""
+import copy
+import unittest
+
+from controlled_comparison import validate_clock
+
+
+class ClockValidation(unittest.TestCase):
+    def setUp(self):
+        self.plan = dict(worker_cpu=7, frequency_khz=3600000, reference_mhz=2304,
+            clock_rules=dict(mean_relative_tolerance=.005, interval_relative_tolerance=.01,
+                             minimum_reference_interval_seconds=.02))
+        hardware = dict(start_ticks=20, **{name: dict(raw=value, running_fraction=1) for name, value in
+            [('user_cycles', 3600000000), ('user_reference_cycles', 2304000000), ('user_instructions', 6000000000)]})
+        self.report = dict(worker_affinity=dict(pid=10, tid=11, start_ticks=20, key='10:11'),
+            thread_deltas=[dict(pid=10, tid=11, runtime_ns=1000000000, hardware=hardware)],
+            clock_samples=[dict(affinity=[7], core_throttle_count=10, package_throttle_count=20,
+                policy=dict(scaling_governor='performance', scaling_min_freq='3600000', scaling_max_freq='3600000'),
+                user_cycles=[i * 900000000, 0, 0], user_reference_cycles=[i * 576000000, 0, 0])
+                for i in range(4)])
+
+    def test_stable_clock(self):
+        self.assertTrue(validate_clock(self.report, self.plan)['valid'])
+
+    def test_frequency_and_affinity_changes(self):
+        for mutation in ('mean', 'interval', 'affinity', 'policy', 'throttle', 'multiplex', 'identity'):
+            with self.subTest(mutation=mutation):
+                report = copy.deepcopy(self.report)
+                hardware = report['thread_deltas'][0]['hardware']
+                if mutation == 'mean':
+                    hardware['user_cycles']['raw'] = 3300000000
+                elif mutation == 'interval':
+                    report['clock_samples'][1]['user_cycles'][0] = 850000000
+                elif mutation == 'affinity':
+                    report['clock_samples'][1]['affinity'] = [7, 15]
+                elif mutation == 'policy':
+                    report['clock_samples'][1]['policy']['scaling_max_freq'] = '5100000'
+                elif mutation == 'throttle':
+                    report['clock_samples'][-1]['core_throttle_count'] += 1
+                elif mutation == 'multiplex':
+                    hardware['user_cycles']['running_fraction'] = .9
+                else:
+                    hardware['start_ticks'] += 1
+                self.assertFalse(validate_clock(report, self.plan)['valid'])
+
+    def test_missing_samples(self):
+        self.report['clock_samples'] = []
+        self.assertFalse(validate_clock(self.report, self.plan)['valid'])
+
+    def test_isolation_and_sibling_activity(self):
+        self.plan['isolated_cpus'] = [7, 15]
+        self.plan['clock_rules']['max_sibling_busy_fraction'] = .02
+        for index, sample in enumerate(self.report['clock_samples']):
+            sample['cgroup_cpus'] = {'/sys/fs/cgroup/user.slice/cpuset.cpus.effective': '0-6,8-14',
+                                    '/sys/fs/cgroup/ekabench.slice/cpuset.cpus.effective': '0-15'}
+            sample['cpu_ticks'] = {'cpu15': [0, 0, 0, 100 * index, 0, 0, 0, 0]}
+        self.assertTrue(validate_clock(self.report, self.plan)['valid'])
+        bad = copy.deepcopy(self.report)
+        bad['clock_samples'][-1]['cpu_ticks']['cpu15'][0] = 10
+        self.assertFalse(validate_clock(bad, self.plan)['valid'])
+        self.report['clock_samples'][-1]['cgroup_cpus']['/sys/fs/cgroup/user.slice/cpuset.cpus.effective'] = '0-15'
+        self.assertFalse(validate_clock(self.report, self.plan)['valid'])
+
+    def test_missing_hardware(self):
+        self.report['thread_deltas'][0]['hardware'] = None
+        self.assertFalse(validate_clock(self.report, self.plan)['valid'])
+
+
+if __name__ == '__main__':
+    unittest.main()

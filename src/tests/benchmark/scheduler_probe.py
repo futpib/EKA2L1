@@ -15,6 +15,7 @@ import platform
 import signal
 import struct
 import subprocess
+import threading
 import time
 
 
@@ -24,7 +25,7 @@ class HardwareCounters:
     No sampling, inheritance, scheduling changes, or system-wide attachment.
     Counters are independent; raw enabled/running times expose multiplexing.
     """
-    def __init__(self, threads):
+    def __init__(self, threads, reference_cycles=False):
         self.events = []
         self.result = dict(events={}, errors=[], begin_ns=time.monotonic_ns())
         if platform.system() != 'Linux' or platform.machine() != 'x86_64':
@@ -32,7 +33,10 @@ class HardwareCounters:
         libc = ctypes.CDLL(None, use_errno=True)
         libc.syscall.restype = ctypes.c_long
         for key, thread in threads.items():
-            for config, name in ((0, 'user_cycles'), (1, 'user_instructions')):
+            events = [(0, 'user_cycles'), (1, 'user_instructions')]
+            if reference_cycles:
+                events.append((9, 'user_reference_cycles'))
+            for config, name in events:
                 fd = None
                 try:
                     # perf_event_attr version 0; disabled, exclude kernel/hypervisor.
@@ -115,6 +119,7 @@ def snapshot(root_pid):
                 threads[f'{pid}:{task.name}'] = dict(
                     pid=pid, tid=int(task.name), name=(task / 'comm').read_text().strip(),
                     start_ticks=int(stat[19]), user_ticks=int(stat[11]),
+                    allowed_cpus=status['Cpus_allowed_list'].strip(), last_cpu=int(stat[36]),
                     system_ticks=int(stat[12]), runtime_ns=scheduled[0],
                     runnable_wait_ns=scheduled[1], timeslices=scheduled[2],
                     voluntary_switches=int(status['voluntary_ctxt_switches']),
@@ -139,9 +144,27 @@ def main():
                    help='Count user cycles/instructions on existing benchmark threads (diagnostic only)')
     p.add_argument('--no-start-gate', action='store_true',
                    help='Attach at the ordinary warmup message without pausing the browser; misses attachment interval')
+    p.add_argument('--worker-cpu', type=int,
+                   help='Pin the busiest warmup DedicatedWorker to this logical CPU at the start gate')
+    p.add_argument('--support-cpus', type=str,
+                   help='Comma-separated CPU numbers inherited by other benchmark threads')
+    p.add_argument('--reference-mhz', type=float,
+                   help='Invariant reference-counter frequency; record worker frequency every 250 ms')
+    p.add_argument('--harness', type=Path,
+                   help='Directory containing a historical profile.ts matching the frozen builds')
     args = p.parse_args()
+    def interrupted(number, frame):
+        raise KeyboardInterrupt(f'Signal {number}')
+    signal.signal(signal.SIGTERM, interrupted)
     if not 0 <= args.start_us < args.end_us <= 120000000:
         p.error('Expected 0 <= start-us < end-us <= 120000000')
+    if args.worker_cpu is not None and args.no_start_gate:
+        p.error('Worker affinity requires the start gate')
+    if args.reference_mhz and (not args.hardware_counters or args.worker_cpu is None):
+        p.error('Frequency monitoring requires hardware counters and worker affinity')
+    support_cpus = set(map(int, args.support_cpus.split(','))) if args.support_cpus else None
+    if support_cpus is not None and (not support_cpus or args.worker_cpu in support_cpus):
+        p.error('Support CPUs must be nonempty and exclude the guest CPU')
     output = args.output.resolve()
     output.mkdir()
     gate = output / 'resume'
@@ -158,10 +181,16 @@ def main():
         env.pop('PROFILE_GATE', None)
     command = ['node', 'profile.ts', str(args.assets.resolve()),
                str(output / 'profile'), str(args.capture_mode), '0', str(args.end_us)]
-    proc = subprocess.Popen(command, cwd=args.repo / 'src/tests/wasm', env=env,
+    if support_cpus is not None:
+        command = ['taskset', '-c', ','.join(map(str, sorted(support_cpus))), *command]
+    proc = subprocess.Popen(command, cwd=args.harness or args.repo / 'src/tests/wasm', env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                             text=True, bufsize=1, start_new_session=True)
     counters = hardware = None
+    affinity = None
+    clock_samples = []
+    clock_stop = threading.Event()
+    clock_thread = None
     try:
         before = None
         warmup_received_ns = None
@@ -174,9 +203,48 @@ def main():
                     raise TimeoutError('Benchmark did not reach its start gate')
                 time.sleep(.1)
             before = snapshot(proc.pid)
+            if args.worker_cpu is not None:
+                workers = [(k, t) for k, t in before['threads'].items() if t['name'] == 'DedicatedWorker']
+                if not workers:
+                    raise RuntimeError('No DedicatedWorker at the start gate')
+                worker_key, worker = max(workers, key=lambda item: item[1]['runtime_ns'])
+                old_affinity = sorted(os.sched_getaffinity(worker['tid']))
+                os.sched_setaffinity(worker['tid'], {args.worker_cpu})
+                affinity = dict(key=worker_key, tid=worker['tid'], pid=worker['pid'],
+                    start_ticks=worker['start_ticks'], before=old_affinity,
+                    after=sorted(os.sched_getaffinity(worker['tid'])), support_cpus=sorted(support_cpus or []))
             if args.hardware_counters:
-                counters = HardwareCounters(before['threads'])
+                counters = HardwareCounters(before['threads'], bool(args.reference_mhz))
                 counters.start()
+                if args.reference_mhz:
+                    fds = {name: fd for key, name, fd in counters.events if key == worker_key}
+                    if not {'user_cycles', 'user_reference_cycles'} <= fds.keys():
+                        raise RuntimeError('Guest worker frequency counters unavailable')
+                    def sample_clock():
+                        while not clock_stop.is_set():
+                            row = dict(monotonic_ns=time.monotonic_ns())
+                            try:
+                                for name, fd in fds.items():
+                                    row[name] = list(struct.unpack('=QQQ', os.read(fd, 24)))
+                                row['affinity'] = sorted(os.sched_getaffinity(worker['tid']))
+                                policy = Path(f'/sys/devices/system/cpu/cpufreq/policy{args.worker_cpu}')
+                                row['policy'] = {name: (policy / name).read_text().strip() for name in
+                                                 ('scaling_governor', 'scaling_min_freq', 'scaling_max_freq')}
+                                row['cgroup_cpus'] = {str(p): p.read_text().strip() for p in
+                                    Path('/sys/fs/cgroup').glob('*/cpuset.cpus.effective')}
+                                row['cpu_ticks'] = {parts[0]: list(map(int, parts[1:]))
+                                    for line in Path('/proc/stat').read_text().splitlines()
+                                    if (parts := line.split()) and parts[0].startswith('cpu') and parts[0] != 'cpu'}
+                                for name in ('core_throttle_count', 'package_throttle_count'):
+                                    path = Path(f'/sys/devices/system/cpu/cpu{args.worker_cpu}/thermal_throttle/{name}')
+                                    if path.exists():
+                                        row[name] = int(path.read_text())
+                            except (OSError, ValueError) as error:
+                                row['error'] = str(error)
+                            clock_samples.append(row)
+                            clock_stop.wait(.25)
+                    clock_thread = threading.Thread(target=sample_clock, daemon=True)
+                    clock_thread.start()
             gate.write_text('resume\n')
         after = measurement = None
         with (output / 'run.log').open('w') as log:
@@ -200,6 +268,9 @@ def main():
                     if measurement is not None:
                         raise RuntimeError('Duplicate measurement line')
                     if counters is not None:
+                        clock_stop.set()
+                        if clock_thread is not None:
+                            clock_thread.join()
                         hardware = counters.stop()
                     after, measurement = snapshot(proc.pid), value
         if proc.wait() != 0 or after is None:
@@ -245,10 +316,17 @@ def main():
             before=before, after=after, thread_deltas=deltas, process_deltas=process_deltas)
         if hardware is not None:
             result['hardware_counters'] = hardware
+        if affinity is not None:
+            result['worker_affinity'] = affinity
+            result['clock_samples'] = clock_samples
+            result['reference_mhz'] = args.reference_mhz
         (output / 'scheduler.json').write_text(json.dumps(result, indent=2) + '\n')
         print(json.dumps(dict(wall_seconds=measurement['wall_seconds'],
                               busiest_threads=deltas[:5]), indent=2))
     finally:
+        clock_stop.set()
+        if clock_thread is not None:
+            clock_thread.join()
         if counters is not None:
             counters.close()
         if proc.poll() is None:
