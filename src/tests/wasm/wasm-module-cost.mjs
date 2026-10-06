@@ -50,7 +50,7 @@ export function moduleCosts(bytes) {
             } else canonical.update(body.subarray(op.start,op.end));
             if(op.operations){++operations;++classes[op.category];}
         }
-        const result={normalized_sha256:canonical.digest('hex'),raw_sha256:hash(body),
+        const result={function_index:index,normalized_sha256:canonical.digest('hex'),raw_sha256:hash(body),
             body_bytes:body.length,locals,operations,classes};
         memo.set(index,result);pending.delete(index);return result;
     }

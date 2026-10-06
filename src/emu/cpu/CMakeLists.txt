@@ -83,6 +83,8 @@ set(SOURCE_AOT
         include/cpu/aot/aot_runtime.h
     include/cpu/aot/code_cache.h
     include/cpu/aot/state_locals.h
+        include/cpu/aot/state_liveness.h
+        src/aot/state_liveness.cpp
         include/cpu/aot/wasm_cost.h
         include/cpu/aot/wasm_cost_model.def
         include/cpu/aot/arm_translator.h

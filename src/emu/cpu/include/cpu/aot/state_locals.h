@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cpu/aot/thumb_translator.h>
+#include <cpu/aot/state_liveness.h>
 #include <map>
 #include <set>
 
@@ -48,9 +49,11 @@ namespace eka2l1::arm::aot {
                 out.push_back(byte | (value ? 128 : 0));
             } while (value);
         }
-        void transfer(std::vector<std::uint8_t> &out, bool reload) const {
+        void transfer(std::vector<std::uint8_t> &out, bool reload,
+                std::vector<state_transfer> *transfers = nullptr) const {
             for (const auto &[offset, slot] : locals) {
                 if (!reload && !written.count(offset)) continue;
+                const auto begin = out.size();
                 out.push_back(op_local_get); leb(out, 0);
                 if (reload) {
                     out.push_back(op_i32_load); leb(out, 2); leb(out, offset);
@@ -59,14 +62,16 @@ namespace eka2l1::arm::aot {
                     out.push_back(op_local_get); leb(out, slot);
                     out.push_back(op_i32_store); leb(out, 2); leb(out, offset);
                 }
+                if (transfers) transfers->push_back({begin, out.size(), slot, reload});
             }
             if (reload) out.insert(out.end(), reload_suffix.begin(), reload_suffix.end());
         }
-        void finish(wasm_func_def &function) {
+        void finish(wasm_func_def &function, bool prune = true) {
             if (!enabled) return;
 
             std::vector<std::uint8_t> body;
-            transfer(body, true);
+            std::vector<state_transfer> transfers;
+            transfer(body, true, &transfers);
             if (shared_return) { body.push_back(op_block); body.push_back(type_i32); }
             // Segment call operands were recorded before deferred barriers.
             // Relocate them using the final cache layout, before inserting bytes.
@@ -83,17 +88,19 @@ namespace eka2l1::arm::aot {
             for (const auto &point : barriers) {
                 body.insert(body.end(), function.body.begin() + previous,
                     function.body.begin() + point.position);
-                transfer(body, point.reload);
+                transfer(body, point.reload, &transfers);
                 previous = point.position;
             }
             body.insert(body.end(), function.body.begin() + previous, function.body.end());
             if (shared_return) {
                 body.push_back(op_end);
-                transfer(body, false);
+                transfer(body, false, &transfers);
                 body.push_back(op_return);
             }
             function.body = std::move(body);
             function.num_locals += static_cast<std::uint32_t>(locals.size());
+            if (prune) prune_state_transfers(function, transfers, first_local,
+                static_cast<std::uint32_t>(locals.size()));
         }
     };
 }

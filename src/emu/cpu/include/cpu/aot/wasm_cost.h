@@ -62,7 +62,7 @@ namespace eka2l1::arm::aot::wasm_cost {
     struct path_gate {
         unsigned paths = 0;
         bool known = true, non_growing = true, reduced = false;
-        bool material_non_growing = true;
+        bool material_non_growing = true, material_reduced = false;
         std::int64_t worst_operations = INT64_MIN;
         cost worst_components{};
 
@@ -77,8 +77,10 @@ namespace eka2l1::arm::aot::wasm_cost {
                 if (delta.counts[i] > worst_components.counts[i]) worst_components.counts[i] = delta.counts[i];
                 // Local moves/constants may disappear in the native compiler.
                 // Their removal cannot pay for new loads, branches or calls.
-                if (i != static_cast<unsigned>(kind::local) && i != static_cast<unsigned>(kind::constant))
+                if (i != static_cast<unsigned>(kind::local) && i != static_cast<unsigned>(kind::constant)) {
                     material_non_growing &= delta.counts[i] <= 0;
+                    material_reduced |= delta.counts[i] < 0;
+                }
             }
         }
         void compare(const cost &before, const cost &after, bool must_reduce = false) {
@@ -87,6 +89,12 @@ namespace eka2l1::arm::aot::wasm_cost {
         }
         bool wasm_improves() const { return paths && known && non_growing && reduced; }
         bool no_added_material_work() const { return wasm_improves() && material_non_growing; }
+        // V8 can coalesce local moves and fold constants. Saving only those is
+        // not evidence of less native work. This conservative gate additionally
+        // requires a reduction outside them. Even loads/arithmetic may already
+        // be dead or folded: validate native lowering and compiler overhead with
+        // the offline Chromium oracle before treating this as a speedup.
+        bool material_improves() const { return no_added_material_work() && material_reduced; }
     };
 
     // Compare a fixed setup with repeated removed work without multiplying

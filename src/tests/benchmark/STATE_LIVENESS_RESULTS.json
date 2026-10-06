@@ -1,0 +1,2328 @@
+{
+  "base_commit": "d9ca28f77",
+  "scope": "State transfer pruning and static/native/compiler/whole-worker cost validation",
+  "builds": {
+    "candidate": {
+      "eka2l1.js": "5d3ecd430267390e3f11f33900db02658d208b370f33cc075e1faeb078136fef",
+      "eka2l1.wasm": "2bac80724e422c536dce9ad28d45edb8a94514d028f061cc22cb74205f2fce21",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "candidate-final": {
+      "eka2l1.js": "5d3ecd430267390e3f11f33900db02658d208b370f33cc075e1faeb078136fef",
+      "eka2l1.wasm": "2e5d66e41f6e4893aef93c10d85dc30196f13f9adfdff54f70f62997ffaf354d",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "flat": {
+      "eka2l1.js": "f95fbaa2714eeb57fe9745f06fa66283e14c5e1bce28c4bca7b332331488421b",
+      "eka2l1.wasm": "d54092bd0e99cc0ee43ba88d1661f3a0574f8c613ec829565b665a4707cc3971",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "fast": {
+      "eka2l1.js": "f95fbaa2714eeb57fe9745f06fa66283e14c5e1bce28c4bca7b332331488421b",
+      "eka2l1.wasm": "669347dfa2b1e3cab34112e03d1585f962f966ab76d0b2eaaabd2aadb7169848",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    }
+  },
+  "baseline_build": {
+    "eka2l1.js": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+    "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+    "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "eka2l1.wasm": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6"
+  },
+  "campaigns": {
+    "initial": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/hardware-standard-0-baseline",
+          "cpu_seconds": 5.251812749,
+          "native_instructions": 41435659451,
+          "user_cycles": 19224531636,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.306265244999999,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "13fdbb69476b9fc70bc51e63aa0c61a84c9f849f8f8585fe57dd12d069fc2c86",
+          "report_sha256": "a9ce165fb1912f677603dbf0b5ab539c93dbb386bbcb9c27b6a9bf5bcc66b305",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/hardware-standard-1-candidate",
+          "cpu_seconds": 5.742275006,
+          "native_instructions": 44498648309,
+          "user_cycles": 20988173616,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 13.810839061,
+          "wasm_sha256": "2e5d66e41f6e4893aef93c10d85dc30196f13f9adfdff54f70f62997ffaf354d",
+          "loader_sha256": "5d3ecd430267390e3f11f33900db02658d208b370f33cc075e1faeb078136fef",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "83e8fead5f4206d812a2c71708070bd6c4477c06717e4502244b13678000c3e9",
+          "report_sha256": "aab893c620adb7c968ee0a15dd6a81c5b1011479b8d1da7b11a6aed3bd819cef",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/hardware-standard-2-candidate",
+          "cpu_seconds": 5.614260829,
+          "native_instructions": 44504410056,
+          "user_cycles": 20455938118,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 13.562870249999998,
+          "wasm_sha256": "2e5d66e41f6e4893aef93c10d85dc30196f13f9adfdff54f70f62997ffaf354d",
+          "loader_sha256": "5d3ecd430267390e3f11f33900db02658d208b370f33cc075e1faeb078136fef",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "445e00cff09bec824d7ea54d73abcd70996cc643ac656be4a162dde809d497a3",
+          "report_sha256": "2fe073337d203a8fd41af531c9d6ad995f629ab23d350d6c576ff5b80064f90b",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/hardware-standard-3-baseline",
+          "cpu_seconds": 5.354240462,
+          "native_instructions": 41433052556,
+          "user_cycles": 18957980911,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.562449925,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "f29509b770d770138ae79fe9d9c3d59184236a911e7668f4ee7a46191e025899",
+          "report_sha256": "5dc6f5c35dbe59e80a2eb57b865c6e36e23661fbff2fb211da80c11a1f45a98c",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/hardware-combat-0-baseline",
+          "cpu_seconds": 8.576906491,
+          "native_instructions": 81475083200,
+          "user_cycles": 35445814798,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 68.558645783,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "91d7a9c9fcbbb5b0f3d9ad50d881649ffef7ad07582d3a34dc7f3dcdf39a9480",
+          "report_sha256": "49eb52cb111b43a0fe87f316f33f7d84803a658cfd4cbd630ec51c8670b877d0",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/hardware-combat-1-candidate",
+          "cpu_seconds": 8.047826454,
+          "native_instructions": 80933211214,
+          "user_cycles": 33041601971,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 64.286740383,
+          "wasm_sha256": "2e5d66e41f6e4893aef93c10d85dc30196f13f9adfdff54f70f62997ffaf354d",
+          "loader_sha256": "5d3ecd430267390e3f11f33900db02658d208b370f33cc075e1faeb078136fef",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "f742da1307cfb1eb43c1858f1981855ad8d5c7f76a6648da127243f52b92923a",
+          "report_sha256": "0261b767550853fcb4b700b7c1e7788420eda502dd2c879661f8f78fec332120",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/hardware-combat-2-candidate",
+          "cpu_seconds": 8.056549028,
+          "native_instructions": 80938300411,
+          "user_cycles": 32657212099,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 65.29273447300001,
+          "wasm_sha256": "2e5d66e41f6e4893aef93c10d85dc30196f13f9adfdff54f70f62997ffaf354d",
+          "loader_sha256": "5d3ecd430267390e3f11f33900db02658d208b370f33cc075e1faeb078136fef",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "4f07176f890fbe4cab77fb9f68e9d33c83941fde85be500332f29be914aeebeb",
+          "report_sha256": "1f86386efade89b515050388e0a00af9d70613e746470892eee9ad0808122c38",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/hardware-combat-3-baseline",
+          "cpu_seconds": 8.802079384,
+          "native_instructions": 81473635803,
+          "user_cycles": 33546850454,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 75.67739881600001,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "3fd0514d1961f869e2eef8bfa8cb16cbf96d1cbebb7ec62ccb8b445a3cff132f",
+          "report_sha256": "15a4f6c4b60b17068fa8df2d0ee92200ad04592ff88f17ce4c726f31f2ce6c33",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 5.3030266054999995,
+            "candidate": 5.6782679174999995,
+            "delta_percent": 7.075983960005416
+          },
+          "native_instructions": {
+            "baseline": 41434356003.5,
+            "candidate": 44501529182.5,
+            "delta_percent": 7.402487874412511
+          },
+          "user_cycles": {
+            "baseline": 19091256273.5,
+            "candidate": 20722055867,
+            "delta_percent": 8.542128239950685
+          }
+        },
+        "combat": {
+          "cpu_seconds": {
+            "baseline": 8.6894929375,
+            "candidate": 8.052187741000001,
+            "delta_percent": -7.334204666300758
+          },
+          "native_instructions": {
+            "baseline": 81474359501.5,
+            "candidate": 80935755812.5,
+            "delta_percent": -0.6610714000029438
+          },
+          "user_cycles": {
+            "baseline": 34496332626,
+            "candidate": 32849407035,
+            "delta_percent": -4.774204866515886
+          }
+        }
+      }
+    },
+    "flat-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/flat-hardware-standard-0-baseline",
+          "cpu_seconds": 5.463630585,
+          "native_instructions": 41436120671,
+          "user_cycles": 19312063324,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 11.809133254,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "9c1dddfd5e3e660a615d0f6d224db741272a9b9b08ba62d47bfcfbe89772267a",
+          "report_sha256": "75645a34f63ee6c9a8ca24576f0173b3a900f6960cf86701372bcde7956a71b8",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/flat-hardware-standard-1-candidate",
+          "cpu_seconds": 5.315908751,
+          "native_instructions": 42208675208,
+          "user_cycles": 19094172624,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.807771256999999,
+          "wasm_sha256": "d54092bd0e99cc0ee43ba88d1661f3a0574f8c613ec829565b665a4707cc3971",
+          "loader_sha256": "f95fbaa2714eeb57fe9745f06fa66283e14c5e1bce28c4bca7b332331488421b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "63d97ed0d2850e1bc256a6b0206860d35dfb8315137f2a5c102d49f6b32e915d",
+          "report_sha256": "30a9b27fe569cf3fa5fa065108fce031c4bf0d973db01ca915e5a123f71c0204",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/flat-hardware-standard-2-candidate",
+          "cpu_seconds": 5.383945397,
+          "native_instructions": 42210079061,
+          "user_cycles": 19390938054,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.559402083,
+          "wasm_sha256": "d54092bd0e99cc0ee43ba88d1661f3a0574f8c613ec829565b665a4707cc3971",
+          "loader_sha256": "f95fbaa2714eeb57fe9745f06fa66283e14c5e1bce28c4bca7b332331488421b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "42ac3e585d832a26bea5dcae3f01a5b141deb6b4d78e0d350a11b93d89b46d33",
+          "report_sha256": "4a208ba950ddb428d5dc64aac02c02980ce6608c4a1b5572226700d4b8f65ea7",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/flat-hardware-standard-3-baseline",
+          "cpu_seconds": 5.40908434,
+          "native_instructions": 41429665252,
+          "user_cycles": 19252842289,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.812855901999999,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "6ffeaad56258a29c49d34bce5d11947c667dd31f4776b037dbf6dbfb14afe382",
+          "report_sha256": "1daabc1347d3d83c279da29e9c0f6653c0715ea54c36532756f5cbfdbc6c7371",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/flat-hardware-combat-0-baseline",
+          "cpu_seconds": 8.308568947,
+          "native_instructions": 81466827791,
+          "user_cycles": 34353078315,
+          "other_thread_counter_errors": [
+            {
+              "thread": "1015373:1015373",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015373",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015374",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015374",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015375",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015375",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015376",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015376",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015377",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015377",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015378",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015378",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015379",
+              "event": "user_cycles",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            },
+            {
+              "thread": "1015373:1015379",
+              "event": "user_instructions",
+              "stage": "attach",
+              "error": "[Errno 3] No such process"
+            }
+          ],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 66.55778192199999,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "a8513a6fe9f5234002c2600ba61fa7e8a0ca96a6d529ae15d665ee3b250a1928",
+          "report_sha256": "9aaafce6dc18c77f83cf73ef46b5596c8cc4afad425a96bdc540a0c54e9e1ccf",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/flat-hardware-combat-1-candidate",
+          "cpu_seconds": 7.869767068,
+          "native_instructions": 80446020923,
+          "user_cycles": 32647069916,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 65.042529736,
+          "wasm_sha256": "d54092bd0e99cc0ee43ba88d1661f3a0574f8c613ec829565b665a4707cc3971",
+          "loader_sha256": "f95fbaa2714eeb57fe9745f06fa66283e14c5e1bce28c4bca7b332331488421b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "73f66d6064612b19df4c28981236dc7f4f8b8c4fe4bde30f061037a633899b1f",
+          "report_sha256": "6f993a146581690faa3969ab2b6aa784a4cbfc8459501100248f2bcb62a71b36",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/flat-hardware-combat-2-candidate",
+          "cpu_seconds": 7.982929435,
+          "native_instructions": 80455380510,
+          "user_cycles": 33173468783,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 65.039737532,
+          "wasm_sha256": "d54092bd0e99cc0ee43ba88d1661f3a0574f8c613ec829565b665a4707cc3971",
+          "loader_sha256": "f95fbaa2714eeb57fe9745f06fa66283e14c5e1bce28c4bca7b332331488421b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "0373840823cb041e01c3949fbd054b82fc71702486ff529d591f0a298fd21951",
+          "report_sha256": "efc0497a567180b585794a763acf947188ebea1d8835aaf3567202831752263d",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/flat-hardware-combat-3-baseline",
+          "cpu_seconds": 8.874470083,
+          "native_instructions": 81475484912,
+          "user_cycles": 33496123192,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 65.048447419,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "e9b1efdf1c50bc27353b8a63892297fed0e16620a07d2daee619d8a3bc096f75",
+          "report_sha256": "dc2c5d26bac357d9ce6be9ec1015575df24bdd28ea6eab5b6f9f4ae3cedaa825",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 5.4363574625,
+            "candidate": 5.349927074,
+            "delta_percent": -1.5898584501883306
+          },
+          "native_instructions": {
+            "baseline": 41432892961.5,
+            "candidate": 42209377134.5,
+            "delta_percent": 1.8740766514216523
+          },
+          "user_cycles": {
+            "baseline": 19282452806.5,
+            "candidate": 19242555339,
+            "delta_percent": -0.2069107488573807
+          }
+        },
+        "combat": {
+          "cpu_seconds": {
+            "baseline": 8.591519515,
+            "candidate": 7.9263482515,
+            "delta_percent": -7.742184165893729
+          },
+          "native_instructions": {
+            "baseline": 81471156351.5,
+            "candidate": 80450700716.5,
+            "delta_percent": -1.2525360884744763
+          },
+          "user_cycles": {
+            "baseline": 33924600753.5,
+            "candidate": 32910269349.5,
+            "delta_percent": -2.9899582647125222
+          }
+        }
+      }
+    },
+    "fast-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/fast-hardware-standard-0-baseline",
+          "cpu_seconds": 5.301840932,
+          "native_instructions": 41442015668,
+          "user_cycles": 18905806326,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 11.810233805,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "0f60cb4bcfa410cdbd05572588da0b1d6d3d6cf6972e0c5d9767de2a6c01aa09",
+          "report_sha256": "54f1a1ed74f6394fc8493c7a16ae75d2bf8b89e9c5fd845deebe3ebdc51167d0",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/fast-hardware-standard-1-candidate",
+          "cpu_seconds": 5.214792106,
+          "native_instructions": 42162468692,
+          "user_cycles": 19251450983,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.306980772,
+          "wasm_sha256": "669347dfa2b1e3cab34112e03d1585f962f966ab76d0b2eaaabd2aadb7169848",
+          "loader_sha256": "f95fbaa2714eeb57fe9745f06fa66283e14c5e1bce28c4bca7b332331488421b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "bcd85b2e65dd931aecd28edc2379aae09b0bdfe840683ec91b07c02d4ffb7d32",
+          "report_sha256": "d339f75bbe1f0c1190c0be66eb2d71a2f56c4cdc9085bed9bc7d0023a281b305",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/fast-hardware-standard-2-candidate",
+          "cpu_seconds": 5.046823375,
+          "native_instructions": 42158980709,
+          "user_cycles": 19088472652,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.305637713999998,
+          "wasm_sha256": "669347dfa2b1e3cab34112e03d1585f962f966ab76d0b2eaaabd2aadb7169848",
+          "loader_sha256": "f95fbaa2714eeb57fe9745f06fa66283e14c5e1bce28c4bca7b332331488421b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "f8abdf6bebe0b6a09e27b294eab3b26d584849ddd4e8a47474d8cd530a43f502",
+          "report_sha256": "41cf2842d6fde1f75583c47ed00a58d69df06adb716dcc247cc159d64d947752",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/fast-hardware-standard-3-baseline",
+          "cpu_seconds": 5.1972663,
+          "native_instructions": 41430847700,
+          "user_cycles": 19097012555,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 1972819249,
+          "presentations": 254,
+          "warmup_seconds": 12.049365336,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "01d7ee4f4ce6c3b93cd2ec56a57e4ab0a035b8826d6377c376c047bd457d8f1e",
+          "report_sha256": "06ac52de2ab58adb9c3d3db4b0d6a1bdecf947b296d62d192041dd593f2c0020",
+          "journal_sha256": "f91b6589da8a31e117813616018c62c88c8000c465cd1e4140752c8b2d7d8a7d"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/fast-hardware-combat-0-baseline",
+          "cpu_seconds": 8.08879795,
+          "native_instructions": 81470655037,
+          "user_cycles": 33576097186,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 66.80203742200001,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "61e304c960a4c1bfd5ab796e9a6e4bf0cf10751bf7471711b08a412be1079c52",
+          "report_sha256": "74a99a5aef68b103470ec9d7e686c87db20fa2c830b97b7f664c32bb55236370",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/fast-hardware-combat-1-candidate",
+          "cpu_seconds": 8.194765449,
+          "native_instructions": 80444067605,
+          "user_cycles": 32883049264,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 63.530963904,
+          "wasm_sha256": "669347dfa2b1e3cab34112e03d1585f962f966ab76d0b2eaaabd2aadb7169848",
+          "loader_sha256": "f95fbaa2714eeb57fe9745f06fa66283e14c5e1bce28c4bca7b332331488421b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "49328d21cfc5465ee72f02da984c1359f2ff5a8d4a9e0ad550262b49aa0d0e4f",
+          "report_sha256": "9707ea233164886fa04330f4a4ac825c00b2dfcf600a2336fb44649986ff5852",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-state-liveness/fast-hardware-combat-2-candidate",
+          "cpu_seconds": 9.052629577,
+          "native_instructions": 80447274720,
+          "user_cycles": 35641595158,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 64.03709350599999,
+          "wasm_sha256": "669347dfa2b1e3cab34112e03d1585f962f966ab76d0b2eaaabd2aadb7169848",
+          "loader_sha256": "f95fbaa2714eeb57fe9745f06fa66283e14c5e1bce28c4bca7b332331488421b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "0934f59716906c0e32c078a4ab1f07c0aa6327d5ee91667233bce90e35e87739",
+          "report_sha256": "54ed14ddd6d268e87674a3991198b2d4f4fe29152373428316ff7c48fdd05394",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-state-liveness/fast-hardware-combat-3-baseline",
+          "cpu_seconds": 11.125685077,
+          "native_instructions": 81462964639,
+          "user_cycles": 37643067028,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 2171043925,
+          "presentations": 192,
+          "warmup_seconds": 75.928255978,
+          "wasm_sha256": "2f220faf0a930877b554a78df5738d3523710055a384f01661a24da275bb97e6",
+          "loader_sha256": "84418af1b62b65175cbe87f9af0201756eeb83c5981fffa623dc011f04aea01b",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "c354a17da8edee2f23043430c017c6ec787da5d0849f3442f326ca6de48c6f69",
+          "report_sha256": "ed1492581ec02dd7541d4d6356e445ff8435342be608bccf3cdad25acc1cb5b8",
+          "journal_sha256": "9a5aa2b139eb413ae58aedeadb9d70e27dcf21ec94932f1bbbd996e000603052"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 5.249553616,
+            "candidate": 5.1308077405,
+            "delta_percent": -2.262018529310328
+          },
+          "native_instructions": {
+            "baseline": 41436431684,
+            "candidate": 42160724700.5,
+            "delta_percent": 1.7479618467718394
+          },
+          "user_cycles": {
+            "baseline": 19001409440.5,
+            "candidate": 19169961817.5,
+            "delta_percent": 0.8870519712119052
+          }
+        },
+        "combat": {
+          "cpu_seconds": {
+            "baseline": 9.6072415135,
+            "candidate": 8.623697513,
+            "delta_percent": -10.237527589141315
+          },
+          "native_instructions": {
+            "baseline": 81466809838,
+            "candidate": 80445671162.5,
+            "delta_percent": -1.2534413432053748
+          },
+          "user_cycles": {
+            "baseline": 35609582107,
+            "candidate": 34262322211,
+            "delta_percent": -3.7834195637335477
+          }
+        }
+      }
+    }
+  },
+  "native": {
+    "scope": "Static native inventories of sampled changed functions, not executed path counts. Compiler time and native execution require separate validation.",
+    "selection": "Largest summed baseline/candidate self sample times; changed common exports only.",
+    "before_profile": {
+      "file": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13.cpuprofile",
+      "sha256": "3b5d6192eb61a9bee49937b0b03d2074ccddaa02517cdbb13ccf2c08f565fa2b",
+      "sampled_us": 6403951,
+      "guest_self_us": 594814,
+      "inclusive_us": {
+        "translation": 67699,
+        "state_finalization": 11155,
+        "allocation": 22289
+      },
+      "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+    },
+    "after_profile": {
+      "file": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13.cpuprofile",
+      "sha256": "24886e9c663efec8007ea3c8f922f78754efd1f9cda394378662505914d01bd1",
+      "sampled_us": 6647061,
+      "guest_self_us": 571076,
+      "inclusive_us": {
+        "translation": 445781,
+        "state_finalization": 389231,
+        "allocation": 143848
+      },
+      "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+    },
+    "rows": [
+      {
+        "name": "f_2149128552",
+        "guest_pc": "0x80191968",
+        "thumb": false,
+        "before_self_us": 272107,
+        "after_self_us": 279889,
+        "wasm": {
+          "before": {
+            "normalized_sha256": "f8e0f1ae80d42224b4f9bb742b86007c995fe54dafc832472703c45f255b613d",
+            "raw_sha256": "3d67a20c707abca65fd508505f85816503fc73bd1a496360e3f702308bccb3f0",
+            "body_bytes": 6607,
+            "locals": 30,
+            "operations": 3316,
+            "classes": {
+              "local": 2053,
+              "constant": 360,
+              "load": 15,
+              "store": 143,
+              "control": 139,
+              "call": 7,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 599,
+              "division": 0
+            },
+            "module": "worker-13-module-21.wasm"
+          },
+          "after": {
+            "normalized_sha256": "f71c1e249ed1a0ecf8cf96898eac10e902556718caded211702460a5bac770ed",
+            "raw_sha256": "2449f730db99a39c6cf50aebad197c5ed269db9bf3275e3311e3506388b5bd55",
+            "body_bytes": 6551,
+            "locals": 30,
+            "operations": 3295,
+            "classes": {
+              "local": 2039,
+              "constant": 360,
+              "load": 15,
+              "store": 136,
+              "control": 139,
+              "call": 7,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 599,
+              "division": 0
+            },
+            "module": "worker-13-module-21.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-21.wasm",
+            "module_sha256": "3c9c63c06f5e8547805bdf453c405987442d53cf54f223cb6cd4ab0179d9e0f1",
+            "function_index": 13,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=13",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "8bccf13892a9358fe43a928c8b2c6159db4dec39583ab3d9425026ca926eb32a",
+            "code_bytes": 11816,
+            "executable_bytes": 11744,
+            "table_bytes": 72,
+            "table_offsets": [
+              11744
+            ],
+            "instructions": 2973,
+            "padding_instructions": 5,
+            "memory_instructions": 955,
+            "stack_memory_instructions": 596,
+            "conditional_branches": 166,
+            "calls": 8
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13-module-21.wasm",
+            "module_sha256": "9fd01a16a86081fc3fe6a4bc0379d2c1c30f45b7f9ac199857e8c5a9a3d0fcfc",
+            "function_index": 13,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=13",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "a70ffeab862824b1b6a74f5ec5a9e2c9aafaf40303fb48067f2cc60bf2e6c3b2",
+            "code_bytes": 11608,
+            "executable_bytes": 11536,
+            "table_bytes": 72,
+            "table_offsets": [
+              11536
+            ],
+            "instructions": 2918,
+            "padding_instructions": 5,
+            "memory_instructions": 940,
+            "stack_memory_instructions": 588,
+            "conditional_branches": 166,
+            "calls": 8
+          }
+        },
+        "delta": {
+          "instructions": -55,
+          "code_bytes": -208,
+          "memory_instructions": -15,
+          "stack_memory_instructions": -8,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149189520",
+        "guest_pc": "0x801a0790",
+        "thumb": false,
+        "before_self_us": 141045,
+        "after_self_us": 134073,
+        "wasm": {
+          "before": {
+            "normalized_sha256": "bde690dc03009144aab2250f41b909a01bd1efdbd2b2d90f2cbf64b6eca2ac32",
+            "raw_sha256": "07e611c4dc71275aeed3d1bda4126409f3a251007552f862f28f96e84de6b758",
+            "body_bytes": 89725,
+            "locals": 40,
+            "operations": 38648,
+            "classes": {
+              "local": 22289,
+              "constant": 2721,
+              "load": 4541,
+              "store": 4029,
+              "control": 1610,
+              "call": 160,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 3298,
+              "division": 0
+            },
+            "module": "worker-13-module-16.wasm"
+          },
+          "after": {
+            "normalized_sha256": "3de3886d909af48bcb11fb42e8b56e5e94fa2b093d91238ddf0a378be88a08f3",
+            "raw_sha256": "3e4f301f9f54e14fccf9a7389a4f20e34516ba690f8eefbdf5d4ba01e20ea968",
+            "body_bytes": 86300,
+            "locals": 40,
+            "operations": 37334,
+            "classes": {
+              "local": 21413,
+              "constant": 2721,
+              "load": 4263,
+              "store": 3869,
+              "control": 1610,
+              "call": 160,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 3298,
+              "division": 0
+            },
+            "module": "worker-13-module-16.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-16.wasm",
+            "module_sha256": "539a1be1386cdb45dabedcdf7bdae6c9a7a18b329ced916537460c61e4e42212",
+            "function_index": 9,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=9",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "cf694696e103e5b1bb8767dcd37eb5c699c6c6891a61102e3582d80a53ff3e21",
+            "code_bytes": 231720,
+            "executable_bytes": 231608,
+            "table_bytes": 112,
+            "table_offsets": [
+              231608
+            ],
+            "instructions": 47169,
+            "padding_instructions": 8,
+            "memory_instructions": 31895,
+            "stack_memory_instructions": 16675,
+            "conditional_branches": 2283,
+            "calls": 267
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13-module-16.wasm",
+            "module_sha256": "37ca26901d18194b3730c6eebff1bb6f51f3e9077e841574f67c15117e4c3ba6",
+            "function_index": 9,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=9",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "e86311d706d18b640ae297da7481ced2a39be1e0af5bce64ae8024764603105f",
+            "code_bytes": 220568,
+            "executable_bytes": 220456,
+            "table_bytes": 112,
+            "table_offsets": [
+              220456
+            ],
+            "instructions": 44882,
+            "padding_instructions": 7,
+            "memory_instructions": 30222,
+            "stack_memory_instructions": 16197,
+            "conditional_branches": 2283,
+            "calls": 267
+          }
+        },
+        "delta": {
+          "instructions": -2287,
+          "code_bytes": -11152,
+          "memory_instructions": -1673,
+          "stack_memory_instructions": -478,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149189196",
+        "guest_pc": "0x801a064c",
+        "thumb": false,
+        "before_self_us": 22210,
+        "after_self_us": 11673,
+        "wasm": {
+          "before": {
+            "normalized_sha256": "443f959c3c714b1feb1eb6ac04317a802faf4e9f979f67f696b96945bed5a936",
+            "raw_sha256": "c46be93bca0391d8f08534498c063134c56187c863cebee346984f6b16ff2b2c",
+            "body_bytes": 1957,
+            "locals": 31,
+            "operations": 850,
+            "classes": {
+              "local": 457,
+              "constant": 124,
+              "load": 65,
+              "store": 24,
+              "control": 68,
+              "call": 2,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 110,
+              "division": 0
+            },
+            "module": "worker-13-module-5.wasm"
+          },
+          "after": {
+            "normalized_sha256": "2a07754bd3b140642c1b0adda32b2a89a24056b0c7afedac0d28f2703df5d339",
+            "raw_sha256": "3652578e98346dac7747aff23cfb02e2cac617ec7e3bd4a6fa4cbb89a7e35bc0",
+            "body_bytes": 1871,
+            "locals": 31,
+            "operations": 814,
+            "classes": {
+              "local": 433,
+              "constant": 124,
+              "load": 56,
+              "store": 21,
+              "control": 68,
+              "call": 2,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 110,
+              "division": 0
+            },
+            "module": "worker-13-module-5.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-5.wasm",
+            "module_sha256": "fbeb91a5a08a04596d0ddbb1b67f76c012ca2b92ebf42d09dee6b0bcf41cffe6",
+            "function_index": 1844,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=1844",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "859fe0a7be377ef9dff69259afd1084e75d01d2219cda527355cf4ea86387b27",
+            "code_bytes": 2972,
+            "executable_bytes": 2972,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 692,
+            "padding_instructions": 1,
+            "memory_instructions": 281,
+            "stack_memory_instructions": 170,
+            "conditional_branches": 43,
+            "calls": 4
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13-module-5.wasm",
+            "module_sha256": "55b972daa0f5a6c6d801cfada62d73e796199bc022ec5ebac961f91079ee42f5",
+            "function_index": 1844,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=1844",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "8a29622ffe91a10c866229f3a80397d40219b050083750d25a88605f62e369cf",
+            "code_bytes": 2888,
+            "executable_bytes": 2888,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 678,
+            "padding_instructions": 2,
+            "memory_instructions": 265,
+            "stack_memory_instructions": 166,
+            "conditional_branches": 43,
+            "calls": 4
+          }
+        },
+        "delta": {
+          "instructions": -14,
+          "code_bytes": -84,
+          "memory_instructions": -16,
+          "stack_memory_instructions": -4,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149129868",
+        "guest_pc": "0x80191e8c",
+        "thumb": false,
+        "before_self_us": 17817,
+        "after_self_us": 12233,
+        "wasm": {
+          "before": {
+            "normalized_sha256": "2541da55a1a6ff45bb05dee538cb86d27be9bc86e8c00c5bc5d246ae7e32865f",
+            "raw_sha256": "6d0b6519b44701d4aee741c12a2810bf14b7c7634d3095bef42bade8703d9aef",
+            "body_bytes": 425,
+            "locals": 21,
+            "operations": 174,
+            "classes": {
+              "local": 88,
+              "constant": 22,
+              "load": 18,
+              "store": 8,
+              "control": 16,
+              "call": 1,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 21,
+              "division": 0
+            },
+            "module": "worker-13-module-38.wasm"
+          },
+          "after": {
+            "normalized_sha256": "0c8b0bfba6896bb95de3d57446ebc2a40974ef1fdba5a8de70e24487c634961b",
+            "raw_sha256": "aa037342adbe763c629ee349f4547698b49310ec8910a1ff3c3abd5ba602168d",
+            "body_bytes": 385,
+            "locals": 21,
+            "operations": 159,
+            "classes": {
+              "local": 78,
+              "constant": 22,
+              "load": 15,
+              "store": 6,
+              "control": 16,
+              "call": 1,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 21,
+              "division": 0
+            },
+            "module": "worker-13-module-38.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-38.wasm",
+            "module_sha256": "1b39154325509fa2ad0c12054fb8e7c2c55c440663cf692b4656c36aeea1978a",
+            "function_index": 36,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=36",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "3021984e83655da165d893d0d319af7b37bced7050afc5270b35ef0e57343796",
+            "code_bytes": 608,
+            "executable_bytes": 608,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 135,
+            "padding_instructions": 1,
+            "memory_instructions": 63,
+            "stack_memory_instructions": 26,
+            "conditional_branches": 11,
+            "calls": 3
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13-module-38.wasm",
+            "module_sha256": "e030ff63ecaa8da54141c9b45ad984f8e789245cc1e3a2750495b91127895fdb",
+            "function_index": 36,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=36",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "c48be0b0dab9c30d206b397f2ba3ebddae7cb43bec751120ef858c0885293573",
+            "code_bytes": 568,
+            "executable_bytes": 568,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 130,
+            "padding_instructions": 1,
+            "memory_instructions": 58,
+            "stack_memory_instructions": 26,
+            "conditional_branches": 11,
+            "calls": 3
+          }
+        },
+        "delta": {
+          "instructions": -5,
+          "code_bytes": -40,
+          "memory_instructions": -5,
+          "stack_memory_instructions": 0,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149144548",
+        "guest_pc": "0x801957e4",
+        "thumb": false,
+        "before_self_us": 8883,
+        "after_self_us": 11038,
+        "wasm": {
+          "before": {
+            "normalized_sha256": "271ae0f2160ea62114352c25da8ba8ab1fcf53905299adb2990b0e52dc73358c",
+            "raw_sha256": "da37b3cb8d23ae181f5c24ef240a218d915b3669df44f4573b7181643e3feb3f",
+            "body_bytes": 8033,
+            "locals": 33,
+            "operations": 3760,
+            "classes": {
+              "local": 2257,
+              "constant": 422,
+              "load": 86,
+              "store": 259,
+              "control": 196,
+              "call": 12,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 528,
+              "division": 0
+            },
+            "module": "worker-13-module-192.wasm"
+          },
+          "after": {
+            "normalized_sha256": "d68f65ed7bc36f1bdc0d26296681edbbd82b46063973321542e69495cb3249c4",
+            "raw_sha256": "17090764df89d7fd7d22f790c2f1a4fa95314f468ac3cdec2aa1c0e9012fc887",
+            "body_bytes": 7549,
+            "locals": 33,
+            "operations": 3565,
+            "classes": {
+              "local": 2127,
+              "constant": 422,
+              "load": 78,
+              "store": 202,
+              "control": 196,
+              "call": 12,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 528,
+              "division": 0
+            },
+            "module": "worker-13-module-192.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-192.wasm",
+            "module_sha256": "8dc66be8fb770aae507dd6a76287c941bcb8d8f7f560bf418c7fffea8257259e",
+            "function_index": 12,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=12",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "7735b14cffa22e199deb8e73d39806e60e2a84e61df9260df6faabdb5f5c1c95",
+            "code_bytes": 18156,
+            "executable_bytes": 18156,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 4191,
+            "padding_instructions": 1,
+            "memory_instructions": 1788,
+            "stack_memory_instructions": 1076,
+            "conditional_branches": 243,
+            "calls": 17
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13-module-192.wasm",
+            "module_sha256": "1b924421e408f5555753edb5e26614a3cbf335eeacbd0cf4506ffaea5c155bf2",
+            "function_index": 12,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=12",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "ee1b04e97ff32939aa586d4a81fa2be85177c3aca27f4f4d8f5c30655e0c368f",
+            "code_bytes": 17316,
+            "executable_bytes": 17316,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 3965,
+            "padding_instructions": 1,
+            "memory_instructions": 1562,
+            "stack_memory_instructions": 934,
+            "conditional_branches": 243,
+            "calls": 17
+          }
+        },
+        "delta": {
+          "instructions": -226,
+          "code_bytes": -840,
+          "memory_instructions": -226,
+          "stack_memory_instructions": -142,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149133377",
+        "guest_pc": "0x80192c40",
+        "thumb": true,
+        "before_self_us": 9450,
+        "after_self_us": 8342,
+        "wasm": {
+          "before": {
+            "normalized_sha256": "fb5e99e4871565b2236e05b0998836e8c4e1227f10bea9a522d66fa29ae2052a",
+            "raw_sha256": "66a8c904c0361af5f97a7277a429f35a1582984a42d15854ec76f012da762ba5",
+            "body_bytes": 6400,
+            "locals": 35,
+            "operations": 2733,
+            "classes": {
+              "local": 1603,
+              "constant": 187,
+              "load": 240,
+              "store": 377,
+              "control": 110,
+              "call": 9,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 207,
+              "division": 0
+            },
+            "module": "worker-13-module-75.wasm"
+          },
+          "after": {
+            "normalized_sha256": "c704f88d4f0a95851f31e72af9325682d955b19b2e67204adac869e313a220e9",
+            "raw_sha256": "96270e28672ab3b6b806c487711c4aa29cdd6b2f8f1358bb070f90a5c619e1a9",
+            "body_bytes": 4636,
+            "locals": 35,
+            "operations": 2007,
+            "classes": {
+              "local": 1119,
+              "constant": 187,
+              "load": 170,
+              "store": 205,
+              "control": 110,
+              "call": 9,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 207,
+              "division": 0
+            },
+            "module": "worker-13-module-75.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-75.wasm",
+            "module_sha256": "df1301f889eb45fbba2daaec4fa907857e45bdc9d16ccf7708963feb48fd5a7b",
+            "function_index": 7,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=7",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "89fda1ea710afee80c72013f62a4e496a53c5139212a351216b0b0701f8b6228",
+            "code_bytes": 8300,
+            "executable_bytes": 8300,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 1789,
+            "padding_instructions": 1,
+            "memory_instructions": 1253,
+            "stack_memory_instructions": 577,
+            "conditional_branches": 87,
+            "calls": 11
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13-module-75.wasm",
+            "module_sha256": "7072432ea21970e3a9559212ac89194eb2da82c6f3b787bff7c8156c5a120ba2",
+            "function_index": 7,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=7",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "b4049dbbe2b617bb84ee3f2280e7d992c09bae039a132240a36281847b71c74c",
+            "code_bytes": 6028,
+            "executable_bytes": 6028,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 1367,
+            "padding_instructions": 1,
+            "memory_instructions": 800,
+            "stack_memory_instructions": 351,
+            "conditional_branches": 87,
+            "calls": 11
+          }
+        },
+        "delta": {
+          "instructions": -422,
+          "code_bytes": -2272,
+          "memory_instructions": -453,
+          "stack_memory_instructions": -226,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149188704",
+        "guest_pc": "0x801a0460",
+        "thumb": false,
+        "before_self_us": 8353,
+        "after_self_us": 7693,
+        "wasm": {
+          "before": {
+            "normalized_sha256": "91e13ba1bf23f37acbbeef6855a63dcbd23dd1ed0d00392b4c514d0d73968c15",
+            "raw_sha256": "17c5924fcf81bca1e9bf69e429af5ecbcc10bf1493ecb76e3edec493cd876da5",
+            "body_bytes": 87095,
+            "locals": 38,
+            "operations": 37329,
+            "classes": {
+              "local": 21323,
+              "constant": 2690,
+              "load": 4340,
+              "store": 3922,
+              "control": 1634,
+              "call": 169,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 3251,
+              "division": 0
+            },
+            "module": "worker-13-module-18.wasm"
+          },
+          "after": {
+            "normalized_sha256": "853a4f523b3565768bfe93ecb08386806fbd8ce820bdc5f21785a9ea98ee5a87",
+            "raw_sha256": "4477c60013abca3c3d8604981fb98771d7618f0689fafb637463f0c5cd04319f",
+            "body_bytes": 83862,
+            "locals": 38,
+            "operations": 36099,
+            "classes": {
+              "local": 20503,
+              "constant": 2690,
+              "load": 4099,
+              "store": 3753,
+              "control": 1634,
+              "call": 169,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 3251,
+              "division": 0
+            },
+            "module": "worker-13-module-18.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-18.wasm",
+            "module_sha256": "84beb1cb5bb1ba65f0bbaf1c3ffba841ee10dcf45b6e40f3281ebf8ffe6981fd",
+            "function_index": 7,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=7",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "568d2edb2a8f4001cba8d6ba91ca20fe588efe20b519dbb4d1f95afdf1379cb6",
+            "code_bytes": 230136,
+            "executable_bytes": 230048,
+            "table_bytes": 88,
+            "table_offsets": [
+              230048
+            ],
+            "instructions": 46317,
+            "padding_instructions": 4,
+            "memory_instructions": 30279,
+            "stack_memory_instructions": 15012,
+            "conditional_branches": 2570,
+            "calls": 313
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13-module-18.wasm",
+            "module_sha256": "610888491670d5eed96c762ca7a8f041428c616fc930c257f72d7b422420b73a",
+            "function_index": 7,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=7",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "c2056c2a19e5f71f930856d586db5a467fdb841f4de02e190802ffbe501d3ae6",
+            "code_bytes": 221232,
+            "executable_bytes": 221144,
+            "table_bytes": 88,
+            "table_offsets": [
+              221144
+            ],
+            "instructions": 44596,
+            "padding_instructions": 3,
+            "memory_instructions": 28963,
+            "stack_memory_instructions": 14921,
+            "conditional_branches": 2570,
+            "calls": 313
+          }
+        },
+        "delta": {
+          "instructions": -1721,
+          "code_bytes": -8904,
+          "memory_instructions": -1316,
+          "stack_memory_instructions": -91,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149132085",
+        "guest_pc": "0x80192734",
+        "thumb": true,
+        "before_self_us": 6099,
+        "after_self_us": 6159,
+        "wasm": {
+          "before": {
+            "normalized_sha256": "2487053e308311ecc11b06fc60466a5d44a090cd7cd2c2f5852928e3e83d3319",
+            "raw_sha256": "c29c3d521b4505728cf5f21991dca16d90a715fe6844ee570f880030da825e14",
+            "body_bytes": 3717,
+            "locals": 33,
+            "operations": 1586,
+            "classes": {
+              "local": 924,
+              "constant": 119,
+              "load": 134,
+              "store": 208,
+              "control": 68,
+              "call": 5,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 128,
+              "division": 0
+            },
+            "module": "worker-13-module-114.wasm"
+          },
+          "after": {
+            "normalized_sha256": "6f8e1e681509fb64cf5ee4d774faa4a615da27d99b93eca048a499c55be2b8da",
+            "raw_sha256": "9b4ffd045b6d9101d977550fca9e739b87018b517b5467a9658d53cac3573520",
+            "body_bytes": 2844,
+            "locals": 33,
+            "operations": 1226,
+            "classes": {
+              "local": 684,
+              "constant": 119,
+              "load": 100,
+              "store": 122,
+              "control": 68,
+              "call": 5,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 128,
+              "division": 0
+            },
+            "module": "worker-13-module-114.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-114.wasm",
+            "module_sha256": "c6187be9f3955ac49106ae9d4584f7b52e7b16229f11634225ff8c08a7a5e7f3",
+            "function_index": 13,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=13",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "0386e80ce858f8ab18e88bc84bcd31243fabd481fe73108e57741a441a9e8f76",
+            "code_bytes": 4568,
+            "executable_bytes": 4568,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 1010,
+            "padding_instructions": 1,
+            "memory_instructions": 665,
+            "stack_memory_instructions": 294,
+            "conditional_branches": 54,
+            "calls": 7
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13-module-114.wasm",
+            "module_sha256": "d53de899ab1809ec3580a5abdcfd56c1bcc8d3003c1c773c039fe3aadd2b441f",
+            "function_index": 13,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=13",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "df5c84a42bbb351075de16c00af810f087b8aba433d50d55646d35e21c983d09",
+            "code_bytes": 3676,
+            "executable_bytes": 3676,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 826,
+            "padding_instructions": 1,
+            "memory_instructions": 465,
+            "stack_memory_instructions": 201,
+            "conditional_branches": 54,
+            "calls": 7
+          }
+        },
+        "delta": {
+          "instructions": -184,
+          "code_bytes": -892,
+          "memory_instructions": -200,
+          "stack_memory_instructions": -93,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149133349",
+        "guest_pc": "0x80192c24",
+        "thumb": true,
+        "before_self_us": 7776,
+        "after_self_us": 3333,
+        "wasm": {
+          "before": {
+            "normalized_sha256": "1b0833b52d7feacf68d788daa3f8734a2addbfeb1b888e9ca1bc9d6d48674586",
+            "raw_sha256": "c95b474274fe0904bb1f6ccce6b627be638b1d40eb4c2888cbbf9386d598f493",
+            "body_bytes": 1911,
+            "locals": 31,
+            "operations": 786,
+            "classes": {
+              "local": 449,
+              "constant": 66,
+              "load": 59,
+              "store": 117,
+              "control": 38,
+              "call": 2,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 55,
+              "division": 0
+            },
+            "module": "worker-13-module-73.wasm"
+          },
+          "after": {
+            "normalized_sha256": "1a1d42ec9574fb49568335cfaef9e463f31c9753bf90467a232ece5564fca7db",
+            "raw_sha256": "fcd21880ce80d3ff7b4d58cc65ffd57620b622f27a55ff0df5ab971ef7567a12",
+            "body_bytes": 1429,
+            "locals": 31,
+            "operations": 591,
+            "classes": {
+              "local": 319,
+              "constant": 66,
+              "load": 38,
+              "store": 73,
+              "control": 38,
+              "call": 2,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 55,
+              "division": 0
+            },
+            "module": "worker-13-module-73.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-73.wasm",
+            "module_sha256": "e9868dcf9932450337a2e2fa935747103b9e12ccf6715d34dbe7be27daf4f143",
+            "function_index": 11,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=11",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "4b2b0fbd4b2a4263c265a89d107da113d57d0a0b8da422b4f3acc982cea0a2e8",
+            "code_bytes": 2308,
+            "executable_bytes": 2308,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 462,
+            "padding_instructions": 2,
+            "memory_instructions": 301,
+            "stack_memory_instructions": 114,
+            "conditional_branches": 27,
+            "calls": 4
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13-module-73.wasm",
+            "module_sha256": "e8e159d1f2404f0905a2519b995509eb581ed8d8e9c9aef171992f7db5ed668b",
+            "function_index": 11,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=11",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "3ed6b50d873a7574d3f7b0ff237b59452802d0ab5de5f9580908b1cc7feefe21",
+            "code_bytes": 1792,
+            "executable_bytes": 1792,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 372,
+            "padding_instructions": 2,
+            "memory_instructions": 198,
+            "stack_memory_instructions": 67,
+            "conditional_branches": 27,
+            "calls": 4
+          }
+        },
+        "delta": {
+          "instructions": -90,
+          "code_bytes": -516,
+          "memory_instructions": -103,
+          "stack_memory_instructions": -47,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149132077",
+        "guest_pc": "0x8019272c",
+        "thumb": true,
+        "before_self_us": 6099,
+        "after_self_us": 3343,
+        "wasm": {
+          "before": {
+            "normalized_sha256": "3ce9679aa217784c533082cda385b009c571dfb961fa6476651099b044a58b18",
+            "raw_sha256": "3ce9679aa217784c533082cda385b009c571dfb961fa6476651099b044a58b18",
+            "body_bytes": 957,
+            "locals": 29,
+            "operations": 388,
+            "classes": {
+              "local": 234,
+              "constant": 32,
+              "load": 15,
+              "store": 72,
+              "control": 14,
+              "call": 0,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 21,
+              "division": 0
+            },
+            "module": "worker-13-module-116.wasm"
+          },
+          "after": {
+            "normalized_sha256": "e37ec7f8d54a0882470d1151cf29cb9f2b989b4b8e1e932fea8f6aadd46cb433",
+            "raw_sha256": "e37ec7f8d54a0882470d1151cf29cb9f2b989b4b8e1e932fea8f6aadd46cb433",
+            "body_bytes": 706,
+            "locals": 29,
+            "operations": 289,
+            "classes": {
+              "local": 168,
+              "constant": 32,
+              "load": 7,
+              "store": 47,
+              "control": 14,
+              "call": 0,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 21,
+              "division": 0
+            },
+            "module": "worker-13-module-116.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-baseline/worker-13-module-116.wasm",
+            "module_sha256": "f9515b6f8137a127e4fbaf26e3251580adf6221278a9cc83021a317e1d070c12",
+            "function_index": 13,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=13",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "4789d2938b2296f7170f01cb4e2fb66c7fdcd11d14fac44f2b549fc64b8b3bb4",
+            "code_bytes": 864,
+            "executable_bytes": 864,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 176,
+            "padding_instructions": 2,
+            "memory_instructions": 112,
+            "stack_memory_instructions": 30,
+            "conditional_branches": 7,
+            "calls": 1
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-state-liveness/profile-candidate/worker-13-module-116.wasm",
+            "module_sha256": "d909d1575995875b245b609a084ade2f5205610873d5f0756fc585b18ccdf16e",
+            "function_index": 13,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=13",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "ec3ea84aed0a05f9e904d12c6893b77a946ce9bc7de4eeb98b67d38c320ae121",
+            "code_bytes": 660,
+            "executable_bytes": 660,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 138,
+            "padding_instructions": 1,
+            "memory_instructions": 70,
+            "stack_memory_instructions": 12,
+            "conditional_branches": 7,
+            "calls": 1
+          }
+        },
+        "delta": {
+          "instructions": -38,
+          "code_bytes": -204,
+          "memory_instructions": -42,
+          "stack_memory_instructions": -18,
+          "conditional_branches": 0,
+          "calls": 0
+        }
+      }
+    ]
+  },
+  "calibration": {
+    "scope": "Raw operation savings with equal optimized native inventories; no cycle claim.",
+    "rows": [
+      {
+        "name": "local_copy",
+        "before": {
+          "wasm": {
+            "operations": 3,
+            "classes": {
+              "local": 3,
+              "constant": 0,
+              "load": 0,
+              "store": 0,
+              "control": 0,
+              "call": 0,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 0,
+              "division": 0
+            },
+            "bytes": 6,
+            "scope": "emitted WASM inventory, not executed path cost"
+          },
+          "native": {
+            "module": "/home/claude/.scratch/eka-state-liveness/native-calibration/local_copy-before.wasm",
+            "module_sha256": "fd480ad5f9bd3f47b4790b35296dfd8c833652421232d67a2845c127ddab6683",
+            "function_index": 0,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=0",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "30f26b10f2e1d37e9a6c000316379cf182c34e018c5bd2d9095014dc46b3c06e",
+            "code_bytes": 16,
+            "instructions": 7,
+            "padding_instructions": 2,
+            "memory_instructions": 0,
+            "stack_memory_instructions": 0,
+            "conditional_branches": 0,
+            "calls": 0
+          }
+        },
+        "after": {
+          "wasm": {
+            "operations": 1,
+            "classes": {
+              "local": 1,
+              "constant": 0,
+              "load": 0,
+              "store": 0,
+              "control": 0,
+              "call": 0,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 0,
+              "division": 0
+            },
+            "bytes": 2,
+            "scope": "emitted WASM inventory, not executed path cost"
+          },
+          "native": {
+            "module": "/home/claude/.scratch/eka-state-liveness/native-calibration/local_copy-after.wasm",
+            "module_sha256": "4132bfdf91dca1db7a74ce5f41ce94ad0aba7e846a2be822efdabf3dbe29f6b6",
+            "function_index": 0,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=0",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "30f26b10f2e1d37e9a6c000316379cf182c34e018c5bd2d9095014dc46b3c06e",
+            "code_bytes": 16,
+            "instructions": 7,
+            "padding_instructions": 2,
+            "memory_instructions": 0,
+            "stack_memory_instructions": 0,
+            "conditional_branches": 0,
+            "calls": 0
+          }
+        }
+      },
+      {
+        "name": "constant_fold",
+        "before": {
+          "wasm": {
+            "operations": 3,
+            "classes": {
+              "local": 0,
+              "constant": 2,
+              "load": 0,
+              "store": 0,
+              "control": 0,
+              "call": 0,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 1,
+              "division": 0
+            },
+            "bytes": 5,
+            "scope": "emitted WASM inventory, not executed path cost"
+          },
+          "native": {
+            "module": "/home/claude/.scratch/eka-state-liveness/native-calibration/constant_fold-before.wasm",
+            "module_sha256": "5b153d4f434d825f9cabae077f5ba4214ece1dc35c649f8f59dcb2e2e0ae6198",
+            "function_index": 0,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=0",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "5bdc694e3b13c2385f4d82ca933f005a1ba9524166d1296eaf9bdb440d2bbf80",
+            "code_bytes": 20,
+            "instructions": 9,
+            "padding_instructions": 1,
+            "memory_instructions": 0,
+            "stack_memory_instructions": 0,
+            "conditional_branches": 0,
+            "calls": 0
+          }
+        },
+        "after": {
+          "wasm": {
+            "operations": 1,
+            "classes": {
+              "local": 0,
+              "constant": 1,
+              "load": 0,
+              "store": 0,
+              "control": 0,
+              "call": 0,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 0,
+              "division": 0
+            },
+            "bytes": 2,
+            "scope": "emitted WASM inventory, not executed path cost"
+          },
+          "native": {
+            "module": "/home/claude/.scratch/eka-state-liveness/native-calibration/constant_fold-after.wasm",
+            "module_sha256": "3e1ff94b8b18250a5b47bcc0d6605d04c0890fb7516078d86a78dd479078dfb7",
+            "function_index": 0,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=0",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "5bdc694e3b13c2385f4d82ca933f005a1ba9524166d1296eaf9bdb440d2bbf80",
+            "code_bytes": 20,
+            "instructions": 9,
+            "padding_instructions": 1,
+            "memory_instructions": 0,
+            "stack_memory_instructions": 0,
+            "conditional_branches": 0,
+            "calls": 0
+          }
+        }
+      },
+      {
+        "name": "add_zero",
+        "before": {
+          "wasm": {
+            "operations": 3,
+            "classes": {
+              "local": 1,
+              "constant": 1,
+              "load": 0,
+              "store": 0,
+              "control": 0,
+              "call": 0,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 1,
+              "division": 0
+            },
+            "bytes": 5,
+            "scope": "emitted WASM inventory, not executed path cost"
+          },
+          "native": {
+            "module": "/home/claude/.scratch/eka-state-liveness/native-calibration/add_zero-before.wasm",
+            "module_sha256": "f90c7119218854f08bfeac846225bd8aac7ccfd82fe8ddbdf8b6be0254e3a757",
+            "function_index": 0,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=0",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "30f26b10f2e1d37e9a6c000316379cf182c34e018c5bd2d9095014dc46b3c06e",
+            "code_bytes": 16,
+            "instructions": 7,
+            "padding_instructions": 2,
+            "memory_instructions": 0,
+            "stack_memory_instructions": 0,
+            "conditional_branches": 0,
+            "calls": 0
+          }
+        },
+        "after": {
+          "wasm": {
+            "operations": 1,
+            "classes": {
+              "local": 1,
+              "constant": 0,
+              "load": 0,
+              "store": 0,
+              "control": 0,
+              "call": 0,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 0,
+              "division": 0
+            },
+            "bytes": 2,
+            "scope": "emitted WASM inventory, not executed path cost"
+          },
+          "native": {
+            "module": "/home/claude/.scratch/eka-state-liveness/native-calibration/add_zero-after.wasm",
+            "module_sha256": "4132bfdf91dca1db7a74ce5f41ce94ad0aba7e846a2be822efdabf3dbe29f6b6",
+            "function_index": 0,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=0",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "30f26b10f2e1d37e9a6c000316379cf182c34e018c5bd2d9095014dc46b3c06e",
+            "code_bytes": 16,
+            "instructions": 7,
+            "padding_instructions": 2,
+            "memory_instructions": 0,
+            "stack_memory_instructions": 0,
+            "conditional_branches": 0,
+            "calls": 0
+          }
+        }
+      }
+    ]
+  },
+  "final_profile": {
+    "file": "/home/claude/.scratch/eka-state-liveness/profile-fast/worker-13.cpuprofile",
+    "sha256": "6043049fb97c539e92aeebf06b999c19ba543559727ffe35f6f562a559df3857",
+    "sampled_us": 6650071,
+    "guest_self_us": 615954,
+    "inclusive_us": {
+      "translation": 163582,
+      "state_finalization": 100107,
+      "allocation": 33997
+    },
+    "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+  },
+  "module_comparison": {
+    "common": 9347,
+    "unchanged": 86,
+    "changed": 9261,
+    "thumb_changed": 7958
+  },
+  "final_generated_identity": {
+    "common": 9347,
+    "changed": 0,
+    "before_only": 0,
+    "after_only": 0
+  },
+  "liveness_tests": {
+    "comparisons": 5760,
+    "reduced": 3840,
+    "unchanged": 1920
+  },
+  "memory_tests": {
+    "reduced": 15432,
+    "unchanged": 4248
+  },
+  "replays": [
+    {
+      "game": "standard",
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1143727,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+          "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+          "writes": 0,
+          "callbacks": 2330,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 2330,
+          "gameplay_nonzero_samples": 264002,
+          "gameplay_peak": 206
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 23827651,
+        "instructions": 3012361018
+      },
+      "wasm_sha256": "669347dfa2b1e3cab34112e03d1585f962f966ab76d0b2eaaabd2aadb7169848"
+    },
+    {
+      "game": "combat",
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2105509,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f86fd7c8908cee93c5b8215ec3e4891ddf6a54a8a79783fea5d584bbf4290cab",
+          "sha256_events": "54699bb0cb4fcd867b4a437f0fc65f5f0a5fc28e723b8750fc3b97667e05e6e2",
+          "writes": 0,
+          "callbacks": 4210,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4210,
+          "gameplay_nonzero_samples": 176458,
+          "gameplay_peak": 4041
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 43864773,
+        "instructions": 15827750326
+      },
+      "wasm_sha256": "669347dfa2b1e3cab34112e03d1585f962f966ab76d0b2eaaabd2aadb7169848"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/fast-native-probes.log",
+      "sha256": "a5a5bb45e013df85adb3c78fee5dbc41af7b94bfb984c3873634f5f03c7e687b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/build-fast.log",
+      "sha256": "5d2ae3228b7bf3f5eef0a5bb12f67f0e39a4f51b9a1743524ebb1bdb635609bb"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/fast-cost-test.log",
+      "sha256": "e0918d7ad465c023edeef09517210ca31e1afe97af259e61ed2078a2dda89581"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/fast-js-cost-test.log",
+      "sha256": "26ba2b32407564da64242d02a9607ebd70a168ce8c1c198748d36128fa5f0ebc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-cost-test.log",
+      "sha256": "8a22518b59a494ec44ca291356797b6f3c48c5c78b8d2df7246408114988f5b9"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/fast-probes.log",
+      "sha256": "a5a5bb45e013df85adb3c78fee5dbc41af7b94bfb984c3873634f5f03c7e687b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/fast-liveness-counts.log",
+      "sha256": "19506c4b4de6c3f972d654afa2cee125115c480195dfc1742b391739fe828f1b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/fast-liveness-counts.json",
+      "sha256": "756dd9ff4649c1a1a7e1da79a628086fcbb1fa188738444ea18b04c58a0e7ff4"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/baseline-probes.log",
+      "sha256": "51b15d5f40219bc2adbf34bac15b509ee35914ae4375a200a30cb0eab79809dc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/fast-memory-probes.log",
+      "sha256": "8ad801b25cc7bec63fc4383c4b59b7adc715ea526616aa3af49b50ae0bf6417e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/final-probes.log",
+      "sha256": "8ad801b25cc7bec63fc4383c4b59b7adc715ea526616aa3af49b50ae0bf6417e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/memory-counts.json",
+      "sha256": "70b44d317d59fea65178acdd6a27d15ac7a4fee1252d69470f212fe0c3ff7e35"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/memory-counts.log",
+      "sha256": "e99c2f0b1e763e0fd433a8e43f42b6de7bdb1a7468e5f3e097bab058fe428ac3"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/aot-suite.log",
+      "sha256": "7b9a5cf307385271c38264e084f4297cd7c96d2f427c80d14119c51b5900cc84"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/final-arm-memory.log",
+      "sha256": "00a6229222e144aa0fcf990360c3b8ea1366bca49dd7b72bd0a5ab35e54f0246"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/final-memory-implementations.log",
+      "sha256": "76c7749976e1f47df497a05679de920fa2e23f48513fb9f88d950a614d2cd2f1"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/final-shared-spans.log",
+      "sha256": "4a0da8d45c3c504c928a66691cdb734889f8fc98b8df5f250aa37d4bd6575bfc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/replays-fast/results.json",
+      "sha256": "db2de0e0b39619180304e8bfb347b7b4bc35d9d2b7cd8c48ff7f879fc2542b1d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-calibration/calibration.json",
+      "sha256": "e4a44235e20f981a15feeb14c4b40367c323404930f42e8885313352c8c1d90b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/costs.json",
+      "sha256": "6ab8c1325050dda2a4517facf48029a31d651027f1e2e4c7f947ff76e50cdfe2"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/profile-fast-cost.json",
+      "sha256": "93dc0976504da8aacb6a30b83669428f2786ae7b382eab7aafaef4ba7a538699"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/module-costs.json",
+      "sha256": "88b34ad9e1c07a3eca96a736b521e8bf4c9a43d40704cf4b32f853819241dbc9"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/final-module-identity.json",
+      "sha256": "c6eff31ecf588fc329eaf44428bdaf8862dd6c688c3fc3f2b69e2476b7d9a8b3"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/hardware.py",
+      "sha256": "8d03f5e068af28f91712c8fee2e26490f40a3b9ccf07833c196c589669137a53"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/hardware-fast.py",
+      "sha256": "d775e53f66de25e5756a25a586a350566f649c12df9925270599accc3f2807f4"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/hardware-flat.py",
+      "sha256": "34085097745ba284c09b1dbb8de90daec50075646f518e0786d514d51a72b247"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/summarize.py",
+      "sha256": "b29b3ac1dfa58ba13453809cbf5c59bdcdea78fce4959bbfb8471cbc516a6b45"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/finalize.py",
+      "sha256": "6d8597b557b083ace92d05a8d5e45caced7f445b7f64145e23860900b753bced"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149128552-after.asm",
+      "sha256": "b46c4423c41f426500d0c983569ea7ef157b00b6ee9c8fe28468e5f388828bdc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149128552-before.asm",
+      "sha256": "10f5424553eabe1dd5119894a89eae3a2f5956841cc434c47e3ac3f42f8da127"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149129868-after.asm",
+      "sha256": "80c303437e3bef705a9d1ad870edeb86b98f0f32787b64def33930c5ffcdfaeb"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149129868-before.asm",
+      "sha256": "4bd3bf82b746d01e4782fc1a5dd1a066ef946d82a9360f90ad09c8309f8a8321"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149132077-after.asm",
+      "sha256": "db4c02045291d9fc99379e8c4544dc3016dda244a749c7ab0206197abc433e54"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149132077-before.asm",
+      "sha256": "e71f2e019afd7f6af609115eca4c5fbc933dba5d27e52d8266f1efae91ef508d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149132085-after.asm",
+      "sha256": "3d2987bdec4fa76eb3d851e43ef10c74d9332b19cad6a04e3360b4aae80b5999"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149132085-before.asm",
+      "sha256": "bdfcee45601efb361dc362d2f8d600c1ac80864ce10d70d581d64d2c85f40272"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149133349-after.asm",
+      "sha256": "44c1981219c74f349b18ecb8af0fde6da034f8110fd8dcddd4bed051fd5da423"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149133349-before.asm",
+      "sha256": "1683fbc31f63947f389ae448d2a15b9bdeef2f1596eed22325fa87fbee58e44a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149133377-after.asm",
+      "sha256": "2d8a20710bc603a5b9de88f5f08ed0754b94dc53ed6ad5d414413f2f9cd52867"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149133377-before.asm",
+      "sha256": "8bb33e52630b265e4746a470d7efbfa34acbfc875efd4da3dd56af100e34d73a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149144548-after.asm",
+      "sha256": "5c4b588a0fa0caabcf609e49de3bbbdb27d58127c2de623841bf8c1cfd79ed5f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149144548-before.asm",
+      "sha256": "9d3a2ad78824751e7b24e1c8220897811d29ba025d065ecdce1286159bdde67a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149188704-after.asm",
+      "sha256": "df4c7308f6c7bd7689d849f74d3991d379e8c360c8cbdbefab532af1e426c035"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149188704-before.asm",
+      "sha256": "b272265f28c0829a5994df5389a332d6366bd536365626daadf16761050e82c4"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149189196-after.asm",
+      "sha256": "e4d08366bcdc3cbf7679c1ffdc32b52d8470df0cacc913c09b90318a1093d365"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149189196-before.asm",
+      "sha256": "b4fcb3c526d7d7451a29ea5189f394c049f0a6be56292e2afdd696c40fb4af77"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149189520-after.asm",
+      "sha256": "11bb4e7800febb73591c0a905eec65f6bb579b1fab9d59e8d9ae28db80cf9a2d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-state-liveness/native-costs-complete/f_2149189520-before.asm",
+      "sha256": "ceb82b736b97f48adec764132d2e98817fcaedc1a10bcdfc79faff3c9558700a"
+    }
+  ]
+}

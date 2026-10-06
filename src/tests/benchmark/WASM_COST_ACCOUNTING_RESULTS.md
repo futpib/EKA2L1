@@ -1,5 +1,10 @@
 # Shared WASM cost accounting and Snakes diagnosis
 
+Follow-up: [state liveness and actual V8 cost validation](STATE_LIVENESS_RESULTS.md)
+adds a material-reduction gate, native Chromium inventories, compiler-overhead
+attribution and deletion-only ARM/Thumb state-transfer pruning. The measurements
+below describe the earlier shared-ledger/Thumb-continuation experiment.
+
 The compiler and regression tools now share one opcode cost specification.
 Profitability decisions remain compiler-time decisions; production games acquire
 no instruction-cost counters. The Thumb continuation experiment remains disabled.

@@ -1,6 +1,9 @@
 add_executable(test_wasm_cost test_wasm_cost.cpp)
 target_include_directories(test_wasm_cost PRIVATE ../../emu/cpu/include)
 
+add_executable(test_state_liveness test_state_liveness.cpp ../../emu/cpu/src/aot/state_liveness.cpp)
+target_include_directories(test_state_liveness PRIVATE ../../emu/cpu/include)
+
 if(EMSCRIPTEN)
     add_executable(test_aot_wasm test_aot_wasm.cpp)
     target_link_libraries(test_aot_wasm PRIVATE cpu epocmem config)
