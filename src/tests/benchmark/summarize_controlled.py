@@ -59,7 +59,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('campaign_root', type=Path)
     parser.add_argument('output_stem', type=Path)
-    parser.add_argument('--phases', nargs='+', default=['isolated', 'architecture', 'extended', 'inlining'])
+    parser.add_argument('--phases', nargs='+', default=['isolated', 'architecture', 'extended', 'inlining', 'memory'])
     args = parser.parse_args()
     data = dict(phases={}, comparisons=[], observations=[])
     for phase in args.phases:

@@ -1,5 +1,10 @@
 # Four guest-memory implementations
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 > Historical experiment: current code retains only TLB (0) and the all-cuts direct implementation (2).
 > See [current selection and commands](README.md#memory-implementations); removed controls below require the historical source revision.
 

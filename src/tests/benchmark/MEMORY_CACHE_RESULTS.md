@@ -1,5 +1,10 @@
 # Software page-cache comparison
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 The software TLB pays for itself in these workloads. Original-index TLB-only had the best mean: **39% higher wall throughput in Snakes and 31% in Sky Force than no software page caches**. The previous two-cache configuration gained **26% and 25%**. Adding more cache machinery did not produce a consistent improvement.
 
 **Adopted:** production now uses the original low-bit 512-entry TLB directly. ARM scalar last-page caches, folded indexing and the TLB selection API have been removed. `EKA2L1_TLB_HASH` and `EKA2L1_MEMORY_CACHE` are rejected as retired options. ARM/Thumb whole-instruction span proofs and existing permission, alignment, endian, callback and code-write behavior remain.

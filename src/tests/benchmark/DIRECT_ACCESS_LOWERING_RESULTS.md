@@ -1,5 +1,10 @@
 # Direct memory: consume scalar lookup results immediately
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Adopted on `wasm-port`. Sky Force uses 3.07% less worker CPU in the paired
 screen, and Snakes uses 3.56% less over the longer follow-up window.
 

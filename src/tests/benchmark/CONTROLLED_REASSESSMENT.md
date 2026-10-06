@@ -10,8 +10,8 @@ passed correctness but were rejected or left unresolved on noisy timing evidence
 
 ## Scope
 
-The four fixed plans contain 56 candidate/control comparisons, comprising 85
-game comparisons and 680 valid observations. Each game comparison uses ABBA
+The five fixed plans contain 65 candidate/control comparisons, comprising 103
+game comparisons and 824 valid observations. Each game comparison uses ABBA
 then BAAB. Historical Snakes-only experiments remain explicitly Snakes-only;
 their results are not presented as Sky Force measurements. No production
 optimization or default is changed by this task.
@@ -74,6 +74,15 @@ optimization or default is changed by this task.
 | 54 | inlining | eager-rom-regions | [ROM_LEAF_FUSION_SCREEN_RESULTS](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
 | 55 | inlining | rom-leaf-fusion | [ROM_LEAF_FUSION_SCREEN_RESULTS](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
 | 56 | inlining | bounded-rom-calls | [ROM_BOUNDED_CALL_SCREEN_RESULTS](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) |
+| 57 | memory | allocation-ranges | [MEMORY_IMPLEMENTATIONS_RESULTS](MEMORY_IMPLEMENTATIONS_RESULTS.md) |
+| 58 | memory | full-page-table | [MEMORY_IMPLEMENTATIONS_RESULTS](MEMORY_IMPLEMENTATIONS_RESULTS.md) |
+| 59 | memory | last-page-only | [MEMORY_CACHE_RESULTS](MEMORY_CACHE_RESULTS.md) |
+| 60 | memory | folded-tlb | [MEMORY_CACHE_RESULTS](MEMORY_CACHE_RESULTS.md) |
+| 61 | memory | tlb-plus-last-page | [MEMORY_CACHE_RESULTS](MEMORY_CACHE_RESULTS.md) |
+| 62 | memory | folded-tlb-plus-last-page | [MEMORY_CACHE_RESULTS](MEMORY_CACHE_RESULTS.md) |
+| 63 | memory | older-page-cache-guards | [MEMORY_CACHE_RESULTS](MEMORY_CACHE_RESULTS.md) |
+| 64 | memory | page-cache-span-reuse | [MEMORY_CACHE_RESULTS](MEMORY_CACHE_RESULTS.md) |
+| 65 | memory | current-tlb-vs-direct | [DIRECT_ACCESS_LOWERING_RESULTS](DIRECT_ACCESS_LOWERING_RESULTS.md) |
 
 ## What these measurements can establish
 
@@ -155,3 +164,9 @@ populated cgroups. Their original effective availability was restored as an
 explicit `0-15` mask. This is not byte-for-byte restoration of those fields;
 no persistent service configuration was changed. Final restoration must be
 checked after the final phase, rather than inferred from process completion.
+
+After three clock-invalid Sky Force controls during unrelated Android build activity,
+the first invocation stopped and restored the host. `isolated-host-resume1.json`
+records the explicit resume. The resumed driver waits for known compiler/build
+processes before each trial; this start rule does not retroactively discard
+valid observations. The same frozen plan and measurement-validity limits apply.
