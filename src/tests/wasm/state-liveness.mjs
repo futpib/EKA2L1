@@ -21,7 +21,7 @@ function module(body,locals) {
 const memory=new WebAssembly.Memory({initial:1}),words=new Uint32Array(memory.buffer),state=64;
 let trace=[],mutate=false;
 const env={memory,helper:p=>{
-    assert.equal(p,state);trace.push([...words.slice(state/4,state/4+8)]);
+    assert.equal(p,state);trace.push([...words.slice(state/4,state/4+64)]);
     if(mutate){words[state/4]=(words[state/4]+19)>>>0;words[state/4+1]^=0xa55a;}
 }};
 const costs=new CostComparisons();let comparisons=0,reduced=0;
@@ -30,10 +30,10 @@ for(const probe of probes) {
     let hits=0;
     for(let seed=0;seed<32;++seed)for(let condition=0;condition<5;++condition)for(const mutation of [false,true]) {
         const results=instances.map(instance=>{
-            for(let i=0;i<8;++i)words[state/4+i]=(Math.imul(seed+1,0x1234567)+i)>>>0;
+            for(let i=0;i<64;++i)words[state/4+i]=(Math.imul(seed+1,0x1234567)+i)>>>0;
             words[state/4+2]=condition;trace=[];mutate=mutation;resetCost(instance);
             const result=instance.exports.probe(state);
-            return {result,state:[...words.slice(state/4,state/4+8)],trace,cost:readCost(instance)};
+            return {result,state:[...words.slice(state/4,state/4+64)],trace,cost:readCost(instance)};
         });
         const [a,b]=results,context={seed,condition,mutation};
         assert.equal(a.result,b.result,probe.name);assert.deepEqual(a.state,b.state,probe.name);assert.deepEqual(a.trace,b.trace,probe.name);

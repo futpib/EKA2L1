@@ -66,7 +66,7 @@ namespace eka2l1::arm::aot::wasm_cost {
         std::int64_t worst_operations = INT64_MIN;
         cost worst_components{};
 
-        void add_delta(const cost &delta, bool must_reduce = false) {
+        constexpr void add_delta(const cost &delta, bool must_reduce = false) {
             ++paths;
             known &= delta.known();
             const auto n = delta.operations();
@@ -83,18 +83,18 @@ namespace eka2l1::arm::aot::wasm_cost {
                 }
             }
         }
-        void compare(const cost &before, const cost &after, bool must_reduce = false) {
+        constexpr void compare(const cost &before, const cost &after, bool must_reduce = false) {
             known &= before.known() && after.known();
             add_delta(after - before, must_reduce);
         }
-        bool wasm_improves() const { return paths && known && non_growing && reduced; }
-        bool no_added_material_work() const { return wasm_improves() && material_non_growing; }
+        constexpr bool wasm_improves() const { return paths && known && non_growing && reduced; }
+        constexpr bool no_added_material_work() const { return wasm_improves() && material_non_growing; }
         // V8 can coalesce local moves and fold constants. Saving only those is
         // not evidence of less native work. This conservative gate additionally
         // requires a reduction outside them. Even loads/arithmetic may already
         // be dead or folded: validate native lowering and compiler overhead with
         // the offline Chromium oracle before treating this as a speedup.
-        bool material_improves() const { return no_added_material_work() && material_reduced; }
+        constexpr bool material_improves() const { return no_added_material_work() && material_reduced; }
     };
 
     // Compare a fixed setup with repeated removed work without multiplying

@@ -71,12 +71,33 @@ namespace eka2l1::arm::aot {
 
             std::vector<std::uint8_t> body;
             std::vector<state_transfer> transfers;
-            transfer(body, true, &transfers);
+            std::vector<std::uint8_t> reload, flush;
+            std::vector<state_transfer> reload_transfers, flush_transfers;
+            transfer(reload, true, &reload_transfers);
+            transfer(flush, false, &flush_transfers);
+            auto bytes = function.body.size() + reload.size();
+            auto records = reload_transfers.size();
+            for (const auto &point : barriers) {
+                bytes += point.reload ? reload.size() : flush.size();
+                records += point.reload ? reload_transfers.size() : flush_transfers.size();
+            }
+            if (shared_return) { bytes += flush.size() + 4; records += flush_transfers.size(); }
+            body.reserve(bytes); transfers.reserve(records);
+            // Encode each barrier kind once, then copy it with relocated tags.
+            const auto append_transfer = [&](bool load) {
+                const auto &code = load ? reload : flush;
+                const auto &tags = load ? reload_transfers : flush_transfers;
+                const auto start = body.size();
+                body.insert(body.end(), code.begin(), code.end());
+                for (auto tag : tags) {
+                    tag.begin += start; tag.end += start;
+                    transfers.push_back(tag);
+                }
+            };
+            append_transfer(true);
             if (shared_return) { body.push_back(op_block); body.push_back(type_i32); }
             // Segment call operands were recorded before deferred barriers.
             // Relocate them using the final cache layout, before inserting bytes.
-            std::vector<std::uint8_t> flush;
-            transfer(flush, false);
             const auto reload_size = body.size() - (shared_return ? 2u : 0u);
             for (auto &call : function.outlined_calls) {
                 const auto original = call.call_offset;
@@ -88,13 +109,13 @@ namespace eka2l1::arm::aot {
             for (const auto &point : barriers) {
                 body.insert(body.end(), function.body.begin() + previous,
                     function.body.begin() + point.position);
-                transfer(body, point.reload, &transfers);
+                append_transfer(point.reload);
                 previous = point.position;
             }
             body.insert(body.end(), function.body.begin() + previous, function.body.end());
             if (shared_return) {
                 body.push_back(op_end);
-                transfer(body, false, &transfers);
+                append_transfer(false);
                 body.push_back(op_return);
             }
             function.body = std::move(body);

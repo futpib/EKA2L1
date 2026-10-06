@@ -107,6 +107,33 @@ int main(int argc, char **) {
             f.op(op_f32_const); for (unsigned n = 0; n < 4; ++n) f.op(0); f.op(op_drop);
             f.op(op_f64_const); for (unsigned n = 0; n < 8; ++n) f.op(0); f.op(op_drop);
             f.write(0, 7); f.fixed_result();
+        }},
+        {"mixed_barrier", [](auto &f) {
+            f.write(0, 7); f.flush(); f.load(0); f.store(4);
+            f.raw(8); f.control(op_if); f.load(4); f.store(0); f.op(op_end);
+            f.helper(); f.write(4, 9); f.load(0); f.store(12); f.fixed_result();
+        }},
+        {"read_before_and_after_write", [](auto &f) {
+            f.load(0); f.store(4); f.write(0, 7); f.load(0); f.store(12);
+            f.load(4); f.store(0); f.fixed_result();
+        }},
+        {"loop_field_dependencies", [](auto &f) {
+            f.raw(8); f.set(1); f.control(op_block); f.control(op_loop);
+            f.get(1); f.op(op_i32_eqz); f.branch(op_br_if, 1);
+            f.load(0); f.store(4); f.load(4); f.constant(1); f.op(op_i32_add); f.store(0);
+            f.get(1); f.constant(1); f.op(op_i32_sub); f.set(1); f.branch(op_br, 0);
+            f.op(op_end); f.op(op_end); f.result();
+        }},
+        {"adjacent_barriers", [](auto &f) {
+            f.write(0, 7); f.flush(); f.flush(); f.load(0); f.store(4); f.result();
+        }},
+        {"mask32_last_field", [](auto &f) {
+            for (unsigned i = 0; i < 32; ++i) f.cache.local(i * 4);
+            f.write(31 * 4, 7); f.fixed_result();
+        }},
+        {"mask64_last_field", [](auto &f) {
+            for (unsigned i = 0; i < 64; ++i) f.cache.local(i * 4);
+            f.write(63 * 4, 7); f.fixed_result();
         }}
     };
     unsigned changed = 0;
