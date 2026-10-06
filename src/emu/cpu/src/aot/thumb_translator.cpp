@@ -173,19 +173,18 @@ namespace eka2l1::arm::aot {
             if(memory_experiment::enabled() && !cache.enabled) direct_memory_setup(*this);
         }
 
-        // A whole one-page register transfer can reuse one TLB proof. On
+        // A whole register transfer can reuse one memory proof. On
         // failure the scalar path retains all original callback barriers;
         // no successful proof survives any callback or instruction boundary.
-        void begin_span(unsigned address_local, unsigned words, bool write) {
+        void begin_span(unsigned address_local, unsigned registers, bool write) {
+            const auto words = static_cast<unsigned>(__builtin_popcount(registers));
             span_active = direct_memory && words > 1 && (!write ||
                 common::code_tracking::skip_code_write_guards());
             if (!span_active) return;
             if(memory_experiment::mode) {
                 direct_host(*this,address_local,words*4,write,4);
-                get_local(HOST);op(op_if);op(type_i32);
-                get_local(HOST);get_local(address_local);op(op_i32_sub);i32_const(1);op(op_i32_add);
-                op(op_else);i32_const(0);op(op_end);set_local(SPAN_HOST);return;
-            }
+                get_local(HOST);set_local(SPAN_HOST);
+            } else {
             i32_const(0); set_local(SPAN_HOST);
             load_i32(S::AOT_TLB); tee_local(ENTRY);
             op(op_if); op(type_void);
@@ -202,6 +201,32 @@ namespace eka2l1::arm::aot {
             op(op_if); op(type_void);
             get_local(ENTRY); op(op_i32_load); leb(b,2); leb(b,12); set_local(SPAN_HOST);
             op(op_end); op(op_end);
+            return;
+            }
+            // The existing proof covers every transfer. Branch once, then
+            // use fixed memory offsets; a miss keeps the original scalar body.
+            // For words > 1 both paths remove repeated proof-result tests.
+            get_local(SPAN_HOST); op(op_if); op(type_void);
+            unsigned offset = 0;
+            for (unsigned reg = 0; reg < 16; ++reg) {
+                if (!(registers & (1u << reg))) continue;
+                get_local(SPAN_HOST);
+                if (write) load_reg(reg);
+                guest_memory_op(*this, write ? op_i32_store : op_i32_load, 2, offset);
+                if (!write) {
+                    set_local(VALUE); store_reg(reg, VALUE);
+                    if (reg == 15) {
+                        get_local(VALUE); i32_const(1); op(op_i32_and);
+                        set_local(VALUE); store_i32(S::TFLAG, VALUE);
+                    }
+                } else memory_write = true;
+                offset += 4;
+            }
+            op(op_else);
+        }
+        void end_span() {
+            if (span_active && memory_experiment::enabled()) op(op_end);
+            span_active = false;
         }
 
         void call(std::uint32_t func_idx) {
@@ -217,10 +242,9 @@ namespace eka2l1::arm::aot {
             const unsigned size = func_idx < 2 ? 4 : func_idx < 4 ? 1 : 2;
             if (write) set_local(VALUE);
             set_local(ADDRESS); set_local(HOST); // consume imported state argument
-            if (span_active) {
+            if (span_active && !memory_experiment::enabled()) {
                 get_local(SPAN_HOST); op(op_if); op(write?type_void:type_i32);
-                get_local(SPAN_HOST); get_local(ADDRESS); if(!memory_experiment::mode){i32_const(4095); op(op_i32_and);} op(op_i32_add);
-                if(memory_experiment::mode){i32_const(1);op(op_i32_sub);}
+                get_local(SPAN_HOST); get_local(ADDRESS); i32_const(4095); op(op_i32_and); op(op_i32_add);
                 if (write) get_local(VALUE);
                 guest_memory_op(*this,write?op_i32_store:op_i32_load,2);
                 op(op_else);
@@ -253,7 +277,7 @@ namespace eka2l1::arm::aot {
             state_ptr(); get_local(ADDRESS); if (write) get_local(VALUE);
             slow_call(func_idx);
             op(op_end);
-            if (span_active) op(op_end);
+            if (span_active && !memory_experiment::enabled()) op(op_end);
         }
 
         std::uint32_t census_pc=0,census_opcode=0;
@@ -3695,7 +3719,7 @@ namespace eka2l1::arm::aot {
                 w.i32_const(count * 4);
                 w.op(op_i32_sub);
                 w.set_local(TMP1);
-                w.begin_span(TMP1, count, true);
+                w.begin_span(TMP1, reglist | (push_lr ? 1u << 14 : 0), true);
                 // Store registers at ascending addresses from new SP
                 int offset = 0;
                 for (int r = 0; r < 8; r++) {
@@ -3720,7 +3744,7 @@ namespace eka2l1::arm::aot {
                     w.get_local(TMP2);
                     w.call(1);
                 }
-                w.span_active = false;
+                w.end_span();
                 // Fault callbacks observe the original SP. Publish writeback
                 // only after the transfers, matching the native core.
                 w.store_reg(13, TMP1);
@@ -3731,8 +3755,7 @@ namespace eka2l1::arm::aot {
                 // Load registers from SP at ascending addresses
                 w.load_reg(13);
                 w.set_local(TMP1); // current SP
-                const unsigned transfers = __builtin_popcount(reglist) + pop_pc;
-                w.begin_span(TMP1, transfers, false);
+                w.begin_span(TMP1, reglist | (pop_pc ? 1u << 15 : 0), false);
                 int offset = 0;
                 for (int r = 0; r < 8; r++) {
                     if (reglist & (1 << r)) {
@@ -3758,7 +3781,7 @@ namespace eka2l1::arm::aot {
                     w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
                     offset += 4;
                 }
-                w.span_active = false;
+                w.end_span();
                 // Count registers popped
                 int count = 0;
                 for (int r = 0; r < 8; r++) {
@@ -4080,7 +4103,7 @@ namespace eka2l1::arm::aot {
                 std::uint16_t reglist = insn & 0xFF;
                 w.load_reg(rn);
                 w.set_local(ADDR_TMP);
-                w.begin_span(ADDR_TMP, __builtin_popcount(reglist), true);
+                w.begin_span(ADDR_TMP, reglist, true);
                 int count = 0;
                 for (int r = 0; r < 8; r++) {
                     if (reglist & (1 << r)) {
@@ -4094,7 +4117,7 @@ namespace eka2l1::arm::aot {
                         count++;
                     }
                 }
-                w.span_active = false;
+                w.end_span();
                 // Writeback: Rn += count*4
                 w.get_local(ADDR_TMP);
                 w.i32_const(count * 4);
@@ -4107,7 +4130,7 @@ namespace eka2l1::arm::aot {
                 std::uint16_t reglist = insn & 0xFF;
                 w.load_reg(rn);
                 w.set_local(ADDR_TMP);
-                w.begin_span(ADDR_TMP, __builtin_popcount(reglist), false);
+                w.begin_span(ADDR_TMP, reglist, false);
                 int count = 0;
                 for (int r = 0; r < 8; r++) {
                     if (reglist & (1 << r)) {
@@ -4120,7 +4143,7 @@ namespace eka2l1::arm::aot {
                         count++;
                     }
                 }
-                w.span_active = false;
+                w.end_span();
                 // Writeback only if Rn not in reglist
                 if (!(reglist & (1 << rn))) {
                     w.get_local(ADDR_TMP);

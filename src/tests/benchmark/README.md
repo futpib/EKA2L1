@@ -140,6 +140,14 @@ tests and complete measurements are preserved in the evidence file.
 The [three-access follow-up](DIRECT_SPAN_THREE_RESULTS.md) also found no
 repeatable Snakes gain and 2.44% more Sky Force worker CPU; it remains unadopted.
 
+The [cheaper lowering of existing proofs](SHARED_SPAN_LOWERING_RESULTS.md) is
+adopted for direct memory in both ARM and Thumb. It removes redundant address
+work and repeated tests of a shared transfer proof without broadening proof
+eligibility. The executed-WASM regression gate allows no instruction-count
+increase; paired timings found 7.63% less Sky Force worker CPU and flat Snakes
+CPU. The TLB trial also removed WASM instructions but regressed CPU time, so
+TLB retains its original lowering.
+
 Allocation-range mode, standalone flat-page mode, earlier direct variants and
 delayed activation have been removed. Values 1 and 3 are rejected. Remove
 `EKA2L1_DIRECT_POLICY` and `EKA2L1_MEMORY_ACTIVATE_US` from harness environments;

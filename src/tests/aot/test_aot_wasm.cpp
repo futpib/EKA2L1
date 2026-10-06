@@ -4097,6 +4097,52 @@ static bool test_cached_callback_state() {
 EM_JS(void, js_export_flag_probe, (const std::uint8_t *bytes, unsigned size), {
     console.log('FLAG_MODULE ' + Buffer.from(HEAPU8.subarray(bytes, bytes + size)).toString('base64'));
 });
+EM_JS(void, js_export_memory_probe, (const char *name, const std::uint8_t *bytes,
+        unsigned size, unsigned mode, unsigned thumb, unsigned opcode), {
+    console.log('MEMORY_PROBE ' + JSON.stringify({name:UTF8ToString(name),mode,thumb,opcode,
+        wasm:Buffer.from(HEAPU8.subarray(bytes,bytes+size)).toString('base64')}));
+});
+static void emit_memory_probes() {
+    using S=state_offsets;
+    printf("MEMORY_LAYOUT {");
+    bool first=true;
+    for(auto field:std::vector<std::pair<const char *,unsigned>>{{"cpsr",S::CPSR},{"mode",S::MODE},
+        {"n",S::NFLAG},{"z",S::ZFLAG},{"c",S::CFLAG},{"v",S::VFLAG},{"thumb",S::TFLAG},
+        {"budget",S::AOT_BUDGET},{"tlb",S::AOT_TLB},{"irq",S::NIRQ},{"remaining",S::NUM_INSTRS_TO_EXECUTE},
+        {"exit",S::AOT_EXIT},{"code_begin",S::AOT_CODE_BEGIN},{"code_end",S::AOT_CODE_END}}) {
+        printf("%s\"%s\":%u",first?"":",",field.first,field.second);first=false;
+    }
+    printf("}\n");
+    eka2l1::common::code_tracking::unsafe_code_mode=3;thumb_direct_memory=true;
+    const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+    for(unsigned mode:{0u,2u}) {
+        memory_experiment::mode=mode;
+        for(const auto &item:std::vector<std::pair<std::string,std::vector<unsigned>>>{
+            {"arm-read",{0xe5910000,0xe5912004,0xe5913008,0xe591400c}},
+            {"arm-write",{0xe5810000,0xe5812004,0xe5813008,0xe581400c}},
+            {"arm-mixed",{0xe5910000,0xe5812004,0xe5913008,0xe581400c}},
+            {"arm-negative",{0xe5110008,0xe5112004,0xe5913000,0xe5914004}},
+            {"arm-conditional",{0x05910000,0x15812004,0x05913008,0x1581400c}},
+            {"arm-loop",{0xe5910000,0xe5912004,0xe5913008,0xe591400c,0xe2566001,0x1afffff9}},
+            {"arm-unproved",{0xe5910000,0xe5912004}},
+            {"arm-transfer",{0xe891001d,0xe881001d}}}) {
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t *>(item.second.data()),
+                item.second.size()*4,0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::write_budget_chunks);
+            auto module=build_wasm_module({tr.func},imports);
+            js_export_memory_probe(item.first.c_str(),module.data(),module.size(),mode,0,0);
+        }
+        for(unsigned opcode:{0xb400u,0xb401u,0xb403u,0xb40fu,0xb5ffu,0xbc00u,0xbc01u,0xbc03u,0xbc0fu,0xbdffu,
+                0xc100u,0xc101u,0xc103u,0xc10fu,0xc1ffu,0xc900u,0xc901u,0xc903u,0xc90fu,0xc9ffu}) {
+            const std::uint16_t code=opcode;
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t *>(&code),sizeof(code),0x1000,
+                nullptr,nullptr,true,false,true);
+            auto module=build_wasm_module({tr.func},imports);
+            const auto name="thumb-"+std::to_string(opcode);
+            js_export_memory_probe(name.c_str(),module.data(),module.size(),mode,1,opcode);
+        }
+    }
+}
 #endif
 
 static bool test_tlb_guards() {
@@ -5136,6 +5182,12 @@ int main(int argc, char **argv) {
     // explicitly; test_unsafe_code_diagnostic separately tests both modes
     // and their intentional stale-code behavior.
     eka2l1::common::code_tracking::unsafe_code_mode = 0;
+#ifdef __EMSCRIPTEN__
+    if(argc==2 && std::string(argv[1])=="--emit-memory-probes") {emit_memory_probes();return 0;}
+#endif
+    if(argc==2 && std::string(argv[1])=="--shared-spans-only")return test_thumb_transfer_spans()
+        && test_thumb_direct_memory() && test_invariant_reads(arm_ir_policy::write_budget_chunks)
+        && test_invariant_writes(arm_ir_policy::write_budget_chunks) && test_block_transfer_callback_pc()?0:1;
     if(argc==2 && std::string(argv[1])=="--arm-memory-only")return test_arm_short_block_memory() && test_cached_callback_state()?0:1;
     if(argc==2 && std::string(argv[1])=="--memory-implementations-only")return test_memory_implementations()?0:1;
     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;

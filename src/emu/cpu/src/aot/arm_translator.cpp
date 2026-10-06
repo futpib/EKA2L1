@@ -2173,6 +2173,24 @@ namespace eka2l1::arm::aot {
                     ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
                     continue;
                 }
+                // The entry proof already supplies this complete address.
+                // For cached, immediate word accesses without writeback, using
+                // its host local and a WASM memory offset removes the guest
+                // address calculation and all helper-argument temporaries.
+                // The guard and its original fallback are unchanged.
+                if (memory_experiment::enabled() && w.has_proved_access() && w.cache.enabled && !I && preindex
+                    && !byte && !writeback && rn != 15 && rd != 15) {
+                    const auto &access = w.proved_accesses.at(insn_addr);
+                    w.get_local(access.host);
+                    if (!load) w.load_reg(rd);
+                    guest_memory_op(w, load ? op_i32_load : op_i32_store, 2, access.offset);
+                    if (load) w.store_i32_from_stack(S::reg(rd), TMP1);
+                    else w.memory_write = true;
+                    w.instruction_may_exit = false;
+                    if (cond_opened) w.op(op_end);
+                    ++insn_idx; decoded_end_offset = static_cast<std::uint32_t>(i) + 4;
+                    continue;
+                }
                 // Compute offset
                 if (!I) {
                     // Immediate offset (12-bit)
