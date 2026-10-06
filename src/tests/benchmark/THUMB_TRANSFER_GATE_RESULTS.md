@@ -6,6 +6,11 @@ including a confirmation campaign. Production sources and browser artifacts
 are restored to the baseline; the LAN service was never changed. The stricter
 gate is preserved in [thumb-transfer-gate.patch](thumb-transfer-gate.patch).
 
+The [shared-accounting follow-up](WASM_COST_ACCOUNTING_RESULTS.md) adds operation
+classes, fresh compiled-module coverage and Snakes hardware-counter evidence.
+It preserves this experiment's generated code and supplies a replacement patch
+using the common cost model; it does not adopt the continuation optimization.
+
 The previous [static-count experiment](THUMB_STATIC_REGION_RESULTS.md) credited
 WASM local assignments which V8 could already eliminate, while retaining new
 stop/interrupt checks. This revision requires savings in actual shared-state

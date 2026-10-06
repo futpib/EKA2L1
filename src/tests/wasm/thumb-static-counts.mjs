@@ -1,9 +1,11 @@
 // Compare complete compiled chains with equal guest work and callback traces.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {counted} from './wasm-step-counter.mjs';
+import {counted,resetCost,readCost} from './wasm-step-counter.mjs';
+import {CostComparisons} from './wasm-cost-model.mjs';
 
 const [input,output]=process.argv.slice(2);
+const breakdown=process.argv.includes('--breakdown'),costs=new CostComparisons();
 if(!output)throw Error('thumb-static-counts.mjs PROBES.log_OR_REPORT.json OUTPUT.json');
 const source=fs.readFileSync(input,'utf8');
 const probes=source.trimStart().startsWith('{')?JSON.parse(source).probes:
@@ -33,7 +35,7 @@ const env={memory,tlb_read32:(p,a)=>access(false,4,p,a),tlb_write32:(p,a,v)=>acc
 const rows=[];
 for(let k=0;k<probes.length;k+=2) {
     assert.equal(probes[k].variant,0);assert.equal(probes[k+1].variant,1);assert.equal(probes[k].name,probes[k+1].name);
-    const instances=probes.slice(k,k+2).map(p=>new WebAssembly.Instance(counted(Buffer.from(p.wasm,'base64')),{env}));
+    const instances=probes.slice(k,k+2).map(p=>new WebAssembly.Instance(counted(Buffer.from(p.wasm,'base64'),{breakdown}),{env}));
     const name=probes[k].name, isStatic=probes[k+1].accepted!==undefined?probes[k+1].accepted>0:/^(long_|tail_|condition_)/.test(name);
     if(!isStatic)assert.equal(probes[k].wasm,probes[k+1].wasm,'Rejected fixture must remain byte-identical: '+name);
     else assert.notEqual(probes[k].wasm,probes[k+1].wasm,'Fixture must exercise the optimization: '+name);
@@ -53,7 +55,7 @@ for(let k=0;k<probes.length;k+=2) {
             words[view/4]=0x400000;words[view/4+1]=0x4000000;words[view/4+2]=host;
             words[view/4+3]=pages;words[view/4+4]=(host-0x400000)>>>0;words[view/4+5]=mapping==='arena'?0xffffffff:0;
             for(const page of [7,8]) {words[(pages+page*8)/4]=host+page*4096;words[(pages+page*8)/4+1]=host+page*4096;}
-            instance.exports.steps.value=0n;
+            resetCost(instance);
             let executed=0,calls=0;
             while(calls<1000) {
                 // Real compiled entry follows the outer loop's stop/IRQ checks.
@@ -64,12 +66,13 @@ for(let k=0;k<probes.length;k+=2) {
                 const n=fn(state)>>>0;assert(n<=budget-executed);
                 executed+=n;calls++;if(!n || !(words[(state+840)/4]||words[(state+844)/4]) || (!words[(state+876)/4] && !(words[(state+784)/4]&128)))break;
             }
-            const steps=Number(instance.exports.steps.value);
+            const cost=readCost(instance),steps=cost.operations;
             if(mapping!=='helper')assert.equal(helpers.length,0, mapping+' must stay on its mapped fast path');
             words[(state+848)/4]=0;
-            return {steps,executed,calls,helpers,state:[...words.subarray(state/4,state/4+256)],memory:Buffer.from(bytes.subarray(host+0x7000,host+0x9000))};
+            return {steps,cost,executed,calls,helpers,state:[...words.subarray(state/4,state/4+256)],memory:Buffer.from(bytes.subarray(host+0x7000,host+0x9000))};
         });
         const [a,b]=results,label=JSON.stringify({name,flag,seed,budget,mapping,stop});
+        if(breakdown)costs.add(name,a.cost,b.cost,{flag,seed,budget,mapping,stop});
         assert(b.calls<=a.calls,label);assert.equal(a.executed,b.executed,label);assert.deepEqual(a.state,b.state,label);
         assert.deepEqual(a.memory,b.memory,label);assert.deepEqual(a.helpers,b.helpers,label);
         assert(b.steps<=a.steps,`${label}: grew ${a.steps} -> ${b.steps}`);
@@ -77,5 +80,5 @@ for(let k=0;k<probes.length;k+=2) {
     }
 }
 const summary={reduced:rows.filter(r=>r.after<r.before).length,unchanged:rows.filter(r=>r.after===r.before).length,increased:rows.filter(r=>r.after>r.before).length};
-fs.writeFileSync(output,JSON.stringify({summary,rows},null,2)+'\n');console.log(summary);
+fs.writeFileSync(output,JSON.stringify({summary,rows,...(breakdown?{cost_classes:costs.fixtures}:{})},null,2)+'\n');console.log(summary);
 for(const name of [...new Set(rows.map(r=>r.name))])console.log(name,rows.filter(r=>r.name===name&&r.flag===0&&r.budget===100&&r.mapping==='page'&&r.stop==='none').map(r=>[r.seed,r.before,r.after,r.before_calls,r.after_calls]));

@@ -20,6 +20,7 @@
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/state_locals.h>
+#include <cpu/aot/wasm_cost.h>
 #include <cpu/aot/memory_emission.h>
 #include <cpu/aot/exit_census.h>
 #include <cpu/12l1r/tlb.h>
@@ -178,7 +179,7 @@ namespace eka2l1::arm::aot {
         // no successful proof survives any callback or instruction boundary.
         void begin_span(unsigned address_local, unsigned registers, bool write) {
             const auto words = static_cast<unsigned>(__builtin_popcount(registers));
-            span_active = direct_memory && words > 1 && (!write ||
+            span_active = direct_memory && wasm_cost::repeated_test_saves_work(words) && (!write ||
                 common::code_tracking::skip_code_write_guards());
             if (!span_active) return;
             if(memory_experiment::mode) {

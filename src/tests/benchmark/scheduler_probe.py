@@ -132,17 +132,22 @@ def main():
     p.add_argument('build', type=Path)
     p.add_argument('output', type=Path)
     p.add_argument('--repo', type=Path, default=Path(__file__).resolve().parents[3])
+    p.add_argument('--start-us', type=int, default=78000000)
+    p.add_argument('--end-us', type=int, default=96000000)
+    p.add_argument('--capture-mode', type=int, choices=[0, 1, 2], default=2)
     p.add_argument('--hardware-counters', action='store_true',
                    help='Count user cycles/instructions on existing benchmark threads (diagnostic only)')
     p.add_argument('--no-start-gate', action='store_true',
                    help='Attach at the ordinary warmup message without pausing the browser; misses attachment interval')
     args = p.parse_args()
+    if not 0 <= args.start_us < args.end_us <= 120000000:
+        p.error('Expected 0 <= start-us < end-us <= 120000000')
     output = args.output.resolve()
     output.mkdir()
     gate = output / 'resume'
     env = dict(os.environ, EKA2L1_WASM_BUILD_DIR=str(args.build.resolve()),
                EKA2L1_BENCHMARK_AOT='5', EKA2L1_GPU='hardware',
-               EKA2L1_PROFILE_DETAIL='0', EKA2L1_PROFILE_START_US='78000000',
+               EKA2L1_PROFILE_DETAIL='0', EKA2L1_PROFILE_START_US=str(args.start_us),
                EKA2L1_SHARED_AUDIO='1', PROFILE_GATE=str(gate))
     for key in ('EKA2L1_AOT_VERIFY', 'EKA2L1_GUEST_PROFILE', 'EKA2L1_AOT_DIAGNOSTICS',
                 'EKA2L1_V8_FLAGS', 'EKA2L1_V8_DUMP', 'EKA2L1_LONG_MONITOR',
@@ -152,7 +157,7 @@ def main():
     if args.no_start_gate:
         env.pop('PROFILE_GATE', None)
     command = ['node', 'profile.ts', str(args.assets.resolve()),
-               str(output / 'profile'), '2', '0', '96000000']
+               str(output / 'profile'), str(args.capture_mode), '0', str(args.end_us)]
     proc = subprocess.Popen(command, cwd=args.repo / 'src/tests/wasm', env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                             text=True, bufsize=1, start_new_session=True)

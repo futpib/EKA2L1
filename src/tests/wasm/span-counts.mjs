@@ -4,9 +4,11 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import {counted} from './wasm-step-counter.mjs';
+import {counted,resetCost,readCost} from './wasm-step-counter.mjs';
+import {CostComparisons} from './wasm-cost-model.mjs';
 
 const [beforePath, afterPath, output] = process.argv.slice(2);
+const breakdown=process.argv.includes('--breakdown'),costs=new CostComparisons();
 if (!output) throw Error('span-counts.mjs BASELINE_PROBES CANDIDATE_PROBES OUTPUT.json');
 function readProbes(path) {
     const lines=fs.readFileSync(path,'utf8').split('\n');
@@ -72,18 +74,20 @@ const rows=[];let reductions=0,unchanged=0;
 for(let i=0;i<before.probes.length;i++) {
     const a=before.probes[i],b=after.probes[i];assert.equal(a.name,b.name);assert.equal(a.mode,b.mode);
     const raw=[a,b].map(p=>Buffer.from(p.wasm,'base64'));
-    const instances=raw.map(blob=>new WebAssembly.Instance(counted(blob),{env}));
+    const instances=raw.map(blob=>new WebAssembly.Instance(counted(blob,{breakdown}),{env}));
     let improved=0,comparisons=0;
     for(const scenario of scenarios)for(const budget of [0,1,3,16])for(const z of [0,1]) {
         const results=instances.map((instance,variant)=>{
-            init(variant?b:a,scenario,budget,z);instance.exports.steps.value=0n;
+            init(variant?b:a,scenario,budget,z);resetCost(instance);
             const count=instance.exports.f_4096(state);
             const hash=crypto.createHash('sha256');
             hash.update(bytes.subarray(state,state+1024));
             for(const guest of mapped)hash.update(bytes.subarray(physical(guest),physical(guest)+4096));
-            return {steps:Number(instance.exports.steps.value),count,hash:hash.digest('hex'),helpers:helperTrace};
+            const cost=readCost(instance);
+            return {steps:cost.operations,cost,count,hash:hash.digest('hex'),helpers:helperTrace};
         });
         const [old,current]=results,label=`${a.name} mode=${a.mode} ${scenario.name} budget=${budget} z=${z}`;
+        if(breakdown)costs.add(`${a.name} mode=${a.mode}`,old.cost,current.cost,{scenario:scenario.name,budget,z});
         assert.equal(current.count,old.count,label+' guest count');assert.equal(current.hash,old.hash,label+' state/memory');
         assert.deepEqual(current.helpers,old.helpers,label+' helpers');
         assert(current.steps<=old.steps,`${label}: instructions increased ${old.steps} -> ${current.steps}`);
@@ -94,5 +98,5 @@ for(let i=0;i<before.probes.length;i++) {
     if(!raw[0].equals(raw[1]))assert(improved>0,`${a.name}: changed without an instruction-count reduction`);
     console.log('PASS',a.name,'mode',a.mode,improved,'reduced of',comparisons);
 }
-fs.writeFileSync(output,JSON.stringify({metric:'Executed WASM operations; block/loop/end/else markers and counter operations excluded; imported helper bodies excluded but call traces equal',reductions,unchanged,rows},null,2)+'\n');
+fs.writeFileSync(output,JSON.stringify({metric:'Executed WASM operations; block/loop/end/else markers and counter operations excluded; imported helper bodies excluded but call traces equal',reductions,unchanged,rows,...(breakdown?{cost_classes:costs.fixtures}:{})},null,2)+'\n');
 console.log('PASS',reductions,'reduced,',unchanged,'unchanged, zero increased; state, memory, guest progress and helper traces match');

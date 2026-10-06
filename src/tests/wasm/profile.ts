@@ -373,11 +373,25 @@ try {
     fs.writeFileSync(path.join(output, 'capture-worker.json'), JSON.stringify({selected: captureWorker, ranked}));
   }
   for (const {client,name} of clients.filter(c => c.name === captureWorker)) {
-    const captured = await client.send('Runtime.evaluate', {expression:'JSON.stringify(globalThis.ekaProbeModules || [])',returnByValue:true}, {timeout:10000});
-    for (const mod of JSON.parse(captured.result.value || '[]')) {
-      const base = `${name}-module-${mod.index}`;
-      if (mod.base64) fs.writeFileSync(path.join(output,base+'.wasm'),Buffer.from(mod.base64,'base64'));
-      delete mod.base64;fs.writeFileSync(path.join(output,base+'.json'),JSON.stringify(mod));
+    // Attach only after CPU sampling/timing have stopped: debugger attachment
+    // can change WASM tiering. Capture actual compiled modules through CDP,
+    // without wrapping WebAssembly.Module or adding execution instrumentation.
+    const scripts: any[] = [];
+    const parsed = (script: any) => { if (script.scriptLanguage === 'WebAssembly') scripts.push(script); };
+    client.on('Debugger.scriptParsed', parsed);
+    try {
+      await client.send('Debugger.enable');
+      for (const script of scripts) {
+        const {bytecode} = await client.send('Debugger.getWasmBytecode', {scriptId:script.scriptId});
+        const base = `${name}-module-${script.scriptId}`;
+        const bytes = Buffer.from(bytecode,'base64');
+        fs.writeFileSync(path.join(output,base+'.wasm'),bytes);
+        fs.writeFileSync(path.join(output,base+'.json'),JSON.stringify({...script,sha256:hash(bytes),bytes:bytes.length}));
+      }
+      if (!scripts.length) throw Error(`No WASM modules captured for ${name}`);
+    } finally {
+      client.off('Debugger.scriptParsed', parsed);
+      await client.send('Debugger.disable');
     }
   }
   if (process.env.EKA2L1_COMPILE_CENSUS === '1') {
