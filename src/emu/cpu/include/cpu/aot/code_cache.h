@@ -55,7 +55,29 @@ namespace eka2l1::arm::aot {
         // Mapping/lifetime checks still apply on every lookup.
         block *find_trusted_original(std::uint32_t pc_mode, core &cpu);
 
+        // Dispatch consumes only the function. Keep its validated identity in
+        // one contiguous slot instead of chasing the version's cold metadata.
+#if defined(_MSC_VER)
+        __forceinline
+#else
+        __attribute__((always_inline))
+#endif
+        aot_func lookup_trusted(std::uint32_t pc_mode, core &cpu) {
+            const auto *source = cpu.code_mapping_generation;
+            const auto generation = source ? source->load(std::memory_order_acquire) : 0;
+            const auto k = key(cpu.code_address_space, pc_mode);
+            auto &slot = dispatch_[recent_index(k)];
+            if (generation && slot.key == k && slot.generation == generation
+                && slot.source == source && slot.function) return slot.function;
+            return lookup_trusted_uncached(pc_mode, cpu);
+        }
+
     private:
+        aot_func lookup_trusted_uncached(std::uint32_t pc_mode, core &cpu);
+        void forget_dispatch(std::uint64_t k) {
+            auto &slot = dispatch_[recent_index(k)];
+            if (slot.key == k) slot = {};
+        }
         template<bool TrustBytes>
         block *find_mapped(std::uint32_t pc_mode, const core::code_mapping &view, core *cpu) {
             const auto k = key(view.address_space, pc_mode);
@@ -83,6 +105,7 @@ namespace eka2l1::arm::aot {
                 || view.bytes != entry->backing || view.size < entry->code.size();
             if (mapping_invalid || (!TrustBytes && !bytes_match(*entry))) {
                 if(exit_census::counting())++exit_census::invalidations[mapping_invalid?"mapping_or_extent":"exact_bytes"];
+                forget_dispatch(k);
                 entry->live = false;
                 current_.erase(k);
                 recent = nullptr;
@@ -112,6 +135,7 @@ namespace eka2l1::arm::aot {
     public:
         block &insert(std::uint32_t pc_mode, const core::code_mapping &view, std::size_t size) {
             const auto k = key(view.address_space, pc_mode);
+            forget_dispatch(k);
             auto old = current_.find(k);
             if (old != current_.end()) versions_[old->second].live = false;
             const auto version = static_cast<std::uint32_t>(versions_.size());
@@ -143,8 +167,10 @@ namespace eka2l1::arm::aot {
         }
 
         void attach(std::uint32_t version, aot_func function) {
-            if (version < versions_.size() && versions_[version].live)
+            if (version < versions_.size() && versions_[version].live) {
+                forget_dispatch(versions_[version].key);
                 versions_[version].function = function;
+            }
         }
 
         void invalidate(std::uint32_t address, std::size_t size) {
@@ -155,6 +181,7 @@ namespace eka2l1::arm::aot {
                 const bool dependency_hit = std::any_of(entry.dependencies.begin(), entry.dependencies.end(),
                     [&](const auto &d) { return d.address < end && std::uint64_t(d.address) + d.code.size() > address; });
                 if (dependency_hit || (start < end && std::uint64_t(start) + entry.code.size() > address)) {
+                    forget_dispatch(entry.key);
                     entry.live = false;
                     it = current_.erase(it);
                     ++invalidations;
@@ -186,6 +213,12 @@ namespace eka2l1::arm::aot {
         // deque entries stay allocated until reset; invalidation/replacement
         // marks old entries dead before a cached pointer can be reused.
         std::array<block *, 4096> recent_{};
+        struct dispatch_entry {
+            std::uint64_t key = 0, generation = 0;
+            const std::atomic<std::uint64_t> *source = nullptr;
+            aot_func function = nullptr;
+        };
+        std::vector<dispatch_entry> dispatch_ = std::vector<dispatch_entry>(4096);
         // Versions remain allocated until reset so late module instantiation can
         // never attach an old function to a replacement block. Runtime caps growth.
         std::deque<block> versions_;

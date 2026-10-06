@@ -1,0 +1,2584 @@
+{
+  "base_commit": "ff8954d5d3fb60f400013e8ee7dca43810652b0d",
+  "scope": "Runtime dispatch retained; generic partial division lowering rejected. No observations discarded.",
+  "retained": "Contiguous trusted RAM function lookup, with existing mapping and lifecycle validation.",
+  "builds": {
+    "dispatch": {
+      "eka2l1.js": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+      "eka2l1.wasm": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "division": {
+      "eka2l1.js": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+      "eka2l1.wasm": "88b2ba6ac58af25f770b07d4e666befc808f7391175f589151ad9a3d421e98cc",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    },
+    "final": {
+      "eka2l1.js": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+      "eka2l1.wasm": "a39b6350ca37a7cc2a805227017998288cd3f8da96a668d7036c8b7f94daee1a",
+      "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+      "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+      "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+      "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+    }
+  },
+  "control": {
+    "eka2l1.js": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+    "eka2l1.wasm": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+    "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+    "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+  },
+  "campaigns": {
+    "dispatch-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-0-baseline",
+          "cpu_seconds": 8.276099149,
+          "native_instructions": 69335404358,
+          "user_cycles": 29642113509,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 38.929027232,
+          "wall_seconds": 9.85667,
+          "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "746ed5f4c116efdaf6f744143116adc9970fdccda33927f2bf013da0007e080f",
+          "report_sha256": "6fda3e3558f1306acf4b004a5d4d6e46d6671a8ceb72fe1678fcae4a0d3b7861",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-1-candidate",
+          "cpu_seconds": 7.736869503,
+          "native_instructions": 64743987813,
+          "user_cycles": 28378226704,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 38.179777125,
+          "wall_seconds": 9.26625,
+          "wasm_sha256": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "69feaa56c978d0a8b7f76c8670f8aeffec25dc8437738baec2df513fd8503920",
+          "report_sha256": "62435530129953ca1a6c6c2b9c63c6a4c19a094706c32b1590262b063161f311",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-2-candidate",
+          "cpu_seconds": 7.701881795,
+          "native_instructions": 64742473952,
+          "user_cycles": 28246978438,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 38.17695034,
+          "wall_seconds": 9.2375,
+          "wasm_sha256": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "bc8794f6600cde10f46e970315e801f0eff7c263c600317215d8b0269dc99328",
+          "report_sha256": "7310b73b4d08214ca7cda7f7f41500f52284f2d95908580deadaa93ad15dc874",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-3-baseline",
+          "cpu_seconds": 8.018132558,
+          "native_instructions": 69334652609,
+          "user_cycles": 30772103726,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 38.93794794,
+          "wall_seconds": 9.53305,
+          "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "01547663ede9b2c600158fe97c82b82da31ea091c187566ed3606eaaa5e6a15f",
+          "report_sha256": "614a95ae62aa0eec0d7f54d1d2fc2fc77185db890de185d4a1ce34eed50eb2ce",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-0-baseline",
+          "cpu_seconds": 23.308116954,
+          "native_instructions": 232250995582,
+          "user_cycles": 94753435933,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 65.04280699,
+          "wall_seconds": 25.6297,
+          "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "177db0947e8cbd6475656a8e340a96fb029cb88bbf2b472e7408b6a52d9147dc",
+          "report_sha256": "e7adc28ad4842c8c2097fcd8dc9b297b018541af25811d0303390149ada4144b",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-1-candidate",
+          "cpu_seconds": 24.517527207,
+          "native_instructions": 229943851865,
+          "user_cycles": 95953165288,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 66.04595979400001,
+          "wall_seconds": 26.8569,
+          "wasm_sha256": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "b900103b81790cbdfbbcd37b68def88c876bc6fe08ac3e259014748deb46ce7b",
+          "report_sha256": "e506321c1d5b87e76ba7fec6399b6d30cf31d979894b5d300d831c3d7fdb18c1",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-2-candidate",
+          "cpu_seconds": 23.96709233,
+          "native_instructions": 229960241391,
+          "user_cycles": 93509231031,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 64.543187108,
+          "wall_seconds": 26.299,
+          "wasm_sha256": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "9380b5e98427f2e81094069f39dfc439eb116d39bf1a89671afbf2c871622232",
+          "report_sha256": "b61cc46db62ee776b96f31f31e7dac0b3ea4eacfdf6bb8a30e02f9d7240227d3",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-3-baseline",
+          "cpu_seconds": 23.215056021,
+          "native_instructions": 232239348458,
+          "user_cycles": 95293293822,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 64.042146489,
+          "wall_seconds": 25.4737,
+          "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "1cc615a682ad8b02837974891b300cf285ada8399ca5f7f6e928ec2a17f4ba0d",
+          "report_sha256": "ebda7c196ecf2ae8187b5c02b53b76f7505146319525cb31e4f25197cbd25997",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 8.1471158535,
+            "candidate": 7.719375649,
+            "delta_percent": -5.2502040254680304
+          },
+          "native_instructions": {
+            "baseline": 69335028483.5,
+            "candidate": 64743230882.5,
+            "delta_percent": -6.622623083067936
+          },
+          "user_cycles": {
+            "baseline": 30207108617.5,
+            "candidate": 28312602571,
+            "delta_percent": -6.271722562027826
+          },
+          "wall_seconds": {
+            "baseline": 9.694859999999998,
+            "candidate": 9.251875,
+            "delta_percent": -4.5692769158089845
+          }
+        },
+        "combat": {
+          "cpu_seconds": {
+            "baseline": 23.261586487499997,
+            "candidate": 24.2423097685,
+            "delta_percent": 4.216063601367059
+          },
+          "native_instructions": {
+            "baseline": 232245172020,
+            "candidate": 229952046628,
+            "delta_percent": -0.987372685535326
+          },
+          "user_cycles": {
+            "baseline": 95023364877.5,
+            "candidate": 94731198159.5,
+            "delta_percent": -0.30746829306312895
+          },
+          "wall_seconds": {
+            "baseline": 25.5517,
+            "candidate": 26.57795,
+            "delta_percent": 4.016366817080663
+          }
+        }
+      }
+    },
+    "division-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-0-baseline",
+          "cpu_seconds": 8.505460361,
+          "native_instructions": 64739997452,
+          "user_cycles": 30467758840,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 39.923232579,
+          "wall_seconds": 9.83207,
+          "wasm_sha256": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "797eb14152e060781ac78b556de94f4c7118edcd9c62bb95ee434f4979bd05a3",
+          "report_sha256": "24937d03a694b7200cbc662b9efdcb46eaa40dd91163f5781c5d74d3f953ebdd",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-1-candidate",
+          "cpu_seconds": 11.530514165,
+          "native_instructions": 64501403633,
+          "user_cycles": 33817890383,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 43.446869179000004,
+          "wall_seconds": 14.0448,
+          "wasm_sha256": "88b2ba6ac58af25f770b07d4e666befc808f7391175f589151ad9a3d421e98cc",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "6a6a9daf025d9eee611614f4ec32e7933ca209148cdf8b4905bcca335e1fe894",
+          "report_sha256": "0aca65d0d563df16f896a37a47e21c95dae4508f990ac482996686bc64a713d0",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-2-candidate",
+          "cpu_seconds": 8.190463911,
+          "native_instructions": 64505176907,
+          "user_cycles": 29337518879,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 44.200313238,
+          "wall_seconds": 9.50162,
+          "wasm_sha256": "88b2ba6ac58af25f770b07d4e666befc808f7391175f589151ad9a3d421e98cc",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "6cee38dcdf79e48e903c65404daec2d19965b29b091b25bc0245cec0af84bbf9",
+          "report_sha256": "87d9db9e8645147260f304f6c63fb2bb043e2ea9d3339b95a833acd78405ce79",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "standard",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-3-baseline",
+          "cpu_seconds": 8.316599982,
+          "native_instructions": 64738555896,
+          "user_cycles": 29671614931,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 42.949517486000005,
+          "wall_seconds": 9.66623,
+          "wasm_sha256": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "c7c667a0fe5dbdcf8fcd8af160dbef03e3e3848a2e59e7d2ca5928836a62267d",
+          "report_sha256": "b8dbbbad6199c810eebe3a3f74a18cb9d565c8ea0dc5df9a60594ef276a90e3e",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-0-baseline",
+          "cpu_seconds": 27.028516327,
+          "native_instructions": 229935539738,
+          "user_cycles": 96156451504,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 74.34036771999999,
+          "wall_seconds": 29.18,
+          "wasm_sha256": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "b8f178358c34a68dcf22e2a57e5e99e4e2a07569f2fe7ae2d134117d7c0ef28a",
+          "report_sha256": "d965d293c8c90dfc91f7225ed754bfdd843eae3b37609febed3d05ce16d4da8f",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-1-candidate",
+          "cpu_seconds": 27.654511561,
+          "native_instructions": 229936992769,
+          "user_cycles": 96720102917,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 74.07950479799999,
+          "wall_seconds": 29.8547,
+          "wasm_sha256": "88b2ba6ac58af25f770b07d4e666befc808f7391175f589151ad9a3d421e98cc",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "e4eec4b33863fd0dd16b05ba92817e4e05f5fed91d2aad7e0becc58409b0cd1d",
+          "report_sha256": "78c3cd358bf70f81a04dce25e09229591b6625101f4a6ba45ef213453a6849d2",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-2-candidate",
+          "cpu_seconds": 27.162295667,
+          "native_instructions": 229939569154,
+          "user_cycles": 100957166068,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 80.37788294399999,
+          "wall_seconds": 29.4342,
+          "wasm_sha256": "88b2ba6ac58af25f770b07d4e666befc808f7391175f589151ad9a3d421e98cc",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "413658e9eb6581d15b77ce6276a403d329f7ea7434b4113a024e171220fcf5d3",
+          "report_sha256": "c32f3c4a1505cc912fae4c72da59423f6afaf4ff4696496cea79edb566b06be8",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-3-baseline",
+          "cpu_seconds": 28.36155641,
+          "native_instructions": 229940155265,
+          "user_cycles": 95922103070,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 78.122915882,
+          "wall_seconds": 30.6536,
+          "wasm_sha256": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "55bb1c71652d7745cc94de3717bac5fa110dd41f1ef0e46d9eba9d61977fd17a",
+          "report_sha256": "e4cf98ecefceca7d7aa6235bf8741d5ffcea9edd49a893956e12870ff5f95263",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        }
+      ],
+      "means": {
+        "standard": {
+          "cpu_seconds": {
+            "baseline": 8.4110301715,
+            "candidate": 9.860489038,
+            "delta_percent": 17.232833992337326
+          },
+          "native_instructions": {
+            "baseline": 64739276674,
+            "candidate": 64503290270,
+            "delta_percent": -0.36451813508564523
+          },
+          "user_cycles": {
+            "baseline": 30069686885.5,
+            "candidate": 31577704631,
+            "delta_percent": 5.015076316698153
+          },
+          "wall_seconds": {
+            "baseline": 9.74915,
+            "candidate": 11.77321,
+            "delta_percent": 20.761399711769755
+          }
+        },
+        "combat": {
+          "cpu_seconds": {
+            "baseline": 27.6950363685,
+            "candidate": 27.408403614,
+            "delta_percent": -1.0349607441787256
+          },
+          "native_instructions": {
+            "baseline": 229937847501.5,
+            "candidate": 229938280961.5,
+            "delta_percent": 0.00018851181078360923
+          },
+          "user_cycles": {
+            "baseline": 96039277287,
+            "candidate": 98838634492.5,
+            "delta_percent": 2.9148045305823267
+          },
+          "wall_seconds": {
+            "baseline": 29.916800000000002,
+            "candidate": 29.64445,
+            "delta_percent": -0.9103580596855343
+          }
+        }
+      }
+    },
+    "confirmation-": {
+      "rows": [
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-3-baseline",
+          "cpu_seconds": 28.36155641,
+          "native_instructions": 229940155265,
+          "user_cycles": 95922103070,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 78.122915882,
+          "wall_seconds": 30.6536,
+          "wasm_sha256": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "55bb1c71652d7745cc94de3717bac5fa110dd41f1ef0e46d9eba9d61977fd17a",
+          "report_sha256": "e4cf98ecefceca7d7aa6235bf8741d5ffcea9edd49a893956e12870ff5f95263",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/confirmation-hardware-combat-1-baseline",
+          "cpu_seconds": 28.787778694,
+          "native_instructions": 232249208769,
+          "user_cycles": 96556718454,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 75.84586312799999,
+          "wall_seconds": 31.1218,
+          "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "8dae2fc411aae71b977978b31c0fed17cb0492a0095657f3a105bf1ba8063176",
+          "report_sha256": "28cdd63e86bdb0b22f16276f62437ecad05346a3001a0bca0c77fc00c78fa37c",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "baseline",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/confirmation-hardware-combat-2-baseline",
+          "cpu_seconds": 28.352006044,
+          "native_instructions": 232222960096,
+          "user_cycles": 100036523264,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 81.381497158,
+          "wall_seconds": 30.5601,
+          "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "a044ee3f381a64a5cd723ae9a2001f57e7a888aba31ba63c358f401b61b4b7b6",
+          "report_sha256": "dfceebfc42c6c0d1b9ba787d9882f48efbb493901b878529b4a42a59c6bafe12",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/confirmation-hardware-combat-3-candidate",
+          "cpu_seconds": 29.757180502,
+          "native_instructions": 229933995160,
+          "user_cycles": 97241739667,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 76.601502494,
+          "wall_seconds": 32.0444,
+          "wasm_sha256": "0b15bda39a8da57a0ad8cbfec4d0348e44ec7d85a722fe5804582ec866076129",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "f93371fb6f64d0bbf20d08f32a48c05536c787b5528d0dd4c7e26880e18059fb",
+          "report_sha256": "759bfc52d215fd8a6217b3ddebdb4472f70a4f75817c391cb17e5cef55578d2c",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        }
+      ],
+      "means": {
+        "standard": {},
+        "combat": {
+          "cpu_seconds": {
+            "baseline": 28.569892369,
+            "candidate": 29.059368456,
+            "delta_percent": 1.713258421411168
+          },
+          "native_instructions": {
+            "baseline": 232236084432.5,
+            "candidate": 229937075212.5,
+            "delta_percent": -0.9899448768342478
+          },
+          "user_cycles": {
+            "baseline": 98296620859,
+            "candidate": 96581921368.5,
+            "delta_percent": -1.7444134656059318
+          },
+          "wall_seconds": {
+            "baseline": 30.84095,
+            "candidate": 31.349000000000004,
+            "delta_percent": 1.647322796476769
+          }
+        }
+      }
+    },
+    "final-": {
+      "rows": [
+        {
+          "game": "standard",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/final-hardware-standard-0-candidate",
+          "cpu_seconds": 8.288990162,
+          "native_instructions": 64719175158,
+          "user_cycles": 29675947013,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 4242626167,
+          "presentations": 380,
+          "warmup_seconds": 43.705715618,
+          "wall_seconds": 9.64557,
+          "wasm_sha256": "a39b6350ca37a7cc2a805227017998288cd3f8da96a668d7036c8b7f94daee1a",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "ec571f8da5cc885d1afc6050d4ceebd2115da2fa5ca57a2ea69a957f0e3408d3",
+          "report_sha256": "f72ae0b55a8a402c98da2f907e455675b480322870330e5288f2eaf1a91930be",
+          "journal_sha256": "cbb9e91e3ccfccdacc8e3dc535d3d6b4c64d6889307bc8ace44983b0927d094f"
+        },
+        {
+          "game": "combat",
+          "variant": "candidate",
+          "directory": "/home/claude/.scratch/eka-dispatch-division/final-hardware-combat-0-candidate",
+          "cpu_seconds": 29.870906213,
+          "native_instructions": 229933172065,
+          "user_cycles": 98446244450,
+          "other_thread_counter_errors": [],
+          "guest_instructions": 6439908640,
+          "presentations": 576,
+          "warmup_seconds": 77.861958191,
+          "wall_seconds": 32.2681,
+          "wasm_sha256": "a39b6350ca37a7cc2a805227017998288cd3f8da96a668d7036c8b7f94daee1a",
+          "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+          "browser": "Chrome/153.0.8010.52",
+          "scheduler_sha256": "c8525ac54339630ec5b21bec6e6ccafd2115be6dbb07978aefb209bdc929a008",
+          "report_sha256": "a5464feaa6ecdd357fc1c4cbd521b77149c2f1fd03caf13bef3de07467da8304",
+          "journal_sha256": "76eba2e8266fc411863bee3ac01018b6d6b011090c97f419f4c6aaa7b06f8885"
+        }
+      ],
+      "means": {
+        "standard": {},
+        "combat": {}
+      }
+    }
+  },
+  "confirmation_design": "C/B/B/C: the final division-panel control is reused as the predeclared first cache candidate observation. This is the same physical run, not an independent extra sample.",
+  "native": {
+    "scope": "Static native inventories of sampled changed functions, not executed path counts. Compiler time and native execution require separate validation.",
+    "selection": "Largest summed baseline/candidate self sample times; changed common exports only.",
+    "before_profile": {
+      "file": "/home/claude/.scratch/eka-dispatch-division/profile-baseline/worker-13.cpuprofile",
+      "sha256": "588abf2547eaaddf4ee5746423b3f39b43b0fef5f9ac06c4445150072fe7bbbc",
+      "sampled_us": 11688056,
+      "guest_self_us": 6129252,
+      "rom_self_us": 1186061,
+      "ram_self_us": 4893009,
+      "private_self_us": 50182,
+      "inclusive_us": {
+        "translation": 52416,
+        "state_finalization": 24481,
+        "allocation": 16193
+      },
+      "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+    },
+    "after_profile": {
+      "file": "/home/claude/.scratch/eka-dispatch-division/profile-division/worker-13.cpuprofile",
+      "sha256": "4cc81ab9912eb5b596dce4f22310be6c59236523e36d75fcfdb3f9af0d286ddf",
+      "sampled_us": 9919907,
+      "guest_self_us": 5318856,
+      "rom_self_us": 1077585,
+      "ram_self_us": 4196862,
+      "private_self_us": 44409,
+      "inclusive_us": {
+        "translation": 49061,
+        "state_finalization": 25058,
+        "allocation": 9537
+      },
+      "scope": "Sampled time, not CPU counters. Inclusive categories overlap; captured-worker selection."
+    },
+    "rows": [
+      {
+        "name": "f_2149128552",
+        "guest_pc": "0x80191968",
+        "thumb": false,
+        "before_self_us": 607738,
+        "after_self_us": 548427,
+        "wasm": {
+          "before": {
+            "function_index": 13,
+            "normalized_sha256": "f71c1e249ed1a0ecf8cf96898eac10e902556718caded211702460a5bac770ed",
+            "raw_sha256": "2449f730db99a39c6cf50aebad197c5ed269db9bf3275e3311e3506388b5bd55",
+            "body_bytes": 6551,
+            "locals": 30,
+            "operations": 3295,
+            "classes": {
+              "local": 2039,
+              "constant": 360,
+              "load": 15,
+              "store": 136,
+              "control": 139,
+              "call": 7,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 599,
+              "division": 0
+            },
+            "module": "worker-13-module-21.wasm"
+          },
+          "after": {
+            "function_index": 13,
+            "normalized_sha256": "291aefd7b6148c35f9a8ade20973d20a6e804845a912769238dacac391b853f4",
+            "raw_sha256": "14569f974e888908a4a41a8189d036b2dcdf8ede44ba9d74d58e5661f0a785eb",
+            "body_bytes": 5659,
+            "locals": 30,
+            "operations": 2801,
+            "classes": {
+              "local": 1697,
+              "constant": 310,
+              "load": 15,
+              "store": 136,
+              "control": 135,
+              "call": 7,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 499,
+              "division": 2
+            },
+            "module": "worker-13-module-21.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-dispatch-division/profile-baseline/worker-13-module-21.wasm",
+            "module_sha256": "9fd01a16a86081fc3fe6a4bc0379d2c1c30f45b7f9ac199857e8c5a9a3d0fcfc",
+            "function_index": 13,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=13",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "d20572ab10520d0bc01f4be535d19fd17d410f04bc81c2c3da6c85939b03ba4d",
+            "code_bytes": 11608,
+            "executable_bytes": 11536,
+            "table_bytes": 72,
+            "table_offsets": [
+              11536
+            ],
+            "instructions": 2918,
+            "padding_instructions": 5,
+            "memory_instructions": 940,
+            "stack_memory_instructions": 588,
+            "conditional_branches": 166,
+            "calls": 8
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-dispatch-division/profile-division/worker-13-module-21.wasm",
+            "module_sha256": "181ed37c7d4a49c6b6568ad6f2a644b055c024d20a32c622c6b238dba768791a",
+            "function_index": 13,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=13",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "ff7b03cb6574ce76335a0778a11c7b622658a1fa463bc9681293642112c3d483",
+            "code_bytes": 11224,
+            "executable_bytes": 11152,
+            "table_bytes": 72,
+            "table_offsets": [
+              11152
+            ],
+            "instructions": 2806,
+            "padding_instructions": 6,
+            "memory_instructions": 900,
+            "stack_memory_instructions": 548,
+            "conditional_branches": 162,
+            "calls": 8
+          }
+        },
+        "delta": {
+          "instructions": -112,
+          "code_bytes": -384,
+          "memory_instructions": -40,
+          "stack_memory_instructions": -40,
+          "conditional_branches": -4,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149128728",
+        "guest_pc": "0x80191a18",
+        "thumb": false,
+        "before_self_us": 47325,
+        "after_self_us": 47779,
+        "wasm": {
+          "before": {
+            "function_index": 7,
+            "normalized_sha256": "ca1d599d0db6679698393b0f607952674c1316318d284dafdcb77975a4f0247d",
+            "raw_sha256": "aeb12b6a890a9049a4e7a2e951fe7ba358cbb9d524d196b3da9ada99485abcbe",
+            "body_bytes": 3270,
+            "locals": 30,
+            "operations": 1643,
+            "classes": {
+              "local": 1024,
+              "constant": 184,
+              "load": 15,
+              "store": 62,
+              "control": 63,
+              "call": 3,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 292,
+              "division": 0
+            },
+            "module": "worker-13-module-86.wasm"
+          },
+          "after": {
+            "function_index": 7,
+            "normalized_sha256": "d35ba69f692a283fba1be03aaa9d4e6c83bbf9a7cf6be53391a577c45ecdcc7d",
+            "raw_sha256": "000c4dd20491298c7601b5576ba38a70b9769a24a3e22b520944e3f9398d95f6",
+            "body_bytes": 2482,
+            "locals": 30,
+            "operations": 1206,
+            "classes": {
+              "local": 727,
+              "constant": 137,
+              "load": 15,
+              "store": 62,
+              "control": 59,
+              "call": 3,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 202,
+              "division": 1
+            },
+            "module": "worker-13-module-86.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-dispatch-division/profile-baseline/worker-13-module-86.wasm",
+            "module_sha256": "ac24459136cc885ba909e0c5bb99704ec96c634d297fd354afd7080be2dc7d4f",
+            "function_index": 7,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=7",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "c033d2b32df6da9eff425869a6f1fa6df27768be3eda177ab5ed09f8eada4ad0",
+            "code_bytes": 5800,
+            "executable_bytes": 5800,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 1447,
+            "padding_instructions": 3,
+            "memory_instructions": 464,
+            "stack_memory_instructions": 292,
+            "conditional_branches": 86,
+            "calls": 4
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-dispatch-division/profile-division/worker-13-module-86.wasm",
+            "module_sha256": "5fd94daf678caf9e78ac71eabccac8b3e183f5401e918b87d6cbc6dcbf956883",
+            "function_index": 7,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=7",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "5ab964c96fe43a5bee9ee4ec3b553875cd9e726f38968706bd02a13587b53b15",
+            "code_bytes": 5720,
+            "executable_bytes": 5720,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 1429,
+            "padding_instructions": 4,
+            "memory_instructions": 466,
+            "stack_memory_instructions": 294,
+            "conditional_branches": 82,
+            "calls": 4
+          }
+        },
+        "delta": {
+          "instructions": -18,
+          "code_bytes": -80,
+          "memory_instructions": 2,
+          "stack_memory_instructions": 2,
+          "conditional_branches": -4,
+          "calls": 0
+        }
+      },
+      {
+        "name": "f_2149128788",
+        "guest_pc": "0x80191a54",
+        "thumb": false,
+        "before_self_us": 9420,
+        "after_self_us": 4472,
+        "wasm": {
+          "before": {
+            "function_index": 17,
+            "normalized_sha256": "8e91600a55a68ef918ce9ef8c36a35206b0027721ea51b47a3caae7e09cbc571",
+            "raw_sha256": "1acf805bc835fcb3f1a9b7428c85c80959c918b879937cb39ab2d518928784c8",
+            "body_bytes": 2150,
+            "locals": 30,
+            "operations": 1100,
+            "classes": {
+              "local": 708,
+              "constant": 113,
+              "load": 15,
+              "store": 38,
+              "control": 28,
+              "call": 2,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 196,
+              "division": 0
+            },
+            "module": "worker-13-module-12.wasm"
+          },
+          "after": {
+            "function_index": 17,
+            "normalized_sha256": "e506cf214059122ed2afaff08584efc043cd4fa8d72d993e69b79ff32d4281df",
+            "raw_sha256": "86bb46d7c0903b09ad2385f21f79f0ea0a4842a408332681c40b4909b5b7b4de",
+            "body_bytes": 1362,
+            "locals": 30,
+            "operations": 663,
+            "classes": {
+              "local": 411,
+              "constant": 66,
+              "load": 15,
+              "store": 38,
+              "control": 24,
+              "call": 2,
+              "global": 0,
+              "memory_size": 0,
+              "arithmetic": 106,
+              "division": 1
+            },
+            "module": "worker-13-module-12.wasm"
+          }
+        },
+        "native": {
+          "before": {
+            "module": "/home/claude/.scratch/eka-dispatch-division/profile-baseline/worker-13-module-12.wasm",
+            "module_sha256": "ae992a7b38227635a290a19186f08dc360ebf604440a1cd77b24de3020d5cb9d",
+            "function_index": 17,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=17",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "ffdf88f05baf2c04736be89f53d42bf1f0db8a3303c75774d73791db245fca1c",
+            "code_bytes": 4284,
+            "executable_bytes": 4284,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 1064,
+            "padding_instructions": 11,
+            "memory_instructions": 348,
+            "stack_memory_instructions": 218,
+            "conditional_branches": 63,
+            "calls": 3
+          },
+          "after": {
+            "module": "/home/claude/.scratch/eka-dispatch-division/profile-division/worker-13-module-12.wasm",
+            "module_sha256": "9967daf0a7fc3e1bbf59c5b6661e40b127fd0a5d8c32e3b885df5454970676ca",
+            "function_index": 17,
+            "flags": "--no-liftoff --no-wasm-lazy-compilation --print-wasm-code-function-index=17",
+            "version": {
+              "protocolVersion": "1.3",
+              "product": "Chrome/153.0.8010.52",
+              "revision": "@78e5e45d4bb41035e17ea4da2cc257f496416ac9",
+              "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+              "jsVersion": "15.3.76.13"
+            },
+            "native_sha256": "2963fce8fb10ee96db85c0e5f40fec9558429b77593d524fbecd9d8f6d44619c",
+            "code_bytes": 4160,
+            "executable_bytes": 4160,
+            "table_bytes": 0,
+            "table_offsets": [],
+            "instructions": 1032,
+            "padding_instructions": 10,
+            "memory_instructions": 348,
+            "stack_memory_instructions": 218,
+            "conditional_branches": 61,
+            "calls": 4
+          }
+        },
+        "delta": {
+          "instructions": -32,
+          "code_bytes": -124,
+          "memory_instructions": 0,
+          "stack_memory_instructions": 0,
+          "conditional_branches": -2,
+          "calls": 1
+        }
+      }
+    ]
+  },
+  "division_counts": {
+    "name": "f_2149128552",
+    "input": "/home/claude/.scratch/eka-dispatch-division/modules.json",
+    "checks": 3328,
+    "reduced": 170,
+    "unchanged": 3158,
+    "examples": [
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 0,
+        "count": 0,
+        "before": {
+          "operations": 90,
+          "classes": {
+            "local": 56,
+            "constant": 3,
+            "load": 14,
+            "store": 11,
+            "control": 4,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 2,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 90,
+          "classes": {
+            "local": 56,
+            "constant": 3,
+            "load": 14,
+            "store": 11,
+            "control": 4,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 2,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 1,
+        "count": 1,
+        "before": {
+          "operations": 121,
+          "classes": {
+            "local": 79,
+            "constant": 5,
+            "load": 14,
+            "store": 11,
+            "control": 5,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 7,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 121,
+          "classes": {
+            "local": 79,
+            "constant": 5,
+            "load": 14,
+            "store": 11,
+            "control": 5,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 7,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 2,
+        "count": 2,
+        "before": {
+          "operations": 131,
+          "classes": {
+            "local": 84,
+            "constant": 6,
+            "load": 14,
+            "store": 11,
+            "control": 7,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 9,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 131,
+          "classes": {
+            "local": 84,
+            "constant": 6,
+            "load": 14,
+            "store": 11,
+            "control": 7,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 9,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 3,
+        "count": 3,
+        "before": {
+          "operations": 182,
+          "classes": {
+            "local": 115,
+            "constant": 12,
+            "load": 14,
+            "store": 11,
+            "control": 8,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 22,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 182,
+          "classes": {
+            "local": 115,
+            "constant": 12,
+            "load": 14,
+            "store": 11,
+            "control": 8,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 22,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 4,
+        "count": 4,
+        "before": {
+          "operations": 198,
+          "classes": {
+            "local": 126,
+            "constant": 14,
+            "load": 14,
+            "store": 11,
+            "control": 9,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 24,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 198,
+          "classes": {
+            "local": 126,
+            "constant": 14,
+            "load": 14,
+            "store": 11,
+            "control": 9,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 24,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 7,
+        "count": 7,
+        "before": {
+          "operations": 271,
+          "classes": {
+            "local": 167,
+            "constant": 22,
+            "load": 14,
+            "store": 11,
+            "control": 14,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 43,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 271,
+          "classes": {
+            "local": 167,
+            "constant": 22,
+            "load": 14,
+            "store": 11,
+            "control": 14,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 43,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 8,
+        "count": 8,
+        "before": {
+          "operations": 322,
+          "classes": {
+            "local": 198,
+            "constant": 28,
+            "load": 14,
+            "store": 11,
+            "control": 15,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 56,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 322,
+          "classes": {
+            "local": 198,
+            "constant": 28,
+            "load": 14,
+            "store": 11,
+            "control": 15,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 56,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 9,
+        "count": 9,
+        "before": {
+          "operations": 333,
+          "classes": {
+            "local": 203,
+            "constant": 29,
+            "load": 14,
+            "store": 11,
+            "control": 17,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 59,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 333,
+          "classes": {
+            "local": 203,
+            "constant": 29,
+            "load": 14,
+            "store": 11,
+            "control": 17,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 59,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 11,
+        "count": 11,
+        "before": {
+          "operations": 360,
+          "classes": {
+            "local": 219,
+            "constant": 32,
+            "load": 14,
+            "store": 11,
+            "control": 20,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 64,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 360,
+          "classes": {
+            "local": 219,
+            "constant": 32,
+            "load": 14,
+            "store": 11,
+            "control": 20,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 64,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 12,
+        "count": 12,
+        "before": {
+          "operations": 386,
+          "classes": {
+            "local": 235,
+            "constant": 36,
+            "load": 14,
+            "store": 11,
+            "control": 21,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 69,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 386,
+          "classes": {
+            "local": 235,
+            "constant": 36,
+            "load": 14,
+            "store": 11,
+            "control": 21,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 69,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 13,
+        "count": 13,
+        "before": {
+          "operations": 437,
+          "classes": {
+            "local": 266,
+            "constant": 42,
+            "load": 14,
+            "store": 11,
+            "control": 22,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 82,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 437,
+          "classes": {
+            "local": 266,
+            "constant": 42,
+            "load": 14,
+            "store": 11,
+            "control": 22,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 82,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 17,
+        "count": 17,
+        "before": {
+          "operations": 547,
+          "classes": {
+            "local": 333,
+            "constant": 56,
+            "load": 14,
+            "store": 11,
+            "control": 27,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 106,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 547,
+          "classes": {
+            "local": 333,
+            "constant": 56,
+            "load": 14,
+            "store": 11,
+            "control": 27,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 106,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 18,
+        "count": 18,
+        "before": {
+          "operations": 569,
+          "classes": {
+            "local": 348,
+            "constant": 59,
+            "load": 14,
+            "store": 11,
+            "control": 28,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 109,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 569,
+          "classes": {
+            "local": 348,
+            "constant": 59,
+            "load": 14,
+            "store": 11,
+            "control": 28,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 109,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 23,
+        "count": 23,
+        "before": {
+          "operations": 809,
+          "classes": {
+            "local": 491,
+            "constant": 80,
+            "load": 24,
+            "store": 20,
+            "control": 40,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 153,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 809,
+          "classes": {
+            "local": 491,
+            "constant": 80,
+            "load": 24,
+            "store": 20,
+            "control": 40,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 153,
+            "division": 0
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 31,
+        "count": 31,
+        "before": {
+          "operations": 931,
+          "classes": {
+            "local": 581,
+            "constant": 99,
+            "load": 14,
+            "store": 11,
+            "control": 37,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 189,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 727,
+          "classes": {
+            "local": 440,
+            "constant": 79,
+            "load": 14,
+            "store": 11,
+            "control": 35,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 147,
+            "division": 1
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 32,
+        "count": 32,
+        "before": {
+          "operations": 1072,
+          "classes": {
+            "local": 664,
+            "constant": 111,
+            "load": 24,
+            "store": 20,
+            "control": 42,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 210,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 868,
+          "classes": {
+            "local": 523,
+            "constant": 91,
+            "load": 24,
+            "store": 20,
+            "control": 40,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 168,
+            "division": 1
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 33,
+        "count": 33,
+        "before": {
+          "operations": 1104,
+          "classes": {
+            "local": 684,
+            "constant": 115,
+            "load": 24,
+            "store": 20,
+            "control": 44,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 216,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 900,
+          "classes": {
+            "local": 543,
+            "constant": 95,
+            "load": 24,
+            "store": 20,
+            "control": 42,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 174,
+            "division": 1
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 47,
+        "count": 47,
+        "before": {
+          "operations": 1601,
+          "classes": {
+            "local": 995,
+            "constant": 169,
+            "load": 25,
+            "store": 20,
+            "control": 63,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 328,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 1397,
+          "classes": {
+            "local": 854,
+            "constant": 149,
+            "load": 25,
+            "store": 20,
+            "control": 61,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 286,
+            "division": 1
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 63,
+        "count": 63,
+        "before": {
+          "operations": 2071,
+          "classes": {
+            "local": 1291,
+            "constant": 222,
+            "load": 26,
+            "store": 20,
+            "control": 74,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 437,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 1619,
+          "classes": {
+            "local": 979,
+            "constant": 176,
+            "load": 26,
+            "store": 20,
+            "control": 70,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 345,
+            "division": 2
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 64,
+        "count": 64,
+        "before": {
+          "operations": 2081,
+          "classes": {
+            "local": 1296,
+            "constant": 223,
+            "load": 26,
+            "store": 20,
+            "control": 76,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 439,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 1629,
+          "classes": {
+            "local": 984,
+            "constant": 177,
+            "load": 26,
+            "store": 20,
+            "control": 72,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 347,
+            "division": 2
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 65,
+        "count": 65,
+        "before": {
+          "operations": 2105,
+          "classes": {
+            "local": 1314,
+            "constant": 224,
+            "load": 26,
+            "store": 20,
+            "control": 77,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 443,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 1653,
+          "classes": {
+            "local": 1002,
+            "constant": 178,
+            "load": 26,
+            "store": 20,
+            "control": 73,
+            "call": 1,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 351,
+            "division": 2
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 87,
+        "count": 87,
+        "before": {
+          "operations": 2578,
+          "classes": {
+            "local": 1625,
+            "constant": 282,
+            "load": 16,
+            "store": 11,
+            "control": 83,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 561,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 1922,
+          "classes": {
+            "local": 1172,
+            "constant": 216,
+            "load": 16,
+            "store": 11,
+            "control": 77,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 427,
+            "division": 3
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 88,
+        "count": 88,
+        "before": {
+          "operations": 2590,
+          "classes": {
+            "local": 1634,
+            "constant": 283,
+            "load": 16,
+            "store": 11,
+            "control": 83,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 563,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 1934,
+          "classes": {
+            "local": 1181,
+            "constant": 217,
+            "load": 16,
+            "store": 11,
+            "control": 77,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 429,
+            "division": 3
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 89,
+        "count": 88,
+        "before": {
+          "operations": 2590,
+          "classes": {
+            "local": 1634,
+            "constant": 283,
+            "load": 16,
+            "store": 11,
+            "control": 83,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 563,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 1934,
+          "classes": {
+            "local": 1181,
+            "constant": 217,
+            "load": 16,
+            "store": 11,
+            "control": 77,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 429,
+            "division": 3
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 116,
+        "count": 88,
+        "before": {
+          "operations": 2590,
+          "classes": {
+            "local": 1634,
+            "constant": 283,
+            "load": 16,
+            "store": 11,
+            "control": 83,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 563,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 1934,
+          "classes": {
+            "local": 1181,
+            "constant": 217,
+            "load": 16,
+            "store": 11,
+            "control": 77,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 429,
+            "division": 3
+          }
+        }
+      },
+      {
+        "numerator": 1073741824,
+        "divisor": 4126,
+        "budget": 256,
+        "count": 88,
+        "before": {
+          "operations": 2590,
+          "classes": {
+            "local": 1634,
+            "constant": 283,
+            "load": 16,
+            "store": 11,
+            "control": 83,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 563,
+            "division": 0
+          }
+        },
+        "after": {
+          "operations": 1934,
+          "classes": {
+            "local": 1181,
+            "constant": 217,
+            "load": 16,
+            "store": 11,
+            "control": 77,
+            "call": 0,
+            "global": 0,
+            "memory_size": 0,
+            "arithmetic": 429,
+            "division": 3
+          }
+        }
+      }
+    ]
+  },
+  "cold_fix": {
+    "before": 12784,
+    "after": 12784,
+    "common": 12784,
+    "changed": [
+      "eka2l1::arm::aot::validated_code_cache::find_original(unsigned int, eka2l1::arm::core&)",
+      "eka2l1::arm::aot::validated_code_cache::lookup_trusted_uncached(unsigned int, eka2l1::arm::core&)"
+    ],
+    "unchanged": 12782,
+    "before_only": [],
+    "after_only": []
+  },
+  "replays": [
+    {
+      "game": "standard",
+      "mode": 2,
+      "name": "standard-0-direct",
+      "elapsed_seconds": 22.659560655942187,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/benchmark.ts",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-dispatch-division/replays-final/standard-0-direct",
+          "60",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input",
+          "21000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "2",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-dispatch-division/retained-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "arm_exclusive": 0,
+        "thumb_memory": 1,
+        "app_uid": "0x2000730f",
+        "frames": 60,
+        "start_us": 21000000,
+        "unique": true,
+        "wall_seconds": 16.316500612,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a"
+        },
+        "input_sha256": "a75752763bdcc03a3f01ccf1003dd61812eed9a6b6239c840587fed03edf687c",
+        "wasm_sha256": "a39b6350ca37a7cc2a805227017998288cd3f8da96a668d7036c8b7f94daee1a",
+        "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "memory_impl": 2,
+        "memory_impl_stats": {
+          "mode": 2,
+          "rebuilds": 1115,
+          "mapped_pages": 19517,
+          "arena_bytes": 0,
+          "direct_pages": 1431,
+          "direct_rebuilds": 1043
+        },
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "code_compare": 2,
+        "verify_aot": 0,
+        "git_head": "ff8954d5d3fb60f400013e8ee7dca43810652b0d",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1143727,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+          "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+          "writes": 0,
+          "callbacks": 2330,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 2330,
+          "gameplay_nonzero_samples": 264002,
+          "gameplay_peak": 206
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 23827651,
+        "instructions": 3012361018
+      }
+    },
+    {
+      "game": "combat",
+      "mode": 2,
+      "name": "combat-0-direct",
+      "elapsed_seconds": 98.30117439094465,
+      "command": {
+        "args": [
+          "node",
+          "/home/claude/code/EKA2L1/src/tests/wasm/benchmark.ts",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-dispatch-division/replays-final/combat-0-direct",
+          "60",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "42000000"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ARM_EXCLUSIVE": "0",
+          "EKA2L1_AOT_IR_MODE": "17",
+          "EKA2L1_HOTPATH": "2",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_MEMORY_IMPL": "2",
+          "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-dispatch-division/retained-build",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "cwd": "/home/claude/code/EKA2L1"
+      },
+      "report": {
+        "hotpath_policy": 2,
+        "arm_exclusive": 0,
+        "thumb_memory": 1,
+        "app_uid": "0xa020d913",
+        "frames": 60,
+        "start_us": 42000000,
+        "unique": true,
+        "wall_seconds": 92.180356858,
+        "assets": {
+          "SYM.ROM": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+          "SYM.RPKG": "58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+          "Snakes.sis": "c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766"
+        },
+        "input_sha256": "c255c1242dc6f5dfb2ef00a2b0a36ee3d9764a2826adf28f08f94ba0f7c24bec",
+        "wasm_sha256": "a39b6350ca37a7cc2a805227017998288cd3f8da96a668d7036c8b7f94daee1a",
+        "loader_sha256": "4122d38164dc550f2210a76a41166a99ce2a513760e9263b4ff2ec8a9522a177",
+        "gl_diagnostics": false,
+        "gl_diagnostics_configurable": true,
+        "shared_audio": true,
+        "aot": 5,
+        "aot_diagnostics": false,
+        "memory_impl": 2,
+        "memory_impl_stats": {
+          "mode": 2,
+          "rebuilds": 366,
+          "mapped_pages": 18610,
+          "arena_bytes": 0,
+          "direct_pages": 787,
+          "direct_rebuilds": 295
+        },
+        "ir_mode": 17,
+        "execution_limits": [
+          512,
+          16,
+          8,
+          512
+        ],
+        "predicated_leaves": 1,
+        "leaf_features": 128,
+        "unsafe_code_initial": 3,
+        "unsafe_code": 3,
+        "exit_census": false,
+        "code_compare": 2,
+        "verify_aot": 0,
+        "git_head": "ff8954d5d3fb60f400013e8ee7dca43810652b0d",
+        "dirty_worktree": true
+      },
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2105509,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f86fd7c8908cee93c5b8215ec3e4891ddf6a54a8a79783fea5d584bbf4290cab",
+          "sha256_events": "54699bb0cb4fcd867b4a437f0fc65f5f0a5fc28e723b8750fc3b97667e05e6e2",
+          "writes": 0,
+          "callbacks": 4210,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4210,
+          "gameplay_nonzero_samples": 176458,
+          "gameplay_peak": 4041
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 43864773,
+        "instructions": 15827750326
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/baseline-profile-command.json",
+      "sha256": "8b3fcd75b866814e580503149e8d1a76caca24995425f1657cf6fb7c5b68937b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/confirmation-hardware-combat-1-baseline-command.json",
+      "sha256": "f9e1c56c416eb1448d81b02f8fb869419808150b237b39ba5a1dfc9724e49f0a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/confirmation-hardware-combat-2-baseline-command.json",
+      "sha256": "6dba5339175aff3be665264e2b5bc53a42a9b1e5603d03102ea737521e84c1ac"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/confirmation-hardware-combat-3-candidate-command.json",
+      "sha256": "d316e4c1120d80205f4f28bb24f924b63acc9be4a3863269d32ebd3eb8544770"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-0-baseline-command.json",
+      "sha256": "5856e91d1749aabe0fd079906c4f279c1c1885978ce1c734d33d254e0a5569e2"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-1-candidate-command.json",
+      "sha256": "dc9facbc6696a25fcd8f99c35ead20a188155c8bfa490341e78cce9064e1823c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-2-candidate-command.json",
+      "sha256": "7db28a3646aa807f7e73fef6f1fc27fced065a3266c3883d71a59a279ace52a9"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-3-baseline-command.json",
+      "sha256": "622583dc6357370f771247e681b186808b83ed954c7e715f1b85bd42bf2e7672"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-0-baseline-command.json",
+      "sha256": "bddb6a4f4c86474d902cb496926c719afd2af20453d6fa66d4830ad8b32600b5"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-1-candidate-command.json",
+      "sha256": "c54ad848128d8fb5606b9de4ad015b856480a41443a8e93111509dfb213ece29"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-2-candidate-command.json",
+      "sha256": "5604bb0efc434868bfd462d2c94848ddde74a1e7b34b17d74ca1f38402001495"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-3-baseline-command.json",
+      "sha256": "c1bd556cbff46cd832291d90524c4216f8fe7536c5f2e94eb9727193569d58bd"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-0-baseline-command.json",
+      "sha256": "4a29d064d6149b18e1cd3b91e38f341f440281ae67024b9d1ab7dbef1b7ecd93"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-1-candidate-command.json",
+      "sha256": "6cd5fb332c5bd5133121214bf7689490343404a579afeceb066b267753ce7615"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-2-candidate-command.json",
+      "sha256": "96394188e9ca725def49b1046f582e3270eb2ea26ee137a8f8bcc56ead0395c8"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-3-baseline-command.json",
+      "sha256": "22e9ee98f3294afb0395f429d2ab588eee7a4e3a72b5b97dc4e052f8104d9fa0"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-0-baseline-command.json",
+      "sha256": "531053da28e0f5c01c9ea68891e323f2688771387cb91b21f02474780e5e42b1"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-1-candidate-command.json",
+      "sha256": "eb422b87e9a198af2fba90595dd233d07831b23065dc5a92124500715d01e458"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-2-candidate-command.json",
+      "sha256": "0f217c6482c35c80335fed945039c66dc100891a0896b11f67aebef37214c455"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-3-baseline-command.json",
+      "sha256": "6ffe3adbc0f516b14b4a8e5aca2296b9d13db9b531618653dc9ea5facb68444e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-profile-command.json",
+      "sha256": "57912d8557a03adbd03a7b37f518152b3e5ee33d1f3d52483b5d90fe336a9f86"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-hardware-combat-0-candidate-command.json",
+      "sha256": "c565d0cf86b2f1428ebbf48a66b1ff7fa71b0d3bb533ec6ed8d57e88aee5f164"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-hardware-standard-0-candidate-command.json",
+      "sha256": "7a90651569c2eb1c2283b5008e771f74b91ec5d5cc4a281ea71f7b9f5a705998"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/compare-bodies.py",
+      "sha256": "5c9f58d7339fff987e4060a4a99ea6ca62b358aea39d3648f9c4d068eb0c58f2"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/finalize.py",
+      "sha256": "9e7b67e8ac3fcb07faa8cc6540c250ab3a75808b0927fe95abd9ac661f0af778"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/finish-checks.py",
+      "sha256": "515e22d42e616132e1a2129de8c70c3a72416cd448be5cd6d81f5fbac086fd50"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/hardware-confirmation.py",
+      "sha256": "9f036e7a9673edd04a9754be6eb5628329ab2435a275d0721dd83444cb024546"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/hardware-dispatch.py",
+      "sha256": "3e5e84e00dd62fa292826c080f99dde39c5aab0e57bccbc0b1a93a796f0ed8f9"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/hardware-division.py",
+      "sha256": "69ca773251e6b3f3204a8bbed5d4ad7e671ded7631e3faca73fb625519c229d7"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/hardware-final.py",
+      "sha256": "40785f4692278b720ac12847a20b8398fcdef24658a81cf02dae3b9bd55049cc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/profile-division.py",
+      "sha256": "1160846b76017c29aa96df0092f2750c5c09ce412a20ee28fe82f0fee4afb955"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/profile.py",
+      "sha256": "7bdd0dfceeeef8ef736bee4bdfd0a4e81c10c2e597aa87326d51fe0a1648a680"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/summarize.py",
+      "sha256": "265fc99475444c37ac9e9574c537e1aabcde9636801ff42c3fac697e0d81a253"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/verify-final.py",
+      "sha256": "2b5a4dc3ef80e6d43cf0286a4dc28084dd1721839ef24d824fcf42790622197b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/count-division.mjs",
+      "sha256": "53c3adba0b047ab919284ca890a20e0bb7187340e9ecf9961ea8c865ecdd005a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/combined-source.patch",
+      "sha256": "f74f1106d361d75586e8e0204c0ca4c129afbe20f4b6c743295430b4749c3777"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-experiment.patch",
+      "sha256": "7c6586b4d48329249fca6f6571b1638b75e0eedcdb587e277263c72e6281dfd9"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/build-dispatch.log",
+      "sha256": "e1e5a719b1d208623444abb35e04d747b9ffc003ad70a7099f01775f53b3aa4c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/build-dispatch2.log",
+      "sha256": "e1e5a719b1d208623444abb35e04d747b9ffc003ad70a7099f01775f53b3aa4c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/build-dispatch3.log",
+      "sha256": "aaffc34cc0879a14f73d9924af230d971d6eac96c234392eff638a334752f61e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/build-division.log",
+      "sha256": "ed5c689beb07a91ee43e7a8d722cb1bb7966d14b4a8ca79c6686e1954f340c78"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/build-final.log",
+      "sha256": "b2f5f015bd479b478bdfe2e5fa3ec612ebf12b116f30d581734acfcce28c236e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/build-test.log",
+      "sha256": "2682a1318c7d7c08b58d9367d876636d0781a55fa63c0aa88d6ae2f6a17eac45"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/confirmation-hardware-combat-1-baseline.log",
+      "sha256": "ce07d0a44c33e50d1d8cc948f1c9b53a4678dc030b7218c83838fc7e8b90e168"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/confirmation-hardware-combat-2-baseline.log",
+      "sha256": "0d90a07a583856891e8c005af93c559b55defcb02635eea58ae0ecbbf4c551fe"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/confirmation-hardware-combat-3-candidate.log",
+      "sha256": "0c6aab68c7b61535625c4628a2bfa281323e845f0cbae344ffd86286c0b1273f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-cache-test.log",
+      "sha256": "36a2a8052c8acb88cdc3ee3343f49e6388e34f34da5448bb6c9799c01dec95f6"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-final-test.log",
+      "sha256": "1f3d92cbbb0e2c16a5776b3592dabb976e8b386dc40afdf38623833fb93febd4"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-0-baseline.log",
+      "sha256": "cb2cf900b9d0523268b06913172a9d02cbf96cef80a4f9a013e854e691d48d5a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-1-candidate.log",
+      "sha256": "335d8376a5caeaef6628df03bcf8d07cb7e0f55e6257e793b1221320a01fe320"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-2-candidate.log",
+      "sha256": "1ce8e63f378ad81fb90d6dad3205a36f3ff0ee8e47dc7cb059d85d5c8bba3567"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-combat-3-baseline.log",
+      "sha256": "6492d6884635007109aa8778cea1c935e4773167670886ac294320723e786bc4"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-0-baseline.log",
+      "sha256": "d00259b71c9aad54a3a2912155f4ffa450d6541c2636e4b85addd69e6e4bab56"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-1-candidate.log",
+      "sha256": "6d9e5bc1364d55340318eac52bfd81eefecdf8f4e593aa16dc46ea413349983d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-2-candidate.log",
+      "sha256": "9d173afdbd2cd77cbfe65801f1b6a66f77849d1aa3ec68e58a72e94826cd26fe"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hardware-standard-3-baseline.log",
+      "sha256": "63bc83fba068c2ec5f1479dfa3e9a59821d599053ff504be77b68ffddd9f2c05"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-counts.log",
+      "sha256": "ba248943fecc75416e985af519b71ff424cf5055d07875a735b94d7a8dd38fdf"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-0-baseline.log",
+      "sha256": "73f360c353071cb498dfe80266fc42ae5531000caba62a36cf1ddd287983bc7b"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-1-candidate.log",
+      "sha256": "b0d0b222046a0d1e3af0c0462ed66e20f9d0dbe792b575d7acb7e539faa8756c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-2-candidate.log",
+      "sha256": "4c2f84ebf7a930d2a85f67694cc2508040c8ce86645c0899801cab412e0b9294"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-combat-3-baseline.log",
+      "sha256": "aca90063d5cb6efee4d6a324c6f0818542c6249eb482f28875f6d95b67292793"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-0-baseline.log",
+      "sha256": "1469eb9a7cef1de779848240eb3ab3c35942b5e59dc706196db7f92cce4731bd"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-1-candidate.log",
+      "sha256": "5e09325a33ba18345170d2e9323789b1f74e16058ef1c8dba14672770e18565e"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-2-candidate.log",
+      "sha256": "9667a79bf695ed68c87f9fe8ad705c47b3d84cb02c5d64452b4dbc565ba45ae5"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hardware-standard-3-baseline.log",
+      "sha256": "17ce35dada2efeae581b9dc1d3cf92dda419fb6cb241cfbefcb425f750c15942"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-test.log",
+      "sha256": "6a7934cd6a933f287fad3002ec7bc3655fed1be4593299b01b52b1596344b616"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/execution-limits-test.log",
+      "sha256": "73ae4dba5950e2e58611a09a5db0b67d59b0f6bad7c4c75fc33db45c2ab4f7a8"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-division-counts.log",
+      "sha256": "ba248943fecc75416e985af519b71ff424cf5055d07875a735b94d7a8dd38fdf"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-execution-limits.log",
+      "sha256": "73ae4dba5950e2e58611a09a5db0b67d59b0f6bad7c4c75fc33db45c2ab4f7a8"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-frozen-cache.log",
+      "sha256": "1f3d92cbbb0e2c16a5776b3592dabb976e8b386dc40afdf38623833fb93febd4"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-guard-publication.log",
+      "sha256": "139da973d086c4d6c4a1ff3a354ed7e6d00b2c52c90bd9882bf1e22556d763bc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-hardware-combat-0-candidate.log",
+      "sha256": "fefceb597410eea58a64d221c96de750864f5f4bdf3c21b6c992b0e2cc433fd2"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-hardware-standard-0-candidate.log",
+      "sha256": "07b0f36a135b29d96636f57a744427b8921207a90bd7437d48c05428c58e5fdf"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-lookup.log",
+      "sha256": "b1efbaf7d749f59282f68068281bbb17d1249326d65599d3de82ee15b1139ac6"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-unsafe-code.log",
+      "sha256": "b27ab10be18074633ee67f1352f0120bd05330e59fc9d37e8f0c5a7e0f4d9639"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-verification-protection.log",
+      "sha256": "bb9ea04e755cd8b44d5aa8174fa2dfeabd2b2fbf396d7dd9f9c78502b21086d6"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/finish-checks.log",
+      "sha256": "688d9344ce1f8d223665c16571830ee89c7ab3551302128b6dfe249439800f7f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/guard-publication-test.log",
+      "sha256": "139da973d086c4d6c4a1ff3a354ed7e6d00b2c52c90bd9882bf1e22556d763bc"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/hardware-confirmation.log",
+      "sha256": "0d6ac38cc79d32e8a3acddf264beca54ead9047a35e8cc8abf00533e9f5dc060"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/hardware-dispatch.log",
+      "sha256": "4fe5bc6ea5860743dbc03bf9c4048168d04ae379071911b1f76900a44da6d280"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/hardware-division.log",
+      "sha256": "b53aed936736064712454f720315bc223c8ebc18d860afbe35fa113c47df38fe"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/hardware-final.log",
+      "sha256": "d803607393de529fc210726fa9659b14f8ee9bb93a56119b9b23adbe33364e5d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/lookup-test.log",
+      "sha256": "b1efbaf7d749f59282f68068281bbb17d1249326d65599d3de82ee15b1139ac6"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/loop-budget-test.log",
+      "sha256": "48869fdb7cc7ec7f7884c8ed644f2127c118ca8f61cb25b3f56e0cd1729cca04"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native.log",
+      "sha256": "f7e707c0703d296c87dc2e08f720b653c0be902294866ebe28c0d0675b9b5467"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/profile-baseline.log",
+      "sha256": "c6e105612739d542aefc170364023b53fe4d6371d980dfdd68da51cfd398adff"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/profile-division.log",
+      "sha256": "92f7bec49c44217a765dcd9a29ac9887afb95e918a7a8d93e0150afdb74607aa"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/profile.log",
+      "sha256": "8f045719601f01c7baa8ad3f3ace0e98296a583c95f46ff84e691deaf3c96513"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/replays-division.log",
+      "sha256": "585e708c25b0cac90a39e331e356aeffd3136d8243b7f6c5adaf3defc67dbff8"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/replays-final.log",
+      "sha256": "bc161e11fd35fe310e86c40848653a0a892e0eea4ca23614f96d092639c7365f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/unsafe-code-test.log",
+      "sha256": "b27ab10be18074633ee67f1352f0120bd05330e59fc9d37e8f0c5a7e0f4d9639"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/verification-protection-test.log",
+      "sha256": "bb9ea04e755cd8b44d5aa8174fa2dfeabd2b2fbf396d7dd9f9c78502b21086d6"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/verify-final.log",
+      "sha256": "24757a6bab1257f5b51bf30fc11da5522610a2e64812ee55a8545549d5671331"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/dispatch-hashes.json",
+      "sha256": "8c89cfe66dea5b5e0d52272a8565cbd86946fbc637504587ab5190535e80b2f7"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-hashes.json",
+      "sha256": "409cb4468b2d625a22b9d6f9a7227883d22f8badde7364ec753d01041e2d1d79"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/final-hashes.json",
+      "sha256": "24b75e6caa95c98ab0960e60cd1bfdeac2b88abe69dce77973b77796dc421e0c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/costs.json",
+      "sha256": "84048a8e8512b141407108d89409baa19f4807d94a76a7b7bda359d51bd7863f"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128552-after.asm",
+      "sha256": "5b78208df9d4106e49e9090c39ecc8947a823eb8f1385b060422fbb821fa8fff"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128552-before.asm",
+      "sha256": "888a12974ff4475a1cec5c48b2aef0ab4ee33ccc9a2bc45c49b845530c0e6702"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128728-after.asm",
+      "sha256": "bafb3991deb327d494b4c67cd6221fd645c6724b52d2c0bb2921ecc7b9dcf058"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128728-before.asm",
+      "sha256": "81c897bca165714e534d46d0b46e52f7f6cb0eb4cd73a85d02a9cb4a7e01d763"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128788-after.asm",
+      "sha256": "f6ae047ed966e0cbef3f4dd30231748e857b038ccdc26ba224e8bcb5b91ee58a"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128788-before.asm",
+      "sha256": "7b140343c35cfeddc424b4ddfa572f34137e8330080cd8034e2fd6d74d8cbfaf"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128552-after.bin",
+      "sha256": "ff7b03cb6574ce76335a0778a11c7b622658a1fa463bc9681293642112c3d483"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128552-before.bin",
+      "sha256": "d20572ab10520d0bc01f4be535d19fd17d410f04bc81c2c3da6c85939b03ba4d"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128728-after.bin",
+      "sha256": "5ab964c96fe43a5bee9ee4ec3b553875cd9e726f38968706bd02a13587b53b15"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128728-before.bin",
+      "sha256": "c033d2b32df6da9eff425869a6f1fa6df27768be3eda177ab5ed09f8eada4ad0"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128788-after.bin",
+      "sha256": "2963fce8fb10ee96db85c0e5f40fec9558429b77593d524fbecd9d8f6d44619c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/native/f_2149128788-before.bin",
+      "sha256": "ffdf88f05baf2c04736be89f53d42bf1f0db8a3303c75774d73791db245fca1c"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/division-counts-final.json",
+      "sha256": "84597badb8279993d8f347e63fe0f98ecebc348e57e88200c1371a8318dd5945"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/cold-fix-body-comparison.json",
+      "sha256": "ed5fd7097f1afeaaee006ae4df8a940a07df76fdd31535cdfe425fcb526407bf"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/replays-final/combat-0-direct-compare.log",
+      "sha256": "ece445cf776117921af6b359e7c8f416d1c18f77844cdc2ac274d24ef1577f53"
+    },
+    {
+      "path": "/home/claude/.scratch/eka-dispatch-division/replays-final/standard-0-direct-compare.log",
+      "sha256": "3aa6f7b6aece93169f1676515b7ecc1d7a33d55ac4661764a1401a6a5e90243f"
+    }
+  ],
+  "deployment": "Not deployed to LAN; no push."
+}

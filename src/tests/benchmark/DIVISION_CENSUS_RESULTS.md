@@ -1,5 +1,7 @@
 # Integer division call census
 
+Follow-up runtime experiments: [compact dispatch and division lowering](DISPATCH_AND_DIVISION_RESULTS.md).
+
 Read-only disassembly of the local ROM identifies the frequently sampled
 0x80191968 routine as integer division. The earlier long-route CPU profile gives
 its generated function 0.323570 sampled seconds (2.608% of worker samples). That

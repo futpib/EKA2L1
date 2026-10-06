@@ -13,11 +13,22 @@ namespace eka2l1::arm::aot {
     validated_code_cache::block *validated_code_cache::find_trusted_original(std::uint32_t pc_mode, core &cpu) {
         return find_original_impl<true>(pc_mode, cpu);
     }
+    aot_func validated_code_cache::lookup_trusted_uncached(std::uint32_t pc_mode, core &cpu) {
+        auto *entry = find_trusted_original(pc_mode, cpu);
+        if (!entry) return nullptr;
+        if (entry->function && entry->mapping_generation)
+            dispatch_[recent_index(entry->key)] = {entry->key, entry->mapping_generation,
+                entry->mapping_source, entry->function};
+        return entry->function;
+    }
     template<bool TrustBytes>
     validated_code_cache::block *validated_code_cache::find_original_impl(std::uint32_t pc_mode, core &cpu) {
         const auto generation = cpu.code_mapping_generation
             ? cpu.code_mapping_generation->load(std::memory_order_acquire) : 0;
         const auto k = key(cpu.code_address_space, pc_mode);
+        // Any general validation supersedes a cached dispatch identity, even
+        // when refresh fails or the generation source temporarily reports zero.
+        forget_dispatch(k);
         auto &recent = recent_[recent_index(k)];
         // A recent-slot collision does not invalidate an entry's mapping.
         // Recover the stable version first, then use the same generation

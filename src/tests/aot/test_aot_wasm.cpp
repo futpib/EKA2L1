@@ -4533,15 +4533,16 @@ static bool test_frozen_code_cache() {
             ++resolutions; view = {cpu->code_address_space, address == 0x1000 ? backing : leaf, extent};
             return mapped;
         };
-        validated_code_cache normal, frozen;
+        validated_code_cache normal, frozen, dispatch;
         unsigned random = 0x857b21a9;
         for (unsigned step = 0; step < 4096; ++step) {
             random ^= random << 13; random ^= random >> 17; random ^= random << 5;
             switch (random & 15) {
             case 0: case 1: case 2:
-                for (auto *cache : {&normal, &frozen}) {
+                for (auto *cache : {&normal, &frozen, &dispatch}) {
                     auto &entry = cache->insert(0x1001, {cpu->code_address_space, backing, 64}, 16);
                     validated_code_cache::add_dependency(entry, 0x2000, leaf, {leaf, leaf + 16});
+                    cache->attach(entry.version, publication_test_function);
                 }
                 break;
             case 3: backing = backing == primary.data() ? alternative.data() : primary.data(); ++generation; ++replacement; break;
@@ -4552,7 +4553,7 @@ static bool test_frozen_code_cache() {
             case 8: cpu->code_mapping_generation = cpu->code_mapping_generation == &generation ? &replacement : &generation; break;
             case 9: generation.store(0); replacement.store(0); break;
             case 10: ++generation; ++replacement; break;
-            case 11: normal.invalidate(0x2000, 16); frozen.invalidate(0x2000, 16); break;
+            case 11: normal.invalidate(0x2000, 16); frozen.invalidate(0x2000, 16); dispatch.invalidate(0x2000, 16); break;
             case 12: primary[0] ^= 1; dependency[15] ^= 1; break; // accepted trusted-byte limitation
             default: break;
             }
@@ -4566,8 +4567,64 @@ static bool test_frozen_code_cache() {
                 || (a && (a->key != b->key || a->version != b->version || a->backing != b->backing))) {
                 printf(" FAIL frozen cache mode=%u step=%u\n", mode, step); return false;
             }
-            ++checks;
+            for (unsigned repeat = 0; repeat < 3; ++repeat) {
+                if (dispatch.lookup_trusted(0x1001, *cpu) != (a ? a->function : nullptr)
+                    || dispatch.invalidations != normal.invalidations) {
+                    printf(" FAIL dispatch cache step=%u repeat=%u\n", step, repeat); return false;
+                }
+                ++checks;
+            }
         }
+    }
+    {
+        tracking::unsafe_code_mode = 3;
+        test_mem memory; r12l1::exclusive_monitor monitor(1); auto cpu = make_cpu(memory, monitor);
+        auto cache = std::make_unique<validated_code_cache>();
+        std::array<std::uint8_t,16> bytes{};
+        std::atomic<std::uint64_t> generation{1};
+        cpu->code_mapping_generation=&generation;cpu->code_address_space=1;
+        cpu->resolve_code=[&](unsigned,core::code_mapping &view){view={1,bytes.data(),bytes.size()};return true;};
+        auto &first=cache->insert(0x1000,{1,bytes.data(),bytes.size()},bytes.size());
+        if(cache->lookup_trusted(0x1000,*cpu))return false;
+        cache->attach(first.version,publication_test_function);
+        for(unsigned n=0;n<2;++n)if(cache->lookup_trusted(0x1000,*cpu)!=publication_test_function)return false;
+        cache->attach(first.version,runner_test_function);
+        if(cache->lookup_trusted(0x1000,*cpu)!=runner_test_function)return false;
+        // A general lookup must evict the fast slot on failed epoch refresh too.
+        generation.store(0);
+        cpu->resolve_code=[](unsigned,core::code_mapping &){return false;};
+        if(cache->find(0x1000,*cpu))return false;
+        generation.store(1);
+        if(cache->lookup_trusted(0x1000,*cpu))return false;
+        cpu->resolve_code=[&](unsigned,core::code_mapping &view){view={1,bytes.data(),bytes.size()};return true;};
+        if(cache->lookup_trusted(0x1000,*cpu)!=runner_test_function)return false;
+
+        auto &collision=cache->insert(0x3000,{1,bytes.data(),bytes.size()},bytes.size());
+        cache->attach(collision.version,publication_test_function);
+        for(unsigned n=0;n<8;++n) {
+            if(cache->lookup_trusted(0x3000,*cpu)!=publication_test_function
+                ||cache->lookup_trusted(0x1000,*cpu)!=runner_test_function)return false;
+        }
+        if(cache->lookup_trusted(0x1001,*cpu))return false;
+        cache->attach(first.version,nullptr);
+        if(cache->lookup_trusted(0x1000,*cpu))return false;
+        cache->attach(first.version,runner_test_function);
+        if(cache->lookup_trusted(0x1000,*cpu)!=runner_test_function)return false;
+        bytes[0]=1;tracking::unsafe_code_mode=0;
+        if(cache->find(0x1000,*cpu))return false;
+        tracking::unsafe_code_mode=3;
+        if(cache->lookup_trusted(0x1000,*cpu))return false;
+        cache->invalidate(0x3004,1);
+        if(cache->lookup_trusted(0x3000,*cpu))return false;
+        cache=std::make_unique<validated_code_cache>();
+        if(cache->lookup_trusted(0x1000,*cpu))return false;
+        cpu->code_mapping_generation=nullptr;
+        auto &uncounted=cache->insert(0x1000,{1,bytes.data(),bytes.size()},bytes.size());
+        cache->attach(uncounted.version,runner_test_function);
+        if(cache->lookup_trusted(0x1000,*cpu)!=runner_test_function)return false;
+        cpu->resolve_code=[](unsigned,core::code_mapping &){return false;};
+        if(cache->lookup_trusted(0x1000,*cpu))return false;
+        printf(" PASS dispatch attachment/collision/ARM-Thumb/byte-invalidation/reset/null-generation checks\n");
     }
     printf(" PASS frozen cache (%u ASID/generation/source/remap/dependency/extent/invalidation comparisons)\n", checks);
     return true;

@@ -1,0 +1,227 @@
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -21,6 +21,7 @@
+ #include <cpu/aot/arm_translator.h>
+ #include <cpu/aot/aot_runtime.h>
+ #include <cpu/aot/state_locals.h>
++#include <cpu/aot/wasm_cost.h>
+ #include <cpu/aot/memory_emission.h>
+ #include <cpu/aot/exit_census.h>
+ #include <cpu/aot/execution_limits.h>
+@@ -1154,10 +1155,11 @@
+
+         std::uint32_t insn_idx = 0;
+         std::uint32_t decoded_end_offset = 0;
+-        std::size_t budget_chunk_end = 0;
++        std::size_t budget_chunk_end = 0, division_skip_end = 0;
+
+         for (const auto &instruction : instructions) {
+             const auto instruction_index = static_cast<std::size_t>(&instruction - instructions.data());
++            if (instruction_index < division_skip_end) continue;
+             const auto i = instruction.offset;
+             if (!region) insn_idx = static_cast<std::uint32_t>(i / 4);
+             if (bounded && !region && stop_after_store && w.memory_write) break;
+@@ -1317,6 +1319,77 @@
+             }
+
+             if (budget_chunk != budget_chunks.end() && !loop_budget_chunk) emit_budget_chunk(true);
++
++            // Consecutive restoring-division digits have a fixed guest count.
++            // Collapse their prefix, leaving the last RSBS/SUBCS/ADC to produce
++            // the exact scratch register and flags. No address/ABI is assumed.
++            if (w.region && w.cache.enabled && !instruction.leaf && !exit_census::enabled
++                && instruction_index < budget_chunk_end) {
++                const unsigned numerator = inst & 15, divisor = (inst >> 16) & 15;
++                const unsigned scratch = (inst >> 12) & 15, high = (inst >> 7) & 31;
++                unsigned digits = 0, quotient = 15;
++                if (high && numerator < 15 && divisor < 15 && scratch < 15
++                    && numerator != divisor && numerator != scratch && divisor != scratch) {
++                    for (unsigned shift = high; shift; --shift) {
++                        const auto at = instruction_index + digits * 3;
++                        if (at + 3 > budget_chunk_end) break;
++                        const auto a = instructions[at].opcode, b = instructions[at + 1].opcode;
++                        const auto c = instructions[at + 2].opcode;
++                        const unsigned q = c & 15;
++                        bool contiguous = true;
++                        for (unsigned n = 0; n < 3; ++n) {
++                            const auto &part = instructions[at + n];
++                            if (part.leaf || part.address != insn_addr + (digits * 3 + n) * 4
++                                || ((digits || n) && forward_targets_set.count(part.address))) contiguous = false;
++                        }
++                        if (!contiguous || q >= 15 || q == numerator || q == divisor || q == scratch
++                            || (digits && q != quotient)
++                            || a != (0xe0700020u | (divisor << 16) | (scratch << 12) | (shift << 7) | numerator)
++                            || b != (0x20400000u | (numerator << 16) | (numerator << 12) | (shift << 7) | divisor)
++                            || (c & ~0x00100000u) != (0xe0a00000u | (q << 16) | (q << 12) | q)) break;
++                        quotient = q; ++digits;
++                        if (c & 0x00100000u) break; // ADCS may be the retained last digit only.
++                    }
++                }
++                // Even after discarding all dead scratch/N/Z/V work, a digit
++                // needs shift/compare, a conditional subtraction and ADC. The
++                // shortest (subtraction not taken) path has these 13 operations.
++                constexpr auto digit_floor = wasm_cost::sequence({op_local_get, op_i32_const,
++                    op_i32_shr_u, op_local_get, op_i32_ge_u, op_local_set,
++                    op_local_get, op_if, op_local_get, op_local_get, op_i32_add,
++                    op_local_get, op_i32_add});
++                // Longest replacement path, including the single count update.
++                constexpr auto replacement = wasm_cost::sequence({op_local_get, op_local_tee, op_if,
++                    op_local_get, op_i32_const, op_i32_shr_u, op_local_get, op_i32_div_u, op_local_tee,
++                    op_i32_const, op_local_get, op_i32_const, op_i32_lt_u, op_select, op_local_set,
++                    op_local_get, op_local_get, op_local_get, op_i32_mul, op_i32_const, op_i32_shl,
++                    op_i32_sub, op_local_set, op_local_get, op_i32_const, op_i32_shl, op_local_get,
++                    op_i32_or, op_local_set, op_local_get, op_i32_const, op_i32_add, op_local_set});
++                if (digits >= 4 && wasm_cost::amortizes(digits - 1, digit_floor, replacement)) {
++                    w.end_wide();
++                    const unsigned merged = digits - 1, low = high - merged + 1;
++                    const auto mask = (1u << merged) - 1;
++                    w.load_reg(divisor); w.tee_local(TMP2); w.op(op_if); w.op(type_i32);
++                    // Dividing the shifted numerator avoids overflowing D<<low.
++                    w.load_reg(numerator); w.i32_const(low); w.op(op_i32_shr_u);
++                    w.get_local(TMP2); w.op(op_i32_div_u); w.tee_local(TMP1);
++                    w.i32_const(mask); w.get_local(TMP1); w.i32_const(mask);
++                    w.op(op_i32_lt_u); w.op(op_select);
++                    w.op(op_else); w.i32_const(mask); w.op(op_end); w.set_local(TMP1);
++                    w.load_reg(numerator); w.get_local(TMP1); w.get_local(TMP2); w.op(op_i32_mul);
++                    w.i32_const(low); w.op(op_i32_shl); w.op(op_i32_sub);
++                    w.store_i32_from_stack(S::reg(numerator), TMP3);
++                    w.load_reg(quotient); w.i32_const(merged); w.op(op_i32_shl);
++                    w.get_local(TMP1); w.op(op_i32_or); w.store_i32_from_stack(S::reg(quotient), TMP3);
++                    w.get_local(arm_emit::COUNT); w.i32_const(merged * 3 - 1);
++                    w.op(op_i32_add); w.set_local(arm_emit::COUNT);
++                    division_skip_end = instruction_index + merged * 3;
++                    insn_idx += merged * 3;
++                    decoded_end_offset = static_cast<std::uint32_t>(i) + merged * 12;
++                    ++tr.division_groups;
++                    continue;
++                }
++            }
+
+             if (instruction.leaf && inst == 0xe12fff1e) {
+                 // LR still contains this call's ARM return address. The next
+diff --git a/src/emu/cpu/include/cpu/aot/thumb_translator.h b/src/emu/cpu/include/cpu/aot/thumb_translator.h
+--- a/src/emu/cpu/include/cpu/aot/thumb_translator.h
++++ b/src/emu/cpu/include/cpu/aot/thumb_translator.h
+@@ -79,6 +79,7 @@
+         bool entry_supported = true;
+         // Research coverage metadata; never used to select guest addresses.
+         unsigned proved_reads = 0, proved_writes = 0, budget_chunks = 0, loop_budget_chunks = 0;
++        unsigned division_groups = 0;
+         bool complete;  // true if entire block was translated without bailing
+         // Addresses where execution may resume after a bail-out call
+         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling
+diff --git a/src/emu/cpu/include/cpu/aot/wasm_emitter.h b/src/emu/cpu/include/cpu/aot/wasm_emitter.h
+--- a/src/emu/cpu/include/cpu/aot/wasm_emitter.h
++++ b/src/emu/cpu/include/cpu/aot/wasm_emitter.h
+@@ -74,6 +74,7 @@
+         op_i32_add = 0x6A,
+         op_i32_sub = 0x6B,
+         op_i32_mul = 0x6C,
++        op_i32_div_u = 0x6E,
+         op_i32_and = 0x71,
+         op_i32_or = 0x72,
+         op_i32_xor = 0x73,
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -2967,11 +2967,81 @@
+     return true;
+ }
+
++static constexpr unsigned test_flag_offsets[] = {state_offsets::NFLAG, state_offsets::ZFLAG, state_offsets::CFLAG, state_offsets::VFLAG, state_offsets::TFLAG};
++
++static bool test_division_digits() {
++#if defined(__EMSCRIPTEN__)
++    unsigned checks = 0, selected = 0, random = 0x159731ae;
++    auto next = [&]() {random ^= random << 13; random ^= random >> 17; random ^= random << 5; return random;};
++    for (unsigned high : {4u,7u,15u,31u}) for (unsigned digits : {4u,5u})
++    for (unsigned layout : {0u,1u}) for (unsigned flags_last : {0u,1u}) {
++        if (digits > high) continue;
++        const unsigned n = layout ? 7 : 0, d = layout ? 8 : 1;
++        const unsigned q = layout ? 9 : 2, tmp = layout ? 10 : 12;
++        std::vector<std::uint32_t> code;
++        for (unsigned digit = 0; digit < digits; ++digit) {
++            const unsigned shift = high - digit;
++            code.push_back(0xe0700020u | (d << 16) | (tmp << 12) | (shift << 7) | n);
++            code.push_back(0x20400000u | (n << 16) | (n << 12) | (shift << 7) | d);
++            code.push_back(0xe0a00000u | (q << 16) | (q << 12) | q
++                | ((flags_last && digit + 1 == digits) ? 0x00100000u : 0));
++        }
++        const auto *bytes = reinterpret_cast<const std::uint8_t *>(code.data());
++        auto tr = translate_arm_block(bytes, code.size()*4, 0x1000, nullptr,nullptr,
++            true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
++        if (tr.division_groups != 1) {printf(" FAIL division selection high=%u digits=%u\n",high,digits);return false;}
++        ++selected;
++        auto module = build_wasm_module({tr.func});
++        test_mem memory;memory.write_code(0x1000,{bytes,bytes+code.size()*4});
++        r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(memory,monitor);
++        for (unsigned sample = 0; sample < 192; ++sample) {
++            const unsigned special[] = {0,1,2,3,7,0x7fffffff,0x80000000,0xffffffff,
++                1u << (32-high), (1u << (32-high))-1, 0x40000000, 0x101e};
++            const auto numerator = sample < 144 ? special[sample/12] : next();
++            const auto divisor = sample < 144 ? special[sample%12] : next();
++            const unsigned budget = sample < 144 ? sample % (code.size()+2) : code.size()+1;
++            alignas(8) std::uint32_t state[256]{};
++            for(unsigned r=0;r<16;++r) {
++                state[r] = r==n ? numerator : r==d ? divisor : r==15 ? 0x1000 : next();
++                reference->set_reg(r,state[r]);
++            }
++            const unsigned cpsr = 16 | ((sample & 15) << 28);
++            reference->set_cpsr(cpsr);state[state_offsets::CPSR/4]=cpsr;
++            state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;
++            state[state_offsets::AOT_BUDGET/4]=budget;
++            for(unsigned flag=0;flag<4;++flag)state[test_flag_offsets[flag]/4]=(cpsr>>(31-flag))&1;
++            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
++            if(count!=int(std::min<unsigned>(budget,code.size()))) {printf(" FAIL division count\n");return false;}
++            if(count) reference->run(count);
++            for(unsigned r=0;r<16;++r)if(state[r]!=reference->get_reg(r)) {
++                printf(" FAIL division R%u high=%u digits=%u sample=%u budget=%u n=%x d=%x actual=%x reference=%x\n",
++                    r,high,digits,sample,budget,numerator,divisor,state[r],reference->get_reg(r));return false;
++            }
++            for(unsigned flag=0;flag<4;++flag)if(state[test_flag_offsets[flag]/4]!=((reference->get_cpsr()>>(31-flag))&1)) {
++                printf(" FAIL division flag=%u high=%u digits=%u sample=%u\n",flag,high,digits,sample);return false;
++            }
++            ++checks;
++        }
++        // A malformed digit or an interior entry must not be crossed.
++        for(unsigned position=0;position<code.size();++position) {
++            auto changed=code;changed[position]=0xe1a00000;
++            auto rejected=translate_arm_block(reinterpret_cast<const std::uint8_t*>(changed.data()),changed.size()*4,
++                0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
++            if(digits==4 && rejected.division_groups) {printf(" FAIL malformed division accepted\n");return false;}
++        }
++        auto joined=code;joined.insert(joined.begin(),0x0a000001); // conditional entry at second digit
++        auto rejected=translate_arm_block(reinterpret_cast<const std::uint8_t*>(joined.data()),joined.size()*4,
++            0x1000,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
++        if(digits==4 && rejected.division_groups) {printf(" FAIL division interior entry accepted\n");return false;}
++    }
++    printf(" PASS division digits (%u generic register/shift/ADCS fixtures, %u interpreter state/budget comparisons)\n",selected,checks);
++#endif
++    return true;
++}
++
+ // Loop proofs must keep exact short-budget prefixes, including conditional
+ // external exits, memory faults, interrupt backedges and entry in the middle
+ // of a larger region. These fixtures use no ROM/game-specific addresses.
+-static constexpr unsigned test_flag_offsets[] = {state_offsets::NFLAG, state_offsets::ZFLAG, state_offsets::CFLAG, state_offsets::VFLAG, state_offsets::TFLAG};
+-
+ static bool test_loop_budget_chunks() {
+ #if defined(__EMSCRIPTEN__)
+     const std::vector<std::vector<std::uint32_t>> programs = {
+@@ -5276,6 +5346,7 @@
+     }
+     if(argc==2 && std::string(argv[1])=="--frozen-cache-only")return test_frozen_code_cache()?0:1;
+     if(argc==2 && std::string(argv[1])=="--hotpaths") {hotpath_policy=2;argc=1;}
++    if(argc==2 && std::string(argv[1])=="--division-only")return test_division_digits()?0:1;
+     if(argc==2 && std::string(argv[1])=="--loop-budget-only")return test_loop_budget_chunks()?0:1;
+     if(argc==2 && std::string(argv[1])=="--registry-only")return test_registry_lookup_lifecycle()?0:1;
+     if(argc==2 && std::string(argv[1])=="--guard-publication-only")return test_guard_publication()?0:1;
+@@ -5918,6 +5989,7 @@
+     if (test_literal_pc_veneers()) passed++; else failed++;
+     if (test_boundary_details()) passed++; else failed++;
+     if (test_loop_budget_chunks()) passed++; else failed++;
++    if (test_division_digits()) passed++; else failed++;
+     if (test_inlined_leaves(arm_ir_policy::loop_budget_chunks)) passed++; else failed++;
+     if (test_region_loop_interrupts(arm_ir_policy::loop_budget_chunks)) passed++; else failed++;
+     if (test_region_code_alias(arm_ir_policy::loop_budget_chunks)) passed++; else failed++;

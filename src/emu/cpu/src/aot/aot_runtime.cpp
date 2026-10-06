@@ -249,6 +249,8 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
         return function;
     }
+    if constexpr(TrustBytes && !Profile)
+        return ram_cache.lookup_trusted(pc_mode, *cpu->parent());
     // The normal path avoids the resolver callback on a generation/space hit.
     // Mode 0 also compares compiled bytes; trusted-byte modes omit those scans.
     if (!Profile || !(common::guest_profile::enabled && common::performance::counting())) {

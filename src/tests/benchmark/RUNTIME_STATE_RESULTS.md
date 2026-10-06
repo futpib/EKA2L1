@@ -1,5 +1,7 @@
 # Runtime state traffic after state-transfer pruning
 
+Follow-up runtime experiments: [compact dispatch and division lowering](DISPATCH_AND_DIVISION_RESULTS.md).
+
 The retained performance change removes work from the emulator's **execution
 path on every compiled-region lookup**. The existing trusted lookup specialization
 is selected only with verification disabled and executable-byte policy 3. It now
