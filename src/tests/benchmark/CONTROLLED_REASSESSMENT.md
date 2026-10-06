@@ -10,8 +10,8 @@ passed correctness but were rejected or left unresolved on noisy timing evidence
 
 ## Scope
 
-The five fixed plans contain 65 candidate/control comparisons, comprising 103
-game comparisons and 824 valid observations. Each game comparison uses ABBA
+The five fixed plans contain 69 candidate/control comparisons, comprising 108
+game comparisons and 864 valid observations. Each game comparison uses ABBA
 then BAAB. Historical Snakes-only experiments remain explicitly Snakes-only;
 their results are not presented as Sky Force measurements. No production
 optimization or default is changed by this task.
@@ -83,6 +83,17 @@ optimization or default is changed by this task.
 | 63 | memory | older-page-cache-guards | [MEMORY_CACHE_RESULTS](MEMORY_CACHE_RESULTS.md) |
 | 64 | memory | page-cache-span-reuse | [MEMORY_CACHE_RESULTS](MEMORY_CACHE_RESULTS.md) |
 | 65 | memory | current-tlb-vs-direct | [DIRECT_ACCESS_LOWERING_RESULTS](DIRECT_ACCESS_LOWERING_RESULTS.md) |
+| 66 | extended | compact-generated-memory | [MEMORY_AND_CONNECTED_RESULTS](MEMORY_AND_CONNECTED_RESULTS.md) |
+| 67 | extended | connected-callee-loops | [MEMORY_AND_CONNECTED_RESULTS](MEMORY_AND_CONNECTED_RESULTS.md) |
+| 68 | extended | guarded-successor-lookup | [MEMORY_AND_CONNECTED_RESULTS](MEMORY_AND_CONNECTED_RESULTS.md) |
+| 69 | memory | tlb-unaligned-scalar | [UNALIGNED_SCALAR_RESULTS](UNALIGNED_SCALAR_RESULTS.md) |
+
+The final four entries correct omissions found while the first phase was running.
+They were appended only to unstarted phases; earlier plan copies remain in the
+campaign directory. Their archived WASM and loader hashes match the original
+reports. The three older connected/memory trials retain their original silent
+Snakes configuration. The TLB alignment trial covers both games. The running
+phase, its orders and its validity thresholds were not changed.
 
 ## What these measurements can establish
 

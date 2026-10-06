@@ -1,5 +1,10 @@
 # Scalar alignment guard experiment
 
+The rejected TLB timing verdict below is being reassessed with measured fixed
+frequency and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md)
+and [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Direct shows a small repeatable gain: 1.3% less worker CPU in Snakes and 0.8% less in Sky Force combat. TLB has no useful gain: 1.4% more CPU in Snakes and effectively flat in Sky Force. The direct half is now adopted; TLB retains its alignment checks. The original combined patch and all observations are preserved below.
 
 [All observations and exact commands](UNALIGNED_SCALAR_RESULTS.json); [candidate patch](UNALIGNED_SCALAR.patch).

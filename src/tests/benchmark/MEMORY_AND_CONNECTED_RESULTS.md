@@ -1,5 +1,10 @@
 # Memory semantics and connected-path experiments
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 **Outcome:** fault correctness is repaired; all three speed prototypes are removed
 after failing the timing acceptance criteria. No extra headroom is established.
 
@@ -186,4 +191,3 @@ python3 src/tests/benchmark/compare.py NATIVE_REFERENCE NEW_REPLAY
 
 `MEMORY_AND_CONNECTED_EVIDENCE.json` embeds raw timing records and correctness
 summaries, with hashes/paths for binaries, test logs and saved experiments.
-
