@@ -1,5 +1,10 @@
 # Generic ARM span page reuse
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Not adopted. Sharing the existing scalar page caches with ARM block transfers
 and entry-proved spans passed correctness checks, but reduced Snakes throughput
 in all four pairs. Sky Force's average improvement did not repeat consistently.

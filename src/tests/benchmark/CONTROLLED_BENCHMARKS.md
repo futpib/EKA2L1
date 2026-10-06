@@ -49,7 +49,10 @@ counters, other cgroups' effective CPUs and per-CPU activity.
 The campaign plan specifies tolerances independently of measured speed. Invalid
 clock, isolation, throttling or counter observations remain in `observations.json`
 with their errors. The runner retries that same variant, up to three attempts;
-three failures stop the campaign. A slow result that passes these rules stays
+three failures in one invocation stop the campaign. An explicit resume preserves
+those failures and permits three further attempts. Interrupted directories that
+never produced an observation are renamed and retained before retrying. A slow
+result that passes these rules stays
 in the performance comparison. Do not change thresholds after seeing a result
 or correct elapsed seconds by multiplying them by an estimated clock ratio.
 
@@ -58,6 +61,11 @@ presentation-journal hash when capture is enabled, wall seconds, CPU seconds
 and hardware counters. Historical selector experiments can require explicit
 report readbacks through `expected_control` and `expected_candidate`. Archived
 harnesses are selected with `harness`; the emulator builds remain frozen.
+Before each trial the driver waits until known compiler/build processes finish,
+recording the wait. It does not stop or suspend unrelated work. This is a start
+condition, not a retrospective rule for discarding slow measurements. New work
+can still start during a trial, so measured clock and isolation checks remain
+necessary. The explicitly requested audio mode is preserved and read back.
 
 ## Limits and restoration
 

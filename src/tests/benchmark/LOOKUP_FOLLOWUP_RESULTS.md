@@ -1,5 +1,10 @@
 # Lookup and validation follow-up
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 **No new speedup was established.** Three correctness-passing experiments are
 removed from production; their patches and all timing observations are retained.
 

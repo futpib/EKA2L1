@@ -1,5 +1,10 @@
 # Flag and incoming-register data-flow experiments
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Baseline: `7219855a2`, the verified shared-audio build. This work implements the
 first recommended compiler investigation: deferred flags and avoiding incoming
 register loads whose values are overwritten before use. It does not implement

@@ -1,5 +1,10 @@
 # Bounded state retention and total-change timing
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 All 24 preplanned serial observations retained. Each route reverses its three-build order in the second batch. Normal Chromium, NVIDIA hardware, no CPU sampling or detailed counters; no owned builds, correctness or diagnostic jobs overlap. Original execution limits and guest scheduling retained. The old live archive lacks the experimental APIs, so its absent readbacks are retained as null, not fabricated. Its prior exact Sky Force gates are reused from the byte-identical archive; the served WASM was freshly hash-verified before this panel.
 
 The new binary runs the normal speed policy: Thumb memory enabled; first-use compilation, compiled SVC/exclusive/memory-miss policies, ARM memory and ROM leaf/call experiments disabled. Only ROM dispatch 0 versus 2 differs between matching control and cohort candidate. This panel includes accumulated binary growth and other changes in the comparisons against untouched live.

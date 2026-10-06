@@ -1,5 +1,10 @@
 # Thumb continuations with static instruction counts
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 The later [state-transfer gate experiment](THUMB_TRANSFER_GATE_RESULTS.md)
 rejects added cached fields and helper-bearing prefixes; it is also not enabled.
 

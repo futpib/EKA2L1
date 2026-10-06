@@ -1,5 +1,10 @@
 # Dynamic Thumb ROM grouping: rejected screen
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 V30 (75d9f2578) compares mode 0 and mode 3 in the same frozen binary, with the faster shared policy and coverage-only experiments disabled. Four observations trigger the predeclared early-stop rule: one game loses at least 15% without an 8% compensating gain in the other. The remaining reverse-order observations are cancelled prospectively. All results remain; no full acceptance or promotion is claimed.
 
 | Route | Control realtime | Candidate realtime | Single-pair throughput change | Control/candidate warmup |

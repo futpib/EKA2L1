@@ -1,5 +1,10 @@
 # Independent region and runner limits
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 The default remains a 512-byte primary window, 16-instruction leaves, eight inlined call sites and 512 regions per runner invocation. The new pre-init control changes these independently. Runner zero removes only its region-count cap; guest budgets, interrupts, stop requests, zero-progress rejection and successor validation remain. Guest scheduling is untouched. No deployment or speed claim.
 
 ## Refined diagnostic census

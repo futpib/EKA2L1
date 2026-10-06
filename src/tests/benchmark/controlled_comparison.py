@@ -20,6 +20,32 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def wait_for_builds():
+    started = time.monotonic()
+    observed = {}
+    quiet = 0
+    while quiet < 2:
+        busy = {}
+        for path in Path('/proc').glob('[0-9]*/comm'):
+            try:
+                name = path.read_text().strip()
+                if name in {'rustc', 'cargo', 'clang', 'clang++', 'cc1', 'cc1plus',
+                            'gcc', 'g++', 'ld.lld', 'ld', 'ninja', 'make', 'cmake'}:
+                    busy[path.parent.name] = name
+            except (FileNotFoundError, PermissionError, ProcessLookupError):
+                pass
+        if busy:
+            if not observed:
+                print('WAIT for unrelated build processes', busy, flush=True)
+            observed.update(busy)
+            quiet = 0
+        else:
+            quiet += 1
+        if quiet < 2:
+            time.sleep(5 if busy else 1)
+    return dict(waited_seconds=time.monotonic() - started, observed_builds=observed)
+
+
 def validate_clock(report, plan):
     affinity = report['worker_affinity']
     worker = next(row for row in report['thread_deltas']
@@ -132,8 +158,14 @@ def main():
                         journal, work = old[0]['journal_sha256'], old[0]['work']
                         continue
                     attempts = len([row for row in rows if row['name'] == name])
-                    for attempt in range(attempts, 3):
+                    for attempt in range(attempts, attempts + 3):
                         dest = args.output / (name + f'-attempt{attempt}')
+                        if dest.exists():
+                            suffix = f'.interrupted-{time.time_ns()}'
+                            for path in (dest, dest.with_suffix('.log'), dest.with_suffix('.command.json')):
+                                if path.exists():
+                                    path.rename(str(path) + suffix)
+                        quiet_host = wait_for_builds()
                         env = {k: v for k, v in os.environ.items() if not k.startswith('EKA2L1_')}
                         env.update(experiment['env'])
                         env.update(experiment[variant + '_env'])
@@ -160,6 +192,7 @@ def main():
                         metadata = dict(args=command, env={k: v for k, v in env.items()
                             if k.startswith('EKA2L1_') or k in ('GIT_DIR', 'GIT_WORK_TREE')},
                             hashes=hashes, plan_sha256=plan_hash, controller_sha256=controller_hash,
+                            quiet_host=quiet_host,
                             harness_hashes={str(p): digest(p) for p in [
                                 Path(__file__), repo / 'src/tests/benchmark/scheduler_probe.py',
                                 *sorted(Path(experiment['harness']).glob('*.ts'))]})
@@ -176,6 +209,8 @@ def main():
                         for key, value in experiment.get('expected_' + variant, {}).items():
                             if report.get(key) != value:
                                 raise RuntimeError(f'Experiment selection mismatch: {key} expected {value}, got {report.get(key)}')
+                        if report['shared_audio'] != (env.get('EKA2L1_SHARED_AUDIO', '1') == '1'):
+                            raise RuntimeError('Audio configuration differs from the frozen plan')
                         measurement = report['measurement']
                         current_work = {k: measurement[k] for k in ('first_virtual_us', 'last_virtual_us',
                                         'first_instructions', 'last_instructions', 'presentations')}

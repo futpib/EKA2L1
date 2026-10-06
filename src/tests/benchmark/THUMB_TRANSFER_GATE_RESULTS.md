@@ -1,5 +1,10 @@
 # Select Thumb continuations by state transfers
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 This revision is **not enabled**. Sky Force used **2.50% less worker CPU** in
 two paired comparisons, but Snakes used **2.12% more** across four pairs,
 including a confirmation campaign. Production sources and browser artifacts

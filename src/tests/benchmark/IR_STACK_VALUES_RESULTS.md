@@ -1,5 +1,10 @@
 # Adjacent pure stack values: not promoted
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Opt-in policy 15 preserves policy 13 semantics and its 32-instruction bound.
 A pure result used once by the immediately following pure node is emitted in
 that operand slot without a temporary local. Snapshot roots, shared expressions,

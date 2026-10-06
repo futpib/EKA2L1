@@ -1,5 +1,10 @@
 # Generic instruction-count batching
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 `EKA2L1_AOT_IR_MODE=18` extends policy 17 with deferred instruction accounting
 through ARM regions. It has no game, DLL, address, loop-size or minimum-length
 selection rule. Budget proofs retain their existing eligibility rules; batching

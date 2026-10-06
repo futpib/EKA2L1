@@ -1,5 +1,10 @@
 # Direct-memory entry-span extension
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Not adopted. The extension passes correctness checks, but Snakes shows no
 repeatable CPU improvement and Sky Force uses 2.85% more worker CPU, slower in
 both pairs. The production compiler is restored. The complete implementation

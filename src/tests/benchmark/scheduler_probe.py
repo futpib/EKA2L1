@@ -2,7 +2,7 @@
 """Diagnostic snapshots of the benchmark's own threads outside its timed window.
 
 Optional user-space hardware counters count without sampling.
-Does not adjust wall timings or change host scheduling.
+Does not adjust wall timings. Optional affinity controls reserve a worker CPU.
 Not a substitute for ordinary serial timing controls.
 """
 import argparse
@@ -171,7 +171,7 @@ def main():
     env = dict(os.environ, EKA2L1_WASM_BUILD_DIR=str(args.build.resolve()),
                EKA2L1_BENCHMARK_AOT='5', EKA2L1_GPU='hardware',
                EKA2L1_PROFILE_DETAIL='0', EKA2L1_PROFILE_START_US=str(args.start_us),
-               EKA2L1_SHARED_AUDIO='1', PROFILE_GATE=str(gate))
+               EKA2L1_SHARED_AUDIO=os.environ.get('EKA2L1_SHARED_AUDIO', '1'), PROFILE_GATE=str(gate))
     for key in ('EKA2L1_AOT_VERIFY', 'EKA2L1_GUEST_PROFILE', 'EKA2L1_AOT_DIAGNOSTICS',
                 'EKA2L1_V8_FLAGS', 'EKA2L1_V8_DUMP', 'EKA2L1_LONG_MONITOR',
                 'EKA2L1_MONITOR_CPU_START_US', 'EKA2L1_CAPTURE_MODULES',

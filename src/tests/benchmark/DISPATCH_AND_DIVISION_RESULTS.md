@@ -1,5 +1,10 @@
 # Compact dispatch and division lowering
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 The retained runtime change gives trusted RAM dispatch a contiguous cache of
 compiled functions. It removes the version-object pointer chase and metadata
 loads from hits. The generic division-digit experiment is **removed**: substantial

@@ -1,5 +1,10 @@
 # Instruction budgets at ARM loop heads
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 The **browser launcher defaults to compiler policy 17**. It extends policy 7
 with one budget proof per eligible loop iteration. `EKA2L1_AOT_IR_MODE=7` selects
 the previous behavior explicitly. The measured tradeoff below is accepted for

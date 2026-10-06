@@ -1,5 +1,10 @@
 # Callee-prefix fusion
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Implementation is opt-in and passes correctness acceptance. Serial gameplay timing does not support promotion; the feature remains opt-in. The paired census and module-size diagnostics are complete. The preceding six-run census is committed as 984133126. It found roughly 10.0/10.5 million rejected calls to three captured stack-frame routines whose first nested calls occur within seven instructions. These counts identify possible coverage; they do not predict a speedup.
 
 Feature bit 8 admits a bounded straight callee prefix ending at an unconditional direct BL. Ordinary integer operations, scalar word/byte memory operations and non-PC block transfers use the existing original emitter. Stack saves, SP changes and saved LR values remain real guest state and memory effects. Conditional operations preserve their ordinary predicates and instruction counts. Other control transfers, loaded returns, status/coprocessor instructions and unsupported encodings before the nested call remain rejected.

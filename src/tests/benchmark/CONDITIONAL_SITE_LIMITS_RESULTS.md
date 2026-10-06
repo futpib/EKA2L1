@@ -1,5 +1,10 @@
 # Conditional-leaf site limit revisit
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Prepared after the conditional-integer eligibility expansion. No new measurement is claimed yet. The preceding census recorded 551,863 longer-route and 571,365 standard-route site-limit exits; the earlier restrictive-inliner sweep cannot establish an optimum for this compiler.
 
 This experiment varies only accepted inline call sites: 4, 8 and 16. The source window remains 512 bytes, leaf bound 16 instructions and runner cap 512; guest scheduling is unchanged. Policy 7, conditional leaves, folded TLB and grouped exact scanner remain enabled. All additional leaf feature bits, including branch veneers and prefixes, are zero. These are existing controls in the frozen branch-veneer archive, so no new compiler binary or instruction eligibility is introduced. The exact delivered conditional-only archive is a separate baseline.

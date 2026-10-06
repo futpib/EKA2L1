@@ -1,5 +1,10 @@
 # Adjacent long multiply result reuse: rejected
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 A generic region compiler experiment carries the complete i64 result from an
 unconditional long multiply into the immediately following accumulate when its
 destination pair matches. Register halves still publish after every instruction;

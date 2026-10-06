@@ -1,5 +1,10 @@
 # Expanded original-emitter leaf prototype
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 The paired census is retained as a9709c0d2 after all conditional-leaf timing batches (a8c0f5531). This opt-in prototype passes correctness acceptance below, but its broader eligibility does not show a repeatable marginal gameplay gain. It remains disabled by default; live/audio graduation has not been performed.
 
 Use separate feature bits under original-emitter policy 7: multiply forms; scalar extra/conditional memory forms; forward internal branches. Preserve the existing conditional-integer switch as the matching control. No runtime scheduling changes and no default enablement.

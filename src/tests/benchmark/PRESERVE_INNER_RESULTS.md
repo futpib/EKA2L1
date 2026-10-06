@@ -1,5 +1,10 @@
 # Preserve existing inner leaf fusion when selecting prefixes
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 This separate opt-in selection experiment adds feature bit 16 to prefix bit 8 (mode 24). Defaults remain unchanged. It declines an outer prefix if its first nested BL targets a returning leaf already eligible under the selected integer/memory/branch features. The existing standalone callee can then retain that inner fusion. The selected caller and callee still undergo normal exact code/mapping validation, and guest scheduling and all size/count limits remain unchanged.
 
 The preceding prefix census motivates this rule: prefix fusion reduced direct-call exits but exposed more separate returns, slightly increasing total compiled invocations, while dependency validation grew 42–43%. Its timings were negative. This rule is a bounded profitability heuristic, not a guarantee that every remaining prefix is useful. It adds one bounded code lookup and eligibility scan during compilation; it does not recursively discover prefixes or reuse execution results.

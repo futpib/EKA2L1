@@ -1,5 +1,10 @@
 # Single-branch callee fusion
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 The preserve-inner census recorded 4,870,478 rejections at one unconditional branch instruction and 901,809 at another in the longer route. The captured-entry audit below corrects the initial assumption: only the second is a one-instruction callee; the first follows three register moves. This experiment admits the generic one-instruction ARM AL B shape as feature bit 32 under original-emitter policy 7 and conditional-leaf mode. It does not special-case guest addresses. Prefix bits 8/16 and broader eligibility bits 1/2/4 remain off.
 
 The caller BL and callee B both execute and consume their exact instruction budgets. LR retains the original caller return address. Guest values remain in locals across that entry boundary, then the B uses the existing precise exit to its actual target, even when that target lies inside the primary window. The target is not resolved or assumed during translation; normal dispatch/code validation follows. Only the four veneer bytes become an additional exact dependency. Caller continuation discovery, code aliases, callback-visible state and ordered effects retain their existing paths. All limits remain 512 source bytes / 16 leaf instructions / 8 sites / 512 runner regions, with no guest scheduling change.

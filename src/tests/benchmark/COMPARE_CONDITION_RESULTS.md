@@ -1,5 +1,10 @@
 # CMP operand reuse
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 The rejected experiment uses the operands left by an immediately preceding
 unconditional CMP for the following compound signed/unsigned condition (HI, LS,
 GE, LT, GT, LE). It still materializes every architectural flag. Joins,

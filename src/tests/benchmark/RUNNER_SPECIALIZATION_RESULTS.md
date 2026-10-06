@@ -1,5 +1,10 @@
 # Compiled runner specialization and rejected address experiments
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 The retained runner candidate improves real-Snakes throughput by **22.9%** and
 **8.8%** in two separate balanced batches. Both candidates beat both controls
 in each batch. The two generated-code experiments do not earn promotion.

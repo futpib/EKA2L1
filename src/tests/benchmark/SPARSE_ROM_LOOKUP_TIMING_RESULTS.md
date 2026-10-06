@@ -1,5 +1,10 @@
 # Sparse ROM lookup: rejected speed screen
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Same frozen V31 binary, hotpath0/8, ROM grouping and unrelated experiments off. All eight observations retained in the predeclared two-game reversed-order screen. Guest instruction and presentation totals agree per route. No owned builds or diagnostic jobs overlap.
 
 | Route/batch | Control realtime | Candidate realtime | Throughput change | Warmup control/candidate | Index bytes |

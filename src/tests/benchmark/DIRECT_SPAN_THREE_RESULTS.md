@@ -1,5 +1,10 @@
 # Three-access direct-memory span proofs
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Not adopted. Snakes has no repeatable CPU gain; Sky Force uses 2.44% more
 worker CPU and is slower in both pairs. The implementation and regression
 tests are preserved in the evidence file; production behavior is restored.

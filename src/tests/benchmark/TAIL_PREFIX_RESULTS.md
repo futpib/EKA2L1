@@ -1,5 +1,10 @@
 # Register-only tail-prefix experiment
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Status: opt-in implementation with focused checks; full acceptance and timings pending. No deployment.
 
 The preceding captured code shows that the hotter branch veneer begins with three register moves. Single-instruction feature32 leaves it unfused. New feature64 accepts a nonempty, bounded register-only integer prefix followed by an unconditional ARM branch. It uses the original emitter with conditional leaves enabled and the retained 512/16/8/512 source/leaf/site/runner limits. It does not recognize game addresses.

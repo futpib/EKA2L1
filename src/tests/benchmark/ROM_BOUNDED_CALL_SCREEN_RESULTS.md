@@ -1,5 +1,10 @@
 # Bounded ROM-call timing panel
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 All sixteen planned serial observations are retained. Both policies use the same
 frozen V17 binary with Thumb memory enabled, ARM memory/eager regions/ROM leaves
 disabled, mode 3, feature 128 and original limits. Sampling and detailed counters

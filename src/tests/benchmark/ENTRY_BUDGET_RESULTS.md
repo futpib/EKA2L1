@@ -1,5 +1,10 @@
 # Loop-free entry-budget experiment
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 The candidate emits two bodies for a complete loop-free ARM region. An entry
 check proves enough budget for the emitted extent and selects a body without
 per-instruction budget comparisons. Short budgets retain the original precise

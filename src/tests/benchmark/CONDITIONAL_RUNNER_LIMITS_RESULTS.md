@@ -1,5 +1,10 @@
 # Conditional-leaf runner limit revisit
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 Planned after the frozen tail-prefix timing and diagnostic queues finish. This
 changes only the outer compiled-runner cap: 64, 512 and zero (uncapped). The
 primary source window stays 512 bytes, leaf bound 16 instructions and inline

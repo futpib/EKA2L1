@@ -1,5 +1,10 @@
 # Outlined short-budget recovery experiment
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 This rejected candidate proves sufficient budget at entry for loop-free ARM
 regions with no inlined dependencies. It removes redundant per-instruction
 budget guards on that path while retaining memory, callback, code-write and

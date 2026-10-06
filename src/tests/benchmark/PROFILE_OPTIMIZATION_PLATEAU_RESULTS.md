@@ -1,5 +1,10 @@
 # Profile-driven dispatch optimization: stopping at diminishing returns
 
+The timing verdicts below are being reassessed with measured fixed frequency
+and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
+Original observations and correctness evidence remain below.
+
 This campaign adopts one further improvement: keeping ROM registry hits and
 their surrounding lookup inside the compiled runner. It improves Sky Force
 combat throughput by **5.42%**, with favorable pairs in both orders. Snakes is
