@@ -15,7 +15,14 @@ The original Snakes rejection does not hold for this controlled comparison,
 and the new Sky Force measurements add coverage absent from that screen. This
 supports rechecking the change on today's implementation; the percentages
 belong to the archived builds and cannot be added to current throughput.
-The separate verifier and guard-publication comparisons are still pending.
+Verifier specialization is effectively flat in the controlled rerun: Snakes
+changes by -0.10% CPU and +0.37% wall throughput; Sky Force by +0.34% CPU and
++0.39% wall throughput. Each game has only one of four CPU pairs faster. Native
+instructions fall by 0.34% and 0.32%, respectively, without a consistent timing
+gain. The slow final Sky Force control passes the host checks and is retained;
+the paired range is -1.30% to +2.81%. The original apparent losses do not
+establish an intrinsic regression, but these results do not establish a gain.
+The separate guard-publication comparison is still pending.
 
 ## Original campaign
 
