@@ -23,6 +23,8 @@ The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
 throughput improves 6.51%; native instructions fall 4.12%. Its four CPU pairs
 improve 2.76% to 12.97%. These are same-binary comparisons with all other
 current production settings fixed; total-change validation is still running.
+The [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json) preserves every
+completed observation, frequency check, build hash and hardware-counter result.
 
 Artifacts and frozen plans are under
 `/home/claude/.scratch/eka-promote-recovered/`. The historical reassessment under
