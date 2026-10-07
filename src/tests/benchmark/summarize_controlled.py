@@ -89,6 +89,14 @@ def main():
                 expected = sum(map(len, plan['panels']))
                 data['comparisons'].append(dict(phase=phase, experiment=experiment['name'], game=game,
                     original_report=experiment['report'], **summarize(subset, expected)))
+    notes_path = args.campaign_root / 'comparison-notes.json'
+    data['comparison_notes'] = json.loads(notes_path.read_text()) if notes_path.exists() else []
+    for note in data['comparison_notes']:
+        matches = [row for row in data['comparisons']
+                   if (row['experiment'], row['game']) == (note['experiment'], note['game'])]
+        if len(matches) != 1:
+            raise ValueError('Comparison note has no unique target: ' + note['experiment'])
+        matches[0].setdefault('notes', []).append(note)
     complete = [row for row in data['comparisons'] if row['complete']]
     data['measurements_complete'] = len(complete) == len(data['comparisons'])
     data['host_restoration_complete'] = all(phase['host_states'] and
@@ -134,6 +142,9 @@ def main():
     lines += ['', 'All observations, clock checks, errors, exact plans, settings, hashes and',
               'absolute evidence paths are retained in the companion JSON. Raw scheduler',
               'and browser reports remain in the campaign directory.', '']
+    for note in data['comparison_notes']:
+        game = 'Snakes' if note['game'] == 'standard' else 'Sky Force'
+        lines += [f"{note['experiment']} / {game}: {note['text']}", '']
     if 'charging_stability_boundary' in data:
         lines += ['Battery charging is temporarily inhibited from the recorded extended-phase',
                   'resume onward, with restoration at every phase exit. The guard-publication',
