@@ -135,6 +135,17 @@ real browser control then passed with compiler policy 7 and valid counters.
 the newer controller with optional input-route support. Completed observations
 are retained, and later phases remain serial.
 
+The extended phase later stopped after three clock-invalid attempts at
+`guard-publication-omission/combat`, reversed-order first control. Whole-window
+frequency was approximately 3583 MHz, but individual intervals fell below the
+predeclared 1% limit (minimums 3553.22, 3561.90 and 3555.22 MHz). The other
+validity checks passed. All three attempts remain in the data; the much slower
+earlier candidate that passed the checks remains in the performance comparison.
+`extended-host.json` records the failed invocation and successful restoration,
+also checked live. `extended-host-resume1.json` resumes the same plan and
+unfinished observation with unchanged thresholds. The Chromium version remains
+153.0.8010.52. No cause for the transient clock dips is established here.
+
 ## What these measurements can establish
 
 Recent frozen builds answer the marginal runtime question at the same source
