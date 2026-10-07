@@ -29,9 +29,9 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | 4 | compiled-syscalls-total / Sky Force | +0.71% | +0.67% | -1.96% | 3/4 | 8/8; 0 invalid |
 | 5 | sparse-rom-current / Snakes | -0.27% | -0.29% | -0.14% | 1/4 | 8/8; 0 invalid |
 | 6 | sparse-rom-current / Sky Force | +1.81% | +1.71% | -1.60% | 4/4 | 8/8; 0 invalid |
-| 7 | entry-only-pruning-current / Snakes | Pending | Pending | Pending | — | 4/8; 0 invalid |
-| 8 | entry-only-pruning-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
-| 9 | batched-counts-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 7 | entry-only-pruning-current / Snakes | -0.42% | -0.31% | -0.12% | 1/4 | 8/8; 0 invalid |
+| 8 | entry-only-pruning-current / Sky Force | +1.26% | +1.18% | -0.03% | 3/4 | 8/8; 0 invalid |
+| 9 | batched-counts-current / Snakes | Pending | Pending | Pending | — | 3/8; 0 invalid |
 | 10 | batched-counts-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
 | 11 | whole-entry-budget-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
 | 12 | whole-entry-budget-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
@@ -58,8 +58,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 6 | state-pruning / Sky Force | +0.66% | +0.63% | -1.36% | 3/4 | 8/8; 0 invalid | Default: Full ARM and Thumb load/store pruning | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 7 | trusted-lookup-inline / Snakes | -0.39% | -0.10% | -0.00% | 1/4 | 8/8; 0 invalid | No new default adopted | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 8 | trusted-lookup-inline / Sky Force | +2.56% | +2.39% | +0.00% | 3/4 | 8/8; 0 invalid | No new default adopted | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
-| 9 | entry-only-pruning / Snakes | -0.39% | -0.12% | +0.42% | 2/4 | 8/8; 0 invalid | Promotion in progress: Normal entries are already pruned; compare omitting private-fallback pruning against current full pruning | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
-| 10 | entry-only-pruning / Sky Force | +3.14% | +2.87% | -1.38% | 4/4 | 8/8; 0 invalid | Promotion in progress: Normal entries are already pruned; compare omitting private-fallback pruning against current full pruning | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
+| 9 | entry-only-pruning / Snakes | -0.39% | -0.12% | +0.42% | 2/4 | 8/8; 0 invalid | Current result needs confirmation: Current Sky Force +1.26% with mixed pairs, Snakes -0.42%; do not adopt from the historical +3.14% comparison against unpruned code | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
+| 10 | entry-only-pruning / Sky Force | +3.14% | +2.87% | -1.38% | 4/4 | 8/8; 0 invalid | Current result needs confirmation: Current Sky Force +1.26% with mixed pairs, Snakes -0.42%; do not adopt from the historical +3.14% comparison against unpruned code | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 11 | store-only-pruning / Snakes | +0.40% | +0.34% | +0.50% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Small Snakes gain accompanied a Sky Force loss against the unpruned control; full pruning remains default | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 12 | store-only-pruning / Sky Force | -0.41% | -0.38% | -0.67% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Small Snakes gain accompanied a Sky Force loss against the unpruned control; full pruning remains default | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 13 | direct-span-two / Snakes | -0.50% | -0.28% | -0.30% | 0/4 | 8/8; 0 invalid | No new default adopted | [DIRECT_SPAN_RESULTS.md](DIRECT_SPAN_RESULTS.md) |
@@ -5248,6 +5248,7 @@ current adoption decisions are in [the experiment index](EXPERIMENT_INDEX.md).
 | 1 | Compiled syscalls off/on in one frozen candidate | +0.70% | +7.17% | 16 valid, 0 invalid; Snakes 3/4 pairs faster, Sky Force 4/4 |
 | 2 | Untouched baseline versus compiled syscall candidate | +0.21% | +0.71% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
 | 3 | Sparse ROM lookup off/on in the rebuilt candidate | -0.27% | +1.81% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 4/4 |
+| 4 | Entry-only pruning versus current full pruning | -0.42% | +1.26% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
 
 Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
 The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
