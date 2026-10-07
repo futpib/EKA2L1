@@ -224,3 +224,26 @@ its unchanged retry passed. Division lowering is the last individual current
 candidate still running. The combined artifact will be measured against both
 the untouched repository baseline and the actual previously served LAN archive;
 these are different binaries. The historical sweep remains paused at 64/109.
+
+## Final selection checkpoint
+
+All 18 current-runtime comparisons are complete: 144 valid observations and
+three retained invalid attempts. The final division comparison is +0.07% CPU
+for Snakes and -0.66% for Sky Force, with only two of four pairs faster in each.
+Native instructions fall 0.38% in Snakes but remain unchanged in Sky Force.
+Division stays disabled. The prior historical +0.94% Snakes result did not
+carry through to this combination.
+
+The selected defaults are compiled syscalls 1, sparse ROM lookup 1 and outlined
+entry budget 2. Full state pruning and IR policy 17 remain selected; entry-only
+pruning, inline recovery, static batching and division remain opt-in.
+`final-selection.json` records the decisions and supporting comparisons.
+After timing, 88 live checks passed for CPU policy/EPP, explicit and effective
+CPU masks, platform profile and charging (`next-live-restoration.json`).
+
+The final default build and its combined comparison are now pending. The final
+plan measures the exact artifact against both the repository baseline and the
+previously served LAN archive, using one common harness. Only post-measurement
+optional getter readbacks were added to the original harness, so unsupported
+legacy getters remain null while candidate defaults are verified directly.
+The historical sweep remains paused at 64/109, with 45 comparisons left.

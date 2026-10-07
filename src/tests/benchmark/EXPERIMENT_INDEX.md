@@ -39,8 +39,8 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | 14 | outlined-entry-budget-current / Sky Force | +1.19% | +1.02% | -0.18% | 2/4 | 8/8; 0 invalid |
 | 15 | compiled-syscalls-zero-current / Snakes | +0.40% | +0.48% | +0.00% | 4/4 | 8/8; 0 invalid |
 | 16 | compiled-syscalls-zero-current / Sky Force | +3.54% | +2.98% | -2.76% | 4/4 | 8/8; 1 invalid |
-| 17 | division-digits-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
-| 18 | division-digits-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 17 | division-digits-current / Snakes | +0.07% | -0.11% | -0.38% | 2/4 | 8/8; 0 invalid |
+| 18 | division-digits-current / Sky Force | -0.66% | -0.77% | +0.00% | 2/4 | 8/8; 0 invalid |
 
 ## Controlled comparisons
 
@@ -56,8 +56,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | ---: | --- | ---: | ---: | ---: | ---: | --- | --- | --- |
 | 1 | compact-dispatch / Snakes | +5.91% | +4.92% | -6.65% | 4/4 | 8/8; 0 invalid | Default: Contiguous trusted RAM dispatch slots | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
 | 2 | compact-dispatch / Sky Force | +1.17% | +1.03% | -0.98% | 4/4 | 8/8; 0 invalid | Default: Contiguous trusted RAM dispatch slots | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
-| 3 | division-digits / Snakes | +0.94% | -0.06% | -0.38% | 4/4 | 8/8; 1 invalid | Current validation complete; timing pending: 32256 state/budget comparisons and exact game replays passed; compare off/on with selected ROM lookup and outlined budgets | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
-| 4 | division-digits / Sky Force | +0.67% | +0.67% | -0.00% | 2/4 | 8/8; 4 invalid | Current validation complete; timing pending: 32256 state/budget comparisons and exact game replays passed; compare off/on with selected ROM lookup and outlined budgets | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
+| 3 | division-digits / Snakes | +0.94% | -0.06% | -0.38% | 4/4 | 8/8; 1 invalid | Not selected for promotion: Current combination: Snakes +0.07%, Sky Force -0.66% CPU, mixed pairs in both. Fewer Snakes native instructions did not yield a runtime gain; remains off | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
+| 4 | division-digits / Sky Force | +0.67% | +0.67% | -0.00% | 2/4 | 8/8; 4 invalid | Not selected for promotion: Current combination: Snakes +0.07%, Sky Force -0.66% CPU, mixed pairs in both. Fewer Snakes native instructions did not yield a runtime gain; remains off | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
 | 5 | state-pruning / Snakes | +0.08% | +0.06% | -0.08% | 2/4 | 8/8; 0 invalid | Default: Full ARM and Thumb load/store pruning | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 6 | state-pruning / Sky Force | +0.66% | +0.63% | -1.36% | 3/4 | 8/8; 0 invalid | Default: Full ARM and Thumb load/store pruning | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 7 | trusted-lookup-inline / Snakes | -0.39% | -0.10% | -0.00% | 1/4 | 8/8; 0 invalid | No new default adopted | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
@@ -5309,6 +5309,15 @@ Sky Force improves 3.54% CPU and 2.98% wall throughput. All four CPU pairs impro
 in each game. Native instruction counts are effectively unchanged in Snakes
 (+0.002%) and fall 2.76% in Sky Force. This selects the revised syscall path for
 the final combined artifact, not a standalone total-adoption claim.
+
+**Final selection checkpoint**
+
+All 18 current-runtime comparisons are complete: 144 valid observations and
+three retained invalid attempts. The final division comparison is +0.07% CPU
+for Snakes and -0.66% for Sky Force, with only two of four pairs faster in each.
+Native instructions fall 0.38% in Snakes but remain unchanged in Sky Force.
+Division stays disabled. The prior historical +0.94% Snakes result did not
+carry through to this combination.
 
 </details>
 

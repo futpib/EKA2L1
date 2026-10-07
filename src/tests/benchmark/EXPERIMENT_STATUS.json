@@ -62,8 +62,8 @@
       "note": "Mode 2; TLB mode 0 remains available"
     },
     "division-digits": {
-      "status": "Current validation complete; timing pending",
-      "note": "32256 state/budget comparisons and exact game replays passed; compare off/on with selected ROM lookup and outlined budgets"
+      "status": "Not selected for promotion",
+      "note": "Current combination: Snakes +0.07%, Sky Force -0.66% CPU, mixed pairs in both. Fewer Snakes native instructions did not yield a runtime gain; remains off"
     },
     "store-only-pruning": {
       "status": "Not selected for promotion",
