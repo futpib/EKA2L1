@@ -5,6 +5,22 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The controlled deferred-flags rerun has four observations per variant, in
+ABBA then BAAB order, at the original shared-audio Snakes window of guest
+seconds 78-96. CPU throughput falls by 1.09% and wall throughput by 1.07%;
+all four CPU pairs favor the control (-2.84% to -0.37%). Native instructions
+fall by only 0.030%. All eight observations pass the clock and host checks.
+The original rejection remains supported for this archived configuration,
+although its much larger apparent loss does not repeat. The independent
+incoming-register comparison is still running.
+
+The archived flag patch materializes pending recipes before every memory
+instruction. The baseline's scalar ARM loads call the memory helpers. Preserving recipes across today's proven inline
+memory accesses, with materialization on observable exits and helper paths,
+would be a different optimization. These measurements do not test that design
+or establish a gain for it. The synthetic-loop results below likewise do not
+establish a whole-game benefit.
+
 Baseline: `7219855a2`, the verified shared-audio build. This work implements the
 first recommended compiler investigation: deferred flags and avoiding incoming
 register loads whose values are overwritten before use. It does not implement

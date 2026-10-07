@@ -1,6 +1,6 @@
 # Controlled optimization comparisons
 
-Status: in progress. 56/109 game comparisons complete; 448/872 valid observations and 14 retained invalid observations.
+Status: in progress. 57/109 game comparisons complete; 457/872 valid observations and 14 retained invalid observations.
 
 [Earlier partial-isolation measurements](CONTROLLED_PRELIMINARY_RESULTS.md)
 remain separate: their measurement process could use the reserved core.
@@ -77,6 +77,7 @@ and do not establish the same effect on the current production branch.
 | 54 | conditional-loop-budgets | Sky Force | -1.44% | -1.11% | -2.67% | -4.95% to +3.39% | 1/4 | 0 |
 | 55 | broad-loop-budgets | Snakes | -0.27% | -0.18% | -0.04% | -1.36% to +0.95% | 2/4 | 0 |
 | 56 | broad-loop-budgets | Sky Force | +4.30% | +4.03% | -2.70% | +2.46% to +6.33% | 4/4 | 0 |
+| 57 | lazy-flags | Snakes | -1.09% | -1.07% | -0.03% | -2.84% to -0.37% | 0/4 | 0 |
 
 All observations, clock checks, errors, exact plans, settings, hashes and
 absolute evidence paths are retained in the companion JSON. Raw scheduler
@@ -90,6 +91,6 @@ observations, including the slow candidate, remain included. See the
 
 ## Remaining comparisons
 
-- extended: lazy-flags/standard (0/8), incoming-register-definitions/standard (0/8), wide-result-reuse/standard (0/8), direct-register-stores/standard (0/8), conditional-alu-select/standard (0/8), compare-operand-reuse/standard (0/8), whole-entry-budget/standard (0/8), outlined-entry-budget/standard (0/8), cached-address-displacement/standard (0/8), deferred-read-exit/standard (0/8), owner-core-reuse/standard (0/8), aligned-cache-hash/standard (0/8), compact-generated-memory/standard (0/8), connected-callee-loops/standard (0/8), guarded-successor-lookup/standard (0/8).
+- extended: incoming-register-definitions/standard (1/8), wide-result-reuse/standard (0/8), direct-register-stores/standard (0/8), conditional-alu-select/standard (0/8), compare-operand-reuse/standard (0/8), whole-entry-budget/standard (0/8), outlined-entry-budget/standard (0/8), cached-address-displacement/standard (0/8), deferred-read-exit/standard (0/8), owner-core-reuse/standard (0/8), aligned-cache-hash/standard (0/8), compact-generated-memory/standard (0/8), connected-callee-loops/standard (0/8), guarded-successor-lookup/standard (0/8).
 - inlining: expanded-leaf-eligibility/standard (0/8), call-prefix-fusion/standard (0/8), preserve-inner-leaves/standard (0/8), branch-veneer-fusion/standard (0/8), tail-prefix-fusion/standard (0/8), expanded-leaf-bound/standard (0/8), conditional-leaf-bound/standard (0/8), hot-source-window/standard (0/8), four-inline-sites/standard (0/8), sixteen-inline-sites/standard (0/8), shorter-region-chain/standard (0/8), uncapped-region-chain/standard (0/8), eager-rom-regions/standard (0/8), eager-rom-regions/combat (0/8), rom-leaf-fusion/standard (0/8), rom-leaf-fusion/combat (0/8), bounded-rom-calls/standard (0/8), bounded-rom-calls/combat (0/8).
 - memory: allocation-ranges/standard (0/8), allocation-ranges/combat (0/8), full-page-table/standard (0/8), full-page-table/combat (0/8), last-page-only/standard (0/8), last-page-only/combat (0/8), folded-tlb/standard (0/8), folded-tlb/combat (0/8), tlb-plus-last-page/standard (0/8), tlb-plus-last-page/combat (0/8), folded-tlb-plus-last-page/standard (0/8), folded-tlb-plus-last-page/combat (0/8), older-page-cache-guards/standard (0/8), older-page-cache-guards/combat (0/8), page-cache-span-reuse/standard (0/8), page-cache-span-reuse/combat (0/8), current-tlb-vs-direct/standard (0/8), current-tlb-vs-direct/combat (0/8), tlb-unaligned-scalar/standard (0/8), tlb-unaligned-scalar/combat (0/8).
