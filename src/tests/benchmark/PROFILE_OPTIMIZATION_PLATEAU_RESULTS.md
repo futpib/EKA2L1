@@ -22,7 +22,17 @@ instructions fall by 0.34% and 0.32%, respectively, without a consistent timing
 gain. The slow final Sky Force control passes the host checks and is retained;
 the paired range is -1.30% to +2.81%. The original apparent losses do not
 establish an intrinsic regression, but these results do not establish a gain.
-The separate guard-publication comparison is still pending.
+Guard-publication omission is effectively flat for Snakes: +0.21% CPU and
++0.12% wall throughput, with 0.74% fewer native instructions and three of four
+CPU pairs faster (-0.18% to +0.54%). Sky Force's retained mean is -2.54% CPU
+and -2.47% wall throughput, with 0.22% fewer instructions and one of four pairs
+faster (-8.63% to +5.26%). The slow 12.331690038-second candidate passed all
+host checks and remains included. Nine control attempts failed the unchanged
+clock rule and remain recorded separately. Five valid Sky Force observations
+preceded the temporary charging pause described in the
+[power investigation](CONTROLLED_REASSESSMENT.md); three followed it. This
+mixed-condition comparison does not isolate a small effect or establish an
+intrinsic regression. No gain justifying adoption is established here.
 
 ## Original campaign
 
