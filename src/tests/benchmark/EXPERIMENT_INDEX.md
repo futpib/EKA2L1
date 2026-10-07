@@ -1855,6 +1855,15 @@ with all four pairs faster. That bundle also expanded the leaf bound from 16 to
 64 instructions and accepted more predicates. Its percentage is not a gain on
 the current runtime. See [historical evidence](MEMORY_AND_CONNECTED_RESULTS.md).
 
+**First current-runtime result**
+
+The 16-instruction candidate completes Snakes at -0.57% CPU throughput and
+-0.24% wall throughput, with native instructions +0.023%. One of four adjacent
+pairs is faster; all eight observations pass the frozen validity rules, with no
+invalid attempts. Measured frequency is 3591.562-3591.585 MHz. This does not earn
+adoption for Snakes. Sky Force remains pending, and the 64-instruction candidate
+has not started. Full evidence is in `eka-connected-current/CURRENT_SNAPSHOT.json`.
+
 </details>
 
 <a id="report-61"></a>

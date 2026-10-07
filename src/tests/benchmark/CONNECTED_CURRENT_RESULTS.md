@@ -1,6 +1,6 @@
 # Connected callees on the graduated runtime
 
-Status: correctness passed; controlled timing pending. The historical sweep is
+Status: correctness passed; Snakes timing complete, Sky Force running. The historical sweep is
 paused at 72/109 comparisons for this graduation cycle. No new default has been
 committed or deployed yet.
 
@@ -45,3 +45,12 @@ The first comparison keeps the leaf bound at 16 for both variants. If it earns
 adoption, graduate that artifact immediately. Otherwise the prepared 64-instruction
 candidate receives its own exact replays and timing. The historical sweep resumes
 from its saved rows after the current-runtime decision.
+
+## First current-runtime result
+
+The 16-instruction candidate completes Snakes at -0.57% CPU throughput and
+-0.24% wall throughput, with native instructions +0.023%. One of four adjacent
+pairs is faster; all eight observations pass the frozen validity rules, with no
+invalid attempts. Measured frequency is 3591.562-3591.585 MHz. This does not earn
+adoption for Snakes. Sky Force remains pending, and the 64-instruction candidate
+has not started. Full evidence is in `eka-connected-current/CURRENT_SNAPSHOT.json`.

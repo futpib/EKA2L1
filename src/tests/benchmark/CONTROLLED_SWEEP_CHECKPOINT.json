@@ -251,7 +251,7 @@
     "extended_restoration_checks": 88
   },
   "active_phase": null,
-  "last_progress_utc": "2026-10-07T22:16:56.529929+00:00",
+  "last_progress_utc": "2026-10-07T22:26:51.818567+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -285,7 +285,7 @@
   "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
   "graduation_cycle": {
     "candidate": "connected-callee-loops",
-    "stage": "correctness_passed_host_settling",
+    "stage": "controlled_timing_connected16",
     "automatic_resume": true,
     "pause_evidence": "/home/claude/.scratch/eka-controlled/graduation-cycle-boundary-stop.json",
     "restoration_checks": 88,
