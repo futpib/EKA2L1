@@ -1,6 +1,6 @@
 # Controlled optimization comparisons
 
-Status: in progress. 24/108 game comparisons complete; 192/864 valid observations and 5 retained invalid observations.
+Status: in progress. 26/108 game comparisons complete; 208/864 valid observations and 5 retained invalid observations.
 
 [Earlier partial-isolation measurements](CONTROLLED_PRELIMINARY_RESULTS.md)
 remain separate: their measurement process could use the reserved core.
@@ -45,6 +45,8 @@ and do not establish the same effect on the current production branch.
 | 22 | batched-counts | Sky Force | +1.06% | +1.01% | -0.15% | +0.16% to +2.25% | 4/4 | 0 |
 | 23 | span-page-reuse | Snakes | -1.76% | -1.54% | +1.12% | -2.74% to -0.91% | 0/4 | 0 |
 | 24 | span-page-reuse | Sky Force | +0.96% | +0.88% | +0.82% | -1.87% to +3.47% | 2/4 | 0 |
+| 25 | dynamic-rom-cohorts | Snakes | -11.17% | -9.48% | +10.03% | -11.74% to -9.80% | 0/4 | 0 |
+| 26 | dynamic-rom-cohorts | Sky Force | -69.50% | -68.11% | +207.72% | -69.91% to -69.01% | 0/4 | 0 |
 
 All observations, clock checks, errors, exact plans, settings, hashes and
 absolute evidence paths are retained in the companion JSON. Raw scheduler
@@ -52,7 +54,7 @@ and browser reports remain in the campaign directory.
 
 ## Remaining comparisons
 
-- architecture: dynamic-rom-cohorts/standard (0/8), dynamic-rom-cohorts/combat (0/8), sparse-rom-lookup/standard (0/8), sparse-rom-lookup/combat (0/8), compiled-syscalls/standard (0/8), compiled-syscalls/combat (0/8), compiled-memory-misses/standard (0/8), compiled-memory-misses/combat (0/8), ram-first-use/standard (0/8), ram-first-use/combat (0/8), rom-first-use-recycling/standard (0/8), rom-first-use-recycling/combat (0/8), rom-module-dispatch/standard (0/8), rom-module-dispatch/combat (0/8), rom-state-cohorts/standard (0/8), rom-state-cohorts/combat (0/8), mixed-ir/standard (0/8), longer-ir-segments/standard (0/8), ir-stack-values/standard (0/8).
+- architecture: sparse-rom-lookup/standard (0/8), sparse-rom-lookup/combat (0/8), compiled-syscalls/standard (0/8), compiled-syscalls/combat (0/8), compiled-memory-misses/standard (0/8), compiled-memory-misses/combat (0/8), ram-first-use/standard (0/8), ram-first-use/combat (0/8), rom-first-use-recycling/standard (0/8), rom-first-use-recycling/combat (0/8), rom-module-dispatch/standard (0/8), rom-module-dispatch/combat (0/8), rom-state-cohorts/standard (0/8), rom-state-cohorts/combat (0/8), mixed-ir/standard (0/8), longer-ir-segments/standard (0/8), ir-stack-values/standard (0/8).
 - extended: quiet-runtime-cuts/standard (0/8), quiet-runtime-cuts/combat (0/8), ram-hit-inline/standard (0/8), ram-hit-inline/combat (0/8), verifier-specialization/standard (0/8), verifier-specialization/combat (0/8), guard-publication-omission/standard (0/8), guard-publication-omission/combat (0/8), conditional-loop-budgets/standard (0/8), conditional-loop-budgets/combat (0/8), broad-loop-budgets/standard (0/8), broad-loop-budgets/combat (0/8), lazy-flags/standard (0/8), incoming-register-definitions/standard (0/8), wide-result-reuse/standard (0/8), direct-register-stores/standard (0/8), conditional-alu-select/standard (0/8), compare-operand-reuse/standard (0/8), whole-entry-budget/standard (0/8), outlined-entry-budget/standard (0/8), cached-address-displacement/standard (0/8), deferred-read-exit/standard (0/8), owner-core-reuse/standard (0/8), aligned-cache-hash/standard (0/8), compact-generated-memory/standard (0/8), connected-callee-loops/standard (0/8), guarded-successor-lookup/standard (0/8).
 - inlining: expanded-leaf-eligibility/standard (0/8), call-prefix-fusion/standard (0/8), preserve-inner-leaves/standard (0/8), branch-veneer-fusion/standard (0/8), tail-prefix-fusion/standard (0/8), expanded-leaf-bound/standard (0/8), conditional-leaf-bound/standard (0/8), hot-source-window/standard (0/8), four-inline-sites/standard (0/8), sixteen-inline-sites/standard (0/8), shorter-region-chain/standard (0/8), uncapped-region-chain/standard (0/8), eager-rom-regions/standard (0/8), eager-rom-regions/combat (0/8), rom-leaf-fusion/standard (0/8), rom-leaf-fusion/combat (0/8), bounded-rom-calls/standard (0/8), bounded-rom-calls/combat (0/8).
 - memory: allocation-ranges/standard (0/8), allocation-ranges/combat (0/8), full-page-table/standard (0/8), full-page-table/combat (0/8), last-page-only/standard (0/8), last-page-only/combat (0/8), folded-tlb/standard (0/8), folded-tlb/combat (0/8), tlb-plus-last-page/standard (0/8), tlb-plus-last-page/combat (0/8), folded-tlb-plus-last-page/standard (0/8), folded-tlb-plus-last-page/combat (0/8), older-page-cache-guards/standard (0/8), older-page-cache-guards/combat (0/8), page-cache-span-reuse/standard (0/8), page-cache-span-reuse/combat (0/8), current-tlb-vs-direct/standard (0/8), current-tlb-vs-direct/combat (0/8), tlb-unaligned-scalar/standard (0/8), tlb-unaligned-scalar/combat (0/8).
