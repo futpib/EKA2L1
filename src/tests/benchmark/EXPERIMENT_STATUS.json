@@ -94,7 +94,7 @@
       "note": "Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default."
     },
     "connected-callee-loops": {
-      "status": "Budget-preserving current adaptation under validation",
+      "status": "Budget-preserving current adaptation under controlled timing",
       "note": "Historical Snakes +6.87%. Narrow current variant: Snakes -0.57%, Sky Force -1.25%; full historical eligibility/bound: -0.44% / -1.17%. Neither adopted. Follow-up preserves existing span/loop budget proofs across inlined calls; defaults unchanged."
     },
     "guarded-successor-lookup": {

@@ -1,6 +1,7 @@
 # Connected callees on the graduated runtime
 
-Status: the narrow candidate was rejected; both initial adaptations were rejected; budget-proof preservation passed focused validation and awaits timing. The historical sweep is
+Status: both initial adaptations were rejected; budget-proof preservation passed
+focused validation and is undergoing controlled timing. The historical sweep is
 paused at 72/109 comparisons for this graduation cycle. No new default has been
 committed or deployed yet.
 
@@ -112,4 +113,9 @@ The budget-preserving candidate passes the focused predicate, connected-callee,
 loop-budget and batched-accounting suites, including the new repeated-call proof
 assertions. Both 60-frame game replays match images, frame records and PCM exactly.
 Its candidate WASM hash is `421626b01133ceb9171666b8e1e763a28b44a46f13953ec016ac131e15df7e4b`; full evidence is
-`eka-connected-proofs/correctness.json`. Controlled timing remains pending.
+`eka-connected-proofs/correctness.json`. Controlled timing is running under the same frozen validity rules.
+
+The completed budget-preserving Snakes comparison improves CPU throughput
+2.25%, wall throughput 2.15%, and reduces native instructions 3.67%. All four
+adjacent pairs improve (1.48% to 2.93%); all eight observations pass the frozen
+validity checks. Sky Force remains in progress, so graduation is pending.
