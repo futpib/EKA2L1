@@ -5,6 +5,18 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The completed controlled reruns use four observations per variant in ABBA then
+BAAB order. Full state pruning is effectively flat in Snakes (+0.08% CPU and
++0.06% wall throughput); Sky Force shows a small observed gain (+0.66% CPU,
++0.63% wall, three of four CPU pairs favorable). Forced C++ lookup inlining is
+also flat in Snakes (-0.39% CPU, -0.10% wall). Its Sky Force mean is +2.56% CPU
+and +2.39% wall, but the four CPU pairs range from -0.56% to +8.25%, and retired
+instructions barely change. The slowest control passed the host checks and
+remains included. That spread does not establish a reliable 2.56% inlining gain.
+These are frozen-build comparisons; they do not measure a port to the latest
+production configuration. Entry-only pruning, store-only pruning and the
+separate quiet-runtime cuts are still pending in the controlled campaign.
+
 Follow-up runtime experiments: [compact dispatch and division lowering](DISPATCH_AND_DIVISION_RESULTS.md).
 
 The retained performance change removes work from the emulator's **execution
