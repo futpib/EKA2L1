@@ -14,8 +14,23 @@ and +2.39% wall, but the four CPU pairs range from -0.56% to +8.25%, and retired
 instructions barely change. The slowest control passed the host checks and
 remains included. That spread does not establish a reliable 2.56% inlining gain.
 These are frozen-build comparisons; they do not measure a port to the latest
-production configuration. Entry-only pruning, store-only pruning and the
-separate quiet-runtime cuts are still pending in the controlled campaign.
+production configuration.
+
+Entry-only pruning is flat to slightly slower in Snakes (-0.39% CPU, -0.12%
+wall, two of four CPU pairs faster), with 0.42% more retired native instructions.
+In Sky Force it improves CPU throughput by 3.14% and wall throughput by 2.87%,
+with all four CPU pairs faster and 1.38% fewer native instructions. The entry-only
+trials use guest seconds 21-25 in Snakes and 42-48 in Sky Force; the full-pruning
+trials use 78-96 and 42-60 respectively. These results therefore do not establish
+that entry-only pruning beats full pruning.
+
+Store-only pruning uses the same short windows as entry-only pruning. Snakes
+shows +0.40% CPU and +0.34% wall throughput, with all four CPU pairs slightly
+faster despite 0.50% more retired instructions. Sky Force is close to flat at
+-0.41% CPU and -0.38% wall throughput, with one of four CPU pairs faster despite
+0.67% fewer retired instructions. Neither instruction counts nor these small
+timing changes establish a broad advantage for store-only pruning. The separate
+quiet-runtime cuts are still pending in the controlled campaign.
 
 Follow-up runtime experiments: [compact dispatch and division lowering](DISPATCH_AND_DIVISION_RESULTS.md).
 
