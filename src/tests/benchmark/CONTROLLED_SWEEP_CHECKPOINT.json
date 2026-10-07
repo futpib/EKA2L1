@@ -2,9 +2,9 @@
   "status": "running",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User explicitly requested: nice, resume the sweep",
-  "completed_comparisons": 67,
+  "completed_comparisons": 68,
   "total_comparisons": 109,
-  "valid_observations": 536,
+  "valid_observations": 544,
   "expected_observations": 872,
   "invalid_observations": 20,
   "cancelled_waiters": {
@@ -260,6 +260,15 @@
   "reviewed_after_resumption": [
     "cached-address-displacement/standard",
     "deferred-read-exit/standard",
-    "owner-core-reuse/standard"
-  ]
+    "owner-core-reuse/standard",
+    "aligned-cache-hash/standard"
+  ],
+  "configuration_audit": {
+    "observations": 558,
+    "matching_reported_fields": 7404,
+    "mismatches": 0,
+    "missing_varied_selectors": 0,
+    "path": "/home/claude/.scratch/eka-controlled/observed-selector-audit.json",
+    "limits": "Some legacy fields record a checked setter request rather than a getter; explicit getter assertions were inspected for leaf features, execution limits and memory implementations/cache modes."
+  }
 }

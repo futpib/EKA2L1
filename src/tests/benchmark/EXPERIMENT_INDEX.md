@@ -48,7 +48,7 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 
 ## Controlled comparisons
 
-67/109 game comparisons complete; 536/872 valid observations; 20 retained host-invalid observations.
+68/109 game comparisons complete; 544/872 valid observations; 20 retained host-invalid observations.
 
 CPU and wall columns are throughput changes: positive is faster. Native
 instructions are candidate/control changes: negative is less work. Pairs
@@ -125,7 +125,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 65 | cached-address-displacement / Snakes | -0.27% | -0.36% | -0.41% | 2/4 | 8/8; 2 invalid | Historical result mixed: Controlled Snakes -0.27% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 66 | deferred-read-exit / Snakes | +0.46% | +0.43% | -1.52% | 2/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.46% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 67 | owner-core-reuse / Snakes | +0.81% | +0.75% | -0.24% | 4/4 | 8/8; 0 invalid | Current-runtime reassessment candidate: Historical Snakes +0.81% CPU, 4/4 faster pairs including one near tie; current lookup still reads parent per lookup, but compiler and dispatch have changed | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
-| 68 | aligned-cache-hash / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
+| 68 | aligned-cache-hash / Snakes | +0.65% | +0.47% | +0.20% | 3/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.65% CPU, 3/4 faster pairs, native instructions +0.20%; current source retains the older hash; no default change | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 69 | compact-generated-memory / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 70 | connected-callee-loops / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 71 | guarded-successor-lookup / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
