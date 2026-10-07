@@ -194,6 +194,20 @@ The harness records these as invalid and waits before the next launch; it
 never stops unrelated jobs. This comparison therefore needs its shared-host
 limitation considered alongside its eventual paired results.
 
+Three control attempts then failed the clock rule; the last also recorded a
+package-throttle counter increase. The extended phase stopped and restored
+CPU policies, EPP, the balanced profile, effective CPU masks and automatic
+charging; all were checked live. At that check, CPU sensors read 49-57 C and
+no known build process remained. `extended-host-resume3.json` and
+`extended-charging-resume3.json` preserve the restoration. A separate resume
+preflight waits for 60 continuous seconds without known build processes and
+with CPU sensors at or below 70 C, recorded in `post-build-settling-resume5.json`.
+The check passed after 60.27 seconds, ending at 48 C.
+It then resumes the same plan and unfinished control, using the existing
+3.6 GHz/core reservation/charging-pause setup and unchanged validity rules.
+New host and charging records use the `resume4` suffix; the queue/log invocation
+is named `resume5`. Earlier valid observations are not rerun or discarded.
+
 ## What these measurements can establish
 
 Recent frozen builds answer the marginal runtime question at the same source

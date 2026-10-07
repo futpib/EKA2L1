@@ -3807,7 +3807,7 @@
           "end": 1791358654.008346,
           "restored": true
         },
-        "/home/claude/.scratch/eka-controlled/extended-host-resume3.json": {
+        "/home/claude/.scratch/eka-controlled/extended-host-resume4.json": {
           "before": {
             "/sys/devices/system/cpu/cpufreq/policy0": {
               "scaling_governor": "powersave",
@@ -3913,7 +3913,7 @@
             "/home/claude/.scratch/eka-controlled/extended-plan.json",
             "/home/claude/.scratch/eka-controlled/extended-runs"
           ],
-          "start": 1791364891.5802386,
+          "start": 1791369850.5701313,
           "platform_profile": {
             "before": "balanced",
             "requested": "performance",
@@ -4106,6 +4106,420 @@
               "energy_performance_preference": "performance"
             }
           }
+        },
+        "/home/claude/.scratch/eka-controlled/extended-host-resume3.json": {
+          "before": {
+            "/sys/devices/system/cpu/cpufreq/policy0": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy1": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy10": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy11": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy12": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy13": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy14": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy15": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy2": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy3": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy4": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy5": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy6": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy7": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy8": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy9": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            }
+          },
+          "target_khz": 3600000,
+          "command": [
+            "python3",
+            "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py",
+            "/home/claude/.scratch/eka-controlled/extended-plan.json",
+            "/home/claude/.scratch/eka-controlled/extended-runs"
+          ],
+          "start": 1791364891.5802386,
+          "platform_profile": {
+            "before": "balanced",
+            "requested": "performance",
+            "applied": "performance",
+            "after": "balanced"
+          },
+          "placements": {
+            "/sys/fs/cgroup/sys-fs-fuse-connections.mount/cpuset.cpus": {
+              "before": "",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": ""
+            },
+            "/sys/fs/cgroup/sys-kernel-config.mount/cpuset.cpus": {
+              "before": "",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": ""
+            },
+            "/sys/fs/cgroup/sys-kernel-debug.mount/cpuset.cpus": {
+              "before": "",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": ""
+            },
+            "/sys/fs/cgroup/dev-mqueue.mount/cpuset.cpus": {
+              "before": "",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": ""
+            },
+            "/sys/fs/cgroup/user.slice/cpuset.cpus": {
+              "before": "0-15",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": "0-15"
+            },
+            "/sys/fs/cgroup/sys-kernel-tracing.mount/cpuset.cpus": {
+              "before": "",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": ""
+            },
+            "/sys/fs/cgroup/init.scope/cpuset.cpus": {
+              "before": "0-15",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": "0-15"
+            },
+            "/sys/fs/cgroup/system.slice/cpuset.cpus": {
+              "before": "0-15",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": "0-15"
+            },
+            "/sys/fs/cgroup/proc-sys-fs-binfmt_misc.mount/cpuset.cpus": {
+              "before": "",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": ""
+            },
+            "/sys/fs/cgroup/dev-hugepages.mount/cpuset.cpus": {
+              "before": "",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": ""
+            },
+            "/sys/fs/cgroup/eka.slice/cpuset.cpus": {
+              "before": "",
+              "before_effective": "0-15",
+              "requested": "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+              "after": ""
+            }
+          },
+          "helper_affinity_before": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "helper_affinity": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "requested": {
+            "/sys/devices/system/cpu/cpufreq/policy0": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy1": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy10": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy11": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy12": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy13": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy14": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy15": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy2": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy3": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy4": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy5": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy6": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy7": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy8": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy9": {
+              "scaling_governor": "performance",
+              "scaling_min_freq": "3600000",
+              "scaling_max_freq": "3600000",
+              "energy_performance_preference": "performance"
+            }
+          },
+          "returncode": 1,
+          "after": {
+            "/sys/devices/system/cpu/cpufreq/policy0": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy1": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy10": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy11": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy12": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy13": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy14": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy15": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy2": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy3": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy4": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy5": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy6": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy7": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy8": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            },
+            "/sys/devices/system/cpu/cpufreq/policy9": {
+              "scaling_governor": "powersave",
+              "scaling_min_freq": "800000",
+              "scaling_max_freq": "5100000",
+              "energy_performance_preference": "balance_performance"
+            }
+          },
+          "restoration_errors": [],
+          "end": 1791369596.3208325,
+          "restored": true
         },
         "/home/claude/.scratch/eka-controlled/extended-host-resume2.json": {
           "before": {
@@ -4941,6 +5355,30 @@
         }
       },
       "charging_states": {
+        "/home/claude/.scratch/eka-controlled/extended-charging-resume4.json": {
+          "before": "auto",
+          "start": 1791369850.502759,
+          "command": [
+            "python3",
+            "/home/claude/code/EKA2L1/src/tests/benchmark/fixed_frequency.py",
+            "--khz",
+            "3600000",
+            "--isolate-cpus",
+            "7,15",
+            "--platform-profile",
+            "performance",
+            "--state",
+            "/home/claude/.scratch/eka-controlled/extended-host-resume4.json",
+            "--",
+            "python3",
+            "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py",
+            "/home/claude/.scratch/eka-controlled/extended-plan.json",
+            "/home/claude/.scratch/eka-controlled/extended-runs"
+          ],
+          "restored": false,
+          "applied": "inhibit-charge",
+          "battery_status": "Not charging"
+        },
         "/home/claude/.scratch/eka-controlled/extended-charging-resume3.json": {
           "before": "auto",
           "start": 1791364891.5077286,
@@ -4961,9 +5399,12 @@
             "/home/claude/.scratch/eka-controlled/extended-plan.json",
             "/home/claude/.scratch/eka-controlled/extended-runs"
           ],
-          "restored": false,
+          "restored": true,
           "applied": "inhibit-charge",
-          "battery_status": "Not charging"
+          "battery_status": "Not charging",
+          "returncode": 1,
+          "after": "auto",
+          "end": 1791369596.3357227
         }
       },
       "observations_path": "/home/claude/.scratch/eka-controlled/extended-runs/observations.json"
@@ -8964,8 +9405,8 @@
       "experiment": "wide-result-reuse",
       "game": "standard",
       "original_report": "WIDE_REUSE_RESULTS.md",
-      "valid": 3,
-      "invalid": 2,
+      "valid": 4,
+      "invalid": 3,
       "expected": 8,
       "complete": false
     },
@@ -90937,6 +91378,380 @@
       "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
       "shared_audio": true,
       "report_sha256": "6f6633ba237cf24c9f7cc007abcf202a540ae64cbcb526e72a2842a58f17b8e8"
+    },
+    {
+      "name": "wide-result-reuse-standard-0-3-control",
+      "experiment": "wide-result-reuse",
+      "game": "standard",
+      "panel": 0,
+      "index": 3,
+      "variant": "control",
+      "attempt": 2,
+      "directory": "/home/claude/.scratch/eka-controlled/extended-runs/wide-result-reuse-standard-0-3-control-attempt2",
+      "validity": {
+        "valid": false,
+        "errors": [
+          "Interval frequency outside predeclared limit",
+          "package_throttle_count increased"
+        ],
+        "mhz": 3583.0517310377554,
+        "interval_min_mhz": 3483.7373913183287,
+        "interval_max_mhz": 3591.669677648048,
+        "worker_cpu_seconds": 15.208031268,
+        "instructions": 125148329776,
+        "cycles": 54338441237,
+        "worker": "3907520:3907585",
+        "sibling_busy_fraction": {
+          "15": 0.0036319612590799033
+        }
+      },
+      "work": {
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "presentations": 676
+      },
+      "journal_sha256": null,
+      "plan_sha256": "2c9b9048a78a880cd8972adbe2a0fb082eba391ce25f96fd1a073c867ac67532",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-benchmark/flag-stack-candidate",
+          "/home/claude/.scratch/eka-controlled/extended-runs/wide-result-reuse-standard-0-3-control-attempt2",
+          "--hardware-counters",
+          "--start-us",
+          "78000000",
+          "--end-us",
+          "96000000",
+          "--capture-mode",
+          "2",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "33c9af6d1bb1a2ea0389c7245e5e27291d2f59784d04c8078942faba6d922787",
+            "eka2l1.js": "74e1c652fd857325d5d41a63a048881ec1deebc70fc9ddf53638a3ab766a2df1"
+          },
+          "candidate": {
+            "eka2l1.wasm": "565faa92147d6e9d6ba8392ba71b6f2b9518705596d5f526edbf59a0ca01e745",
+            "eka2l1.js": "74e1c652fd857325d5d41a63a048881ec1deebc70fc9ddf53638a3ab766a2df1"
+          }
+        },
+        "plan_sha256": "2c9b9048a78a880cd8972adbe2a0fb082eba391ce25f96fd1a073c867ac67532",
+        "controller_sha256": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+        "quiet_host": {
+          "waited_seconds": 261.7596107190475,
+          "observed_builds": {
+            "3776858": "cargo",
+            "3787805": "cargo",
+            "3787976": "rustc",
+            "3788118": "rustc",
+            "3788182": "rustc",
+            "3788214": "rustc",
+            "3788546": "rustc",
+            "3788787": "rustc",
+            "3790123": "cargo",
+            "3790130": "rustc",
+            "3888151": "cargo",
+            "3888471": "rustc",
+            "3888489": "rustc",
+            "3888527": "rustc",
+            "3888945": "rustc",
+            "3889049": "rustc"
+          }
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/benchmark.ts": "782738083e6d186ba80dd198d8c5fbe0ab56fac31889ddb2def3c74ab5616bdb",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/live.ts": "d57a9a5be41bc19a5f59275693bd7707150380dc05035ea89a1a4c23d76053cc",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/profile.ts": "1d75ee831b4326ace07e2203241f48ee84d7e45e5f5543b11c97e2d698bc3e0c",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/serve.ts": "9a3604517f54ba20568b3db50994036cb0a73914ef4ed547aba900f43940de27",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/server.ts": "661c5bdceb3f16d05413f779fd70b3d50824e1a5c951f7a4aefcc39ad779c808",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/test.ts": "b8b3400796143702becdfd9412e35c719bb42fbcbf4443f407ffe9cfcb0b1480"
+        }
+      },
+      "scheduler_sha256": "91a85623b2e3f04c490ffa10914e21729fb599a1e1b25baae8e44472c66577c0",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 16.5683,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "14289b8efabcac38dc8a5f0baf6df37775dcbac1c713468b74db7bf3ee022395"
+    },
+    {
+      "name": "wide-result-reuse-standard-0-3-control",
+      "experiment": "wide-result-reuse",
+      "game": "standard",
+      "panel": 0,
+      "index": 3,
+      "variant": "control",
+      "attempt": 3,
+      "directory": "/home/claude/.scratch/eka-controlled/extended-runs/wide-result-reuse-standard-0-3-control-attempt3",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5779965144866,
+        "interval_min_mhz": 3591.4241955263283,
+        "interval_max_mhz": 3591.7023285555906,
+        "worker_cpu_seconds": 14.486137715,
+        "instructions": 125142947785,
+        "cycles": 51939000315,
+        "worker": "3927219:3927264",
+        "sibling_busy_fraction": {
+          "15": 0.0012853470437017994
+        }
+      },
+      "work": {
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "presentations": 676
+      },
+      "journal_sha256": null,
+      "plan_sha256": "2c9b9048a78a880cd8972adbe2a0fb082eba391ce25f96fd1a073c867ac67532",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-benchmark/flag-stack-candidate",
+          "/home/claude/.scratch/eka-controlled/extended-runs/wide-result-reuse-standard-0-3-control-attempt3",
+          "--hardware-counters",
+          "--start-us",
+          "78000000",
+          "--end-us",
+          "96000000",
+          "--capture-mode",
+          "2",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "33c9af6d1bb1a2ea0389c7245e5e27291d2f59784d04c8078942faba6d922787",
+            "eka2l1.js": "74e1c652fd857325d5d41a63a048881ec1deebc70fc9ddf53638a3ab766a2df1"
+          },
+          "candidate": {
+            "eka2l1.wasm": "565faa92147d6e9d6ba8392ba71b6f2b9518705596d5f526edbf59a0ca01e745",
+            "eka2l1.js": "74e1c652fd857325d5d41a63a048881ec1deebc70fc9ddf53638a3ab766a2df1"
+          }
+        },
+        "plan_sha256": "2c9b9048a78a880cd8972adbe2a0fb082eba391ce25f96fd1a073c867ac67532",
+        "controller_sha256": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+        "quiet_host": {
+          "waited_seconds": 1.0247082950081676,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/benchmark.ts": "782738083e6d186ba80dd198d8c5fbe0ab56fac31889ddb2def3c74ab5616bdb",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/live.ts": "d57a9a5be41bc19a5f59275693bd7707150380dc05035ea89a1a4c23d76053cc",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/profile.ts": "1d75ee831b4326ace07e2203241f48ee84d7e45e5f5543b11c97e2d698bc3e0c",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/serve.ts": "9a3604517f54ba20568b3db50994036cb0a73914ef4ed547aba900f43940de27",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/server.ts": "661c5bdceb3f16d05413f779fd70b3d50824e1a5c951f7a4aefcc39ad779c808",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-7cbb39daa/src/tests/wasm/test.ts": "b8b3400796143702becdfd9412e35c719bb42fbcbf4443f407ffe9cfcb0b1480"
+        }
+      },
+      "scheduler_sha256": "0b66ae4bfc76d257d03de7f5a8ba19fc33670c8c81079a2d833da8a34615aee2",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 2,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11263760836,
+        "last_instructions": 15239379460,
+        "wall_seconds": 15.5711,
+        "presentations": 676,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "72ddcaac64da0385c4b4eef9dc69c05f6915918276fae116e7fbd1ba5503d5fb"
     }
   ],
   "measurements_complete": false,
@@ -90965,7 +91780,7 @@
     "charging_wrapper": "/home/claude/.scratch/eka-controlled/temporary-nocharge.py"
   },
   "complete": false,
-  "valid_observations": 467,
+  "valid_observations": 468,
   "expected_observations": 872,
-  "invalid_observations": 16
+  "invalid_observations": 17
 }
