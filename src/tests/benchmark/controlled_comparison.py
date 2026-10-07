@@ -71,10 +71,15 @@ def validate_clock(report, plan):
     if abs(mhz / target - 1) > rules['mean_relative_tolerance']:
         errors.append('Whole-window frequency outside predeclared limit')
     samples = report['clock_samples']
+    expected_profile = plan.get('platform_profile')
+    if expected_profile is None and samples:
+        expected_profile = samples[0].get('platform_profile')
     intervals = []
     for row in samples:
         if row.get('error'):
             errors.append('Clock sample failed: ' + row['error'])
+        if expected_profile is not None and row.get('platform_profile') != expected_profile:
+            errors.append('Platform profile changed or differs from the plan')
         if row.get('affinity') != [plan['worker_cpu']]:
             errors.append('Worker affinity changed')
         if row.get('policy') != dict(scaling_governor='performance',

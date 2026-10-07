@@ -47,6 +47,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--khz', type=int, required=True)
     parser.add_argument('--state', type=Path, required=True)
+    parser.add_argument('--platform-profile', type=str,
+                        help='Temporarily request a supported ACPI platform profile')
     parser.add_argument('--isolate-cpus', type=str,
                         help='Reserve these CPUs from other top-level cgroups; run inside ekabench.slice')
     parser.add_argument('command', nargs=argparse.REMAINDER)
@@ -64,6 +66,13 @@ def main():
         if not int((p / 'cpuinfo_min_freq').read_text()) <= args.khz <= int((p / 'cpuinfo_max_freq').read_text()):
             raise RuntimeError(f'Request outside supported range: {p}')
     record = dict(before=before, target_khz=args.khz, command=command, start=time.time())
+    platform_path = Path('/sys/firmware/acpi/platform_profile')
+    if args.platform_profile:
+        choices = platform_path.with_name('platform_profile_choices').read_text().split()
+        if args.platform_profile not in choices:
+            parser.error('Unsupported platform profile')
+        record['platform_profile'] = dict(before=platform_path.read_text().strip(),
+            requested=args.platform_profile)
     placements = {}
     if args.isolate_cpus:
         if '/ekabench.slice/' not in Path('/proc/self/cgroup').read_text():
@@ -100,6 +109,11 @@ def main():
     for number in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
         signal.signal(number, interrupted)
     try:
+        if args.platform_profile:
+            write(platform_path, args.platform_profile)
+            record['platform_profile']['applied'] = platform_path.read_text().strip()
+            if record['platform_profile']['applied'] != args.platform_profile:
+                raise RuntimeError('Platform profile request did not read back exactly')
         for path, values in placements.items():
             write(path, values['requested'])
         if args.isolate_cpus:
@@ -149,6 +163,14 @@ def main():
                     values['restored_as_explicit_mask'] = True
                 else:
                     errors.append(dict(path=path, error=str(error)))
+        if args.platform_profile:
+            try:
+                write(platform_path, record['platform_profile']['before'])
+                record['platform_profile']['after'] = platform_path.read_text().strip()
+                if record['platform_profile']['after'] != record['platform_profile']['before']:
+                    errors.append(dict(path=str(platform_path), error='Platform profile not restored'))
+            except OSError as error:
+                errors.append(dict(path=str(platform_path), error=str(error)))
         for path, values in before.items():
             try:
                 p = Path(path)

@@ -104,6 +104,15 @@ the same change wins on the current direct-memory/default compiler combination.
 A recovered historical win is a reason to port and measure that change again,
 not to add its percentage to current throughput.
 
+Two limit screens (`conditional-leaf-bound` and `hot-source-window`) use the
+later frozen tail-prefix archive, with prefix features disabled and conditional
+leaf fusion enabled. They recheck the bounds in that configuration; they do not
+reproduce the earlier pre-conditional compiler from the original limits report.
+`current-tlb-vs-direct` intentionally uses the current retained production build.
+An archive audit reconciled all 138 build selections against the experiment or
+baseline archive reports. Its paths, hashes and these stage distinctions are
+recorded in `provenance-audit.json` in the campaign directory.
+
 Warmed guest-worker CPU time is the main metric. Wall time, native retired
 instructions, cycles, actual frequency and all four adjacent pair changes
 remain visible. Warmup, build time and offline compiler probes are excluded.
@@ -207,3 +216,28 @@ test confirmed the child inherited only support CPUs and host policy/masks were
 restored afterward; the unit validator rejects missing or conflicting monitor
 affinity. Three fresh Snakes browser runs also passed: every clock sample recorded worker
 affinity `[7]` and monitor affinity `[0,1,2,3,4,5,6,8,9,10,11,12,13,14]`.
+
+## Platform power profile
+
+After the first five corrected game comparisons, repeated actual-clock failures
+prompted a check of the laptop's platform policy. Although CPU limits requested
+3.6 GHz, its balanced platform profile reported a 30 W sustained MMIO package
+limit. The supported performance profile reported 35 W. A deliberate child-failure
+test verified restoration of the original balanced profile, CPU policies and
+effective CPU masks. The package limit returned to 30 W as well.
+
+The first five complete comparisons remain balanced-profile observations:
+compact dispatch and division lowering in both games, and state pruning in
+Snakes. The controller stopped only after that eighth state-pruning observation;
+`reserved-host.json` confirms restoration. No comparison combines observations
+from different platform profiles. The remaining comparisons use performance,
+with the same 3.6 GHz request, binaries, game windows, run orders and clock limits.
+Every subsequent clock sample records the profile. The four unstarted plans
+explicitly require performance; the resumed original plan retains its hash and
+also rejects a profile change within a run.
+
+`platform-profile-restore-test.json` records the failure-path check, and
+`reserved-host-performance.json` identifies the resumed wrapper. Exact pre-change
+controller and sampler sources are retained as `reserved-before-platform-*.py`.
+The measured frequency rules remain authoritative; a larger platform power
+allowance alone is not evidence that a trial ran at the requested frequency.

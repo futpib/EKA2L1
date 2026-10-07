@@ -233,6 +233,9 @@ def main():
                                 policy = Path(f'/sys/devices/system/cpu/cpufreq/policy{args.worker_cpu}')
                                 row['policy'] = {name: (policy / name).read_text().strip() for name in
                                                  ('scaling_governor', 'scaling_min_freq', 'scaling_max_freq')}
+                                platform = Path('/sys/firmware/acpi/platform_profile')
+                                if platform.exists():
+                                    row['platform_profile'] = platform.read_text().strip()
                                 row['cgroup_cpus'] = {str(p): p.read_text().strip() for p in
                                     Path('/sys/fs/cgroup').glob('*/cpuset.cpus.effective')}
                                 row['cpu_ticks'] = {parts[0]: list(map(int, parts[1:]))

@@ -19,11 +19,20 @@ helper must run in the top-level `ekabench.slice`, so it can reserve the core
 without restricting its own child. It restores the saved frequency policies
 and CPU placement after completion, failure or a handled interruption.
 
+On hosts exposing ACPI platform profiles, `--platform-profile performance`
+also requests the supported performance profile temporarily. This host's balanced
+profile reported a 30 W sustained MMIO package limit; performance reported 35 W.
+That additional headroom does not guarantee a clock. The sampler records the
+profile throughout each run, and validation rejects a change or a mismatch with
+a plan's requested profile. Restoration puts the platform profile back before
+restoring CPU policies, since changing profiles can itself affect those policies.
+
 ```sh
 sudo -n systemd-run --scope --quiet \
   --unit=ekabench-comparison --slice=ekabench.slice -- \
   python3 src/tests/benchmark/fixed_frequency.py \
-  --khz 3600000 --isolate-cpus 7,15 --state /ABS/NEW_OUTPUT/host.json -- \
+  --khz 3600000 --isolate-cpus 7,15 --platform-profile performance \
+  --state /ABS/NEW_OUTPUT/host.json -- \
   python3 src/tests/benchmark/controlled_comparison.py \
   /ABS/PLAN.json /ABS/NEW_OUTPUT/runs
 ```

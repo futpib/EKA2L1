@@ -72,6 +72,17 @@ class ClockValidation(unittest.TestCase):
         self.report['thread_deltas'][0]['hardware'] = None
         self.assertFalse(validate_clock(self.report, self.plan)['valid'])
 
+    def test_platform_profile(self):
+        self.plan['platform_profile'] = 'performance'
+        self.assertFalse(validate_clock(self.report, self.plan)['valid'])
+        for sample in self.report['clock_samples']:
+            sample['platform_profile'] = 'performance'
+        self.assertTrue(validate_clock(self.report, self.plan)['valid'])
+        self.report['clock_samples'][-1]['platform_profile'] = 'balanced'
+        self.assertFalse(validate_clock(self.report, self.plan)['valid'])
+        del self.plan['platform_profile']
+        self.assertFalse(validate_clock(self.report, self.plan)['valid'])
+
 
 if __name__ == '__main__':
     unittest.main()
