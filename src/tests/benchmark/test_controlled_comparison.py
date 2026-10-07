@@ -1,9 +1,40 @@
 #!/usr/bin/env python3
 """Reject measurement confounders independently of the observed speed."""
 import copy
+import hashlib
+from pathlib import Path
+import tempfile
 import unittest
 
-from controlled_comparison import validate_clock
+from controlled_comparison import replay_input, replay_work, validate_clock
+
+
+class ReplayValidation(unittest.TestCase):
+    def test_frozen_input_cannot_silently_use_default_or_changed_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            path = repo / 'long.input'
+            path.write_bytes(b'long route\n')
+            fingerprint = hashlib.sha256(b'long route\n').hexdigest()
+            experiment = dict(inputs=dict(standard=dict(path=str(path), sha256=fingerprint)))
+            self.assertEqual(replay_input(experiment, 'standard', repo), (path, fingerprint))
+            self.assertEqual(replay_input(experiment, 'combat', repo),
+                (repo / 'src/tests/benchmark/sky-force-combat.input', None))
+            path.write_bytes(b'changed route\n')
+            with self.assertRaisesRegex(RuntimeError, 'Input file differs'):
+                replay_input(experiment, 'standard', repo)
+
+    def test_browser_route_and_historical_work_are_checked(self):
+        expected = dict(first_virtual_us=42000000, last_virtual_us=60000000,
+            first_instructions=6445351805, last_instructions=9476989025, presentations=380)
+        report = dict(input_sha256='frozen', measurement=expected.copy())
+        self.assertEqual(replay_work(report, 'frozen', expected), expected)
+        with self.assertRaisesRegex(RuntimeError, 'Browser replay input differs'):
+            replay_work(report, 'different', expected)
+        report['measurement']['first_instructions'] += 1
+        with self.assertRaisesRegex(RuntimeError, 'Guest work differs'):
+            replay_work(report, 'frozen', expected)
+        self.assertEqual(replay_work(report), report['measurement'])
 
 
 class ClockValidation(unittest.TestCase):

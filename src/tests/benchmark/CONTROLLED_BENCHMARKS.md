@@ -43,6 +43,14 @@ run directory using a new host-state filename. Completed valid observations
 are retained; a changed plan hash is rejected. `--only NAME ...` selects specific
 experiments from a plan. Do not run comparison campaigns concurrently.
 
+An experiment can select an alternate replay through `inputs.<game>.path` and
+`inputs.<game>.sha256`. The controller checks the file before launching and
+checks the browser's reported input hash afterward. Optional
+`expected_work.<game>` fixes `first_virtual_us`, `last_virtual_us`,
+`first_instructions`, `last_instructions` and `presentations` against a historical
+route. A mismatch stops the campaign. Experiments without these fields keep
+their normal game input and the existing within-comparison work checks.
+
 ## Measurement validity
 
 The helper's frequency request is insufficient evidence by itself.

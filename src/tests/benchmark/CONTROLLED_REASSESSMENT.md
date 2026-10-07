@@ -10,8 +10,8 @@ passed correctness but were rejected or left unresolved on noisy timing evidence
 
 ## Scope
 
-The five fixed plans contain 69 candidate/control comparisons, comprising 108
-game comparisons and 864 valid observations. Each game comparison uses ABBA
+The five fixed plans contain 70 candidate/control comparisons, comprising 109
+game comparisons and 872 valid observations. Each game comparison uses ABBA
 then BAAB. Historical Snakes-only experiments remain explicitly Snakes-only;
 their results are not presented as Sky Force measurements. No production
 optimization or default is changed by this task.
@@ -87,13 +87,30 @@ optimization or default is changed by this task.
 | 67 | extended | connected-callee-loops | [MEMORY_AND_CONNECTED_RESULTS](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 68 | extended | guarded-successor-lookup | [MEMORY_AND_CONNECTED_RESULTS](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 69 | memory | tlb-unaligned-scalar | [UNALIGNED_SCALAR_RESULTS](UNALIGNED_SCALAR_RESULTS.md) |
+| 70 | extended | compiled-syscalls-long-snakes | [COMPILED_SVC_TIMING_RESULTS](COMPILED_SVC_TIMING_RESULTS.md) |
 
-The final four entries correct omissions found while the first phase was running.
+Entries 66-69 correct omissions found while the first phase was running.
 They were appended only to unstarted phases; earlier plan copies remain in the
 campaign directory. Their archived WASM and loader hashes match the original
 reports. The three older connected/memory trials retain their original silent
 Snakes configuration. The TLB alignment trial covers both games. The running
 phase, its orders and its validity thresholds were not changed.
+
+The syscall report's original rejection also cited the long-snake route, which
+uses `snakes-length-long.input` at guest seconds 42-60. The standard route does
+not cover that input. Entry 70 was added as the first comparison of the unstarted
+extended phase, preserving the prior plan as `extended-plan.before-long-syscalls.json`.
+It uses the already-audited syscall binary and configuration. The input hash
+matches all four original long-route observations; the plan also fixes their
+guest instruction endpoints and presentation count. The running architecture
+plan and its observations are unchanged. This additional route remains pending
+until its own live measurements pass.
+
+The active architecture controller predates optional input-route selection.
+Its exact loaded source is preserved as
+`architecture-before-long-input-controlled_comparison.py`, matching startup
+hash `e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915`.
+Per-command hashes of later on-disk files do not replace that loaded-source hash.
 
 ## What these measurements can establish
 

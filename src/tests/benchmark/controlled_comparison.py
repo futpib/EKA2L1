@@ -20,6 +20,27 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def replay_input(experiment, game, repo):
+    spec = experiment.get('inputs', {}).get(game)
+    if spec is None:
+        return repo / 'src/tests/benchmark' / (
+            'snakes.input' if game == 'standard' else 'sky-force-combat.input'), None
+    path = Path(spec['path'])
+    if digest(path) != spec['sha256']:
+        raise RuntimeError('Input file differs from the frozen plan')
+    return path, spec['sha256']
+
+
+def replay_work(report, input_sha256=None, expected=None):
+    if input_sha256 is not None and report.get('input_sha256') != input_sha256:
+        raise RuntimeError('Browser replay input differs from the frozen plan')
+    work = {k: report['measurement'][k] for k in ('first_virtual_us', 'last_virtual_us',
+            'first_instructions', 'last_instructions', 'presentations')}
+    if expected is not None and work != expected:
+        raise RuntimeError('Guest work differs from the frozen historical route')
+    return work
+
+
 def wait_for_builds():
     started = time.monotonic()
     observed = {}
@@ -180,8 +201,8 @@ def main():
                         env.update(experiment['env'])
                         env.update(experiment[variant + '_env'])
                         env.update(GIT_DIR=str(repo / '.git'), GIT_WORK_TREE=str(repo))
-                        env['EKA2L1_PROFILE_INPUT'] = str(repo / 'src/tests/benchmark' /
-                            ('snakes.input' if game == 'standard' else 'sky-force-combat.input'))
+                        input_path, input_sha256 = replay_input(experiment, game, repo)
+                        env['EKA2L1_PROFILE_INPUT'] = str(input_path)
                         assets = Path('/home/claude/.scratch') / ('eka-benchmark/assets' if game == 'standard'
                                                                  else 'eka-sky-performance/assets')
                         if game == 'combat':
@@ -222,8 +243,8 @@ def main():
                         if report['shared_audio'] != (env.get('EKA2L1_SHARED_AUDIO', '1') == '1'):
                             raise RuntimeError('Audio configuration differs from the frozen plan')
                         measurement = report['measurement']
-                        current_work = {k: measurement[k] for k in ('first_virtual_us', 'last_virtual_us',
-                                        'first_instructions', 'last_instructions', 'presentations')}
+                        current_work = replay_work(report, input_sha256,
+                            experiment.get('expected_work', {}).get(game))
                         journal_path = dest / 'profile/frames.jsonl'
                         if not journal_path.exists() and experiment.get('capture_mode', 1) != 2:
                             raise RuntimeError('Missing presentation journal')

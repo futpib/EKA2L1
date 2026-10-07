@@ -5,18 +5,35 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The completed controlled rerun covers standard Snakes (guest seconds 21-39)
+and moving/firing Sky Force (42-48), with four fresh observations per variant
+in ABBA then BAAB order. Standard Snakes loses 0.61% CPU and 0.50% wall
+throughput, with three of four CPU pairs slower and 0.58% more native instructions.
+Sky Force improves by 8.11% CPU and 7.58% wall throughput, with all four CPU
+pairs faster (+3.90% to +16.87%) and 2.35% fewer native instructions. The wide
+paired range matters; the mean is not a precise universal gain.
+
+The original long-snake route uses a different input and is queued separately
+as `compiled-syscalls-long-snakes`, including its original input hash and exact
+guest-work endpoints. Its earlier losses are not reassessed by the standard
+route. The stationary Sky Force route below is not repeated by this combat
+comparison. These are frozen-build results, not a current-default adoption
+verdict; no production setting changes as part of this reassessment.
+
+## Original screen
+
 All sixteen preplanned same-binary observations are retained, with two reversed-order pairs on each route. Normal browser, detailed counters and sampling disabled, shared audio enabled, mode 3, Thumb memory enabled, ARM exclusive enabled; ARM memory/ROM calls/ROM leaves disabled. Original execution limits retained. Correctness and diagnostic jobs were idle before the first observation.
 
-| Route | Batch | Order (0 control, 1 candidate) | Control s | Candidate s | Throughput change | Candidate realtime |
-|---|---:|---|---:|---:|---:|---:|
-| sky | 0 | [0, 1] | 10.58480 | 10.39760 | +1.80% | 0.577x |
-| sky | 1 | [1, 0] | 12.24250 | 10.10590 | +21.14% | 0.594x |
-| combat | 0 | [1, 0] | 10.28110 | 9.61295 | +6.95% | 0.624x |
-| combat | 1 | [0, 1] | 9.94267 | 10.69150 | -7.00% | 0.561x |
-| standard | 0 | [0, 1] | 10.04190 | 9.95633 | +0.86% | 1.808x |
-| standard | 1 | [1, 0] | 10.09820 | 10.41160 | -3.01% | 1.729x |
-| long | 0 | [1, 0] | 9.72825 | 10.01880 | -2.90% | 1.797x |
-| long | 1 | [0, 1] | 9.87080 | 10.16100 | -2.86% | 1.771x |
+| # | Route | Batch | Order (0 control, 1 candidate) | Control s | Candidate s | Throughput change | Candidate realtime |
+|---:|---|---:|---|---:|---:|---:|---:|
+| 1 | sky | 0 | [0, 1] | 10.58480 | 10.39760 | +1.80% | 0.577x |
+| 2 | sky | 1 | [1, 0] | 12.24250 | 10.10590 | +21.14% | 0.594x |
+| 3 | combat | 0 | [1, 0] | 10.28110 | 9.61295 | +6.95% | 0.624x |
+| 4 | combat | 1 | [0, 1] | 9.94267 | 10.69150 | -7.00% | 0.561x |
+| 5 | standard | 0 | [0, 1] | 10.04190 | 9.95633 | +0.86% | 1.808x |
+| 6 | standard | 1 | [1, 0] | 10.09820 | 10.41160 | -3.01% | 1.729x |
+| 7 | long | 0 | [1, 0] | 9.72825 | 10.01880 | -2.90% | 1.797x |
+| 8 | long | 1 | [0, 1] | 9.87080 | 10.16100 | -2.86% | 1.771x |
 
 Guest instruction, presentation and guest-time totals match within every pair. Actual option readback is asserted in each run. The panel compares the compiled SVC option in one frozen V22d archive; it is not a total-change comparison with the untouched live build.
 
