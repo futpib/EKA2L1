@@ -31,7 +31,7 @@
     },
     "compiled-syscalls": {
       "status": "Promotion in progress",
-      "note": "Restored; current correctness passed, current timing pending. See [promotion results](RECOVERED_DEFAULTS_RESULTS.md)"
+      "note": "Current off/on Sky Force +7.17%, but total +0.71% with mixed pairs; no clear overall gain or adopted default. See [promotion results](RECOVERED_DEFAULTS_RESULTS.md)"
     },
     "compiled-syscalls-long-snakes": {
       "status": "Promotion in progress",
@@ -39,7 +39,7 @@
     },
     "sparse-rom-lookup": {
       "status": "Promotion in progress",
-      "note": "Restore and compare with today's inlined ROM registry"
+      "note": "Restored against current inline registry; focused checks passed, current timing pending"
     },
     "entry-only-pruning": {
       "status": "Promotion in progress",
@@ -55,7 +55,7 @@
     },
     "batched-counts": {
       "status": "Promotion in progress",
-      "note": "Restore generic batching and measure with current direct memory"
+      "note": "Generic ARM batching restored as policy 18; focused checks passed, current timing pending"
     },
     "current-tlb-vs-direct": {
       "status": "Direct is default",

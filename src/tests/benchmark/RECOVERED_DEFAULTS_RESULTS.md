@@ -8,7 +8,7 @@ current adoption decisions are in [the experiment index](EXPERIMENT_INDEX.md).
 ## Current-runtime measurements
 
 The compiled syscall candidate is restored. Both games' off/on comparisons are
-complete; the total-change comparison remains pending. Both comparisons use fixed
+complete, including the total change against the untouched baseline. Both use fixed
 3.6 GHz requests, measured reference-cycle frequency, reserved CPU 7 and sibling
 15, hardware Chromium rendering, and ABBA followed by BAAB. Invalid runs remain
 in the evidence and are repeated without changing the thresholds.
@@ -16,13 +16,24 @@ in the evidence and are repeated without changing the thresholds.
 | # | Comparison | Snakes CPU throughput | Sky Force CPU throughput | Status |
 | ---: | --- | --- | --- | --- |
 | 1 | Compiled syscalls off/on in one frozen candidate | +0.70% | +7.17% | 16 valid, 0 invalid; Snakes 3/4 pairs faster, Sky Force 4/4 |
-| 2 | Untouched baseline versus compiled syscall candidate | Pending | Pending | Includes added runtime checks and code layout; timing queued |
+| 2 | Untouched baseline versus compiled syscall candidate | +0.21% | +0.71% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
 
 Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
 The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
 throughput improves 6.51%; native instructions fall 4.12%. Its four CPU pairs
 improve 2.76% to 12.97%. These are same-binary comparisons with all other
-current production settings fixed; total-change validation is still running.
+current production settings fixed. Against the untouched baseline, Sky Force
+wall throughput changes by +0.67% and native instructions by -1.96%; its CPU
+pairs range from -2.69% to +2.66%. Snakes changes by +0.27% wall and +0.29%
+native instructions, with CPU pairs from -0.25% to +1.19%.
+
+The total comparison does **not** establish a clear overall speedup. The 7.17%
+same-binary gain must not be reported as the benefit of adopting this change.
+Added runtime work and code layout are included in the total comparison; their
+individual contributions have not been isolated. Compiled syscalls remain a
+candidate, and no runtime default has been committed from this promotion.
+All 32 observations were valid. CPU policy, affinity groups, platform profile
+and charging were restored, including a live sysfs check after the runs.
 The [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json) preserves every
 completed observation, frequency check, build hash and hardware-counter result.
 
@@ -51,12 +62,12 @@ Validation of the candidate:
   Test-only wrappers prove that generated functions actually execute without
   requiring production instrumentation. The restored standalone fixture used the
   translator's configured policy even though its command reported policy 17.
-  Explicit policy forwarding has since been fixed in the working tree; that
-  additional validation awaits the next build. The game replays below actually
+  Explicit policy forwarding was then fixed and all 10,368 comparisons
+  passed again with policy 17 actually selected. The game replays below also
   select runtime policy 17.
 - Both games' 60-frame replay images, frame records and PCM audio exactly
   match their native references. These deterministic replays use software
-  rendering; hardware-rendered execution is part of the pending timing panel.
+  rendering; all 32 timing observations used hardware rendering.
 - System Chromium passed the browser API suite, including the candidate's
   default, configuration/readback, and invalid mode rejection. The initial
   attempt used Puppeteer's missing bundled browser; rerunning with
@@ -74,3 +85,14 @@ The original evidence remains in [compiled syscall results](COMPILED_SVC_RESULTS
 and [the historical timing report](COMPILED_SVC_TIMING_RESULTS.md). The historical
 controlled comparison recovered +8.11% Sky Force CPU throughput with a 0.61%
 Snakes cost; this does not establish the gain of the current candidate.
+
+## Other recovered candidates
+
+Sparse ROM lookup, entry-only state pruning, generic ARM count batching, and
+whole-entry/outlined budget alternatives are restored for comparison with the
+current runtime. They are not adopted defaults. The rebuilt native and WASM
+fixtures passed focused checks, including 320,000 sparse registry comparisons,
+17,280 exact three-variant budget comparisons, and 34,560 instruction-batching
+comparisons. Additional batching fixtures cover short budgets, leaves, IRQs,
+code aliasing, callbacks and SVC boundaries. Selected game replays and controlled
+runtime measurements remain pending.
