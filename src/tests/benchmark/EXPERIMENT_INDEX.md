@@ -41,6 +41,10 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | 16 | compiled-syscalls-zero-current / Sky Force | +3.54% | +2.98% | -2.76% | 4/4 | 8/8; 1 invalid |
 | 17 | division-digits-current / Snakes | +0.07% | -0.11% | -0.38% | 2/4 | 8/8; 0 invalid |
 | 18 | division-digits-current / Sky Force | -0.66% | -0.77% | +0.00% | 2/4 | 8/8; 0 invalid |
+| 19 | adopted-vs-repository / Snakes | +1.70% | +1.07% | -2.13% | 4/4 | 8/8; 0 invalid |
+| 20 | adopted-vs-repository / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 21 | adopted-vs-served / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 22 | adopted-vs-served / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
 
 ## Controlled comparisons
 
@@ -5323,6 +5327,16 @@ carry through to this combination.
 
 The host is settling before the 32 final observations. No historical comparison
 has resumed. Final throughput and live LAN integration are still pending.
+
+**Combined timing intermediate checkpoint**
+
+The repository-baseline Snakes comparison is complete: +1.70% CPU throughput,
++1.07% wall throughput and 2.13% fewer native instructions. All four CPU pairs
+improve (0.81% to 2.41%); all eight observations are valid. The candidate runs
+at 1.940x real time in this fixed-clock warm window. This is the exact combined
+artifact, not a sum of independent feature measurements. Sky Force and the
+previously served LAN archive comparisons are still running. The historical
+sweep remains paused.
 
 </details>
 

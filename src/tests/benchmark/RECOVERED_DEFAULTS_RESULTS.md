@@ -262,3 +262,13 @@ back every new default after the measured window.
 
 The host is settling before the 32 final observations. No historical comparison
 has resumed. Final throughput and live LAN integration are still pending.
+
+## Combined timing intermediate checkpoint
+
+The repository-baseline Snakes comparison is complete: +1.70% CPU throughput,
++1.07% wall throughput and 2.13% fewer native instructions. All four CPU pairs
+improve (0.81% to 2.41%); all eight observations are valid. The candidate runs
+at 1.940x real time in this fixed-clock warm window. This is the exact combined
+artifact, not a sum of independent feature measurements. Sky Force and the
+previously served LAN archive comparisons are still running. The historical
+sweep remains paused.
