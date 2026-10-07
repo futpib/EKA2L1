@@ -182,6 +182,18 @@ paused for both variants. The report requires charging restoration as well as
 CPU/profile/mask restoration before declaring completion. The Chromium version
 remains 153.0.8010.52.
 
+During `wide-result-reuse`, an unrelated `cargo test -p slopd-acp` process
+started at 10:29:38 UTC inside the first panel's second candidate window
+(approximately 10:29:36-10:29:52 UTC). That candidate passed every predeclared
+host check and remains included. The process lifetime establishes overlap,
+not how much interference it caused; the parent's CPU use does not quantify
+its children. The timestamp evidence is preserved in
+`wide-reuse-concurrent-test-observation.json`. Subsequent control attempts
+failed the unchanged clock rule while additional build activity was present.
+The harness records these as invalid and waits before the next launch; it
+never stops unrelated jobs. This comparison therefore needs its shared-host
+limitation considered alongside its eventual paired results.
+
 ## What these measurements can establish
 
 Recent frozen builds answer the marginal runtime question at the same source
