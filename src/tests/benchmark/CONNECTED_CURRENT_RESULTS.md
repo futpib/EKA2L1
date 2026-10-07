@@ -131,3 +131,12 @@ All 16 observations are valid, with no retries. All 88 live restoration checks
 pass. This tradeoff is not adopted. The same candidate artifact is now compared
 at the existing 16-instruction bound in `eka-connected-proofs16`; no source
 change or rebuild is required. The previous results remain separate and complete.
+
+## Original-bound correctness
+
+The unchanged budget-preserving artifact passes the full WASM suite: 172 reported
+passes, zero failures, two existing diagnostic-only skips and the documented
+XFAIL. At bound 16, both games match their 60-frame images, frame records and PCM
+references exactly. Evidence is `eka-connected-proofs16/correctness.json`. The
+controlled comparison uses bound 16 for both control and candidate, retaining all
+previous defaults and validity rules; no rebuild was needed.
