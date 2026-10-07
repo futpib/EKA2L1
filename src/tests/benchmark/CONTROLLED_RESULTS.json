@@ -5775,20 +5775,90 @@
       "experiment": "rom-first-use-recycling",
       "game": "standard",
       "original_report": "ROM_FIRST_USE_RECYCLING_TIMING_RESULTS.md",
-      "valid": 2,
+      "valid": 8,
       "invalid": 0,
       "expected": 8,
-      "complete": false
+      "complete": true,
+      "control": {
+        "worker_cpu_seconds": 11.23689922425,
+        "cycles": 39958681990.25,
+        "instructions": 83231080639.5,
+        "wall_seconds": 12.74395,
+        "cpu_seconds_range": [
+          11.18492363,
+          11.272950759
+        ]
+      },
+      "candidate": {
+        "worker_cpu_seconds": 11.68572926525,
+        "cycles": 41077279308.5,
+        "instructions": 84653109469.75,
+        "wall_seconds": 12.661875,
+        "cpu_seconds_range": [
+          11.442756028,
+          11.796877374
+        ]
+      },
+      "cpu_throughput_change_percent": -3.8408389481920713,
+      "wall_throughput_change_percent": 0.6482057357223958,
+      "native_instruction_change_percent": 1.7085310190903868,
+      "paired_cpu_throughput_changes_percent": [
+        -4.781396738455235,
+        -1.4839542902469693,
+        -5.102582844243964,
+        -3.9263799696089174
+      ],
+      "favorable_pairs": 0,
+      "frequency_mhz_range": [
+        3591.4654228010195,
+        3591.522869547648
+      ],
+      "direction": "all pairs slower"
     },
     {
       "phase": "architecture",
       "experiment": "rom-first-use-recycling",
       "game": "combat",
       "original_report": "ROM_FIRST_USE_RECYCLING_TIMING_RESULTS.md",
-      "valid": 0,
+      "valid": 8,
       "invalid": 0,
       "expected": 8,
-      "complete": false
+      "complete": true,
+      "control": {
+        "worker_cpu_seconds": 11.192907470249999,
+        "cycles": 40036387270.75,
+        "instructions": 101856610860.5,
+        "wall_seconds": 11.92795,
+        "cpu_seconds_range": [
+          11.060265579,
+          11.317364249
+        ]
+      },
+      "candidate": {
+        "worker_cpu_seconds": 12.185342213,
+        "cycles": 43105282242,
+        "instructions": 103057771889.75,
+        "wall_seconds": 12.48685,
+        "cpu_seconds_range": [
+          11.87794963,
+          12.401515674
+        ]
+      },
+      "cpu_throughput_change_percent": -8.144496275953717,
+      "wall_throughput_change_percent": -4.475908655906025,
+      "native_instruction_change_percent": 1.1792666367969717,
+      "paired_cpu_throughput_changes_percent": [
+        -9.780466273633703,
+        -7.2546609475785395,
+        -6.630654839710748,
+        -8.852784110104583
+      ],
+      "favorable_pairs": 0,
+      "frequency_mhz_range": [
+        3591.532882804062,
+        3591.583540254574
+      ],
+      "direction": "all pairs slower"
     },
     {
       "phase": "architecture",
@@ -52432,12 +52502,2926 @@
       "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
       "shared_audio": true,
       "report_sha256": "db21913fbf99ebca929d522447207e438904823e74ada5a4c27b1f8453eddb1c"
+    },
+    {
+      "name": "rom-first-use-recycling-standard-0-2-candidate",
+      "experiment": "rom-first-use-recycling",
+      "game": "standard",
+      "panel": 0,
+      "index": 2,
+      "variant": "candidate",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-0-2-candidate-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5068915425595,
+        "interval_min_mhz": 3590.089969514601,
+        "interval_max_mhz": 3591.6597604056246,
+        "worker_cpu_seconds": 11.442756028,
+        "instructions": 83015605635,
+        "cycles": 40530483445,
+        "worker": "2846863:2846909",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      },
+      "work": {
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "presentations": 381
+      },
+      "journal_sha256": "46532ddeae9bc5e8b351b340b5e1e4ef9ff23386b4c7db8f3438a8ef8141a5b8",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-0-2-candidate-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "21000000",
+          "--end-us",
+          "39000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "3",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.024265879066661,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "596fed13bac6fd974ee00195c6547c3523a63c8986024039d6cdaf5e1b800349",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "wall_seconds": 12.7534,
+        "presentations": 381,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "f3c38990ca64e2730890296cd0eb3b5dabcb649799cf5947e015a42d83be98ff"
+    },
+    {
+      "name": "rom-first-use-recycling-standard-0-3-control",
+      "experiment": "rom-first-use-recycling",
+      "game": "standard",
+      "panel": 0,
+      "index": 3,
+      "variant": "control",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-0-3-control-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5136217112404,
+        "interval_min_mhz": 3590.948123615294,
+        "interval_max_mhz": 3591.6590901998397,
+        "worker_cpu_seconds": 11.272950759,
+        "instructions": 83281954238,
+        "cycles": 40088464271,
+        "worker": "2849493:2849554",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      },
+      "work": {
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "presentations": 381
+      },
+      "journal_sha256": "46532ddeae9bc5e8b351b340b5e1e4ef9ff23386b4c7db8f3438a8ef8141a5b8",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-0-3-control-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "21000000",
+          "--end-us",
+          "39000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "2",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.0238268909743056,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "0322600a23762e6d153e8b78e484ba2b26d23947e7e8f5ebf18eb3156ba040bc",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "wall_seconds": 12.7749,
+        "presentations": 381,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "b7940d77f2675d6c262170d786746429fe7f2276f9fe6ba2ab503ee82ceea8ae"
+    },
+    {
+      "name": "rom-first-use-recycling-standard-1-0-candidate",
+      "experiment": "rom-first-use-recycling",
+      "game": "standard",
+      "panel": 1,
+      "index": 0,
+      "variant": "candidate",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-1-0-candidate-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.465724453857,
+        "interval_min_mhz": 3589.8723342606827,
+        "interval_max_mhz": 3591.6723677347472,
+        "worker_cpu_seconds": 11.78633093,
+        "instructions": 85356227110,
+        "cycles": 41317515370,
+        "worker": "2851633:2851678",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      },
+      "work": {
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "presentations": 381
+      },
+      "journal_sha256": "46532ddeae9bc5e8b351b340b5e1e4ef9ff23386b4c7db8f3438a8ef8141a5b8",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-1-0-candidate-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "21000000",
+          "--end-us",
+          "39000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "3",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.0244717469904572,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "9f342a0239411f8f10ed682092b23f4489be6821b857ab34e9aae0c18fc3ba7d",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "wall_seconds": 12.6271,
+        "presentations": 381,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "d71361671612a8600789741c5d9bee5f2b7ddfb7b06d03019420932caca86d6b"
+    },
+    {
+      "name": "rom-first-use-recycling-standard-1-1-control",
+      "experiment": "rom-first-use-recycling",
+      "game": "standard",
+      "panel": 1,
+      "index": 1,
+      "variant": "control",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-1-1-control-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5004340141595,
+        "interval_min_mhz": 3591.311202258212,
+        "interval_max_mhz": 3591.650730570651,
+        "worker_cpu_seconds": 11.18492363,
+        "instructions": 83195240387,
+        "cycles": 39776224661,
+        "worker": "2854311:2854361",
+        "sibling_busy_fraction": {
+          "15": 0.0007818608287724785
+        }
+      },
+      "work": {
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "presentations": 381
+      },
+      "journal_sha256": "46532ddeae9bc5e8b351b340b5e1e4ef9ff23386b4c7db8f3438a8ef8141a5b8",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-1-1-control-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "21000000",
+          "--end-us",
+          "39000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "2",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.0233611080329865,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "815d9b73934250f149e25b2d4b9cfbcac36aa944ff5c6a2f06a815887caa38d4",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "wall_seconds": 12.6976,
+        "presentations": 381,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "ac0d954596f3764b316cbdd17879e840c210efd4c1e67868517e2b5d0211a110"
+    },
+    {
+      "name": "rom-first-use-recycling-standard-1-2-control",
+      "experiment": "rom-first-use-recycling",
+      "game": "standard",
+      "panel": 1,
+      "index": 2,
+      "variant": "control",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-1-2-control-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5191158118396,
+        "interval_min_mhz": 3591.323411905392,
+        "interval_max_mhz": 3591.6720416959533,
+        "worker_cpu_seconds": 11.256900644,
+        "instructions": 83247707671,
+        "cycles": 40017473077,
+        "worker": "2856169:2856214",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      },
+      "work": {
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "presentations": 381
+      },
+      "journal_sha256": "46532ddeae9bc5e8b351b340b5e1e4ef9ff23386b4c7db8f3438a8ef8141a5b8",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-1-2-control-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "21000000",
+          "--end-us",
+          "39000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "2",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.0233788950135931,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "cfc075ff50c717f02e833f4d78a7338c1651f2a648e288c2d24fd360c9423871",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "wall_seconds": 12.7481,
+        "presentations": 381,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "0e4bac90d1ce8474ed606620f15f7f6075758dbb626537d8bab99f3d683cf222"
+    },
+    {
+      "name": "rom-first-use-recycling-standard-1-3-candidate",
+      "experiment": "rom-first-use-recycling",
+      "game": "standard",
+      "panel": 1,
+      "index": 3,
+      "variant": "candidate",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-1-3-candidate-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.4654228010195,
+        "interval_min_mhz": 3589.901776963595,
+        "interval_max_mhz": 3591.6800073197546,
+        "worker_cpu_seconds": 11.716952729,
+        "instructions": 84867013518,
+        "cycles": 41120496976,
+        "worker": "2858046:2858091",
+        "sibling_busy_fraction": {
+          "15": 0.0007524454477050414
+        }
+      },
+      "work": {
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "presentations": 381
+      },
+      "journal_sha256": "46532ddeae9bc5e8b351b340b5e1e4ef9ff23386b4c7db8f3438a8ef8141a5b8",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-benchmark/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-standard-1-3-candidate-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "21000000",
+          "--end-us",
+          "39000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "3",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/snakes.input"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.023139153025113,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "fa8789bbb70eeaa02f9625c2f331acf4126f8394d22c3a41a35f1df2affaeb0e",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 21000000,
+        "last_virtual_us": 39000000,
+        "first_instructions": 2549856574,
+        "last_instructions": 5514091870,
+        "wall_seconds": 12.6808,
+        "presentations": 381,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "c2c74ecf48d3512caa9e8e37dd0d0666c1644610e672074d502547dd978f45a4"
+    },
+    {
+      "name": "rom-first-use-recycling-combat-0-0-control",
+      "experiment": "rom-first-use-recycling",
+      "game": "combat",
+      "panel": 0,
+      "index": 0,
+      "variant": "control",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-0-0-control-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5791594563293,
+        "interval_min_mhz": 3591.381870865651,
+        "interval_max_mhz": 3591.7001734177434,
+        "worker_cpu_seconds": 11.060265579,
+        "instructions": 101849971150,
+        "cycles": 39556059099,
+        "worker": "2860404:2860467",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      },
+      "work": {
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "presentations": 192
+      },
+      "journal_sha256": "680ac882f3ef374aa41646314385354fbf06122516ae58bf9630a64fb584669d",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-0-0-control-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "42000000",
+          "--end-us",
+          "48000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "2",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.023529518977739,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "7e723600927133854a2f78362251de96ddd118984946575df40cab4b63b56098",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "wall_seconds": 11.7803,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "7ea4972bd2f267e9a91816e14abffe913206c769d6fb50a4ffae93bfe2cc1b87"
+    },
+    {
+      "name": "rom-first-use-recycling-combat-0-1-candidate",
+      "experiment": "rom-first-use-recycling",
+      "game": "combat",
+      "panel": 0,
+      "index": 1,
+      "variant": "candidate",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-0-1-candidate-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.532882804062,
+        "interval_min_mhz": 3590.0234228171857,
+        "interval_max_mhz": 3591.6975754179784,
+        "worker_cpu_seconds": 12.25928036,
+        "instructions": 103665158621,
+        "cycles": 43237714045,
+        "worker": "2864917:2864962",
+        "sibling_busy_fraction": {
+          "15": 0.0015313935681470138
+        }
+      },
+      "work": {
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "presentations": 192
+      },
+      "journal_sha256": "680ac882f3ef374aa41646314385354fbf06122516ae58bf9630a64fb584669d",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-0-1-candidate-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "42000000",
+          "--end-us",
+          "48000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "3",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.0232066579628736,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "15ebb275052ac4b9db2804763e9016877069e7902d3d4cd0d6f0736b3e54dac3",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "wall_seconds": 12.4357,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "17e30b2cf15c574e80f969151076575d531887b381f7c183b7b48edda73e292a"
+    },
+    {
+      "name": "rom-first-use-recycling-combat-0-2-candidate",
+      "experiment": "rom-first-use-recycling",
+      "game": "combat",
+      "panel": 0,
+      "index": 2,
+      "variant": "candidate",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-0-2-candidate-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5350314150764,
+        "interval_min_mhz": 3589.751784470468,
+        "interval_max_mhz": 3591.7933496738437,
+        "worker_cpu_seconds": 12.202623188,
+        "instructions": 103822837347,
+        "cycles": 43058920974,
+        "worker": "2870229:2870274",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      },
+      "work": {
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "presentations": 192
+      },
+      "journal_sha256": "680ac882f3ef374aa41646314385354fbf06122516ae58bf9630a64fb584669d",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-0-2-candidate-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "42000000",
+          "--end-us",
+          "48000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "3",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.0238915480440482,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "578fdbf77348023924efc6a76148efb75f6eea5cce660bfc38aca847bd89f786",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "wall_seconds": 12.3153,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "dbf0fda698ba67b3c09a0696df051148526d2bf019e9428ba8e8c094b7df587c"
+    },
+    {
+      "name": "rom-first-use-recycling-combat-0-3-control",
+      "experiment": "rom-first-use-recycling",
+      "game": "combat",
+      "panel": 0,
+      "index": 3,
+      "variant": "control",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-0-3-control-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.583540254574,
+        "interval_min_mhz": 3591.359138927397,
+        "interval_max_mhz": 3591.7099617248014,
+        "worker_cpu_seconds": 11.317364249,
+        "instructions": 101861690958,
+        "cycles": 40485060553,
+        "worker": "2875361:2875407",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      },
+      "work": {
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "presentations": 192
+      },
+      "journal_sha256": "680ac882f3ef374aa41646314385354fbf06122516ae58bf9630a64fb584669d",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-0-3-control-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "42000000",
+          "--end-us",
+          "48000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "2",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.0243355910060927,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "4ba37b0a7e06065ebd29be303b7f533a039804561435a2f27e2c028e2e63a6fb",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "wall_seconds": 12.0558,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "47c984184aa0e19f26cf8b24d17e6ac5119cdebeb0abc4932fa6d35507243243"
+    },
+    {
+      "name": "rom-first-use-recycling-combat-1-0-candidate",
+      "experiment": "rom-first-use-recycling",
+      "game": "combat",
+      "panel": 1,
+      "index": 0,
+      "variant": "candidate",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-1-0-candidate-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.5638722157914,
+        "interval_min_mhz": 3591.4207731199654,
+        "interval_max_mhz": 3591.6991910235756,
+        "worker_cpu_seconds": 11.87794963,
+        "instructions": 101441680479,
+        "cycles": 42328480321,
+        "worker": "2879733:2879779",
+        "sibling_busy_fraction": {
+          "15": 0.0007968127490039841
+        }
+      },
+      "work": {
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "presentations": 192
+      },
+      "journal_sha256": "680ac882f3ef374aa41646314385354fbf06122516ae58bf9630a64fb584669d",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-1-0-candidate-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "42000000",
+          "--end-us",
+          "48000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "3",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.023970894049853,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "aa63435eebaec1921d6e7163e60871f73394f6107709a818fd6c099f6417baab",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "wall_seconds": 12.5269,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "aba51178d2c0e3e0a1659a870edaa2531bc9266af597fbd8524b1efbf846107b"
+    },
+    {
+      "name": "rom-first-use-recycling-combat-1-1-control",
+      "experiment": "rom-first-use-recycling",
+      "game": "combat",
+      "panel": 1,
+      "index": 1,
+      "variant": "control",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-1-1-control-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.573824700872,
+        "interval_min_mhz": 3591.301993828152,
+        "interval_max_mhz": 3591.684991584593,
+        "worker_cpu_seconds": 11.090363788,
+        "instructions": 101859750940,
+        "cycles": 39670012910,
+        "worker": "2884931:2884976",
+        "sibling_busy_fraction": {
+          "15": 0.0008298755186721991
+        }
+      },
+      "work": {
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "presentations": 192
+      },
+      "journal_sha256": "680ac882f3ef374aa41646314385354fbf06122516ae58bf9630a64fb584669d",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-1-1-control-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "42000000",
+          "--end-us",
+          "48000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "2",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.0236732069170102,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "ec483822063c6f17c186cb7adcecde8d84c4f064f1b98c06eb8bb4c947889a2e",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "wall_seconds": 11.8117,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "972db4b57c337fff78f18f12b558a87443fdcbe39a2b6ce207fc8d2f875b590c"
+    },
+    {
+      "name": "rom-first-use-recycling-combat-1-2-control",
+      "experiment": "rom-first-use-recycling",
+      "game": "combat",
+      "panel": 1,
+      "index": 2,
+      "variant": "control",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-1-2-control-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.572892000362,
+        "interval_min_mhz": 3591.33186817809,
+        "interval_max_mhz": 3591.656327374299,
+        "worker_cpu_seconds": 11.303636265,
+        "instructions": 101855030394,
+        "cycles": 40434416521,
+        "worker": "2889382:2889427",
+        "sibling_busy_fraction": {
+          "15": 0.0008136696501220504
+        }
+      },
+      "work": {
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "presentations": 192
+      },
+      "journal_sha256": "680ac882f3ef374aa41646314385354fbf06122516ae58bf9630a64fb584669d",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-1-2-control-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "42000000",
+          "--end-us",
+          "48000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "2",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.0251632659928873,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "dce7bef9239e045d698b37604cbe7bfc47034a14c0ced831a924e368cd09fe48",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "wall_seconds": 12.064,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "d763771b1fd3601c395f734bb2ad4b6f13afa5ab2ad3850f4d56ea724efd8f0b"
+    },
+    {
+      "name": "rom-first-use-recycling-combat-1-3-candidate",
+      "experiment": "rom-first-use-recycling",
+      "game": "combat",
+      "panel": 1,
+      "index": 3,
+      "variant": "candidate",
+      "attempt": 0,
+      "directory": "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-1-3-candidate-attempt0",
+      "validity": {
+        "valid": true,
+        "errors": [],
+        "mhz": 3591.54163162371,
+        "interval_min_mhz": 3590.04957808845,
+        "interval_max_mhz": 3591.7603157394765,
+        "worker_cpu_seconds": 12.401515674,
+        "instructions": 103301411112,
+        "cycles": 43796013628,
+        "worker": "2893818:2893883",
+        "sibling_busy_fraction": {
+          "15": 0.0
+        }
+      },
+      "work": {
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "presentations": 192
+      },
+      "journal_sha256": "680ac882f3ef374aa41646314385354fbf06122516ae58bf9630a64fb584669d",
+      "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+      "command": {
+        "args": [
+          "python3",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py",
+          "/home/claude/.scratch/eka-sky-performance/assets",
+          "/home/claude/.scratch/eka-sky-performance/candidate-sync-v26",
+          "/home/claude/.scratch/eka-controlled/architecture-runs/rom-first-use-recycling-combat-1-3-candidate-attempt0",
+          "--hardware-counters",
+          "--start-us",
+          "42000000",
+          "--end-us",
+          "48000000",
+          "--capture-mode",
+          "1",
+          "--worker-cpu",
+          "7",
+          "--support-cpus",
+          "0,1,2,3,4,5,6,8,9,10,11,12,13,14",
+          "--reference-mhz",
+          "2304",
+          "--harness",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm"
+        ],
+        "env": {
+          "EKA2L1_BENCHMARK_AOT": "5",
+          "EKA2L1_AOT_IR_MODE": "7",
+          "EKA2L1_AOT_EAGER_REGIONS": "0",
+          "EKA2L1_TLB_HASH": "1",
+          "EKA2L1_CODE_COMPARE": "2",
+          "EKA2L1_CODE_LOOKUP": "0",
+          "EKA2L1_PREDICATED_LEAVES": "1",
+          "EKA2L1_LEAF_FEATURES": "128",
+          "EKA2L1_UNSAFE_CODE": "3",
+          "EKA2L1_SHARED_AUDIO": "1",
+          "EKA2L1_ROM_LEAVES": "0",
+          "EKA2L1_GPU": "hardware",
+          "EKA2L1_PROFILE_DETAIL": "0",
+          "EKA2L1_EXECUTION_LIMITS": "512,16,8,512",
+          "EKA2L1_THUMB_MEMORY": "1",
+          "EKA2L1_ARM_MEMORY": "0",
+          "EKA2L1_ROM_CALLS": "0",
+          "EKA2L1_ARM_EXCLUSIVE": "1",
+          "EKA2L1_COMPILED_SVC": "1",
+          "EKA2L1_COMPILED_MEMORY_MISSES": "1",
+          "EKA2L1_SYNCHRONOUS_COMPILATION": "3",
+          "EKA2L1_CHROME_TRACE": "off",
+          "GIT_DIR": "/home/claude/code/EKA2L1/.git",
+          "GIT_WORK_TREE": "/home/claude/code/EKA2L1",
+          "EKA2L1_PROFILE_INPUT": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-combat.input",
+          "EKA2L1_APP_UID": "0xa020d913",
+          "EKA2L1_ASSET_MANIFEST": "/home/claude/code/EKA2L1/src/tests/benchmark/sky-force-assets.json"
+        },
+        "hashes": {
+          "control": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          },
+          "candidate": {
+            "eka2l1.wasm": "059c579e1d81847a15c0d024506f0f11ebf4fab5dee9a19f50ed73186449090f",
+            "eka2l1.js": "166171be6ea886bfc1831c7f0a70fea7f600775d19eb6a82cf3b5196406161c2"
+          }
+        },
+        "plan_sha256": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+        "controller_sha256": "e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915",
+        "quiet_host": {
+          "waited_seconds": 1.02429749595467,
+          "observed_builds": {}
+        },
+        "harness_hashes": {
+          "/home/claude/code/EKA2L1/src/tests/benchmark/controlled_comparison.py": "c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543",
+          "/home/claude/code/EKA2L1/src/tests/benchmark/scheduler_probe.py": "2bee75b817f3e0369872c13ad1133bda4a3acba2e15650b2e8362dbc232a9c48",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.test.ts": "3490a474323d98f1d4c50bc388b1662c2624854127f7cc963d29ea73a380ffd7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/asset-cache.ts": "34a4946204f34ea45b9b59acfd8672dc77a122a7f3a03f1474eb74f74ce317bc",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/audio-device.ts": "1ffe24b0dc09041a13444ef85a288fef3aaf5b910297fbbfefda16a0a18b6767",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/benchmark.ts": "e5872945ce67a4fbc03efccf5af3ba0ef8c95ecbf20f331551c2ad198b044d8c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cache-live.ts": "1d58dae541f40326bfef6506b76acca1f4a5bd4fe15c96a9c95736ddea602140",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compare-frames.ts": "ea89c0df72f67d72a8816a75f23a75289254e30fc9eac24962a0f43fec6b9904",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compile-scheduling.ts": "615f75b627e4de20b876610bf4b4aab62f662f7b676b4dd4c49bd99468b86f09",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-policy.test.ts": "0840915323bdf88acb55eee835db9f38ef157a30edc8a5230b3b62e788e50638",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/compiler-probe.ts": "358cfd60dec69abf5e13d692422d36bb96751395390e49ea20f1bc46ffdd7e43",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/cpu-kernel-breakdown.ts": "563589b59b888027d7a0b6cb7b5e74098669d15c6577fd0305fa77fddb6a35d7",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/flag-kernel.ts": "5d24a2f48ce554a94d5634b1d62e7ad4aa95793adf2bf8871ef180d11673cef4",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/game-picker.ts": "0668f34881ca45069d5c47e81a92fa24cc049feff63e224f5bec69416528b01c",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/live.ts": "69a7a4013dd2804c57b7ddb2e99833680f6692839c693faba56e744782f16560",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/log-ui.ts": "ed6ef61fffbf9602f8d601876f17a52c143cbdc45767cb9f0348487fcbb8903f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/matched-kernel.ts": "2ac1cfaf1e1189c194c7f5d291e5dc7a583243d9dc58d51206d08d34977562e2",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/module-layout.ts": "6a3b242913d5aa9fb4c2cc61e9dbdab37b17855aac638086b629658229caa014",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/pacing.ts": "a52e7afb17dc1f8f7a3501732abbfb4af95836ebabdb43885e3c5801b2c65aca",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/profile.ts": "61ebdfcc6ae60515540c23ba4c7c21edab3e80947b1a6944f67d4d8f60094f31",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/region-ir-kernels.ts": "93e5b00fbe5802d4154ff54cb8685179c0fb383739172584f65576fc7c77bc4e",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/route.ts": "53350a8def98986472c04be1435c5ae0d0fa13a0f7771d8b2989d53752897e40",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/serve.ts": "39135c3c644cda8186c5866cb92363c1f8ee62c49f009d237e54b92eb9c62d4f",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/server.ts": "36cd75c7127b8e3f4a34d6ee89b1e9ae299685ce8c2bdb516ba16be3024704b8",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/snapshot-validators.ts": "091c13996d5d67f6d1868e9a92929f4cbdc78358a248b21dfeed456f0e075213",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/softkeys.ts": "40fc6725accd0f0e55556c99e7089556d06d5e7fab4bbc19c0b1ee964a415669",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-e2e.ts": "b6dbc33b7a7fd088da47bab3d1671d05dc813732ea24ae29bb65a16d7846bf6b",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test-frames.ts": "4f2c70e122e400dd77e3108d43b1cf310d72f5abab8601e33f5b2453c02925f9",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/test.ts": "cad5d2989fb3f5caa87b84f90a666192de8c62768d3628138a540ccf307535cb",
+          "/home/claude/.scratch/eka-controlled/harness-cd12d98df848b9d6ab967f9f19d9f6b5087573e9/src/tests/wasm/validated-layout.ts": "14e675e22bc2d74a154cc292c92fc34734dfab5b8629f936ac091e7394eab99f"
+        }
+      },
+      "scheduler_sha256": "61c5418838e8639e526ccac6df8299ddc8a07b89b1e0c08617dc176a09211600",
+      "measurement": {
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789887,
+        "last_instructions": 17318833812,
+        "wall_seconds": 12.6695,
+        "presentations": 192,
+        "aot_dispatches": 0,
+        "aot_instructions": 0,
+        "compiled_runner_calls": 0,
+        "ram_aot_dispatches": 0,
+        "ram_blocks_compiled": 0,
+        "decoded_instructions": 0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+        "cache_clears": 0,
+        "context_loads": 0,
+        "code_version_hits": 0,
+        "code_byte_checks": 0,
+        "code_epoch_hits": 0,
+        "imb_calls": 0,
+        "scopes": {
+          "cpu_loop": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "cpu_run": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "timers": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "scheduler": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_dispatch": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "graphics_wait": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "display_hook": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "readback": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "frame_capture": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "png_encode": {
+            "seconds": 0,
+            "calls": 0
+          },
+          "audio": {
+            "seconds": 0,
+            "calls": 0
+          }
+        }
+      },
+      "browser": "Chrome/153.0.8010.52",
+      "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA)",
+      "shared_audio": true,
+      "report_sha256": "39f18df278e734d6fe381fb7578d85703b32241dd5e19aea5d6bd62f9f6c8ad5"
     }
   ],
   "measurements_complete": false,
   "host_restoration_complete": false,
   "complete": false,
-  "valid_observations": 274,
+  "valid_observations": 288,
   "expected_observations": 872,
   "invalid_observations": 5
 }
