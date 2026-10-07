@@ -174,7 +174,7 @@ failure, and records both transitions. `extended-host-resume3.json` and
 plans, run order, 3.6 GHz request, affinity and clock rules remain in force. The first resumed control passed at
 3591.605 MHz, with every measured interval inside the unchanged limits.
 
-The incomplete guard-publication Sky Force comparison spans this host-setting
+The completed guard-publication Sky Force comparison spans this host-setting
 boundary: five valid observations preceded it. They remain included, including
 the slow candidate; do not interpret that mixed-condition comparison as a
 clean estimate of a small gain. Subsequent comparisons start with charging
@@ -192,7 +192,7 @@ its children. The timestamp evidence is preserved in
 failed the unchanged clock rule while additional build activity was present.
 The harness records these as invalid and waits before the next launch; it
 never stops unrelated jobs. This comparison therefore needs its shared-host
-limitation considered alongside its eventual paired results.
+limitation considered alongside its paired results.
 
 Three control attempts then failed the clock rule; the last also recorded a
 package-throttle counter increase. The extended phase stopped and restored
@@ -248,14 +248,19 @@ An archive audit reconciled all 138 build selections against the experiment or
 baseline archive reports. Its paths, hashes and these stage distinctions are
 recorded in `provenance-audit.json` in the campaign directory.
 
-An additional report/plan audit checked 6,771 reported selector values across
-441 completed attempts, including retained clock-invalid attempts. It found no
+An additional report/plan audit checked 7,310 reported selector values across
+511 completed attempts, including retained clock-invalid attempts. It found no
 mismatches and no missing selector that distinguishes a candidate from its
 control. `observed-selector-audit.json` and its reproducible script preserve
 the audit. These are checks of reported settings; runtime getter assertions
 depend on the archived harness. The older batching and span-page-reuse reports
 lack `memory_impl` (32 observations in total): their fixed TLB implementation
 predates that report field, so no dynamic memory-mode readback is claimed.
+
+All 511 attempts at this audit cutoff report `Chrome/153.0.8010.52`, with no
+missing browser version or mixed-version comparison. The recorded cutoff is
+preserved in `browser-version-audit.json`; these audits must be refreshed after
+the remaining observations.
 
 
 Warmed guest-worker CPU time is the main metric. Wall time, native retired
