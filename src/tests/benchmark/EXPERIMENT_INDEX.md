@@ -14,6 +14,18 @@ Historical gains are relative to their recorded controls and configurations.
 They are not additive or evidence of the same gain on the current runtime.
 A positive measurement does not automatically change adoption status.
 
+## Current-runtime promotion measurements
+
+These compare the current implementation. CPU/wall gains are positive;
+native instruction reductions are negative. Pending rows have no final result.
+See [promotion decisions and limitations](RECOVERED_DEFAULTS_RESULTS.md)
+and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
+
+| # | Comparison / game | CPU | Wall | Native instructions | Faster pairs | Progress |
+| ---: | --- | ---: | ---: | ---: | ---: | --- |
+| 1 | compiled-syscalls-current / Snakes | +0.70% | +0.65% | -0.00% | 3/4 | 8/8; 0 invalid |
+| 2 | compiled-syscalls-current / Sky Force | +7.17% | +6.51% | -4.12% | 4/4 | 8/8; 0 invalid |
+
 ## Controlled comparisons
 
 64/109 game comparisons complete; 515/872 valid observations; 20 retained host-invalid observations.

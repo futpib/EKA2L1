@@ -45,6 +45,11 @@ class ExperimentIndexTest(unittest.TestCase):
             self.assertIn('No new default adopted', second)
             report.write_text(report.read_text() + '\nA later repeat found no speedup.\n')
             self.assertIn('A later repeat found no speedup.', render(root))
+            row.update(complete=False, valid=3)
+            (root / 'RECOVERED_DEFAULTS_RESULTS.json').write_text(json.dumps({'comparisons': [row]}))
+            latest = render(root).split('## Current-runtime promotion measurements')[1].split('## Controlled comparisons')[0]
+            self.assertIn('Pending | Pending | Pending', latest)
+            self.assertNotIn('+3.00%', latest)
 
     def test_historical_metrics_and_all_table_rows_stay_distinct(self):
         adoption = 'Measured 5.95% less worker CPU for A and 1.31% more for B.'

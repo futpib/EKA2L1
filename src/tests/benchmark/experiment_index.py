@@ -30,6 +30,15 @@ def document_kind(path):
     return 'Results/notes'
 
 
+def measurement_cells(row):
+    if not row['complete']:
+        return ['Pending'] * 3, '—'
+    values = [f"{row[key]:+.2f}%" for key in ('cpu_throughput_change_percent',
+              'wall_throughput_change_percent', 'native_instruction_change_percent')]
+    pairs = f"{row['favorable_pairs']}/{len(row['paired_cpu_throughput_changes_percent'])}"
+    return values, pairs
+
+
 def findings(source):
     """Keep source wording and table context; never normalize historical metrics."""
     blocks = re.split(r'\n\s*\n', source)
@@ -98,12 +107,7 @@ def render(root):
         status = dispositions['experiments'].get(row['experiment'],
             {'status': 'Reassessment pending' if not row['complete'] else 'No new default adopted'})
         game = 'Snakes' if row['game'] == 'standard' else 'Sky Force'
-        if row['complete']:
-            values = [f"{row[key]:+.2f}%" for key in ('cpu_throughput_change_percent',
-                      'wall_throughput_change_percent', 'native_instruction_change_percent')]
-            pairs = f"{row['favorable_pairs']}/{len(row['paired_cpu_throughput_changes_percent'])}"
-        else:
-            values, pairs = ['Pending'] * 3, '—'
+        values, pairs = measurement_cells(row)
         disposition = status['status']
         if status.get('note'):
             disposition += ': ' + status['note']
@@ -111,6 +115,24 @@ def render(root):
         lines.append('| ' + ' | '.join(map(cell, [index, row['experiment'] + ' / ' + game,
             *values, pairs, progress, disposition,
             f"[{row['original_report']}]({row['original_report']})"])) + ' |')
+    promotion_path = root / 'RECOVERED_DEFAULTS_RESULTS.json'
+    if promotion_path.exists():
+        promotion = json.loads(promotion_path.read_text())
+        recent = ['## Current-runtime promotion measurements', '',
+                  'These compare the current implementation. CPU/wall gains are positive;',
+                  'native instruction reductions are negative. Pending rows have no final result.',
+                  'See [promotion decisions and limitations](RECOVERED_DEFAULTS_RESULTS.md)',
+                  'and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).', '',
+                  '| # | Comparison / game | CPU | Wall | Native instructions | Faster pairs | Progress |',
+                  '| ---: | --- | ---: | ---: | ---: | ---: | --- |']
+        for index, row in enumerate(promotion['comparisons'], 1):
+            values, pairs = measurement_cells(row)
+            game = 'Snakes' if row['game'] == 'standard' else 'Sky Force'
+            progress = f"{row['valid']}/{row['expected']}; {row['invalid']} invalid"
+            recent.append('| ' + ' | '.join(map(cell, [index,
+                row['experiment'] + ' / ' + game, *values, pairs, progress])) + ' |')
+        offset = lines.index('## Controlled comparisons')
+        lines[offset:offset] = recent + ['']
     notes = data.get('comparison_notes', [])
     if notes:
         lines += ['', 'Recorded comparison limitations:', '']
