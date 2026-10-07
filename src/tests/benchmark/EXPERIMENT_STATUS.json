@@ -94,8 +94,8 @@
       "note": "Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default."
     },
     "connected-callee-loops": {
-      "status": "Current-runtime adaptation under validation",
-      "note": "Historical Snakes +6.87% CPU, native instructions -7.07%, 4/4 faster pairs. Current resolver rejects internal callee branches; archived change also raises the leaf bound 16 to 64 and broadens predicates. Adaptation must preserve modern loop-budget and direct-memory lowering."
+      "status": "Full historical bundle under current-runtime validation",
+      "note": "Historical Snakes +6.87%; narrow branch-only current variant at bound 16 rejected: Snakes -0.57%, Sky Force -1.25%, mixed pairs. Full follow-up restores conditional scalar memory and bound 64; current defaults unchanged."
     },
     "guarded-successor-lookup": {
       "status": "Not selected for promotion",

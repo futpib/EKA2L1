@@ -1,6 +1,6 @@
 # Connected callees on the graduated runtime
 
-Status: correctness passed; Snakes timing complete, Sky Force running. The historical sweep is
+Status: the narrow candidate was rejected; the full historical bundle is under validation. The historical sweep is
 paused at 72/109 comparisons for this graduation cycle. No new default has been
 committed or deployed yet.
 
@@ -17,7 +17,7 @@ loops retain the existing whole-iteration budget proof. Nested calls, external
 branches and modifications of LR remain excluded. The direct-memory and full
 state-pruning defaults remain active.
 
-## Validation
+## Narrow-candidate validation
 
 - Focused interpreter comparisons: 51,200 exact state, memory and budget checks
   across four compiler policies, repeated calls and single calls, forward branches,
@@ -31,7 +31,7 @@ state-pruning defaults remain active.
 Evidence: `/home/claude/.scratch/eka-connected-current/correctness.json`; candidate WASM SHA-256:
 `38fd78e08cd6e7024c042795aa20a79a9873b48ad7ec8edf87f93ef416e7e491`.
 
-## Timing and adoption
+## Narrow-candidate timing
 
 The frozen plan is `/home/claude/.scratch/eka-connected-current/current-plan.json`. The control is the already graduated
 `eka-promote-recovered/final-build`, SHA-256
@@ -46,11 +46,21 @@ adoption, graduate that artifact immediately. Otherwise the prepared 64-instruct
 candidate receives its own exact replays and timing. The historical sweep resumes
 from its saved rows after the current-runtime decision.
 
-## First current-runtime result
+## Narrow-candidate decision
 
-The 16-instruction candidate completes Snakes at -0.57% CPU throughput and
--0.24% wall throughput, with native instructions +0.023%. One of four adjacent
-pairs is faster; all eight observations pass the frozen validity rules, with no
-invalid attempts. Measured frequency is 3591.562-3591.585 MHz. This does not earn
-adoption for Snakes. Sky Force remains pending, and the 64-instruction candidate
-has not started. Full evidence is in `eka-connected-current/CURRENT_SNAPSHOT.json`.
+| # | Game | CPU throughput | Wall throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | Snakes | -0.57% | -0.24% | +0.023% | 1/4 |
+| 2 | Sky Force | -1.25% | -1.04% | +0.039% | 2/4 |
+
+All 16 observations passed the frozen validity rules, with no invalid attempts.
+All 88 live host-restoration checks passed. Neither game establishes a gain, so
+this narrow candidate is not promoted. Every observation, including the slower
+Sky Force candidate, remains in the evidence.
+
+The unrun branch-only 64-instruction variant is superseded by a separate plan
+restoring the full historical predicate eligibility as well as the larger bound.
+The original plan and all completed rows remain unchanged. The historical bundle
+accepted conditional scalar memory; the narrow isolation above did not. The full
+follow-up also tests conditional memory within callee loops and both taken and
+untaken predicates. Its evidence directory is `eka-connected-full`.
