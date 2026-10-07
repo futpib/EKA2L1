@@ -35,8 +35,8 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | 10 | batched-counts-current / Sky Force | +0.50% | +0.50% | +0.24% | 2/4 | 8/8; 1 invalid |
 | 11 | whole-entry-budget-current / Snakes | +0.31% | +0.50% | -1.62% | 2/4 | 8/8; 0 invalid |
 | 12 | whole-entry-budget-current / Sky Force | +1.01% | +0.88% | -0.23% | 3/4 | 8/8; 0 invalid |
-| 13 | outlined-entry-budget-current / Snakes | Pending | Pending | Pending | — | 2/8; 0 invalid |
-| 14 | outlined-entry-budget-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 13 | outlined-entry-budget-current / Snakes | +1.23% | +1.26% | -1.23% | 4/4 | 8/8; 1 invalid |
+| 14 | outlined-entry-budget-current / Sky Force | +1.19% | +1.02% | -0.18% | 2/4 | 8/8; 0 invalid |
 
 ## Controlled comparisons
 
@@ -58,8 +58,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 6 | state-pruning / Sky Force | +0.66% | +0.63% | -1.36% | 3/4 | 8/8; 0 invalid | Default: Full ARM and Thumb load/store pruning | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 7 | trusted-lookup-inline / Snakes | -0.39% | -0.10% | -0.00% | 1/4 | 8/8; 0 invalid | No new default adopted | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 8 | trusted-lookup-inline / Sky Force | +2.56% | +2.39% | +0.00% | 3/4 | 8/8; 0 invalid | No new default adopted | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
-| 9 | entry-only-pruning / Snakes | -0.39% | -0.12% | +0.42% | 2/4 | 8/8; 0 invalid | Current result needs confirmation: Current Sky Force +1.26% with mixed pairs, Snakes -0.42%; do not adopt from the historical +3.14% comparison against unpruned code | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
-| 10 | entry-only-pruning / Sky Force | +3.14% | +2.87% | -1.38% | 4/4 | 8/8; 0 invalid | Current result needs confirmation: Current Sky Force +1.26% with mixed pairs, Snakes -0.42%; do not adopt from the historical +3.14% comparison against unpruned code | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
+| 9 | entry-only-pruning / Snakes | -0.39% | -0.12% | +0.42% | 2/4 | 8/8; 0 invalid | Not selected for promotion: Current Snakes -0.42%; Sky Force +1.26% with mixed pairs and nearly unchanged native instruction count. Full pruning remains selected | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
+| 10 | entry-only-pruning / Sky Force | +3.14% | +2.87% | -1.38% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Current Snakes -0.42%; Sky Force +1.26% with mixed pairs and nearly unchanged native instruction count. Full pruning remains selected | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 11 | store-only-pruning / Snakes | +0.40% | +0.34% | +0.50% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Small Snakes gain accompanied a Sky Force loss against the unpruned control; full pruning remains default | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 12 | store-only-pruning / Sky Force | -0.41% | -0.38% | -0.67% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Small Snakes gain accompanied a Sky Force loss against the unpruned control; full pruning remains default | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 13 | direct-span-two / Snakes | -0.50% | -0.28% | -0.30% | 0/4 | 8/8; 0 invalid | No new default adopted | [DIRECT_SPAN_RESULTS.md](DIRECT_SPAN_RESULTS.md) |
@@ -112,8 +112,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 60 | direct-register-stores / Snakes | -0.43% | -0.13% | -0.00% | 1/4 | 8/8; 0 invalid | No new default adopted | [REGISTER_STORE_RESULTS.md](REGISTER_STORE_RESULTS.md) |
 | 61 | conditional-alu-select / Snakes | -0.17% | -0.16% | +0.20% | 1/4 | 8/8; 0 invalid | No new default adopted | [CONDITIONAL_ALU_RESULTS.md](CONDITIONAL_ALU_RESULTS.md) |
 | 62 | compare-operand-reuse / Snakes | +0.40% | +0.39% | -0.03% | 2/4 | 8/8; 1 invalid | No new default adopted | [COMPARE_CONDITION_RESULTS.md](COMPARE_CONDITION_RESULTS.md) |
-| 63 | whole-entry-budget / Snakes | +2.00% | +1.90% | -3.23% | 4/4 | 8/8; 0 invalid | Current result needs confirmation: Current Snakes +0.31% in 2/4 pairs and Sky Force +1.01% in 3/4; await outlined alternative and combined validation before selection | [ENTRY_BUDGET_RESULTS.md](ENTRY_BUDGET_RESULTS.md) |
-| 64 | outlined-entry-budget / Snakes | +1.91% | +1.75% | -3.04% | 4/4 | 8/8; 0 invalid | Promotion in progress: Alternative to whole-entry-budget; retain one compatible winner | [OUTLINED_BUDGET_RESULTS.md](OUTLINED_BUDGET_RESULTS.md) |
+| 63 | whole-entry-budget / Snakes | +2.00% | +1.90% | -3.23% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Current gains are mixed; outlined mode 2 has the stronger Snakes result and is selected for combined validation | [ENTRY_BUDGET_RESULTS.md](ENTRY_BUDGET_RESULTS.md) |
+| 64 | outlined-entry-budget / Snakes | +1.91% | +1.75% | -3.04% | 4/4 | 8/8; 0 invalid | Selected for combined validation: Current Snakes +1.23% in all four pairs; Sky Force +1.19% with mixed pairs. Select outlined mode 2 for combined validation | [OUTLINED_BUDGET_RESULTS.md](OUTLINED_BUDGET_RESULTS.md) |
 | 65 | cached-address-displacement / Snakes | Pending | Pending | Pending | — | 3/8; 2 invalid | Reassessment pending | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 66 | deferred-read-exit / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 67 | owner-core-reuse / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
@@ -5251,6 +5251,7 @@ current adoption decisions are in [the experiment index](EXPERIMENT_INDEX.md).
 | 4 | Entry-only pruning versus current full pruning | -0.42% | +1.26% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
 | 5 | Static ARM count batching versus policy 17 | -0.34% | +0.50% | 16 valid, 1 invalid; Snakes 1/4 pairs faster, Sky Force 2/4 |
 | 6 | Whole-entry budget guard with inline recovery | +0.31% | +1.01% | 16 valid, 0 invalid; Snakes 2/4 pairs faster, Sky Force 3/4 |
+| 7 | Whole-entry budget guard with outlined recovery | +1.23% | +1.19% | 16 valid, 1 invalid; Snakes 4/4 pairs faster, Sky Force 2/4 |
 
 Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
 The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
@@ -5289,7 +5290,7 @@ readbacks, binary hashes and input hash. Evidence is in `followups-replays/`;
 initial harness launch caught a malformed destructuring parameter before any
 game execution; its failure is preserved, and the corrected harness passed all
 12 runs. These replays use software rendering and establish correctness, not
-performance. Hardware-rendered controlled timing is running. The first completed result is
+performance. Hardware-rendered controlled timing of all five candidates is complete. The first result is
 ROM lookup: Snakes -0.27% CPU throughput (one of four pairs faster), Sky Force
 +1.81% (all four pairs faster). Native instructions fall 0.14% and 1.60%,
 respectively. This matches the accepted game tradeoff and is selected for final

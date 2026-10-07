@@ -42,16 +42,16 @@
       "note": "Current Sky Force CPU +1.81% in all four pairs, Snakes -0.27%; matches the accepted tradeoff, final combined artifact still pending"
     },
     "entry-only-pruning": {
-      "status": "Current result needs confirmation",
-      "note": "Current Sky Force +1.26% with mixed pairs, Snakes -0.42%; do not adopt from the historical +3.14% comparison against unpruned code"
+      "status": "Not selected for promotion",
+      "note": "Current Snakes -0.42%; Sky Force +1.26% with mixed pairs and nearly unchanged native instruction count. Full pruning remains selected"
     },
     "whole-entry-budget": {
-      "status": "Current result needs confirmation",
-      "note": "Current Snakes +0.31% in 2/4 pairs and Sky Force +1.01% in 3/4; await outlined alternative and combined validation before selection"
+      "status": "Not selected for promotion",
+      "note": "Current gains are mixed; outlined mode 2 has the stronger Snakes result and is selected for combined validation"
     },
     "outlined-entry-budget": {
-      "status": "Promotion in progress",
-      "note": "Alternative to whole-entry-budget; retain one compatible winner"
+      "status": "Selected for combined validation",
+      "note": "Current Snakes +1.23% in all four pairs; Sky Force +1.19% with mixed pairs. Select outlined mode 2 for combined validation"
     },
     "batched-counts": {
       "status": "Not selected for promotion",

@@ -21,6 +21,7 @@ in the evidence and are repeated without changing the thresholds.
 | 4 | Entry-only pruning versus current full pruning | -0.42% | +1.26% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
 | 5 | Static ARM count batching versus policy 17 | -0.34% | +0.50% | 16 valid, 1 invalid; Snakes 1/4 pairs faster, Sky Force 2/4 |
 | 6 | Whole-entry budget guard with inline recovery | +0.31% | +1.01% | 16 valid, 0 invalid; Snakes 2/4 pairs faster, Sky Force 3/4 |
+| 7 | Whole-entry budget guard with outlined recovery | +1.23% | +1.19% | 16 valid, 1 invalid; Snakes 4/4 pairs faster, Sky Force 2/4 |
 
 Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
 The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
@@ -112,7 +113,7 @@ readbacks, binary hashes and input hash. Evidence is in `followups-replays/`;
 initial harness launch caught a malformed destructuring parameter before any
 game execution; its failure is preserved, and the corrected harness passed all
 12 runs. These replays use software rendering and establish correctness, not
-performance. Hardware-rendered controlled timing is running. The first completed result is
+performance. Hardware-rendered controlled timing of all five candidates is complete. The first result is
 ROM lookup: Snakes -0.27% CPU throughput (one of four pairs faster), Sky Force
 +1.81% (all four pairs faster). Native instructions fall 0.14% and 1.60%,
 respectively. This matches the accepted game tradeoff and is selected for final
@@ -157,9 +158,30 @@ criteria; the invalid observation remains in the evidence.
 
 The inline whole-entry budget candidate removes 1.62% of native instructions in
 Snakes and 0.23% in Sky Force, but CPU pairs are mixed in both games. It has not
-earned default status. The outlined recovery alternative is still being timed.
+earned default status. The outlined recovery alternative is selected for combined validation.
 
 The next unbuilt candidate selects sparse ROM lookup by default for its combined
 comparison. Its source and browser default expectations are prepared, including
 real API readback, invalid-value rejection and post-initialization immutability
 checks. These are pending validation, not an adopted or deployed runtime claim.
+
+## Completed round and selected combination
+
+All 14 current-runtime game comparisons are complete: 112 valid observations
+and two retained clock-invalid attempts. The five follow-ups account for 80
+valid and both invalid observations. Every reported selector matches its plan
+(1,598 checked fields across 114 attempts). After timing, 77 live checks verify
+restored CPU policies, EPP, CPU masks, platform profile and charging. Evidence
+is `followups-live-restoration.json` and `observed-selector-audit.json`.
+
+Sparse ROM lookup and outlined entry budgets are selected together. Outlining
+reduces native instructions 1.23% in Snakes and 0.18% in Sky Force. Snakes CPU
+pairs improve 0.45% to 1.88%; Sky Force pairs range from -2.01% to +5.71%, so its
+positive average is not a repeatable individual gain claim. Static batching,
+entry-only pruning and inline budget recovery remain unselected.
+
+The revised syscall protocol and division lowering will be tested with sparse
+ROM lookup and outlined budgets fixed, followed by a final adopted-artifact
+comparison against the untouched baseline. The frozen `next-plan.json` has 32
+observations; `next-replay-plan.json` requires six exact game replays. The
+historical sweep remains paused and will not restart automatically.
