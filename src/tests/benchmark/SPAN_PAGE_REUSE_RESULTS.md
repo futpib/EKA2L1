@@ -5,7 +5,16 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
-Not adopted. Sharing the existing scalar page caches with ARM block transfers
+The completed controlled rerun uses the same frozen builds with four fresh
+observations per variant in ABBA then BAAB order. Snakes loses 1.76% CPU and
+1.54% wall throughput, with all four CPU pairs slower and 1.12% more retired
+native instructions. This repeats the direction of the original loss at a
+smaller magnitude. Sky Force averages +0.96% CPU and +0.88% wall throughput,
+with two CPU pairs faster and two slower (-1.87% to +3.47%) and 0.82% more
+native instructions. The controlled results still do not establish a general
+speedup. No production change follows from this frozen-build reassessment.
+
+Original decision: not adopted. Sharing the existing scalar page caches with ARM block transfers
 and entry-proved spans passed correctness checks, but reduced Snakes throughput
 in all four pairs. Sky Force's average improvement did not repeat consistently.
 The production compiler and live deployment remain unchanged; no runtime option
