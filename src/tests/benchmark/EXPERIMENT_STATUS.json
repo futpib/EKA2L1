@@ -30,12 +30,12 @@
       "note": "Integrated in quiet-runtime cuts for trusted execution"
     },
     "compiled-syscalls": {
-      "status": "Promotion in progress",
-      "note": "Zero-return follow-up passes compiler, syscall oracle and exact game replay checks; current timing pending. Earlier total +0.71% with mixed pairs did not establish an overall gain"
+      "status": "Selected for combined validation",
+      "note": "Current zero-return protocol: Snakes +0.40%, Sky Force +3.54% CPU, all four pairs faster in both games. Final artifact comparison pending; original +7.17% off/on was not an adoption gain"
     },
     "compiled-syscalls-long-snakes": {
       "status": "Promotion in progress",
-      "note": "Additional Snakes route for the same syscall change"
+      "note": "Same syscall change; historical additional route, current combined-default comparison pending"
     },
     "sparse-rom-lookup": {
       "status": "Selected for combined validation",

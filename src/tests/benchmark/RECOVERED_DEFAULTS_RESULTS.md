@@ -208,3 +208,19 @@ The frozen next build retains entry-budget default 0; the replay and timing
 plans explicitly select mode 2 and verify its readback. Working source now has
 mode 2 prepared as the final default. That final default build still needs its
 own checks and untouched-baseline comparison before adoption.
+
+## Revised syscall timing checkpoint
+
+The zero-return protocol comparison is complete with sparse ROM lookup and
+outlined entry budgets fixed. Snakes improves 0.40% CPU and 0.48% wall throughput;
+Sky Force improves 3.54% CPU and 2.98% wall throughput. All four CPU pairs improve
+in each game. Native instruction counts are effectively unchanged in Snakes
+(+0.002%) and fall 2.76% in Sky Force. This selects the revised syscall path for
+the final combined artifact, not a standalone total-adoption claim.
+
+There are 16 valid observations and one retained invalid attempt. The rejected
+Sky Force candidate measured 2706 MHz and failed both mean and interval limits;
+its unchanged retry passed. Division lowering is the last individual current
+candidate still running. The combined artifact will be measured against both
+the untouched repository baseline and the actual previously served LAN archive;
+these are different binaries. The historical sweep remains paused at 64/109.
