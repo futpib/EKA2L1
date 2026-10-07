@@ -17,7 +17,11 @@ identify the cause of the higher cycles per retired instruction. The broader
 prototype is also effectively flat for Snakes: -0.27% CPU and -0.18% wall
 throughput, with 0.044% fewer native instructions and two of four CPU pairs
 faster (-1.36% to +0.95%). Its earlier larger slowdown does not repeat in this
-controlled comparison. The broader Sky Force comparison is still running.
+controlled comparison. Sky Force improves by 4.30% CPU and 4.03% wall
+throughput, with 2.70% fewer native instructions. All four CPU pairs are faster
+(+2.46% to +6.33%), and all eight observations pass the host checks. This
+supports the broader prototype's Sky Force gain, at a smaller magnitude than
+the original 9.6% wall-throughput estimate.
 These results belong to the respective archived policy-7 prototypes and do
 not measure a marginal change on today's defaults.
 
