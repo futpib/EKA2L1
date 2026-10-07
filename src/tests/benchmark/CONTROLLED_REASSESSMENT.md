@@ -112,6 +112,27 @@ Its exact loaded source is preserved as
 hash `e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915`.
 Per-command hashes of later on-disk files do not replace that loaded-source hash.
 
+After 128 valid architecture observations, the first `mixed-ir` launch failed
+before browser startup: the archived interactive server parser rejected the
+profiling harness's `-1` sentinel for leaving unavailable options untouched.
+The helper restored all 16 CPU policies, EPP, the balanced platform profile and
+full effective CPU masks; these were also checked live before resuming.
+`architecture-host.json` records the failure and successful restoration.
+
+Only the scratch copy of `harness-164173789` was adjusted: its `profile.ts`
+now calls `startServer(0, files, undefined, {compilerPolicy: {}})` so the unused
+interactive launcher does not parse the profiler's options. The profiling
+harness still applies and checks the selected emulator options itself. No
+frozen binary, plan, measurement window or validity threshold changed. The
+original file, exact edit and before/after hashes are preserved in
+`legacy-harness-policy-fix.json` and its referenced backup. The original
+failure log is retained with an `.interrupted-...` suffix. A startup check
+reproduced the rejection and verified the corrected HTTP path; the resumed
+real browser control then passed with compiler policy 7 and valid counters.
+`architecture-host-resume1.json` records the resumed invocation, which loads
+the newer controller with optional input-route support. Completed observations
+are retained, and later phases remain serial.
+
 ## What these measurements can establish
 
 Recent frozen builds answer the marginal runtime question at the same source
