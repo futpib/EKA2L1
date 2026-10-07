@@ -1,7 +1,7 @@
 # Connected callees on the graduated runtime
 
-Status: both initial adaptations were rejected; budget-proof preservation passed
-focused validation and is undergoing controlled timing. The historical sweep is
+Status: the bound-64 budget-preserving candidate improves Snakes but regresses
+Sky Force and is not adopted. The same artifact is being checked at bound 16. The historical sweep is
 paused at 72/109 comparisons for this graduation cycle. No new default has been
 committed or deployed yet.
 
@@ -119,3 +119,15 @@ The completed budget-preserving Snakes comparison improves CPU throughput
 2.25%, wall throughput 2.15%, and reduces native instructions 3.67%. All four
 adjacent pairs improve (1.48% to 2.93%); all eight observations pass the frozen
 validity checks. Sky Force remains in progress, so graduation is pending.
+
+## Budget preservation at bound 64: completed decision
+
+| # | Game | CPU throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | Snakes | +2.25% | -3.67% | 4/4 |
+| 2 | Sky Force | -1.87% | -0.02% | 1/4 |
+
+All 16 observations are valid, with no retries. All 88 live restoration checks
+pass. This tradeoff is not adopted. The same candidate artifact is now compared
+at the existing 16-instruction bound in `eka-connected-proofs16`; no source
+change or rebuild is required. The previous results remain separate and complete.

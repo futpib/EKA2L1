@@ -127,7 +127,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 67 | owner-core-reuse / Snakes | +0.81% | +0.75% | -0.24% | 4/4 | 8/8; 0 invalid | Current-runtime reassessment candidate: Historical Snakes +0.81% CPU, 4/4 faster pairs including one near tie; current lookup still reads parent per lookup, but compiler and dispatch have changed | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 68 | aligned-cache-hash / Snakes | +0.65% | +0.47% | +0.20% | 3/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.65% CPU, 3/4 faster pairs, native instructions +0.20%; current source retains the older hash; no default change | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 69 | compact-generated-memory / Snakes | +8.05% | +7.45% | -6.81% | 4/4 | 8/8; 0 invalid | Superseded by current lowering: Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
-| 70 | connected-callee-loops / Snakes | +6.87% | +6.52% | -7.07% | 4/4 | 8/8; 0 invalid | Budget-preserving current adaptation under controlled timing: Historical Snakes +6.87%. Narrow current variant: Snakes -0.57%, Sky Force -1.25%; full historical eligibility/bound: -0.44% / -1.17%. Neither adopted. Follow-up preserves existing span/loop budget proofs across inlined calls; defaults unchanged. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
+| 70 | connected-callee-loops / Snakes | +6.87% | +6.52% | -7.07% | 4/4 | 8/8; 0 invalid | Budget-preserving adaptation at original bound under validation: Narrow and full historical adaptations fail current timing. Preserved budget proofs at bound 64: Snakes +2.25% but Sky Force -1.87%, not adopted. Same artifact at existing bound 16 is the remaining comparison; production defaults unchanged. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 71 | guarded-successor-lookup / Snakes | -0.47% | -0.51% | +3.22% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Controlled Snakes -0.47% CPU, native instructions +3.22%, only 1/4 faster pairs. Current trusted dispatch also avoids the metadata pointer used by this older design. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 72 | expanded-leaf-eligibility / Snakes | +1.96% | +1.63% | -1.54% | 4/4 | 8/8; 0 invalid | Queued for current-runtime reassessment: Historical Snakes +1.96% CPU, 4/4 faster pairs at leaf bound 32. Multiply, extra/conditional memory and forward-branch eligibility bundle; reassess remaining coverage after connected callees. | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
 | 73 | call-prefix-fusion / Snakes | Pending | Pending | Pending | — | 2/8; 0 invalid | Reassessment pending | [CALL_PREFIX_RESULTS.md](CALL_PREFIX_RESULTS.md) |
@@ -1850,6 +1850,11 @@ The two changed bounds separately pass another 81,280 explicitly selected instru
 
 **Connected callees on the graduated runtime**
 
+Status: the bound-64 budget-preserving candidate improves Snakes but regresses
+Sky Force and is not adopted. The same artifact is being checked at bound 16. The historical sweep is
+paused at 72/109 comparisons for this graduation cycle. No new default has been
+committed or deployed yet.
+
 The historical connected-callee bundle recovered +6.87% Snakes CPU throughput,
 with all four pairs faster. That bundle also expanded the leaf bound from 16 to
 64 instructions and accepted more predicates. Its percentage is not a gain on
@@ -1884,6 +1889,13 @@ The completed budget-preserving Snakes comparison improves CPU throughput
 2.25%, wall throughput 2.15%, and reduces native instructions 3.67%. All four
 adjacent pairs improve (1.48% to 2.93%); all eight observations pass the frozen
 validity checks. Sky Force remains in progress, so graduation is pending.
+
+**Budget preservation at bound 64: completed decision**
+
+| # | Game | CPU throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | Snakes | +2.25% | -3.67% | 4/4 |
+| 2 | Sky Force | -1.87% | -0.02% | 1/4 |
 
 </details>
 
