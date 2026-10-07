@@ -96,6 +96,10 @@
     "connected-callee-loops": {
       "status": "Priority current-runtime reassessment candidate",
       "note": "Historical Snakes +6.87% CPU, native instructions -7.07%, 4/4 faster pairs. Current resolver rejects internal callee branches; archived change also raises the leaf bound 16 to 64 and broadens predicates. Adaptation must preserve modern loop-budget and direct-memory lowering."
+    },
+    "guarded-successor-lookup": {
+      "status": "Not selected for promotion",
+      "note": "Controlled Snakes -0.47% CPU, native instructions +3.22%, only 1/4 faster pairs. Current trusted dispatch also avoids the metadata pointer used by this older design."
     }
   }
 }

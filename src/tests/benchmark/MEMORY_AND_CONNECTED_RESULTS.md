@@ -231,3 +231,18 @@ Current loop-budget analysis explicitly excludes inlined leaf instructions, so
 simply restoring the old patch could lose an existing fast path. Adaptation and
 controlled measurements on the current runtime are required before adoption;
 no source change or new production gain is claimed here.
+
+## Controlled reassessment: guarded successor lookup
+
+The final extended-phase comparison completes eight valid observations with no
+invalid attempts. Snakes CPU throughput changes -0.47%, wall throughput -0.51%
+and native instructions +3.22%; only one of four adjacent pairs favors the
+candidate. It does not earn promotion. Current trusted dispatch also consumes
+the function directly, whereas this archived design relies on block metadata;
+these historical timings do not justify restoring that metadata dependency.
+
+The extended phase finishes at 71/109 total game comparisons and 568/872 valid
+observations. Its resumed portion adds 53 valid observations with no new invalid
+attempts. All 88 live host-restoration checks pass before the serial inlining
+phase starts. Prior observations and the 20 campaign-wide invalid attempts remain
+preserved; no whole-phase rerun was needed.

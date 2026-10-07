@@ -48,7 +48,7 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 
 ## Controlled comparisons
 
-70/109 game comparisons complete; 560/872 valid observations; 20 retained host-invalid observations.
+71/109 game comparisons complete; 568/872 valid observations; 20 retained host-invalid observations.
 
 CPU and wall columns are throughput changes: positive is faster. Native
 instructions are candidate/control changes: negative is less work. Pairs
@@ -128,7 +128,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 68 | aligned-cache-hash / Snakes | +0.65% | +0.47% | +0.20% | 3/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.65% CPU, 3/4 faster pairs, native instructions +0.20%; current source retains the older hash; no default change | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 69 | compact-generated-memory / Snakes | +8.05% | +7.45% | -6.81% | 4/4 | 8/8; 0 invalid | Superseded by current lowering: Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 70 | connected-callee-loops / Snakes | +6.87% | +6.52% | -7.07% | 4/4 | 8/8; 0 invalid | Priority current-runtime reassessment candidate: Historical Snakes +6.87% CPU, native instructions -7.07%, 4/4 faster pairs. Current resolver rejects internal callee branches; archived change also raises the leaf bound 16 to 64 and broadens predicates. Adaptation must preserve modern loop-budget and direct-memory lowering. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
-| 71 | guarded-successor-lookup / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
+| 71 | guarded-successor-lookup / Snakes | -0.47% | -0.51% | +3.22% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Controlled Snakes -0.47% CPU, native instructions +3.22%, only 1/4 faster pairs. Current trusted dispatch also avoids the metadata pointer used by this older design. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 72 | expanded-leaf-eligibility / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
 | 73 | call-prefix-fusion / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [CALL_PREFIX_RESULTS.md](CALL_PREFIX_RESULTS.md) |
 | 74 | preserve-inner-leaves / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [PRESERVE_INNER_RESULTS.md](PRESERVE_INNER_RESULTS.md) |
@@ -4426,6 +4426,15 @@ and 16.57802 seconds for the connected-callee candidate: +6.87% CPU throughput,
 pairs improve (+5.65% to +7.57%). This reverses the earlier inconclusive timing
 verdict for this archived combination. It is not additive with the compact-memory
 percentage, and it is not a measurement of today's production defaults.
+
+**Controlled reassessment: guarded successor lookup**
+
+The final extended-phase comparison completes eight valid observations with no
+invalid attempts. Snakes CPU throughput changes -0.47%, wall throughput -0.51%
+and native instructions +3.22%; only one of four adjacent pairs favors the
+candidate. It does not earn promotion. Current trusted dispatch also consumes
+the function directly, whereas this archived design relies on block metadata;
+these historical timings do not justify restoring that metadata dependency.
 
 </details>
 

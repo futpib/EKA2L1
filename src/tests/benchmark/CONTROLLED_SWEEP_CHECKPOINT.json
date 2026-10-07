@@ -2,9 +2,9 @@
   "status": "running",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User explicitly requested: nice, resume the sweep",
-  "completed_comparisons": 70,
+  "completed_comparisons": 71,
   "total_comparisons": 109,
-  "valid_observations": 560,
+  "valid_observations": 568,
   "expected_observations": 872,
   "invalid_observations": 20,
   "cancelled_waiters": {
@@ -242,10 +242,16 @@
     "starting_valid_observations": 515,
     "starting_invalid_observations": 20,
     "next_comparison": "cached-address-displacement/standard",
-    "graduated_runtime_unchanged": true
+    "graduated_runtime_unchanged": true,
+    "completed_phases": [
+      "extended"
+    ],
+    "extended_valid_added": 53,
+    "extended_invalid_added": 0,
+    "extended_restoration_checks": 88
   },
-  "active_phase": "extended",
-  "last_progress_utc": "2026-10-07T21:39:35.535524+00:00",
+  "active_phase": "inlining",
+  "last_progress_utc": "2026-10-07T21:51:24.867445+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -263,7 +269,8 @@
     "owner-core-reuse/standard",
     "aligned-cache-hash/standard",
     "compact-generated-memory/standard",
-    "connected-callee-loops/standard"
+    "connected-callee-loops/standard",
+    "guarded-successor-lookup/standard"
   ],
   "configuration_audit": {
     "observations": 558,
@@ -272,5 +279,7 @@
     "missing_varied_selectors": 0,
     "path": "/home/claude/.scratch/eka-controlled/observed-selector-audit.json",
     "limits": "Some legacy fields record a checked setter request rather than a getter; explicit getter assertions were inspected for leaf features, execution limits and memory implementations/cache modes."
-  }
+  },
+  "continuation_error": null,
+  "last_review_utc": "2026-10-07T21:53:48.364461+00:00"
 }
