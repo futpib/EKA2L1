@@ -8,16 +8,16 @@ passed correctness but were rejected or left unresolved on noisy timing evidence
 
 [Live result table](CONTROLLED_RESULTS.md) and [measurement method](CONTROLLED_BENCHMARKS.md).
 
-## User-requested pause
+## Resumed historical sweep
 
-The remaining historical sweep is paused at 64/109 completed game comparisons,
-515/872 valid observations and 20 retained host-invalid observations. The queued
-restart was cancelled before any new historical measurement began. Existing
-plans, valid observations, invalid attempts and evidence remain unchanged.
-[The checkpoint](CONTROLLED_SWEEP_CHECKPOINT.json) records the exact plan hashes
-and cancelled continuation jobs. The next historical observation is the pending
-control in `cached-address-displacement/standard`; the controller will resume
-from its retained observations with a fresh host-restoration state file.
+The user explicitly resumed the sweep on 2026-10-07 after the graduation results
+and LAN deployment were reported. Resumption starts at 64/109 completed game
+comparisons, 515/872 valid observations and 20 retained host-invalid observations.
+The remaining extended, inlining and memory phases run serially from their saved
+observations. Original plans, valid observations and invalid attempts are retained.
+[The checkpoint](CONTROLLED_SWEEP_CHECKPOINT.json) preserves the previous pause,
+explicit resumption, exact plan hashes and current progress. The first pending
+observation is the closing control in `cached-address-displacement/standard`.
 
 The promotion round and combined-default measurements are complete. Revised
 compiled syscalls, sparse ROM lookup and outlined entry budgets are committed
@@ -25,8 +25,9 @@ in `632c3d433`. The combined artifact improves CPU throughput 1.70% in Snakes
 and 3.46% in Sky Force against the untouched repository baseline, with all four
 pairs faster for both games. See [graduation results](RECOVERED_DEFAULTS_RESULTS.md)
 for the exact artifact, older LAN-build comparison and deployment evidence.
-Resume the historical sweep only after showing those results and receiving a
-request to continue; do not automatically restart it.
+These defaults stay active while the historical sweep runs. Historical results
+identify candidates for current-runtime reassessment; they do not establish
+additional gains on the graduated build.
 
 ## Scope
 

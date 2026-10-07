@@ -1,7 +1,7 @@
 {
-  "status": "paused",
-  "time_utc": "2026-10-07T15:51:42.149924+00:00",
-  "reason": "User requested finishing the current promotion round, recording intermediate progress, and pausing the historical sweep before graduating and measuring the combined defaults. Resume only after user approval.",
+  "status": "running",
+  "time_utc": "2026-10-07T20:08:30.892915+00:00",
+  "reason": "User explicitly requested: nice, resume the sweep",
   "completed_comparisons": 64,
   "total_comparisons": 109,
   "valid_observations": 515,
@@ -214,5 +214,34 @@
     "automatic_resume": false,
     "deployment_status": "Measured artifact deployed, gameplay verified; live audio blocked independently of emulator",
     "completed_utc": "2026-10-07T18:39:26.536600+00:00"
+  },
+  "pause_history": [
+    {
+      "status": "paused",
+      "time_utc": "2026-10-07T15:51:42.149924+00:00",
+      "reason": "User requested finishing the current promotion round, recording intermediate progress, and pausing the historical sweep before graduating and measuring the combined defaults. Resume only after user approval.",
+      "completed_comparisons": 64,
+      "valid_observations": 515,
+      "invalid_observations": 20,
+      "cancelled_waiters": {
+        "567865": "/home/claude/.scratch/eka-controlled/resume-after-promotion.py",
+        "652960": "/home/claude/.scratch/eka-promote-recovered/validate-after-sweep.py"
+      }
+    }
+  ],
+  "resumption": {
+    "time_utc": "2026-10-07T20:08:30.892915+00:00",
+    "authorization": "nice, resume the sweep",
+    "phases": [
+      "extended",
+      "inlining",
+      "memory"
+    ],
+    "resume_id": 7,
+    "starting_completed_comparisons": 64,
+    "starting_valid_observations": 515,
+    "starting_invalid_observations": 20,
+    "next_comparison": "cached-address-displacement/standard",
+    "graduated_runtime_unchanged": true
   }
 }

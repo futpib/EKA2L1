@@ -8,7 +8,7 @@ to detect stale output.
 
 ## Current decisions
 
-The historical sweep is paused at the user's request: 64/109 game comparisons, 515/872 valid observations and 20 retained invalid observations. Revised compiled syscalls, sparse ROM lookup and outlined entry budgets are adopted together: combined CPU throughput improves 1.70% in Snakes and 3.46% in Sky Force versus the repository baseline, or 9.45% and 9.62% versus the previously served LAN build; all four pairs improve in every comparison. Final timing is complete, with 32 valid observations and no invalid attempts. The measured artifact is deployed to the LAN UI; both games and input/layout checks pass. Full live-audio verification is blocked by an independently reproduced host/Chrome audio-device failure; exact PCM replays pass and the limitation is recorded. Resume the remaining 45 historical comparisons only after reporting graduation and receiving a continuation request. Historical percentages are not additive.
+The user resumed the historical sweep on 2026-10-07 from 64/109 game comparisons, 515/872 valid observations and 20 retained invalid observations. Remaining extended, inlining and memory comparisons run serially with frozen plans and retained evidence. Revised compiled syscalls, sparse ROM lookup and outlined entry budgets are adopted together: combined CPU throughput improves 1.70% in Snakes and 3.46% in Sky Force versus the repository baseline, or 9.45% and 9.62% versus the previously served LAN build; all four pairs improve in every comparison. Final timing is complete, with 32 valid observations and no invalid attempts. The measured artifact is deployed to the LAN UI; both games and input/layout checks pass. Full live-audio verification is blocked by an independently reproduced host/Chrome audio-device failure; exact PCM replays pass and the limitation is recorded. New historical winners require reassessment on the graduated runtime before adoption. Historical percentages are not additive.
 
 Historical gains are relative to their recorded controls and configurations.
 They are not additive or evidence of the same gain on the current runtime.
@@ -1872,7 +1872,7 @@ using frozen builds, identical guest work, measured CPU frequency and a reserved
 physical core. It includes recent changes and archived candidates that had
 passed correctness but were rejected or left unresolved on noisy timing evidence.
 
-**User-requested pause**
+**Resumed historical sweep**
 
 The promotion round and combined-default measurements are complete. Revised
 compiled syscalls, sparse ROM lookup and outlined entry budgets are committed
@@ -1880,8 +1880,9 @@ in `632c3d433`. The combined artifact improves CPU throughput 1.70% in Snakes
 and 3.46% in Sky Force against the untouched repository baseline, with all four
 pairs faster for both games. See [graduation results](RECOVERED_DEFAULTS_RESULTS.md)
 for the exact artifact, older LAN-build comparison and deployment evidence.
-Resume the historical sweep only after showing those results and receiving a
-request to continue; do not automatically restart it.
+These defaults stay active while the historical sweep runs. Historical results
+identify candidates for current-runtime reassessment; they do not establish
+additional gains on the graduated build.
 
 **Scope**
 
