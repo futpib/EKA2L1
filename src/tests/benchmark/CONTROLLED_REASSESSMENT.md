@@ -13,8 +13,11 @@ passed correctness but were rejected or left unresolved on noisy timing evidence
 The five fixed plans contain 70 candidate/control comparisons, comprising 109
 game comparisons and 872 valid observations. Each game comparison uses ABBA
 then BAAB. Historical Snakes-only experiments remain explicitly Snakes-only;
-their results are not presented as Sky Force measurements. No production
-optimization or default is changed by this task.
+their results are not presented as Sky Force measurements. The frozen historical
+comparisons remain separate from current-runtime promotion work. The user has
+authorized promoting recovered winners and accepting modest Snakes costs for
+worthwhile Sky Force gains; [the experiment index](EXPERIMENT_INDEX.md) tracks
+those adoption decisions independently of historical percentages.
 
 | # | Phase | Comparison | Original report |
 | ---: | --- | --- | --- |
@@ -235,6 +238,19 @@ The remaining three CMP observations then passed the unchanged measured
 clock/isolation checks at approximately 3591.6 MHz. Their command records
 identify the new controller hash, while all earlier observations remain intact.
 The completed CMP report retains the activity-boundary limitation.
+
+After both entry-budget comparisons completed, `cached-address-displacement`
+recorded three valid observations and two host-invalid closing controls. The
+first failed the mean and interval clock rules; the second recorded a package
+throttle-counter increase. New unrelated build activity then triggered the
+launch wait. To begin the newly requested default-promotion work without
+overlapping builds and timing, the owned controller was stopped between
+observations. The incomplete comparison and all its attempts remain resumable.
+`default-promotion-boundary-stop.json` records that boundary. Original CPU
+policies, EPP, balanced platform profile, effective CPU masks and automatic
+charging were checked live after restoration at 12:34:18 UTC on 2026-10-07;
+`default-promotion-live-restoration.json` preserves the check. The fixed plans,
+archived harnesses and validity thresholds are unchanged.
 
 ## What these measurements can establish
 

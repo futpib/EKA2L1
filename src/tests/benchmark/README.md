@@ -1,5 +1,12 @@
 # Deterministic Snakes benchmark
 
+The [experiment index](EXPERIMENT_INDEX.md) is the central catalogue of measured
+gains and losses, pending comparisons, evidence and current adoption decisions.
+Controlled results refresh it automatically. After updating a historical report
+or `EXPERIMENT_STATUS.json`, run `python3 src/tests/benchmark/experiment_index.py`;
+use `--check` to verify it is current. Historical percentages retain their
+original metrics and are not added together or treated as current-runtime gains.
+
 The [verified audio replay results](RESULTS.md) record the four-run comparison and test limitations.
 
 The [four compiler-option experiments](COMPILER_OPTIONS_RESULTS.md) compare V8 tiering, connected regions, a validation-cost ceiling, and restricted Dynarmic-IR-to-WASM kernels.

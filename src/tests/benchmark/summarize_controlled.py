@@ -161,6 +161,9 @@ def main():
         lines.append('None. ' + ('Host restoration records are complete.' if data['host_restoration_complete']
                                  else 'Host restoration is not yet verified.'))
     args.output_stem.with_suffix('.md').write_text('\n'.join(lines) + '\n')
+    if args.output_stem.resolve() == Path(__file__).with_name('CONTROLLED_RESULTS').resolve():
+        from experiment_index import write_index
+        write_index(Path(__file__).resolve().parent)
     print(f"{len(complete)}/{len(data['comparisons'])} comparisons, "
           f"{data['valid_observations']}/{data['expected_observations']} valid observations")
 
