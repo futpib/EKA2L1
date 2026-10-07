@@ -103,10 +103,12 @@ extended phase, preserving the prior plan as `extended-plan.before-long-syscalls
 It uses the already-audited syscall binary and configuration. The input hash
 matches all four original long-route observations; the plan also fixes their
 guest instruction endpoints and presentation count. The running architecture
-plan and its observations are unchanged. This additional route remains pending
-until its own live measurements pass.
+plan and its observations are unchanged. All eight live observations of this
+additional route have now passed, including the original input hash, guest
+instruction endpoints and presentation count. The syscall report records the
+completed long-route results separately from the standard route.
 
-The active architecture controller predates optional input-route selection.
+The initial architecture controller predates optional input-route selection.
 Its exact loaded source is preserved as
 `architecture-before-long-input-controlled_comparison.py`, matching startup
 hash `e08347286d13176478156774d18a57365983e79239ce48de434d778c7d0b0915`.

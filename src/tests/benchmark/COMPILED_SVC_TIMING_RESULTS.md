@@ -13,12 +13,15 @@ Sky Force improves by 8.11% CPU and 7.58% wall throughput, with all four CPU
 pairs faster (+3.90% to +16.87%) and 2.35% fewer native instructions. The wide
 paired range matters; the mean is not a precise universal gain.
 
-The original long-snake route uses a different input and is queued separately
-as `compiled-syscalls-long-snakes`, including its original input hash and exact
-guest-work endpoints. Its earlier losses are not reassessed by the standard
-route. The stationary Sky Force route below is not repeated by this combat
-comparison. These are frozen-build results, not a current-default adoption
-verdict; no production setting changes as part of this reassessment.
+The separate `compiled-syscalls-long-snakes` rerun is also complete. All eight
+browser runs match the original input hash and exact guest-work endpoints at
+seconds 42-60. Long Snakes loses 0.58% CPU and 0.33% wall throughput, with
+0.54% more native instructions; all four CPU pairs are slower (-1.01% to
+-0.34%). The original roughly 2.9% wall loss shrinks substantially but the
+controlled CPU results still show a small cost on both Snakes routes. Together
+with the Sky Force gain, this is a worthwhile candidate for a current-default
+comparison, not a gain shared by both games. The stationary Sky Force route
+below is not repeated. No production setting changes as part of this reassessment.
 
 ## Original screen
 
