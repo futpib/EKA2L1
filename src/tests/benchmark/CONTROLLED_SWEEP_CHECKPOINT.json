@@ -2,9 +2,9 @@
   "status": "running",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User explicitly requested: nice, resume the sweep",
-  "completed_comparisons": 69,
+  "completed_comparisons": 70,
   "total_comparisons": 109,
-  "valid_observations": 552,
+  "valid_observations": 560,
   "expected_observations": 872,
   "invalid_observations": 20,
   "cancelled_waiters": {
@@ -245,7 +245,7 @@
     "graduated_runtime_unchanged": true
   },
   "active_phase": "extended",
-  "last_progress_utc": "2026-10-07T20:53:43.483525+00:00",
+  "last_progress_utc": "2026-10-07T21:39:35.535524+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -262,7 +262,8 @@
     "deferred-read-exit/standard",
     "owner-core-reuse/standard",
     "aligned-cache-hash/standard",
-    "compact-generated-memory/standard"
+    "compact-generated-memory/standard",
+    "connected-callee-loops/standard"
   ],
   "configuration_audit": {
     "observations": 558,

@@ -210,3 +210,24 @@ WRITE_PAGE cache locals are gone, and the default direct-memory path precedes
 this TLB fallback. The archived implementation is superseded by that lowering;
 restoring its old cache is not justified by this comparison. No new runtime
 change or adoption gain is claimed.
+
+## Controlled reassessment: connected callees
+
+All eight fixed-frequency Snakes observations pass without invalid attempts.
+Worker CPU time averages 17.71659 seconds for the archived compact-memory control
+and 16.57802 seconds for the connected-callee candidate: +6.87% CPU throughput,
++6.52% wall throughput and 7.07% fewer native instructions. All four adjacent
+pairs improve (+5.65% to +7.57%). This reverses the earlier inconclusive timing
+verdict for this archived combination. It is not additive with the compact-memory
+percentage, and it is not a measurement of today's production defaults.
+
+This is a priority candidate for current-runtime reassessment. The current
+`resolve_leaf` still rejects internal branches, so the functionality is absent.
+However, the archived patch also raises the leaf scan bound from 16 to 64
+instructions and broadens predicate eligibility; these observations do not
+isolate the contribution of loops alone. Today's conditional-integer support,
+loop-budget proofs, state pruning and direct-memory lowering have also changed.
+Current loop-budget analysis explicitly excludes inlined leaf instructions, so
+simply restoring the old patch could lose an existing fast path. Adaptation and
+controlled measurements on the current runtime are required before adoption;
+no source change or new production gain is claimed here.
