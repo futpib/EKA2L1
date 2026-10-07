@@ -25,6 +25,8 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | ---: | --- | ---: | ---: | ---: | ---: | --- |
 | 1 | compiled-syscalls-current / Snakes | +0.70% | +0.65% | -0.00% | 3/4 | 8/8; 0 invalid |
 | 2 | compiled-syscalls-current / Sky Force | +7.17% | +6.51% | -4.12% | 4/4 | 8/8; 0 invalid |
+| 3 | compiled-syscalls-total / Snakes | Pending | Pending | Pending | — | 6/8; 0 invalid |
+| 4 | compiled-syscalls-total / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
 
 ## Controlled comparisons
 
