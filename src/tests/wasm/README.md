@@ -82,8 +82,11 @@ guest time and frame presentations, checks non-silent browser audio and narrow
 layout, switches games and opens manual loading. It retains intermediate menus,
 gameplay screenshots, GPU details, browser logs and measurements. Inspect those
 screenshots to confirm the intended game scenes; changing pixels alone do not
-prove gameplay. Performance and audio underruns are reported, not hidden behind
-a boot-success assertion.
+prove gameplay. Audio failures are retained while the other game and launcher
+checks finish, then cause the complete check to exit unsuccessfully. Device
+clock and PCM-queue state are included to distinguish browser output failures
+from missing emulator samples. Performance and audio underruns are reported,
+not hidden behind a boot-success assertion.
 
 Current compatibility, performance limits and screenshots are recorded in
 [Sky Force results](../benchmark/SKY_FORCE_RESULTS.md).

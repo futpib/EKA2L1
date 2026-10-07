@@ -9,7 +9,7 @@ import {PNG} from 'pngjs';
 const [url, output] = process.argv.slice(2);
 if (!url || !output) throw Error('Usage: node game-picker.ts URL NEW_OUTPUT');
 fs.mkdirSync(output);
-const report: any = {url, started: new Date().toISOString(), games: [], errors: []};
+const report: any = {url, started: new Date().toISOString(), games: [], checks: [], errors: []};
 const save = () => fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify(report, null, 2));
 const log = fs.createWriteStream(path.join(output, 'browser.log'));
 const browser = await puppeteer.launch({executablePath: '/usr/bin/chromium', headless: true,
@@ -30,7 +30,9 @@ try {
   const state = () => page.evaluate(() => {
     const g = window as any;
     return {guestUs: g.Module._eka2l1_guest_time_us(), frames: g.Module._eka2l1_presentations(),
-      inputs: g.Module._eka2l1_input_consumed(), audio: g.EkaAudio.stats};
+      inputs: g.Module._eka2l1_input_consumed(), audio: g.EkaAudio.stats,
+      audioDevice: {state: g.EkaAudio.context?.state, time: g.EkaAudio.context?.currentTime,
+        received: g.EkaAudio.received, sink: JSON.parse(g.Module.ccall('eka2l1_audio_stats', 'string', [], []))}};
   });
   const waitGuest = (us: number) => page.waitForFunction(t => (window as any).Module._eka2l1_guest_time_us() >= t, {timeout: 180000}, us);
   const screenshot = async (name: string, minColors = 64) => {
@@ -95,9 +97,14 @@ try {
     const end = await state(), seconds = (performance.now() - begin) / 1000;
     const last = await screenshot(id + '-gameplay-end');
     assert.notEqual(first, last); assert.ok(end.frames > start.frames + 20);
-    assert.ok(end.inputs >= start.inputs + 6); assert.ok(end.audio.nonzero > 0);
+    assert.ok(end.inputs >= start.inputs + 6);
+    // Preserve audio failures while exercising the other game and launcher.
+    // The final assertion still fails the complete integration check.
+    report.checks.push({game: id, check: 'non-silent browser audio', passed: end.audio.nonzero > 0});
     await page.click('#btn-sound');
-    assert.equal(await page.evaluate(() => (window as any).EkaAudio.muted), true);
+    await page.waitForFunction(() => !(window as any).EkaAudio.busy, {timeout: 5000}).catch(() => {});
+    report.checks.push({game: id, check: 'sound toggle returns to muted',
+      passed: await page.evaluate(() => (window as any).EkaAudio.muted)});
     // Focused launcher arrows must stay in the selector, not move the game.
     await page.focus('#game-select');
     const before = (await state()).inputs;
@@ -114,6 +121,7 @@ try {
   assert.equal(await page.evaluate(() => (window as any)._gameRunning), false);
   assert.equal(await page.evaluate(() => (window as any).EkaAudio.context), null);
   assert.deepEqual(report.errors, []);
-  report.passed = true; save();
+  report.passed = report.checks.every((check: any) => check.passed); save();
+  assert.ok(report.passed, 'Game checks failed; see the retained report for both games');
   console.log('PASS: Sky Force and Snakes, switching, keyboard/touch, audio, mobile layout and manual launcher');
 } finally { save(); await browser.close(); log.end(); }
