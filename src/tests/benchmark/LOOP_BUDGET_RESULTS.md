@@ -5,6 +5,18 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The controlled conditional-exit-only comparison now has four observations per
+variant in each game, in ABBA then BAAB order. Snakes is effectively flat:
+-0.05% CPU and +0.46% wall throughput, with two of four CPU pairs faster and
+almost unchanged native instruction count (-0.002%). Sky Force changes by
+-1.44% CPU and -1.11% wall throughput, despite 2.67% fewer retired native
+instructions. Only one of its four CPU pairs is faster; the range is -4.95%
+to +3.39%. All 16 observations pass the unchanged clock and host checks.
+This comparison establishes no gain for the narrower prototype. It does not
+identify the cause of the higher cycles per retired instruction. The broader
+loop-budget comparison is still running. These results belong to the archived
+policy-7 prototypes and do not measure a marginal change on today's defaults.
+
 The **browser launcher defaults to compiler policy 17**. It extends policy 7
 with one budget proof per eligible loop iteration. `EKA2L1_AOT_IR_MODE=7` selects
 the previous behavior explicitly. The measured tradeoff below is accepted for
