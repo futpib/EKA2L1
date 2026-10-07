@@ -5,8 +5,18 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
-Not adopted. The extension passes correctness checks, but Snakes shows no
-repeatable CPU improvement and Sky Force uses 2.85% more worker CPU, slower in
+The completed controlled rerun uses the same frozen builds with four fresh
+observations per variant in ABBA then BAAB order. Snakes is slightly slower:
+-0.50% CPU and -0.28% wall throughput, with all four CPU pairs slower despite
+0.30% fewer retired native instructions. Sky Force is essentially flat:
++0.28% CPU and +0.26% wall throughput, with CPU pairs ranging from -0.53% to
++0.80% and three of four faster. Its retired instruction count changes by only
++0.03%. These results do not reproduce the original 2.85% Sky Force CPU-time
+increase, but still do not establish a compelling runtime gain. No production
+change follows from this frozen-build reassessment.
+
+Original decision: not adopted. The extension passes correctness checks, but
+Snakes shows no repeatable CPU improvement and Sky Force uses 2.85% more worker CPU, slower in
 both pairs. The production compiler is restored. The complete implementation
 and tests remain in the evidence file's `source_patch`; no runtime option or
 LAN deployment is added.

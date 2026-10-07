@@ -226,11 +226,14 @@ limit. The supported performance profile reported 35 W. A deliberate child-failu
 test verified restoration of the original balanced profile, CPU policies and
 effective CPU masks. The package limit returned to 30 W as well.
 
-The first five complete comparisons remain balanced-profile observations:
+The first five complete comparisons preceded the platform-profile switch:
 compact dispatch and division lowering in both games, and state pruning in
-Snakes. The controller stopped only after that eighth state-pruning observation;
-`reserved-host.json` confirms restoration. No comparison combines observations
-from different platform profiles. The remaining comparisons use performance,
+Snakes. Balanced was the existing host setting; the earlier sampler did not
+record that setting in every sample. Actual frequency, CPU policy and isolation
+were still checked under the original rules. The controller stopped only after
+that eighth state-pruning observation; `reserved-host.json` confirms restoration.
+The deliberate profile switch occurred between complete comparisons. The
+remaining comparisons use performance,
 with the same 3.6 GHz request, binaries, game windows, run orders and clock limits.
 Every subsequent clock sample records the profile. The four unstarted plans
 explicitly require performance; the resumed original plan retains its hash and

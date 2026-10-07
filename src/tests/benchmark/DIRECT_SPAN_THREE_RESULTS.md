@@ -5,7 +5,16 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
-Not adopted. Snakes has no repeatable CPU gain; Sky Force uses 2.44% more
+The completed controlled rerun uses the same frozen builds with four fresh
+observations per variant in ABBA then BAAB order. Snakes is flat at -0.02% CPU
+and -0.33% wall throughput, with mixed CPU pairs despite 0.31% fewer retired
+native instructions. Sky Force averages -0.82% CPU and -0.89% wall throughput;
+its CPU pairs range from -2.40% to +0.58%, with two of four faster. Its retired
+instruction count changes by only -0.01%. The mean Sky Force loss is smaller
+than in the original screen and the pairs are mixed. This still does not
+establish a useful runtime gain; no production change follows from the rerun.
+
+Original decision: not adopted. Snakes has no repeatable CPU gain; Sky Force uses 2.44% more
 worker CPU and is slower in both pairs. The implementation and regression
 tests are preserved in the evidence file; production behavior is restored.
 
