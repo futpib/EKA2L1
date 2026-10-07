@@ -19,6 +19,7 @@ in the evidence and are repeated without changing the thresholds.
 | 2 | Untouched baseline versus compiled syscall candidate | +0.21% | +0.71% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
 | 3 | Sparse ROM lookup off/on in the rebuilt candidate | -0.27% | +1.81% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 4/4 |
 | 4 | Entry-only pruning versus current full pruning | -0.42% | +1.26% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
+| 5 | Static ARM count batching versus policy 17 | -0.34% | +0.50% | 16 valid, 1 invalid; Snakes 1/4 pairs faster, Sky Force 2/4 |
 
 Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
 The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
@@ -143,3 +144,9 @@ changes range from -3.47% to +3.35%, with only 0.03% fewer native instructions.
 Snakes changes by -0.42% CPU and -0.12% native instructions. This result needs
 confirmation on the final runtime before adoption; it is not the historical
 3.14% gain, whose control lacked full pruning.
+
+The current batching comparison does not support promotion. Sky Force CPU pairs
+range from -1.84% to +3.78%; native instructions rise 0.24%. Snakes native
+instructions rise 0.03%. Policy 17 stays selected. One Sky Force control failed
+the predeclared interval-frequency limit and was repeated without changing the
+criteria; the invalid observation remains in the evidence.

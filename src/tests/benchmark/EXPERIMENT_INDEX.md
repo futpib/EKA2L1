@@ -31,8 +31,8 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | 6 | sparse-rom-current / Sky Force | +1.81% | +1.71% | -1.60% | 4/4 | 8/8; 0 invalid |
 | 7 | entry-only-pruning-current / Snakes | -0.42% | -0.31% | -0.12% | 1/4 | 8/8; 0 invalid |
 | 8 | entry-only-pruning-current / Sky Force | +1.26% | +1.18% | -0.03% | 3/4 | 8/8; 0 invalid |
-| 9 | batched-counts-current / Snakes | Pending | Pending | Pending | — | 3/8; 0 invalid |
-| 10 | batched-counts-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 9 | batched-counts-current / Snakes | -0.34% | +0.01% | +0.03% | 1/4 | 8/8; 0 invalid |
+| 10 | batched-counts-current / Sky Force | +0.50% | +0.50% | +0.24% | 2/4 | 8/8; 1 invalid |
 | 11 | whole-entry-budget-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
 | 12 | whole-entry-budget-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
 | 13 | outlined-entry-budget-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
@@ -70,8 +70,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 18 | thumb-static / Sky Force | -1.84% | -1.78% | -0.52% | 0/4 | 8/8; 0 invalid | Not selected for promotion: Snakes +0.91%, but Sky Force -1.84% with all four pairs slower; does not match the preferred tradeoff | [THUMB_STATIC_REGION_RESULTS.md](THUMB_STATIC_REGION_RESULTS.md) |
 | 19 | thumb-transfer-gate / Snakes | -0.65% | -0.42% | +0.18% | 1/4 | 8/8; 0 invalid | No new default adopted | [THUMB_TRANSFER_GATE_RESULTS.md](THUMB_TRANSFER_GATE_RESULTS.md) |
 | 20 | thumb-transfer-gate / Sky Force | +0.04% | -0.22% | +0.03% | 2/4 | 8/8; 0 invalid | No new default adopted | [THUMB_TRANSFER_GATE_RESULTS.md](THUMB_TRANSFER_GATE_RESULTS.md) |
-| 21 | batched-counts / Snakes | -0.13% | +0.31% | -0.41% | 2/4 | 8/8; 0 invalid | Promotion in progress: Generic ARM batching restored as policy 18; focused checks and both exact game replays passed, current timing queued | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
-| 22 | batched-counts / Sky Force | +1.06% | +1.01% | -0.15% | 4/4 | 8/8; 0 invalid | Promotion in progress: Generic ARM batching restored as policy 18; focused checks and both exact game replays passed, current timing queued | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
+| 21 | batched-counts / Snakes | -0.13% | +0.31% | -0.41% | 2/4 | 8/8; 0 invalid | Not selected for promotion: Current Snakes -0.34% and Sky Force +0.50% with mixed pairs and slightly more native instructions; keep policy 17 | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
+| 22 | batched-counts / Sky Force | +1.06% | +1.01% | -0.15% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Current Snakes -0.34% and Sky Force +0.50% with mixed pairs and slightly more native instructions; keep policy 17 | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
 | 23 | span-page-reuse / Snakes | -1.76% | -1.54% | +1.12% | 0/4 | 8/8; 0 invalid | No new default adopted | [SPAN_PAGE_REUSE_RESULTS.md](SPAN_PAGE_REUSE_RESULTS.md) |
 | 24 | span-page-reuse / Sky Force | +0.96% | +0.88% | +0.82% | 2/4 | 8/8; 0 invalid | No new default adopted | [SPAN_PAGE_REUSE_RESULTS.md](SPAN_PAGE_REUSE_RESULTS.md) |
 | 25 | dynamic-rom-cohorts / Snakes | -11.17% | -9.48% | +10.03% | 0/4 | 8/8; 0 invalid | No new default adopted | [DYNAMIC_ROM_COHORT_TIMING_RESULTS.md](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) |
@@ -5249,6 +5249,7 @@ current adoption decisions are in [the experiment index](EXPERIMENT_INDEX.md).
 | 2 | Untouched baseline versus compiled syscall candidate | +0.21% | +0.71% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
 | 3 | Sparse ROM lookup off/on in the rebuilt candidate | -0.27% | +1.81% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 4/4 |
 | 4 | Entry-only pruning versus current full pruning | -0.42% | +1.26% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
+| 5 | Static ARM count batching versus policy 17 | -0.34% | +0.50% | 16 valid, 1 invalid; Snakes 1/4 pairs faster, Sky Force 2/4 |
 
 Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
 The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
