@@ -4,10 +4,21 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from experiment_index import findings, render
+from experiment_index import document_kind, findings, render, report_files
 
 
 class ExperimentIndexTest(unittest.TestCase):
+    def test_timing_adoption_and_design_notes_are_discoverable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            names = ['MEMORY_TIMING.md', 'MEMORY_ADOPTION.md', 'BUDGET_DESIGN.md',
+                     'PROFILE.md', 'README.md', 'EXPERIMENT_INDEX.md', 'CONTROLLED_RESULTS.md']
+            for name in names:
+                (root / name).write_text('# Document\n')
+            self.assertEqual({path.name for path in report_files(root)}, set(names[:4]))
+            self.assertEqual(document_kind(root / 'BUDGET_DESIGN.md'), 'Design/plan')
+            self.assertEqual(document_kind(root / 'MEMORY_ADOPTION.md'), 'Adoption/decision')
+
     def test_pending_result_does_not_become_a_gain_or_default(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -36,6 +47,8 @@ class ExperimentIndexTest(unittest.TestCase):
             self.assertIn('A later repeat found no speedup.', render(root))
 
     def test_historical_metrics_and_all_table_rows_stay_distinct(self):
+        adoption = 'Measured 5.95% less worker CPU for A and 1.31% more for B.'
+        self.assertEqual(findings('# Adoption\n\n' + adoption)[0][1], adoption)
         source = ('# Measurements\n\nCPU time fell 10%; wall throughput regressed 3%.\n\n'
                   '| Game | CPU time | Throughput |\n| --- | ---: | ---: |\n'
                   '| A | -10% | -3% |\n| B | +2% | +4% |\n')

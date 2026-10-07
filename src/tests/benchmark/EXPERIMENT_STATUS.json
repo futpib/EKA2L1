@@ -1,20 +1,65 @@
 {
   "policy": "Promote recovered runtime winners after validating them on the current implementation. A modest Snakes regression is acceptable for a worthwhile Sky Force gain. Keep mutually exclusive implementations separate until their current comparison is complete. Current-runtime promotion work is in progress; the unfinished historical reassessment remains resumable.",
   "experiments": {
-    "compact-dispatch": {"status": "Default", "note": "Contiguous trusted RAM dispatch slots"},
-    "state-pruning": {"status": "Default", "note": "Full ARM and Thumb load/store pruning"},
-    "quiet-runtime-cuts": {"status": "Default", "note": "Verifier-disabled trusted dispatch omits unused work"},
-    "broad-loop-budgets": {"status": "Default", "note": "Compiler policy 17"},
-    "ram-hit-inline": {"status": "Covered by current default", "note": "Compact dispatch already inlines the trusted hit and removes its old metadata pointer chase"},
-    "verifier-specialization": {"status": "Covered by current default", "note": "Integrated in quiet-runtime cuts"},
-    "guard-publication-omission": {"status": "Covered by current default", "note": "Integrated in quiet-runtime cuts for trusted execution"},
-    "compiled-syscalls": {"status": "Promotion in progress", "note": "Restore and measure on the current runtime; Sky Force tradeoff authorized"},
-    "compiled-syscalls-long-snakes": {"status": "Promotion in progress", "note": "Additional Snakes route for the same syscall change"},
-    "sparse-rom-lookup": {"status": "Promotion in progress", "note": "Restore and compare with today's inlined ROM registry"},
-    "entry-only-pruning": {"status": "Promotion in progress", "note": "Normal entries are already pruned; compare omitting private-fallback pruning against current full pruning"},
-    "whole-entry-budget": {"status": "Promotion in progress", "note": "Alternative to outlined-entry-budget; retain one compatible winner"},
-    "outlined-entry-budget": {"status": "Promotion in progress", "note": "Alternative to whole-entry-budget; retain one compatible winner"},
-    "batched-counts": {"status": "Promotion in progress", "note": "Restore generic batching and measure with current direct memory"},
-    "current-tlb-vs-direct": {"status": "Direct is default", "note": "Mode 2; TLB mode 0 remains available"}
+    "compact-dispatch": {
+      "status": "Default",
+      "note": "Contiguous trusted RAM dispatch slots"
+    },
+    "state-pruning": {
+      "status": "Default",
+      "note": "Full ARM and Thumb load/store pruning"
+    },
+    "quiet-runtime-cuts": {
+      "status": "Default",
+      "note": "Verifier-disabled trusted dispatch omits unused work"
+    },
+    "broad-loop-budgets": {
+      "status": "Default",
+      "note": "Compiler policy 17"
+    },
+    "ram-hit-inline": {
+      "status": "Covered by current default",
+      "note": "Compact dispatch already inlines the trusted hit and removes its old metadata pointer chase"
+    },
+    "verifier-specialization": {
+      "status": "Covered by current default",
+      "note": "Integrated in quiet-runtime cuts"
+    },
+    "guard-publication-omission": {
+      "status": "Covered by current default",
+      "note": "Integrated in quiet-runtime cuts for trusted execution"
+    },
+    "compiled-syscalls": {
+      "status": "Promotion in progress",
+      "note": "Restored; current correctness passed, current timing pending. See [promotion results](RECOVERED_DEFAULTS_RESULTS.md)"
+    },
+    "compiled-syscalls-long-snakes": {
+      "status": "Promotion in progress",
+      "note": "Additional Snakes route for the same syscall change"
+    },
+    "sparse-rom-lookup": {
+      "status": "Promotion in progress",
+      "note": "Restore and compare with today's inlined ROM registry"
+    },
+    "entry-only-pruning": {
+      "status": "Promotion in progress",
+      "note": "Normal entries are already pruned; compare omitting private-fallback pruning against current full pruning"
+    },
+    "whole-entry-budget": {
+      "status": "Promotion in progress",
+      "note": "Alternative to outlined-entry-budget; retain one compatible winner"
+    },
+    "outlined-entry-budget": {
+      "status": "Promotion in progress",
+      "note": "Alternative to whole-entry-budget; retain one compatible winner"
+    },
+    "batched-counts": {
+      "status": "Promotion in progress",
+      "note": "Restore generic batching and measure with current direct memory"
+    },
+    "current-tlb-vs-direct": {
+      "status": "Direct is default",
+      "note": "Mode 2; TLB mode 0 remains available"
+    }
   }
 }

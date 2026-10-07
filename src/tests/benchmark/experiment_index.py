@@ -14,8 +14,20 @@ def report_files(root):
     return sorted(path for path in root.rglob('*.md')
                   if path.name not in {'EXPERIMENT_INDEX.md', 'CONTROLLED_RESULTS.md',
                                        'CONTROLLED_PRELIMINARY_RESULTS.md'}
-                  and ('RESULT' in path.name or 'EXPERIMENT' in path.name
-                       or path.name == 'BATCHED_INSTRUCTION_COUNTS.md'))
+                  and path != root / 'README.md')
+
+
+def document_kind(path):
+    name = path.stem
+    if any(word in name for word in ('DESIGN', 'PLAN', 'GATES')):
+        return 'Design/plan'
+    if any(word in name for word in ('ADOPTION', 'DECISION')):
+        return 'Adoption/decision'
+    if any(word in name for word in ('PROFILE', 'PROFILING', 'CENSUS', 'ANALYSIS', 'ATTRIBUTION')):
+        return 'Profiling/analysis'
+    if 'REASSESSMENT' in name:
+        return 'Reassessment'
+    return 'Results/notes'
 
 
 def findings(source):
@@ -45,7 +57,7 @@ def findings(source):
                 lines = ['| # ' + lines[0], '| ---: ' + lines[1]] + [
                     f'| {index} ' + line for index, line in enumerate(lines[2:], 1)]
             selected.append((heading, '\n'.join(lines)))
-        elif re.search(r'throughput|speedup|faster|slower|regress|CPU time|wall time', block, re.I):
+        elif re.search(r'throughput|speedup|faster|slower|regress|CPU time|worker CPU|wall time', block, re.I):
             # Preserve both positive and negative verdicts, including non-numeric ones.
             if re.search(r'\d|no |not |reject|adopt|retain|remov|inconclusive', block, re.I):
                 selected.append((heading, block.strip()))
@@ -109,13 +121,17 @@ def render(root):
                   'boundary. All valid samples remain included; see the [host limitations](CONTROLLED_REASSESSMENT.md).']
     reports = report_files(root)
     lines += ['', '## Complete report catalogue', '',
-              f'{len(reports)} experiment, measurement, correctness and investigation reports are',
-              'discovered below. Some are correctness or profiling studies rather than speed',
-              'experiments. Each report retains its exact variants, workloads, controls and',
+              f'{len(reports)} reports and supporting notes are discovered below, including',
+              'timing, adoption and design documents with nonstandard filenames. Design plans',
+              'and profiling shares do not establish measured speed gains. Each document',
+              'retains its exact variants, workloads, controls and',
               'evidence. Historical adoption statements describe that report\'s source revision;',
-              'the current dispositions above take precedence for the reassessed experiments.', '',
-              '| # | Report | Recorded performance findings |',
-              '| ---: | --- | --- |']
+              'the current dispositions above take precedence for the reassessed experiments.',
+              'Default describes adopted repository settings; deployment checks have their own',
+              'build evidence. The [original preliminary campaign](CONTROLLED_PRELIMINARY_RESULTS.md)',
+              'is retained separately from the later controlled comparisons.', '',
+              '| # | Document type | Report | Recorded performance findings |',
+              '| ---: | --- | --- | --- |']
     extracted = []
     for index, path in enumerate(reports, 1):
         source = path.read_text()
@@ -124,7 +140,7 @@ def render(root):
         parts = findings(source)
         extracted.append((relative, title, parts))
         link = f'[Findings below](#report-{index})' if parts else 'No performance excerpt; see source report'
-        lines.append(f'| {index} | [{cell(title)}]({relative}) | {link} |')
+        lines.append(f'| {index} | {document_kind(path)} | [{cell(title)}]({relative}) | {link} |')
     lines += ['', '## Historical findings and gain/loss tables', '',
               'These are source excerpts, not normalized or independently repeated results.',
               'Their headings, signs, units and caveats are preserved. CPU-time reductions,',
