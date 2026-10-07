@@ -135,14 +135,15 @@ real browser control then passed with compiler policy 7 and valid counters.
 the newer controller with optional input-route support. Completed observations
 are retained, and later phases remain serial.
 
-The extended phase stopped twice after three clock-invalid attempts at
-`guard-publication-omission/combat`, reversed-order first control (six attempts
+The extended phase stopped three times after three clock-invalid attempts at
+`guard-publication-omission/combat`, reversed-order first control (nine attempts
 in total). Whole-window averages were close to the requested frequency, but
 individual intervals fell below the predeclared 1% limit. Other validity checks
-passed. All six attempts remain in the data; the much slower earlier candidate
-that passed the checks remains in the performance comparison. Both invocations
+passed. All nine attempts remain in the data; the much slower earlier candidate
+that passed the checks remains in the performance comparison. All three invocations
 restored the original CPU policies, EPP, balanced profile and effective CPU
-masks, also checked live (`extended-host.json`, `extended-host-resume1.json`).
+masks, also checked live (`extended-host.json`, `extended-host-resume1.json`,
+`extended-host-resume2.json`).
 
 A separate read-only MSR diagnostic caught actual ratio-8 throttling while the
 HWP minimum and maximum requests remained 36. Core and package status bit 2
@@ -160,13 +161,26 @@ requests to 2.3 GHz failed the clock rule. Two trials temporarily inhibiting
 battery charging passed their measured windows at approximately 3591.6 MHz,
 although each still recorded three external-throttle samples during startup.
 This does not establish charging as the cause. All temporary CPU/profile/mask
-changes and charging inhibition were restored and checked; charging is back
+changes and charging inhibition were restored and checked; each diagnostic restored charging
 to `auto`. Raw samples, validation and restoration records are collected in
 `external-throttle-diagnostics.json` in the campaign directory.
 
-The campaign resumes the original charging and benchmark settings under
-`extended-host-resume2.json`, preserving the same plan, unfinished observation
-and thresholds. The Chromium version remains 153.0.8010.52.
+The third original-settings invocation again failed all three attempts.
+Before the next launch, `charging-stability-boundary.json` recorded a temporary
+charging pause for the remaining extended, inlining and memory observations.
+The wrapper restores the previous charging mode on every phase exit, including
+failure, and records both transitions. `extended-host-resume3.json` and
+`extended-charging-resume3.json` describe the first such invocation. The same
+plans, run order, 3.6 GHz request, affinity and clock rules remain in force. The first resumed control passed at
+3591.605 MHz, with every measured interval inside the unchanged limits.
+
+The incomplete guard-publication Sky Force comparison spans this host-setting
+boundary: five valid observations preceded it. They remain included, including
+the slow candidate; do not interpret that mixed-condition comparison as a
+clean estimate of a small gain. Subsequent comparisons start with charging
+paused for both variants. The report requires charging restoration as well as
+CPU/profile/mask restoration before declaring completion. The Chromium version
+remains 153.0.8010.52.
 
 ## What these measurements can establish
 

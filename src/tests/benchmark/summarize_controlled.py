@@ -71,7 +71,9 @@ def main():
         if any(row['plan_sha256'] != plan_hash for row in rows):
             raise ValueError('Plan hash mismatch: ' + phase)
         hosts = {str(p): json.loads(p.read_text()) for p in args.campaign_root.glob(phase + '-host*.json')}
+        charging = {str(p): json.loads(p.read_text()) for p in args.campaign_root.glob(phase + '-charging*.json')}
         data['phases'][phase] = dict(plan=plan, plan_sha256=plan_hash, host_states=hosts,
+                                     charging_states=charging,
                                      observations_path=str(path))
         for row in rows:
             observation = {key: value for key, value in row.items() if key != 'report'}
@@ -90,8 +92,12 @@ def main():
     complete = [row for row in data['comparisons'] if row['complete']]
     data['measurements_complete'] = len(complete) == len(data['comparisons'])
     data['host_restoration_complete'] = all(phase['host_states'] and
-        all(state.get('restored') is True for state in phase['host_states'].values())
+        all(state.get('restored') is True for state in
+            [*phase['host_states'].values(), *phase['charging_states'].values()])
         for phase in data['phases'].values())
+    boundary = args.campaign_root / 'charging-stability-boundary.json'
+    if boundary.exists():
+        data['charging_stability_boundary'] = json.loads(boundary.read_text())
     data['complete'] = data['measurements_complete'] and data['host_restoration_complete']
     data['valid_observations'] = sum(row['valid'] for row in data['comparisons'])
     data['expected_observations'] = sum(row['expected'] for row in data['comparisons'])
@@ -127,8 +133,14 @@ def main():
             f"{min(pairs):+.2f}% to {max(pairs):+.2f}% | {row['favorable_pairs']}/{len(pairs)} | {row['invalid']} |")
     lines += ['', 'All observations, clock checks, errors, exact plans, settings, hashes and',
               'absolute evidence paths are retained in the companion JSON. Raw scheduler',
-              'and browser reports remain in the campaign directory.', '',
-              '## Remaining comparisons', '']
+              'and browser reports remain in the campaign directory.', '']
+    if 'charging_stability_boundary' in data:
+        lines += ['Battery charging is temporarily inhibited from the recorded extended-phase',
+                  'resume onward, with restoration at every phase exit. The guard-publication',
+                  'Sky Force comparison spans this host-setting boundary; its earlier valid',
+                  'observations, including the slow candidate, remain included. See the',
+                  '[power investigation and limitations](CONTROLLED_REASSESSMENT.md).', '']
+    lines += ['## Remaining comparisons', '']
     for phase in args.phases:
         pending = [row for row in data['comparisons'] if row['phase'] == phase and not row['complete']]
         if pending:
