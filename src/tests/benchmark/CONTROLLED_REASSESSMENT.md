@@ -135,16 +135,38 @@ real browser control then passed with compiler policy 7 and valid counters.
 the newer controller with optional input-route support. Completed observations
 are retained, and later phases remain serial.
 
-The extended phase later stopped after three clock-invalid attempts at
-`guard-publication-omission/combat`, reversed-order first control. Whole-window
-frequency was approximately 3583 MHz, but individual intervals fell below the
-predeclared 1% limit (minimums 3553.22, 3561.90 and 3555.22 MHz). The other
-validity checks passed. All three attempts remain in the data; the much slower
-earlier candidate that passed the checks remains in the performance comparison.
-`extended-host.json` records the failed invocation and successful restoration,
-also checked live. `extended-host-resume1.json` resumes the same plan and
-unfinished observation with unchanged thresholds. The Chromium version remains
-153.0.8010.52. No cause for the transient clock dips is established here.
+The extended phase stopped twice after three clock-invalid attempts at
+`guard-publication-omission/combat`, reversed-order first control (six attempts
+in total). Whole-window averages were close to the requested frequency, but
+individual intervals fell below the predeclared 1% limit. Other validity checks
+passed. All six attempts remain in the data; the much slower earlier candidate
+that passed the checks remains in the performance comparison. Both invocations
+restored the original CPU policies, EPP, balanced profile and effective CPU
+masks, also checked live (`extended-host.json`, `extended-host-resume1.json`).
+
+A separate read-only MSR diagnostic caught actual ratio-8 throttling while the
+HWP minimum and maximum requests remained 36. Core and package status bit 2
+were asserted while the core's internal thermal-status bit 0 was clear. Intel
+identifies bit 2 as another platform agent asserting PROCHOT/FORCEPR; the
+asserting component is not identified by these measurements. See the
+[Intel thermal-management reference](https://cdrdv2-public.intel.com/835755/253669-sdm-vol-3b.pdf).
+The user reported a power outage; AC was online during the diagnostics. That
+provides relevant power context, but does not establish which component caused
+the pulses.
+
+Four diagnostic replays are excluded from performance results because they
+also sampled MSRs. The original settings and a trial lowering support-core
+requests to 2.3 GHz failed the clock rule. Two trials temporarily inhibiting
+battery charging passed their measured windows at approximately 3591.6 MHz,
+although each still recorded three external-throttle samples during startup.
+This does not establish charging as the cause. All temporary CPU/profile/mask
+changes and charging inhibition were restored and checked; charging is back
+to `auto`. Raw samples, validation and restoration records are collected in
+`external-throttle-diagnostics.json` in the campaign directory.
+
+The campaign resumes the original charging and benchmark settings under
+`extended-host-resume2.json`, preserving the same plan, unfinished observation
+and thresholds. The Chromium version remains 153.0.8010.52.
 
 ## What these measurements can establish
 

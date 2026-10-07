@@ -1,6 +1,6 @@
 # Controlled optimization comparisons
 
-Status: in progress. 51/109 game comparisons complete; 413/872 valid observations and 8 retained invalid observations.
+Status: in progress. 51/109 game comparisons complete; 413/872 valid observations and 11 retained invalid observations.
 
 [Earlier partial-isolation measurements](CONTROLLED_PRELIMINARY_RESULTS.md)
 remain separate: their measurement process could use the reserved core.
