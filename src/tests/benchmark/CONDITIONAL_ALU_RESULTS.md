@@ -5,6 +5,15 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The controlled rerun uses four observations per variant, in ABBA then BAAB
+order, at the original shared-audio Snakes window of guest seconds 78-96.
+CPU throughput changes by -0.17% and wall throughput by -0.16%; native
+instructions increase by 0.20%. One of four CPU pairs is faster by just 0.005%;
+the full range is -0.50% to +0.005%. All eight observations pass the host checks.
+The result is near flat with no demonstrated gain. The original 2.3% loss is
+much smaller under these controls; neither magnitude is a claim about this
+change applied to today's compiler and direct-memory defaults.
+
 **Fault-check provenance corrected:** see [explicit rebuild audit](FAULT_PROBE_REBUILD_AUDIT.md). The original post-reboot probe runs were stale; rebuilt candidate probes now pass all 672 cases.
 
 The broader conditional-MOV experiment uses WASM select for cheap non-flag-setting
