@@ -468,3 +468,17 @@ also rejects a profile change within a run.
 controller and sampler sources are retained as `reserved-before-platform-*.py`.
 The measured frequency rules remain authoritative; a larger platform power
 allowance alone is not evidence that a trial ran at the requested frequency.
+
+## Temperature preflight removed
+
+At the user's request, subsequent comparison and graduation launches no longer
+wait for CPU sensors to drop below 70 C or remain there for five minutes. The
+measured fixed-clock, throttling, affinity and counter validity checks remain.
+The separate build-contention checks still apply. Frozen plans, valid and invalid
+observations, and earlier preflight records are preserved.
+
+The original-bound connected-callee comparison had already started when this
+instruction arrived; it continues without interruption. The current and queued
+launch scripts and the interleaved sweep coordinator have had the temperature
+preflight removed. `temperature-gate-removal.json` records the script backups
+and before/after hashes. No game runtime code changed for this adjustment.

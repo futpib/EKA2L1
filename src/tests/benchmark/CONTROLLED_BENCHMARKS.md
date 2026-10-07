@@ -53,6 +53,11 @@ their normal game input and the existing within-comparison work checks.
 
 ## Measurement validity
 
+Launches have no temperature ceiling or temperature-driven cooldown. Verify the
+actual clock during the measurement and reject frequency or throttling failures
+under the frozen rules. Earlier temperature preflight records remain historical
+evidence; they do not impose a launch condition on subsequent comparisons.
+
 The helper's frequency request is insufficient evidence by itself.
 `scheduler_probe.py` pins the busiest warmup `DedicatedWorker` at the start
 gate, then checks that it is also the dominant measured worker. Where the
