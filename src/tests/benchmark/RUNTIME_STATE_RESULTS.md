@@ -29,8 +29,17 @@ shows +0.40% CPU and +0.34% wall throughput, with all four CPU pairs slightly
 faster despite 0.50% more retired instructions. Sky Force is close to flat at
 -0.41% CPU and -0.38% wall throughput, with one of four CPU pairs faster despite
 0.67% fewer retired instructions. Neither instruction counts nor these small
-timing changes establish a broad advantage for store-only pruning. The separate
-quiet-runtime cuts are still pending in the controlled campaign.
+timing changes establish a broad advantage for store-only pruning.
+
+The separate quiet-runtime cuts are now complete under the same controls.
+Snakes improves by 1.86% CPU and 1.84% wall throughput, with all four CPU pairs
+faster and 1.85% fewer retired native instructions. Sky Force improves by
+0.80% CPU and 0.64% wall throughput, with three of four CPU pairs faster and
+1.45% fewer native instructions. These use the full warm windows (Snakes
+78-96, Sky Force 42-60), matching the original runtime-cut comparison. The
+Snakes gain is consistent across these observations; the smaller Sky Force
+change has mixed pairs (-0.80% to +2.02%). The earlier larger Sky Force timing
+estimate does not repeat, while the reduced instruction work does.
 
 Follow-up runtime experiments: [compact dispatch and division lowering](DISPATCH_AND_DIVISION_RESULTS.md).
 
