@@ -5,10 +5,20 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The completed controlled rerun uses the same frozen builds with four fresh
+observations per variant in ABBA then BAAB order. Snakes improves by 0.91% in
+CPU throughput and 0.59% in wall throughput, with all four CPU pairs faster
+and 0.17% fewer retired native instructions. This reverses its original timing
+screen's mean loss. Sky Force instead loses 1.84% CPU and 1.78% wall throughput,
+with all four CPU pairs slower despite 0.52% fewer native instructions. Its
+paired CPU changes range from -5.37% to -0.22%. The controlled result therefore
+retains a game-dependent tradeoff, not a general runtime win. No production
+change follows from this frozen-build reassessment.
+
 The later [state-transfer gate experiment](THUMB_TRANSFER_GATE_RESULTS.md)
 rejects added cached fields and helper-bearing prefixes; it is also not enabled.
 
-This experiment is **not adopted**. Production sources and the browser build
+Original decision: this experiment is **not adopted**. Production sources and the browser build
 are restored to the baseline; the LAN service was never changed. Sky Force used
 **2.70% more worker CPU** on average and Snakes **1.93% more**. The latter pairs
 disagree. The static WASM-count gate works, but these measurements establish no

@@ -5,7 +5,17 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
-This revision is **not enabled**. Sky Force used **2.50% less worker CPU** in
+The completed controlled rerun uses the same frozen builds with four fresh
+observations per variant in ABBA then BAAB order. Snakes is slightly slower:
+-0.65% CPU and -0.42% wall throughput, with three of four CPU pairs slower and
+0.18% more retired native instructions. Sky Force is flat at +0.04% CPU and
+-0.22% wall throughput, with two CPU pairs faster and two slower; its native
+instruction count changes by only +0.03%. Its paired CPU changes range from
+-1.89% to +2.70%. The original Sky Force mean gain does not repeat in this
+controlled screen. The stricter gate still establishes no useful runtime win,
+and no production change follows from this frozen-build reassessment.
+
+Original decision: this revision is **not enabled**. Sky Force used **2.50% less worker CPU** in
 two paired comparisons, but Snakes used **2.12% more** across four pairs,
 including a confirmation campaign. Production sources and browser artifacts
 are restored to the baseline; the LAN service was never changed. The stricter
