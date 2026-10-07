@@ -20,6 +20,7 @@ in the evidence and are repeated without changing the thresholds.
 | 3 | Sparse ROM lookup off/on in the rebuilt candidate | -0.27% | +1.81% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 4/4 |
 | 4 | Entry-only pruning versus current full pruning | -0.42% | +1.26% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
 | 5 | Static ARM count batching versus policy 17 | -0.34% | +0.50% | 16 valid, 1 invalid; Snakes 1/4 pairs faster, Sky Force 2/4 |
+| 6 | Whole-entry budget guard with inline recovery | +0.31% | +1.01% | 16 valid, 0 invalid; Snakes 2/4 pairs faster, Sky Force 3/4 |
 
 Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
 The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
@@ -43,7 +44,10 @@ completed observation, frequency check, build hash and hardware-counter result.
 Artifacts and frozen plans are under
 `/home/claude/.scratch/eka-promote-recovered/`. The historical reassessment under
 `/home/claude/.scratch/eka-controlled/` retains its original plans and valid
-observations; it is paused between observations for this promotion work.
+observations; it is paused at the user's request. Its queued automatic restart has been
+cancelled; [the saved checkpoint](CONTROLLED_SWEEP_CHECKPOINT.json) preserves
+the stopping point. Complete the current promotion round and combined-default
+measurement before proposing to resume the remaining historical sweep.
 
 ## Compiled syscall correctness
 
@@ -150,3 +154,12 @@ range from -1.84% to +3.78%; native instructions rise 0.24%. Snakes native
 instructions rise 0.03%. Policy 17 stays selected. One Sky Force control failed
 the predeclared interval-frequency limit and was repeated without changing the
 criteria; the invalid observation remains in the evidence.
+
+The inline whole-entry budget candidate removes 1.62% of native instructions in
+Snakes and 0.23% in Sky Force, but CPU pairs are mixed in both games. It has not
+earned default status. The outlined recovery alternative is still being timed.
+
+The next unbuilt candidate selects sparse ROM lookup by default for its combined
+comparison. Its source and browser default expectations are prepared, including
+real API readback, invalid-value rejection and post-initialization immutability
+checks. These are pending validation, not an adopted or deployed runtime claim.

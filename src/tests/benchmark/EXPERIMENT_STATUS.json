@@ -1,5 +1,5 @@
 {
-  "policy": "Promote recovered runtime winners after validating them on the current implementation. A modest Snakes regression is acceptable for a worthwhile Sky Force gain. Keep mutually exclusive implementations separate until their current comparison is complete. Current-runtime promotion work is in progress; the unfinished historical reassessment remains resumable.",
+  "policy": "The historical sweep is paused at the user's request: 64/109 game comparisons, 515/872 valid observations and 20 retained invalid observations. Finish the current promotion round, validate deserving current-runtime winners, measure the combined defaults against the untouched baseline, and propose resuming the historical sweep only after reporting that result. A modest Snakes regression is acceptable for a worthwhile Sky Force gain. Historical percentages are not additive.",
   "experiments": {
     "compact-dispatch": {
       "status": "Default",
@@ -46,8 +46,8 @@
       "note": "Current Sky Force +1.26% with mixed pairs, Snakes -0.42%; do not adopt from the historical +3.14% comparison against unpruned code"
     },
     "whole-entry-budget": {
-      "status": "Promotion in progress",
-      "note": "Alternative to outlined-entry-budget; retain one compatible winner"
+      "status": "Current result needs confirmation",
+      "note": "Current Snakes +0.31% in 2/4 pairs and Sky Force +1.01% in 3/4; await outlined alternative and combined validation before selection"
     },
     "outlined-entry-budget": {
       "status": "Promotion in progress",

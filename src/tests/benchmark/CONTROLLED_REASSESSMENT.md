@@ -8,6 +8,22 @@ passed correctness but were rejected or left unresolved on noisy timing evidence
 
 [Live result table](CONTROLLED_RESULTS.md) and [measurement method](CONTROLLED_BENCHMARKS.md).
 
+## User-requested pause
+
+The remaining historical sweep is paused at 64/109 completed game comparisons,
+515/872 valid observations and 20 retained host-invalid observations. The queued
+restart was cancelled before any new historical measurement began. Existing
+plans, valid observations, invalid attempts and evidence remain unchanged.
+[The checkpoint](CONTROLLED_SWEEP_CHECKPOINT.json) records the exact plan hashes
+and cancelled continuation jobs. The next historical observation is the pending
+control in `cached-address-displacement/standard`; the controller will resume
+from its retained observations with a fresh host-restoration state file.
+
+The current promotion round finishes first. Its deserving candidates then need
+current correctness checks and a combined comparison against the untouched
+baseline before graduation. Resume the historical sweep only after showing those
+results and receiving a request to continue; do not automatically restart it.
+
 ## Scope
 
 The five fixed plans contain 70 candidate/control comparisons, comprising 109

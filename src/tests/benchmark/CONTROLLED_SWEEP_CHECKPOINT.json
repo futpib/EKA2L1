@@ -1,0 +1,23 @@
+{
+  "status": "paused",
+  "time_utc": "2026-10-07T15:51:42.149924+00:00",
+  "reason": "User requested finishing the current promotion round, recording intermediate progress, and pausing the historical sweep before graduating and measuring the combined defaults. Resume only after user approval.",
+  "completed_comparisons": 64,
+  "total_comparisons": 109,
+  "valid_observations": 515,
+  "expected_observations": 872,
+  "invalid_observations": 20,
+  "cancelled_waiters": {
+    "567865": "/home/claude/.scratch/eka-controlled/resume-after-promotion.py",
+    "652960": "/home/claude/.scratch/eka-promote-recovered/validate-after-sweep.py"
+  },
+  "current_promotion_round": "Continues unchanged through followups completion",
+  "plans": {
+    "extended-plan.json": "2c9b9048a78a880cd8972adbe2a0fb082eba391ce25f96fd1a073c867ac67532",
+    "architecture-plan.json": "1a1a7e452c7f95b07058f753bf4e81442032220460a8da1241e3eae0e190acd3",
+    "isolated-plan.json": "6bf5cab4b83a23d43ec7301d1db9de8fb10d21f4aa67a9da04a8aee1e7ba5a69",
+    "reserved-plan.json": "90f69047331ac0e3e712bd63552655cacbe30dea6180ba9c454d8c70e9aea338",
+    "memory-plan.json": "37ac1f5b9474f3cbc5c703b54812ee165df0d3fdc9892f5f1607a5158c9f40ae",
+    "inlining-plan.json": "3202c9715c9ca75f7a6e54ff986c670fcb34f56562c913968a7e8f7c4ad43f9d"
+  }
+}
