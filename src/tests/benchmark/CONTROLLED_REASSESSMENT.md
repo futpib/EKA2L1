@@ -29,6 +29,27 @@ These defaults stay active while the historical sweep runs. Historical results
 identify candidates for current-runtime reassessment; they do not establish
 additional gains on the graduated build.
 
+## Monitoring during the resumed run
+
+The user requested periodic log review during execution. An independent observer
+checks progress and saved evidence every 30 seconds, outside the reserved core.
+It records comparison counts, new results, active-run age and browser-log activity
+in the files referenced by [the checkpoint](CONTROLLED_SWEEP_CHECKPOINT.json).
+Frozen-plan changes, changed builds within a comparison, duplicate valid results,
+fatal browser errors, five minutes without browser/result activity or premature
+coordinator exit stop continuation for review. The existing controller retains
+its clock checks, three-invalid-attempt limit and 15-minute per-run timeout.
+
+On an observer alert, the next-phase checkpoint is blocked and the exact active
+frequency wrapper receives SIGTERM, invoking its existing restoration path and
+then charging restoration. Isolated fixture tests verify the continuation block,
+retained alert and target identity check, including rejecting a reused PID.
+The observer does not alter the frozen plans, timing harnesses or measured builds.
+Completed observations remain resumable individually; a later failure does not
+require restarting earlier valid comparisons. The assistant reviews live logs
+and complete comparisons while the sweep proceeds, and refreshes the index at
+intermediate checkpoints as well as phase completion.
+
 ## Scope
 
 The five fixed plans contain 70 candidate/control comparisons, comprising 109
