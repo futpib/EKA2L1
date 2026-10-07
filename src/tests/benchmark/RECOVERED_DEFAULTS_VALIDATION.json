@@ -164,6 +164,1061 @@
     "final-harness-syntax.log": "cd760990daa0ff6f75b202eb801a6e6d2e0145df2a26b362db3db7c11d513d26",
     "replay-final.log": "355be910d778a7da1a497d635dee489bf4e510470a9a3f4bc97dd62bc893fd7c"
   },
-  "performance_status": "Final combined comparison pending",
-  "lan_integration_status": "Pending deployment after performance comparison"
+  "performance_status": "Complete: 32 valid final combined observations, no invalid attempts",
+  "lan_integration_status": "Gameplay, input, layout, switching and manual loading verified; full integration fails on independent host/Chrome audio blocker",
+  "runtime_commit": "632c3d433b286f7758f73e8db7eadc91e4053c0d",
+  "combined_results": [
+    {
+      "phase": "final",
+      "experiment": "adopted-vs-repository",
+      "game": "standard",
+      "original_report": "RECOVERED_DEFAULTS_RESULTS.md",
+      "valid": 8,
+      "invalid": 0,
+      "expected": 8,
+      "complete": true,
+      "control": {
+        "worker_cpu_seconds": 7.85735309525,
+        "cycles": 28143733730.75,
+        "instructions": 64733210996,
+        "wall_seconds": 9.37579,
+        "cpu_seconds_range": [
+          7.831707332,
+          7.874853697
+        ]
+      },
+      "candidate": {
+        "worker_cpu_seconds": 7.72624005025,
+        "cycles": 27673073158,
+        "instructions": 63354870619.75,
+        "wall_seconds": 9.27632,
+        "cpu_seconds_range": [
+          7.687662206,
+          7.790280826
+        ]
+      },
+      "cpu_throughput_change_percent": 1.6969838388046998,
+      "wall_throughput_change_percent": 1.0723002225020206,
+      "native_instruction_change_percent": -2.1292631016483488,
+      "paired_cpu_throughput_changes_percent": [
+        1.218860605564176,
+        0.8069961584719954,
+        2.3679637336031956,
+        2.4089070517239186
+      ],
+      "favorable_pairs": 4,
+      "frequency_mhz_range": [
+        3591.5514744069337,
+        3591.5801310036427
+      ],
+      "direction": "all pairs faster"
+    },
+    {
+      "phase": "final",
+      "experiment": "adopted-vs-repository",
+      "game": "combat",
+      "original_report": "RECOVERED_DEFAULTS_RESULTS.md",
+      "valid": 8,
+      "invalid": 0,
+      "expected": 8,
+      "complete": true,
+      "control": {
+        "worker_cpu_seconds": 25.712712218,
+        "cycles": 92211407716,
+        "instructions": 229948058752.75,
+        "wall_seconds": 28.08835,
+        "cpu_seconds_range": [
+          25.381366999,
+          26.156362575
+        ]
+      },
+      "candidate": {
+        "worker_cpu_seconds": 24.85284444425,
+        "cycles": 89131579298.75,
+        "instructions": 221984155716.25,
+        "wall_seconds": 27.229925,
+        "cpu_seconds_range": [
+          24.612544582,
+          25.152525696
+        ]
+      },
+      "cpu_throughput_change_percent": 3.459836461290622,
+      "wall_throughput_change_percent": 3.15250592867955,
+      "native_instruction_change_percent": -3.4633486708679384,
+      "paired_cpu_throughput_changes_percent": [
+        0.9098144089616955,
+        4.029757499620246,
+        2.693888277707668,
+        6.2724842929448466
+      ],
+      "favorable_pairs": 4,
+      "frequency_mhz_range": [
+        3591.5943798555463,
+        3591.608463780523
+      ],
+      "direction": "all pairs faster"
+    },
+    {
+      "phase": "final",
+      "experiment": "adopted-vs-served",
+      "game": "standard",
+      "original_report": "RECOVERED_DEFAULTS_RESULTS.md",
+      "valid": 8,
+      "invalid": 0,
+      "expected": 8,
+      "complete": true,
+      "control": {
+        "worker_cpu_seconds": 8.44685411625,
+        "cycles": 30264030895,
+        "instructions": 70707651868.5,
+        "wall_seconds": 9.934157500000001,
+        "cpu_seconds_range": [
+          8.40718264,
+          8.495822153
+        ]
+      },
+      "candidate": {
+        "worker_cpu_seconds": 7.717742629,
+        "cycles": 27652507197.75,
+        "instructions": 63353554198.25,
+        "wall_seconds": 9.22869,
+        "cpu_seconds_range": [
+          7.684675403,
+          7.762078163
+        ]
+      },
+      "cpu_throughput_change_percent": 9.44721173404135,
+      "wall_throughput_change_percent": 7.644286458858196,
+      "native_instruction_change_percent": -10.400709790118523,
+      "paired_cpu_throughput_changes_percent": [
+        8.629382878323376,
+        9.605970561694765,
+        10.1566815889359,
+        9.401922646178939
+      ],
+      "favorable_pairs": 4,
+      "frequency_mhz_range": [
+        3591.5675640419277,
+        3591.5821374808093
+      ],
+      "direction": "all pairs faster"
+    },
+    {
+      "phase": "final",
+      "experiment": "adopted-vs-served",
+      "game": "combat",
+      "original_report": "RECOVERED_DEFAULTS_RESULTS.md",
+      "valid": 8,
+      "invalid": 0,
+      "expected": 8,
+      "complete": true,
+      "control": {
+        "worker_cpu_seconds": 27.28456570925,
+        "cycles": 97850657952.75,
+        "instructions": 238903101390,
+        "wall_seconds": 29.687725,
+        "cpu_seconds_range": [
+          27.090771649,
+          27.830516285
+        ]
+      },
+      "candidate": {
+        "worker_cpu_seconds": 24.8906827875,
+        "cycles": 89262844386,
+        "instructions": 221981757181.25,
+        "wall_seconds": 27.27495,
+        "cpu_seconds_range": [
+          24.55793364,
+          25.154357215
+        ]
+      },
+      "cpu_throughput_change_percent": 9.617586396433442,
+      "wall_throughput_change_percent": 8.846120707828975,
+      "native_instruction_change_percent": -7.082931996402408,
+      "paired_cpu_throughput_changes_percent": [
+        9.496192161840522,
+        7.961600559124715,
+        10.385864117841148,
+        10.638948342532718
+      ],
+      "favorable_pairs": 4,
+      "frequency_mhz_range": [
+        3591.5858994290043,
+        3591.6067845250627
+      ],
+      "direction": "all pairs faster"
+    }
+  ],
+  "host_restoration": {
+    "time_utc": "2026-10-07T18:40:20.414313+00:00",
+    "checks": [
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy0/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy1/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy1/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy1/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy1/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy10/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy10/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy10/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy10/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy11/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy11/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy11/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy11/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy12/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy12/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy12/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy12/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy13/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy13/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy13/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy13/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy14/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy14/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy14/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy14/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy15/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy15/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy15/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy15/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy2/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy2/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy2/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy3/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy3/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy3/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy3/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy4/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy4/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy4/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy4/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy5/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy5/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy5/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy5/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy6/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy6/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy6/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy6/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy7/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy7/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy7/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy7/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy8/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy8/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy8/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy8/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy9/scaling_governor",
+        "expected": "powersave",
+        "actual": "powersave",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy9/scaling_min_freq",
+        "expected": "800000",
+        "actual": "800000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy9/scaling_max_freq",
+        "expected": "5100000",
+        "actual": "5100000",
+        "match": true
+      },
+      {
+        "path": "/sys/devices/system/cpu/cpufreq/policy9/energy_performance_preference",
+        "expected": "balance_performance",
+        "actual": "balance_performance",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/sys-fs-fuse-connections.mount/cpuset.cpus",
+        "expected": "",
+        "actual": "",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/sys-fs-fuse-connections.mount/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/sys-kernel-config.mount/cpuset.cpus",
+        "expected": "",
+        "actual": "",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/sys-kernel-config.mount/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/sys-kernel-debug.mount/cpuset.cpus",
+        "expected": "",
+        "actual": "",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/sys-kernel-debug.mount/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/dev-mqueue.mount/cpuset.cpus",
+        "expected": "",
+        "actual": "",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/dev-mqueue.mount/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/cpuset.cpus",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/sys-kernel-tracing.mount/cpuset.cpus",
+        "expected": "",
+        "actual": "",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/sys-kernel-tracing.mount/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/init.scope/cpuset.cpus",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/init.scope/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/system.slice/cpuset.cpus",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/system.slice/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/proc-sys-fs-binfmt_misc.mount/cpuset.cpus",
+        "expected": "",
+        "actual": "",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/proc-sys-fs-binfmt_misc.mount/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/dev-hugepages.mount/cpuset.cpus",
+        "expected": "",
+        "actual": "",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/dev-hugepages.mount/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/eka.slice/cpuset.cpus",
+        "expected": "",
+        "actual": "",
+        "match": true
+      },
+      {
+        "path": "/sys/fs/cgroup/eka.slice/cpuset.cpus.effective",
+        "expected": "0-15",
+        "actual": "0-15",
+        "match": true
+      },
+      {
+        "path": "/sys/firmware/acpi/platform_profile",
+        "expected": "balanced",
+        "actual": "balanced",
+        "match": true
+      },
+      {
+        "path": "/sys/class/power_supply/BAT0/charge_behaviour",
+        "expected": "auto",
+        "actual": "auto",
+        "match": true
+      }
+    ],
+    "passed": true
+  },
+  "selector_audit": {
+    "observations": 179,
+    "matching_field_checks": 2558,
+    "checks_by_selector": {
+      "EKA2L1_ARM_EXCLUSIVE": 179,
+      "EKA2L1_CODE_COMPARE": 179,
+      "EKA2L1_COMPILED_SVC": 131,
+      "EKA2L1_LEAF_FEATURES": 179,
+      "EKA2L1_MEMORY_IMPL": 179,
+      "EKA2L1_PREDICATED_LEAVES": 179,
+      "EKA2L1_SHARED_AUDIO": 179,
+      "EKA2L1_THUMB_MEMORY": 179,
+      "EKA2L1_UNSAFE_CODE": 179,
+      "EKA2L1_AOT_IR_MODE": 179,
+      "EKA2L1_BENCHMARK_AOT": 179,
+      "EKA2L1_HOTPATH": 179,
+      "EKA2L1_SPARSE_ROM_LOOKUP": 115,
+      "EKA2L1_ENTRY_ONLY_PRUNING": 115,
+      "EKA2L1_ENTRY_BUDGET": 115,
+      "EKA2L1_DIVISION_DIGITS": 33,
+      "promotion_defaults": 80
+    },
+    "mismatches": [],
+    "missing_report_fields": {},
+    "missing_variant_selectors": [],
+    "limits": "Reported configuration values are checked against plans. Getter assertions depend on archived harness capabilities; absence is reported, never treated as a successful readback."
+  },
+  "service_check": {
+    "time_utc": "2026-10-07T18:23:36.829095+00:00",
+    "pid": 1180671,
+    "previous_pid": 4001133,
+    "drop_in": "/run/user/1000/systemd/user/eka2l1-lan.service.d/99-recovered-defaults.conf",
+    "environment": {
+      "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-promote-recovered/final-build"
+    },
+    "url": "https://claude-laptop.lan:8188/",
+    "wasm_sha256": "90a592686582bbe11ddae12296ba9c793c2fc63660ac0cba9c1354356ccbc102",
+    "passed": true
+  },
+  "deployment": {
+    "time_utc": "2026-10-07T18:39:26.533136+00:00",
+    "artifact_verified": true,
+    "gameplay_verified": true,
+    "audio_verified": false,
+    "passed": false,
+    "limitation": "Full picker test fails non-silent browser audio for both games. Independent Chrome oscillator has a running AudioContext with currentTime 0. Physical audio profile attempt did not resolve it; original profile/defaults restored. Exact native-reference PCM replays pass.",
+    "service": {
+      "time_utc": "2026-10-07T18:28:20.734134+00:00",
+      "pid": 1180671,
+      "previous_pid": 4001133,
+      "drop_in": "/run/user/1000/systemd/user/eka2l1-lan.service.d/99-recovered-defaults.conf",
+      "environment": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-promote-recovered/final-build"
+      },
+      "url": "https://claude-laptop.lan:8188/",
+      "wasm_sha256": "90a592686582bbe11ddae12296ba9c793c2fc63660ac0cba9c1354356ccbc102",
+      "passed": true
+    },
+    "game_picker_report": "/home/claude/.scratch/eka-promote-recovered/final-game-picker/report.json",
+    "report_sha256": "877ee476178971d1f824e1e2ad3b9b5a6ca466fae6e15d3e0abeb3ba1b4d156f",
+    "renderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.57.4.0)",
+    "screenshots_visually_inspected": {
+      "/home/claude/.scratch/eka-promote-recovered/final-game-picker/sky-force-gameplay-end.png": "5ae6e533c872f72a8d6a78f8d2a8365207461bdb6e2f7ea2a77d0f788714fec9",
+      "/home/claude/.scratch/eka-promote-recovered/final-game-picker/snakes-gameplay-end.png": "f1b16fae969d83ff2490a7375368627f60a4de4deff5a89ba4ad5224c48fd661"
+    },
+    "games": [
+      {
+        "id": "sky-force",
+        "launch": {
+          "app": "0xa020d913",
+          "memory": {
+            "mode": 2,
+            "rebuilds": 1,
+            "mapped_pages": 17397,
+            "arena_bytes": 67108864,
+            "direct_pages": 19,
+            "direct_rebuilds": 1
+          },
+          "secure": true,
+          "isolated": true,
+          "policy": {
+            "requested": {
+              "divisionDigits": 0,
+              "entryBudget": 2,
+              "compiledSvc": 1,
+              "sparseRom": 1,
+              "entryOnlyPruning": 0,
+              "hotpath": 2,
+              "thumbMemory": 1,
+              "irMode": 17,
+              "codeCompare": 2,
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ],
+              "unsafeCode": 3
+            },
+            "applied": true,
+            "observed": {
+              "divisionDigits": 0,
+              "entryBudget": 2,
+              "entryOnlyPruning": 0,
+              "sparseRom": 1,
+              "compiledSvc": 1,
+              "hotpath": 2,
+              "thumbMemory": 1,
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "unsafeCode": 3,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ]
+            }
+          },
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+            "/eka2l1.js": "/eka2l1.js?v=d94f31a9fd83cc33e9ecdb0dda41f1b6283216257661ae0f930c95b24c3bd9b3",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=90a592686582bbe11ddae12296ba9c793c2fc63660ac0cba9c1354356ccbc102"
+          },
+          "sound": null,
+          "sources": 0,
+          "selectedFiles": [
+            0,
+            0,
+            0
+          ]
+        },
+        "start": {
+          "guestUs": 28069918,
+          "frames": 856,
+          "inputs": 10,
+          "audio": {},
+          "audioDevice": {
+            "state": "running",
+            "time": 0,
+            "received": 1346400,
+            "sink": {
+              "queued": 480,
+              "dropped": 0,
+              "read": 1346400
+            }
+          }
+        },
+        "end": {
+          "guestUs": 53321171,
+          "frames": 1664,
+          "inputs": 16,
+          "audio": {},
+          "audioDevice": {
+            "state": "suspended",
+            "time": 0,
+            "received": 2559360,
+            "sink": {
+              "queued": 0,
+              "dropped": 0,
+              "read": 2559360
+            }
+          }
+        },
+        "hostSeconds": 31.523115106,
+        "realtimeRatio": 0.8010392664268692,
+        "presentationsPerSecond": 25.631984570148276
+      },
+      {
+        "id": "snakes",
+        "launch": {
+          "app": "0x2000730f",
+          "memory": {
+            "mode": 2,
+            "rebuilds": 1,
+            "mapped_pages": 17404,
+            "arena_bytes": 67108864,
+            "direct_pages": 19,
+            "direct_rebuilds": 1
+          },
+          "secure": true,
+          "isolated": true,
+          "policy": {
+            "requested": {
+              "divisionDigits": 0,
+              "entryBudget": 2,
+              "compiledSvc": 1,
+              "sparseRom": 1,
+              "entryOnlyPruning": 0,
+              "hotpath": 2,
+              "thumbMemory": 1,
+              "irMode": 17,
+              "codeCompare": 2,
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ],
+              "unsafeCode": 3
+            },
+            "applied": true,
+            "observed": {
+              "divisionDigits": 0,
+              "entryBudget": 2,
+              "entryOnlyPruning": 0,
+              "sparseRom": 1,
+              "compiledSvc": 1,
+              "hotpath": 2,
+              "thumbMemory": 1,
+              "predicatedLeaves": 1,
+              "leafFeatures": 128,
+              "unsafeCode": 3,
+              "executionLimits": [
+                512,
+                16,
+                8,
+                512
+              ]
+            }
+          },
+          "assets": {
+            "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+            "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+            "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+            "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+            "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+            "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+            "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+            "/eka2l1.js": "/eka2l1.js?v=d94f31a9fd83cc33e9ecdb0dda41f1b6283216257661ae0f930c95b24c3bd9b3",
+            "/eka2l1.wasm": "/eka2l1.wasm?v=90a592686582bbe11ddae12296ba9c793c2fc63660ac0cba9c1354356ccbc102"
+          },
+          "sound": null,
+          "sources": 0,
+          "selectedFiles": [
+            0,
+            0,
+            0
+          ]
+        },
+        "start": {
+          "guestUs": 23060000,
+          "frames": 475,
+          "inputs": 20,
+          "audio": {},
+          "audioDevice": {
+            "state": "running",
+            "time": 0,
+            "received": 1106880,
+            "sink": {
+              "queued": 0,
+              "dropped": 0,
+              "read": 1106880
+            }
+          }
+        },
+        "end": {
+          "guestUs": 54620000,
+          "frames": 1143,
+          "inputs": 26,
+          "audio": {},
+          "audioDevice": {
+            "state": "suspended",
+            "time": 0,
+            "received": 2621760,
+            "sink": {
+              "queued": 0,
+              "dropped": 0,
+              "read": 2621760
+            }
+          }
+        },
+        "hostSeconds": 31.565512497000004,
+        "realtimeRatio": 0.9998253632979813,
+        "presentationsPerSecond": 21.162336586915448
+      }
+    ],
+    "checks": [
+      {
+        "game": "sky-force",
+        "check": "non-silent browser audio",
+        "passed": false
+      },
+      {
+        "game": "sky-force",
+        "check": "sound toggle returns to muted",
+        "passed": true
+      },
+      {
+        "game": "snakes",
+        "check": "non-silent browser audio",
+        "passed": false
+      },
+      {
+        "game": "snakes",
+        "check": "sound toggle returns to muted",
+        "passed": true
+      }
+    ],
+    "independent_audio_probe": {
+      "state": {
+        "state": "running",
+        "time": 0,
+        "sampleRate": 48000,
+        "baseLatency": 0.010666666666666666
+      },
+      "messages": []
+    },
+    "audio_profile_restored": true,
+    "failed_attempts_preserved": [
+      "final-game-picker-audio-device-failure",
+      "final-game-picker-physical-audio-failure",
+      "final-game-picker-audio-toggle-failure"
+    ]
+  },
+  "audio_host_restoration": {
+    "profile_before": "off",
+    "default_sink_before": "auto_null",
+    "default_sink_after": "auto_null",
+    "default_source_before": "@DEFAULT_SOURCE@",
+    "default_source_after": "@DEFAULT_SOURCE@",
+    "restored": true
+  },
+  "game_picker_harness_sha256": "faa5a1a17400edda9e27e5eb58996eaf98f14f13e9d14ec4ace936c45c1834f1",
+  "game_picker_harness_commit": "bc42e2ba2",
+  "no_owned_work_processes_remain": true
 }

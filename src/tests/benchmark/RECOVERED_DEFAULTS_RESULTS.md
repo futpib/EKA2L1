@@ -1,285 +1,136 @@
 # Recovered optimization graduation
 
-**Adopted defaults:** revised compiled syscalls, sparse ROM lookup and outlined
-entry budgets (mode 2). The combined artifact improves Snakes CPU throughput
-1.70% and Sky Force 3.46% against the untouched repository baseline, with all
-four pairs faster in each game. Wall throughput improves 1.07% and 3.15%; native
-instructions fall 2.13% and 3.46%. The 16 repository comparisons are all valid.
-The older LAN-build comparison and deployment are still pending. Historical
-sweep progress remains paused at 64/109.
+The historical sweep is **paused at 64/109 game comparisons**: 515/872 valid
+observations, 20 retained invalid attempts, and 45 comparisons remaining. Its
+[checkpoint](CONTROLLED_SWEEP_CHECKPOINT.json) preserves the original plans and
+partial observations. It has not resumed. The work below completes graduation
+and the combined-default comparison on the current implementation.
 
-The sections below retain the intermediate evidence and decisions; earlier
-candidate-only status statements describe their checkpoints.
+## Adopted combination
 
-Recovered historical gains are being checked against runtime `4a339da9a` before
-adoption. A modest Snakes regression is acceptable for a worthwhile Sky Force
-gain. Historical percentages are not additive. The complete inventory and
-current adoption decisions are in [the experiment index](EXPERIMENT_INDEX.md).
+Compiled syscalls use the zero-return trap protocol; sparse ROM lookup is enabled;
+whole-entry budgets use a private precise fallback (mode 2). Full state pruning
+and IR policy 17 remain selected. Division lowering, entry-only pruning, inline
+budget recovery and static count batching remain opt-in. Direct memory remains
+mode 2 and executable-byte policy remains 3.
 
-## Current-runtime measurements
+## Combined bottom line
 
-The compiled syscall candidate is restored. Both games' off/on comparisons are
-complete, including the total change against the untouched baseline. Both use fixed
-3.6 GHz requests, measured reference-cycle frequency, reserved CPU 7 and sibling
-15, hardware Chromium rendering, and ABBA followed by BAAB. Invalid runs remain
-in the evidence and are repeated without changing the thresholds.
+These are fresh comparisons of the exact final artifact against two untouched
+archives. They include implementation and code-layout costs. Individual feature
+percentages and historical gains are not added together. Positive CPU/wall values
+mean greater throughput; negative native-instruction values mean less work.
 
-| # | Comparison | Snakes CPU throughput | Sky Force CPU throughput | Status |
-| ---: | --- | --- | --- | --- |
-| 1 | Compiled syscalls off/on in one frozen candidate | +0.70% | +7.17% | 16 valid, 0 invalid; Snakes 3/4 pairs faster, Sky Force 4/4 |
-| 2 | Untouched baseline versus compiled syscall candidate | +0.21% | +0.71% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
-| 3 | Sparse ROM lookup off/on in the rebuilt candidate | -0.27% | +1.81% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 4/4 |
-| 4 | Entry-only pruning versus current full pruning | -0.42% | +1.26% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
-| 5 | Static ARM count batching versus policy 17 | -0.34% | +0.50% | 16 valid, 1 invalid; Snakes 1/4 pairs faster, Sky Force 2/4 |
-| 6 | Whole-entry budget guard with inline recovery | +0.31% | +1.01% | 16 valid, 0 invalid; Snakes 2/4 pairs faster, Sky Force 3/4 |
-| 7 | Whole-entry budget guard with outlined recovery | +1.23% | +1.19% | 16 valid, 1 invalid; Snakes 4/4 pairs faster, Sky Force 2/4 |
+| # | Baseline | Game | CPU throughput | Wall throughput | Native instructions | Faster CPU pairs | Candidate unpaced speed |
+| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | Repository 4a339da9a | Snakes | +1.70% | +1.07% | -2.13% | 4/4 | 1.940× |
+| 2 | Repository 4a339da9a | Sky Force | +3.46% | +3.15% | -3.46% | 4/4 | 0.661× |
+| 3 | Previously served LAN | Snakes | +9.45% | +7.64% | -10.40% | 4/4 | 1.950× |
+| 4 | Previously served LAN | Sky Force | +9.62% | +8.85% | -7.08% | 4/4 | 0.660× |
 
-Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
-The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
-throughput improves 6.51%; native instructions fall 4.12%. Its four CPU pairs
-improve 2.76% to 12.97%. These are same-binary comparisons with all other
-current production settings fixed. Against the untouched baseline, Sky Force
-wall throughput changes by +0.67% and native instructions by -1.96%; its CPU
-pairs range from -2.69% to +2.66%. Snakes changes by +0.27% wall and +0.29%
-native instructions, with CPU pairs from -0.25% to +1.19%.
+Unpaced speed is guest time divided by wall time in the measured warm window,
+at a fixed 3.6 GHz request; it is not boot/replay elapsed time or paced LAN speed.
+Snakes uses guest seconds 78–96 and Sky Force 42–60. Every comparison uses four
+fresh observations per artifact in ABBA then BAAB order. Paired agreement alone
+does not prove that a small gain generalizes beyond these routes.
 
-The total comparison does **not** establish a clear overall speedup. The 7.17%
-same-binary gain must not be reported as the benefit of adopting this change.
-Added runtime work and code layout are included in the total comparison; their
-individual contributions have not been isolated. Compiled syscalls remain a
-candidate, and no runtime default has been committed from this promotion.
-All 32 observations were valid. CPU policy, affinity groups, platform profile
-and charging were restored, including a live sysfs check after the runs.
-The [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json) preserves every
-completed observation, frequency check, build hash and hardware-counter result.
+## Individual selection evidence
 
-Artifacts and frozen plans are under
-`/home/claude/.scratch/eka-promote-recovered/`. The historical reassessment under
-`/home/claude/.scratch/eka-controlled/` retains its original plans and valid
-observations; it is paused at the user's request. Its queued automatic restart has been
-cancelled; [the saved checkpoint](CONTROLLED_SWEEP_CHECKPOINT.json) preserves
-the stopping point. Complete the current promotion round and combined-default
-measurement before proposing to resume the remaining historical sweep.
+These off/on comparisons explain the choices; the combined table above is the
+adoption result. ROM and budget experiments used the original restored syscall
+protocol; revised syscall and division comparisons fixed ROM 1 and budget 2.
 
-## Compiled syscall correctness
+| # | Candidate | Snakes CPU | Sky Force CPU | Faster pairs, Snakes / Sky Force | Decision |
+| ---: | --- | ---: | ---: | --- | --- |
+| 1 | Revised compiled syscalls | +0.40% | +3.54% | 4/4 / 4/4 | Enabled |
+| 2 | Sparse ROM lookup | -0.27% | +1.81% | 1/4 / 4/4 | Enabled; accepted game tradeoff |
+| 3 | Outlined entry budget | +1.23% | +1.19% | 4/4 / 2/4 | Mode 2 enabled |
+| 4 | Entry-only state pruning | -0.42% | +1.26% | 1/4 / 3/4 | Off; retain full pruning |
+| 5 | Static count batching | -0.34% | +0.50% | 1/4 / 2/4 | Off; retain IR17 |
+| 6 | Inline entry recovery | +0.31% | +1.01% | 2/4 / 3/4 | Off; use outlined recovery |
+| 7 | Division digit lowering | +0.07% | -0.66% | 2/4 / 2/4 | Off |
 
-Generated ARM/Thumb SVC code publishes a pending trap and returns to the runtime.
-The runtime invokes the existing kernel callback with the original cumulative
-instruction count and preserves PC/mode changes, budget semantics, flags,
-interrupt boundaries and exclusive reservations. There is no game or syscall
-number specialization. The browser selector is `EKA2L1_COMPILED_SVC=0|1`, frozen
-before initialization, with readback and post-initialization rejection checks.
+The original syscall candidate produced +7.17% Sky Force in its same-binary
+off/on comparison, but only +0.71% with mixed pairs against the untouched
+repository baseline. That did not establish an overall win. The revised protocol
+uses the existing zero chain-stop result for traps, so ordinary successful
+regions avoid the added pending-trap load/test. Its exact comparisons and final
+artifact measurements are recorded separately.
 
-Validation of the candidate:
+Division removes 0.38% of Snakes native instructions but produces effectively
+flat CPU throughput and a negative Sky Force point estimate. Static batching
+slightly increases native instruction counts. Neither earns a default change.
+The outlined budget result is consistent in Snakes; its individual Sky Force
+pairs are mixed. Sparse ROM trades a small Snakes cost for a consistent Sky Force
+gain, as allowed by the requested game tradeoff.
 
-- 168 compiler tests passed. This diagnostics-free build explicitly skips
-  diagnostic-only fixtures; those skips are not coverage claims.
-- 9,216 generated syscall descriptor/predicate/budget/page checks passed.
-- 10,368 native DynCom versus generated WASM comparisons passed, in mutation
-  modes 0 and 3. They compare every emitted field, including callback-visible
-  state, PC/mode changes, stops, budgets, IRQs and both exclusive reservations.
-  Test-only wrappers prove that generated functions actually execute without
-  requiring production instrumentation. The restored standalone fixture used the
-  translator's configured policy even though its command reported policy 17.
-  Explicit policy forwarding was then fixed and all 10,368 comparisons
-  passed again with policy 17 actually selected. The game replays below also
-  select runtime policy 17.
-- Both games' 60-frame replay images, frame records and PCM audio exactly
-  match their native references. These deterministic replays use software
-  rendering; all 32 timing observations used hardware rendering.
-- System Chromium passed the browser API suite, including the candidate's
-  default, configuration/readback, and invalid mode rejection. The initial
-  attempt used Puppeteer's missing bundled browser; rerunning with
-  `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium` passed.
+## Controls and retained evidence
 
-Run the callback comparison with:
+All 22 current-runtime game comparisons are complete: 176 valid observations
+and 3 retained invalid attempts. Invalid runs were retried under the
+original thresholds; no failed observation was deleted or accepted by relaxing
+frequency criteria. The historical campaign remains separate.
 
-```sh
-python3 src/tests/benchmark/run_compiled_svc_matrix.py \
-  build/src/tests/eka_matched_fault \
-  build-wasm/src/tests/aot/eka_cpu_fault_wasm.js /tmp/eka-svc-results
-```
+CPU 7 and SMT sibling 15 were reserved, with support tasks kept on the other
+cores. CPU min/max were requested at 3.6 GHz with performance governor/profile
+and temporary charge inhibition. Reference-cycle frequency checks, thermal
+checks, hardware-counter running fractions, worker identity, guest work, input
+and presentation journals were validated. Mean and interval tolerances remain
+0.5% and 1%; sibling activity remains bounded at 2%. Timing uses normal V8 and
+hardware NVIDIA rendering without sampling, tracing, verifier or detailed
+custom instrumentation. Shared host/GPU contention is not fully eliminated.
 
-The original evidence remains in [compiled syscall results](COMPILED_SVC_RESULTS.md)
-and [the historical timing report](COMPILED_SVC_TIMING_RESULTS.md). The historical
-controlled comparison recovered +8.11% Sky Force CPU throughput with a 0.61%
-Snakes cost; this does not establish the gain of the current candidate.
+The original `4a339da9a` harness is shared by both baselines and the candidate.
+Only post-measurement optional getter readbacks were added. Candidate baked
+defaults are checked directly; unsupported legacy getters are reported as null.
+The common harness does not configure the five new selectors. Build, harness,
+controller and input hashes are recorded for every observation.
 
-## Other recovered candidates
+Artifacts, frozen plans, attempts and raw logs are retained under
+`/home/claude/.scratch/eka-promote-recovered/`. The
+[measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json) preserves all phases;
+[the experiment index](EXPERIMENT_INDEX.md) records current dispositions and
+the separate historical results.
 
-Sparse ROM lookup, entry-only state pruning, generic ARM count batching, and
-whole-entry/outlined budget alternatives are restored for comparison with the
-current runtime. They are not adopted defaults. The rebuilt native and WASM
-fixtures passed focused checks, including 320,000 sparse registry comparisons,
-17,280 exact three-variant budget comparisons, and 34,560 instruction-batching
-comparisons. Additional batching fixtures cover short budgets, leaves, IRQs,
-code aliasing, callbacks and SVC boundaries.
+## Correctness and deployment
 
-All 12 selected game replays passed: the rebuilt control and each of the five
-candidate settings reproduce both native references exactly across 60 frames,
-frame records and PCM. Every replay verifies the actual runtime selector
-readbacks, binary hashes and input hash. Evidence is in `followups-replays/`;
-`followups-hashes.json`, `followups-harness-hashes.json` and
-`followups-complete-source.patch` identify the frozen runtime and harness. The
-initial harness launch caught a malformed destructuring parameter before any
-game execution; its failure is preserved, and the corrected harness passed all
-12 runs. These replays use software rendering and establish correctness, not
-performance. Hardware-rendered controlled timing of all five candidates is complete. The first result is
-ROM lookup: Snakes -0.27% CPU throughput (one of four pairs faster), Sky Force
-+1.81% (all four pairs faster). Native instructions fall 0.14% and 1.60%,
-respectively. This matches the accepted game tradeoff and is selected for final
-combined validation, not yet a committed default. The measurement snapshot and
-index show subsequent results.
+The [validation record](RECOVERED_DEFAULTS_VALIDATION.json) identifies the exact
+final artifact and source hashes. The final compiler suite reports 172 passes
+and zero failures; two diagnostic-only fixtures explicitly skip. The final
+outlined-budget protocol passes 41,472 native/WASM syscall comparisons with
+verification off/on and executable-byte modes 0/3. The prior revised-candidate
+matrix covers IR17/18 and budget modes 0/1/2 with 145,152 comparisons. Division
+passes 32,256 state/budget comparisons but remains disabled for performance.
 
-The five independent timing comparisons hold compiled syscalls enabled and
-all other current settings fixed. Their off/on results will need a combined
-comparison against the untouched baseline before default adoption, including
-any runtime cost from restoring selectors or lookup alternatives. The archived
-division-digit candidate is also queued: its controlled historical Snakes CPU
-gain was +0.94% in all four pairs, while Sky Force's +0.67% was mixed.
+Both final 60-frame game replays match native reference images, frame records
+and PCM exactly. These correctness replays use software rendering. Actual
+browser API tests verify baked defaults, configuration/readback, invalid values
+and rejection of changes after initialization.
 
-## Next candidate preparation
+After timing, 88 live sysfs checks confirm restoration of CPU policies/EPP,
+explicit/effective CPU masks, platform profile and charging.
 
-The original SVC candidate adds a pending-trap test after every compiled region.
-A revised protocol is prepared in the working tree: a trap returns the existing
-zero chain-stop sentinel and publishes its logical instruction count separately.
-Ordinary successful regions can then avoid the new pending-trap load/test.
-Diagnostic and single-region execution must still report the logical count.
-The revised version has passed the correctness checks recorded below; its
-current timing is pending. The completed follow-up measurements above continue
-to describe the frozen original protocol.
+The frozen artifact is served by the LAN launcher. Its running service path,
+fetched WASM hash and browser-observed defaults match the measured artifact.
+Both games, switching, keyboard/touch, narrow layout and manual loading were
+exercised with hardware NVIDIA rendering. Saved screenshots were inspected to
+confirm gameplay. `final-game-picker/` retains the browser/GPU report and images.
+Paced playability is separate from the controlled unpaced throughput table.
 
-Division lowering is also prepared behind an off-by-default compiler selector,
-`EKA2L1_DIVISION_DIGITS=0|1`. Its static count update composes with policy18,
-and whole-entry budget proofs can establish its budget bound. The restored
-interpreter matrix covers both count policies and all three entry-budget modes.
-That expanded matrix now passes as recorded below. The build and correctness
-checks ran after the completed follow-up timing round.
+**Live browser audio is not verified.** The integration check retains a failing
+non-silent-audio assertion for each game. The host initially had both sound-card
+profiles off; enabling the real built-in output temporarily did not resolve the
+Chrome audio-device error. The original profile and default devices were restored.
+An independent Chrome oscillator test, without the emulator, also reports a
+running AudioContext whose clock stays at zero. The unchanged browser audio files
+and exact native-reference PCM replays pass their checks, but do not substitute
+for working live output. The complete picker check remains failed for this host
+audio limitation. No benchmark or emulator default was changed to hide it.
 
-Entry-only pruning has a favorable Sky Force point estimate, but its paired CPU
-changes range from -3.47% to +3.35%, with only 0.03% fewer native instructions.
-Snakes changes by -0.42% CPU and -0.12% native instructions. This result needs
-confirmation on the final runtime before adoption; it is not the historical
-3.14% gain, whose control lacked full pruning.
+## Paused continuation
 
-The current batching comparison does not support promotion. Sky Force CPU pairs
-range from -1.84% to +3.78%; native instructions rise 0.24%. Snakes native
-instructions rise 0.03%. Policy 17 stays selected. One Sky Force control failed
-the predeclared interval-frequency limit and was repeated without changing the
-criteria; the invalid observation remains in the evidence.
-
-The inline whole-entry budget candidate removes 1.62% of native instructions in
-Snakes and 0.23% in Sky Force, but CPU pairs are mixed in both games. It has not
-earned default status. The outlined recovery alternative is selected for combined validation.
-
-The frozen next candidate selects sparse ROM lookup by default. Its real API
-readback, invalid-value rejection and post-initialization immutability checks
-pass as recorded below. This remains a candidate build, not an adopted or
-deployed runtime claim.
-
-## Completed round and selected combination
-
-All 14 current-runtime game comparisons are complete: 112 valid observations
-and two retained clock-invalid attempts. The five follow-ups account for 80
-valid and both invalid observations. Every reported selector matches its plan
-(1,598 checked fields across 114 attempts). After timing, 77 live checks verify
-restored CPU policies, EPP, CPU masks, platform profile and charging. Evidence
-is `followups-live-restoration.json` and `observed-selector-audit.json`.
-
-Sparse ROM lookup and outlined entry budgets are selected together. Outlining
-reduces native instructions 1.23% in Snakes and 0.18% in Sky Force. Snakes CPU
-pairs improve 0.45% to 1.88%; Sky Force pairs range from -2.01% to +5.71%, so its
-positive average is not a repeatable individual gain claim. Static batching,
-entry-only pruning and inline budget recovery remain unselected.
-
-The revised syscall protocol and division lowering will be tested with sparse
-ROM lookup and outlined budgets fixed, followed by a final adopted-artifact
-comparison against the untouched baseline. The frozen `next-plan.json` has 32
-observations; `next-replay-plan.json` requires six exact game replays. The
-historical sweep remains paused and will not restart automatically.
-
-## Revised candidate correctness
-
-The frozen `next-build` passes the full suite (172 reported passes, zero failures;
-exit-census and boundary-detail fixtures explicitly skip in this diagnostics-free
-build). The new protocol passes 124,416 exact native/WASM syscall comparisons
-across IR policies 17/18, entry budgets 0/1/2, mutation modes 0/3 and single/chained
-execution. Another 20,736 comparisons pass with the reference verifier enabled.
-The descriptor fixture adds 9,216 predicate/budget/page checks. Division lowering
-passes 32,256 exact state/budget comparisons across 168 selected fixtures.
-
-The real-browser API suite passes. Six selected 60-frame replays match both
-games' native images, guest frame records and PCM exactly: the combined
-ROM/outlined-budget candidate, its syscall-disabled control, and division enabled.
-These correctness replays use software rendering. The timing plan uses hardware
-NVIDIA rendering and unchanged clock-validity rules. `next-correctness.json`
-records exact build/source hashes, matrix results and replay evidence.
-
-The frozen next build retains entry-budget default 0; the replay and timing
-plans explicitly select mode 2 and verify its readback. Working source now has
-mode 2 prepared as the final default. That final default build still needs its
-own checks and untouched-baseline comparison before adoption.
-
-## Revised syscall timing checkpoint
-
-The zero-return protocol comparison is complete with sparse ROM lookup and
-outlined entry budgets fixed. Snakes improves 0.40% CPU and 0.48% wall throughput;
-Sky Force improves 3.54% CPU and 2.98% wall throughput. All four CPU pairs improve
-in each game. Native instruction counts are effectively unchanged in Snakes
-(+0.002%) and fall 2.76% in Sky Force. This selects the revised syscall path for
-the final combined artifact, not a standalone total-adoption claim.
-
-There are 16 valid observations and one retained invalid attempt. The rejected
-Sky Force candidate measured 2706 MHz and failed both mean and interval limits;
-its unchanged retry passed. Division lowering is the last individual current
-candidate still running. The combined artifact will be measured against both
-the untouched repository baseline and the actual previously served LAN archive;
-these are different binaries. The historical sweep remains paused at 64/109.
-
-## Final selection checkpoint
-
-All 18 current-runtime comparisons are complete: 144 valid observations and
-three retained invalid attempts. The final division comparison is +0.07% CPU
-for Snakes and -0.66% for Sky Force, with only two of four pairs faster in each.
-Native instructions fall 0.38% in Snakes but remain unchanged in Sky Force.
-Division stays disabled. The prior historical +0.94% Snakes result did not
-carry through to this combination.
-
-The selected defaults are compiled syscalls 1, sparse ROM lookup 1 and outlined
-entry budget 2. Full state pruning and IR policy 17 remain selected; entry-only
-pruning, inline recovery, static batching and division remain opt-in.
-`final-selection.json` records the decisions and supporting comparisons.
-After timing, 88 live checks passed for CPU policy/EPP, explicit and effective
-CPU masks, platform profile and charging (`next-live-restoration.json`).
-
-The final default build and its combined comparison are now pending. The final
-plan measures the exact artifact against both the repository baseline and the
-previously served LAN archive, using one common harness. Only post-measurement
-optional getter readbacks were added to the original harness, so unsupported
-legacy getters remain null while candidate defaults are verified directly.
-The historical sweep remains paused at 64/109, with 45 comparisons left.
-
-## Final artifact correctness checkpoint
-
-The exact default artifact is frozen at `final-build`, WASM SHA-256
-`90a592686582bbe11ddae12296ba9c793c2fc63660ac0cba9c1354356ccbc102`.
-Its [validation record](RECOVERED_DEFAULTS_VALIDATION.json) includes source/build
-hashes, 172 reported compiler passes with zero failures (two diagnostic-only
-fixtures explicitly skip), 41,472 native/WASM syscall comparisons with outlined
-budgets and verification off/on, actual browser API checks, and both exact
-60-frame native image/frame/PCM replays. Default entry budget 2 is asserted by
-the compiler fixture and browser API. The final baseline harness also reads
-back every new default after the measured window.
-
-The host is settling before the 32 final observations. No historical comparison
-has resumed. Final throughput and live LAN integration are still pending.
-
-## Combined timing intermediate checkpoint
-
-The repository-baseline Snakes comparison is complete: +1.70% CPU throughput,
-+1.07% wall throughput and 2.13% fewer native instructions. All four CPU pairs
-improve (0.81% to 2.41%); all eight observations are valid. The candidate runs
-at 1.940x real time in this fixed-clock warm window. This is the exact combined
-artifact, not a sum of independent feature measurements. Sky Force and the
-previously served LAN archive comparisons are still running. The historical
-sweep remains paused.
+The remaining 45 historical comparisons need an explicit continuation request.
+Preserve existing valid observations and original plans, use fresh host-state
+files, and resume the interrupted `cached-address-displacement/standard` panel
+before proceeding through the remaining extended, inlining and memory entries.
+No automatic resumer is running.

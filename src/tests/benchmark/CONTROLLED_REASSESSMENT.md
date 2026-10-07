@@ -19,10 +19,14 @@ and cancelled continuation jobs. The next historical observation is the pending
 control in `cached-address-displacement/standard`; the controller will resume
 from its retained observations with a fresh host-restoration state file.
 
-The current promotion round finishes first. Its deserving candidates then need
-current correctness checks and a combined comparison against the untouched
-baseline before graduation. Resume the historical sweep only after showing those
-results and receiving a request to continue; do not automatically restart it.
+The promotion round and combined-default measurements are complete. Revised
+compiled syscalls, sparse ROM lookup and outlined entry budgets are committed
+in `632c3d433`. The combined artifact improves CPU throughput 1.70% in Snakes
+and 3.46% in Sky Force against the untouched repository baseline, with all four
+pairs faster for both games. See [graduation results](RECOVERED_DEFAULTS_RESULTS.md)
+for the exact artifact, older LAN-build comparison and deployment evidence.
+Resume the historical sweep only after showing those results and receiving a
+request to continue; do not automatically restart it.
 
 ## Scope
 
