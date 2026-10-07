@@ -2,9 +2,9 @@
   "status": "running",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User explicitly requested: nice, resume the sweep",
-  "completed_comparisons": 68,
+  "completed_comparisons": 69,
   "total_comparisons": 109,
-  "valid_observations": 544,
+  "valid_observations": 552,
   "expected_observations": 872,
   "invalid_observations": 20,
   "cancelled_waiters": {
@@ -261,7 +261,8 @@
     "cached-address-displacement/standard",
     "deferred-read-exit/standard",
     "owner-core-reuse/standard",
-    "aligned-cache-hash/standard"
+    "aligned-cache-hash/standard",
+    "compact-generated-memory/standard"
   ],
   "configuration_audit": {
     "observations": 558,

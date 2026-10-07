@@ -191,3 +191,22 @@ python3 src/tests/benchmark/compare.py NATIVE_REFERENCE NEW_REPLAY
 
 `MEMORY_AND_CONNECTED_EVIDENCE.json` embeds raw timing records and correctness
 summaries, with hashes/paths for binaries, test logs and saved experiments.
+
+## Controlled reassessment: compact generated memory
+
+The resumed fixed-frequency comparison completes all eight observations without
+invalid attempts. Snakes worker CPU time averages 19.24393 seconds for the archived
+control and 17.81032 seconds for the candidate: +8.05% CPU throughput and +7.45%
+wall throughput, with 6.81% fewer native instructions. All four adjacent pairs are
+faster (+7.48% to +8.80%). Exact observations, hashes and clock checks are in
+[the controlled results](CONTROLLED_RESULTS.json). This is evidence of a useful
+historical transformation; the old uncontrolled rejection is not evidence that
+the transformation intrinsically slowed execution.
+
+This is not a new 8% gain on the current defaults. Source review of
+`src/emu/cpu/src/aot/arm_translator.cpp` finds the result block, early helper exit
+and single fallthrough memory operation already present. The old READ_PAGE and
+WRITE_PAGE cache locals are gone, and the default direct-memory path precedes
+this TLB fallback. The archived implementation is superseded by that lowering;
+restoring its old cache is not justified by this comparison. No new runtime
+change or adoption gain is claimed.

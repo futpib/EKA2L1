@@ -48,7 +48,7 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 
 ## Controlled comparisons
 
-68/109 game comparisons complete; 544/872 valid observations; 20 retained host-invalid observations.
+69/109 game comparisons complete; 552/872 valid observations; 20 retained host-invalid observations.
 
 CPU and wall columns are throughput changes: positive is faster. Native
 instructions are candidate/control changes: negative is less work. Pairs
@@ -126,7 +126,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 66 | deferred-read-exit / Snakes | +0.46% | +0.43% | -1.52% | 2/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.46% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 67 | owner-core-reuse / Snakes | +0.81% | +0.75% | -0.24% | 4/4 | 8/8; 0 invalid | Current-runtime reassessment candidate: Historical Snakes +0.81% CPU, 4/4 faster pairs including one near tie; current lookup still reads parent per lookup, but compiler and dispatch have changed | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 68 | aligned-cache-hash / Snakes | +0.65% | +0.47% | +0.20% | 3/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.65% CPU, 3/4 faster pairs, native instructions +0.20%; current source retains the older hash; no default change | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
-| 69 | compact-generated-memory / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
+| 69 | compact-generated-memory / Snakes | +8.05% | +7.45% | -6.81% | 4/4 | 8/8; 0 invalid | Superseded by current lowering: Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 70 | connected-callee-loops / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 71 | guarded-successor-lookup / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 72 | expanded-leaf-eligibility / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
@@ -4405,6 +4405,17 @@ old/new/new/old serially to 96 seconds, with correctness/build work finished.
 Every trial executes 3,975,200,506 guest instructions and 676 presentations.
 Two trials per variant and this shared host do not establish a universal speedup.
 The kernels and replay are Snakes-focused; no second-game result is claimed.
+
+**Controlled reassessment: compact generated memory**
+
+The resumed fixed-frequency comparison completes all eight observations without
+invalid attempts. Snakes worker CPU time averages 19.24393 seconds for the archived
+control and 17.81032 seconds for the candidate: +8.05% CPU throughput and +7.45%
+wall throughput, with 6.81% fewer native instructions. All four adjacent pairs are
+faster (+7.48% to +8.80%). Exact observations, hashes and clock checks are in
+[the controlled results](CONTROLLED_RESULTS.json). This is evidence of a useful
+historical transformation; the old uncontrolled rejection is not evidence that
+the transformation intrinsically slowed execution.
 
 </details>
 

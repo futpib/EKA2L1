@@ -88,6 +88,10 @@
     "aligned-cache-hash": {
       "status": "Historical result mixed",
       "note": "Controlled Snakes +0.65% CPU, 3/4 faster pairs, native instructions +0.20%; current source retains the older hash; no default change"
+    },
+    "compact-generated-memory": {
+      "status": "Superseded by current lowering",
+      "note": "Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default."
     }
   }
 }
