@@ -1,9 +1,15 @@
 # Outlined short-budget recovery experiment
 
-The timing verdicts below are being reassessed with measured fixed frequency
-and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
-[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
-Original observations and correctness evidence remain below.
+The controlled reassessment recovers a Snakes gain for the archived outlined
+prototype: CPU throughput improves by 1.91%, wall throughput by 1.75%, and
+native retired instructions fall by 3.04%. All four adjacent CPU pairs are
+faster (+0.79% to +2.89%) in ABBA then BAAB order. All eight observations pass
+the unchanged clock and host checks. The original failure to repeat a gain
+does not hold for this comparison. This supports a current-runtime follow-up;
+it is not a direct comparison with the other entry-budget prototype, and their
+percentages are not additive. See [controlled results](CONTROLLED_RESULTS.md)
+and [scope](CONTROLLED_REASSESSMENT.md). Original observations and correctness
+evidence remain below; no runtime change is adopted by the reassessment.
 
 This rejected candidate proves sufficient budget at entry for loop-free ARM
 regions with no inlined dependencies. It removes redundant per-instruction
