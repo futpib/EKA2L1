@@ -38,8 +38,8 @@
       "note": "Additional Snakes route for the same syscall change"
     },
     "sparse-rom-lookup": {
-      "status": "Promotion in progress",
-      "note": "Restored against current inline registry; focused checks and both exact game replays passed, current timing queued"
+      "status": "Selected for combined validation",
+      "note": "Current Sky Force CPU +1.81% in all four pairs, Snakes -0.27%; matches the accepted tradeoff, final combined artifact still pending"
     },
     "entry-only-pruning": {
       "status": "Promotion in progress",

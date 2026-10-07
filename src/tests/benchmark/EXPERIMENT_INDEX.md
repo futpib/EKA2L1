@@ -28,8 +28,8 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | 3 | compiled-syscalls-total / Snakes | +0.21% | +0.27% | +0.29% | 1/4 | 8/8; 0 invalid |
 | 4 | compiled-syscalls-total / Sky Force | +0.71% | +0.67% | -1.96% | 3/4 | 8/8; 0 invalid |
 | 5 | sparse-rom-current / Snakes | -0.27% | -0.29% | -0.14% | 1/4 | 8/8; 0 invalid |
-| 6 | sparse-rom-current / Sky Force | Pending | Pending | Pending | — | 4/8; 0 invalid |
-| 7 | entry-only-pruning-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 6 | sparse-rom-current / Sky Force | +1.81% | +1.71% | -1.60% | 4/4 | 8/8; 0 invalid |
+| 7 | entry-only-pruning-current / Snakes | Pending | Pending | Pending | — | 4/8; 0 invalid |
 | 8 | entry-only-pruning-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
 | 9 | batched-counts-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
 | 10 | batched-counts-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
@@ -76,8 +76,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 24 | span-page-reuse / Sky Force | +0.96% | +0.88% | +0.82% | 2/4 | 8/8; 0 invalid | No new default adopted | [SPAN_PAGE_REUSE_RESULTS.md](SPAN_PAGE_REUSE_RESULTS.md) |
 | 25 | dynamic-rom-cohorts / Snakes | -11.17% | -9.48% | +10.03% | 0/4 | 8/8; 0 invalid | No new default adopted | [DYNAMIC_ROM_COHORT_TIMING_RESULTS.md](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) |
 | 26 | dynamic-rom-cohorts / Sky Force | -69.50% | -68.11% | +207.72% | 0/4 | 8/8; 0 invalid | No new default adopted | [DYNAMIC_ROM_COHORT_TIMING_RESULTS.md](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) |
-| 27 | sparse-rom-lookup / Snakes | -0.66% | -0.32% | -0.04% | 0/4 | 8/8; 0 invalid | Promotion in progress: Restored against current inline registry; focused checks and both exact game replays passed, current timing queued | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
-| 28 | sparse-rom-lookup / Sky Force | +2.64% | +2.57% | -1.70% | 4/4 | 8/8; 0 invalid | Promotion in progress: Restored against current inline registry; focused checks and both exact game replays passed, current timing queued | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
+| 27 | sparse-rom-lookup / Snakes | -0.66% | -0.32% | -0.04% | 0/4 | 8/8; 0 invalid | Selected for combined validation: Current Sky Force CPU +1.81% in all four pairs, Snakes -0.27%; matches the accepted tradeoff, final combined artifact still pending | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
+| 28 | sparse-rom-lookup / Sky Force | +2.64% | +2.57% | -1.70% | 4/4 | 8/8; 0 invalid | Selected for combined validation: Current Sky Force CPU +1.81% in all four pairs, Snakes -0.27%; matches the accepted tradeoff, final combined artifact still pending | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
 | 29 | compiled-syscalls / Snakes | -0.61% | -0.50% | +0.58% | 1/4 | 8/8; 0 invalid | Promotion in progress: Current off/on Sky Force +7.17%, but total +0.71% with mixed pairs; no clear overall gain or adopted default. See [promotion results](RECOVERED_DEFAULTS_RESULTS.md) | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
 | 30 | compiled-syscalls / Sky Force | +8.11% | +7.58% | -2.35% | 4/4 | 8/8; 0 invalid | Promotion in progress: Current off/on Sky Force +7.17%, but total +0.71% with mixed pairs; no clear overall gain or adopted default. See [promotion results](RECOVERED_DEFAULTS_RESULTS.md) | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
 | 31 | compiled-memory-misses / Snakes | -9.00% | -7.98% | +7.82% | 0/4 | 8/8; 0 invalid | No new default adopted | [COMPILED_MEMORY_MISSES_TIMING_RESULTS.md](COMPILED_MEMORY_MISSES_TIMING_RESULTS.md) |
@@ -5247,6 +5247,7 @@ current adoption decisions are in [the experiment index](EXPERIMENT_INDEX.md).
 | ---: | --- | --- | --- | --- |
 | 1 | Compiled syscalls off/on in one frozen candidate | +0.70% | +7.17% | 16 valid, 0 invalid; Snakes 3/4 pairs faster, Sky Force 4/4 |
 | 2 | Untouched baseline versus compiled syscall candidate | +0.21% | +0.71% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
+| 3 | Sparse ROM lookup off/on in the rebuilt candidate | -0.27% | +1.81% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 4/4 |
 
 Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
 The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
@@ -5286,8 +5287,11 @@ initial harness launch caught a malformed destructuring parameter before any
 game execution; its failure is preserved, and the corrected harness passed all
 12 runs. These replays use software rendering and establish correctness, not
 performance. Hardware-rendered controlled timing is running. The first completed result is
-ROM lookup in Snakes: -0.27% CPU throughput, with one of four pairs faster;
-Sky Force is pending. The measurement snapshot and index show subsequent results.
+ROM lookup: Snakes -0.27% CPU throughput (one of four pairs faster), Sky Force
++1.81% (all four pairs faster). Native instructions fall 0.14% and 1.60%,
+respectively. This matches the accepted game tradeoff and is selected for final
+combined validation, not yet a committed default. The measurement snapshot and
+index show subsequent results.
 
 </details>
 

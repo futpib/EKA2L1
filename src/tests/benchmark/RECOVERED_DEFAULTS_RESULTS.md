@@ -17,6 +17,7 @@ in the evidence and are repeated without changing the thresholds.
 | ---: | --- | --- | --- | --- |
 | 1 | Compiled syscalls off/on in one frozen candidate | +0.70% | +7.17% | 16 valid, 0 invalid; Snakes 3/4 pairs faster, Sky Force 4/4 |
 | 2 | Untouched baseline versus compiled syscall candidate | +0.21% | +0.71% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 3/4 |
+| 3 | Sparse ROM lookup off/on in the rebuilt candidate | -0.27% | +1.81% | 16 valid, 0 invalid; Snakes 1/4 pairs faster, Sky Force 4/4 |
 
 Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
 The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
@@ -106,8 +107,11 @@ initial harness launch caught a malformed destructuring parameter before any
 game execution; its failure is preserved, and the corrected harness passed all
 12 runs. These replays use software rendering and establish correctness, not
 performance. Hardware-rendered controlled timing is running. The first completed result is
-ROM lookup in Snakes: -0.27% CPU throughput, with one of four pairs faster;
-Sky Force is pending. The measurement snapshot and index show subsequent results.
+ROM lookup: Snakes -0.27% CPU throughput (one of four pairs faster), Sky Force
++1.81% (all four pairs faster). Native instructions fall 0.14% and 1.60%,
+respectively. This matches the accepted game tradeoff and is selected for final
+combined validation, not yet a committed default. The measurement snapshot and
+index show subsequent results.
 
 The five independent timing comparisons hold compiled syscalls enabled and
 all other current settings fixed. Their off/on results will need a combined
