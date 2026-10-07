@@ -1,0 +1,169 @@
+{
+  "time_utc": "2026-10-07T17:34:30.840022+00:00",
+  "artifact": "/home/claude/.scratch/eka-promote-recovered/final-build",
+  "build_hashes": {
+    "eka2l1.js": "d94f31a9fd83cc33e9ecdb0dda41f1b6283216257661ae0f930c95b24c3bd9b3",
+    "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+    "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "eka2l1.wasm": "90a592686582bbe11ddae12296ba9c793c2fc63660ac0cba9c1354356ccbc102"
+  },
+  "source_files": {
+    "src/emu/cpu/include/cpu/aot/aot_registry.h": "5f1a4901bdea2f24fd6747dbc2982e2508bab978bd092db64edf2a59bc7eff4b",
+    "src/emu/cpu/include/cpu/aot/aot_runtime.h": "efa663c4f00b81bf907d327ec2729d2eafc6d2b798ea7ed0c784a461f6202d8a",
+    "src/emu/cpu/include/cpu/aot/arm_translator.h": "b29c014d8862bf480c5a9e21705b584089679aa215d97879af4d07a931b9f0c8",
+    "src/emu/cpu/include/cpu/aot/thumb_translator.h": "dff69ff7cda7a167fb348cff37c2f12764354c916c5a3473545d531ce06a75a8",
+    "src/emu/cpu/include/cpu/aot/wasm_emitter.h": "2654ec0e295129a45c4dd2265c5f05b20efbad7404ed37eaa94516abcfa55cd8",
+    "src/emu/cpu/include/cpu/dyncom/armstate.h": "fd89dfb02eb825308c9cfd53e181823473007df603255dd46055a9cf065a88b5",
+    "src/emu/cpu/src/aot/aot_registry.cpp": "ef045841e8799ca4411393d8e2064a12442f65b3f8f080b8a7fc86a43e16270d",
+    "src/emu/cpu/src/aot/aot_runtime.cpp": "1d74e3e2bba00b49ef7e89368c71ea452f0013b883afbecb80989948cece5db3",
+    "src/emu/cpu/src/aot/arm_translator.cpp": "9703944aac065992bef91159e75fe0692cab4d7b7b5bebd0aacd06bc63cfde97",
+    "src/emu/cpu/src/aot/thumb_translator.cpp": "22fc4d87b875b853720ee178f0c3148fe847b20c0d91691ddc560bf777a405cb",
+    "src/emu/cpu/src/dyncom/arm_dyncom_interpreter.cpp": "9e5240018fef74c39ec394d0707d448391fe88d3c1df853e05c67c476268c25f",
+    "src/emu/wasm/main.cpp": "b9540d1ecba691669b887cc810bae68700e4bf37abfb270a33123a9bb11ba825",
+    "src/tests/aot/test_aot_wasm.cpp": "03419f189fb8eecb7800a2b89af87c0812c76360b378e28c40dfcf06bc8d063b",
+    "src/tests/benchmark/compare_cpu_faults.py": "1ac7ad0d722028330478e3391b6e09db2dc8424d7432f680c3e8e767531710f4",
+    "src/tests/benchmark/cpu_fault_probe.cpp": "dbab448b45b3b638defcb4ef9b12c561d514f9b00fdbc88fb01be51e23ab2c03",
+    "src/tests/benchmark/run_compiled_svc_matrix.py": "c4ec6cd3ce797fa6ed2cc006da020c1ed6b0341c48b13ceaf5f7a13743a2b46a",
+    "src/tests/benchmark/run_cpu_fault_matrix.py": "3361897fb5010479c5720a70839b8d82af56c166ee96a9223558668690da5721",
+    "src/tests/wasm/benchmark.ts": "dd70d4f22f9596dae2d355b98675692ce45287449b641812e30f12db52316f0b",
+    "src/tests/wasm/compiler-policy.test.ts": "0130286ab3df22df76ac516cd597d5f226e64ec29e5d859767c6be070e760795",
+    "src/tests/wasm/profile.ts": "e6f81ee6d321132aed9745a0a249689b44e52dc89145bdcabf5dfdaf30af355a",
+    "src/tests/wasm/server.ts": "28fad29d91b254ac170e711d2e2fb8d2cee7dbc167cd505786f6a55054ac250a",
+    "src/tests/wasm/test.ts": "92f604c5c22ca6de341a9c1118f0fc027ddfe8308a2d740caec2e2f8c22277e4"
+  },
+  "source_patch_sha256": "4b13a160795dfae84685840f540b6f949d19caa8ba35164e8cb7bef29e856d74",
+  "defaults": {
+    "compiled_svc": 1,
+    "sparse_rom_lookup": 1,
+    "entry_budget": 2,
+    "entry_only_pruning": 0,
+    "division_digits": 0
+  },
+  "compiler_suite": {
+    "reported_passes": 172,
+    "failures": 0,
+    "explicit_skips": [
+      "SKIP exit census: build with EKA2L1_WASM_DIAGNOSTICS=ON",
+      "SKIP boundary details: build with EKA2L1_WASM_DIAGNOSTICS=ON"
+    ]
+  },
+  "syscall_comparisons": 41472,
+  "syscall_matrices": {
+    "final-svc-matrix": [
+      {
+        "unsafe_code": 0,
+        "cases": 10368,
+        "ir_policy": 17,
+        "entry_budget": 2,
+        "verify": false,
+        "all_fields_match": 10368,
+        "differences": [],
+        "log_hashes": {
+          "/home/claude/.scratch/eka-promote-recovered/final-svc-matrix/0-ir17-entry2-native.log": "1855cabf74ce0ef97c55153c60f3da7bdb8b7e65db036e6db6aeb8fed9904fb6",
+          "/home/claude/.scratch/eka-promote-recovered/final-svc-matrix/0-ir17-entry2-wasm.log": "1e8a0b5d1bf602b2b2cc99ea606886f6766e52fb51906e2f2fcff0fdfc9ea6a5"
+        }
+      },
+      {
+        "unsafe_code": 3,
+        "cases": 10368,
+        "ir_policy": 17,
+        "entry_budget": 2,
+        "verify": false,
+        "all_fields_match": 10368,
+        "differences": [],
+        "log_hashes": {
+          "/home/claude/.scratch/eka-promote-recovered/final-svc-matrix/3-ir17-entry2-native.log": "24ba5f06083fee4bc1455687e46db7c8edbbb79c090f7954a91a7d67c19ba87e",
+          "/home/claude/.scratch/eka-promote-recovered/final-svc-matrix/3-ir17-entry2-wasm.log": "e1407172fb6c496ce2ba0ba6654ac1854181d609de6cb8518b2c6bba7153f072"
+        }
+      }
+    ],
+    "final-svc-verified": [
+      {
+        "unsafe_code": 0,
+        "cases": 10368,
+        "ir_policy": 17,
+        "entry_budget": 2,
+        "verify": true,
+        "all_fields_match": 10368,
+        "differences": [],
+        "log_hashes": {
+          "/home/claude/.scratch/eka-promote-recovered/final-svc-verified/0-ir17-entry2-native.log": "179c2b2a3ea47611a8ad98161da306728e9c6e1c7dd26a28384cddecd672a597",
+          "/home/claude/.scratch/eka-promote-recovered/final-svc-verified/0-ir17-entry2-wasm.log": "e41c302f418c341cbe43a31a01db01866b1b2c3f361ab909d1f376a791f4d503"
+        }
+      },
+      {
+        "unsafe_code": 3,
+        "cases": 10368,
+        "ir_policy": 17,
+        "entry_budget": 2,
+        "verify": true,
+        "all_fields_match": 10368,
+        "differences": [],
+        "log_hashes": {
+          "/home/claude/.scratch/eka-promote-recovered/final-svc-verified/3-ir17-entry2-native.log": "eacafe5fb9de10b9a614d8f2cbe71aa166b73ed4a9f1d7b28a0b7a1f9cb43e41",
+          "/home/claude/.scratch/eka-promote-recovered/final-svc-verified/3-ir17-entry2-wasm.log": "566bcfed1b31937c9c5b6e55bb2d9a5b91e94e411c7ea886e6bc9c9a70d20076"
+        }
+      }
+    ]
+  },
+  "replays": [
+    {
+      "name": "defaults-standard",
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 1143727,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f4b3d914c0bd28a54f6a00f26cf4ba1b0d4ea7f1da40ab6e7b1b41c12d235862",
+          "sha256_events": "d9ed9ef121d99d7c87f9052fb1962929fe36f18e010bc0191ec17c207a6cca37",
+          "writes": 0,
+          "callbacks": 2330,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 2330,
+          "gameplay_nonzero_samples": 264002,
+          "gameplay_peak": 206
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 23827651,
+        "instructions": 3012361018
+      }
+    },
+    {
+      "name": "defaults-combat",
+      "comparison": {
+        "match": true,
+        "audio": {
+          "sample_frames": 2105509,
+          "sample_rate": 48000,
+          "channels": 2,
+          "sha256_pcm": "f86fd7c8908cee93c5b8215ec3e4891ddf6a54a8a79783fea5d584bbf4290cab",
+          "sha256_events": "54699bb0cb4fcd867b4a437f0fc65f5f0a5fc28e723b8750fc3b97667e05e6e2",
+          "writes": 0,
+          "callbacks": 4210,
+          "backend": "shared-dsp-cubeb-resampler",
+          "render_callbacks": 4210,
+          "gameplay_nonzero_samples": 176458,
+          "gameplay_peak": 4041
+        },
+        "frames": 60,
+        "unique_images": 60,
+        "last_virtual_us": 43864773,
+        "instructions": 15827750326
+      }
+    }
+  ],
+  "replay_renderer": "Software for deterministic images; performance and LAN integration use hardware NVIDIA",
+  "log_sha256": {
+    "final-full.log": "42b951962c32bf733b93a839b487b1d606e2d50704e05505de69eee20be17755",
+    "final-policy.log": "629f1cc5f2114c13e4fc60c8ef50334e78b4b135d49576bd9fc98846dee84789",
+    "final-browser-api.log": "cfc73abd8e8c6b203772fb2431f79d91c58527e7181d39fb80469ac4d6d45cab",
+    "final-harness-syntax.log": "cd760990daa0ff6f75b202eb801a6e6d2e0145df2a26b362db3db7c11d513d26",
+    "replay-final.log": "355be910d778a7da1a497d635dee489bf4e510470a9a3f4bc97dd62bc893fd7c"
+  },
+  "performance_status": "Final combined comparison pending",
+  "lan_integration_status": "Pending deployment after performance comparison"
+}

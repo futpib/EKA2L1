@@ -5319,6 +5319,11 @@ Native instructions fall 0.38% in Snakes but remain unchanged in Sky Force.
 Division stays disabled. The prior historical +0.94% Snakes result did not
 carry through to this combination.
 
+**Final artifact correctness checkpoint**
+
+The host is settling before the 32 final observations. No historical comparison
+has resumed. Final throughput and live LAN integration are still pending.
+
 </details>
 
 <a id="report-186"></a>

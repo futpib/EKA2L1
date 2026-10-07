@@ -247,3 +247,18 @@ previously served LAN archive, using one common harness. Only post-measurement
 optional getter readbacks were added to the original harness, so unsupported
 legacy getters remain null while candidate defaults are verified directly.
 The historical sweep remains paused at 64/109, with 45 comparisons left.
+
+## Final artifact correctness checkpoint
+
+The exact default artifact is frozen at `final-build`, WASM SHA-256
+`90a592686582bbe11ddae12296ba9c793c2fc63660ac0cba9c1354356ccbc102`.
+Its [validation record](RECOVERED_DEFAULTS_VALIDATION.json) includes source/build
+hashes, 172 reported compiler passes with zero failures (two diagnostic-only
+fixtures explicitly skip), 41,472 native/WASM syscall comparisons with outlined
+budgets and verification off/on, actual browser API checks, and both exact
+60-frame native image/frame/PCM replays. Default entry budget 2 is asserted by
+the compiler fixture and browser API. The final baseline harness also reads
+back every new default after the measured window.
+
+The host is settling before the 32 final observations. No historical comparison
+has resumed. Final throughput and live LAN integration are still pending.
