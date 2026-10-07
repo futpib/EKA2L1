@@ -5,6 +5,22 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The controlled rerun uses the same frozen archive on Snakes at guest seconds
+78-96, with four observations per variant in ABBA then BAAB order. Mixed IR
+(policy 7 to 13) loses 4.50% CPU and 4.43% wall throughput; longer segments
+(13 to 14) lose 5.34% CPU and 4.90% wall throughput. All four CPU pairs are
+slower for each of those changes, with 2.68% and 3.45% more retired native
+instructions, respectively.
+
+Single-use stack values (13 to 15) are effectively flat: -0.08% CPU and
+-0.10% wall throughput, -0.01% native instructions, and two of four CPU pairs
+faster (range -0.46% to +0.17%). The substantial slowdown in the original noisy
+stack-value screen does not repeat, but this is not evidence of a runtime gain.
+These are historical-policy comparisons, not measurements under the current
+direct-memory defaults. No production setting changes.
+
+## Original implementation and screen
+
 Opt-in policy 15 preserves policy 13 semantics and its 32-instruction bound.
 A pure result used once by the immediately following pure node is emitted in
 that operand slot without a temporary local. Snapshot roots, shared expressions,
@@ -20,12 +36,12 @@ frontend checks pass. Both interpreter-checked 1,600-image/guest-record replays
 match native, including all 4,919,249 stereo PCM frames. Tested cases are evidence,
 not proof of universal correctness.
 
-| Fixture | Policy | Selected stack values | Main body bytes including locals | Module bytes | i32 locals |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| 0x70013edc | 13 | 0 | 10650 | 32004 | 82 |
-| 0x70013edc | 15 | 11 | 10606 | 31960 | 79 |
-| 0x70014224 | 13 | 0 | 6163 | 19976 | 86 |
-| 0x70014224 | 15 | 30 | 6043 | 19856 | 77 |
+| # | Fixture | Policy | Selected stack values | Main body bytes including locals | Module bytes | i32 locals |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | 0x70013edc | 13 | 0 | 10650 | 32004 | 82 |
+| 2 | 0x70013edc | 15 | 11 | 10606 | 31960 | 79 |
+| 3 | 0x70014224 | 13 | 0 | 6163 | 19976 | 86 |
+| 4 | 0x70014224 | 15 | 30 | 6043 | 19856 | 77 |
 
 Each fixture retains five segments, maximum length 32, and one i64 local.
 The selected guest instructions and memory guards are unchanged. These small
@@ -50,12 +66,12 @@ Order: stack15, conditions13, combined7, served7, served7, combined7,
 conditions13, stack15. First three use the identical archived application.
 No other owned heavy workload ran during warmup or measurement.
 
-| Policy | First seconds | Second seconds | Mean seconds |
-| --- | ---: | ---: | ---: |
-| stack | 15.4073 | 14.6218 | 15.0145 |
-| conditions | 13.3259 | 13.1166 | 13.2213 |
-| combined | 12.8674 | 12.8964 | 12.8819 |
-| served | 12.7748 | 14.8990 | 13.8369 |
+| # | Policy | First seconds | Second seconds | Mean seconds |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | stack | 15.4073 | 14.6218 | 15.0145 |
+| 2 | conditions | 13.3259 | 13.1166 | 13.2213 |
+| 3 | combined | 12.8674 | 12.8964 | 12.8819 |
+| 4 | served | 12.7748 | 14.8990 | 13.8369 |
 
 Every window covers 18 guest seconds, 3,975,618,624 instructions and 676
 presentations. Both adjacent candidate/previous-IR pairs favor the previous IR.
