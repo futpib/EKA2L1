@@ -14,8 +14,12 @@ instructions. Only one of its four CPU pairs is faster; the range is -4.95%
 to +3.39%. All 16 observations pass the unchanged clock and host checks.
 This comparison establishes no gain for the narrower prototype. It does not
 identify the cause of the higher cycles per retired instruction. The broader
-loop-budget comparison is still running. These results belong to the archived
-policy-7 prototypes and do not measure a marginal change on today's defaults.
+prototype is also effectively flat for Snakes: -0.27% CPU and -0.18% wall
+throughput, with 0.044% fewer native instructions and two of four CPU pairs
+faster (-1.36% to +0.95%). Its earlier larger slowdown does not repeat in this
+controlled comparison. The broader Sky Force comparison is still running.
+These results belong to the respective archived policy-7 prototypes and do
+not measure a marginal change on today's defaults.
 
 The **browser launcher defaults to compiler policy 17**. It extends policy 7
 with one budget proof per eligible loop iteration. `EKA2L1_AOT_IR_MODE=7` selects
