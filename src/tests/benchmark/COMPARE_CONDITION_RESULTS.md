@@ -1,9 +1,15 @@
 # CMP operand reuse
 
-The timing verdicts below are being reassessed with measured fixed frequency
-and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
-[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
-Original observations and correctness evidence remain below.
+The controlled reassessment does not establish a repeatable Snakes gain:
+CPU throughput changes by +0.40%, wall throughput by +0.39%, and native retired
+instructions by -0.03%. Two of four adjacent pairs are faster, ranging from
+-3.68% to +3.96%. Eight valid observations and one clock-invalid attempt are
+retained. Repeated unrelated build activity surrounded the early observations;
+the last three follow the strengthened quiet-period launch rule. This small
+pooled effect remains inconclusive across that host-activity boundary.
+See [controlled results](CONTROLLED_RESULTS.md) and
+[scope and limitations](CONTROLLED_REASSESSMENT.md). Original observations and
+correctness evidence remain below; no runtime change is adopted.
 
 The rejected experiment uses the operands left by an immediately preceding
 unconditional CMP for the following compound signed/unsigned condition (HI, LS,

@@ -230,6 +230,12 @@ binaries, run order and measured validity thresholds are unchanged. The new
 `resume5` suffix. This reduces launches between build waves; it cannot prevent
 new unrelated work from starting after a trial has begun.
 
+The preflight passed after 301.73 continuous quiet seconds, ending at 47 C.
+The remaining three CMP observations then passed the unchanged measured
+clock/isolation checks at approximately 3591.6 MHz. Their command records
+identify the new controller hash, while all earlier observations remain intact.
+The completed CMP report retains the activity-boundary limitation.
+
 ## What these measurements can establish
 
 Recent frozen builds answer the marginal runtime question at the same source
