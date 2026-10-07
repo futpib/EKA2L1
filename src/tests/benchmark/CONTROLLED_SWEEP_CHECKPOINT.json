@@ -251,7 +251,7 @@
     "extended_restoration_checks": 88
   },
   "active_phase": null,
-  "last_progress_utc": "2026-10-07T22:45:46.788524+00:00",
+  "last_progress_utc": "2026-10-07T23:12:18.068019+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -285,7 +285,7 @@
   "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
   "graduation_cycle": {
     "candidate": "connected-callee-loops",
-    "stage": "full_bundle_correctness_passed_host_settling",
+    "stage": "validating_budget_preservation",
     "automatic_resume": true,
     "pause_evidence": "/home/claude/.scratch/eka-controlled/graduation-cycle-boundary-stop.json",
     "restoration_checks": 88,
@@ -295,6 +295,9 @@
     "watch_status": "/home/claude/.scratch/eka-connected-full/live-watch.json",
     "narrow_decision": "rejected",
     "narrow_evidence": "/home/claude/.scratch/eka-connected-current/CURRENT_RESULTS.json",
-    "candidate_directory": "/home/claude/.scratch/eka-connected-full"
+    "candidate_directory": "/home/claude/.scratch/eka-connected-proofs",
+    "full_snakes_cpu_percent": -0.43687123534724703,
+    "full_decision": "not_selected",
+    "full_evidence": "/home/claude/.scratch/eka-connected-full/CURRENT_RESULTS.json"
   }
 }

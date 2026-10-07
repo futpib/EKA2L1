@@ -1,6 +1,6 @@
 # Connected callees on the graduated runtime
 
-Status: the narrow candidate was rejected; the full historical bundle passed focused validation and awaits timing. The historical sweep is
+Status: the narrow candidate was rejected; both initial adaptations were rejected; budget-proof preservation is under validation. The historical sweep is
 paused at 72/109 comparisons for this graduation cycle. No new default has been
 committed or deployed yet.
 
@@ -81,3 +81,29 @@ SHA-256: `7ac40fb7bc91312760771084a0ffdd239b4a10941180a9cead9d9b89d49e1284`.
 The new plan `eka-connected-full/current-plan.json` compares this complete bundle
 with the unchanged graduated runtime at bound 16. It retains the original
 fixed-frequency, reserved-core, hardware-GPU and ABBA/BAAB controls.
+
+## Full-bundle decision and budget-proof follow-up
+
+| # | Game | CPU throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | Snakes | -0.44% | -0.282% | 1/4 |
+| 2 | Sky Force | -1.17% | +0.029% | 1/4 |
+
+The full bundle also fails current-runtime adoption. All 16 observations are
+valid, none required a retry, and all 88 live restoration checks pass. Complete
+evidence is retained in [the full-bundle results](CONNECTED_FULL_RESULTS.json).
+
+Source inspection found a specific interaction with existing defaults: straight
+budget chunks exclude inlined instructions, and loop proofs require the entire
+region to have a single direct loop. Repeated inlined loops therefore lose those
+proofs. This establishes compiler behavior, not how much of the measured game
+regression it causes.
+
+The follow-up in `eka-connected-proofs` admits unchanged contiguous callee spans
+to the existing straight-chunk rule and proves each single-entry loop separately
+from global loop dispatch. It retains the existing minimum length of four and
+maximum of 32 instructions, excludes interior entries and namespace crossings,
+and uses the same precise short-budget recovery. No runtime accounting is added.
+Focused tests assert that both repeated call sites retain their loop proofs and
+compare every budget/state/memory outcome with the interpreter. This candidate
+must still earn adoption in the controlled two-game comparison.
