@@ -7,19 +7,22 @@ current adoption decisions are in [the experiment index](EXPERIMENT_INDEX.md).
 
 ## Current-runtime measurements
 
-The compiled syscall candidate is restored. Its Snakes off/on comparison is
-complete; Sky Force and the total-change comparison remain pending. Both comparisons use fixed
+The compiled syscall candidate is restored. Both games' off/on comparisons are
+complete; the total-change comparison remains pending. Both comparisons use fixed
 3.6 GHz requests, measured reference-cycle frequency, reserved CPU 7 and sibling
 15, hardware Chromium rendering, and ABBA followed by BAAB. Invalid runs remain
 in the evidence and are repeated without changing the thresholds.
 
 | # | Comparison | Snakes CPU throughput | Sky Force CPU throughput | Status |
 | ---: | --- | --- | --- | --- |
-| 1 | Compiled syscalls off/on in one frozen candidate | +0.70% | Pending | Snakes: 8 valid, 0 invalid, 3/4 pairs faster; Sky Force running |
+| 1 | Compiled syscalls off/on in one frozen candidate | +0.70% | +7.17% | 16 valid, 0 invalid; Snakes 3/4 pairs faster, Sky Force 4/4 |
 | 2 | Untouched baseline versus compiled syscall candidate | Pending | Pending | Includes added runtime checks and code layout; timing queued |
 
 Snakes wall throughput changes by +0.65%; native instructions change by -0.004%.
-The small mixed-pair CPU gain is not a robust speedup claim.
+The small mixed-pair CPU gain is not a robust speedup claim. Sky Force wall
+throughput improves 6.51%; native instructions fall 4.12%. Its four CPU pairs
+improve 2.76% to 12.97%. These are same-binary comparisons with all other
+current production settings fixed; total-change validation is still running.
 
 Artifacts and frozen plans are under
 `/home/claude/.scratch/eka-promote-recovered/`. The historical reassessment under
