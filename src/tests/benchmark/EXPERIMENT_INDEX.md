@@ -27,8 +27,8 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | 2 | compiled-syscalls-current / Sky Force | +7.17% | +6.51% | -4.12% | 4/4 | 8/8; 0 invalid |
 | 3 | compiled-syscalls-total / Snakes | +0.21% | +0.27% | +0.29% | 1/4 | 8/8; 0 invalid |
 | 4 | compiled-syscalls-total / Sky Force | +0.71% | +0.67% | -1.96% | 3/4 | 8/8; 0 invalid |
-| 5 | sparse-rom-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
-| 6 | sparse-rom-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 5 | sparse-rom-current / Snakes | -0.27% | -0.29% | -0.14% | 1/4 | 8/8; 0 invalid |
+| 6 | sparse-rom-current / Sky Force | Pending | Pending | Pending | — | 4/8; 0 invalid |
 | 7 | entry-only-pruning-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
 | 8 | entry-only-pruning-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
 | 9 | batched-counts-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
@@ -5273,6 +5273,21 @@ The original evidence remains in [compiled syscall results](COMPILED_SVC_RESULTS
 and [the historical timing report](COMPILED_SVC_TIMING_RESULTS.md). The historical
 controlled comparison recovered +8.11% Sky Force CPU throughput with a 0.61%
 Snakes cost; this does not establish the gain of the current candidate.
+
+**Other recovered candidates**
+
+All 12 selected game replays passed: the rebuilt control and each of the five
+candidate settings reproduce both native references exactly across 60 frames,
+frame records and PCM. Every replay verifies the actual runtime selector
+readbacks, binary hashes and input hash. Evidence is in `followups-replays/`;
+`followups-hashes.json`, `followups-harness-hashes.json` and
+`followups-complete-source.patch` identify the frozen runtime and harness. The
+initial harness launch caught a malformed destructuring parameter before any
+game execution; its failure is preserved, and the corrected harness passed all
+12 runs. These replays use software rendering and establish correctness, not
+performance. Hardware-rendered controlled timing is running. The first completed result is
+ROM lookup in Snakes: -0.27% CPU throughput, with one of four pairs faster;
+Sky Force is pending. The measurement snapshot and index show subsequent results.
 
 </details>
 

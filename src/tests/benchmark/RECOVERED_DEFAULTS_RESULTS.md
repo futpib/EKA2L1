@@ -105,7 +105,9 @@ readbacks, binary hashes and input hash. Evidence is in `followups-replays/`;
 initial harness launch caught a malformed destructuring parameter before any
 game execution; its failure is preserved, and the corrected harness passed all
 12 runs. These replays use software rendering and establish correctness, not
-performance. Hardware-rendered controlled timing is next.
+performance. Hardware-rendered controlled timing is running. The first completed result is
+ROM lookup in Snakes: -0.27% CPU throughput, with one of four pairs faster;
+Sky Force is pending. The measurement snapshot and index show subsequent results.
 
 The five independent timing comparisons hold compiled syscalls enabled and
 all other current settings fixed. Their off/on results will need a combined
@@ -113,3 +115,20 @@ comparison against the untouched baseline before default adoption, including
 any runtime cost from restoring selectors or lookup alternatives. The archived
 division-digit candidate is also queued: its controlled historical Snakes CPU
 gain was +0.94% in all four pairs, while Sky Force's +0.67% was mixed.
+
+## Next candidate preparation
+
+The original SVC candidate adds a pending-trap test after every compiled region.
+A revised protocol is prepared in the working tree: a trap returns the existing
+zero chain-stop sentinel and publishes its logical instruction count separately.
+Ordinary successful regions can then avoid the new pending-trap load/test.
+Diagnostic and single-region execution must still report the logical count.
+This version has not yet been built, tested or timed; the frozen timing binaries
+and current measurements continue to use the original protocol.
+
+Division lowering is also prepared behind an off-by-default compiler selector,
+`EKA2L1_DIVISION_DIGITS=0|1`. Its static count update composes with policy18,
+and whole-entry budget proofs can establish its budget bound. The restored
+interpreter matrix covers both count policies and all three entry-budget modes.
+That expanded matrix has not yet run. Builds and tests wait until the serial
+benchmark queue is finished.
