@@ -37,6 +37,10 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | 12 | whole-entry-budget-current / Sky Force | +1.01% | +0.88% | -0.23% | 3/4 | 8/8; 0 invalid |
 | 13 | outlined-entry-budget-current / Snakes | +1.23% | +1.26% | -1.23% | 4/4 | 8/8; 1 invalid |
 | 14 | outlined-entry-budget-current / Sky Force | +1.19% | +1.02% | -0.18% | 2/4 | 8/8; 0 invalid |
+| 15 | compiled-syscalls-zero-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 16 | compiled-syscalls-zero-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 17 | division-digits-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 18 | division-digits-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
 
 ## Controlled comparisons
 
@@ -52,8 +56,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | ---: | --- | ---: | ---: | ---: | ---: | --- | --- | --- |
 | 1 | compact-dispatch / Snakes | +5.91% | +4.92% | -6.65% | 4/4 | 8/8; 0 invalid | Default: Contiguous trusted RAM dispatch slots | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
 | 2 | compact-dispatch / Sky Force | +1.17% | +1.03% | -0.98% | 4/4 | 8/8; 0 invalid | Default: Contiguous trusted RAM dispatch slots | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
-| 3 | division-digits / Snakes | +0.94% | -0.06% | -0.38% | 4/4 | 8/8; 1 invalid | Promotion queued: Controlled historical Snakes CPU +0.94% in 4/4 pairs, Sky Force +0.67% mixed; restore and check current runtime after the active candidates | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
-| 4 | division-digits / Sky Force | +0.67% | +0.67% | -0.00% | 2/4 | 8/8; 4 invalid | Promotion queued: Controlled historical Snakes CPU +0.94% in 4/4 pairs, Sky Force +0.67% mixed; restore and check current runtime after the active candidates | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
+| 3 | division-digits / Snakes | +0.94% | -0.06% | -0.38% | 4/4 | 8/8; 1 invalid | Current validation complete; timing pending: 32256 state/budget comparisons and exact game replays passed; compare off/on with selected ROM lookup and outlined budgets | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
+| 4 | division-digits / Sky Force | +0.67% | +0.67% | -0.00% | 2/4 | 8/8; 4 invalid | Current validation complete; timing pending: 32256 state/budget comparisons and exact game replays passed; compare off/on with selected ROM lookup and outlined budgets | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
 | 5 | state-pruning / Snakes | +0.08% | +0.06% | -0.08% | 2/4 | 8/8; 0 invalid | Default: Full ARM and Thumb load/store pruning | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 6 | state-pruning / Sky Force | +0.66% | +0.63% | -1.36% | 3/4 | 8/8; 0 invalid | Default: Full ARM and Thumb load/store pruning | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 7 | trusted-lookup-inline / Snakes | -0.39% | -0.10% | -0.00% | 1/4 | 8/8; 0 invalid | No new default adopted | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
@@ -78,8 +82,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 26 | dynamic-rom-cohorts / Sky Force | -69.50% | -68.11% | +207.72% | 0/4 | 8/8; 0 invalid | No new default adopted | [DYNAMIC_ROM_COHORT_TIMING_RESULTS.md](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) |
 | 27 | sparse-rom-lookup / Snakes | -0.66% | -0.32% | -0.04% | 0/4 | 8/8; 0 invalid | Selected for combined validation: Current Sky Force CPU +1.81% in all four pairs, Snakes -0.27%; matches the accepted tradeoff, final combined artifact still pending | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
 | 28 | sparse-rom-lookup / Sky Force | +2.64% | +2.57% | -1.70% | 4/4 | 8/8; 0 invalid | Selected for combined validation: Current Sky Force CPU +1.81% in all four pairs, Snakes -0.27%; matches the accepted tradeoff, final combined artifact still pending | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
-| 29 | compiled-syscalls / Snakes | -0.61% | -0.50% | +0.58% | 1/4 | 8/8; 0 invalid | Promotion in progress: Current off/on Sky Force +7.17%, but total +0.71% with mixed pairs; no clear overall gain or adopted default. See [promotion results](RECOVERED_DEFAULTS_RESULTS.md) | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
-| 30 | compiled-syscalls / Sky Force | +8.11% | +7.58% | -2.35% | 4/4 | 8/8; 0 invalid | Promotion in progress: Current off/on Sky Force +7.17%, but total +0.71% with mixed pairs; no clear overall gain or adopted default. See [promotion results](RECOVERED_DEFAULTS_RESULTS.md) | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
+| 29 | compiled-syscalls / Snakes | -0.61% | -0.50% | +0.58% | 1/4 | 8/8; 0 invalid | Promotion in progress: Zero-return follow-up passes compiler, syscall oracle and exact game replay checks; current timing pending. Earlier total +0.71% with mixed pairs did not establish an overall gain | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
+| 30 | compiled-syscalls / Sky Force | +8.11% | +7.58% | -2.35% | 4/4 | 8/8; 0 invalid | Promotion in progress: Zero-return follow-up passes compiler, syscall oracle and exact game replay checks; current timing pending. Earlier total +0.71% with mixed pairs did not establish an overall gain | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
 | 31 | compiled-memory-misses / Snakes | -9.00% | -7.98% | +7.82% | 0/4 | 8/8; 0 invalid | No new default adopted | [COMPILED_MEMORY_MISSES_TIMING_RESULTS.md](COMPILED_MEMORY_MISSES_TIMING_RESULTS.md) |
 | 32 | compiled-memory-misses / Sky Force | -3.48% | -3.33% | +4.29% | 0/4 | 8/8; 0 invalid | No new default adopted | [COMPILED_MEMORY_MISSES_TIMING_RESULTS.md](COMPILED_MEMORY_MISSES_TIMING_RESULTS.md) |
 | 33 | ram-first-use / Snakes | -5.14% | -4.15% | +0.01% | 0/4 | 8/8; 0 invalid | No new default adopted | [RAM_FIRST_USE_COMPILATION_TIMING_RESULTS.md](RAM_FIRST_USE_COMPILATION_TIMING_RESULTS.md) |

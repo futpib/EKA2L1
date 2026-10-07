@@ -134,15 +134,16 @@ A revised protocol is prepared in the working tree: a trap returns the existing
 zero chain-stop sentinel and publishes its logical instruction count separately.
 Ordinary successful regions can then avoid the new pending-trap load/test.
 Diagnostic and single-region execution must still report the logical count.
-This version has not yet been built, tested or timed; the frozen timing binaries
-and current measurements continue to use the original protocol.
+The revised version has passed the correctness checks recorded below; its
+current timing is pending. The completed follow-up measurements above continue
+to describe the frozen original protocol.
 
 Division lowering is also prepared behind an off-by-default compiler selector,
 `EKA2L1_DIVISION_DIGITS=0|1`. Its static count update composes with policy18,
 and whole-entry budget proofs can establish its budget bound. The restored
 interpreter matrix covers both count policies and all three entry-budget modes.
-That expanded matrix has not yet run. Builds and tests wait until the serial
-benchmark queue is finished.
+That expanded matrix now passes as recorded below. The build and correctness
+checks ran after the completed follow-up timing round.
 
 Entry-only pruning has a favorable Sky Force point estimate, but its paired CPU
 changes range from -3.47% to +3.35%, with only 0.03% fewer native instructions.
@@ -160,10 +161,10 @@ The inline whole-entry budget candidate removes 1.62% of native instructions in
 Snakes and 0.23% in Sky Force, but CPU pairs are mixed in both games. It has not
 earned default status. The outlined recovery alternative is selected for combined validation.
 
-The next unbuilt candidate selects sparse ROM lookup by default for its combined
-comparison. Its source and browser default expectations are prepared, including
-real API readback, invalid-value rejection and post-initialization immutability
-checks. These are pending validation, not an adopted or deployed runtime claim.
+The frozen next candidate selects sparse ROM lookup by default. Its real API
+readback, invalid-value rejection and post-initialization immutability checks
+pass as recorded below. This remains a candidate build, not an adopted or
+deployed runtime claim.
 
 ## Completed round and selected combination
 
@@ -185,3 +186,25 @@ ROM lookup and outlined budgets fixed, followed by a final adopted-artifact
 comparison against the untouched baseline. The frozen `next-plan.json` has 32
 observations; `next-replay-plan.json` requires six exact game replays. The
 historical sweep remains paused and will not restart automatically.
+
+## Revised candidate correctness
+
+The frozen `next-build` passes the full suite (172 reported passes, zero failures;
+exit-census and boundary-detail fixtures explicitly skip in this diagnostics-free
+build). The new protocol passes 124,416 exact native/WASM syscall comparisons
+across IR policies 17/18, entry budgets 0/1/2, mutation modes 0/3 and single/chained
+execution. Another 20,736 comparisons pass with the reference verifier enabled.
+The descriptor fixture adds 9,216 predicate/budget/page checks. Division lowering
+passes 32,256 exact state/budget comparisons across 168 selected fixtures.
+
+The real-browser API suite passes. Six selected 60-frame replays match both
+games' native images, guest frame records and PCM exactly: the combined
+ROM/outlined-budget candidate, its syscall-disabled control, and division enabled.
+These correctness replays use software rendering. The timing plan uses hardware
+NVIDIA rendering and unchanged clock-validity rules. `next-correctness.json`
+records exact build/source hashes, matrix results and replay evidence.
+
+The frozen next build retains entry-budget default 0; the replay and timing
+plans explicitly select mode 2 and verify its readback. Working source now has
+mode 2 prepared as the final default. That final default build still needs its
+own checks and untouched-baseline comparison before adoption.
