@@ -94,5 +94,22 @@ current runtime. They are not adopted defaults. The rebuilt native and WASM
 fixtures passed focused checks, including 320,000 sparse registry comparisons,
 17,280 exact three-variant budget comparisons, and 34,560 instruction-batching
 comparisons. Additional batching fixtures cover short budgets, leaves, IRQs,
-code aliasing, callbacks and SVC boundaries. Selected game replays and controlled
-runtime measurements remain pending.
+code aliasing, callbacks and SVC boundaries.
+
+All 12 selected game replays passed: the rebuilt control and each of the five
+candidate settings reproduce both native references exactly across 60 frames,
+frame records and PCM. Every replay verifies the actual runtime selector
+readbacks, binary hashes and input hash. Evidence is in `followups-replays/`;
+`followups-hashes.json`, `followups-harness-hashes.json` and
+`followups-complete-source.patch` identify the frozen runtime and harness. The
+initial harness launch caught a malformed destructuring parameter before any
+game execution; its failure is preserved, and the corrected harness passed all
+12 runs. These replays use software rendering and establish correctness, not
+performance. Hardware-rendered controlled timing is next.
+
+The five independent timing comparisons hold compiled syscalls enabled and
+all other current settings fixed. Their off/on results will need a combined
+comparison against the untouched baseline before default adoption, including
+any runtime cost from restoring selectors or lookup alternatives. The archived
+division-digit candidate is also queued: its controlled historical Snakes CPU
+gain was +0.94% in all four pairs, while Sky Force's +0.67% was mixed.

@@ -39,7 +39,7 @@
     },
     "sparse-rom-lookup": {
       "status": "Promotion in progress",
-      "note": "Restored against current inline registry; focused checks passed, current timing pending"
+      "note": "Restored against current inline registry; focused checks and both exact game replays passed, current timing queued"
     },
     "entry-only-pruning": {
       "status": "Promotion in progress",
@@ -55,7 +55,7 @@
     },
     "batched-counts": {
       "status": "Promotion in progress",
-      "note": "Generic ARM batching restored as policy 18; focused checks passed, current timing pending"
+      "note": "Generic ARM batching restored as policy 18; focused checks and both exact game replays passed, current timing queued"
     },
     "current-tlb-vs-direct": {
       "status": "Direct is default",

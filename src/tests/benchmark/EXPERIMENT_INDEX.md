@@ -27,6 +27,16 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | 2 | compiled-syscalls-current / Sky Force | +7.17% | +6.51% | -4.12% | 4/4 | 8/8; 0 invalid |
 | 3 | compiled-syscalls-total / Snakes | +0.21% | +0.27% | +0.29% | 1/4 | 8/8; 0 invalid |
 | 4 | compiled-syscalls-total / Sky Force | +0.71% | +0.67% | -1.96% | 3/4 | 8/8; 0 invalid |
+| 5 | sparse-rom-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 6 | sparse-rom-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 7 | entry-only-pruning-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 8 | entry-only-pruning-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 9 | batched-counts-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 10 | batched-counts-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 11 | whole-entry-budget-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 12 | whole-entry-budget-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 13 | outlined-entry-budget-current / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 14 | outlined-entry-budget-current / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
 
 ## Controlled comparisons
 
@@ -60,14 +70,14 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 18 | thumb-static / Sky Force | -1.84% | -1.78% | -0.52% | 0/4 | 8/8; 0 invalid | Not selected for promotion: Snakes +0.91%, but Sky Force -1.84% with all four pairs slower; does not match the preferred tradeoff | [THUMB_STATIC_REGION_RESULTS.md](THUMB_STATIC_REGION_RESULTS.md) |
 | 19 | thumb-transfer-gate / Snakes | -0.65% | -0.42% | +0.18% | 1/4 | 8/8; 0 invalid | No new default adopted | [THUMB_TRANSFER_GATE_RESULTS.md](THUMB_TRANSFER_GATE_RESULTS.md) |
 | 20 | thumb-transfer-gate / Sky Force | +0.04% | -0.22% | +0.03% | 2/4 | 8/8; 0 invalid | No new default adopted | [THUMB_TRANSFER_GATE_RESULTS.md](THUMB_TRANSFER_GATE_RESULTS.md) |
-| 21 | batched-counts / Snakes | -0.13% | +0.31% | -0.41% | 2/4 | 8/8; 0 invalid | Promotion in progress: Generic ARM batching restored as policy 18; focused checks passed, current timing pending | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
-| 22 | batched-counts / Sky Force | +1.06% | +1.01% | -0.15% | 4/4 | 8/8; 0 invalid | Promotion in progress: Generic ARM batching restored as policy 18; focused checks passed, current timing pending | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
+| 21 | batched-counts / Snakes | -0.13% | +0.31% | -0.41% | 2/4 | 8/8; 0 invalid | Promotion in progress: Generic ARM batching restored as policy 18; focused checks and both exact game replays passed, current timing queued | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
+| 22 | batched-counts / Sky Force | +1.06% | +1.01% | -0.15% | 4/4 | 8/8; 0 invalid | Promotion in progress: Generic ARM batching restored as policy 18; focused checks and both exact game replays passed, current timing queued | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
 | 23 | span-page-reuse / Snakes | -1.76% | -1.54% | +1.12% | 0/4 | 8/8; 0 invalid | No new default adopted | [SPAN_PAGE_REUSE_RESULTS.md](SPAN_PAGE_REUSE_RESULTS.md) |
 | 24 | span-page-reuse / Sky Force | +0.96% | +0.88% | +0.82% | 2/4 | 8/8; 0 invalid | No new default adopted | [SPAN_PAGE_REUSE_RESULTS.md](SPAN_PAGE_REUSE_RESULTS.md) |
 | 25 | dynamic-rom-cohorts / Snakes | -11.17% | -9.48% | +10.03% | 0/4 | 8/8; 0 invalid | No new default adopted | [DYNAMIC_ROM_COHORT_TIMING_RESULTS.md](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) |
 | 26 | dynamic-rom-cohorts / Sky Force | -69.50% | -68.11% | +207.72% | 0/4 | 8/8; 0 invalid | No new default adopted | [DYNAMIC_ROM_COHORT_TIMING_RESULTS.md](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) |
-| 27 | sparse-rom-lookup / Snakes | -0.66% | -0.32% | -0.04% | 0/4 | 8/8; 0 invalid | Promotion in progress: Restored against current inline registry; focused checks passed, current timing pending | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
-| 28 | sparse-rom-lookup / Sky Force | +2.64% | +2.57% | -1.70% | 4/4 | 8/8; 0 invalid | Promotion in progress: Restored against current inline registry; focused checks passed, current timing pending | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
+| 27 | sparse-rom-lookup / Snakes | -0.66% | -0.32% | -0.04% | 0/4 | 8/8; 0 invalid | Promotion in progress: Restored against current inline registry; focused checks and both exact game replays passed, current timing queued | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
+| 28 | sparse-rom-lookup / Sky Force | +2.64% | +2.57% | -1.70% | 4/4 | 8/8; 0 invalid | Promotion in progress: Restored against current inline registry; focused checks and both exact game replays passed, current timing queued | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
 | 29 | compiled-syscalls / Snakes | -0.61% | -0.50% | +0.58% | 1/4 | 8/8; 0 invalid | Promotion in progress: Current off/on Sky Force +7.17%, but total +0.71% with mixed pairs; no clear overall gain or adopted default. See [promotion results](RECOVERED_DEFAULTS_RESULTS.md) | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
 | 30 | compiled-syscalls / Sky Force | +8.11% | +7.58% | -2.35% | 4/4 | 8/8; 0 invalid | Promotion in progress: Current off/on Sky Force +7.17%, but total +0.71% with mixed pairs; no clear overall gain or adopted default. See [promotion results](RECOVERED_DEFAULTS_RESULTS.md) | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
 | 31 | compiled-memory-misses / Snakes | -9.00% | -7.98% | +7.82% | 0/4 | 8/8; 0 invalid | No new default adopted | [COMPILED_MEMORY_MISSES_TIMING_RESULTS.md](COMPILED_MEMORY_MISSES_TIMING_RESULTS.md) |
