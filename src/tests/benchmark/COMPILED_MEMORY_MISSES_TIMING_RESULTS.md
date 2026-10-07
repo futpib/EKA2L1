@@ -5,14 +5,26 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The controlled rerun covers standard Snakes (guest seconds 21-39) and
+moving/firing Sky Force (42-48), with four fresh observations per variant in
+ABBA then BAAB order. Snakes loses 9.00% CPU and 7.98% wall throughput, with
+7.82% more retired native instructions. Sky Force loses 3.48% CPU and 3.33%
+wall throughput, with 4.29% more native instructions. All four CPU pairs are
+slower in each game. Compiled SVC remains enabled in both sides, matching
+the original configuration. The stationary Sky Force and long-snake routes
+below are not repeated by these two comparisons. The controlled results
+support keeping this frozen variant off; no production setting changes.
+
+## Original screen
+
 All eight preplanned same-binary observations are retained, with one pair on each route. This is an exploratory screen, not promotion evidence. Normal browser, detailed counters and sampling disabled, shared audio enabled, mode 3, Thumb memory enabled, ARM exclusive enabled; ARM memory/ROM calls/ROM leaves disabled. Original execution limits retained. Correctness and diagnostic jobs were idle before the first observation.
 
-| Route | Batch | Order (0 control, 1 candidate) | Control s | Candidate s | Throughput change | Candidate realtime |
-|---|---:|---|---:|---:|---:|---:|
-| sky | 0 | [0, 1] | 9.87547 | 10.21790 | -3.35% | 0.587x |
-| combat | 0 | [1, 0] | 9.60959 | 9.90715 | -3.00% | 0.606x |
-| standard | 0 | [0, 1] | 11.18160 | 10.90560 | +2.53% | 1.651x |
-| long | 0 | [1, 0] | 9.82998 | 10.45290 | -5.96% | 1.722x |
+| # | Route | Batch | Order (0 control, 1 candidate) | Control s | Candidate s | Throughput change | Candidate realtime |
+|---:|---|---:|---|---:|---:|---:|---:|
+| 1 | sky | 0 | [0, 1] | 9.87547 | 10.21790 | -3.35% | 0.587x |
+| 2 | combat | 0 | [1, 0] | 9.60959 | 9.90715 | -3.00% | 0.606x |
+| 3 | standard | 0 | [0, 1] | 11.18160 | 10.90560 | +2.53% | 1.651x |
+| 4 | long | 0 | [1, 0] | 9.82998 | 10.45290 | -5.96% | 1.722x |
 
 Guest instruction, presentation and guest-time totals match within every pair. Actual option readback is asserted in each run. The panel compares the compiled memory-misses option in one frozen V23c archive, with compiled SVC enabled in both configurations; it is not a total-change comparison with the untouched live build.
 
