@@ -5,6 +5,16 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The controlled rerun has four observations per variant in ABBA then BAAB
+order, using the original shared-audio Snakes window of guest seconds 78-96.
+CPU throughput changes by -0.43% and wall throughput by -0.13%; one of four
+CPU pairs is faster, with a range of -1.48% to +0.11%. Retired native
+instructions are essentially unchanged (-0.004%). All eight observations pass
+the clock and host checks. The old 20.3% wall-throughput loss does not repeat,
+but this small loss signal establishes no runtime gain. Removing the temporary
+WASM traffic produced almost no net reduction in the measured native workload.
+These results belong to the archived compiler and configuration.
+
 **Fault-check provenance corrected:** see [explicit rebuild audit](FAULT_PROBE_REBUILD_AUDIT.md). The original post-reboot probe runs were stale; rebuilt candidate probes now pass all 672 cases.
 
 Recovered on 2026-09-29 after the host reboot. The unfinished generic ARM
