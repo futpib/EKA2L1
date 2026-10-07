@@ -54,3 +54,12 @@ No default change or deployment follows these timings alone. A diagnostic census
 ## Decision
 
 Do not promote the broader eligibility mask or claim an optimal leaf bound. The fixed-32 marginal lead is +1.76% then +0.04% on the longer route, and +3.55% then -1.67% on standard. Each of the four batches has opposing adjacent eligibility pairs. All means favor expanded32 over the untouched merged archive, but the matching conditional-only control also favors that archive comparison; this does not attribute the combined gain to the newly added operations. The 16/32 choice also changes order across batches. Continue from the measured boundary census, retaining conditional-integer fusion as the preceding candidate and treating these extensions as opt-in research.
+
+## Controlled reassessment
+
+The frozen historical comparison completes with eight valid observations and no
+invalid attempts: expanded eligibility at the same 32-instruction bound improves
+Snakes CPU throughput 1.96%, with all four adjacent pairs faster. This is queued
+for reassessment on the graduated runtime after the connected-callee candidate.
+The older uncontrolled verdict above is retained as history, not a current
+rejection. The result does not establish an additional current-runtime gain.

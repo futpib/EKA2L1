@@ -127,9 +127,9 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 67 | owner-core-reuse / Snakes | +0.81% | +0.75% | -0.24% | 4/4 | 8/8; 0 invalid | Current-runtime reassessment candidate: Historical Snakes +0.81% CPU, 4/4 faster pairs including one near tie; current lookup still reads parent per lookup, but compiler and dispatch have changed | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 68 | aligned-cache-hash / Snakes | +0.65% | +0.47% | +0.20% | 3/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.65% CPU, 3/4 faster pairs, native instructions +0.20%; current source retains the older hash; no default change | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 69 | compact-generated-memory / Snakes | +8.05% | +7.45% | -6.81% | 4/4 | 8/8; 0 invalid | Superseded by current lowering: Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
-| 70 | connected-callee-loops / Snakes | +6.87% | +6.52% | -7.07% | 4/4 | 8/8; 0 invalid | Priority current-runtime reassessment candidate: Historical Snakes +6.87% CPU, native instructions -7.07%, 4/4 faster pairs. Current resolver rejects internal callee branches; archived change also raises the leaf bound 16 to 64 and broadens predicates. Adaptation must preserve modern loop-budget and direct-memory lowering. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
+| 70 | connected-callee-loops / Snakes | +6.87% | +6.52% | -7.07% | 4/4 | 8/8; 0 invalid | Current-runtime adaptation under validation: Historical Snakes +6.87% CPU, native instructions -7.07%, 4/4 faster pairs. Current resolver rejects internal callee branches; archived change also raises the leaf bound 16 to 64 and broadens predicates. Adaptation must preserve modern loop-budget and direct-memory lowering. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 71 | guarded-successor-lookup / Snakes | -0.47% | -0.51% | +3.22% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Controlled Snakes -0.47% CPU, native instructions +3.22%, only 1/4 faster pairs. Current trusted dispatch also avoids the metadata pointer used by this older design. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
-| 72 | expanded-leaf-eligibility / Snakes | +1.96% | +1.63% | -1.54% | 4/4 | 8/8; 0 invalid | No new default adopted | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
+| 72 | expanded-leaf-eligibility / Snakes | +1.96% | +1.63% | -1.54% | 4/4 | 8/8; 0 invalid | Queued for current-runtime reassessment: Historical Snakes +1.96% CPU, 4/4 faster pairs at leaf bound 32. Multiply, extra/conditional memory and forward-branch eligibility bundle; reassess remaining coverage after connected callees. | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
 | 73 | call-prefix-fusion / Snakes | Pending | Pending | Pending | — | 2/8; 0 invalid | Reassessment pending | [CALL_PREFIX_RESULTS.md](CALL_PREFIX_RESULTS.md) |
 | 74 | preserve-inner-leaves / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [PRESERVE_INNER_RESULTS.md](PRESERVE_INNER_RESULTS.md) |
 | 75 | branch-veneer-fusion / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [BRANCH_VENEER_RESULTS.md](BRANCH_VENEER_RESULTS.md) |
@@ -2784,6 +2784,15 @@ The normal Qt attempt exposed a real startup regression: its frontend called the
 - long d: expanded32 versus matching control throughput +0.04%; versus merged archive +6.07%; adjacent eligibility pairs +0.43% / -0.34%.
 - standard c: expanded32 versus matching control throughput +3.55%; versus merged archive +8.75%; adjacent eligibility pairs -6.61% / +14.59%.
 - standard d: expanded32 versus matching control throughput -1.67%; versus merged archive +3.36%; adjacent eligibility pairs -3.98% / +0.77%.
+
+**Controlled reassessment**
+
+The frozen historical comparison completes with eight valid observations and no
+invalid attempts: expanded eligibility at the same 32-instruction bound improves
+Snakes CPU throughput 1.96%, with all four adjacent pairs faster. This is queued
+for reassessment on the graduated runtime after the connected-callee candidate.
+The older uncontrolled verdict above is retained as history, not a current
+rejection. The result does not establish an additional current-runtime gain.
 
 </details>
 
