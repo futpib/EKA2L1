@@ -5,6 +5,20 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The controlled RAM-hit-inlining rerun now has four observations per variant
+in ABBA then BAAB order for each game. Snakes improves by 3.66% CPU and 2.77%
+wall throughput, with 4.54% fewer retired native instructions; all four CPU
+pairs are faster (+1.93% to +5.83%). Sky Force improves by 2.14% CPU and 2.05%
+wall throughput, with 0.60% fewer native instructions and all four CPU pairs
+faster (+1.00% to +4.84%). These use guest seconds 21-25 and 42-48 respectively.
+The original Snakes rejection does not hold for this controlled comparison,
+and the new Sky Force measurements add coverage absent from that screen. This
+supports rechecking the change on today's implementation; the percentages
+belong to the archived builds and cannot be added to current throughput.
+The separate verifier and guard-publication comparisons are still pending.
+
+## Original campaign
+
 This campaign adopts one further improvement: keeping ROM registry hits and
 their surrounding lookup inside the compiled runner. It improves Sky Force
 combat throughput by **5.42%**, with favorable pairs in both orders. Snakes is

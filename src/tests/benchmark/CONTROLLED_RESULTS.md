@@ -1,6 +1,6 @@
 # Controlled optimization comparisons
 
-Status: in progress. 46/109 game comparisons complete; 369/872 valid observations and 5 retained invalid observations.
+Status: in progress. 48/109 game comparisons complete; 385/872 valid observations and 5 retained invalid observations.
 
 [Earlier partial-isolation measurements](CONTROLLED_PRELIMINARY_RESULTS.md)
 remain separate: their measurement process could use the reserved core.
@@ -67,6 +67,8 @@ and do not establish the same effect on the current production branch.
 | 44 | compiled-syscalls-long-snakes | Snakes | -0.58% | -0.33% | +0.54% | -1.01% to -0.34% | 0/4 | 0 |
 | 45 | quiet-runtime-cuts | Snakes | +1.86% | +1.84% | -1.85% | +0.67% to +2.70% | 4/4 | 0 |
 | 46 | quiet-runtime-cuts | Sky Force | +0.80% | +0.64% | -1.45% | -0.80% to +2.02% | 3/4 | 0 |
+| 47 | ram-hit-inline | Snakes | +3.66% | +2.77% | -4.54% | +1.93% to +5.83% | 4/4 | 0 |
+| 48 | ram-hit-inline | Sky Force | +2.14% | +2.05% | -0.60% | +1.00% to +4.84% | 4/4 | 0 |
 
 All observations, clock checks, errors, exact plans, settings, hashes and
 absolute evidence paths are retained in the companion JSON. Raw scheduler
@@ -74,6 +76,6 @@ and browser reports remain in the campaign directory.
 
 ## Remaining comparisons
 
-- extended: ram-hit-inline/standard (1/8), ram-hit-inline/combat (0/8), verifier-specialization/standard (0/8), verifier-specialization/combat (0/8), guard-publication-omission/standard (0/8), guard-publication-omission/combat (0/8), conditional-loop-budgets/standard (0/8), conditional-loop-budgets/combat (0/8), broad-loop-budgets/standard (0/8), broad-loop-budgets/combat (0/8), lazy-flags/standard (0/8), incoming-register-definitions/standard (0/8), wide-result-reuse/standard (0/8), direct-register-stores/standard (0/8), conditional-alu-select/standard (0/8), compare-operand-reuse/standard (0/8), whole-entry-budget/standard (0/8), outlined-entry-budget/standard (0/8), cached-address-displacement/standard (0/8), deferred-read-exit/standard (0/8), owner-core-reuse/standard (0/8), aligned-cache-hash/standard (0/8), compact-generated-memory/standard (0/8), connected-callee-loops/standard (0/8), guarded-successor-lookup/standard (0/8).
+- extended: verifier-specialization/standard (1/8), verifier-specialization/combat (0/8), guard-publication-omission/standard (0/8), guard-publication-omission/combat (0/8), conditional-loop-budgets/standard (0/8), conditional-loop-budgets/combat (0/8), broad-loop-budgets/standard (0/8), broad-loop-budgets/combat (0/8), lazy-flags/standard (0/8), incoming-register-definitions/standard (0/8), wide-result-reuse/standard (0/8), direct-register-stores/standard (0/8), conditional-alu-select/standard (0/8), compare-operand-reuse/standard (0/8), whole-entry-budget/standard (0/8), outlined-entry-budget/standard (0/8), cached-address-displacement/standard (0/8), deferred-read-exit/standard (0/8), owner-core-reuse/standard (0/8), aligned-cache-hash/standard (0/8), compact-generated-memory/standard (0/8), connected-callee-loops/standard (0/8), guarded-successor-lookup/standard (0/8).
 - inlining: expanded-leaf-eligibility/standard (0/8), call-prefix-fusion/standard (0/8), preserve-inner-leaves/standard (0/8), branch-veneer-fusion/standard (0/8), tail-prefix-fusion/standard (0/8), expanded-leaf-bound/standard (0/8), conditional-leaf-bound/standard (0/8), hot-source-window/standard (0/8), four-inline-sites/standard (0/8), sixteen-inline-sites/standard (0/8), shorter-region-chain/standard (0/8), uncapped-region-chain/standard (0/8), eager-rom-regions/standard (0/8), eager-rom-regions/combat (0/8), rom-leaf-fusion/standard (0/8), rom-leaf-fusion/combat (0/8), bounded-rom-calls/standard (0/8), bounded-rom-calls/combat (0/8).
 - memory: allocation-ranges/standard (0/8), allocation-ranges/combat (0/8), full-page-table/standard (0/8), full-page-table/combat (0/8), last-page-only/standard (0/8), last-page-only/combat (0/8), folded-tlb/standard (0/8), folded-tlb/combat (0/8), tlb-plus-last-page/standard (0/8), tlb-plus-last-page/combat (0/8), folded-tlb-plus-last-page/standard (0/8), folded-tlb-plus-last-page/combat (0/8), older-page-cache-guards/standard (0/8), older-page-cache-guards/combat (0/8), page-cache-span-reuse/standard (0/8), page-cache-span-reuse/combat (0/8), current-tlb-vs-direct/standard (0/8), current-tlb-vs-direct/combat (0/8), tlb-unaligned-scalar/standard (0/8), tlb-unaligned-scalar/combat (0/8).
