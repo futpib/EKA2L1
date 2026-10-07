@@ -29,6 +29,16 @@ These defaults stay active while the historical sweep runs. Historical results
 identify candidates for current-runtime reassessment; they do not establish
 additional gains on the graduated build.
 
+## Interleaved graduation
+
+The user requested immediate graduation cycles as winners appear. The sweep is
+paused at 72/109 complete comparisons and 578/872 valid observations, retaining
+20 earlier invalid attempts. The current observation finished before stopping;
+all 88 live host-restoration checks passed. Connected callees is the first
+current-runtime candidate. After both-game validation and a promotion decision,
+the original frozen sweep resumes automatically from its saved observations.
+Each subsequent winner receives the same treatment before further history work.
+
 ## Monitoring during the resumed run
 
 The user requested periodic log review during execution. An independent observer

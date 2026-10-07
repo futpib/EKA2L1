@@ -1,10 +1,10 @@
 {
-  "status": "running",
+  "status": "paused_for_graduation",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
-  "reason": "User explicitly requested: nice, resume the sweep",
-  "completed_comparisons": 71,
+  "reason": "User requested pausing at each winner, graduating it on the current runtime, then automatically resuming until the historical sweep is complete.",
+  "completed_comparisons": 72,
   "total_comparisons": 109,
-  "valid_observations": 568,
+  "valid_observations": 578,
   "expected_observations": 872,
   "invalid_observations": 20,
   "cancelled_waiters": {
@@ -250,8 +250,8 @@
     "extended_invalid_added": 0,
     "extended_restoration_checks": 88
   },
-  "active_phase": "inlining",
-  "last_progress_utc": "2026-10-07T21:51:24.867445+00:00",
+  "active_phase": null,
+  "last_progress_utc": "2026-10-07T22:03:58.297975+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -261,7 +261,8 @@
     "history": "/home/claude/.scratch/eka-controlled/resume7-watch-history.jsonl",
     "alert": "/home/claude/.scratch/eka-controlled/resume7-watch-alert.json",
     "stop_path_tests": "Passed isolated fixture tests; no signal sent to real benchmark",
-    "assistant_review": "Review live logs and completed comparisons during the sweep"
+    "assistant_review": "Review live logs and completed comparisons during the sweep",
+    "status": "stopped for intentional graduation pause"
   },
   "reviewed_after_resumption": [
     "cached-address-displacement/standard",
@@ -281,5 +282,12 @@
     "limits": "Some legacy fields record a checked setter request rather than a getter; explicit getter assertions were inspected for leaf features, execution limits and memory implementations/cache modes."
   },
   "continuation_error": null,
-  "last_review_utc": "2026-10-07T21:53:48.364461+00:00"
+  "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
+  "graduation_cycle": {
+    "candidate": "connected-callee-loops",
+    "stage": "current_runtime_adaptation",
+    "automatic_resume": true,
+    "pause_evidence": "/home/claude/.scratch/eka-controlled/graduation-cycle-boundary-stop.json",
+    "restoration_checks": 88
+  }
 }

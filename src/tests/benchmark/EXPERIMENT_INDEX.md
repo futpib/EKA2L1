@@ -8,7 +8,7 @@ to detect stale output.
 
 ## Current decisions
 
-The user resumed the historical sweep on 2026-10-07 from 64/109 game comparisons, 515/872 valid observations and 20 retained invalid observations. Remaining extended, inlining and memory comparisons run serially with frozen plans and retained evidence. Revised compiled syscalls, sparse ROM lookup and outlined entry budgets are adopted together: combined CPU throughput improves 1.70% in Snakes and 3.46% in Sky Force versus the repository baseline, or 9.45% and 9.62% versus the previously served LAN build; all four pairs improve in every comparison. Final timing is complete, with 32 valid observations and no invalid attempts. The measured artifact is deployed to the LAN UI; both games and input/layout checks pass. Full live-audio verification is blocked by an independently reproduced host/Chrome audio-device failure; exact PCM replays pass and the limitation is recorded. New historical winners require reassessment on the graduated runtime before adoption. Historical percentages are not additive.
+Pause the historical sweep at each recovered winner, reassess it on the current runtime with both games, graduate validated runtime winners, then automatically resume the original saved plans. Repeat until all 109 comparisons are complete. Historical percentages are not additive; already-covered changes and inconclusive historical results do not trigger blind promotion. The user resumed the historical sweep on 2026-10-07 from 64/109 game comparisons, 515/872 valid observations and 20 retained invalid observations. Remaining extended, inlining and memory comparisons run serially with frozen plans and retained evidence. Revised compiled syscalls, sparse ROM lookup and outlined entry budgets are adopted together: combined CPU throughput improves 1.70% in Snakes and 3.46% in Sky Force versus the repository baseline, or 9.45% and 9.62% versus the previously served LAN build; all four pairs improve in every comparison. Final timing is complete, with 32 valid observations and no invalid attempts. The measured artifact is deployed to the LAN UI; both games and input/layout checks pass. Full live-audio verification is blocked by an independently reproduced host/Chrome audio-device failure; exact PCM replays pass and the limitation is recorded. New historical winners require reassessment on the graduated runtime before adoption. Historical percentages are not additive.
 
 Historical gains are relative to their recorded controls and configurations.
 They are not additive or evidence of the same gain on the current runtime.
@@ -48,7 +48,7 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 
 ## Controlled comparisons
 
-71/109 game comparisons complete; 568/872 valid observations; 20 retained host-invalid observations.
+72/109 game comparisons complete; 578/872 valid observations; 20 retained host-invalid observations.
 
 CPU and wall columns are throughput changes: positive is faster. Native
 instructions are candidate/control changes: negative is less work. Pairs
@@ -129,8 +129,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 69 | compact-generated-memory / Snakes | +8.05% | +7.45% | -6.81% | 4/4 | 8/8; 0 invalid | Superseded by current lowering: Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 70 | connected-callee-loops / Snakes | +6.87% | +6.52% | -7.07% | 4/4 | 8/8; 0 invalid | Priority current-runtime reassessment candidate: Historical Snakes +6.87% CPU, native instructions -7.07%, 4/4 faster pairs. Current resolver rejects internal callee branches; archived change also raises the leaf bound 16 to 64 and broadens predicates. Adaptation must preserve modern loop-budget and direct-memory lowering. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 71 | guarded-successor-lookup / Snakes | -0.47% | -0.51% | +3.22% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Controlled Snakes -0.47% CPU, native instructions +3.22%, only 1/4 faster pairs. Current trusted dispatch also avoids the metadata pointer used by this older design. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
-| 72 | expanded-leaf-eligibility / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
-| 73 | call-prefix-fusion / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [CALL_PREFIX_RESULTS.md](CALL_PREFIX_RESULTS.md) |
+| 72 | expanded-leaf-eligibility / Snakes | +1.96% | +1.63% | -1.54% | 4/4 | 8/8; 0 invalid | No new default adopted | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
+| 73 | call-prefix-fusion / Snakes | Pending | Pending | Pending | — | 2/8; 0 invalid | Reassessment pending | [CALL_PREFIX_RESULTS.md](CALL_PREFIX_RESULTS.md) |
 | 74 | preserve-inner-leaves / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [PRESERVE_INNER_RESULTS.md](PRESERVE_INNER_RESULTS.md) |
 | 75 | branch-veneer-fusion / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [BRANCH_VENEER_RESULTS.md](BRANCH_VENEER_RESULTS.md) |
 | 76 | tail-prefix-fusion / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [TAIL_PREFIX_RESULTS.md](TAIL_PREFIX_RESULTS.md) |
