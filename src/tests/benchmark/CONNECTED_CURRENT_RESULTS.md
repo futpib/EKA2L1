@@ -1,6 +1,6 @@
 # Connected callees on the graduated runtime
 
-Status: the narrow candidate was rejected; both initial adaptations were rejected; budget-proof preservation is under validation. The historical sweep is
+Status: the narrow candidate was rejected; both initial adaptations were rejected; budget-proof preservation passed focused validation and awaits timing. The historical sweep is
 paused at 72/109 comparisons for this graduation cycle. No new default has been
 committed or deployed yet.
 
@@ -107,3 +107,9 @@ and uses the same precise short-budget recovery. No runtime accounting is added.
 Focused tests assert that both repeated call sites retain their loop proofs and
 compare every budget/state/memory outcome with the interpreter. This candidate
 must still earn adoption in the controlled two-game comparison.
+
+The budget-preserving candidate passes the focused predicate, connected-callee,
+loop-budget and batched-accounting suites, including the new repeated-call proof
+assertions. Both 60-frame game replays match images, frame records and PCM exactly.
+Its candidate WASM hash is `421626b01133ceb9171666b8e1e763a28b44a46f13953ec016ac131e15df7e4b`; full evidence is
+`eka-connected-proofs/correctness.json`. Controlled timing remains pending.
