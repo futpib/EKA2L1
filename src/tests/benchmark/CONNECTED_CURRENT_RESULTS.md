@@ -1,6 +1,6 @@
 # Connected callees on the graduated runtime
 
-Status: the narrow candidate was rejected; the full historical bundle is under validation. The historical sweep is
+Status: the narrow candidate was rejected; the full historical bundle passed focused validation and awaits timing. The historical sweep is
 paused at 72/109 comparisons for this graduation cycle. No new default has been
 committed or deployed yet.
 
@@ -64,3 +64,20 @@ The original plan and all completed rows remain unchanged. The historical bundle
 accepted conditional scalar memory; the narrow isolation above did not. The full
 follow-up also tests conditional memory within callee loops and both taken and
 untaken predicates. Its evidence directory is `eka-connected-full`.
+
+## Full-bundle validation
+
+The full historical eligibility bundle passes 113,280 focused exact interpreter
+comparisons, including conditional scalar loads/stores in callee loops, predicates,
+short budgets, helper exits and physical code aliases. Snakes and Sky Force each
+match their established 60-frame images, frame records and PCM references exactly
+at the 64-instruction bound. The earlier 172-test full-suite result belongs to the
+narrow implementation; the final full suite remains a graduation check if this
+broader candidate earns adoption.
+
+Full-bundle evidence: `eka-connected-full/correctness.json`; candidate WASM
+SHA-256: `7ac40fb7bc91312760771084a0ffdd239b4a10941180a9cead9d9b89d49e1284`.
+
+The new plan `eka-connected-full/current-plan.json` compares this complete bundle
+with the unchanged graduated runtime at bound 16. It retains the original
+fixed-frequency, reserved-core, hardware-GPU and ABBA/BAAB controls.
