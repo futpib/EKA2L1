@@ -1,9 +1,15 @@
 # Loop-free entry-budget experiment
 
-The timing verdicts below are being reassessed with measured fixed frequency
-and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
-[scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
-Original observations and correctness evidence remain below.
+The controlled reassessment recovers a Snakes gain for this archived prototype:
+CPU throughput improves by 2.00%, wall throughput by 1.90%, and native retired
+instructions fall by 3.23%. All four adjacent CPU pairs are faster (+0.65% to
++2.76%) in ABBA then BAAB order. All eight observations pass the unchanged
+clock and host checks. The older inconclusive timing verdict does not hold for
+this comparison; the result supports rechecking the implementation on today's
+runtime, without assuming its gain transfers or adds to other improvements.
+See [controlled results](CONTROLLED_RESULTS.md) and
+[scope](CONTROLLED_REASSESSMENT.md). Original observations and correctness
+evidence remain below; no runtime change is adopted by the reassessment.
 
 The candidate emits two bodies for a complete loop-free ARM region. An entry
 check proves enough budget for the emitted extent and selects a body without
