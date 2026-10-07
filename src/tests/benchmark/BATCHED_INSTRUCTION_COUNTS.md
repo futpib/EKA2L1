@@ -5,6 +5,18 @@ and an isolated CPU core. See [controlled results](CONTROLLED_RESULTS.md) and
 [scope](CONTROLLED_REASSESSMENT.md); pending comparisons are explicitly marked.
 Original observations and correctness evidence remain below.
 
+The completed controlled rerun compares policies 17 and 18 in the same frozen
+binary, with four fresh observations per variant in ABBA then BAAB order.
+Snakes is flat: -0.13% CPU and +0.31% wall throughput, with mixed CPU pairs and
+0.41% fewer retired native instructions. Sky Force improves by 1.06% in CPU
+throughput and 1.01% in wall throughput, with all four CPU pairs faster
+(+0.16% to +2.25%) and 0.15% fewer native instructions. The original 6.3% Sky
+Force throughput loss does not repeat in this controlled screen. This recovers
+a small historical gain, not evidence of a large reduction in executed native
+work. These trials preserve the original TLB configuration and disabled ARM
+memory fast path; they do not establish the effect under current defaults.
+No production setting changes as part of this reassessment.
+
 `EKA2L1_AOT_IR_MODE=18` extends policy 17 with deferred instruction accounting
 through ARM regions. It has no game, DLL, address, loop-size or minimum-length
 selection rule. Budget proofs retain their existing eligibility rules; batching
@@ -40,7 +52,7 @@ exit keeps the precise rollback. This is emitted-WASM evidence, not a count of
 V8 machine instructions or a speedup claim. V8 may already simplify some of the
 previous increments, so game throughput must decide adoption.
 
-## Measured outcome
+## Original measured outcome
 
 Keep policy 18 opt-in. Two serial fresh-browser panels (ABBA, then BAAB) compare
 policies 17 and 18 in the same diagnostics-free WASM binary. Sampling, tracing,
