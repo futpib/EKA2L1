@@ -1,6 +1,6 @@
 # Controlled optimization comparisons
 
-Status: in progress. 61/109 game comparisons complete; 488/872 valid observations and 17 retained invalid observations.
+Status: in progress. 61/109 game comparisons complete; 493/872 valid observations and 18 retained invalid observations.
 
 [Earlier partial-isolation measurements](CONTROLLED_PRELIMINARY_RESULTS.md)
 remain separate: their measurement process could use the reserved core.
@@ -89,6 +89,8 @@ and browser reports remain in the campaign directory.
 
 wide-result-reuse / Snakes: The valid second candidate of the first panel overlapped an unrelated test process. It remains included. The small pooled effect is inconclusive; see [the recorded limitation](CONTROLLED_REASSESSMENT.md).
 
+compare-operand-reuse / Snakes: Repeated build activity surrounded early observations, including one clock-invalid control. All valid observations remain included across the strengthened launch-wait boundary; see [the host limitations](CONTROLLED_REASSESSMENT.md).
+
 Battery charging is temporarily inhibited from the recorded extended-phase
 resume onward, with restoration at every phase exit. The guard-publication
 Sky Force comparison spans this host-setting boundary; its earlier valid
@@ -97,6 +99,6 @@ observations, including the slow candidate, remain included. See the
 
 ## Remaining comparisons
 
-- extended: compare-operand-reuse/standard (0/8), whole-entry-budget/standard (0/8), outlined-entry-budget/standard (0/8), cached-address-displacement/standard (0/8), deferred-read-exit/standard (0/8), owner-core-reuse/standard (0/8), aligned-cache-hash/standard (0/8), compact-generated-memory/standard (0/8), connected-callee-loops/standard (0/8), guarded-successor-lookup/standard (0/8).
+- extended: compare-operand-reuse/standard (5/8), whole-entry-budget/standard (0/8), outlined-entry-budget/standard (0/8), cached-address-displacement/standard (0/8), deferred-read-exit/standard (0/8), owner-core-reuse/standard (0/8), aligned-cache-hash/standard (0/8), compact-generated-memory/standard (0/8), connected-callee-loops/standard (0/8), guarded-successor-lookup/standard (0/8).
 - inlining: expanded-leaf-eligibility/standard (0/8), call-prefix-fusion/standard (0/8), preserve-inner-leaves/standard (0/8), branch-veneer-fusion/standard (0/8), tail-prefix-fusion/standard (0/8), expanded-leaf-bound/standard (0/8), conditional-leaf-bound/standard (0/8), hot-source-window/standard (0/8), four-inline-sites/standard (0/8), sixteen-inline-sites/standard (0/8), shorter-region-chain/standard (0/8), uncapped-region-chain/standard (0/8), eager-rom-regions/standard (0/8), eager-rom-regions/combat (0/8), rom-leaf-fusion/standard (0/8), rom-leaf-fusion/combat (0/8), bounded-rom-calls/standard (0/8), bounded-rom-calls/combat (0/8).
 - memory: allocation-ranges/standard (0/8), allocation-ranges/combat (0/8), full-page-table/standard (0/8), full-page-table/combat (0/8), last-page-only/standard (0/8), last-page-only/combat (0/8), folded-tlb/standard (0/8), folded-tlb/combat (0/8), tlb-plus-last-page/standard (0/8), tlb-plus-last-page/combat (0/8), folded-tlb-plus-last-page/standard (0/8), folded-tlb-plus-last-page/combat (0/8), older-page-cache-guards/standard (0/8), older-page-cache-guards/combat (0/8), page-cache-span-reuse/standard (0/8), page-cache-span-reuse/combat (0/8), current-tlb-vs-direct/standard (0/8), current-tlb-vs-direct/combat (0/8), tlb-unaligned-scalar/standard (0/8), tlb-unaligned-scalar/combat (0/8).

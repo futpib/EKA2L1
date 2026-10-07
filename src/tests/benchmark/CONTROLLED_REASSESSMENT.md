@@ -208,6 +208,28 @@ It then resumes the same plan and unfinished control, using the existing
 New host and charging records use the `resume4` suffix; the queue/log invocation
 is named `resume5`. Earlier valid observations are not rerun or discarded.
 
+Builds kept starting after short quiet gaps during `compare-operand-reuse`.
+One control failed the clock rule, and repeated post-trial build waits showed
+that the one-second launch check was admitting gaps inside an ongoing series
+of jobs. After the reversed-order first candidate was saved, the controller
+was stopped between trials. CPU policies, EPP, profile, effective CPU masks
+and automatic charging were restored and checked live. The boundary record
+is `build-settling-boundary-stop.json`; the exact earlier controller is saved
+as `extended-before-build-settling-controlled_comparison.py`, SHA-256
+`c167a24aeb165c904c06269ec89e30fff814c15284472710ca07d7080ce49543`.
+
+Only the launch wait was strengthened: after seeing a build, the controller
+requires 300 continuous quiet seconds, restarting the interval if another
+build appears. Already quiet trials retain their one-second check. Eleven
+harness tests pass, including quiet-host startup, the full five-minute interval,
+and a new build interrupting the quiet gap. Existing observations, plans,
+binaries, run order and measured validity thresholds are unchanged. The new
+`resume6` queue first waits for 300 quiet seconds with CPU sensors at or below
+70 C while normal host settings remain restored. Its preflight record is
+`post-build-settling-resume6.json`; subsequent host/charging records use the
+`resume5` suffix. This reduces launches between build waves; it cannot prevent
+new unrelated work from starting after a trial has begun.
+
 ## What these measurements can establish
 
 Recent frozen builds answer the marginal runtime question at the same source

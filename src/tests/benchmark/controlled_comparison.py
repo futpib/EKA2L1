@@ -41,30 +41,41 @@ def replay_work(report, input_sha256=None, expected=None):
     return work
 
 
-def wait_for_builds():
+def find_build_processes():
+    busy = {}
+    for path in Path('/proc').glob('[0-9]*/comm'):
+        try:
+            name = path.read_text().strip()
+            if name in {'rustc', 'cargo', 'clang', 'clang++', 'cc1', 'cc1plus',
+                        'gcc', 'g++', 'ld.lld', 'ld', 'ninja', 'make', 'cmake'}:
+                busy[path.parent.name] = name
+        except (FileNotFoundError, PermissionError, ProcessLookupError):
+            pass
+    return busy
+
+
+def wait_for_builds(quiet_after_build=300):
     started = time.monotonic()
     observed = {}
-    quiet = 0
-    while quiet < 2:
-        busy = {}
-        for path in Path('/proc').glob('[0-9]*/comm'):
-            try:
-                name = path.read_text().strip()
-                if name in {'rustc', 'cargo', 'clang', 'clang++', 'cc1', 'cc1plus',
-                            'gcc', 'g++', 'ld.lld', 'ld', 'ninja', 'make', 'cmake'}:
-                    busy[path.parent.name] = name
-            except (FileNotFoundError, PermissionError, ProcessLookupError):
-                pass
+    quiet_since = None
+    while True:
+        busy = find_build_processes()
+        now = time.monotonic()
         if busy:
             if not observed:
                 print('WAIT for unrelated build processes', busy, flush=True)
             observed.update(busy)
-            quiet = 0
+            quiet_since = None
         else:
-            quiet += 1
-        if quiet < 2:
-            time.sleep(5 if busy else 1)
-    return dict(waited_seconds=time.monotonic() - started, observed_builds=observed)
+            required = quiet_after_build if observed else 1
+            if quiet_since is None:
+                quiet_since = now
+                if observed:
+                    print('WAIT for', required, 'continuous seconds without build processes', flush=True)
+            if now - quiet_since >= required:
+                return dict(waited_seconds=now - started, observed_builds=observed,
+                    required_quiet_seconds=required, quiet_seconds=now - quiet_since)
+        time.sleep(5 if observed else 1)
 
 
 def validate_clock(report, plan):

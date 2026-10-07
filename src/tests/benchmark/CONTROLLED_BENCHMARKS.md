@@ -83,11 +83,14 @@ presentation-journal hash when capture is enabled, wall seconds, CPU seconds
 and hardware counters. Historical selector experiments can require explicit
 report readbacks through `expected_control` and `expected_candidate`. Archived
 harnesses are selected with `harness`; the emulator builds remain frozen.
-Before each trial the driver waits until known compiler/build processes finish,
-recording the wait. It does not stop or suspend unrelated work. This is a start
-condition, not a retrospective rule for discarding slow measurements. New work
-can still start during a trial, so measured clock and isolation checks remain
-necessary. The explicitly requested audio mode is preserved and read back.
+Before each trial the driver checks for known compiler/build processes. An
+already quiet host retains the one-second start check. Once a build is observed,
+launch requires 300 continuous seconds with none present; another observed
+build restarts that interval. The wait, observed processes and actual quiet
+interval are recorded. It does not stop or suspend unrelated work. This is a
+start condition, not a retrospective rule for discarding slow measurements.
+New work can still start during a trial, so measured clock and isolation checks
+remain necessary. The explicitly requested audio mode is preserved and read back.
 
 ## Limits and restoration
 
