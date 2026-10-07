@@ -72,6 +72,18 @@
     "thumb-static": {
       "status": "Not selected for promotion",
       "note": "Snakes +0.91%, but Sky Force -1.84% with all four pairs slower; does not match the preferred tradeoff"
+    },
+    "cached-address-displacement": {
+      "status": "Historical result mixed",
+      "note": "Controlled Snakes -0.27% CPU, 2/4 faster pairs; no current-runtime promotion proposed"
+    },
+    "deferred-read-exit": {
+      "status": "Historical result mixed",
+      "note": "Controlled Snakes +0.46% CPU, 2/4 faster pairs; no current-runtime promotion proposed"
+    },
+    "owner-core-reuse": {
+      "status": "Current-runtime reassessment candidate",
+      "note": "Historical Snakes +0.81% CPU, 4/4 faster pairs including one near tie; current lookup still reads parent per lookup, but compiler and dispatch have changed"
     }
   }
 }

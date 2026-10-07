@@ -2,9 +2,9 @@
   "status": "running",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User explicitly requested: nice, resume the sweep",
-  "completed_comparisons": 66,
+  "completed_comparisons": 67,
   "total_comparisons": 109,
-  "valid_observations": 531,
+  "valid_observations": 536,
   "expected_observations": 872,
   "invalid_observations": 20,
   "cancelled_waiters": {
@@ -256,5 +256,10 @@
     "alert": "/home/claude/.scratch/eka-controlled/resume7-watch-alert.json",
     "stop_path_tests": "Passed isolated fixture tests; no signal sent to real benchmark",
     "assistant_review": "Review live logs and completed comparisons during the sweep"
-  }
+  },
+  "reviewed_after_resumption": [
+    "cached-address-displacement/standard",
+    "deferred-read-exit/standard",
+    "owner-core-reuse/standard"
+  ]
 }

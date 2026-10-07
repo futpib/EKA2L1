@@ -48,7 +48,7 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 
 ## Controlled comparisons
 
-66/109 game comparisons complete; 531/872 valid observations; 20 retained host-invalid observations.
+67/109 game comparisons complete; 536/872 valid observations; 20 retained host-invalid observations.
 
 CPU and wall columns are throughput changes: positive is faster. Native
 instructions are candidate/control changes: negative is less work. Pairs
@@ -122,9 +122,9 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 62 | compare-operand-reuse / Snakes | +0.40% | +0.39% | -0.03% | 2/4 | 8/8; 1 invalid | No new default adopted | [COMPARE_CONDITION_RESULTS.md](COMPARE_CONDITION_RESULTS.md) |
 | 63 | whole-entry-budget / Snakes | +2.00% | +1.90% | -3.23% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Current gains are mixed; outlined mode 2 has the stronger Snakes result and is selected for combined validation | [ENTRY_BUDGET_RESULTS.md](ENTRY_BUDGET_RESULTS.md) |
 | 64 | outlined-entry-budget / Snakes | +1.91% | +1.75% | -3.04% | 4/4 | 8/8; 0 invalid | Default: Mode 2 enabled in the measured winning combination; full bounded entry with private precise recovery | [OUTLINED_BUDGET_RESULTS.md](OUTLINED_BUDGET_RESULTS.md) |
-| 65 | cached-address-displacement / Snakes | -0.27% | -0.36% | -0.41% | 2/4 | 8/8; 2 invalid | No new default adopted | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
-| 66 | deferred-read-exit / Snakes | +0.46% | +0.43% | -1.52% | 2/4 | 8/8; 0 invalid | No new default adopted | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
-| 67 | owner-core-reuse / Snakes | Pending | Pending | Pending | — | 3/8; 0 invalid | Reassessment pending | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
+| 65 | cached-address-displacement / Snakes | -0.27% | -0.36% | -0.41% | 2/4 | 8/8; 2 invalid | Historical result mixed: Controlled Snakes -0.27% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
+| 66 | deferred-read-exit / Snakes | +0.46% | +0.43% | -1.52% | 2/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.46% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
+| 67 | owner-core-reuse / Snakes | +0.81% | +0.75% | -0.24% | 4/4 | 8/8; 0 invalid | Current-runtime reassessment candidate: Historical Snakes +0.81% CPU, 4/4 faster pairs including one near tie; current lookup still reads parent per lookup, but compiler and dispatch have changed | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 68 | aligned-cache-hash / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 69 | compact-generated-memory / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 70 | connected-callee-loops / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
