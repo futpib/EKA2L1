@@ -1,0 +1,892 @@
+{
+  "scope": "Offline source, captured-profile and guest-code research. No new gameplay run, timing, optimization, deployment or changes to the other pane.",
+  "created_utc": "2026-10-07T10:44:05.251701+00:00",
+  "reviewed_head": "a6d49058ad984cd915e9e9b140b1f7d95a302235",
+  "sources": [
+    {
+      "path": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/arm_translator.cpp",
+      "sha256": "7279fb1cd51fb7285229b65b019885a3f71ffe7e2bcc2afdf132d4e7b2426a0d"
+    },
+    {
+      "path": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/memory_emission.h",
+      "sha256": "8e545d2f439ec29ba20dc719c9d888e889c3c24b7cad4e4ee975204ec0f98d29"
+    },
+    {
+      "path": "/home/claude/code/EKA2L1/src/emu/cpu/include/cpu/aot/state_locals.h",
+      "sha256": "e9412382d35024261bd9c37b5b6c57e8876cef0978082bc43651a82a6c9e1a1c"
+    },
+    {
+      "path": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/aot_runtime.cpp",
+      "sha256": "d5e9bf807454a27ae0bae1ff2e636944f1e81bf6df0f67d4a93c9daeadfcce08"
+    },
+    {
+      "path": "/home/claude/code/EKA2L1/src/emu/cpu/src/aot/wasm_emitter.cpp",
+      "sha256": "911050bc5290bfe8ce976a81fee7b349e938a9124bb02887ac6f41992572f582"
+    },
+    {
+      "path": "/home/claude/code/EKA2L1/src/emu/kernel/src/scheduler.cpp",
+      "sha256": "a590b2ccaa1396746f739e079ad4b33c128ff7b3dd22b6b4dda84cec6587d3df"
+    },
+    {
+      "path": "/home/claude/code/EKA2L1/src/emu/kernel/src/libmanager.cpp",
+      "sha256": "df9dc0bb917b9860a49244fa2dcfc023d90d460978af791a5f17b3e7483b9dcb"
+    },
+    {
+      "path": "/home/claude/code/EKA2L1/src/emu/kernel/src/kernel.cpp",
+      "sha256": "4a5f1c9800250a68104a879b79411a7cf35bba6657b14310e8f2544e23275a75"
+    }
+  ],
+  "limitations": [
+    "Profile self weights include waits and start/stop margins; they are not CPU utilization or removable cost.",
+    "Profiles predate the compact dispatch cache and/or subsequent state cleanup; they do not describe the final current binary.",
+    "Static guest sequence matches a retained historical kernel. Reconfirm current runtime code identity before implementation.",
+    "The r1 census demonstrates a compiler eligibility exclusion, not runtime span success or a measured speedup."
+  ],
+  "profiles": {
+    "snakes_heavy": {
+      "profile": {
+        "path": "/home/claude/.scratch/eka-dispatch-division/profile-baseline/worker-13.cpuprofile",
+        "sha256": "588abf2547eaaddf4ee5746423b3f39b43b0fef5f9ac06c4445150072fe7bbbc"
+      },
+      "report": {
+        "path": "/home/claude/.scratch/eka-dispatch-division/profile-baseline/report.json",
+        "sha256": "e6674d3e5daef461debfd5e733bffac52bbd84f641a6519385cd3559d7d28c30"
+      },
+      "recorded_git_head": "ff8954d5d3fb60f400013e8ee7dca43810652b0d",
+      "wasm_sha256": "bc7e46713aea9b04fd3189353b66d982a63cd3ef99361dadf33cf8e8348570d6",
+      "memory_impl": 2,
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 78000000,
+        "last_virtual_us": 96000000,
+        "first_instructions": 11957513030,
+        "last_instructions": 16200139197,
+        "wall_seconds": 11.4839,
+        "presentations": 380
+      },
+      "sampled_us": 11688056,
+      "generated_categories_us": {
+        "generated_ram": 4893009,
+        "generated_rom": 1186061,
+        "generated_private_or_unnamed": 50182
+      },
+      "top_self": [
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "self_sample_us": 2184327,
+          "percent_worker_span": 18.68853982219113,
+          "sampled_source_positions": [
+            [
+              0,
+              952420
+            ]
+          ]
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_trusted_original(unsigned int, eka2l1::arm::core&)",
+          "self_sample_us": 1398120,
+          "percent_worker_span": 11.961955007744658,
+          "sampled_source_positions": [
+            [
+              0,
+              904918
+            ]
+          ]
+        },
+        {
+          "name": "__pthread_cond_timedwait",
+          "self_sample_us": 1168243,
+          "percent_worker_span": 9.995186539147314,
+          "sampled_source_positions": [
+            [
+              0,
+              6655913
+            ]
+          ]
+        },
+        {
+          "name": "f_2149128552",
+          "self_sample_us": 607738,
+          "percent_worker_span": 5.199649967453955,
+          "sampled_source_positions": [
+            [
+              0,
+              13562
+            ]
+          ]
+        },
+        {
+          "name": "r_858_pc_1879129820",
+          "self_sample_us": 412874,
+          "percent_worker_span": 3.532443718613258,
+          "sampled_source_positions": [
+            [
+              0,
+              56757
+            ]
+          ]
+        },
+        {
+          "name": "r_235_pc_1879455500",
+          "self_sample_us": 214829,
+          "percent_worker_span": 1.8380216521892092,
+          "sampled_source_positions": [
+            [
+              0,
+              2224
+            ]
+          ]
+        },
+        {
+          "name": "r_1512_pc_1879130660",
+          "self_sample_us": 199001,
+          "percent_worker_span": 1.7026013564616733,
+          "sampled_source_positions": [
+            [
+              0,
+              26691
+            ]
+          ]
+        },
+        {
+          "name": "r_248_pc_1879068556",
+          "self_sample_us": 183643,
+          "percent_worker_span": 1.5712022598112123,
+          "sampled_source_positions": [
+            [
+              0,
+              31504
+            ]
+          ]
+        },
+        {
+          "name": "r_773_pc_1879048636",
+          "self_sample_us": 154697,
+          "percent_worker_span": 1.3235477311197004,
+          "sampled_source_positions": [
+            [
+              0,
+              19637
+            ]
+          ]
+        },
+        {
+          "name": "r_262_pc_1879068004",
+          "self_sample_us": 134562,
+          "percent_worker_span": 1.1512778515092672,
+          "sampled_source_positions": [
+            [
+              0,
+              1361
+            ]
+          ]
+        },
+        {
+          "name": "r_755_pc_1879094644",
+          "self_sample_us": 122128,
+          "percent_worker_span": 1.0448957465638427,
+          "sampled_source_positions": [
+            [
+              0,
+              481
+            ]
+          ]
+        },
+        {
+          "name": "js-to-wasm:ii:",
+          "self_sample_us": 119783,
+          "percent_worker_span": 1.024832529892054,
+          "sampled_source_positions": [
+            [
+              0,
+              6711782
+            ]
+          ]
+        },
+        {
+          "name": "f_2149189520",
+          "self_sample_us": 116411,
+          "percent_worker_span": 0.9959825654497206,
+          "sampled_source_positions": [
+            [
+              0,
+              76026
+            ]
+          ]
+        },
+        {
+          "name": "r_762_pc_1879095064",
+          "self_sample_us": 111305,
+          "percent_worker_span": 0.952296943135796,
+          "sampled_source_positions": [
+            [
+              0,
+              59170
+            ]
+          ]
+        },
+        {
+          "name": "r_1480_pc_1879130336",
+          "self_sample_us": 94268,
+          "percent_worker_span": 0.8065327544631887,
+          "sampled_source_positions": [
+            [
+              0,
+              51868
+            ]
+          ]
+        },
+        {
+          "name": "r_143_pc_1879171072",
+          "self_sample_us": 90094,
+          "percent_worker_span": 0.7708210843616766,
+          "sampled_source_positions": [
+            [
+              0,
+              21403
+            ]
+          ]
+        },
+        {
+          "name": "resampler_basic_direct_single",
+          "self_sample_us": 89285,
+          "percent_worker_span": 0.7638994885034774,
+          "sampled_source_positions": [
+            [
+              0,
+              6135666
+            ]
+          ]
+        },
+        {
+          "name": "eka2l1::arm::dyncom_core::run(unsigned int)",
+          "self_sample_us": 84987,
+          "percent_worker_span": 0.7271269063050348,
+          "sampled_source_positions": [
+            [
+              0,
+              1045732
+            ]
+          ]
+        },
+        {
+          "name": "r_1165_pc_1879454612",
+          "self_sample_us": 84549,
+          "percent_worker_span": 0.7233794909949097,
+          "sampled_source_positions": [
+            [
+              0,
+              6306
+            ]
+          ]
+        },
+        {
+          "name": "r_1225_pc_1879455124",
+          "self_sample_us": 78863,
+          "percent_worker_span": 0.6747315379050203,
+          "sampled_source_positions": [
+            [
+              0,
+              53705
+            ]
+          ]
+        },
+        {
+          "name": "r_1123_pc_1879453380",
+          "self_sample_us": 69959,
+          "percent_worker_span": 0.5985512047512435,
+          "sampled_source_positions": [
+            [
+              0,
+              2319
+            ]
+          ]
+        },
+        {
+          "name": "r_758_pc_1879129864",
+          "self_sample_us": 69513,
+          "percent_worker_span": 0.594735343499381,
+          "sampled_source_positions": [
+            [
+              0,
+              38236
+            ]
+          ]
+        },
+        {
+          "name": "r_1129_pc_1879063876",
+          "self_sample_us": 68267,
+          "percent_worker_span": 0.5840748880737737,
+          "sampled_source_positions": [
+            [
+              0,
+              1686
+            ]
+          ]
+        },
+        {
+          "name": "(idle)",
+          "self_sample_us": 66719,
+          "percent_worker_span": 0.5708305983475781,
+          "sampled_source_positions": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        {
+          "name": "r_266_pc_1879068672",
+          "self_sample_us": 62475,
+          "percent_worker_span": 0.5345200262558633,
+          "sampled_source_positions": [
+            [
+              0,
+              65449
+            ]
+          ]
+        }
+      ],
+      "selected": [
+        {
+          "name": "r_235_pc_1879455500",
+          "self_sample_us": 214829,
+          "percent_worker_span": 1.8380216521892092,
+          "sampled_source_positions": [
+            [
+              0,
+              2224
+            ]
+          ]
+        },
+        {
+          "name": "f_2149177368",
+          "self_sample_us": 554,
+          "percent_worker_span": 0.004739881465318099,
+          "sampled_source_positions": [
+            [
+              0,
+              25684
+            ]
+          ]
+        },
+        {
+          "name": "f_2149128552",
+          "self_sample_us": 607738,
+          "percent_worker_span": 5.199649967453955,
+          "sampled_source_positions": [
+            [
+              0,
+              13562
+            ]
+          ]
+        }
+      ]
+    },
+    "sky_combat": {
+      "profile": {
+        "path": "/home/claude/.scratch/eka-leverage-profile/combat/worker-13.cpuprofile",
+        "sha256": "21abc2f0bcccd1a53e47edec94ea76acff850c67a4a64f70f153c44a899db899"
+      },
+      "report": {
+        "path": "/home/claude/.scratch/eka-leverage-profile/combat/report.json",
+        "sha256": "da76d1c200ddf228ad4a1c9bb7edfd46f1c3bc99a34f28b3db7d36e919a6f98a"
+      },
+      "recorded_git_head": "bf12facd3c6665c4c2a6aa24892d0ec59e43718d",
+      "wasm_sha256": "32ac6857ddb9b2e4e98b207c0b22d25bf8714f6fbde6fe3e6296abde2d8b3d4c",
+      "memory_impl": 2,
+      "measurement": {
+        "diagnostics_available": false,
+        "detailed": false,
+        "capture_mode": 1,
+        "first_virtual_us": 42000001,
+        "last_virtual_us": 48000000,
+        "first_instructions": 15147789909,
+        "last_instructions": 17318833834,
+        "wall_seconds": 8.70757,
+        "presentations": 192
+      },
+      "sampled_us": 8895675,
+      "generated_categories_us": {
+        "generated_rom": 2133787,
+        "generated_ram": 863282,
+        "generated_private_or_unnamed": 26314
+      },
+      "top_self": [
+        {
+          "name": "InterpreterMainLoop(ARMul_State*, unsigned int&)",
+          "self_sample_us": 3575395,
+          "percent_worker_span": 40.19250928119564,
+          "sampled_source_positions": [
+            [
+              0,
+              952378
+            ]
+          ]
+        },
+        {
+          "name": "f_2149177368",
+          "self_sample_us": 822336,
+          "percent_worker_span": 9.244222613798279,
+          "sampled_source_positions": [
+            [
+              0,
+              30836
+            ]
+          ]
+        },
+        {
+          "name": "__pthread_cond_timedwait",
+          "self_sample_us": 549219,
+          "percent_worker_span": 6.174000286656156,
+          "sampled_source_positions": [
+            [
+              0,
+              6640469
+            ]
+          ]
+        },
+        {
+          "name": "std::__2::__function::__func<eka2l1::kernel_system::set_epoc_version(epocver)::$_0, std::__2::allocator<eka2l1::kernel_system::set_epoc_version(epocver)::$_0>, void (unsigned int)>::operator()(unsigned int&&)",
+          "self_sample_us": 499152,
+          "percent_worker_span": 5.611176217656333,
+          "sampled_source_positions": [
+            [
+              0,
+              1971643
+            ]
+          ]
+        },
+        {
+          "name": "eka2l1::arm::aot::validated_code_cache::find_trusted_original(unsigned int, eka2l1::arm::core&)",
+          "self_sample_us": 219308,
+          "percent_worker_span": 2.4653328724352,
+          "sampled_source_positions": [
+            [
+              0,
+              904876
+            ]
+          ]
+        },
+        {
+          "name": "js-to-wasm:i:",
+          "self_sample_us": 182441,
+          "percent_worker_span": 2.0508955194518683,
+          "sampled_source_positions": [
+            [
+              0,
+              6827028
+            ]
+          ]
+        },
+        {
+          "name": "f_2149291205",
+          "self_sample_us": 122303,
+          "percent_worker_span": 1.3748591309821907,
+          "sampled_source_positions": [
+            [
+              0,
+              2976
+            ]
+          ]
+        },
+        {
+          "name": "eka2l1::kernel::thread_scheduler::switch_context(eka2l1::kernel::thread*, eka2l1::kernel::thread*)",
+          "self_sample_us": 91753,
+          "percent_worker_span": 1.031433814747054,
+          "sampled_source_positions": [
+            [
+              0,
+              1603010
+            ]
+          ]
+        },
+        {
+          "name": "f_2149218301",
+          "self_sample_us": 76959,
+          "percent_worker_span": 0.8651282786297836,
+          "sampled_source_positions": [
+            [
+              0,
+              1633160
+            ]
+          ]
+        },
+        {
+          "name": "r_219_pc_1879081572",
+          "self_sample_us": 70598,
+          "percent_worker_span": 0.7936216194948669,
+          "sampled_source_positions": [
+            [
+              0,
+              41140
+            ]
+          ]
+        },
+        {
+          "name": "eka2l1::arm::dyncom_core::load_context(eka2l1::arm::core::thread_context const&)",
+          "self_sample_us": 66392,
+          "percent_worker_span": 0.7463402158914304,
+          "sampled_source_positions": [
+            [
+              0,
+              1046764
+            ]
+          ]
+        },
+        {
+          "name": "(idle)",
+          "self_sample_us": 63283,
+          "percent_worker_span": 0.7113906477023947,
+          "sampled_source_positions": [
+            [
+              -1,
+              -1
+            ]
+          ]
+        },
+        {
+          "name": "r_214_pc_1879081368",
+          "self_sample_us": 63217,
+          "percent_worker_span": 0.7106487141223122,
+          "sampled_source_positions": [
+            [
+              0,
+              19045
+            ]
+          ]
+        },
+        {
+          "name": "resampler_basic_interpolate_single",
+          "self_sample_us": 61108,
+          "percent_worker_span": 0.6869405638133138,
+          "sampled_source_positions": [
+            [
+              0,
+              6119198
+            ]
+          ]
+        },
+        {
+          "name": "r_196_pc_1879061180",
+          "self_sample_us": 60133,
+          "percent_worker_span": 0.6759801813802775,
+          "sampled_source_positions": [
+            [
+              0,
+              53425
+            ]
+          ]
+        },
+        {
+          "name": "r_206_pc_1879065360",
+          "self_sample_us": 60045,
+          "percent_worker_span": 0.6749909366068342,
+          "sampled_source_positions": [
+            [
+              0,
+              366
+            ]
+          ]
+        },
+        {
+          "name": "eka2l1::kernel_system::get_kernel_obj_raw(unsigned int, eka2l1::kernel::thread*)",
+          "self_sample_us": 56886,
+          "percent_worker_span": 0.6394792975237967,
+          "sampled_source_positions": [
+            [
+              0,
+              1962023
+            ]
+          ]
+        },
+        {
+          "name": "f_2153195895",
+          "self_sample_us": 49574,
+          "percent_worker_span": 0.5572820499849646,
+          "sampled_source_positions": [
+            [
+              0,
+              12577
+            ]
+          ]
+        },
+        {
+          "name": "f_2153195873",
+          "self_sample_us": 49564,
+          "percent_worker_span": 0.5571696358061642,
+          "sampled_source_positions": [
+            [
+              0,
+              2835
+            ]
+          ]
+        },
+        {
+          "name": "r_1305_pc_1879063492",
+          "self_sample_us": 42181,
+          "percent_worker_span": 0.47417424759784954,
+          "sampled_source_positions": [
+            [
+              0,
+              215
+            ]
+          ]
+        },
+        {
+          "name": "std::__2::__function::__func<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*), std::__2::allocator<auto eka2l1::hle::bridge<eka2l1::kernel_system, eka2l1::ptr<void>>(eka2l1::ptr<void> (*)(eka2l1::kernel_system*))::'lambda'(eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>, void (eka2l1::kernel_system*, eka2l1::kernel::process*, eka2l1::arm::core*)>::operator()(eka2l1::kernel_system*&&, eka2l1::kernel::process*&&, eka2l1::arm::core*&&)",
+          "self_sample_us": 41146,
+          "percent_worker_span": 0.462539380092011,
+          "sampled_source_positions": [
+            [
+              0,
+              2085033
+            ]
+          ]
+        },
+        {
+          "name": "f_2153195931",
+          "self_sample_us": 39011,
+          "percent_worker_span": 0.43853895291813155,
+          "sampled_source_positions": [
+            [
+              0,
+              1567
+            ]
+          ]
+        },
+        {
+          "name": "f_2153218236",
+          "self_sample_us": 39002,
+          "percent_worker_span": 0.43843778015721124,
+          "sampled_source_positions": [
+            [
+              0,
+              27404
+            ]
+          ]
+        },
+        {
+          "name": "r_1250_pc_1879063732",
+          "self_sample_us": 38010,
+          "percent_worker_span": 0.4272862936202143,
+          "sampled_source_positions": [
+            [
+              0,
+              11099
+            ]
+          ]
+        },
+        {
+          "name": "f_2149191733",
+          "self_sample_us": 37989,
+          "percent_worker_span": 0.4270502238447335,
+          "sampled_source_positions": [
+            [
+              0,
+              1775768
+            ]
+          ]
+        }
+      ],
+      "selected": [
+        {
+          "name": "f_2149177368",
+          "self_sample_us": 822336,
+          "percent_worker_span": 9.244222613798279,
+          "sampled_source_positions": [
+            [
+              0,
+              30836
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "pointer_lifetime_witness": {
+    "artifact": {
+      "path": "/home/claude/.scratch/eka-benchmark/cpu-kernels-base/1879455500.arm",
+      "sha256": "4f07578284a154b6562d72905be3a81f8f9afc09f5392b685e81fa2bcde2ef2c"
+    },
+    "selected_bytes": 228,
+    "selected_sha256": "bff35c5d7e12688180b73cdfa91359e2d131ed8efd84fecec6d794b1fbaeb5e7",
+    "assembly": [
+      "7006370c push {r4, r5, r6, r7, lr}",
+      "70063710 mov r4, #0",
+      "70063714 mov r5, #0",
+      "70063718 ldr r6, [r1]",
+      "7006371c ldm r2, {r3, ip, lr}",
+      "70063720 ldr r7, [r1, #4]",
+      "70063724 smlal r4, r5, r6, r3",
+      "70063728 smlal r4, r5, r7, ip",
+      "7006372c ldr r6, [r1, #8]",
+      "70063730 ldr r7, [r1, #0xc]",
+      "70063734 ldr r2, [r2, #0xc]",
+      "70063738 smlal r4, r5, r6, lr",
+      "7006373c smlal r4, r5, r7, r2",
+      "70063740 lsr r4, r4, #0xc",
+      "70063744 orr r4, r4, r5, lsl #20",
+      "70063748 str r4, [r0]",
+      "7006374c ldr r6, [r1, #0x10]",
+      "70063750 mov r4, #0",
+      "70063754 mov r5, #0",
+      "70063758 ldr r7, [r1, #0x14]",
+      "7006375c smlal r4, r5, r6, r3",
+      "70063760 smlal r4, r5, r7, ip",
+      "70063764 ldr r6, [r1, #0x18]",
+      "70063768 ldr r7, [r1, #0x1c]",
+      "7006376c smlal r4, r5, r6, lr",
+      "70063770 smlal r4, r5, r7, r2",
+      "70063774 lsr r4, r4, #0xc",
+      "70063778 orr r4, r4, r5, lsl #20",
+      "7006377c str r4, [r0, #4]",
+      "70063780 ldr r6, [r1, #0x20]",
+      "70063784 mov r4, #0",
+      "70063788 mov r5, #0",
+      "7006378c ldr r7, [r1, #0x24]",
+      "70063790 smlal r4, r5, r6, r3",
+      "70063794 smlal r4, r5, r7, ip",
+      "70063798 ldr r6, [r1, #0x28]",
+      "7006379c ldr r7, [r1, #0x2c]",
+      "700637a0 smlal r4, r5, r6, lr",
+      "700637a4 smlal r4, r5, r7, r2",
+      "700637a8 lsr r4, r4, #0xc",
+      "700637ac orr r4, r4, r5, lsl #20",
+      "700637b0 str r4, [r0, #8]",
+      "700637b4 ldr r6, [r1, #0x30]",
+      "700637b8 mov r4, #0",
+      "700637bc mov r5, #0",
+      "700637c0 smlal r5, r4, r6, r3",
+      "700637c4 ldr r6, [r1, #0x34]",
+      "700637c8 mov r3, r5",
+      "700637cc ldr r5, [r1, #0x38]",
+      "700637d0 smlal r3, r4, r6, ip",
+      "700637d4 ldr r1, [r1, #0x3c]",
+      "700637d8 smlal r3, r4, r5, lr",
+      "700637dc smlal r3, r4, r1, r2",
+      "700637e0 lsr r1, r3, #0xc",
+      "700637e4 orr r1, r1, r4, lsl #20",
+      "700637e8 str r1, [r0, #0xc]",
+      "700637ec pop {r4, r5, r6, r7, pc}"
+    ],
+    "r1_immediate_word_loads": [
+      {
+        "pc": "0x70063718",
+        "destination": 6,
+        "offset": 0
+      },
+      {
+        "pc": "0x70063720",
+        "destination": 7,
+        "offset": 4
+      },
+      {
+        "pc": "0x7006372c",
+        "destination": 6,
+        "offset": 8
+      },
+      {
+        "pc": "0x70063730",
+        "destination": 7,
+        "offset": 12
+      },
+      {
+        "pc": "0x7006374c",
+        "destination": 6,
+        "offset": 16
+      },
+      {
+        "pc": "0x70063758",
+        "destination": 7,
+        "offset": 20
+      },
+      {
+        "pc": "0x70063764",
+        "destination": 6,
+        "offset": 24
+      },
+      {
+        "pc": "0x70063768",
+        "destination": 7,
+        "offset": 28
+      },
+      {
+        "pc": "0x70063780",
+        "destination": 6,
+        "offset": 32
+      },
+      {
+        "pc": "0x7006378c",
+        "destination": 7,
+        "offset": 36
+      },
+      {
+        "pc": "0x70063798",
+        "destination": 6,
+        "offset": 40
+      },
+      {
+        "pc": "0x7006379c",
+        "destination": 7,
+        "offset": 44
+      },
+      {
+        "pc": "0x700637b4",
+        "destination": 6,
+        "offset": 48
+      },
+      {
+        "pc": "0x700637c4",
+        "destination": 6,
+        "offset": 52
+      },
+      {
+        "pc": "0x700637cc",
+        "destination": 5,
+        "offset": 56
+      },
+      {
+        "pc": "0x700637d4",
+        "destination": 1,
+        "offset": 60
+      }
+    ],
+    "r1_write_pcs": [
+      "0x700637d4",
+      "0x700637e0",
+      "0x700637e4"
+    ],
+    "conclusion": "Whole-region written-register exclusion rejects all sixteen r1-based word loads. All consume the incoming r1 value, including the final LDR r1,[r1,#0x3c]. A lifetime-scoped 64-byte mapping proof is a candidate; preserve load/store ordering and precise fallback."
+  },
+  "scheduler_witness": {
+    "rom": {
+      "path": "/home/claude/.scratch/eka-benchmark/assets/SYM.ROM",
+      "sha256": "89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490"
+    },
+    "assembly": [
+      "8019d818 ldr lr, [r4]",
+      "8019d81c cmp lr, r4",
+      "8019d820 sub r0, lr, #0xc",
+      "8019d824 ldmdane lr, {r2, ip, lr}",
+      "8019d828 beq #0x801a0e78",
+      "8019d82c cmp r2, #0x80000001",
+      "8019d830 andsne r3, ip, #1",
+      "8019d834 beq #0x8019d81c",
+      "8019d838 ldr r3, [r0]",
+      "8019d83c bic ip, ip, #3",
+      "8019d840 sub lr, pc, #0x48",
+      "8019d844 ldr r3, [r3, #0x10]",
+      "8019d848 str ip, [r0, #8]",
+      "8019d84c str r0, [r7]",
+      "8019d850 bx r3"
+    ]
+  },
+  "external_sources": [
+    "https://v8.dev/blog/wasm-speculative-optimizations",
+    "https://v8.dev/docs/wasm-compilation-pipeline",
+    "https://v8.dev/docs/linux-perf"
+  ]
+}
