@@ -17,7 +17,7 @@ p.add_argument('--leaf-features',type=int,choices=(0,128))
 p.add_argument('--exit-census',type=int,choices=(0,1))
 p.add_argument('--predicated-leaves', type=int, choices=(0,1))
 p.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
-p.add_argument('--ir-policy', type=int, choices=(0,4,5,6,7,17), help='Require explicit matching probe-policy markers')
+p.add_argument('--ir-policy', type=int, choices=(0,4,5,6,7,17,18), help='Require explicit matching probe-policy markers')
 p.add_argument('--code-compare', type=int, choices=(0,2))
 a = p.parse_args()
 

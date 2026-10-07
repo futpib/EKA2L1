@@ -3567,6 +3567,17 @@ namespace eka2l1::arm::aot {
                 // Conditional branch: B<cond> offset
                 std::uint8_t cond = (insn >> 8) & 0xF;
 
+                if (bounded && compiled_svc_enabled && cond == 15) {
+                    w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.i32_const(1); w.op(op_i32_eq);
+                    w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_if); w.op(type_void);
+                    w.bail(insn_addr, insn_idx); w.op(op_end);
+                    w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken
+                        | (((insn_addr + 2) & 4095) ? 0 : svc_page_end) | (insn & 255));
+                    w.store_i32_const(S::AOT_SVC_INSTRUCTIONS, insn_idx + 1);
+                    w.bail(insn_addr + 2, 0);
+                    decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
+                    ++insn_idx; break;
+                }
                 if (cond >= 0xE) {
                     // SVC or undefined — bail
                     w.bail_unsupported(insn_addr, insn_idx);
@@ -4365,7 +4376,7 @@ namespace eka2l1::arm::aot {
         else { w.i32_const(num_insns); w.ret(); }
 
         finish_memory_locals(w);
-        w.cache.finish(result);
+        w.cache.finish(result, !entry_only_state_pruning || w.entry_supported);
         tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;
         tr.end_address = start_address + decoded_end_offset;

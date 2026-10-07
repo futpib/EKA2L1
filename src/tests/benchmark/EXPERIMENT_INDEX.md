@@ -8,7 +8,7 @@ to detect stale output.
 
 ## Current decisions
 
-The historical sweep is paused at the user's request: 64/109 game comparisons, 515/872 valid observations and 20 retained invalid observations. Finish the current promotion round, validate deserving current-runtime winners, measure the combined defaults against the untouched baseline, and propose resuming the historical sweep only after reporting that result. A modest Snakes regression is acceptable for a worthwhile Sky Force gain. Historical percentages are not additive.
+The historical sweep is paused at the user's request: 64/109 game comparisons, 515/872 valid observations and 20 retained invalid observations. Revised compiled syscalls, sparse ROM lookup and outlined entry budgets are adopted together after the exact artifact improves current-repository CPU throughput 1.70% in Snakes and 3.46% in Sky Force, all four pairs faster in both games. The older LAN-build comparison and deployment remain pending. Resume the remaining historical sweep only after reporting graduation and receiving a continuation request. A modest Snakes regression is acceptable for a worthwhile Sky Force gain. Historical percentages are not additive.
 
 Historical gains are relative to their recorded controls and configurations.
 They are not additive or evidence of the same gain on the current runtime.
@@ -42,8 +42,8 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 | 17 | division-digits-current / Snakes | +0.07% | -0.11% | -0.38% | 2/4 | 8/8; 0 invalid |
 | 18 | division-digits-current / Sky Force | -0.66% | -0.77% | +0.00% | 2/4 | 8/8; 0 invalid |
 | 19 | adopted-vs-repository / Snakes | +1.70% | +1.07% | -2.13% | 4/4 | 8/8; 0 invalid |
-| 20 | adopted-vs-repository / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
-| 21 | adopted-vs-served / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid |
+| 20 | adopted-vs-repository / Sky Force | +3.46% | +3.15% | -3.46% | 4/4 | 8/8; 0 invalid |
+| 21 | adopted-vs-served / Snakes | Pending | Pending | Pending | — | 1/8; 0 invalid |
 | 22 | adopted-vs-served / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid |
 
 ## Controlled comparisons
@@ -84,10 +84,10 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 24 | span-page-reuse / Sky Force | +0.96% | +0.88% | +0.82% | 2/4 | 8/8; 0 invalid | No new default adopted | [SPAN_PAGE_REUSE_RESULTS.md](SPAN_PAGE_REUSE_RESULTS.md) |
 | 25 | dynamic-rom-cohorts / Snakes | -11.17% | -9.48% | +10.03% | 0/4 | 8/8; 0 invalid | No new default adopted | [DYNAMIC_ROM_COHORT_TIMING_RESULTS.md](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) |
 | 26 | dynamic-rom-cohorts / Sky Force | -69.50% | -68.11% | +207.72% | 0/4 | 8/8; 0 invalid | No new default adopted | [DYNAMIC_ROM_COHORT_TIMING_RESULTS.md](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) |
-| 27 | sparse-rom-lookup / Snakes | -0.66% | -0.32% | -0.04% | 0/4 | 8/8; 0 invalid | Selected for combined validation: Current Sky Force CPU +1.81% in all four pairs, Snakes -0.27%; matches the accepted tradeoff, final combined artifact still pending | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
-| 28 | sparse-rom-lookup / Sky Force | +2.64% | +2.57% | -1.70% | 4/4 | 8/8; 0 invalid | Selected for combined validation: Current Sky Force CPU +1.81% in all four pairs, Snakes -0.27%; matches the accepted tradeoff, final combined artifact still pending | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
-| 29 | compiled-syscalls / Snakes | -0.61% | -0.50% | +0.58% | 1/4 | 8/8; 0 invalid | Selected for combined validation: Current zero-return protocol: Snakes +0.40%, Sky Force +3.54% CPU, all four pairs faster in both games. Final artifact comparison pending; original +7.17% off/on was not an adoption gain | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
-| 30 | compiled-syscalls / Sky Force | +8.11% | +7.58% | -2.35% | 4/4 | 8/8; 0 invalid | Selected for combined validation: Current zero-return protocol: Snakes +0.40%, Sky Force +3.54% CPU, all four pairs faster in both games. Final artifact comparison pending; original +7.17% off/on was not an adoption gain | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
+| 27 | sparse-rom-lookup / Snakes | -0.66% | -0.32% | -0.04% | 0/4 | 8/8; 0 invalid | Default: Sparse ROM index enabled in the measured winning combination; individual Sky Force +1.81% / Snakes -0.27% | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
+| 28 | sparse-rom-lookup / Sky Force | +2.64% | +2.57% | -1.70% | 4/4 | 8/8; 0 invalid | Default: Sparse ROM index enabled in the measured winning combination; individual Sky Force +1.81% / Snakes -0.27% | [SPARSE_ROM_LOOKUP_TIMING_RESULTS.md](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) |
+| 29 | compiled-syscalls / Snakes | -0.61% | -0.50% | +0.58% | 1/4 | 8/8; 0 invalid | Default: Zero-return protocol; combined artifact +1.70% Snakes / +3.46% Sky Force versus current repository, all pairs faster | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
+| 30 | compiled-syscalls / Sky Force | +8.11% | +7.58% | -2.35% | 4/4 | 8/8; 0 invalid | Default: Zero-return protocol; combined artifact +1.70% Snakes / +3.46% Sky Force versus current repository, all pairs faster | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
 | 31 | compiled-memory-misses / Snakes | -9.00% | -7.98% | +7.82% | 0/4 | 8/8; 0 invalid | No new default adopted | [COMPILED_MEMORY_MISSES_TIMING_RESULTS.md](COMPILED_MEMORY_MISSES_TIMING_RESULTS.md) |
 | 32 | compiled-memory-misses / Sky Force | -3.48% | -3.33% | +4.29% | 0/4 | 8/8; 0 invalid | No new default adopted | [COMPILED_MEMORY_MISSES_TIMING_RESULTS.md](COMPILED_MEMORY_MISSES_TIMING_RESULTS.md) |
 | 33 | ram-first-use / Snakes | -5.14% | -4.15% | +0.01% | 0/4 | 8/8; 0 invalid | No new default adopted | [RAM_FIRST_USE_COMPILATION_TIMING_RESULTS.md](RAM_FIRST_USE_COMPILATION_TIMING_RESULTS.md) |
@@ -101,7 +101,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 41 | mixed-ir / Snakes | -4.50% | -4.43% | +2.68% | 0/4 | 8/8; 0 invalid | No new default adopted | [IR_STACK_VALUES_RESULTS.md](IR_STACK_VALUES_RESULTS.md) |
 | 42 | longer-ir-segments / Snakes | -5.34% | -4.90% | +3.45% | 0/4 | 8/8; 0 invalid | No new default adopted | [IR_STACK_VALUES_RESULTS.md](IR_STACK_VALUES_RESULTS.md) |
 | 43 | ir-stack-values / Snakes | -0.08% | -0.10% | -0.01% | 2/4 | 8/8; 0 invalid | No new default adopted | [IR_STACK_VALUES_RESULTS.md](IR_STACK_VALUES_RESULTS.md) |
-| 44 | compiled-syscalls-long-snakes / Snakes | -0.58% | -0.33% | +0.54% | 0/4 | 8/8; 0 invalid | Promotion in progress: Same syscall change; historical additional route, current combined-default comparison pending | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
+| 44 | compiled-syscalls-long-snakes / Snakes | -0.58% | -0.33% | +0.54% | 0/4 | 8/8; 0 invalid | Current protocol is default: Historical additional route used the older syscall protocol; current standard-game artifact comparison establishes adoption, not a new result on this route | [COMPILED_SVC_TIMING_RESULTS.md](COMPILED_SVC_TIMING_RESULTS.md) |
 | 45 | quiet-runtime-cuts / Snakes | +1.86% | +1.84% | -1.85% | 4/4 | 8/8; 0 invalid | Default: Verifier-disabled trusted dispatch omits unused work | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 46 | quiet-runtime-cuts / Sky Force | +0.80% | +0.64% | -1.45% | 3/4 | 8/8; 0 invalid | Default: Verifier-disabled trusted dispatch omits unused work | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 47 | ram-hit-inline / Snakes | +3.66% | +2.77% | -4.54% | 4/4 | 8/8; 0 invalid | Covered by current default: Compact dispatch already inlines the trusted hit and removes its old metadata pointer chase | [PROFILE_OPTIMIZATION_PLATEAU_RESULTS.md](PROFILE_OPTIMIZATION_PLATEAU_RESULTS.md) |
@@ -121,7 +121,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 61 | conditional-alu-select / Snakes | -0.17% | -0.16% | +0.20% | 1/4 | 8/8; 0 invalid | No new default adopted | [CONDITIONAL_ALU_RESULTS.md](CONDITIONAL_ALU_RESULTS.md) |
 | 62 | compare-operand-reuse / Snakes | +0.40% | +0.39% | -0.03% | 2/4 | 8/8; 1 invalid | No new default adopted | [COMPARE_CONDITION_RESULTS.md](COMPARE_CONDITION_RESULTS.md) |
 | 63 | whole-entry-budget / Snakes | +2.00% | +1.90% | -3.23% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Current gains are mixed; outlined mode 2 has the stronger Snakes result and is selected for combined validation | [ENTRY_BUDGET_RESULTS.md](ENTRY_BUDGET_RESULTS.md) |
-| 64 | outlined-entry-budget / Snakes | +1.91% | +1.75% | -3.04% | 4/4 | 8/8; 0 invalid | Selected for combined validation: Current Snakes +1.23% in all four pairs; Sky Force +1.19% with mixed pairs. Select outlined mode 2 for combined validation | [OUTLINED_BUDGET_RESULTS.md](OUTLINED_BUDGET_RESULTS.md) |
+| 64 | outlined-entry-budget / Snakes | +1.91% | +1.75% | -3.04% | 4/4 | 8/8; 0 invalid | Default: Mode 2 enabled in the measured winning combination; full bounded entry with private precise recovery | [OUTLINED_BUDGET_RESULTS.md](OUTLINED_BUDGET_RESULTS.md) |
 | 65 | cached-address-displacement / Snakes | Pending | Pending | Pending | — | 3/8; 2 invalid | Reassessment pending | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 66 | deferred-read-exit / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 67 | owner-core-reuse / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
@@ -374,7 +374,7 @@ is retained separately from the later controlled comparisons.
 | 182 | Results/notes | [Proved read-span experiment](READ_SPANS_RESULTS.md) | [Findings below](#report-182) |
 | 183 | Results/notes | [RAM compilation and bounded compiled execution](REALTIME_AOT_RESULTS.md) | [Findings below](#report-183) |
 | 184 | Results/notes | [Realtime Snakes gameplay in the browser](REALTIME_PLAYABILITY.md) | [Findings below](#report-184) |
-| 185 | Results/notes | [Recovered optimization promotion](RECOVERED_DEFAULTS_RESULTS.md) | [Findings below](#report-185) |
+| 185 | Results/notes | [Recovered optimization graduation](RECOVERED_DEFAULTS_RESULTS.md) | [Findings below](#report-185) |
 | 186 | Profiling/analysis | [Post-merge compiled-region exit census](REGION_EXIT_CENSUS_RESULTS.md) | [Findings below](#report-186) |
 | 187 | Design/plan | [Guarded value IR prototype](REGION_IR_DESIGN.md) | No performance excerpt; see source report |
 | 188 | Results/notes | [Guarded value IR: real kernel gain, no whole-game promotion](REGION_IR_RESULTS.md) | [Findings below](#report-188) |
@@ -5238,11 +5238,19 @@ The final CPU steps inline distant small ARM leaf helpers into validated regions
 
 <a id="report-185"></a>
 <details>
-<summary>185. Recovered optimization promotion</summary>
+<summary>185. Recovered optimization graduation</summary>
 
 [Full report and evidence](RECOVERED_DEFAULTS_RESULTS.md)
 
-**Recovered optimization promotion**
+**Recovered optimization graduation**
+
+**Adopted defaults:** revised compiled syscalls, sparse ROM lookup and outlined
+entry budgets (mode 2). The combined artifact improves Snakes CPU throughput
+1.70% and Sky Force 3.46% against the untouched repository baseline, with all
+four pairs faster in each game. Wall throughput improves 1.07% and 3.15%; native
+instructions fall 2.13% and 3.46%. The 16 repository comparisons are all valid.
+The older LAN-build comparison and deployment are still pending. Historical
+sweep progress remains paused at 64/109.
 
 Recovered historical gains are being checked against runtime `4a339da9a` before
 adoption. A modest Snakes regression is acceptable for a worthwhile Sky Force

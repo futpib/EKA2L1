@@ -1,5 +1,5 @@
 {
-  "policy": "The historical sweep is paused at the user's request: 64/109 game comparisons, 515/872 valid observations and 20 retained invalid observations. Finish the current promotion round, validate deserving current-runtime winners, measure the combined defaults against the untouched baseline, and propose resuming the historical sweep only after reporting that result. A modest Snakes regression is acceptable for a worthwhile Sky Force gain. Historical percentages are not additive.",
+  "policy": "The historical sweep is paused at the user's request: 64/109 game comparisons, 515/872 valid observations and 20 retained invalid observations. Revised compiled syscalls, sparse ROM lookup and outlined entry budgets are adopted together after the exact artifact improves current-repository CPU throughput 1.70% in Snakes and 3.46% in Sky Force, all four pairs faster in both games. The older LAN-build comparison and deployment remain pending. Resume the remaining historical sweep only after reporting graduation and receiving a continuation request. A modest Snakes regression is acceptable for a worthwhile Sky Force gain. Historical percentages are not additive.",
   "experiments": {
     "compact-dispatch": {
       "status": "Default",
@@ -30,16 +30,16 @@
       "note": "Integrated in quiet-runtime cuts for trusted execution"
     },
     "compiled-syscalls": {
-      "status": "Selected for combined validation",
-      "note": "Current zero-return protocol: Snakes +0.40%, Sky Force +3.54% CPU, all four pairs faster in both games. Final artifact comparison pending; original +7.17% off/on was not an adoption gain"
+      "status": "Default",
+      "note": "Zero-return protocol; combined artifact +1.70% Snakes / +3.46% Sky Force versus current repository, all pairs faster"
     },
     "compiled-syscalls-long-snakes": {
-      "status": "Promotion in progress",
-      "note": "Same syscall change; historical additional route, current combined-default comparison pending"
+      "status": "Current protocol is default",
+      "note": "Historical additional route used the older syscall protocol; current standard-game artifact comparison establishes adoption, not a new result on this route"
     },
     "sparse-rom-lookup": {
-      "status": "Selected for combined validation",
-      "note": "Current Sky Force CPU +1.81% in all four pairs, Snakes -0.27%; matches the accepted tradeoff, final combined artifact still pending"
+      "status": "Default",
+      "note": "Sparse ROM index enabled in the measured winning combination; individual Sky Force +1.81% / Snakes -0.27%"
     },
     "entry-only-pruning": {
       "status": "Not selected for promotion",
@@ -50,8 +50,8 @@
       "note": "Current gains are mixed; outlined mode 2 has the stronger Snakes result and is selected for combined validation"
     },
     "outlined-entry-budget": {
-      "status": "Selected for combined validation",
-      "note": "Current Snakes +1.23% in all four pairs; Sky Force +1.19% with mixed pairs. Select outlined mode 2 for combined validation"
+      "status": "Default",
+      "note": "Mode 2 enabled in the measured winning combination; full bounded entry with private precise recovery"
     },
     "batched-counts": {
       "status": "Not selected for promotion",

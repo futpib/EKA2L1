@@ -214,6 +214,50 @@ int eka2l1_ir_configure(int mode) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int eka2l1_division_digits_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::division_digits_enabled = mode != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_division_digits_report() { return eka2l1::arm::aot::division_digits_enabled; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_sparse_rom_lookup_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::sparse_rom_lookup_enabled = mode != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_sparse_rom_lookup_report() { return eka2l1::arm::aot::sparse_rom_lookup_enabled; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_entry_only_pruning_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::entry_only_state_pruning = mode != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_entry_only_pruning_report() { return eka2l1::arm::aot::entry_only_state_pruning; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_entry_budget_configure(int mode) {
+    if (g_state || mode < 0 || mode > 2) return -1;
+    eka2l1::arm::aot::entry_budget_mode = static_cast<unsigned>(mode);
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_entry_budget_report() { return eka2l1::arm::aot::entry_budget_mode; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_compiled_svc_configure(int mode) {
+    if (g_state || mode < 0 || mode > 1) return -1;
+    eka2l1::arm::aot::compiled_svc_enabled = mode != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_compiled_svc_report() { return eka2l1::arm::aot::compiled_svc_enabled; }
+EMSCRIPTEN_KEEPALIVE
 int eka2l1_arm_exclusive_configure(int mode) {
     if (g_state || mode < 0 || mode > 1) return -1;
     eka2l1::arm::aot::arm_exclusive_memory = mode != 0;

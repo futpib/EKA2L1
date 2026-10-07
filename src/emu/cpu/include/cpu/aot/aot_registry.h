@@ -23,6 +23,7 @@
 #include <array>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -31,7 +32,8 @@ struct ARMul_State;
 
 namespace eka2l1::arm::aot {
     // An AOT function takes the CPU state, executes the equivalent of the ARM code,
-    // and returns the number of ARM instructions it replaced (for tick accounting).
+    // and normally returns the guest instruction count. A pending SVC returns
+    // zero to stop chaining; the runtime recovers its saved logical count.
     using aot_func = std::uint32_t (*)(ARMul_State *cpu);
 
     // A catalog entry describes an AOT-compiled function and where it comes from.
@@ -61,7 +63,16 @@ namespace eka2l1::arm::aot {
         }
         aot_func lookup_uncached(std::uint32_t arm_address, recent_function &slot) const;
 
+        // Optional exact index for immutable ROM keys. Allocate a page only
+        // when an entry is registered; ARM and Thumb tags retain separate slots.
+        using rom_page = std::array<aot_func, 4096>;
+        std::vector<std::unique_ptr<rom_page>> rom_pages_;
+        std::uint32_t rom_base_ = 0, rom_size_ = 0;
+        void index_rom(std::uint32_t address, aot_func function);
+
     public:
+        void configure_rom_index(std::uint32_t base, std::uint32_t size, bool enabled);
+        std::size_t rom_index_bytes() const;
         void register_function(std::uint32_t arm_address, aot_func func);
         void unregister_function(std::uint32_t arm_address);
         void clear();
@@ -72,6 +83,11 @@ namespace eka2l1::arm::aot {
         __attribute__((always_inline))
 #endif
         aot_func lookup(std::uint32_t arm_address) const {
+            if (arm_address >= rom_base_ && std::uint64_t(arm_address) - rom_base_ < rom_size_) {
+                const auto offset = arm_address - rom_base_;
+                const auto &page = rom_pages_[offset >> 12];
+                return page ? (*page)[offset & 4095] : nullptr;
+            }
             auto &slot = recent_[recent_index(arm_address)];
             // Keep recent hits at the dispatch site; container recovery stays
             // out of line. Empty slots and cached null functions still miss.

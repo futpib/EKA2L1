@@ -1,4 +1,15 @@
-# Recovered optimization promotion
+# Recovered optimization graduation
+
+**Adopted defaults:** revised compiled syscalls, sparse ROM lookup and outlined
+entry budgets (mode 2). The combined artifact improves Snakes CPU throughput
+1.70% and Sky Force 3.46% against the untouched repository baseline, with all
+four pairs faster in each game. Wall throughput improves 1.07% and 3.15%; native
+instructions fall 2.13% and 3.46%. The 16 repository comparisons are all valid.
+The older LAN-build comparison and deployment are still pending. Historical
+sweep progress remains paused at 64/109.
+
+The sections below retain the intermediate evidence and decisions; earlier
+candidate-only status statements describe their checkpoints.
 
 Recovered historical gains are being checked against runtime `4a339da9a` before
 adoption. A modest Snakes regression is acceptable for a worthwhile Sky Force

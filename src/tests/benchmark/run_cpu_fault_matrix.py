@@ -14,7 +14,7 @@ parser.add_argument('--literal-pc-veneers',action='store_true',help='Include run
 parser.add_argument('--exit-census',type=int,choices=(0,1))
 parser.add_argument('--predicated-leaves', type=int, choices=(0,1))
 parser.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
-parser.add_argument('--ir-policy', type=int, choices=(0,4,5,6,7,17), required=True)
+parser.add_argument('--ir-policy', type=int, choices=(0,4,5,6,7,17,18), required=True)
 parser.add_argument('--long', action='store_true', help='Include 128-instruction coverage fixture')
 parser.add_argument('--code-compare', type=int, choices=(0,2))
 a = parser.parse_args()

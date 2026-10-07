@@ -48,6 +48,7 @@ namespace eka2l1::arm::aot {
         static constexpr std::uint32_t AOT_CODE_END = 860;
         static constexpr std::uint32_t AOT_EXIT = 864;
         static constexpr std::uint32_t NIRQ = 876;
+        static constexpr std::uint32_t AOT_SVC_INSTRUCTIONS = 896;
 
         // VFP system registers (FPSID, FPSCR, FPEXC, ...)
         static constexpr std::uint32_t VFP_SYS = 496;
@@ -78,7 +79,8 @@ namespace eka2l1::arm::aot {
         wasm_func_def func;
         bool entry_supported = true;
         // Research coverage metadata; never used to select guest addresses.
-        unsigned proved_reads = 0, proved_writes = 0, budget_chunks = 0, loop_budget_chunks = 0;
+        unsigned proved_reads = 0, proved_writes = 0, budget_chunks = 0, loop_budget_chunks = 0, deferred_count_updates = 0, entry_budget_instructions = 0;
+        unsigned division_groups = 0;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call
         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling
@@ -133,7 +135,8 @@ namespace eka2l1::arm::aot {
     };
 
     // Translate a block of Thumb code into a WASM function body.
-    // The function takes one i32 parameter (state_ptr) and returns i32 (instruction count).
+    // The function takes state_ptr (i32) and returns the instruction count,
+    // or zero with a pending SVC and its logical count stored in CPU state.
     //
     // start_address: the ARM address of the first instruction (used for branch target resolution)
     // code: pointer to Thumb bytecode

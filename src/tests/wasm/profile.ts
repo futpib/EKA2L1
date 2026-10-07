@@ -24,6 +24,16 @@ if (!Number.isSafeInteger(guestProfile) || guestProfile < 0 || guestProfile > 21
   throw new Error('EKA2L1_GUEST_PROFILE must be a nonnegative sample stride');
 const exitCensus = process.env.EKA2L1_EXIT_CENSUS === "1";
 if(exitCensus && !guestProfile) throw new Error("Exit census requires guest profiling");
+const divisionDigits = Number(process.env.EKA2L1_DIVISION_DIGITS ?? compilerDefaults.divisionDigits);
+if (![0,1].includes(divisionDigits)) throw Error('Division digits must be 0 or 1');
+const sparseRom = Number(process.env.EKA2L1_SPARSE_ROM_LOOKUP ?? compilerDefaults.sparseRom);
+if (![0,1].includes(sparseRom)) throw Error('sparseRom must be 0 or 1');
+const entryOnlyPruning = Number(process.env.EKA2L1_ENTRY_ONLY_PRUNING ?? compilerDefaults.entryOnlyPruning);
+if (![0,1].includes(entryOnlyPruning)) throw Error('entryOnlyPruning must be 0 or 1');
+const entryBudget = Number(process.env.EKA2L1_ENTRY_BUDGET ?? compilerDefaults.entryBudget);
+if (![0,1,2].includes(entryBudget)) throw Error('Entry budget must be 0, 1 or 2');
+const compiledSvc = Number(process.env.EKA2L1_COMPILED_SVC ?? compilerDefaults.compiledSvc);
+if (![0,1].includes(compiledSvc)) throw Error('Compiled syscall policy must be 0 or 1');
 const thumbMemory = Number(process.env.EKA2L1_THUMB_MEMORY ?? compilerDefaults.thumbMemory);
 if (![-1,0,1].includes(thumbMemory)) throw Error('Invalid Thumb memory policy');
 rejectRetiredCompilerOptions();
@@ -60,7 +70,7 @@ if (!/^\d+,\d+,\d+,\d+$/.test(limitsText) || executionLimits.length!==4 || execu
     || executionLimits[0]<128 || executionLimits[0]>2048 || executionLimits[0]%4 || executionLimits[1]<1 || executionLimits[1]>64
     || executionLimits[2]<0 || executionLimits[2]>16 || executionLimits[3]<0 || executionLimits[3]>4096) throw new Error('Invalid execution limits');
 const irMode = Number(process.env.EKA2L1_AOT_IR_MODE ?? compilerDefaults.irMode);
-if (![-1,0,4,5,6,7,17].includes(irMode)) throw Error('Invalid compiler policy');
+if (![-1,0,4,5,6,7,17,18].includes(irMode)) throw Error('Invalid compiler policy');
 const hotpathPolicy = Number(process.env.EKA2L1_HOTPATH ?? compilerDefaults.hotpath);
 if (![-1,0,2].includes(hotpathPolicy)) throw Error('Hotpath policy must be 0 or 2');
 const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
@@ -145,7 +155,7 @@ try {
   if (diagnosticsAvailable === false && (detailedProfile || guestProfile || exitCensus || aotDiagnostics))
     throw new Error('Custom diagnostics require a build with -DEKA2L1_WASM_DIAGNOSTICS=ON');
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
+  await page.evaluate(async ({divisionDigits, entryBudget, entryOnlyPruning, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -204,6 +214,21 @@ try {
       if (g.Module.ccall('eka2l1_thumb_memory_report', 'number', [], []) !== thumbMemory)
         throw Error('Thumb memory policy readback mismatch');
     }
+    call('eka2l1_division_digits_configure', ['number'], [divisionDigits]);
+    g.divisionDigitsActual = g.Module._eka2l1_division_digits_report();
+    if (g.divisionDigitsActual !== divisionDigits) throw Error('Division digits readback mismatch');
+    call('eka2l1_sparse_rom_lookup_configure', ['number'], [sparseRom]);
+    g.sparseRomActual = g.Module._eka2l1_sparse_rom_lookup_report();
+    if (g.sparseRomActual !== sparseRom) throw Error('sparseRom readback mismatch');
+    call('eka2l1_entry_only_pruning_configure', ['number'], [entryOnlyPruning]);
+    g.entryOnlyPruningActual = g.Module._eka2l1_entry_only_pruning_report();
+    if (g.entryOnlyPruningActual !== entryOnlyPruning) throw Error('entryOnlyPruning readback mismatch');
+    call('eka2l1_entry_budget_configure', ['number'], [entryBudget]);
+    g.entryBudgetActual = g.Module._eka2l1_entry_budget_report();
+    if (g.entryBudgetActual !== entryBudget) throw Error('Entry budget readback mismatch');
+    call('eka2l1_compiled_svc_configure', ['number'], [compiledSvc]);
+    g.compiledSvcActual = g.Module._eka2l1_compiled_svc_report();
+    if (g.compiledSvcActual !== compiledSvc) throw Error('Compiled syscall readback mismatch');
     if (armExclusive !== -1) call('eka2l1_arm_exclusive_configure', ['number'], [armExclusive]);
     g.armExclusiveActual = typeof g.Module._eka2l1_arm_exclusive_report === 'function' ? g.Module._eka2l1_arm_exclusive_report() : null;
     if (armExclusive !== -1 && g.armExclusiveActual !== armExclusive) throw Error('ARM exclusive readback mismatch');
@@ -225,6 +250,11 @@ try {
         || g.Module._eka2l1_hotpath_report() !== hotpathPolicy)) throw Error('Hotpath policy changed after initialization');
     if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
       throw Error('Thumb memory policy changed after initialization');
+    if (g.Module._eka2l1_division_digits_configure(1-divisionDigits) !== -1) throw Error('Division digits changed after initialization');
+    if (g.Module._eka2l1_sparse_rom_lookup_configure(1-sparseRom) !== -1) throw Error('sparseRom changed after initialization');
+    if (g.Module._eka2l1_entry_only_pruning_configure(1-entryOnlyPruning) !== -1) throw Error('entryOnlyPruning changed after initialization');
+    if (g.Module._eka2l1_entry_budget_configure((entryBudget+1)%3) !== -1) throw Error('Entry budget changed after initialization');
+    if (g.Module._eka2l1_compiled_svc_configure(1-compiledSvc) !== -1) throw Error('Compiled syscall policy changed after initialization');
     if (armExclusive !== -1 && g.Module._eka2l1_arm_exclusive_configure(1-armExclusive) !== -1) throw Error('ARM exclusive changed after initialization');
     if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
       if(g.Module._eka2l1_unsafe_code_report()!==unsafeCode || g.Module._eka2l1_unsafe_code_configure(unsafeCode===3?0:3)!==-1)
@@ -250,7 +280,7 @@ try {
       }
     }
     call('eka2l1_run', ['string'], [appUid]);
-  }, {hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
+  }, {divisionDigits, entryBudget, entryOnlyPruning, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, captureMode, endUs, aot, verifyAot, aotDiagnostics, guestProfile, exitCensus, glDiagnostics, detailedProfile, monitor, sharedAudio});
   async function waitPhase(phase: number) {
     const deadline = performance.now() + 1800000;
     while (await page.evaluate(() => (window as any).Module._eka2l1_profile_phase()) !== phase) {
@@ -420,7 +450,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
 
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({division_digits: await page.evaluate(() => (globalThis as any).divisionDigitsActual), entry_budget: await page.evaluate(() => (globalThis as any).entryBudgetActual), entry_only_pruning: await page.evaluate(() => (globalThis as any).entryOnlyPruningActual), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
     purpose: sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
     cpu_time: cpuTime,
     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,

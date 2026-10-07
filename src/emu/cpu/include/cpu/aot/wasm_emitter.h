@@ -74,6 +74,7 @@ namespace eka2l1::arm::aot {
         op_i32_add = 0x6A,
         op_i32_sub = 0x6B,
         op_i32_mul = 0x6C,
+        op_i32_div_u = 0x6E,
         op_i32_and = 0x71,
         op_i32_or = 0x72,
         op_i32_xor = 0x73,

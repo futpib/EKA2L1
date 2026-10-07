@@ -365,6 +365,7 @@ public:
     unsigned NtransSig;
     unsigned bigendSig;
     unsigned syscallSig;
+    std::uint32_t aot_svc_instructions = 0; // Logical count when a trap returns the chain-stop sentinel.
 
     // Data TLB shared with the owning dyncom_core (== core->mem_cache()), cached
     // here so the inline memory accessors above don't need the full dyncom_core

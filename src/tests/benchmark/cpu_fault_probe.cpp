@@ -301,7 +301,120 @@ static int thumb_exchange_probe() {
     return 0;
 }
 
+#ifdef __EMSCRIPTEN__
+// Test-only wrappers prove generated execution even in diagnostics-free builds.
+static std::unordered_map<std::uint32_t, aot::aot_func> svc_probe_functions;
+static std::uint64_t svc_probe_instructions = 0;
+static std::uint32_t svc_probe_run(ARMul_State *cpu) {
+    const auto count = svc_probe_functions.at(cpu->Reg[15] | cpu->TFlag)(cpu);
+    svc_probe_instructions += !count && (cpu->aot_exit & aot::svc_pending) ? cpu->aot_svc_instructions : count;
+    return count;
+}
+#endif
+
+// Generated SVC and continuation against native DynCom, including kernel-visible
+// state and changes to budgets, flags, PC, IRQ and exclusive reservations.
+
+static int compiled_svc_probe(aot::arm_ir_policy compiler_policy) {
+    aot::compiled_svc_enabled = true;
+    unsigned cases=0;
+    for(unsigned chain:{0u,1u}) for(unsigned thumb:{0u,1u}) for(unsigned region:{0u,1u})
+    for(unsigned shape:{0u,1u,2u}) for(unsigned page:{0u,1u})
+    for(unsigned cond:{0u,1u,14u}) for(unsigned z:{0u,1u}) {
+        if(thumb && cond!=14)continue;
+        for(unsigned budget:{1u,2u,3u,4u,8u,12u}) for(unsigned policy=0;policy<9;++policy) {
+            r12l1::exclusive_monitor monitor(2);dyncom_core cpu(&monitor,12);
+            auto *state=matched_kernel_access::state(cpu);
+            std::vector<unsigned char> memory(65536,0);
+            const unsigned width=thumb?2:4;
+            const unsigned start=page?0x2000-width*(shape==1?2:1):0x1000;
+            std::vector<unsigned> addresses;
+            for(unsigned i=0;i<32;++i) {
+                const unsigned a=start+i*width;addresses.push_back(a);
+                if(thumb) {const std::uint16_t op=0x3401;std::memcpy(memory.data()+a,&op,2);}
+                else {const unsigned op=0xe2844001;std::memcpy(memory.data()+a,&op,4);}
+            }
+            auto write_svc=[&](unsigned index) {
+                if(thumb){const std::uint16_t op=0xdf56;std::memcpy(memory.data()+start+index*2,&op,2);}
+                else {const unsigned op=(cond<<28)|0x0f123456;std::memcpy(memory.data()+start+index*4,&op,4);}
+            };
+            write_svc(shape==1?1:0);if(shape==2)write_svc(2);
+            if(shape==1){if(thumb){const std::uint16_t op=0x3501;std::memcpy(memory.data()+start,&op,2);}else{const unsigned op=0xe2955001;std::memcpy(memory.data()+start,&op,4);}}
+            // Terminal branch bounds decoding without affecting these short runs.
+            if(thumb){const std::uint16_t op=0xe7fe;std::memcpy(memory.data()+start+62,&op,2);}
+            else {const unsigned op=0xeafffffe;std::memcpy(memory.data()+start+124,&op,4);}
+            cpu.read_code=[&](unsigned a,unsigned *v){if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;};
+            // Mode-changing callbacks can expose the same bytes through the
+            // other decoder; provide the complete ordinary memory interface.
+#define SVC_ACCESS(bits,type) cpu.read_##bits##bit=[&](unsigned a,type*v){if(a>memory.size()-sizeof(type)){*v=0;return false;}std::memcpy(v,memory.data()+a,sizeof(type));return true;};cpu.write_##bits##bit=[&](unsigned a,type*v){if(a>memory.size()-sizeof(type))return false;std::memcpy(memory.data()+a,v,sizeof(type));return true;};
+            SVC_ACCESS(8,std::uint8_t) SVC_ACCESS(16,std::uint16_t) SVC_ACCESS(32,std::uint32_t) SVC_ACCESS(64,std::uint64_t)
+#undef SVC_ACCESS
+            cpu.exception_handler=[](exception_type,unsigned){return false;};
+            monitor.read_32bit=[&](core*,unsigned a,unsigned*v){if(a>memory.size()-4)return false;std::memcpy(v,memory.data()+a,4);return true;};
+            monitor.exclusive_read32(&cpu,0x8000);monitor.restore(1,monitor.snapshot(0));
+            for(unsigned i=0;i<16;++i)cpu.set_reg(i,0x12340000+i);
+            cpu.set_reg(5,z?0xffffffff:5);cpu.set_pc(start);cpu.set_cpsr(0x10|(thumb?32:0)|(z?0x40000000:0));
+            std::vector<std::string> events;
+            cpu.system_call_handler=[&](unsigned number){
+                const auto m=monitor.snapshot(0);
+                events.push_back("{\"number\":"+std::to_string(number)+",\"regs\":"+regs(cpu)+",\"cpsr\":"+std::to_string(cpu.get_cpsr())+",\"budget\":"+std::to_string(state->NumInstrsToExecute)+",\"reservation\":"+std::to_string(m.address)+"}");
+                if(policy==1)cpu.stop();
+                if(policy==2){cpu.set_reg(4,0x76543210);cpu.set_cpsr(cpu.get_cpsr()^0xf0000000u);}
+                if(policy==3)cpu.set_pc(start+8*width);
+                if(policy==4)state->NirqSig=0;
+                if(policy==5){state->NumInstrsToExecute=16;state->NirqSig=0;}
+                if(policy==6)cpu.set_cpsr(cpu.get_cpsr()^32u);
+                if(policy==7){state->NumInstrsToExecute=3;cpu.set_pc(start+8*width);}
+                if(policy==8){memory[0x8000]=0xa5;cpu.set_reg(4,0x8000);}
+            };
+#ifdef __EMSCRIPTEN__
+            aot::global_registry().clear();std::vector<aot::wasm_func_def> functions;
+            for(unsigned i=0;i<32;++i) {
+                const auto a=addresses[i];
+                auto tr=thumb?aot::translate_thumb_block(memory.data()+a,(32-i)*width,a,nullptr,nullptr,true,false,true)
+                    :aot::translate_arm_block(memory.data()+a,(32-i)*width,a,nullptr,nullptr,true,false,true,region,nullptr,false,compiler_policy);
+                if(!tr.entry_supported||!tr.complete){std::cerr<<"SVC fixture rejected "<<thumb<<' '<<i<<'\n';return 2;}
+                tr.func.export_name="f_"+std::to_string(a|thumb);functions.push_back(std::move(tr.func));
+            }
+            stage_boundary_probe(functions,{},"svc-probe");
+            aot::chaining_enabled = chain != 0;
+            svc_probe_functions.clear();svc_probe_instructions=0;
+            for (auto address : addresses) {
+                const auto key=address|thumb;
+                svc_probe_functions.emplace(key,aot::global_registry().lookup(key));
+                aot::global_registry().register_function(key,svc_probe_run);
+            }
+#endif
+            cpu.run(budget);const auto count=cpu.get_num_instruction_executed();
+#ifdef __EMSCRIPTEN__
+            // Mode-change-without-PC-change may need a semantic fallback. Record
+            // it separately; never count interpreter work as generated work.
+            if(policy!=6 && budget!=1 && svc_probe_instructions!=count){std::cerr<<"SVC probe used interpreter\n";return 3;}
+#endif
+            auto m0=monitor.snapshot(0),m1=monitor.snapshot(1);
+            std::cout<<"FAULT {\"id\":"<<cases++<<",\"chain\":"<<chain<<",\"thumb\":"<<thumb<<",\"region\":"<<region<<",\"shape\":"<<shape<<",\"page\":"<<page<<",\"condition\":"<<cond<<",\"z\":"<<z<<",\"budget\":"<<budget<<",\"policy\":"<<policy
+                <<",\"regs\":"<<regs(cpu)<<",\"cpsr\":"<<cpu.get_cpsr()<<",\"count\":"<<count<<",\"remaining\":"<<state->NumInstrsToExecute<<",\"irq\":"<<state->NirqSig<<",\"data\":"<<unsigned(memory[0x8000])<<",\"monitor\":["<<m0.address<<','<<m1.address<<"],\"events\":[";
+            for(unsigned i=0;i<events.size();++i){if(i)std::cout<<',';std::cout<<events[i];}
+            std::cout<<"]}\n";
+        }
+    }
+    return 0;
+}
+
 int main(int argc, char **argv){
+    if(argc>1 && std::strncmp(argv[argc-1],"--entry-budget-mode=",20)==0) {
+        const std::string value(argv[argc-1]+20);
+        if(value!="0" && value!="1" && value!="2")return 1;
+        aot::entry_budget_mode=static_cast<unsigned>(value[0]-'0');--argc;
+    }
+    std::cout<<"PROBE_ENTRY_BUDGET "<<aot::entry_budget_mode<<"\n";
+    if(argc>1 && std::strncmp(argv[argc-1],"--aot-verify=",13)==0) {
+        const std::string value(argv[argc-1]+13);
+        if(value!="0" && value!="1")return 1;
+        if(value=="1")setenv("EKA2L1_AOT_VERIFY","1",1);else unsetenv("EKA2L1_AOT_VERIFY");
+        --argc;
+    }
+    std::cout<<"PROBE_AOT_VERIFY "<<(std::getenv("EKA2L1_AOT_VERIFY")?1:0)<<"\n";
     // Standalone callback fixtures use the TLB without an emulated MMU.
     aot::memory_experiment::mode=0;
     if(argc>1 && std::strncmp(argv[argc-1],"--unsafe-code=",14)==0) {
@@ -358,7 +471,7 @@ int main(int argc, char **argv){
         --argc;
     }
     std::cout << "PROBE_POLICY " << static_cast<int>(ir_policy) << "\n";
-    if (argc > 2 || (argc == 2 && std::string(argv[1]) != "--arm-exclusive"
+    if (argc > 2 || (argc == 2 && std::string(argv[1]) != "--compiled-svc" && std::string(argv[1]) != "--arm-exclusive"
         && std::string(argv[1]) != "--arm-leaf-memory"
         && std::string(argv[1]) != "--deferred"
         && std::string(argv[1]) != "--entry-budget"
@@ -399,6 +512,7 @@ int main(int argc, char **argv){
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
     eka2l1::log::filterings->reset_all(spdlog::level::off);
     if(argc==2 && std::string(argv[1])=="--thumb-exchange") return thumb_exchange_probe();
+    if(argc==2 && std::string(argv[1])=="--compiled-svc") return compiled_svc_probe(ir_policy);
     if(argc==2 && std::string(argv[1])=="--arm-exclusive") return arm_exclusive_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-calls")return thumb_call_probe();
     if(argc==2 && std::string(argv[1])=="--thumb-memory")return thumb_memory_fault_probe(true);
@@ -555,7 +669,7 @@ int main(int argc, char **argv){
                 std::cerr<<"Predicated call fusion selection mismatch\n";return 4;
             }
 
-            const auto checked_policy = (ir_policy == aot::arm_ir_policy::loop_budget_chunks)
+            const auto checked_policy = (ir_policy == aot::arm_ir_policy::loop_budget_chunks || ir_policy == aot::arm_ir_policy::batched_instruction_counts)
                 ? aot::arm_ir_policy::write_budget_chunks : ir_policy;
             const bool writes = checked_policy == aot::arm_ir_policy::invariant_writes
                 || checked_policy == aot::arm_ir_policy::write_budget_chunks;

@@ -62,6 +62,15 @@ whole access range, and the fallback table requires the access to fit in one
 page. TLB retains its alignment checks. See the
 [alignment measurements and adoption](../benchmark/UNALIGNED_SCALAR_RESULTS.md).
 
+Compiled syscalls (`EKA2L1_COMPILED_SVC=1`), sparse ROM lookup
+(`EKA2L1_SPARSE_ROM_LOOKUP=1`) and outlined entry budgets
+(`EKA2L1_ENTRY_BUDGET=2`) are enabled by default. Entry-budget mode 0 retains
+per-span checks; mode 1 uses inline recovery. These policies are frozen before
+initialization. Division lowering (`EKA2L1_DIVISION_DIGITS=0`), entry-only pruning
+(`EKA2L1_ENTRY_ONLY_PRUNING=0`) and static count batching (IR mode 18) remain
+opt-in; full state pruning and IR mode 17 remain the defaults. See the
+[combined measurements and graduation](../benchmark/RECOVERED_DEFAULTS_RESULTS.md).
+
 Run the actual browser integration check against a running launcher:
 
 ```sh
