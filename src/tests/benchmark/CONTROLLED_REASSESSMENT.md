@@ -200,6 +200,16 @@ An archive audit reconciled all 138 build selections against the experiment or
 baseline archive reports. Its paths, hashes and these stage distinctions are
 recorded in `provenance-audit.json` in the campaign directory.
 
+An additional report/plan audit checked 6,771 reported selector values across
+441 completed attempts, including retained clock-invalid attempts. It found no
+mismatches and no missing selector that distinguishes a candidate from its
+control. `observed-selector-audit.json` and its reproducible script preserve
+the audit. These are checks of reported settings; runtime getter assertions
+depend on the archived harness. The older batching and span-page-reuse reports
+lack `memory_impl` (32 observations in total): their fixed TLB implementation
+predates that report field, so no dynamic memory-mode readback is claimed.
+
+
 Warmed guest-worker CPU time is the main metric. Wall time, native retired
 instructions, cycles, actual frequency and all four adjacent pair changes
 remain visible. Warmup, build time and offline compiler probes are excluded.
