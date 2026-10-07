@@ -11,8 +11,13 @@ seconds 78-96. CPU throughput falls by 1.09% and wall throughput by 1.07%;
 all four CPU pairs favor the control (-2.84% to -0.37%). Native instructions
 fall by only 0.030%. All eight observations pass the clock and host checks.
 The original rejection remains supported for this archived configuration,
-although its much larger apparent loss does not repeat. The independent
-incoming-register comparison is still running.
+although its much larger apparent loss does not repeat.
+
+The independent incoming-register comparison is effectively flat: -0.14% CPU
+and -0.08% wall throughput, with 0.059% more native instructions. Two of four
+CPU pairs are faster; their range is -1.09% to +0.81%. All eight observations
+pass the host checks. The original approximately 7% wall-throughput loss does
+not repeat, but the controlled rerun does not establish a runtime gain.
 
 The archived flag patch materializes pending recipes before every memory
 instruction. The baseline's scalar ARM loads call the memory helpers. Preserving recipes across today's proven inline
