@@ -1,7 +1,7 @@
 {
-  "status": "awaiting_comparison_review",
+  "status": "complete",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
-  "reason": "User requested pausing at each winner, graduating it on the current runtime, then automatically resuming until the historical sweep is complete.",
+  "reason": "All frozen historical comparisons, interleaved graduation decisions and the final combined measurement are complete. The combined Sky Force regression is recorded explicitly; no new campaign is queued.",
   "completed_comparisons": 109,
   "total_comparisons": 109,
   "valid_observations": 872,
@@ -169,10 +169,11 @@
       "branch-veneer-fusion",
       "tail-prefix-fusion",
       "bounded-rom-calls"
-    ]
+    ],
+    "status": "complete"
   },
   "active_phase": null,
-  "last_progress_utc": "2026-10-08T09:06:40.279412+00:00",
+  "last_progress_utc": "2026-10-08T09:34:04.676140+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -182,7 +183,7 @@
     "history": "/home/claude/.scratch/eka-controlled/resume8-watch-history.jsonl",
     "alert": "/home/claude/.scratch/eka-controlled/resume8-watch-alert.json",
     "assistant_review": "Inspect live logs and every completed experiment; review gate prevents the next experiment until a decision is recorded.",
-    "status": "running",
+    "status": "complete",
     "processes": "/home/claude/.scratch/eka-controlled/resume8-processes.json"
   },
   "reviewed_after_resumption": [
@@ -415,7 +416,7 @@
   "active_experiment": null,
   "active_log": null,
   "active_host": null,
-  "review_request": "/home/claude/.scratch/eka-controlled/memory-tlb-unaligned-scalar-review-request-resume8.json",
+  "review_request": null,
   "graduation_history": [
     {
       "time_utc": "2026-10-07T18:25:10.826175+00:00",
@@ -844,14 +845,14 @@
   ],
   "build_output_reconciliation": {
     "needed": false,
-    "reason": "Rejected bounded-ROM-call source was restored, but build-wasm runtime/test outputs still reflect its candidate. Rebuild test_aot_wasm and eka2l1_wasm from restored source after hardware timing completes, or during a review gate. Do not overlap timing. Preserve current deployed frozen tail artifact.",
+    "reason": "Rejected ROM-call source was restored and both test/runtime targets rebuilt during a review gate. All six runtime outputs exactly match the validated deployed artifact.",
     "current_deployed_artifact": "/home/claude/.scratch/eka-tail-current/candidate-build",
     "deployed_runtime_commit": "7f5f85273",
     "passed": true,
     "evidence": "/home/claude/.scratch/eka-controlled/main-build-reconciliation.json"
   },
   "final_combined_measurement": {
-    "status": "planned_after_sweep",
+    "status": "complete",
     "control_runtime_commit": "632c3d433",
     "control_artifact": "/home/claude/.scratch/eka-promote-recovered/final-build",
     "control_leaf_features": 128,
@@ -862,6 +863,144 @@
       512
     ],
     "candidate": "Latest graduated runtime after all historical comparisons",
-    "purpose": "Measure the combined gains since resuming the sweep without adding individual percentages."
-  }
+    "purpose": "Measure the combined gains since resuming the sweep without adding individual percentages.",
+    "directory": "/home/claude/.scratch/eka-sweep-bottom-line",
+    "plan": "/home/claude/.scratch/eka-sweep-bottom-line/current-plan.json",
+    "candidate_runtime_commit": "7f5f85273",
+    "candidate_artifact": "/home/claude/.scratch/eka-tail-current/candidate-build",
+    "candidate_leaf_features": 224,
+    "candidate_execution_limits": [
+      512,
+      32,
+      8,
+      512
+    ],
+    "artifacts": {
+      "control": {
+        "path": "/home/claude/.scratch/eka-promote-recovered/final-build",
+        "hashes": {
+          "eka2l1.js": "d94f31a9fd83cc33e9ecdb0dda41f1b6283216257661ae0f930c95b24c3bd9b3",
+          "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+          "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "eka2l1.wasm": "90a592686582bbe11ddae12296ba9c793c2fc63660ac0cba9c1354356ccbc102"
+        },
+        "manifest": "/home/claude/.scratch/eka-promote-recovered/final-hashes.json"
+      },
+      "candidate": {
+        "path": "/home/claude/.scratch/eka-tail-current/candidate-build",
+        "hashes": {
+          "eka2l1.js": "d94f31a9fd83cc33e9ecdb0dda41f1b6283216257661ae0f930c95b24c3bd9b3",
+          "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+          "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+          "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+          "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+          "eka2l1.wasm": "4bdb01dab90af78db286ff529d5a25a5160cf51700550b3d3899c4193fb2a86a"
+        },
+        "manifest": "/home/claude/.scratch/eka-tail-current/final-hashes.json"
+      }
+    },
+    "completed_at_utc": "2026-10-08T09:34:04.676140+00:00",
+    "valid_observations": 16,
+    "invalid_observations": 0,
+    "comparisons": [
+      {
+        "phase": "current",
+        "experiment": "sweep-graduations-combined",
+        "game": "standard",
+        "original_report": "SWEEP_COMBINED_RESULTS.md",
+        "valid": 8,
+        "invalid": 0,
+        "expected": 8,
+        "complete": true,
+        "control": {
+          "worker_cpu_seconds": 7.70673867875,
+          "cycles": 27610483452.75,
+          "instructions": 63351901495,
+          "wall_seconds": 9.2355675,
+          "cpu_seconds_range": [
+            7.687213752,
+            7.718454488
+          ]
+        },
+        "candidate": {
+          "worker_cpu_seconds": 7.51411637225,
+          "cycles": 26917949282.25,
+          "instructions": 61313586642,
+          "wall_seconds": 9.03599,
+          "cpu_seconds_range": [
+            7.476909766,
+            7.546280329
+          ]
+        },
+        "cpu_throughput_change_percent": 2.56347249573301,
+        "wall_throughput_change_percent": 2.2086954500835088,
+        "native_instruction_change_percent": -3.2174485767579863,
+        "paired_cpu_throughput_changes_percent": [
+          2.1464685813766815,
+          2.281576505160343,
+          2.759032323588162,
+          3.071345223988886
+        ],
+        "favorable_pairs": 4,
+        "frequency_mhz_range": [
+          3591.5603927719426,
+          3591.580438309491
+        ],
+        "direction": "all pairs faster"
+      },
+      {
+        "phase": "current",
+        "experiment": "sweep-graduations-combined",
+        "game": "combat",
+        "original_report": "SWEEP_COMBINED_RESULTS.md",
+        "valid": 8,
+        "invalid": 0,
+        "expected": 8,
+        "complete": true,
+        "control": {
+          "worker_cpu_seconds": 24.53481436725,
+          "cycles": 87994968728.25,
+          "instructions": 221974822865.75,
+          "wall_seconds": 26.94475,
+          "cpu_seconds_range": [
+            24.220306291,
+            24.876643552
+          ]
+        },
+        "candidate": {
+          "worker_cpu_seconds": 24.985452431,
+          "cycles": 89605574314,
+          "instructions": 221960732545.25,
+          "wall_seconds": 27.3991,
+          "cpu_seconds_range": [
+            24.269706992,
+            25.773451808
+          ]
+        },
+        "cpu_throughput_change_percent": -1.8036017758513045,
+        "wall_throughput_change_percent": -1.6582661474282112,
+        "native_instruction_change_percent": -0.006347711113396937,
+        "paired_cpu_throughput_changes_percent": [
+          1.1153295591464163,
+          -4.933519962604771,
+          -4.188541707543026,
+          1.044398863869045
+        ],
+        "favorable_pairs": 2,
+        "frequency_mhz_range": [
+          3591.5971520455832,
+          3591.6089377272633
+        ],
+        "direction": "mixed pairs"
+      }
+    ],
+    "report": "src/tests/benchmark/SWEEP_COMBINED_RESULTS.md",
+    "restoration_passed": true,
+    "restoration_checks": 88,
+    "decision": "The combined additions since 632c3d433 improve Snakes CPU throughput 2.56% with all four pairs faster, but reduce Sky Force throughput 1.80% with two faster and two slower pairs. This is a measured tradeoff, not a demonstrated two-game win. Every valid observation is retained. The closing comparison makes no further promotion or rollback; the previously graduated runtime 7f5f85273 remains deployed. The Sky Force loss remains an explicit limitation requiring targeted isolation before claiming an overall two-game improvement."
+  },
+  "completed_utc": "2026-10-08T09:07:50.291151+00:00",
+  "completed_at_utc": "2026-10-08T09:34:04.676140+00:00"
 }

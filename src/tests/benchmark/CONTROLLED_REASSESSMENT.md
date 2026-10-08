@@ -1,5 +1,12 @@
 # Reassessment of optimization timing decisions
 
+Status: completed on 2026-10-08. All 109 game comparisons and 872 valid
+observations are recorded, with 20 earlier invalid attempts retained. The
+[final combined measurement](SWEEP_COMBINED_RESULTS.md) gives Snakes +2.56%
+CPU throughput and Sky Force -1.80%; the combination is not a demonstrated
+two-game win. Host settings are restored and no benchmark is queued. The
+resumption and interleaved-graduation sections below preserve earlier checkpoints.
+
 The previous uncontrolled-clock measurements do not establish that small gains
 or regressions came from an optimization. This campaign reopens those verdicts
 using frozen builds, identical guest work, measured CPU frequency and a reserved
