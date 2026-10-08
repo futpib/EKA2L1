@@ -41,6 +41,7 @@
 #include <vector>
 #include <array>
 #include "pointer_lifetime_fixture.h"
+#include "division_helper_fixture.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -4508,6 +4509,17 @@ static std::vector<unsigned> lifetime_reads(unsigned count, unsigned base=1) {
     for(unsigned n=0;n<count;++n)words.push_back(0xe5900000u|(base<<16)|((n+1==count?base:6u)<<12)|(n*4));
     return words;
 }
+static void emit_division_helper_probe() {
+    memory_experiment::mode=2;entry_budget_mode=2;
+    eka2l1::common::code_tracking::unsafe_code_mode=3;
+    auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(division_helper_fixture),
+        sizeof(division_helper_fixture),0x80191968,nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
+    auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+    emit_memory_layout();
+    js_export_memory_probe("division-helper",module.data(),module.size(),2,0,tr.summarized_helpers);
+}
+
 static void emit_lifetime_probes() {
     emit_memory_layout();
     const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
@@ -4533,6 +4545,67 @@ static void emit_lifetime_probes() {
 }
 
 #endif
+
+static bool test_division_helper() {
+#ifdef __EMSCRIPTEN__
+    struct restore_settings {
+        unsigned memory=memory_experiment::mode,entry=entry_budget_mode;
+        ~restore_settings(){memory_experiment::mode=memory;entry_budget_mode=entry;}
+    } saved;
+    unsigned random=0x923451ac,checks=0;
+    auto next=[&](){random^=random<<13;random^=random>>17;random^=random<<5;return random;};
+    const unsigned edge[]={0,1,2,3,7,15,16,17,255,256,257,0x101e,0x40000000,
+        0x7fffffff,0x80000000,0x80000001,0xffffefe2,0xfffffffe,0xffffffff};
+    std::vector<std::pair<unsigned,unsigned>> operands;
+    for(auto n:edge)for(auto d:edge)operands.emplace_back(n,d);
+    for(unsigned q:{255u,256u,16383u,16384u,1048575u,1048576u,67108863u,67108864u})
+    for(unsigned d:{1u,3u,257u,0x101eu})for(unsigned rem:{0u,d-1}) {
+        const auto n=std::uint64_t(q)*d+rem;if(n>0x80000000u)continue;
+        for(unsigned sign=0;sign<4;++sign)operands.emplace_back(sign&1?0u-unsigned(n):unsigned(n),sign&2?0u-d:d);
+    }
+    for(unsigned n=0;n<512;++n)operands.emplace_back(next(),next());
+    for(unsigned mode:{0u,2u})for(unsigned entry:{0u,2u})for(unsigned address:{0x1000u,0x4000u}) {
+        memory_experiment::mode=mode;entry_budget_mode=entry;
+        const auto *bytes=reinterpret_cast<const std::uint8_t*>(division_helper_fixture);
+        auto tr=translate_arm_block(bytes,sizeof(division_helper_fixture),address,nullptr,nullptr,
+            true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
+        if(tr.summarized_helpers!=1){printf(" FAIL whole helper selection\n");return false;}
+        auto module=build_wasm_module({tr.func});
+        test_mem memory;memory.write_code(address,{bytes,bytes+sizeof(division_helper_fixture)});
+        r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(memory,monitor);
+        for(auto [n,d]:operands)for(unsigned budget:{0u,1u,4u,8u,24u,62u,63u,64u,86u,87u,88u,114u,115u,116u,134u,135u,136u,256u}) {
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg)state[reg]=next();
+            state[0]=n;state[1]=d;state[14]=0x8000;state[15]=address;
+            const auto cpsr=(next()&0xf0000000u)|16;reference->set_cpsr(cpsr);
+            for(unsigned reg=0;reg<16;++reg)reference->set_reg(reg,state[reg]);
+            state[state_offsets::CPSR/4]=cpsr;state[state_offsets::MODE/4]=16;
+            for(unsigned f=0;f<4;++f)state[test_flag_offsets[f]/4]=(cpsr>>(31-f))&1;
+            state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+            if(count<0||count>int(budget)){printf(" FAIL helper budget\n");return false;}
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf(" FAIL helper R%u n=%x d=%x budget=%u count=%d got=%x expected=%x\n",reg,n,d,budget,count,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[test_flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1)) {
+                printf(" FAIL helper flags n=%x d=%x budget=%u count=%d flag=%u\n",n,d,budget,count,f);return false;
+            }
+            ++checks;
+        }
+    }
+    // Every instruction participates in the signature, except the external
+    // zero-divisor branch displacement, whose original execution is retained.
+    for(unsigned i=0;i<sizeof(division_helper_fixture)/4;++i) {
+        auto changed=std::vector<unsigned>(std::begin(division_helper_fixture),std::end(division_helper_fixture));changed[i]^=1;
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(changed.data()),changed.size()*4,0x1000,
+            nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
+        if(tr.summarized_helpers!=(i==58?1u:0u)){printf(" FAIL helper byte guard %u\n",i);return false;}
+    }
+    printf(" PASS complete division helper (%u independent ARM state/flags/count comparisons)\n",checks);
+#endif
+    return true;
+}
 
 static bool test_pointer_lifetimes() {
 #ifdef __EMSCRIPTEN__
@@ -6057,6 +6130,8 @@ int main(int argc, char **argv) {
     }
     if(argc==2 && std::string(argv[1])=="--lookup-only") return test_code_cache_lifecycle()?0:1;
     if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
+    if(argc==2 && std::string(argv[1])=="--division-helper-only")return test_division_helper()?0:1;
+    if(argc==2 && std::string(argv[1])=="--emit-division-helper-probe"){emit_division_helper_probe();return 0;}
     if(argc==2 && std::string(argv[1])=="--pointer-lifetimes-only")return test_pointer_lifetimes()?0:1;
     if(argc==2 && std::string(argv[1])=="--tlb-only") return test_tlb_guards()?0:1;
 #ifdef __EMSCRIPTEN__
@@ -6729,6 +6804,7 @@ int main(int argc, char **argv) {
     if (test_precise_instruction_counts()) passed++; else failed++;
     if (test_compiled_svc_boundary()) passed++; else failed++;
     if (test_arm_clz()) passed++; else failed++;
+    if (test_division_helper()) passed++; else failed++;
     if (test_pointer_lifetimes()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);

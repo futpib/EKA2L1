@@ -2568,6 +2568,100 @@ namespace eka2l1::arm::aot {
         return tr;
     }
 
+    // Recognize this complete signed divmod algorithm by bytes, independently
+    // of its address. Only the out-of-line divide-by-zero destination may vary;
+    // that path always executes the original body. Interior entries are untouched.
+    static bool summarize_division_helper(translate_result &tr, const std::uint8_t *code, std::size_t size) {
+        static constexpr std::uint32_t pattern[] = {
+            0xe190c001u, 0x4a000021u, 0xe071c0a0u, 0xe3a02000u, 0x3a00001au, 0xe071c220u,
+            0x3a00000fu, 0xe071c420u, 0x3a000001u, 0xe3a03000u, 0xea000020u, 0xe071c3a0u,
+            0x20400381u, 0xe0a22002u, 0xe071c320u, 0x20400301u, 0xe0a22002u, 0xe071c2a0u,
+            0x20400281u, 0xe0a22002u, 0xe071c220u, 0x20400201u, 0xe0a22002u, 0xe071c1a0u,
+            0x20400181u, 0xe0a22002u, 0xe071c120u, 0x20400101u, 0xe0b22002u, 0xe071c0a0u,
+            0x20400081u, 0xe0a22002u, 0xe0501001u, 0x31a01000u, 0xe0a20002u, 0xe12fff1eu,
+            0xe2112102u, 0x42611000u, 0xe0323040u, 0x22600000u, 0xe071c220u, 0x3a00001du,
+            0xe071c420u, 0x3a00000fu, 0xe1a01301u, 0xe071c420u, 0xe382233fu, 0x3a00000bu,
+            0xe1a01301u, 0xe071c420u, 0xe382263fu, 0x3a000007u, 0xe1a01301u, 0xe071c420u,
+            0xe382293fu, 0x23822c3fu, 0x21a01301u, 0xe271c000u, 0x2a00012bu, 0x21a01321u,
+            0xe071c3a0u, 0x20400381u, 0xe0a22002u, 0xe071c320u, 0x20400301u, 0xe0a22002u,
+            0xe071c2a0u, 0x20400281u, 0xe0a22002u, 0xe071c220u, 0x20400201u, 0xe0a22002u,
+            0xe071c1a0u, 0x20400181u, 0xe0a22002u, 0xe071c120u, 0x20400101u, 0xe0b22002u,
+            0x2affffebu, 0xe071c0a0u, 0x20400081u, 0xe0a22002u, 0xe0501001u, 0x31a01000u,
+            0xe0a20002u, 0xe1b03fc3u, 0x42600000u, 0x22611000u, 0xe12fff1eu,
+        };
+        if (size < sizeof(pattern)) return false;
+        for (unsigned i = 0; i < sizeof(pattern) / 4; ++i) {
+            std::uint32_t actual; std::memcpy(&actual, code + i * 4, 4);
+            const auto mask = i == 58 ? 0xff000000u : 0xffffffffu;
+            if ((actual & mask) != (pattern[i] & mask)) return false;
+        }
+        std::vector<std::uint8_t> prefix;
+        arm_emit w{prefix};
+        const unsigned first = tr.func.num_prefix_i64_locals + tr.func.num_locals + 1;
+        const unsigned ns = first, ds = first+1, n = first+2, d = first+3,
+            q = first+4, rem = first+5, count = first+6, sign = first+7, tmp = first+8;
+        tr.func.num_locals += 9;
+        w.op(op_block); w.op(type_void);
+        auto fallback = [&] { w.op(op_br_if); leb(prefix, 0); };
+        w.load_i32(S::AOT_BUDGET); w.i32_const(63); w.op(op_i32_lt_u); fallback();
+        w.load_i32(S::AOT_EXIT); fallback();
+        w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+        w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and); w.op(op_i32_eqz);
+        w.op(op_i32_and); fallback();
+        auto magnitude = [&](unsigned reg, unsigned value, unsigned negative) {
+            w.load_reg(reg); w.tee_local(value); w.i32_const(31); w.op(op_i32_shr_s);
+            w.tee_local(negative); w.get_local(value); w.op(op_i32_xor);
+            w.get_local(negative); w.op(op_i32_sub); w.set_local(value);
+        };
+        magnitude(0, n, ns); magnitude(1, d, ds);
+        w.get_local(d); w.op(op_i32_eqz); fallback();
+        w.get_local(n); w.i32_const(8); w.op(op_i32_shr_u);
+        w.get_local(d); w.op(op_i32_lt_u); fallback();
+        // This path has quotient magnitude >= 256. Its full guest count depends
+        // only on three quotient-size boundaries and the signed-entry path.
+        // No digit loop or per-instruction accounting survives in the summary.
+        w.i32_const(64);
+        for (auto threshold : {std::pair<unsigned,unsigned>{14,24}, {20,28}, {26,20}}) {
+            w.get_local(n); w.i32_const(threshold.first); w.op(op_i32_shr_u);
+            w.get_local(d); w.op(op_i32_ge_u); w.i32_const(threshold.second);
+            w.op(op_i32_mul); w.op(op_i32_add);
+        }
+        w.get_local(ns); w.get_local(ds); w.op(op_i32_or); w.i32_const(1); w.op(op_i32_and);
+        w.op(op_i32_sub); w.set_local(count);
+        w.load_i32(S::AOT_BUDGET); w.get_local(count); w.op(op_i32_lt_u); fallback();
+        w.get_local(n); w.get_local(d); w.op(op_i32_div_u); w.set_local(q);
+        w.get_local(n); w.get_local(q); w.get_local(d); w.op(op_i32_mul);
+        w.op(op_i32_sub); w.set_local(rem);
+        w.get_local(ns); w.get_local(ds); w.op(op_i32_xor); w.set_local(sign);
+        auto signed_result = [&](unsigned value, unsigned negative, unsigned reg) {
+            w.get_local(value); w.get_local(negative); w.op(op_i32_xor);
+            w.get_local(negative); w.op(op_i32_sub); w.store_i32_from_stack(S::reg(reg), tmp);
+        };
+        signed_result(q, sign, 0); signed_result(rem, ns, 1);
+        // Only these scratch outputs are modified. Unrelated registers pass
+        // through untouched; packed status was read only for the IRQ guard.
+        w.get_local(q); w.i32_const(1); w.op(op_i32_shr_u); w.store_i32_from_stack(S::reg(2), tmp);
+        w.store_reg(3, sign);
+        w.get_local(rem); w.get_local(q); w.i32_const(3); w.op(op_i32_and);
+        w.get_local(d); w.op(op_i32_mul); w.op(op_i32_add); w.i32_const(1); w.op(op_i32_shr_u);
+        w.get_local(d); w.op(op_i32_sub); w.store_i32_from_stack(S::reg(12), tmp);
+        w.get_local(sign); w.i32_const(1); w.op(op_i32_and); w.store_i32_from_stack(S::NFLAG, tmp);
+        w.get_local(sign); w.op(op_i32_eqz); w.store_i32_from_stack(S::ZFLAG, tmp);
+        w.get_local(ns); w.i32_const(1); w.op(op_i32_and); w.store_i32_from_stack(S::CFLAG, tmp);
+        // With >=256 quotient, the final remainder subtraction cannot overflow.
+        w.store_i32_const(S::VFLAG, 0);
+        w.load_reg(14); w.set_local(tmp); w.store_reg(15, tmp);
+        w.get_local(tmp); w.i32_const(1); w.op(op_i32_and); w.store_i32_from_stack(S::TFLAG, tmp);
+        w.get_local(count); w.ret(); w.op(op_end);
+        const auto offset = static_cast<std::uint32_t>(prefix.size());
+        if (tr.func.outlined_callee) tr.func.outlined_call_offset += offset;
+        for (auto &call : tr.func.outlined_calls) call.call_offset += offset;
+        prefix.insert(prefix.end(), tr.func.body.begin(), tr.func.body.end());
+        tr.func.body = std::move(prefix);
+        tr.summarized_helpers = 1;
+        return true;
+    }
+
     translate_result translate_arm_block(
         const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
         const sibling_map *siblings, const code_window *dll_code, bool bounded,
@@ -2577,6 +2671,8 @@ namespace eka2l1::arm::aot {
         auto precise = translate_arm_block_impl(code, code_size, start_address, siblings,
             dll_code, bounded, stop_after_store, cache_registers, region, leaves,
             defer_memory, true, false, ir_policy);
+        if (bounded && region && cache_registers && precise.complete && !exit_census::enabled
+            && summarize_division_helper(precise, code, code_size)) return precise;
         if (!entry_budget_mode || !bounded || !region || !cache_registers
             || !precise.complete || !precise.dependencies.empty()
             || code_size > 0xffffffffu - start_address) return precise;
