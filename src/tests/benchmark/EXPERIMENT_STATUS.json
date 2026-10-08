@@ -132,6 +132,10 @@
     "hot-source-window": {
       "status": "Not selected for promotion",
       "note": "Historical hot primary window 512-to-1024 bytes: Snakes -3.06% CPU throughput, +0.64% native instructions, all four pairs slower (-2.27% to -3.73%). No current-runtime promotion warranted; the current 512-byte window remains selected. The source-window unit is bytes, distinct from the leaf instruction bound."
+    },
+    "four-inline-sites": {
+      "status": "Not selected for promotion",
+      "note": "Historical eight-to-four inline-site cap: Snakes -2.03% CPU throughput, +3.28% native instructions, all four pairs slower (-0.76% to -3.82%). Retain the current eight-site cap; no current-runtime promotion warranted."
     }
   }
 }

@@ -48,7 +48,7 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 
 ## Controlled comparisons
 
-79/109 game comparisons complete; 632/872 valid observations; 20 retained host-invalid observations.
+80/109 game comparisons complete; 640/872 valid observations; 20 retained host-invalid observations.
 
 CPU and wall columns are throughput changes: positive is faster. Native
 instructions are candidate/control changes: negative is less work. Pairs
@@ -137,7 +137,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 77 | expanded-leaf-bound / Snakes | +1.00% | +0.87% | -0.85% | 4/4 | 8/8; 0 invalid | Current bound already 32: Historical 16-to-32 expanded-leaf bound: Snakes +1.00% CPU, -0.85% native instructions, all four pairs faster. Browser defaults already select 32 in the separately validated current runtime. This completes historical evidence, not an additional incremental speedup or proof that 32 is optimal. | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
 | 78 | conditional-leaf-bound / Snakes | +0.12% | +0.11% | -0.17% | 3/4 | 8/8; 0 invalid | Historical result mixed; current bound 32: Older conditional-only 16-to-32 bound: Snakes +0.12% CPU, -0.17% native instructions, 3/4 faster pairs with a -1.03% to +1.25% range. No clear runtime win in this configuration. The current expanded-leaf runtime separately validates bound 32; no additional graduation or default change follows. | [REGION_LIMITS_RESULTS.md](REGION_LIMITS_RESULTS.md) |
 | 79 | hot-source-window / Snakes | -3.06% | -3.06% | +0.64% | 0/4 | 8/8; 0 invalid | Not selected for promotion: Historical hot primary window 512-to-1024 bytes: Snakes -3.06% CPU throughput, +0.64% native instructions, all four pairs slower (-2.27% to -3.73%). No current-runtime promotion warranted; the current 512-byte window remains selected. The source-window unit is bytes, distinct from the leaf instruction bound. | [REGION_LIMITS_RESULTS.md](REGION_LIMITS_RESULTS.md) |
-| 80 | four-inline-sites / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [CONDITIONAL_SITE_LIMITS_RESULTS.md](CONDITIONAL_SITE_LIMITS_RESULTS.md) |
+| 80 | four-inline-sites / Snakes | -2.03% | -1.86% | +3.28% | 0/4 | 8/8; 0 invalid | Not selected for promotion: Historical eight-to-four inline-site cap: Snakes -2.03% CPU throughput, +3.28% native instructions, all four pairs slower (-0.76% to -3.82%). Retain the current eight-site cap; no current-runtime promotion warranted. | [CONDITIONAL_SITE_LIMITS_RESULTS.md](CONDITIONAL_SITE_LIMITS_RESULTS.md) |
 | 81 | sixteen-inline-sites / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [CONDITIONAL_SITE_LIMITS_RESULTS.md](CONDITIONAL_SITE_LIMITS_RESULTS.md) |
 | 82 | shorter-region-chain / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [CONDITIONAL_RUNNER_LIMITS_RESULTS.md](CONDITIONAL_RUNNER_LIMITS_RESULTS.md) |
 | 83 | uncapped-region-chain / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [CONDITIONAL_RUNNER_LIMITS_RESULTS.md](CONDITIONAL_RUNNER_LIMITS_RESULTS.md) |
