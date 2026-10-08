@@ -1,6 +1,6 @@
 # Controlled optimization comparisons
 
-Status: in progress. 77/109 game comparisons complete; 616/872 valid observations and 20 retained invalid observations.
+Status: in progress. 78/109 game comparisons complete; 624/872 valid observations and 20 retained invalid observations.
 
 [Earlier partial-isolation measurements](CONTROLLED_PRELIMINARY_RESULTS.md)
 remain separate: their measurement process could use the reserved core.
@@ -98,6 +98,7 @@ and do not establish the same effect on the current production branch.
 | 75 | branch-veneer-fusion | Snakes | +0.76% | +0.75% | -0.20% | +0.12% to +1.12% | 4/4 | 0 |
 | 76 | tail-prefix-fusion | Snakes | +0.99% | +0.93% | -1.18% | -0.16% to +2.61% | 3/4 | 0 |
 | 77 | expanded-leaf-bound | Snakes | +1.00% | +0.87% | -0.85% | +0.06% to +1.94% | 4/4 | 0 |
+| 78 | conditional-leaf-bound | Snakes | +0.12% | +0.11% | -0.17% | -1.03% to +1.25% | 3/4 | 0 |
 
 All observations, clock checks, errors, exact plans, settings, hashes and
 absolute evidence paths are retained in the companion JSON. Raw scheduler
@@ -115,5 +116,5 @@ observations, including the slow candidate, remain included. See the
 
 ## Remaining comparisons
 
-- inlining: conditional-leaf-bound/standard (0/8), hot-source-window/standard (0/8), four-inline-sites/standard (0/8), sixteen-inline-sites/standard (0/8), shorter-region-chain/standard (0/8), uncapped-region-chain/standard (0/8), eager-rom-regions/standard (0/8), eager-rom-regions/combat (0/8), rom-leaf-fusion/standard (0/8), rom-leaf-fusion/combat (0/8), bounded-rom-calls/standard (0/8), bounded-rom-calls/combat (0/8).
+- inlining: hot-source-window/standard (0/8), four-inline-sites/standard (0/8), sixteen-inline-sites/standard (0/8), shorter-region-chain/standard (0/8), uncapped-region-chain/standard (0/8), eager-rom-regions/standard (0/8), eager-rom-regions/combat (0/8), rom-leaf-fusion/standard (0/8), rom-leaf-fusion/combat (0/8), bounded-rom-calls/standard (0/8), bounded-rom-calls/combat (0/8).
 - memory: allocation-ranges/standard (0/8), allocation-ranges/combat (0/8), full-page-table/standard (0/8), full-page-table/combat (0/8), last-page-only/standard (0/8), last-page-only/combat (0/8), folded-tlb/standard (0/8), folded-tlb/combat (0/8), tlb-plus-last-page/standard (0/8), tlb-plus-last-page/combat (0/8), folded-tlb-plus-last-page/standard (0/8), folded-tlb-plus-last-page/combat (0/8), older-page-cache-guards/standard (0/8), older-page-cache-guards/combat (0/8), page-cache-span-reuse/standard (0/8), page-cache-span-reuse/combat (0/8), current-tlb-vs-direct/standard (0/8), current-tlb-vs-direct/combat (0/8), tlb-unaligned-scalar/standard (0/8), tlb-unaligned-scalar/combat (0/8).
