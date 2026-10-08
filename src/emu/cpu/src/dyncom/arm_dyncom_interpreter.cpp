@@ -33,6 +33,7 @@
 #include <cpu/arm_interface.h>
 #include <cpu/aot/aot_registry.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/svc_return.h>
 
 #define RM BITS(sht_oper, 0, 3)
 #define RS BITS(sht_oper, 8, 11)
@@ -2683,6 +2684,7 @@ AOT_RESUME:
                 cpu->aot_exit = 0;
                 const auto current_pc = cpu->Reg[15];
                 const auto previous_thumb = cpu->TFlag;
+                const auto return_lr = cpu->Reg[14];
                 if (request & eka2l1::arm::aot::svc_taken) {
                     SAVE_NZCVT;
                     cpu->NumInstrsToExecute = num_instrs >= cpu->NumInstrsToExecute ? 0 : cpu->NumInstrsToExecute - num_instrs;
@@ -2705,6 +2707,24 @@ AOT_RESUME:
                     if (status == FETCH_EXCEPTION) goto END;
                     inst_base = reinterpret_cast<arm_inst *>(&cpu->trans_cache_buf[ptr]);
                     GOTO_NEXT_INST;
+                }
+                // Keep instrumented dispatch visibility unchanged.
+                // Normal play can complete the proved ROM return without
+                // looking up and calling two tiny generated regions.
+                if constexpr (!Instrumented) if (eka2l1::arm::aot::chaining_enabled
+                        && (request & eka2l1::arm::aot::svc_return)) {
+                    const auto *memory = reinterpret_cast<const eka2l1::arm::aot::memory_experiment::direct_view *>(
+                        cpu->parent()->experimental_pointer);
+                    const auto remaining = static_cast<std::uint32_t>(std::min<std::uint64_t>(
+                        cpu->NumInstrsToExecute - num_instrs, UINT32_MAX));
+                    const auto count = eka2l1::arm::aot::complete_svc_return(cpu, memory,
+                        request, current_pc, return_lr, remaining);
+                    if (count) {
+                        num_instrs += count;
+                        if (num_instrs >= cpu->NumInstrsToExecute) goto END;
+                        SAVE_NZCVT;
+                        goto DISPATCH;
+                    }
                 }
                 goto AOT_RESUME;
             }

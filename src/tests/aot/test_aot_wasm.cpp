@@ -23,6 +23,7 @@
 #include <cpu/aot/execution_limits.h>
 #include <cpu/aot/memory_experiment.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/svc_return.h>
 #include <cpu/aot/code_cache.h>
 #include <cpu/aot/thumb_translator.h>
 #include <cpu/aot/wasm_emitter.h>
@@ -6244,6 +6245,8 @@ static bool test_memory_implementations() {
     return true;
 }
 
+#include "svc_return_fixture.h"
+
 int main(int argc, char **argv) {
     // Production module staging logs its result; standalone tests have no sink.
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
@@ -6283,6 +6286,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
     if(argc==2 && std::string(argv[1])=="--branch-veneers-only")return test_branch_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--tail-prefixes-only")return test_tail_prefixes()?0:1;
+    if(argc==2 && std::string(argv[1])=="--svc-return-only")return test_svc_return_hint() && test_svc_return_state() && test_svc_return_runtime()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-rom-syscalls-only")return test_thumb_rom_syscalls() && test_compiled_svc_boundary() && test_thumb_call_boundaries()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-rom-veneers-only")return test_thumb_rom_veneers() && test_thumb_call_boundaries()?0:1;
     if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
@@ -6975,6 +6979,9 @@ int main(int argc, char **argv) {
     if (test_thumb_call_boundaries()) passed++; else failed++;
     if (test_thumb_rom_veneers()) passed++; else failed++;
     if (test_thumb_rom_syscalls()) passed++; else failed++;
+    if (test_svc_return_hint()) passed++; else failed++;
+    if (test_svc_return_state()) passed++; else failed++;
+    if (test_svc_return_runtime()) passed++; else failed++;
     if (test_thumb_transfer_spans()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;

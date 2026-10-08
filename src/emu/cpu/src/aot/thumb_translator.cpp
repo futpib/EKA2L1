@@ -950,7 +950,21 @@ namespace eka2l1::arm::aot {
                                 w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and);
                                 w.op(op_if); w.op(type_void);
                                 w.bail(target, insn_idx + 2); w.op(op_end);
-                                w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken
+                                std::uint32_t return_hint = 0, next_arm = 0;
+                                std::uint16_t next_thumb = 0;
+                                if (memory_experiment::enabled() && ((target + 4) & 4095)
+                                        && immutable_code->read(target + 4, &next_arm, sizeof(next_arm))
+                                        && next_arm == 0xe12fff1eu
+                                        && immutable_code->read(insn_addr + 4, &next_thumb, sizeof(next_thumb))
+                                        && (next_thumb & 0xff00) == 0xbd00) {
+                                    const auto registers = next_thumb & 255;
+                                    if (!(registers & (registers - 1))) {
+                                        unsigned reg = 0;
+                                        while (reg < 8 && !(registers & (1u << reg))) ++reg;
+                                        return_hint = svc_return | (reg << svc_return_register_shift);
+                                    }
+                                }
+                                w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken | return_hint
                                     | (((target + 4) & 4095) ? 0 : svc_page_end) | (veneer & 0x00ffffffu));
                                 w.store_i32_const(S::AOT_SVC_INSTRUCTIONS, insn_idx + 3);
                                 w.bail(target + 4, 0);

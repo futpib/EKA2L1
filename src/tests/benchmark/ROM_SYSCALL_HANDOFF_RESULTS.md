@@ -120,10 +120,9 @@ native samples in the combined capture. After a syscall, execution still goes
 through the ARM return region and then the Thumb return region before reaching
 the actual caller, paying the runner boundary again between them.
 
-A future compiled continuation could join these return instructions when the
-post-syscall PC/mode/LR match, retaining short-budget, memory-fault and changed
-thread/state fallbacks. Joining two return regions into one removes one extra
-call/return boundary; resuming that known continuation directly could also
-avoid both lookups. Eliminating both region calls would require continuing
-across the syscall itself, a larger change. These are unimplemented proposals
-with no speedup claim.
+The subsequent [return-continuation experiment](SVC_RETURN_CONTINUATION_RESULTS.md)
+implements and measures this follow-up. Its C++ WASM continuation consumes
+the returned syscall state, then executes the proved BX/POP pair directly.
+This can eliminate both generated-region calls while keeping the syscall
+handler as a scheduling boundary. See that report for scope, fallbacks,
+incremental gains/losses and adoption status.

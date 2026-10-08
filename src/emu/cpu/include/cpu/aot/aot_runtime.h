@@ -39,6 +39,10 @@ namespace eka2l1::arm::aot {
     inline constexpr std::uint32_t svc_pending = 0x80000000u;
     inline constexpr std::uint32_t svc_taken = 0x40000000u;
     inline constexpr std::uint32_t svc_page_end = 0x20000000u;
+    // A proved immutable BX LR / Thumb POP return, with zero or one low
+    // register. Bits 24..27 encode that register (8 means only PC).
+    inline constexpr std::uint32_t svc_return = 0x10000000u;
+    inline constexpr unsigned svc_return_register_shift = 24;
     // Frozen before execution: 0 general lookup, 2 trusted cache specialization.
     inline unsigned hotpath_policy = 0;
     extern common::diagnostics::flag diagnostics_enabled;
