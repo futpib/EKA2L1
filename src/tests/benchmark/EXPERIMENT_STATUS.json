@@ -184,6 +184,10 @@
     "folded-tlb-plus-last-page": {
       "status": "Historical tradeoff; retain original TLB",
       "note": "Folded TLB plus scalar last-page cache versus original TLB: Snakes +6.76% CPU throughput and -9.80% native instructions, 4/4 faster; Sky Force -2.17% and +0.88% native instructions, 0/4 faster. All 16 observations and 88 restoration checks pass. The combined caches retain the consistent Sky Force loss and do not justify replacing the current design. Preserve the historical Snakes result; no current-runtime graduation or retired selector restoration."
+    },
+    "older-page-cache-guards": {
+      "status": "Rejected after controlled reassessment",
+      "note": "Older versus compact page-cache guards: Snakes -6.20% CPU throughput with +5.21% native instructions (0/4 faster pairs); Sky Force -0.95% with +1.65% instructions (1/4 faster). All 16 observations and 88 restoration checks pass. Retain compact guards. At this review gate the main runtime/test outputs were rebuilt after the rejected ROM-call source was restored; all six runtime artifact hashes exactly match deployed 7f5f85273."
     }
   }
 }
