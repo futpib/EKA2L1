@@ -136,6 +136,10 @@
     "four-inline-sites": {
       "status": "Not selected for promotion",
       "note": "Historical eight-to-four inline-site cap: Snakes -2.03% CPU throughput, +3.28% native instructions, all four pairs slower (-0.76% to -3.82%). Retain the current eight-site cap; no current-runtime promotion warranted."
+    },
+    "sixteen-inline-sites": {
+      "status": "Historical result mixed",
+      "note": "Historical eight-to-sixteen inline-site cap: Snakes +0.26% CPU throughput, -0.04% native instructions, two faster and two slower pairs (-0.66% to +1.56%). No clear runtime gain; retain the current eight-site cap and do not claim it is globally optimal."
     }
   }
 }
