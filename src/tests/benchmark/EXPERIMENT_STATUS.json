@@ -164,6 +164,10 @@
     "allocation-ranges": {
       "status": "Rejected after controlled reassessment",
       "note": "Allocation ranges versus historical TLB: Snakes -7.85% CPU throughput and +5.31% native instructions; Sky Force -18.78% and +17.11%. All four pairs lose in each game. Sixteen valid observations, zero invalid attempts, and all 88 restoration checks pass. No current-runtime port or default change is warranted."
+    },
+    "full-page-table": {
+      "status": "Historical tradeoff; table retained within direct",
+      "note": "Full page table versus historical TLB: Snakes +16.00% CPU throughput, -17.29% native instructions, 4/4 faster; Sky Force -5.01%, -2.57% native instructions, 0/4 faster. Sixteen valid observations and 88 restoration checks pass. Do not restore the standalone mode 3: its consistent Sky Force loss runs against the stated preference, and current mode 2 already retains the 1<<20 separate-read/write page table outside its faster arena (memory_experiment.cpp and memory_emission.h). This is a historical Snakes win, not a measured additional gain over current direct memory."
     }
   }
 }
