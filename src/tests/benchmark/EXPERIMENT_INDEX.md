@@ -127,7 +127,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 67 | owner-core-reuse / Snakes | +0.81% | +0.75% | -0.24% | 4/4 | 8/8; 0 invalid | Current-runtime reassessment candidate: Historical Snakes +0.81% CPU, 4/4 faster pairs including one near tie; current lookup still reads parent per lookup, but compiler and dispatch have changed | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 68 | aligned-cache-hash / Snakes | +0.65% | +0.47% | +0.20% | 3/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.65% CPU, 3/4 faster pairs, native instructions +0.20%; current source retains the older hash; no default change | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 69 | compact-generated-memory / Snakes | +8.05% | +7.45% | -6.81% | 4/4 | 8/8; 0 invalid | Superseded by current lowering: Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
-| 70 | connected-callee-loops / Snakes | +6.87% | +6.52% | -7.07% | 4/4 | 8/8; 0 invalid | Original-bound two-game timing in progress: At bound 64, preserved budgets give Snakes +2.25% / Sky Force -1.87%, not adopted. Same artifact at bound 16: Snakes +2.05%, native instructions -3.31%, 4/4 faster pairs; Sky Force pending. Full WASM suite and both exact replays pass. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
+| 70 | connected-callee-loops / Snakes | +6.87% | +6.52% | -7.07% | 4/4 | 8/8; 0 invalid | Not selected on current two-game runtime: Historical Snakes +6.87% does not carry over. Budget-preserving bound 64: +2.25% Snakes / -1.87% Sky Force. Bound 16: +2.05% / -1.79%. Neither tradeoff adopted; patches and exact correctness/timing evidence retained. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 71 | guarded-successor-lookup / Snakes | -0.47% | -0.51% | +3.22% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Controlled Snakes -0.47% CPU, native instructions +3.22%, only 1/4 faster pairs. Current trusted dispatch also avoids the metadata pointer used by this older design. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 72 | expanded-leaf-eligibility / Snakes | +1.96% | +1.63% | -1.54% | 4/4 | 8/8; 0 invalid | Queued for current-runtime reassessment: Historical Snakes +1.96% CPU, 4/4 faster pairs at leaf bound 32. Multiply, extra/conditional memory and forward-branch eligibility bundle; reassess remaining coverage after connected callees. | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
 | 73 | call-prefix-fusion / Snakes | Pending | Pending | Pending | — | 2/8; 0 invalid | Reassessment pending | [CALL_PREFIX_RESULTS.md](CALL_PREFIX_RESULTS.md) |
@@ -1850,10 +1850,10 @@ The two changed bounds separately pass another 81,280 explicitly selected instru
 
 **Connected callees on the graduated runtime**
 
-Status: the bound-64 budget-preserving candidate improves Snakes but regresses
-Sky Force and is not adopted. The same artifact passes correctness at bound 16 and is undergoing timing. The historical sweep is
-paused at 72/109 comparisons for this graduation cycle. No new default has been
-committed or deployed yet.
+Status: no connected-callee variant earns promotion on the current two-game
+runtime. The budget-preserving variants improve Snakes but regress Sky Force.
+The source has been restored to the graduated default; every candidate patch,
+artifact, correctness check and timing observation is preserved.
 
 The historical connected-callee bundle recovered +6.87% Snakes CPU throughput,
 with all four pairs faster. That bundle also expanded the leaf bound from 16 to
@@ -1902,6 +1902,13 @@ validity checks. Sky Force remains in progress, so graduation is pending.
 The original-bound Snakes comparison completes at +2.05% CPU throughput,
 +1.63% wall throughput and -3.31% native instructions, with all four pairs
 faster (1.62% to 2.44%). All eight observations are valid. Sky Force is pending.
+
+**Original-bound decision**
+
+| # | Game | CPU throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | Snakes | +2.05% | -3.31% | 4/4 |
+| 2 | Sky Force | -1.79% | -0.03% | 1/4 |
 
 </details>
 

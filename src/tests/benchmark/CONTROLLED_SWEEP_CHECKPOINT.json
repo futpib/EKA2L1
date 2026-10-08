@@ -251,7 +251,7 @@
     "extended_restoration_checks": 88
   },
   "active_phase": null,
-  "last_progress_utc": "2026-10-08T00:08:31.120794+00:00",
+  "last_progress_utc": "2026-10-08T00:22:23.872563+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -285,14 +285,14 @@
   "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
   "graduation_cycle": {
     "candidate": "connected-callee-loops",
-    "stage": "original_bound_resuming_after_cooldown_removal",
+    "stage": "closed_not_selected",
     "automatic_resume": true,
     "pause_evidence": "/home/claude/.scratch/eka-controlled/graduation-cycle-boundary-stop.json",
     "restoration_checks": 88,
     "candidate_artifact": "/home/claude/.scratch/eka-connected-proofs16/candidate-build",
     "correctness_evidence": "/home/claude/.scratch/eka-connected-proofs16/correctness.json",
     "performance_plan": "/home/claude/.scratch/eka-connected-proofs16/current-plan.json",
-    "watch_status": "/home/claude/.scratch/eka-connected-proofs16/live-watch.json",
+    "watch_status": "/home/claude/.scratch/eka-connected-proofs16/resume1-live-watch.json",
     "narrow_decision": "rejected",
     "narrow_evidence": "/home/claude/.scratch/eka-connected-current/CURRENT_RESULTS.json",
     "candidate_directory": "/home/claude/.scratch/eka-connected-proofs16",
@@ -302,7 +302,13 @@
     "proofs_snakes_cpu_percent": 2.2509059004694576,
     "proofs64_decision": "not_selected",
     "proofs64_evidence": "/home/claude/.scratch/eka-connected-proofs/CURRENT_RESULTS.json",
-    "proofs16_snakes_cpu_percent": 2.048416995491875
+    "proofs16_snakes_cpu_percent": 2.048416995491875,
+    "active_performance_log": "/home/claude/.scratch/eka-connected-proofs16/current-resume1-performance.log",
+    "active_host": "/home/claude/.scratch/eka-connected-proofs16/current-resume1-host.json",
+    "cooldown_removal_boundary": "/home/claude/.scratch/eka-connected-proofs16/remove-build-cooldown-stop.json",
+    "decision": "not_selected",
+    "final_evidence": "/home/claude/.scratch/eka-connected-proofs16/CURRENT_RESULTS.json",
+    "preserved_patch": "/home/claude/.scratch/eka-connected-proofs16/rejected-source.patch"
   },
   "launch_policy": {
     "temperature_gate": false,

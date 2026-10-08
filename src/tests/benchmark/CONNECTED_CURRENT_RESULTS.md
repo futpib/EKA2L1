@@ -1,9 +1,9 @@
 # Connected callees on the graduated runtime
 
-Status: the bound-64 budget-preserving candidate improves Snakes but regresses
-Sky Force and is not adopted. The same artifact passes correctness at bound 16 and is undergoing timing. The historical sweep is
-paused at 72/109 comparisons for this graduation cycle. No new default has been
-committed or deployed yet.
+Status: no connected-callee variant earns promotion on the current two-game
+runtime. The budget-preserving variants improve Snakes but regress Sky Force.
+The source has been restored to the graduated default; every candidate patch,
+artifact, correctness check and timing observation is preserved.
 
 The historical connected-callee bundle recovered +6.87% Snakes CPU throughput,
 with all four pairs faster. That bundle also expanded the leaf bound from 16 to
@@ -144,3 +144,22 @@ previous defaults and validity rules; no rebuild was needed.
 The original-bound Snakes comparison completes at +2.05% CPU throughput,
 +1.63% wall throughput and -3.31% native instructions, with all four pairs
 faster (1.62% to 2.44%). All eight observations are valid. Sky Force is pending.
+
+## Original-bound decision
+
+| # | Game | CPU throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | Snakes | +2.05% | -3.31% | 4/4 |
+| 2 | Sky Force | -1.79% | -0.03% | 1/4 |
+
+All 16 observations pass the frozen validity rules. The nine observations
+before the idle-boundary controller update and seven after it are all retained.
+Both sets of 88 host-restoration checks pass. The startup update removes cooling
+delays; it changes no clock, throttling or measurement-validity threshold.
+
+The smaller bound also fails the two-game tradeoff. No runtime default or LAN
+artifact changes. The tested patch remains in `eka-connected-proofs16/rejected-source.patch`
+and the immutable candidate artifacts remain available for later investigation.
+The historical sweep resumes from its saved 72/109 comparisons. Owner-core reuse
+and remaining expanded-leaf eligibility stay recorded as reassessment candidates;
+this failed recovery is not grounds to promote their historical percentages.
