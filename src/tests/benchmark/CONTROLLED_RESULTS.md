@@ -1,6 +1,6 @@
 # Controlled optimization comparisons
 
-Status: in progress. 87/109 game comparisons complete; 696/872 valid observations and 20 retained invalid observations.
+Status: in progress. 89/109 game comparisons complete; 712/872 valid observations and 20 retained invalid observations.
 
 [Earlier partial-isolation measurements](CONTROLLED_PRELIMINARY_RESULTS.md)
 remain separate: their measurement process could use the reserved core.
@@ -108,6 +108,8 @@ and do not establish the same effect on the current production branch.
 | 85 | eager-rom-regions | Sky Force | -0.73% | -0.81% | -0.04% | -2.34% to +0.77% | 2/4 | 0 |
 | 86 | rom-leaf-fusion | Snakes | -0.52% | -0.47% | -0.03% | -2.38% to +0.83% | 2/4 | 0 |
 | 87 | rom-leaf-fusion | Sky Force | -1.71% | -1.60% | -0.03% | -5.24% to +0.68% | 1/4 | 0 |
+| 88 | bounded-rom-calls | Snakes | +0.17% | +0.09% | +0.01% | -0.68% to +1.59% | 2/4 | 0 |
+| 89 | bounded-rom-calls | Sky Force | +0.61% | +0.52% | -0.32% | -0.92% to +2.08% | 3/4 | 0 |
 
 All observations, clock checks, errors, exact plans, settings, hashes and
 absolute evidence paths are retained in the companion JSON. Raw scheduler
@@ -125,5 +127,4 @@ observations, including the slow candidate, remain included. See the
 
 ## Remaining comparisons
 
-- inlining: bounded-rom-calls/standard (0/8), bounded-rom-calls/combat (0/8).
 - memory: allocation-ranges/standard (0/8), allocation-ranges/combat (0/8), full-page-table/standard (0/8), full-page-table/combat (0/8), last-page-only/standard (0/8), last-page-only/combat (0/8), folded-tlb/standard (0/8), folded-tlb/combat (0/8), tlb-plus-last-page/standard (0/8), tlb-plus-last-page/combat (0/8), folded-tlb-plus-last-page/standard (0/8), folded-tlb-plus-last-page/combat (0/8), older-page-cache-guards/standard (0/8), older-page-cache-guards/combat (0/8), page-cache-span-reuse/standard (0/8), page-cache-span-reuse/combat (0/8), current-tlb-vs-direct/standard (0/8), current-tlb-vs-direct/combat (0/8), tlb-unaligned-scalar/standard (0/8), tlb-unaligned-scalar/combat (0/8).

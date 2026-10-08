@@ -48,7 +48,7 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 
 ## Controlled comparisons
 
-87/109 game comparisons complete; 696/872 valid observations; 20 retained host-invalid observations.
+89/109 game comparisons complete; 712/872 valid observations; 20 retained host-invalid observations.
 
 CPU and wall columns are throughput changes: positive is faster. Native
 instructions are candidate/control changes: negative is less work. Pairs
@@ -145,8 +145,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 85 | eager-rom-regions / Sky Force | -0.73% | -0.81% | -0.04% | 2/4 | 8/8; 0 invalid | Not selected alone for promotion: Historical eager ROM regions: Snakes +0.04% CPU (-0.65% native instructions, 1/4 faster pairs); Sky Force -0.73% CPU (-0.04% native instructions, 2/4 faster pairs). No current-runtime promotion warranted. Current startup ROM still uses bounded blocks; the related ROM-leaf combination is assessed separately. | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
 | 86 | rom-leaf-fusion / Snakes | -0.52% | -0.47% | -0.03% | 2/4 | 8/8; 0 invalid | Not selected for promotion: Historical ROM leaf fusion over eager regions: Snakes -0.52% CPU (2/4 faster pairs), Sky Force -1.71% (1/4 faster). Native instruction reductions are only about 0.03% in each game. Both means regress; no current-runtime promotion of the combined ROM strategy is warranted. | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
 | 87 | rom-leaf-fusion / Sky Force | -1.71% | -1.60% | -0.03% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Historical ROM leaf fusion over eager regions: Snakes -0.52% CPU (2/4 faster pairs), Sky Force -1.71% (1/4 faster). Native instruction reductions are only about 0.03% in each game. Both means regress; no current-runtime promotion of the combined ROM strategy is warranted. | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
-| 88 | bounded-rom-calls / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [ROM_BOUNDED_CALL_SCREEN_RESULTS.md](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) |
-| 89 | bounded-rom-calls / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [ROM_BOUNDED_CALL_SCREEN_RESULTS.md](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) |
+| 88 | bounded-rom-calls / Snakes | +0.17% | +0.09% | +0.01% | 2/4 | 8/8; 0 invalid | Current-runtime reassessment: Historical Snakes +0.17% CPU with mixed pairs; Sky Force +0.61% CPU, -0.32% native instructions, 3/4 faster pairs. The small Sky Force signal and positive means warrant checking bounded Thumb ROM calls on the latest graduated runtime, given the user's Sky Force preference. This is not adoption from the historical result alone. | [ROM_BOUNDED_CALL_SCREEN_RESULTS.md](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) |
+| 89 | bounded-rom-calls / Sky Force | +0.61% | +0.52% | -0.32% | 3/4 | 8/8; 0 invalid | Current-runtime reassessment: Historical Snakes +0.17% CPU with mixed pairs; Sky Force +0.61% CPU, -0.32% native instructions, 3/4 faster pairs. The small Sky Force signal and positive means warrant checking bounded Thumb ROM calls on the latest graduated runtime, given the user's Sky Force preference. This is not adoption from the historical result alone. | [ROM_BOUNDED_CALL_SCREEN_RESULTS.md](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) |
 | 90 | allocation-ranges / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_IMPLEMENTATIONS_RESULTS.md](MEMORY_IMPLEMENTATIONS_RESULTS.md) |
 | 91 | allocation-ranges / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_IMPLEMENTATIONS_RESULTS.md](MEMORY_IMPLEMENTATIONS_RESULTS.md) |
 | 92 | full-page-table / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_IMPLEMENTATIONS_RESULTS.md](MEMORY_IMPLEMENTATIONS_RESULTS.md) |
