@@ -6630,6 +6630,14 @@ attempts: Snakes CPU throughput +0.99%, native instructions -1.18%, three of fou
 pairs faster. All 88 live restoration checks pass. This warrants a current-build
 comparison, not adoption from the historical percentage alone.
 
+**Intermediate current-runtime result**
+
+Snakes completes with eight valid observations and no invalid attempts: CPU
+throughput +2.32%, wall throughput +2.06%, native instructions -1.03%, all four
+pairs faster. Pair gains range from +0.90% to +5.51%; the slower closing control
+in the first panel is retained and contributes to the mean. Sky Force remains
+pending, so this is not yet an adoption verdict.
+
 </details>
 
 <a id="report-238"></a>

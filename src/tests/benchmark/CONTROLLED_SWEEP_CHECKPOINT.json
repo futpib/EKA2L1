@@ -214,7 +214,9 @@
     "scope": "Register-only terminal tail prefix fallback; preserve full returning leaves",
     "candidate_artifact": "/home/claude/.scratch/eka-tail-current/candidate-build",
     "correctness_evidence": "/home/claude/.scratch/eka-tail-current/correctness.json",
-    "watch_status": "/home/claude/.scratch/eka-tail-current/live-watch.json"
+    "watch_status": "/home/claude/.scratch/eka-tail-current/live-watch.json",
+    "current_snakes_cpu_percent": 2.3227107478819953,
+    "performance_evidence": "/home/claude/.scratch/eka-tail-current/CURRENT_SNAPSHOT.json"
   },
   "launch_policy": {
     "temperature_gate": false,

@@ -33,3 +33,11 @@ match images, frame records and PCM, with explicit selector and artifact checks.
 Candidate WASM SHA-256: `4bdb01dab90af78db286ff529d5a25a5160cf51700550b3d3899c4193fb2a86a`.
 
 Both-game runtime timing is now running; no current-runtime gain is claimed yet.
+
+## Intermediate current-runtime result
+
+Snakes completes with eight valid observations and no invalid attempts: CPU
+throughput +2.32%, wall throughput +2.06%, native instructions -1.03%, all four
+pairs faster. Pair gains range from +0.90% to +5.51%; the slower closing control
+in the first panel is retained and contributes to the mean. Sky Force remains
+pending, so this is not yet an adoption verdict.
