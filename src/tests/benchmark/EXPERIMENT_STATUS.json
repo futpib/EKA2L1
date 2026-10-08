@@ -102,8 +102,8 @@
       "note": "Controlled Snakes -0.47% CPU, native instructions +3.22%, only 1/4 faster pairs. Current trusted dispatch also avoids the metadata pointer used by this older design."
     },
     "expanded-leaf-eligibility": {
-      "status": "Current-runtime validation",
-      "note": "Historical +1.96% Snakes at matching bound 32. Reassessing original forward-only branch and scalar/multiply eligibility against current defaults; caller-loop lowering unchanged."
+      "status": "Current-runtime two-game timing",
+      "note": "Forward-only expansion at bound 32 versus current default bound 16. Focused interpreter/budget checks and both exact replays pass; caller-loop lowering unchanged. Historical +1.96% alone is not a current gain."
     },
     "call-prefix-fusion": {
       "status": "Not selected for promotion",
