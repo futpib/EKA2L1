@@ -38,11 +38,11 @@ if (process.env.EKA2L1_DIRECT_POLICY !== undefined || process.env.EKA2L1_MEMORY_
   throw Error('Direct policy and delayed activation were removed; select EKA2L1_MEMORY_IMPL=0 (TLB) or 2 (direct)');
 const unsafeCode=Number(unsafeText);
 if(![0,3].includes(unsafeCode))throw Error('Invalid unsafe code mode');
-const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES || '0');
+const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES ?? compilerDefaults.leafFeatures);
 if(![0,128].includes(leafFeatures))throw Error('Invalid leaf feature mask');
-const predicatedLeaves = Number(process.env.EKA2L1_PREDICATED_LEAVES || '0');
+const predicatedLeaves = Number(process.env.EKA2L1_PREDICATED_LEAVES ?? compilerDefaults.predicatedLeaves);
 if(![0,1].includes(predicatedLeaves))throw Error('Invalid leaf predication setting');
-const limitsText = process.env.EKA2L1_EXECUTION_LIMITS || '512,16,8,512';
+const limitsText = process.env.EKA2L1_EXECUTION_LIMITS ?? compilerDefaults.executionLimits;
 const executionLimits = limitsText.split(',').map(Number);
 if (!/^\d+,\d+,\d+,\d+$/.test(limitsText) || executionLimits.length!==4 || executionLimits.some(n=>!Number.isSafeInteger(n))
     || executionLimits[0]<128 || executionLimits[0]>2048 || executionLimits[0]%4 || executionLimits[1]<1 || executionLimits[1]>64

@@ -60,7 +60,7 @@ autoStart();
 </script>`;
 }
 
-export const compilerDefaults = {divisionDigits: 0, entryBudget: 2, entryOnlyPruning: 0, sparseRom: 1, compiledSvc: 1, thumbMemory: 1, irMode: 17, hotpath: 2} as const;
+export const compilerDefaults = {divisionDigits: 0, entryBudget: 2, entryOnlyPruning: 0, sparseRom: 1, compiledSvc: 1, thumbMemory: 1, irMode: 17, hotpath: 2, predicatedLeaves: 1, leafFeatures: 128, executionLimits: '512,32,8,512'} as const;
 
 export type CompilerPolicy = { divisionDigits?: number; entryBudget?: number; entryOnlyPruning?: number; sparseRom?: number; compiledSvc?: number; hotpath?: number; thumbMemory?: number; irMode?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; memoryImpl?: number; executionLimits?: [number,number,number,number] };
 
@@ -95,9 +95,9 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
   const thumb = process.env.EKA2L1_THUMB_MEMORY ?? String(compilerDefaults.thumbMemory);
   const ir = process.env.EKA2L1_AOT_IR_MODE ?? String(compilerDefaults.irMode);
   const compare = process.env.EKA2L1_CODE_COMPARE;
-  const predicates = process.env.EKA2L1_PREDICATED_LEAVES;
-  const features = process.env.EKA2L1_LEAF_FEATURES;
-  const limits = process.env.EKA2L1_EXECUTION_LIMITS;
+  const predicates = process.env.EKA2L1_PREDICATED_LEAVES ?? String(compilerDefaults.predicatedLeaves);
+  const features = process.env.EKA2L1_LEAF_FEATURES ?? String(compilerDefaults.leafFeatures);
+  const limits = process.env.EKA2L1_EXECUTION_LIMITS ?? String(compilerDefaults.executionLimits);
   const unsafe = process.env.EKA2L1_UNSAFE_CODE ?? '3';
   const memory = process.env.EKA2L1_MEMORY_IMPL ?? (unsafe === '0' ? '0' : undefined);
   if (!/^[03]$/.test(unsafe)) throw new Error("Invalid executable-byte policy");
