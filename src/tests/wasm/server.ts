@@ -60,7 +60,7 @@ autoStart();
 </script>`;
 }
 
-export const compilerDefaults = {divisionDigits: 0, entryBudget: 2, entryOnlyPruning: 0, sparseRom: 1, compiledSvc: 1, thumbMemory: 1, irMode: 17, hotpath: 2, predicatedLeaves: 1, leafFeatures: 160, executionLimits: '512,32,8,512'} as const;
+export const compilerDefaults = {divisionDigits: 0, entryBudget: 2, entryOnlyPruning: 0, sparseRom: 1, compiledSvc: 1, thumbMemory: 1, irMode: 17, hotpath: 2, predicatedLeaves: 1, leafFeatures: 224, executionLimits: '512,32,8,512'} as const;
 
 export type CompilerPolicy = { divisionDigits?: number; entryBudget?: number; entryOnlyPruning?: number; sparseRom?: number; compiledSvc?: number; hotpath?: number; thumbMemory?: number; irMode?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; memoryImpl?: number; executionLimits?: [number,number,number,number] };
 
@@ -128,7 +128,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
     policy.predicatedLeaves = Number(predicates);
   }
   if (features !== undefined) {
-    if (!/^(?:0|32|128|160)$/.test(features)) throw new Error("Invalid leaf features policy");
+    if (!/^(?:0|32|64|96|128|160|192|224)$/.test(features)) throw new Error("Invalid leaf features policy");
     policy.leafFeatures = Number(features);
   }
   if (limits !== undefined) {
@@ -160,7 +160,7 @@ function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
       || (policy.memoryImpl !== undefined && ![0,2].includes(policy.memoryImpl))
       || (policy.unsafeCode !== undefined && ![0,3].includes(policy.unsafeCode))
       || (policy.predicatedLeaves !== undefined && ![0,1].includes(policy.predicatedLeaves))
-      || (policy.leafFeatures !== undefined && ![0,32,128,160].includes(policy.leafFeatures))
+      || (policy.leafFeatures !== undefined && ![0,32,64,96,128,160,192,224].includes(policy.leafFeatures))
       || (policy.executionLimits !== undefined && !validExecutionLimits(policy.executionLimits)))
     throw new Error("Invalid compiler policy");
   return `<script>

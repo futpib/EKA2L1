@@ -621,6 +621,28 @@ namespace eka2l1::arm::aot {
         return (op & 0xff000000u) == 0xea000000u;
     }
 
+    static bool ends_in_tail_branch(const std::vector<std::uint8_t> &bytes) {
+        if (bytes.size() < 4) return false;
+        std::uint32_t op; std::memcpy(&op, bytes.data() + bytes.size() - 4, 4);
+        return (op & 0xff000000u) == 0xea000000u;
+    }
+
+    static std::vector<std::uint8_t> resolve_tail_prefix(const std::vector<std::uint8_t> &bytes) {
+        for (std::size_t n = 0; n < leaf_instruction_limit * 4 && n + 4 <= bytes.size(); n += 4) {
+            std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
+            if ((op & 0xff000000u) == 0xea000000u)
+                return n ? std::vector<std::uint8_t>(bytes.begin(), bytes.begin() + n + 4)
+                         : std::vector<std::uint8_t>{};
+            if ((op >> 28) > 14 || ((op >> 26) & 3) != 0) return {};
+            const unsigned alu = (op >> 21) & 15;
+            if (alu >= 8 && alu <= 11 && !(op & (1u << 20))) return {};
+            if (((op >> 16) & 15) >= 13 || ((op >> 12) & 15) >= 13) return {};
+            if (!(op & (1u << 25)) && ((op & 0x90) == 0x90 || (op & 15) >= 13 ||
+                ((op & 16) && ((op >> 8) & 15) >= 13))) return {};
+        }
+        return {};
+    }
+
     static bool is_literal_pc_veneer(const std::vector<std::uint8_t> &bytes) {
         if (bytes.size() != 4) return false;
         std::uint32_t op; std::memcpy(&op, bytes.data(), 4);
@@ -629,22 +651,7 @@ namespace eka2l1::arm::aot {
         return (op & 0xff7ff000u) == 0xe51ff000u;
     }
 
-    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure, bool allow_predicates, exit_census::leaf_refusal &refusal) {
-        failure="callee_unsupported";
-        auto bytes = resolve(address);
-        exit_census::probe(address,bytes.data(),bytes.size());
-        if(bytes.empty()) {failure="callee_unmapped_or_other_space";return {};}
-        const unsigned features = allow_predicates ? leaf_features : 0;
-        // The direct target retains the normal precise dispatcher exit. Only
-        // the veneer itself is a dependency; no target bytes are assumed.
-        if ((features & 32) && bytes.size() >= 4) {
-            std::vector<std::uint8_t> first(bytes.begin(), bytes.begin() + 4);
-            if (is_branch_veneer(first)) return first;
-        }
-        if ((features & 128) && bytes.size() >= 4) {
-            std::vector<std::uint8_t> first(bytes.begin(), bytes.begin() + 4);
-            if (is_literal_pc_veneer(first)) return first;
-        }
+    static std::vector<std::uint8_t> resolve_returning_leaf(std::vector<std::uint8_t> bytes, std::uint32_t address, const char *&failure, bool allow_predicates, exit_census::leaf_refusal &refusal) {
         std::vector<std::uint32_t> leaf_targets;
         for (std::size_t n = 0; n < leaf_instruction_limit*4 && n + 4 <= bytes.size(); n += 4) {
             std::uint32_t op; std::memcpy(&op, bytes.data() + n, 4);
@@ -718,6 +725,29 @@ namespace eka2l1::arm::aot {
         return {};
     }
 
+    static std::vector<std::uint8_t> resolve_leaf(const leaf_resolver &resolve, std::uint32_t address, const char *&failure, bool allow_predicates, exit_census::leaf_refusal &refusal) {
+        failure="callee_unsupported";
+        auto bytes = resolve(address);
+        exit_census::probe(address,bytes.data(),bytes.size());
+        if(bytes.empty()) {failure="callee_unmapped_or_other_space";return {};}
+        const unsigned features = allow_predicates ? leaf_features : 0;
+        // The direct target retains the normal precise dispatcher exit. Only
+        // the veneer itself is a dependency; no target bytes are assumed.
+        if ((features & 32) && bytes.size() >= 4) {
+            std::vector<std::uint8_t> first(bytes.begin(), bytes.begin() + 4);
+            if (is_branch_veneer(first)) return first;
+        }
+        if ((features & 128) && bytes.size() >= 4) {
+            std::vector<std::uint8_t> first(bytes.begin(), bytes.begin() + 4);
+            if (is_literal_pc_veneer(first)) return first;
+        }
+        // Preserve a complete returning leaf when the current compiler can
+        // already inline it; use a terminal prefix only as the fallback.
+        auto prefix = (features & 64) ? resolve_tail_prefix(bytes) : std::vector<std::uint8_t>{};
+        auto returning = resolve_returning_leaf(std::move(bytes), address, failure, allow_predicates, refusal);
+        return returning.empty() ? prefix : returning;
+    }
+
     // CFG walker for ARM code. Returns reachable 4-byte-aligned offsets.
     static std::set<std::size_t> find_reachable_offsets_arm(
         const std::uint8_t *code, std::size_t code_size, bool bounded,
@@ -756,13 +786,13 @@ namespace eka2l1::arm::aot {
                                 exit_census::leaf_refusal refusal;
                                 auto bytes = resolve_leaf(*leaves, address, failure, allow_predicates, refusal);
                                 if(exit_census::enabled)refusals[i]=refusal;
-                                exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:is_literal_pc_veneer(bytes)?"literal_pc_veneer_inlined":is_branch_veneer(bytes)?"branch_veneer_inlined":"call_inlined");
+                                exit_census::compile_site(start_address+static_cast<std::uint32_t>(i),inst,bytes.empty()?failure:is_literal_pc_veneer(bytes)?"literal_pc_veneer_inlined":is_branch_veneer(bytes)?"branch_veneer_inlined":ends_in_tail_branch(bytes)?"tail_prefix_inlined":"call_inlined");
                                 if(exit_census::enabled && bytes.empty())refusals[i].constraint=
                                     std::strcmp(failure,"leaf_instruction_limit")==0?2:
                                     std::strcmp(failure,"callee_unsupported")==0?3:
                                     std::strcmp(failure,"callee_mapping_extent")==0?4:5;
                                 if (!bytes.empty()) {
-                                    const bool prefix=is_literal_pc_veneer(bytes) || is_branch_veneer(bytes);
+                                    const bool prefix=is_literal_pc_veneer(bytes) || ends_in_tail_branch(bytes);
                                     inlined.emplace(i, code_dependency{address, std::move(bytes)});
                                     // A transfer prefix exits. The original caller continuation
                                     // is reached only after later guest returns, not now.
@@ -893,7 +923,7 @@ namespace eka2l1::arm::aot {
             auto it = inlined.find(i);
             if (it == inlined.end()) continue;
             const auto &leaf = it->second;
-            if(is_literal_pc_veneer(leaf.bytes) || is_branch_veneer(leaf.bytes))tr.resume_points.push_back(start_address+static_cast<std::uint32_t>(i)+4);
+            if(is_literal_pc_veneer(leaf.bytes) || ends_in_tail_branch(leaf.bytes))tr.resume_points.push_back(start_address+static_cast<std::uint32_t>(i)+4);
             if (std::none_of(tr.dependencies.begin(), tr.dependencies.end(), [&](const auto &d) { return d.address == leaf.address; }))
                 tr.dependencies.push_back(leaf);
             for (std::size_t n = 0; n < leaf.bytes.size(); n += 4) {
@@ -1234,7 +1264,7 @@ namespace eka2l1::arm::aot {
                 const auto &callee=inlined.at(i);
                 for(std::size_t n=0;n<callee.bytes.size();n+=4) {
                     std::uint32_t op;std::memcpy(&op,callee.bytes.data()+n,4);
-                    if(((op>>25)&7)==5 && !(op&(1u<<24)) && !is_branch_veneer(callee.bytes)) {
+                    if(((op>>25)&7)==5 && !(op&(1u<<24)) && !ends_in_tail_branch(callee.bytes)) {
                         const auto displacement=static_cast<std::int32_t>(op<<8)>>6;
                         leaf_forward_targets.push_back(callee.address+static_cast<std::uint32_t>(n)+8+displacement);
                     }
@@ -1554,7 +1584,7 @@ namespace eka2l1::arm::aot {
                 std::uint32_t next_pc = insn_addr + 4;
 
                 if(instruction.leaf && !is_link) {
-                    if (is_branch_veneer(inlined.at(i).bytes)) {
+                    if (ends_in_tail_branch(inlined.at(i).bytes)) {
                         // Even an in-window target exits with the real LR/PC.
                         w.bail(target,insn_idx+1);
                         if(cond_opened)w.op(op_end);

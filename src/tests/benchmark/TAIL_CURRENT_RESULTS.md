@@ -1,7 +1,8 @@
 # Tail prefixes on the graduated branch-veneer runtime
 
-Status: selected for graduation; final compiler and deployment checks pending. The historical sweep is paused.
-The deployed default remains branch-veneer commit `0b890a26a`.
+Status: graduated as the browser default and deployed to the LAN UI. The exact
+measured artifact passes real gameplay and policy checks; the existing host
+audio limitation remains documented below.
 
 The historical comparison completes with eight valid observations and no invalid
 attempts: Snakes CPU throughput +0.99%, native instructions -1.18%, three of four
@@ -47,7 +48,28 @@ the slower closing control in the first panel is retained and contributes to
 the mean. Sky Force pairs range from -6.63% to +4.28%, with essentially unchanged
 native instructions. Its positive average does not establish a reliable gain.
 
-Select the candidate for the consistent Snakes improvement and positive two-game
+The candidate is adopted for the consistent Snakes improvement and positive two-game
 means. This is an end-to-end comparison of different runtime binaries, not a
 same-binary attribution of feature bit 64 alone. Final compiler, default-launcher
-and real LAN gameplay checks precede graduation and deployment.
+and real LAN gameplay checks are complete, with the audio limitation below.
+
+## Graduation and deployment
+
+The full compiler suite passes 175 tests with zero failures. Two existing
+diagnostics-only skips and one known expected failure are unchanged. Browser,
+benchmark and profiler defaults select mask 224: branch, register-tail and
+literal-PC veneers, retaining the graduated forward-only leaf expansion and
+execution limits `512,32,8,512`. Strict configuration validation admits only
+combinations of feature bits 32, 64 and 128.
+
+The LAN service serves the exact measured artifact and both games report mask
+224 and bound 32. Downloaded WASM SHA-256: `4bdb01dab90af78db286ff529d5a25a5160cf51700550b3d3899c4193fb2a86a`.
+Gameplay advances frames and consumes input in both games. Keyboard/touch,
+launcher, layout and visual checks pass on NVIDIA Vulkan. Saved gameplay and
+mobile screenshots were inspected. No browser errors or non-audio check failures
+occur.
+
+Full browser E2E remains false solely because the same pre-existing host audio
+failure persists in both games. Exact PCM replays pass; this is not reported as
+a full E2E pass. Evidence is in `eka-tail-current/deployment-check.json`,
+`full-compiler-check.json`, `browser-api.log` and `game-picker/report.json`.

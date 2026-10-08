@@ -147,7 +147,7 @@ async function runTests(): Promise<void> {
       }
       for (const [name, valid, invalid] of [
         ['unsafe_code', [0,3], [-1,1,2,4]],
-        ['leaf_features', [0,32,128,160], [-1,1,2,4,8,16,64,127,129,159,161,255]],
+        ['leaf_features', [0,32,64,96,128,160,192,224], [-1,1,2,4,8,16,65,127,129,159,161,255]],
         ['hotpath', [0,2], [-1,1,3,4,5,6,7,8]],
       ] as const) {
         const previous = m['_eka2l1_' + name + '_report']();
