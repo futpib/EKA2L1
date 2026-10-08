@@ -1,5 +1,5 @@
 {
-  "policy": "The controlled historical sweep is complete: 109/109 game comparisons, 872/872 valid observations and 20 retained earlier invalid attempts. All saved plans and observations are preserved. Winners were reassessed on the current runtime before graduation; individual percentages are not additive.\n\nCompiled syscalls, sparse ROM lookup and outlined entry budgets were adopted in 632c3d433. The resumed sweep additionally graduated forward-only leaves at bound 32 (21c322713), single-branch veneers (0b890a26a), and register-only tail prefixes (7f5f85273). The last artifact remains the browser default and is served on the LAN UI.\n\nThe final direct measurement of those three later graduations together versus 632c3d433 gives Snakes +2.56% CPU throughput (4/4 faster pairs) and Sky Force -1.80% (2/4 faster pairs). This is a measured tradeoff, not a demonstrated two-game win. All 16 observations are valid and all 88 restoration checks pass. See [combined results and limitations](SWEEP_COMBINED_RESULTS.md). No new promotion or rollback follows from this closing comparison; the Sky Force regression is explicitly recorded for targeted isolation.\n\nThe exact deployed artifact passed 175 compiler tests and real LAN gameplay/input checks. Full live-audio E2E remains blocked by the previously reproduced host audio-device failure; exact PCM replays pass. Temperature ceilings and cooldown waits are removed; measured clock, throttle, affinity and counter checks remain. No benchmark or graduation is queued.",
+  "policy": "The controlled historical sweep is complete: 109/109 game comparisons, 872/872 valid observations and 20 retained earlier invalid attempts. All saved plans and observations are preserved. Winners were reassessed on the current runtime before graduation; individual percentages are not additive.\n\nCompiled syscalls, sparse ROM lookup and outlined entry budgets were adopted in 632c3d433. The resumed sweep additionally graduated forward-only leaves at bound 32 (21c322713), single-branch veneers (0b890a26a), and register-only tail prefixes (7f5f85273). Those graduated choices remain the browser defaults.\n\nThe final direct measurement of those three later graduations together versus 632c3d433 gives Snakes +2.56% CPU throughput (4/4 faster pairs) and Sky Force -1.80% (2/4 faster pairs). This is a measured tradeoff, not a demonstrated two-game win. All 16 observations are valid and all 88 restoration checks pass. See [combined results and limitations](SWEEP_COMBINED_RESULTS.md). No new promotion or rollback follows from this closing comparison; the Sky Force regression is explicitly recorded for targeted isolation.\n\nThe graduated artifact passed 175 compiler tests and real LAN gameplay/input checks. Full live-audio E2E remains blocked by the previously reproduced host audio-device failure; exact PCM replays pass. Temperature ceilings and cooldown waits are removed; measured clock, throttle, affinity and counter checks remain. No benchmark or graduation is queued.\n\nThe subsequent [56-entry source audit and cleanup](RETIRED_SWEEP_EXPERIMENTS.md) removes division lowering, entry-only pruning, count batching, inline entry-budget recovery and adjustable execution limits. The other listed implementations were already absent or superseded. Adopted behavior remains; this maintenance change has no new timing claim. Historical measurements and candidate patches remain available.",
   "experiments": {
     "compact-dispatch": {
       "status": "Default",
@@ -42,28 +42,28 @@
       "note": "Sparse ROM index enabled in the measured winning combination; individual Sky Force +1.81% / Snakes -0.27%"
     },
     "entry-only-pruning": {
-      "status": "Not selected for promotion",
-      "note": "Current Snakes -0.42%; Sky Force +1.26% with mixed pairs and nearly unchanged native instruction count. Full pruning remains selected"
+      "status": "Removed after completed sweep",
+      "note": "Current Snakes -0.42%; Sky Force +1.26% with mixed pairs and nearly unchanged native instruction count. Full pruning remains selected. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md."
     },
     "whole-entry-budget": {
-      "status": "Not selected for promotion",
-      "note": "Current gains are mixed; outlined mode 2 has the stronger Snakes result and is selected for combined validation"
+      "status": "Removed after completed sweep",
+      "note": "Current gains are mixed; outlined mode 2 has the stronger Snakes result and is selected for combined validation. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md."
     },
     "outlined-entry-budget": {
       "status": "Default",
       "note": "Mode 2 enabled in the measured winning combination; full bounded entry with private precise recovery"
     },
     "batched-counts": {
-      "status": "Not selected for promotion",
-      "note": "Current Snakes -0.34% and Sky Force +0.50% with mixed pairs and slightly more native instructions; keep policy 17"
+      "status": "Removed after completed sweep",
+      "note": "Current Snakes -0.34% and Sky Force +0.50% with mixed pairs and slightly more native instructions; keep policy 17. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md."
     },
     "current-tlb-vs-direct": {
       "status": "Default confirmed by controlled reassessment",
       "note": "The retained direct backend versus retained TLB on the frozen comparison build improves Snakes CPU throughput 29.35% and Sky Force 14.96%; all four pairs improve in each game. Native instructions fall 26.80% and 14.19%, respectively. All 16 observations and 88 restoration checks pass, with no invalid attempts. Direct is already the current default; retain it without claiming these historical percentages as additional current-runtime gains."
     },
     "division-digits": {
-      "status": "Not selected for promotion",
-      "note": "Current combination: Snakes +0.07%, Sky Force -0.66% CPU, mixed pairs in both. Fewer Snakes native instructions did not yield a runtime gain; remains off"
+      "status": "Removed after completed sweep",
+      "note": "Current combination: Snakes +0.07%, Sky Force -0.66% CPU, mixed pairs in both. Fewer Snakes native instructions did not yield a runtime gain. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md."
     },
     "store-only-pruning": {
       "status": "Not selected for promotion",
@@ -126,28 +126,28 @@
       "note": "Historical 16-to-32 expanded-leaf bound: Snakes +1.00% CPU, -0.85% native instructions, all four pairs faster. Browser defaults already select 32 in the separately validated current runtime. This completes historical evidence, not an additional incremental speedup or proof that 32 is optimal."
     },
     "conditional-leaf-bound": {
-      "status": "Historical result mixed; current bound 32",
-      "note": "Older conditional-only 16-to-32 bound: Snakes +0.12% CPU, -0.17% native instructions, 3/4 faster pairs with a -1.03% to +1.25% range. No clear runtime win in this configuration. The current expanded-leaf runtime separately validates bound 32; no additional graduation or default change follows."
+      "status": "Selector removed after completed sweep",
+      "note": "Older conditional-only 16-to-32 bound: Snakes +0.12% CPU, -0.17% native instructions, 3/4 faster pairs with a -1.03% to +1.25% range. No clear runtime win in this configuration. The current expanded-leaf runtime separately validates bound 32; no additional graduation or default change follows. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md."
     },
     "hot-source-window": {
-      "status": "Not selected for promotion",
-      "note": "Historical hot primary window 512-to-1024 bytes: Snakes -3.06% CPU throughput, +0.64% native instructions, all four pairs slower (-2.27% to -3.73%). No current-runtime promotion warranted; the current 512-byte window remains selected. The source-window unit is bytes, distinct from the leaf instruction bound."
+      "status": "Selector removed after completed sweep",
+      "note": "Historical hot primary window 512-to-1024 bytes: Snakes -3.06% CPU throughput, +0.64% native instructions, all four pairs slower (-2.27% to -3.73%). No current-runtime promotion warranted; the current 512-byte window remains selected. The source-window unit is bytes, distinct from the leaf instruction bound. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md."
     },
     "four-inline-sites": {
-      "status": "Not selected for promotion",
-      "note": "Historical eight-to-four inline-site cap: Snakes -2.03% CPU throughput, +3.28% native instructions, all four pairs slower (-0.76% to -3.82%). Retain the current eight-site cap; no current-runtime promotion warranted."
+      "status": "Selector removed after completed sweep",
+      "note": "Historical eight-to-four inline-site cap: Snakes -2.03% CPU throughput, +3.28% native instructions, all four pairs slower (-0.76% to -3.82%). Retain the current eight-site cap; no current-runtime promotion warranted. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md."
     },
     "sixteen-inline-sites": {
-      "status": "Historical result mixed",
-      "note": "Historical eight-to-sixteen inline-site cap: Snakes +0.26% CPU throughput, -0.04% native instructions, two faster and two slower pairs (-0.66% to +1.56%). No clear runtime gain; retain the current eight-site cap and do not claim it is globally optimal."
+      "status": "Selector removed after completed sweep",
+      "note": "Historical eight-to-sixteen inline-site cap: Snakes +0.26% CPU throughput, -0.04% native instructions, two faster and two slower pairs (-0.66% to +1.56%). No clear runtime gain; retain the current eight-site cap and do not claim it is globally optimal. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md."
     },
     "shorter-region-chain": {
-      "status": "Not selected for promotion",
-      "note": "Historical chain cap 512-to-64 regions: Snakes -1.26% CPU throughput, +0.68% native instructions, only one of four pairs faster. Retain the current 512-region cap; shorter chains do not earn current-runtime promotion."
+      "status": "Selector removed after completed sweep",
+      "note": "Historical chain cap 512-to-64 regions: Snakes -1.26% CPU throughput, +0.68% native instructions, only one of four pairs faster. Retain the current 512-region cap; shorter chains do not earn current-runtime promotion. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md."
     },
     "uncapped-region-chain": {
-      "status": "Historical result mixed",
-      "note": "Historical removal of the 512-region chain cap: Snakes +0.51% CPU throughput, two faster and two slower pairs (-0.40% to +1.50%), essentially identical native instructions (-0.00055%). No clear runtime win; retain 512. Guest budgets, IRQ/stop checks and successor validation remained enabled in the experiment."
+      "status": "Selector removed after completed sweep",
+      "note": "Historical removal of the 512-region chain cap: Snakes +0.51% CPU throughput, two faster and two slower pairs (-0.40% to +1.50%), essentially identical native instructions (-0.00055%). No clear runtime win; retain 512. Guest budgets, IRQ/stop checks and successor validation remained enabled in the experiment. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md."
     },
     "eager-rom-regions": {
       "status": "Not selected alone for promotion",

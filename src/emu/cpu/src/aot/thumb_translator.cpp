@@ -4376,7 +4376,7 @@ namespace eka2l1::arm::aot {
         else { w.i32_const(num_insns); w.ret(); }
 
         finish_memory_locals(w);
-        w.cache.finish(result, !entry_only_state_pruning || w.entry_supported);
+        w.cache.finish(result);
         tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;
         tr.end_address = start_address + decoded_end_offset;

@@ -214,15 +214,6 @@ int eka2l1_ir_configure(int mode) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_division_digits_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::division_digits_enabled = mode != 0;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_division_digits_report() { return eka2l1::arm::aot::division_digits_enabled; }
-
-EMSCRIPTEN_KEEPALIVE
 int eka2l1_sparse_rom_lookup_configure(int mode) {
     if (g_state || mode < 0 || mode > 1) return -1;
     eka2l1::arm::aot::sparse_rom_lookup_enabled = mode != 0;
@@ -232,17 +223,8 @@ EMSCRIPTEN_KEEPALIVE
 int eka2l1_sparse_rom_lookup_report() { return eka2l1::arm::aot::sparse_rom_lookup_enabled; }
 
 EMSCRIPTEN_KEEPALIVE
-int eka2l1_entry_only_pruning_configure(int mode) {
-    if (g_state || mode < 0 || mode > 1) return -1;
-    eka2l1::arm::aot::entry_only_state_pruning = mode != 0;
-    return 0;
-}
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_entry_only_pruning_report() { return eka2l1::arm::aot::entry_only_state_pruning; }
-
-EMSCRIPTEN_KEEPALIVE
 int eka2l1_entry_budget_configure(int mode) {
-    if (g_state || mode < 0 || mode > 2) return -1;
+    if (g_state || (mode != 0 && mode != 2)) return -1;
     eka2l1::arm::aot::entry_budget_mode = static_cast<unsigned>(mode);
     return 0;
 }
@@ -408,11 +390,6 @@ int eka2l1_leaf_features_report() {return arm::aot::leaf_features;}
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_leaf_predication_report() {return arm::aot::predicated_leaves;}
 
-EMSCRIPTEN_KEEPALIVE
-int eka2l1_execution_limits_configure(int window,int leaf,int sites,int runner) {
-    if(g_state || window<0 || leaf<0 || sites<0 || runner<0)return -1;
-    return arm::aot::configure_execution_limits(window,leaf,sites,runner)?0:-1;
-}
 EMSCRIPTEN_KEEPALIVE
 const char *eka2l1_execution_limits_report() {
     static std::string value;value=arm::aot::execution_limits_text();return value.c_str();

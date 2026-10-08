@@ -34,9 +34,7 @@ namespace eka2l1::arm::aot {
     // A trap returns zero to stop the chain and saves its logical count separately.
     inline bool compiled_svc_enabled = true;
     inline bool sparse_rom_lookup_enabled = true;
-    inline bool entry_only_state_pruning = false;
-    inline bool division_digits_enabled = false;
-    // 0: per-span budgets; 1: entry guard with inline fallback; 2: private fallback.
+    // 0: per-span budgets; 2: entry guard with a private precise fallback.
     inline unsigned entry_budget_mode = 2;
     inline constexpr std::uint32_t svc_pending = 0x80000000u;
     inline constexpr std::uint32_t svc_taken = 0x40000000u;

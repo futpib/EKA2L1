@@ -13,8 +13,8 @@ parser.add_argument('--leaf-features',type=int,choices=(0,128))
 parser.add_argument('--literal-pc-veneers',action='store_true',help='Include runtime literal LDR-PC veneer fixture (requires a matching archive)')
 parser.add_argument('--exit-census',type=int,choices=(0,1))
 parser.add_argument('--predicated-leaves', type=int, choices=(0,1))
-parser.add_argument('--execution-limits', help='Explicit window,leaf,sites,runner configuration')
-parser.add_argument('--ir-policy', type=int, choices=(0,4,5,6,7,17,18), required=True)
+parser.add_argument('--execution-limits', choices=['512,32,8,512'], default='512,32,8,512', help='Verify the fixed window,leaf,sites,runner limits')
+parser.add_argument('--ir-policy', type=int, choices=(0,4,5,6,7,17), required=True)
 parser.add_argument('--long', action='store_true', help='Include 128-instruction coverage fixture')
 parser.add_argument('--code-compare', type=int, choices=(0,2))
 a = parser.parse_args()
@@ -38,7 +38,6 @@ if a.long:
 probe_compare = [] if a.code_compare is None else [f'--code-compare={a.code_compare}']
 compare_args = [] if a.code_compare is None else ['--code-compare',str(a.code_compare)]
 if a.execution_limits is not None:
-    probe_compare += [f'--execution-limits={a.execution_limits}']
     compare_args += ['--execution-limits',a.execution_limits]
 if a.predicated_leaves is not None:
     probe_compare += [f'--predicated-leaves={a.predicated_leaves}']

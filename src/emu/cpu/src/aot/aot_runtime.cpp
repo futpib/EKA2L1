@@ -316,7 +316,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     const auto tlb_address = tlb->page_bits == 12
         ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
 
-    while (function && result.instructions < budget && (!runner_region_limit || result.blocks < runner_region_limit)) {
+    while (function && result.instructions < budget && result.blocks < runner_region_limit) {
         cpu->aot_budget = budget - result.instructions;
         if constexpr (Profile) count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);
@@ -416,7 +416,7 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
     if constexpr(Profile) if(exit_census::counting()) {
         const char *why = !cpu->NumInstrsToExecute ? "stop" : result.instructions==budget ? "budget"
             : (!cpu->NirqSig && !(cpu->Cpsr&0x80)) ? "interrupt"
-            : !function ? "successor_unavailable" : (runner_region_limit && result.blocks==runner_region_limit) ? "region_cap" : "zero_progress";
+            : !function ? "successor_unavailable" : (result.blocks==runner_region_limit) ? "region_cap" : "zero_progress";
         ++exit_census::runners[why];
     }
     return result;

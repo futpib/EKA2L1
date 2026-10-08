@@ -50,8 +50,8 @@ is retired and must be removed from launch environments. The TLB/direct backend
 selection below remains independent of this fixed compiler behavior. See the
 [eligibility and adoption checks](../benchmark/ARM_MEMORY_ADOPTION.md).
 
-The replay and profiling harnesses default to direct memory with compiled
-regions (`EKA2L1_BENCHMARK_AOT=5`), verification off and unsafe code mode 3.
+For compiled-region replay and profiling, set `EKA2L1_BENCHMARK_AOT=5`.
+With verification off, these runs select direct memory and unsafe code mode 3.
 Interpreter, verifier and mutation-compatible runs select TLB unless explicitly
 overridden. The launcher also selects TLB for `EKA2L1_UNSAFE_CODE=0` when no
 memory override is supplied. Only values 0 (TLB) and 2 (direct) are
@@ -65,11 +65,17 @@ page. TLB retains its alignment checks. See the
 Compiled syscalls (`EKA2L1_COMPILED_SVC=1`), sparse ROM lookup
 (`EKA2L1_SPARSE_ROM_LOOKUP=1`) and outlined entry budgets
 (`EKA2L1_ENTRY_BUDGET=2`) are enabled by default. Entry-budget mode 0 retains
-per-span checks; mode 1 uses inline recovery. These policies are frozen before
-initialization. Division lowering (`EKA2L1_DIVISION_DIGITS=0`), entry-only pruning
-(`EKA2L1_ENTRY_ONLY_PRUNING=0`) and static count batching (IR mode 18) remain
-opt-in; full state pruning and IR mode 17 remain the defaults. See the
+per-span checks. These policies are frozen before initialization. Full state
+pruning and IR mode 17 remain the defaults. See the
 [combined measurements and graduation](../benchmark/RECOVERED_DEFAULTS_RESULTS.md).
+
+Division lowering, entry-only pruning, static count batching (IR mode 18),
+and inline entry-budget recovery (mode 1) were removed after the completed
+controlled sweep. Remove `EKA2L1_DIVISION_DIGITS`, `EKA2L1_ENTRY_ONLY_PRUNING`,
+and `EKA2L1_EXECUTION_LIMITS` from launch environments, even if set to zero or
+the former default. The limits are now fixed: 512 source bytes, 32 leaf
+instructions, 8 inline sites, and 512 regions per chain. Their read-only API
+still reports `512,32,8,512`. See the [56-entry cleanup audit](../benchmark/RETIRED_SWEEP_EXPERIMENTS.md).
 
 Run the actual browser integration check against a running launcher:
 

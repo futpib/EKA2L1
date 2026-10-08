@@ -11,34 +11,32 @@ const { startServer, compilerPolicyFromEnv } = await import('./server.ts');
 const servers: any[] = [];
 try {
   for (const name of ['EKA2L1_DIVISION_DIGITS','EKA2L1_ENTRY_BUDGET','EKA2L1_SPARSE_ROM_LOOKUP','EKA2L1_ENTRY_ONLY_PRUNING','EKA2L1_COMPILED_SVC','EKA2L1_MEMORY_IMPL','EKA2L1_ARM_MEMORY','EKA2L1_HOTPATH','EKA2L1_THUMB_MEMORY','EKA2L1_AOT_IR_MODE','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_TLB_HASH','EKA2L1_MEMORY_CACHE','EKA2L1_CODE_COMPARE','EKA2L1_CODE_LOOKUP','EKA2L1_PREDICATED_LEAVES','EKA2L1_LEAF_FEATURES','EKA2L1_EXECUTION_LIMITS','EKA2L1_UNSAFE_CODE','EKA2L1_OMIT_GUARD_PUBLICATION']) delete process.env[name];
-  assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,512],divisionDigits:0,entryBudget:2,sparseRom:1,entryOnlyPruning:0,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17});
+  assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,512],entryBudget:2,sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17});
   for (const mode of [0,2]) {
     process.env.EKA2L1_CODE_COMPARE = String(mode);
-    assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,512],divisionDigits:0,entryBudget:2,sparseRom:1,entryOnlyPruning:0,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17,codeCompare:mode});
+    assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,512],entryBudget:2,sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17,codeCompare:mode});
   }
   for (const value of ['-1','1','3','4','5','2.0','NaN','']) {
     process.env.EKA2L1_CODE_COMPARE = value;
     assert.throws(compilerPolicyFromEnv, /Invalid exact comparison policy/);
   }
   delete process.env.EKA2L1_CODE_COMPARE;
-  for (const name of ['EKA2L1_TLB_HASH','EKA2L1_MEMORY_CACHE','EKA2L1_CODE_LOOKUP','EKA2L1_OMIT_GUARD_PUBLICATION','EKA2L1_ROM_DISPATCH','EKA2L1_SYNCHRONOUS_COMPILATION','EKA2L1_CODE_WRITE_PROTECT','EKA2L1_COMPILED_MEMORY_MISSES','EKA2L1_ROM_CALLS','EKA2L1_ROM_LEAVES','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_SNAKES_N80_NATIVE_RESOLUTION','EKA2L1_ARM_MEMORY']) {
+  for (const name of ['EKA2L1_TLB_HASH','EKA2L1_MEMORY_CACHE','EKA2L1_CODE_LOOKUP','EKA2L1_OMIT_GUARD_PUBLICATION','EKA2L1_DIVISION_DIGITS','EKA2L1_ENTRY_ONLY_PRUNING','EKA2L1_EXECUTION_LIMITS','EKA2L1_ROM_DISPATCH','EKA2L1_SYNCHRONOUS_COMPILATION','EKA2L1_CODE_WRITE_PROTECT','EKA2L1_COMPILED_MEMORY_MISSES','EKA2L1_ROM_CALLS','EKA2L1_ROM_LEAVES','EKA2L1_AOT_EAGER_REGIONS','EKA2L1_SNAKES_N80_NATIVE_RESOLUTION','EKA2L1_ARM_MEMORY']) {
     for (const value of ['0','1']) {
       process.env[name] = value;
       assert.throws(compilerPolicyFromEnv, /Retired compiler option/);
     }
     delete process.env[name];
   }
-  for (const mode of [1,2,3,8,9,10,11,12,13,14,15,16]) {
+  for (const mode of [1,2,3,8,9,10,11,12,13,14,15,16,18]) {
     process.env.EKA2L1_AOT_IR_MODE = String(mode);
     assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);
     await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{irMode:mode}}), /Invalid compiler policy/);
   }
   process.env.EKA2L1_AOT_IR_MODE = '7';
-  assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,512],divisionDigits:0,entryBudget:2,sparseRom:1,entryOnlyPruning:0,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,irMode:7});
+  assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,512],entryBudget:2,sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,irMode:7});
   process.env.EKA2L1_AOT_IR_MODE = '17';
-  assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,512],divisionDigits:0,entryBudget:2,sparseRom:1,entryOnlyPruning:0,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17});
-  process.env.EKA2L1_AOT_IR_MODE = '18';
-  assert.equal(compilerPolicyFromEnv().irMode,18);
+  assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,512],entryBudget:2,sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17});
   process.env.EKA2L1_AOT_IR_MODE = '19';
   assert.throws(compilerPolicyFromEnv, /Invalid compiler policy/);
   delete process.env.EKA2L1_AOT_IR_MODE;
@@ -78,10 +76,8 @@ try {
   for (const invalid of [-1,5,NaN]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:{codeCompare:invalid}}),/Invalid compiler policy/);
   for (const policy of [{tlbHash:0},{tlbHash:1},{memoryCache:1},{codeLookup:0},{omitGuardPublication:0}]) await assert.rejects(startServer(0,{},undefined,{compilerPolicy:policy as any}),/Invalid compiler policy/);
   for (const [envName,key,valid,invalid] of [
-    ['EKA2L1_DIVISION_DIGITS','divisionDigits',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_SPARSE_ROM_LOOKUP','sparseRom',['0','1'],['','2','-1','1.0']],
-    ['EKA2L1_ENTRY_ONLY_PRUNING','entryOnlyPruning',['0','1'],['','2','-1','1.0']],
-    ['EKA2L1_ENTRY_BUDGET','entryBudget',['0','1','2'],['','3','-1','1.0']],
+    ['EKA2L1_ENTRY_BUDGET','entryBudget',['0','2'],['','1','3','-1','1.0']],
     ['EKA2L1_COMPILED_SVC','compiledSvc',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_MEMORY_IMPL','memoryImpl',['0','2'],['','1','3','-1','2.0']],
     ['EKA2L1_HOTPATH','hotpath',['0','2'],['','1','3','4','5','6','7','8','-1','2.0','02']],
@@ -89,31 +85,29 @@ try {
     ['EKA2L1_UNSAFE_CODE','unsafeCode',['0','3'],['','1','2','4','-1','3.0']],
     ['EKA2L1_PREDICATED_LEAVES','predicatedLeaves',['0','1'],['','2','-1','1.0']],
     ['EKA2L1_LEAF_FEATURES','leafFeatures',['0','32','64','96','128','160','192','224'],['','1','7','8','15','16','24','31','63','65','127','129','159','161','255','256','-1','8.0','08']],
-    ['EKA2L1_EXECUTION_LIMITS','executionLimits',['512,16,8,512','128,1,0,0','2048,64,16,4096'],['512,0,8,512','127,16,8,512','130,16,8,512','2049,16,8,512','512,65,8,512','512,16,17,512','512,16,8,4097','512,16,8,-1','512,16,8,0,0','0512,16,8,512','512,16,8,NaN','']]
   ] as const) {
     for (const value of valid) {
       process.env[envName] = value;
-      assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,512],divisionDigits:0,entryBudget:2,sparseRom:1,entryOnlyPruning:0,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17,...(key === 'unsafeCode' && value === '0' ? {memoryImpl:0} : {}),[key]:key === 'executionLimits' ? value.split(',').map(Number) : Number(value)});
+      assert.deepEqual(compilerPolicyFromEnv(), {predicatedLeaves:1,leafFeatures:224,executionLimits:[512,32,8,512],entryBudget:2,sparseRom:1,compiledSvc:1,hotpath:2,thumbMemory:1,unsafeCode:3,irMode:17,...(key === 'unsafeCode' && value === '0' ? {memoryImpl:0} : {}),[key]:Number(value)});
     }
     for (const value of invalid) { process.env[envName] = value; assert.throws(compilerPolicyFromEnv, /Invalid .* policy/); }
     delete process.env[envName];
   }
   const promotionOptions = [
-    ['divisionDigits','division_digits'], ['compiledSvc','compiled_svc'], ['sparseRom','sparse_rom_lookup'],
-    ['entryOnlyPruning','entry_only_pruning'], ['entryBudget','entry_budget']
+    ['compiledSvc','compiled_svc'], ['sparseRom','sparse_rom_lookup'],
+    ['entryBudget','entry_budget']
   ] as const;
   const fusionEtags: (string|null)[] = [];
   for (const policy of [
-    {divisionDigits:1,compiledSvc:0,sparseRom:1,entryOnlyPruning:1,entryBudget:2,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,16,8,512]},
-    {divisionDigits:0,compiledSvc:1,sparseRom:0,entryOnlyPruning:0,entryBudget:1,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,16,8,512]},
-    ...[0,2].map(memoryImpl=>({memoryImpl,unsafeCode:3,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,16,8,512]})),
-    ...[0,2].map(hotpath=>({hotpath,unsafeCode:3,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,16,8,512]})),
-    ...[0,1].map(thumbMemory=>({thumbMemory,unsafeCode:3,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,16,8,512]})),
-    ...[0,3].map(unsafeCode=>({unsafeCode,predicatedLeaves:1,leafFeatures:0,executionLimits:[512,16,8,512]})),
-    {predicatedLeaves:1,leafFeatures:128,executionLimits:[512,16,8,512]},
-    {predicatedLeaves:1,leafFeatures:128,executionLimits:[1024,32,16,0]},
+    {compiledSvc:0,sparseRom:1,entryBudget:2,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,32,8,512]},
+    {compiledSvc:1,sparseRom:0,entryBudget:0,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,32,8,512]},
+    ...[0,2].map(memoryImpl=>({memoryImpl,unsafeCode:3,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,32,8,512]})),
+    ...[0,2].map(hotpath=>({hotpath,unsafeCode:3,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,32,8,512]})),
+    ...[0,1].map(thumbMemory=>({thumbMemory,unsafeCode:3,predicatedLeaves:1,leafFeatures:128,executionLimits:[512,32,8,512]})),
+    ...[0,3].map(unsafeCode=>({unsafeCode,predicatedLeaves:1,leafFeatures:0,executionLimits:[512,32,8,512]})),
+    {predicatedLeaves:1,leafFeatures:128,executionLimits:[512,32,8,512]},
     ...[32,64,96,160,192,224].map(leafFeatures=>({predicatedLeaves:1,leafFeatures,executionLimits:[512,32,8,512]})),
-    {predicatedLeaves:0,leafFeatures:0,executionLimits:[128,1,0,4096]}
+    {predicatedLeaves:0,leafFeatures:0,executionLimits:[512,32,8,512]}
   ]) {
     const {server,port}=await startServer(0,{},undefined,{compilerPolicy:policy as any});servers.push(server);
     const response=await fetch(`http://127.0.0.1:${port}/`);fusionEtags.push(response.headers.get('etag'));
@@ -123,8 +117,9 @@ try {
     const entries=[...selectedPromotion.map(([,entry])=>entry),'leaf_predication','leaf_features','execution_limits',...('unsafeCode' in policy?['unsafe_code']:[]),...('thumbMemory' in policy?['thumb_memory']:[]),...('hotpath' in policy?['hotpath']:[]),...('memoryImpl' in policy?['memory_impl']:[])];
     const values=[...selectedPromotion.map(([key])=>(policy as any)[key]),policy.predicatedLeaves,policy.leafFeatures,policy.executionLimits.join(','),...('unsafeCode' in policy?[policy.unsafeCode]:[]),...('thumbMemory' in policy?[policy.thumbMemory]:[]),...('hotpath' in policy?[policy.hotpath]:[]),...('memoryImpl' in policy?[policy.memoryImpl]:[])];
     for (const failure of ['none','missing-config','reject-config','missing-report','wrong-report']) for (const target of failure==='none'?[0]:entries.map((_,i)=>i)) {
+      if(entries[target]==='execution_limits' && ['missing-config','reject-config'].includes(failure)) continue;
       const configured: Record<string,number[]>={};let starts=0;
-      const exports=entries.flatMap(name=>['configure','report'].map(suffix=>'eka2l1_'+name+'_'+suffix));
+      const exports=entries.flatMap(name=>(name==='execution_limits'?['report']:['configure','report']).map(suffix=>'eka2l1_'+name+'_'+suffix));
       const absent='eka2l1_'+entries[target]+(failure==='missing-config'?'_configure':'_report');
       const context=vm.createContext({window:{},startEmulator:async()=>{++starts;},Module:{
         ...Object.fromEntries(exports.filter(name=>!(failure.startsWith('missing')&&name===absent)).map(name=>['_'+name,()=>0])),
@@ -140,7 +135,7 @@ try {
         await vm.runInContext('startEmulator()',context);
         assert.equal(context.window.ekaCompilerPolicy.applied,true);
         assert.deepEqual(JSON.parse(JSON.stringify(context.window.ekaCompilerPolicy.observed)),policy);
-        assert.deepEqual(configured,{...Object.fromEntries(selectedPromotion.map(([key,entry])=>['eka2l1_'+entry+'_configure',[(policy as any)[key]]])),eka2l1_leaf_predication_configure:[policy.predicatedLeaves],eka2l1_leaf_features_configure:[policy.leafFeatures],eka2l1_execution_limits_configure:policy.executionLimits,...('unsafeCode' in policy?{eka2l1_unsafe_code_configure:[policy.unsafeCode]}:{}),...('thumbMemory' in policy?{eka2l1_thumb_memory_configure:[policy.thumbMemory]}:{}),...('hotpath' in policy?{eka2l1_hotpath_configure:[policy.hotpath]}:{}),...('memoryImpl' in policy?{eka2l1_memory_impl_configure:[policy.memoryImpl]}:{})});
+        assert.deepEqual(configured,{...Object.fromEntries(selectedPromotion.map(([key,entry])=>['eka2l1_'+entry+'_configure',[(policy as any)[key]]])),eka2l1_leaf_predication_configure:[policy.predicatedLeaves],eka2l1_leaf_features_configure:[policy.leafFeatures],...('unsafeCode' in policy?{eka2l1_unsafe_code_configure:[policy.unsafeCode]}:{}),...('thumbMemory' in policy?{eka2l1_thumb_memory_configure:[policy.thumbMemory]}:{}),...('hotpath' in policy?{eka2l1_hotpath_configure:[policy.hotpath]}:{}),...('memoryImpl' in policy?{eka2l1_memory_impl_configure:[policy.memoryImpl]}:{})});
         await vm.runInContext('startEmulator()',context);assert.equal(starts,2);
       } else {
         await assert.rejects(vm.runInContext('startEmulator()',context),/Emulator compiler (configuration failed|readback unavailable|readback mismatch)/);
@@ -150,6 +145,8 @@ try {
   }
   assert.equal(new Set(fusionEtags).size,fusionEtags.length);
   for(const invalid of [
+    {divisionDigits:0},{entryOnlyPruning:0},{entryBudget:1},
+    ...[[1024,32,8,512],[512,32,4,512],[512,32,16,512],[512,32,8,64],[512,32,8,0],[512,16,8,512]].map(executionLimits=>({executionLimits})),
     {hotpath:-1},{hotpath:1},{hotpath:3},{hotpath:4},{hotpath:7},{hotpath:8},{hotpath:NaN},{hotpath:2.5},
     {memoryImpl:1},{memoryImpl:3},{memoryImpl:-1},{memoryImpl:NaN},
     {thumbMemory:2},{thumbMemory:-1},{thumbMemory:NaN},

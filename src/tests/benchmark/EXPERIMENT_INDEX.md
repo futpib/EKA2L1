@@ -10,11 +10,13 @@ to detect stale output.
 
 The controlled historical sweep is complete: 109/109 game comparisons, 872/872 valid observations and 20 retained earlier invalid attempts. All saved plans and observations are preserved. Winners were reassessed on the current runtime before graduation; individual percentages are not additive.
 
-Compiled syscalls, sparse ROM lookup and outlined entry budgets were adopted in 632c3d433. The resumed sweep additionally graduated forward-only leaves at bound 32 (21c322713), single-branch veneers (0b890a26a), and register-only tail prefixes (7f5f85273). The last artifact remains the browser default and is served on the LAN UI.
+Compiled syscalls, sparse ROM lookup and outlined entry budgets were adopted in 632c3d433. The resumed sweep additionally graduated forward-only leaves at bound 32 (21c322713), single-branch veneers (0b890a26a), and register-only tail prefixes (7f5f85273). Those graduated choices remain the browser defaults.
 
 The final direct measurement of those three later graduations together versus 632c3d433 gives Snakes +2.56% CPU throughput (4/4 faster pairs) and Sky Force -1.80% (2/4 faster pairs). This is a measured tradeoff, not a demonstrated two-game win. All 16 observations are valid and all 88 restoration checks pass. See [combined results and limitations](SWEEP_COMBINED_RESULTS.md). No new promotion or rollback follows from this closing comparison; the Sky Force regression is explicitly recorded for targeted isolation.
 
-The exact deployed artifact passed 175 compiler tests and real LAN gameplay/input checks. Full live-audio E2E remains blocked by the previously reproduced host audio-device failure; exact PCM replays pass. Temperature ceilings and cooldown waits are removed; measured clock, throttle, affinity and counter checks remain. No benchmark or graduation is queued.
+The graduated artifact passed 175 compiler tests and real LAN gameplay/input checks. Full live-audio E2E remains blocked by the previously reproduced host audio-device failure; exact PCM replays pass. Temperature ceilings and cooldown waits are removed; measured clock, throttle, affinity and counter checks remain. No benchmark or graduation is queued.
+
+The subsequent [56-entry source audit and cleanup](RETIRED_SWEEP_EXPERIMENTS.md) removes division lowering, entry-only pruning, count batching, inline entry-budget recovery and adjustable execution limits. The other listed implementations were already absent or superseded. Adopted behavior remains; this maintenance change has no new timing claim. Historical measurements and candidate patches remain available.
 
 Historical gains are relative to their recorded controls and configurations.
 They are not additive or evidence of the same gain on the current runtime.
@@ -66,14 +68,14 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | ---: | --- | ---: | ---: | ---: | ---: | --- | --- | --- |
 | 1 | compact-dispatch / Snakes | +5.91% | +4.92% | -6.65% | 4/4 | 8/8; 0 invalid | Default: Contiguous trusted RAM dispatch slots | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
 | 2 | compact-dispatch / Sky Force | +1.17% | +1.03% | -0.98% | 4/4 | 8/8; 0 invalid | Default: Contiguous trusted RAM dispatch slots | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
-| 3 | division-digits / Snakes | +0.94% | -0.06% | -0.38% | 4/4 | 8/8; 1 invalid | Not selected for promotion: Current combination: Snakes +0.07%, Sky Force -0.66% CPU, mixed pairs in both. Fewer Snakes native instructions did not yield a runtime gain; remains off | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
-| 4 | division-digits / Sky Force | +0.67% | +0.67% | -0.00% | 2/4 | 8/8; 4 invalid | Not selected for promotion: Current combination: Snakes +0.07%, Sky Force -0.66% CPU, mixed pairs in both. Fewer Snakes native instructions did not yield a runtime gain; remains off | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
+| 3 | division-digits / Snakes | +0.94% | -0.06% | -0.38% | 4/4 | 8/8; 1 invalid | Removed after completed sweep: Current combination: Snakes +0.07%, Sky Force -0.66% CPU, mixed pairs in both. Fewer Snakes native instructions did not yield a runtime gain. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md. | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
+| 4 | division-digits / Sky Force | +0.67% | +0.67% | -0.00% | 2/4 | 8/8; 4 invalid | Removed after completed sweep: Current combination: Snakes +0.07%, Sky Force -0.66% CPU, mixed pairs in both. Fewer Snakes native instructions did not yield a runtime gain. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md. | [DISPATCH_AND_DIVISION_RESULTS.md](DISPATCH_AND_DIVISION_RESULTS.md) |
 | 5 | state-pruning / Snakes | +0.08% | +0.06% | -0.08% | 2/4 | 8/8; 0 invalid | Default: Full ARM and Thumb load/store pruning | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 6 | state-pruning / Sky Force | +0.66% | +0.63% | -1.36% | 3/4 | 8/8; 0 invalid | Default: Full ARM and Thumb load/store pruning | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 7 | trusted-lookup-inline / Snakes | -0.39% | -0.10% | -0.00% | 1/4 | 8/8; 0 invalid | Historical signal only; no current-runtime win established: Snakes -0.39% CPU throughput, 1/4 faster pairs; Sky Force +2.56%, 3/4. Sky Force pairs are +8.25%, +1.67%, +0.71% and -0.56%, with essentially unchanged native instructions. The large first-panel gain does not repeat in reversed order. Retain as an uncertain historical lead; it is not an additional current-runtime graduation. | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 8 | trusted-lookup-inline / Sky Force | +2.56% | +2.39% | +0.00% | 3/4 | 8/8; 0 invalid | Historical signal only; no current-runtime win established: Snakes -0.39% CPU throughput, 1/4 faster pairs; Sky Force +2.56%, 3/4. Sky Force pairs are +8.25%, +1.67%, +0.71% and -0.56%, with essentially unchanged native instructions. The large first-panel gain does not repeat in reversed order. Retain as an uncertain historical lead; it is not an additional current-runtime graduation. | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
-| 9 | entry-only-pruning / Snakes | -0.39% | -0.12% | +0.42% | 2/4 | 8/8; 0 invalid | Not selected for promotion: Current Snakes -0.42%; Sky Force +1.26% with mixed pairs and nearly unchanged native instruction count. Full pruning remains selected | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
-| 10 | entry-only-pruning / Sky Force | +3.14% | +2.87% | -1.38% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Current Snakes -0.42%; Sky Force +1.26% with mixed pairs and nearly unchanged native instruction count. Full pruning remains selected | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
+| 9 | entry-only-pruning / Snakes | -0.39% | -0.12% | +0.42% | 2/4 | 8/8; 0 invalid | Removed after completed sweep: Current Snakes -0.42%; Sky Force +1.26% with mixed pairs and nearly unchanged native instruction count. Full pruning remains selected. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md. | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
+| 10 | entry-only-pruning / Sky Force | +3.14% | +2.87% | -1.38% | 4/4 | 8/8; 0 invalid | Removed after completed sweep: Current Snakes -0.42%; Sky Force +1.26% with mixed pairs and nearly unchanged native instruction count. Full pruning remains selected. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md. | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 11 | store-only-pruning / Snakes | +0.40% | +0.34% | +0.50% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Small Snakes gain accompanied a Sky Force loss against the unpruned control; full pruning remains default | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 12 | store-only-pruning / Sky Force | -0.41% | -0.38% | -0.67% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Small Snakes gain accompanied a Sky Force loss against the unpruned control; full pruning remains default | [RUNTIME_STATE_RESULTS.md](RUNTIME_STATE_RESULTS.md) |
 | 13 | direct-span-two / Snakes | -0.50% | -0.28% | -0.30% | 0/4 | 8/8; 0 invalid | No new default adopted | [DIRECT_SPAN_RESULTS.md](DIRECT_SPAN_RESULTS.md) |
@@ -84,8 +86,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 18 | thumb-static / Sky Force | -1.84% | -1.78% | -0.52% | 0/4 | 8/8; 0 invalid | Not selected for promotion: Snakes +0.91%, but Sky Force -1.84% with all four pairs slower; does not match the preferred tradeoff | [THUMB_STATIC_REGION_RESULTS.md](THUMB_STATIC_REGION_RESULTS.md) |
 | 19 | thumb-transfer-gate / Snakes | -0.65% | -0.42% | +0.18% | 1/4 | 8/8; 0 invalid | No new default adopted | [THUMB_TRANSFER_GATE_RESULTS.md](THUMB_TRANSFER_GATE_RESULTS.md) |
 | 20 | thumb-transfer-gate / Sky Force | +0.04% | -0.22% | +0.03% | 2/4 | 8/8; 0 invalid | No new default adopted | [THUMB_TRANSFER_GATE_RESULTS.md](THUMB_TRANSFER_GATE_RESULTS.md) |
-| 21 | batched-counts / Snakes | -0.13% | +0.31% | -0.41% | 2/4 | 8/8; 0 invalid | Not selected for promotion: Current Snakes -0.34% and Sky Force +0.50% with mixed pairs and slightly more native instructions; keep policy 17 | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
-| 22 | batched-counts / Sky Force | +1.06% | +1.01% | -0.15% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Current Snakes -0.34% and Sky Force +0.50% with mixed pairs and slightly more native instructions; keep policy 17 | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
+| 21 | batched-counts / Snakes | -0.13% | +0.31% | -0.41% | 2/4 | 8/8; 0 invalid | Removed after completed sweep: Current Snakes -0.34% and Sky Force +0.50% with mixed pairs and slightly more native instructions; keep policy 17. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md. | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
+| 22 | batched-counts / Sky Force | +1.06% | +1.01% | -0.15% | 4/4 | 8/8; 0 invalid | Removed after completed sweep: Current Snakes -0.34% and Sky Force +0.50% with mixed pairs and slightly more native instructions; keep policy 17. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md. | [BATCHED_INSTRUCTION_COUNTS.md](BATCHED_INSTRUCTION_COUNTS.md) |
 | 23 | span-page-reuse / Snakes | -1.76% | -1.54% | +1.12% | 0/4 | 8/8; 0 invalid | No new default adopted | [SPAN_PAGE_REUSE_RESULTS.md](SPAN_PAGE_REUSE_RESULTS.md) |
 | 24 | span-page-reuse / Sky Force | +0.96% | +0.88% | +0.82% | 2/4 | 8/8; 0 invalid | No new default adopted | [SPAN_PAGE_REUSE_RESULTS.md](SPAN_PAGE_REUSE_RESULTS.md) |
 | 25 | dynamic-rom-cohorts / Snakes | -11.17% | -9.48% | +10.03% | 0/4 | 8/8; 0 invalid | No new default adopted | [DYNAMIC_ROM_COHORT_TIMING_RESULTS.md](DYNAMIC_ROM_COHORT_TIMING_RESULTS.md) |
@@ -126,7 +128,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 60 | direct-register-stores / Snakes | -0.43% | -0.13% | -0.00% | 1/4 | 8/8; 0 invalid | No new default adopted | [REGISTER_STORE_RESULTS.md](REGISTER_STORE_RESULTS.md) |
 | 61 | conditional-alu-select / Snakes | -0.17% | -0.16% | +0.20% | 1/4 | 8/8; 0 invalid | No new default adopted | [CONDITIONAL_ALU_RESULTS.md](CONDITIONAL_ALU_RESULTS.md) |
 | 62 | compare-operand-reuse / Snakes | +0.40% | +0.39% | -0.03% | 2/4 | 8/8; 1 invalid | No new default adopted | [COMPARE_CONDITION_RESULTS.md](COMPARE_CONDITION_RESULTS.md) |
-| 63 | whole-entry-budget / Snakes | +2.00% | +1.90% | -3.23% | 4/4 | 8/8; 0 invalid | Not selected for promotion: Current gains are mixed; outlined mode 2 has the stronger Snakes result and is selected for combined validation | [ENTRY_BUDGET_RESULTS.md](ENTRY_BUDGET_RESULTS.md) |
+| 63 | whole-entry-budget / Snakes | +2.00% | +1.90% | -3.23% | 4/4 | 8/8; 0 invalid | Removed after completed sweep: Current gains are mixed; outlined mode 2 has the stronger Snakes result and is selected for combined validation. Implementation and selector removed; see RETIRED_SWEEP_EXPERIMENTS.md. | [ENTRY_BUDGET_RESULTS.md](ENTRY_BUDGET_RESULTS.md) |
 | 64 | outlined-entry-budget / Snakes | +1.91% | +1.75% | -3.04% | 4/4 | 8/8; 0 invalid | Default: Mode 2 enabled in the measured winning combination; full bounded entry with private precise recovery | [OUTLINED_BUDGET_RESULTS.md](OUTLINED_BUDGET_RESULTS.md) |
 | 65 | cached-address-displacement / Snakes | -0.27% | -0.36% | -0.41% | 2/4 | 8/8; 2 invalid | Historical result mixed: Controlled Snakes -0.27% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 66 | deferred-read-exit / Snakes | +0.46% | +0.43% | -1.52% | 2/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.46% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
@@ -141,12 +143,12 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 75 | branch-veneer-fusion / Snakes | +0.76% | +0.75% | -0.20% | 4/4 | 8/8; 0 invalid | Default: Feature mask 160 retains literal-PC veneers and adds single-branch veneers at bound 32. Incremental current Snakes +0.87% CPU (3/4 faster), Sky Force +1.98% (4/4 faster). Exact measured artifact passes compiler, browser API and real LAN gameplay checks; known host audio limitation persists. | [BRANCH_VENEER_RESULTS.md](BRANCH_VENEER_RESULTS.md) |
 | 76 | tail-prefix-fusion / Snakes | +0.99% | +0.93% | -1.18% | 3/4 | 8/8; 0 invalid | Default: Register-only terminal tails as mask 224 at bound 32, preserving full returning leaves. Current Snakes +2.32% CPU, -1.03% native instructions, all pairs faster. Sky Force +0.68% with mixed pairs; no reliable Sky Force gain claimed. Exact measured artifact passes 175 compiler tests and real LAN gameplay; existing host audio failure persists. | [TAIL_PREFIX_RESULTS.md](TAIL_PREFIX_RESULTS.md) |
 | 77 | expanded-leaf-bound / Snakes | +1.00% | +0.87% | -0.85% | 4/4 | 8/8; 0 invalid | Current bound already 32: Historical 16-to-32 expanded-leaf bound: Snakes +1.00% CPU, -0.85% native instructions, all four pairs faster. Browser defaults already select 32 in the separately validated current runtime. This completes historical evidence, not an additional incremental speedup or proof that 32 is optimal. | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
-| 78 | conditional-leaf-bound / Snakes | +0.12% | +0.11% | -0.17% | 3/4 | 8/8; 0 invalid | Historical result mixed; current bound 32: Older conditional-only 16-to-32 bound: Snakes +0.12% CPU, -0.17% native instructions, 3/4 faster pairs with a -1.03% to +1.25% range. No clear runtime win in this configuration. The current expanded-leaf runtime separately validates bound 32; no additional graduation or default change follows. | [REGION_LIMITS_RESULTS.md](REGION_LIMITS_RESULTS.md) |
-| 79 | hot-source-window / Snakes | -3.06% | -3.06% | +0.64% | 0/4 | 8/8; 0 invalid | Not selected for promotion: Historical hot primary window 512-to-1024 bytes: Snakes -3.06% CPU throughput, +0.64% native instructions, all four pairs slower (-2.27% to -3.73%). No current-runtime promotion warranted; the current 512-byte window remains selected. The source-window unit is bytes, distinct from the leaf instruction bound. | [REGION_LIMITS_RESULTS.md](REGION_LIMITS_RESULTS.md) |
-| 80 | four-inline-sites / Snakes | -2.03% | -1.86% | +3.28% | 0/4 | 8/8; 0 invalid | Not selected for promotion: Historical eight-to-four inline-site cap: Snakes -2.03% CPU throughput, +3.28% native instructions, all four pairs slower (-0.76% to -3.82%). Retain the current eight-site cap; no current-runtime promotion warranted. | [CONDITIONAL_SITE_LIMITS_RESULTS.md](CONDITIONAL_SITE_LIMITS_RESULTS.md) |
-| 81 | sixteen-inline-sites / Snakes | +0.26% | +0.30% | -0.04% | 2/4 | 8/8; 0 invalid | Historical result mixed: Historical eight-to-sixteen inline-site cap: Snakes +0.26% CPU throughput, -0.04% native instructions, two faster and two slower pairs (-0.66% to +1.56%). No clear runtime gain; retain the current eight-site cap and do not claim it is globally optimal. | [CONDITIONAL_SITE_LIMITS_RESULTS.md](CONDITIONAL_SITE_LIMITS_RESULTS.md) |
-| 82 | shorter-region-chain / Snakes | -1.26% | -1.13% | +0.68% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Historical chain cap 512-to-64 regions: Snakes -1.26% CPU throughput, +0.68% native instructions, only one of four pairs faster. Retain the current 512-region cap; shorter chains do not earn current-runtime promotion. | [CONDITIONAL_RUNNER_LIMITS_RESULTS.md](CONDITIONAL_RUNNER_LIMITS_RESULTS.md) |
-| 83 | uncapped-region-chain / Snakes | +0.51% | +0.48% | -0.00% | 2/4 | 8/8; 0 invalid | Historical result mixed: Historical removal of the 512-region chain cap: Snakes +0.51% CPU throughput, two faster and two slower pairs (-0.40% to +1.50%), essentially identical native instructions (-0.00055%). No clear runtime win; retain 512. Guest budgets, IRQ/stop checks and successor validation remained enabled in the experiment. | [CONDITIONAL_RUNNER_LIMITS_RESULTS.md](CONDITIONAL_RUNNER_LIMITS_RESULTS.md) |
+| 78 | conditional-leaf-bound / Snakes | +0.12% | +0.11% | -0.17% | 3/4 | 8/8; 0 invalid | Selector removed after completed sweep: Older conditional-only 16-to-32 bound: Snakes +0.12% CPU, -0.17% native instructions, 3/4 faster pairs with a -1.03% to +1.25% range. No clear runtime win in this configuration. The current expanded-leaf runtime separately validates bound 32; no additional graduation or default change follows. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md. | [REGION_LIMITS_RESULTS.md](REGION_LIMITS_RESULTS.md) |
+| 79 | hot-source-window / Snakes | -3.06% | -3.06% | +0.64% | 0/4 | 8/8; 0 invalid | Selector removed after completed sweep: Historical hot primary window 512-to-1024 bytes: Snakes -3.06% CPU throughput, +0.64% native instructions, all four pairs slower (-2.27% to -3.73%). No current-runtime promotion warranted; the current 512-byte window remains selected. The source-window unit is bytes, distinct from the leaf instruction bound. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md. | [REGION_LIMITS_RESULTS.md](REGION_LIMITS_RESULTS.md) |
+| 80 | four-inline-sites / Snakes | -2.03% | -1.86% | +3.28% | 0/4 | 8/8; 0 invalid | Selector removed after completed sweep: Historical eight-to-four inline-site cap: Snakes -2.03% CPU throughput, +3.28% native instructions, all four pairs slower (-0.76% to -3.82%). Retain the current eight-site cap; no current-runtime promotion warranted. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md. | [CONDITIONAL_SITE_LIMITS_RESULTS.md](CONDITIONAL_SITE_LIMITS_RESULTS.md) |
+| 81 | sixteen-inline-sites / Snakes | +0.26% | +0.30% | -0.04% | 2/4 | 8/8; 0 invalid | Selector removed after completed sweep: Historical eight-to-sixteen inline-site cap: Snakes +0.26% CPU throughput, -0.04% native instructions, two faster and two slower pairs (-0.66% to +1.56%). No clear runtime gain; retain the current eight-site cap and do not claim it is globally optimal. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md. | [CONDITIONAL_SITE_LIMITS_RESULTS.md](CONDITIONAL_SITE_LIMITS_RESULTS.md) |
+| 82 | shorter-region-chain / Snakes | -1.26% | -1.13% | +0.68% | 1/4 | 8/8; 0 invalid | Selector removed after completed sweep: Historical chain cap 512-to-64 regions: Snakes -1.26% CPU throughput, +0.68% native instructions, only one of four pairs faster. Retain the current 512-region cap; shorter chains do not earn current-runtime promotion. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md. | [CONDITIONAL_RUNNER_LIMITS_RESULTS.md](CONDITIONAL_RUNNER_LIMITS_RESULTS.md) |
+| 83 | uncapped-region-chain / Snakes | +0.51% | +0.48% | -0.00% | 2/4 | 8/8; 0 invalid | Selector removed after completed sweep: Historical removal of the 512-region chain cap: Snakes +0.51% CPU throughput, two faster and two slower pairs (-0.40% to +1.50%), essentially identical native instructions (-0.00055%). No clear runtime win; retain 512. Guest budgets, IRQ/stop checks and successor validation remained enabled in the experiment. Adjustable limits removed; adopted constants are 512,32,8,512. See RETIRED_SWEEP_EXPERIMENTS.md. | [CONDITIONAL_RUNNER_LIMITS_RESULTS.md](CONDITIONAL_RUNNER_LIMITS_RESULTS.md) |
 | 84 | eager-rom-regions / Snakes | +0.04% | +0.06% | -0.65% | 1/4 | 8/8; 0 invalid | Not selected alone for promotion: Historical eager ROM regions: Snakes +0.04% CPU (-0.65% native instructions, 1/4 faster pairs); Sky Force -0.73% CPU (-0.04% native instructions, 2/4 faster pairs). No current-runtime promotion warranted. Current startup ROM still uses bounded blocks; the related ROM-leaf combination is assessed separately. | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
 | 85 | eager-rom-regions / Sky Force | -0.73% | -0.81% | -0.04% | 2/4 | 8/8; 0 invalid | Not selected alone for promotion: Historical eager ROM regions: Snakes +0.04% CPU (-0.65% native instructions, 1/4 faster pairs); Sky Force -0.73% CPU (-0.04% native instructions, 2/4 faster pairs). No current-runtime promotion warranted. Current startup ROM still uses bounded blocks; the related ROM-leaf combination is assessed separately. | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
 | 86 | rom-leaf-fusion / Snakes | -0.52% | -0.47% | -0.03% | 2/4 | 8/8; 0 invalid | Not selected for promotion: Historical ROM leaf fusion over eager regions: Snakes -0.52% CPU (2/4 faster pairs), Sky Force -1.71% (1/4 faster). Native instruction reductions are only about 0.03% in each game. Both means regress; no current-runtime promotion of the combined ROM strategy is warranted. | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
@@ -184,7 +186,7 @@ boundary. All valid samples remain included; see the [host limitations](CONTROLL
 
 ## Complete report catalogue
 
-270 reports and supporting notes are discovered below, including
+271 reports and supporting notes are discovered below, including
 timing, adoption and design documents with nonstandard filenames. Design plans
 and profiling shares do not establish measured speed gains. Each document
 retains its exact variants, workloads, controls and
@@ -399,73 +401,74 @@ is retained separately from the later controlled comparisons.
 | 201 | Results/notes | [Verified audio replay — 2026-09-26](RESULTS.md) | No performance excerpt; see source report |
 | 202 | Results/notes | [Retired compiler experiments and instrumentation](RETIRED_EXPERIMENTS.md) | [Findings below](#report-202) |
 | 203 | Results/notes | [Second compiler experiment cleanup](RETIRED_EXPERIMENTS_ROUND2.md) | [Findings below](#report-203) |
-| 204 | Results/notes | [Bounded immutable-ROM calls](ROM_BOUNDED_CALL_RESULTS.md) | No performance excerpt; see source report |
-| 205 | Results/notes | [Bounded ROM-call timing panel](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) | [Findings below](#report-205) |
-| 206 | Results/notes | [Bounded Thumb ROM calls on the current runtime](ROM_CALLS_CURRENT_RESULTS.md) | [Findings below](#report-206) |
-| 207 | Results/notes | [Bounded first-use ROM compilation with slot reuse](ROM_FIRST_USE_RECYCLING_RESULTS.md) | [Findings below](#report-207) |
-| 208 | Results/notes | [bounded ROM first-use replacement serial timing screen](ROM_FIRST_USE_RECYCLING_TIMING_RESULTS.md) | [Findings below](#report-208) |
-| 209 | Results/notes | [Bounded immutable-ROM leaf fusion](ROM_LEAF_FUSION_RESULTS.md) | No performance excerpt; see source report |
-| 210 | Results/notes | [ROM policy screen](ROM_LEAF_FUSION_SCREEN_RESULTS.md) | [Findings below](#report-210) |
-| 211 | Results/notes | [Shared immutable-ROM module dispatcher](ROM_MODULE_DISPATCH_RESULTS.md) | No performance excerpt; see source report |
-| 212 | Results/notes | [Immutable-ROM module dispatcher serial timing panel](ROM_MODULE_DISPATCH_TIMING_RESULTS.md) | [Findings below](#report-212) |
-| 213 | Results/notes | [Bounded shared Thumb state retention](ROM_STATE_COHORT_RESULTS.md) | [Findings below](#report-213) |
-| 214 | Results/notes | [Bounded state retention and total-change timing](ROM_STATE_COHORT_TOTAL_TIMING_RESULTS.md) | [Findings below](#report-214) |
-| 215 | Results/notes | [Guest-time route stepping for growth investigation](ROUTE_STEP_RESULTS.md) | [Findings below](#report-215) |
-| 216 | Results/notes | [Compiled runner specialization and rejected address experiments](RUNNER_SPECIALIZATION_RESULTS.md) | [Findings below](#report-216) |
-| 217 | Results/notes | [Runtime state traffic after state-transfer pruning](RUNTIME_STATE_RESULTS.md) | [Findings below](#report-217) |
-| 218 | Results/notes | [CPU time varies along with elapsed time](SCHEDULER_DIAGNOSTIC_RESULTS.md) | [Findings below](#report-218) |
-| 219 | Results/notes | [Shared ARM exit writeback](SHARED_EXIT_RESULTS.md) | [Findings below](#report-219) |
-| 220 | Results/notes | [Cheaper lowering of existing memory proofs](SHARED_SPAN_LOWERING_RESULTS.md) | [Findings below](#report-220) |
-| 221 | Results/notes | [Fixed-size short code comparison experiment](SHORT_SIZES_RESULTS.md) | [Findings below](#report-221) |
-| 222 | Results/notes | [Fresh V8 dispatch census](SKY_CURRENT_DISPATCH_RESULTS.md) | [Findings below](#report-222) |
-| 223 | Results/notes | [Sky Force on the WASM launcher](SKY_FORCE_RESULTS.md) | [Findings below](#report-223) |
-| 224 | Results/notes | [Shared V8 interpreter fallback comparison](SKY_INTERPRETER_FALLBACK_RESULTS.md) | [Findings below](#report-224) |
-| 225 | Results/notes | [Shared ROM-region policy screen](SKY_ROM_POLICY_RESULTS.md) | [Findings below](#report-225) |
-| 226 | Results/notes | [Total shared improvement versus untouched live](SKY_TOTAL_CHANGE_RESULTS.md) | [Findings below](#report-226) |
-| 227 | Profiling/analysis | [Slow32 frequency in Snakes and Sky Force](SLOW32_CENSUS.md) | [Findings below](#report-227) |
-| 228 | Results/notes | [Preserved official Snakes releases](SNAKES_RELEASES.md) | No performance excerpt; see source report |
-| 229 | Results/notes | [Snake growth: coverage gap remains open](SNAKE_GROWTH_STATUS.md) | [Findings below](#report-229) |
-| 230 | Results/notes | [Generated exact-snapshot validator discriminator](SNAPSHOT_VALIDATORS_RESULTS.md) | No performance excerpt; see source report |
-| 231 | Results/notes | [S60 softkey mapping correction](SOFTKEYS_RESULTS.md) | No performance excerpt; see source report |
-| 232 | Results/notes | [Generic ARM span page reuse](SPAN_PAGE_REUSE_RESULTS.md) | [Findings below](#report-232) |
-| 233 | Design/plan | [Sparse ROM lookup: focused screen gates](SPARSE_ROM_LOOKUP_SCREEN_GATES.md) | No performance excerpt; see source report |
-| 234 | Results/notes | [Sparse ROM lookup: rejected speed screen](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) | [Findings below](#report-234) |
-| 235 | Results/notes | [State transfer pruning and V8 cost validation](STATE_LIVENESS_RESULTS.md) | [Findings below](#report-235) |
-| 236 | Results/notes | [Snakes stock-resolution survey](STOCK_RESOLUTION_RESULTS.md) | No performance excerpt; see source report |
-| 237 | Results/notes | [Selecting exact comparators at snapshot construction](STORED_COMPARATOR_RESULTS.md) | [Findings below](#report-237) |
-| 238 | Results/notes | [Completed sweep and combined graduation measurement](SWEEP_COMBINED_RESULTS.md) | [Findings below](#report-238) |
-| 239 | Results/notes | [Tail prefixes on the graduated branch-veneer runtime](TAIL_CURRENT_RESULTS.md) | [Findings below](#report-239) |
-| 240 | Results/notes | [Register-only tail-prefix experiment](TAIL_PREFIX_RESULTS.md) | [Findings below](#report-240) |
-| 241 | Results/notes | [Thumb arithmetic budget groups](THUMB_BUDGET_GROUP_RESULTS.md) | [Findings below](#report-241) |
-| 242 | Results/notes | [Bounded Thumb long-call fusion](THUMB_CALL_RESULTS.md) | [Findings below](#report-242) |
-| 243 | Results/notes | [Compact connected Thumb regions](THUMB_CONNECTED_REGION_RESULTS.md) | [Findings below](#report-243) |
-| 244 | Results/notes | [Adopt guarded Thumb memory after profiling normal play](THUMB_MEMORY_DEFAULT_RESULTS.md) | [Findings below](#report-244) |
-| 245 | Design/plan | [Direct memory accesses in compiled Thumb code](THUMB_MEMORY_DESIGN.md) | [Findings below](#report-245) |
-| 246 | Results/notes | [Thumb memory timing: first verified stage](THUMB_MEMORY_TIMING.md) | [Findings below](#report-246) |
-| 247 | Results/notes | [Thumb cache writeback at earlier exits](THUMB_PREFIX_RESULTS.md) | [Findings below](#report-247) |
-| 248 | Results/notes | [One-page Thumb register-transfer proofs](THUMB_SPAN_RESULTS.md) | [Findings below](#report-248) |
-| 249 | Results/notes | [Thumb runtime state cache](THUMB_STATE_RESULTS.md) | [Findings below](#report-249) |
-| 250 | Results/notes | [Thumb continuations with static instruction counts](THUMB_STATIC_REGION_RESULTS.md) | [Findings below](#report-250) |
-| 251 | Results/notes | [Direct RAM Thumb store continuation](THUMB_STORE_RESULTS.md) | [Findings below](#report-251) |
-| 252 | Results/notes | [Select Thumb continuations by state transfers](THUMB_TRANSFER_GATE_RESULTS.md) | [Findings below](#report-252) |
-| 253 | Design/plan | [Fold higher virtual-page bits into the DynCom data TLB index](TLB_HASH_DESIGN.md) | No performance excerpt; see source report |
-| 254 | Results/notes | [Folded data-TLB indexing: historical results](TLB_HASH_RESULTS.md) | [Findings below](#report-254) |
-| 255 | Results/notes | [Scalar alignment guard experiment](UNALIGNED_SCALAR_RESULTS.md) | [Findings below](#report-255) |
-| 256 | Results/notes | [Ungated counters capture a slower execution rate](UNGATED_COUNTER_RESULTS.md) | [Findings below](#report-256) |
-| 257 | Profiling/analysis | [Unsafe code-mutation cost attribution](UNSAFE_CODE_ATTRIBUTION_RESULTS.md) | [Findings below](#report-257) |
-| 258 | Results/notes | [Unsafe executable-byte assumption experiment](UNSAFE_CODE_RESULTS.md) | [Findings below](#report-258) |
-| 259 | Results/notes | [WASM executable-byte default, 2026-10-01](UNSAFE_DEFAULT_RESULTS.md) | No performance excerpt; see source report |
-| 260 | Results/notes | [Upstream master integration, 2026-09-30](UPSTREAM_20260930_RESULTS.md) | [Findings below](#report-260) |
-| 261 | Results/notes | [Upstream merge and new deterministic baseline](UPSTREAM_MERGE_RESULTS.md) | [Findings below](#report-261) |
-| 262 | Results/notes | [Direct-call switches with production code validation](VALIDATED_LAYOUT_RESULTS.md) | [Findings below](#report-262) |
-| 263 | Results/notes | [Safe validity generations and native/browser cost comparison](VALIDITY_AND_COST_RESULTS.md) | [Findings below](#report-263) |
-| 264 | Results/notes | [Shared WASM cost accounting and Snakes diagnosis](WASM_COST_ACCOUNTING_RESULTS.md) | [Findings below](#report-264) |
-| 265 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-265) |
-| 266 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
-| 267 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
-| 268 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
-| 269 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-269) |
-| 270 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-270) |
+| 204 | Results/notes | [Cleanup after the completed controlled sweep](RETIRED_SWEEP_EXPERIMENTS.md) | [Findings below](#report-204) |
+| 205 | Results/notes | [Bounded immutable-ROM calls](ROM_BOUNDED_CALL_RESULTS.md) | No performance excerpt; see source report |
+| 206 | Results/notes | [Bounded ROM-call timing panel](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) | [Findings below](#report-206) |
+| 207 | Results/notes | [Bounded Thumb ROM calls on the current runtime](ROM_CALLS_CURRENT_RESULTS.md) | [Findings below](#report-207) |
+| 208 | Results/notes | [Bounded first-use ROM compilation with slot reuse](ROM_FIRST_USE_RECYCLING_RESULTS.md) | [Findings below](#report-208) |
+| 209 | Results/notes | [bounded ROM first-use replacement serial timing screen](ROM_FIRST_USE_RECYCLING_TIMING_RESULTS.md) | [Findings below](#report-209) |
+| 210 | Results/notes | [Bounded immutable-ROM leaf fusion](ROM_LEAF_FUSION_RESULTS.md) | No performance excerpt; see source report |
+| 211 | Results/notes | [ROM policy screen](ROM_LEAF_FUSION_SCREEN_RESULTS.md) | [Findings below](#report-211) |
+| 212 | Results/notes | [Shared immutable-ROM module dispatcher](ROM_MODULE_DISPATCH_RESULTS.md) | No performance excerpt; see source report |
+| 213 | Results/notes | [Immutable-ROM module dispatcher serial timing panel](ROM_MODULE_DISPATCH_TIMING_RESULTS.md) | [Findings below](#report-213) |
+| 214 | Results/notes | [Bounded shared Thumb state retention](ROM_STATE_COHORT_RESULTS.md) | [Findings below](#report-214) |
+| 215 | Results/notes | [Bounded state retention and total-change timing](ROM_STATE_COHORT_TOTAL_TIMING_RESULTS.md) | [Findings below](#report-215) |
+| 216 | Results/notes | [Guest-time route stepping for growth investigation](ROUTE_STEP_RESULTS.md) | [Findings below](#report-216) |
+| 217 | Results/notes | [Compiled runner specialization and rejected address experiments](RUNNER_SPECIALIZATION_RESULTS.md) | [Findings below](#report-217) |
+| 218 | Results/notes | [Runtime state traffic after state-transfer pruning](RUNTIME_STATE_RESULTS.md) | [Findings below](#report-218) |
+| 219 | Results/notes | [CPU time varies along with elapsed time](SCHEDULER_DIAGNOSTIC_RESULTS.md) | [Findings below](#report-219) |
+| 220 | Results/notes | [Shared ARM exit writeback](SHARED_EXIT_RESULTS.md) | [Findings below](#report-220) |
+| 221 | Results/notes | [Cheaper lowering of existing memory proofs](SHARED_SPAN_LOWERING_RESULTS.md) | [Findings below](#report-221) |
+| 222 | Results/notes | [Fixed-size short code comparison experiment](SHORT_SIZES_RESULTS.md) | [Findings below](#report-222) |
+| 223 | Results/notes | [Fresh V8 dispatch census](SKY_CURRENT_DISPATCH_RESULTS.md) | [Findings below](#report-223) |
+| 224 | Results/notes | [Sky Force on the WASM launcher](SKY_FORCE_RESULTS.md) | [Findings below](#report-224) |
+| 225 | Results/notes | [Shared V8 interpreter fallback comparison](SKY_INTERPRETER_FALLBACK_RESULTS.md) | [Findings below](#report-225) |
+| 226 | Results/notes | [Shared ROM-region policy screen](SKY_ROM_POLICY_RESULTS.md) | [Findings below](#report-226) |
+| 227 | Results/notes | [Total shared improvement versus untouched live](SKY_TOTAL_CHANGE_RESULTS.md) | [Findings below](#report-227) |
+| 228 | Profiling/analysis | [Slow32 frequency in Snakes and Sky Force](SLOW32_CENSUS.md) | [Findings below](#report-228) |
+| 229 | Results/notes | [Preserved official Snakes releases](SNAKES_RELEASES.md) | No performance excerpt; see source report |
+| 230 | Results/notes | [Snake growth: coverage gap remains open](SNAKE_GROWTH_STATUS.md) | [Findings below](#report-230) |
+| 231 | Results/notes | [Generated exact-snapshot validator discriminator](SNAPSHOT_VALIDATORS_RESULTS.md) | No performance excerpt; see source report |
+| 232 | Results/notes | [S60 softkey mapping correction](SOFTKEYS_RESULTS.md) | No performance excerpt; see source report |
+| 233 | Results/notes | [Generic ARM span page reuse](SPAN_PAGE_REUSE_RESULTS.md) | [Findings below](#report-233) |
+| 234 | Design/plan | [Sparse ROM lookup: focused screen gates](SPARSE_ROM_LOOKUP_SCREEN_GATES.md) | No performance excerpt; see source report |
+| 235 | Results/notes | [Sparse ROM lookup: rejected speed screen](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md) | [Findings below](#report-235) |
+| 236 | Results/notes | [State transfer pruning and V8 cost validation](STATE_LIVENESS_RESULTS.md) | [Findings below](#report-236) |
+| 237 | Results/notes | [Snakes stock-resolution survey](STOCK_RESOLUTION_RESULTS.md) | No performance excerpt; see source report |
+| 238 | Results/notes | [Selecting exact comparators at snapshot construction](STORED_COMPARATOR_RESULTS.md) | [Findings below](#report-238) |
+| 239 | Results/notes | [Completed sweep and combined graduation measurement](SWEEP_COMBINED_RESULTS.md) | [Findings below](#report-239) |
+| 240 | Results/notes | [Tail prefixes on the graduated branch-veneer runtime](TAIL_CURRENT_RESULTS.md) | [Findings below](#report-240) |
+| 241 | Results/notes | [Register-only tail-prefix experiment](TAIL_PREFIX_RESULTS.md) | [Findings below](#report-241) |
+| 242 | Results/notes | [Thumb arithmetic budget groups](THUMB_BUDGET_GROUP_RESULTS.md) | [Findings below](#report-242) |
+| 243 | Results/notes | [Bounded Thumb long-call fusion](THUMB_CALL_RESULTS.md) | [Findings below](#report-243) |
+| 244 | Results/notes | [Compact connected Thumb regions](THUMB_CONNECTED_REGION_RESULTS.md) | [Findings below](#report-244) |
+| 245 | Results/notes | [Adopt guarded Thumb memory after profiling normal play](THUMB_MEMORY_DEFAULT_RESULTS.md) | [Findings below](#report-245) |
+| 246 | Design/plan | [Direct memory accesses in compiled Thumb code](THUMB_MEMORY_DESIGN.md) | [Findings below](#report-246) |
+| 247 | Results/notes | [Thumb memory timing: first verified stage](THUMB_MEMORY_TIMING.md) | [Findings below](#report-247) |
+| 248 | Results/notes | [Thumb cache writeback at earlier exits](THUMB_PREFIX_RESULTS.md) | [Findings below](#report-248) |
+| 249 | Results/notes | [One-page Thumb register-transfer proofs](THUMB_SPAN_RESULTS.md) | [Findings below](#report-249) |
+| 250 | Results/notes | [Thumb runtime state cache](THUMB_STATE_RESULTS.md) | [Findings below](#report-250) |
+| 251 | Results/notes | [Thumb continuations with static instruction counts](THUMB_STATIC_REGION_RESULTS.md) | [Findings below](#report-251) |
+| 252 | Results/notes | [Direct RAM Thumb store continuation](THUMB_STORE_RESULTS.md) | [Findings below](#report-252) |
+| 253 | Results/notes | [Select Thumb continuations by state transfers](THUMB_TRANSFER_GATE_RESULTS.md) | [Findings below](#report-253) |
+| 254 | Design/plan | [Fold higher virtual-page bits into the DynCom data TLB index](TLB_HASH_DESIGN.md) | No performance excerpt; see source report |
+| 255 | Results/notes | [Folded data-TLB indexing: historical results](TLB_HASH_RESULTS.md) | [Findings below](#report-255) |
+| 256 | Results/notes | [Scalar alignment guard experiment](UNALIGNED_SCALAR_RESULTS.md) | [Findings below](#report-256) |
+| 257 | Results/notes | [Ungated counters capture a slower execution rate](UNGATED_COUNTER_RESULTS.md) | [Findings below](#report-257) |
+| 258 | Profiling/analysis | [Unsafe code-mutation cost attribution](UNSAFE_CODE_ATTRIBUTION_RESULTS.md) | [Findings below](#report-258) |
+| 259 | Results/notes | [Unsafe executable-byte assumption experiment](UNSAFE_CODE_RESULTS.md) | [Findings below](#report-259) |
+| 260 | Results/notes | [WASM executable-byte default, 2026-10-01](UNSAFE_DEFAULT_RESULTS.md) | No performance excerpt; see source report |
+| 261 | Results/notes | [Upstream master integration, 2026-09-30](UPSTREAM_20260930_RESULTS.md) | [Findings below](#report-261) |
+| 262 | Results/notes | [Upstream merge and new deterministic baseline](UPSTREAM_MERGE_RESULTS.md) | [Findings below](#report-262) |
+| 263 | Results/notes | [Direct-call switches with production code validation](VALIDATED_LAYOUT_RESULTS.md) | [Findings below](#report-263) |
+| 264 | Results/notes | [Safe validity generations and native/browser cost comparison](VALIDITY_AND_COST_RESULTS.md) | [Findings below](#report-264) |
+| 265 | Results/notes | [Shared WASM cost accounting and Snakes diagnosis](WASM_COST_ACCOUNTING_RESULTS.md) | [Findings below](#report-265) |
+| 266 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-266) |
+| 267 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
+| 268 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
+| 269 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
+| 270 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-270) |
+| 271 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-271) |
 
 ## Historical findings and gain/loss tables
 
@@ -5773,9 +5776,25 @@ This is a maintenance change, not a measured speedup.
 
 </details>
 
-<a id="report-205"></a>
+<a id="report-204"></a>
 <details>
-<summary>205. Bounded ROM-call timing panel</summary>
+<summary>204. Cleanup after the completed controlled sweep</summary>
+
+[Full report and evidence](RETIRED_SWEEP_EXPERIMENTS.md)
+
+**Cleanup after the completed controlled sweep**
+
+This is source/configuration cleanup, not a measured runtime speedup. Historical
+reports, observations, candidate patches and archive comparison tools remain.
+Commands targeting removed options require their original revision and harness.
+In particular, archive-log comparison can still read old numeric policy markers;
+it cannot enable those policies in the current emulator.
+
+</details>
+
+<a id="report-206"></a>
+<details>
+<summary>206. Bounded ROM-call timing panel</summary>
 
 [Full report and evidence](ROM_BOUNDED_CALL_SCREEN_RESULTS.md)
 
@@ -5799,9 +5818,9 @@ No deployment or push.
 
 </details>
 
-<a id="report-206"></a>
+<a id="report-207"></a>
 <details>
-<summary>206. Bounded Thumb ROM calls on the current runtime</summary>
+<summary>207. Bounded Thumb ROM calls on the current runtime</summary>
 
 [Full report and evidence](ROM_CALLS_CURRENT_RESULTS.md)
 
@@ -5823,9 +5842,9 @@ Current-runtime reassessment over 7f5f85273: Snakes -1.45% CPU throughput, Sky F
 
 </details>
 
-<a id="report-207"></a>
+<a id="report-208"></a>
 <details>
-<summary>207. Bounded first-use ROM compilation with slot reuse</summary>
+<summary>208. Bounded first-use ROM compilation with slot reuse</summary>
 
 [Full report and evidence](ROM_FIRST_USE_RECYCLING_RESULTS.md)
 
@@ -5835,9 +5854,9 @@ All interpreted counts match independent total-minus-compiled counters. Report z
 
 </details>
 
-<a id="report-208"></a>
+<a id="report-209"></a>
 <details>
-<summary>208. bounded ROM first-use replacement serial timing screen</summary>
+<summary>209. bounded ROM first-use replacement serial timing screen</summary>
 
 [Full report and evidence](ROM_FIRST_USE_RECYCLING_TIMING_RESULTS.md)
 
@@ -5866,9 +5885,9 @@ Whole benchmark command (browser setup, initialization, guest warmup, measuremen
 
 </details>
 
-<a id="report-210"></a>
+<a id="report-211"></a>
 <details>
-<summary>210. ROM policy screen</summary>
+<summary>211. ROM policy screen</summary>
 
 [Full report and evidence](ROM_LEAF_FUSION_SCREEN_RESULTS.md)
 
@@ -5889,9 +5908,9 @@ route, remain in the evidence.
 
 </details>
 
-<a id="report-212"></a>
+<a id="report-213"></a>
 <details>
-<summary>212. Immutable-ROM module dispatcher serial timing panel</summary>
+<summary>213. Immutable-ROM module dispatcher serial timing panel</summary>
 
 [Full report and evidence](ROM_MODULE_DISPATCH_TIMING_RESULTS.md)
 
@@ -5929,9 +5948,9 @@ Do not promote: both Sky Force pairs on both routes regress (stationary -11.09%/
 
 </details>
 
-<a id="report-213"></a>
+<a id="report-214"></a>
 <details>
-<summary>213. Bounded shared Thumb state retention</summary>
+<summary>214. Bounded shared Thumb state retention</summary>
 
 [Full report and evidence](ROM_STATE_COHORT_RESULTS.md)
 
@@ -5941,9 +5960,9 @@ The internal fraction is a decomposition within this candidate, not a claimed co
 
 </details>
 
-<a id="report-214"></a>
+<a id="report-215"></a>
 <details>
-<summary>214. Bounded state retention and total-change timing</summary>
+<summary>215. Bounded state retention and total-change timing</summary>
 
 [Full report and evidence](ROM_STATE_COHORT_TOTAL_TIMING_RESULTS.md)
 
@@ -5974,9 +5993,9 @@ Do not promote mode 2. Both Sky Force routes regress in both orders versus the m
 
 </details>
 
-<a id="report-215"></a>
+<a id="report-216"></a>
 <details>
-<summary>215. Guest-time route stepping for growth investigation</summary>
+<summary>216. Guest-time route stepping for growth investigation</summary>
 
 [Full report and evidence](ROUTE_STEP_RESULTS.md)
 
@@ -5993,9 +6012,9 @@ dependence. A longer route with observed length differences remains needed.
 
 </details>
 
-<a id="report-216"></a>
+<a id="report-217"></a>
 <details>
-<summary>216. Compiled runner specialization and rejected address experiments</summary>
+<summary>217. Compiled runner specialization and rejected address experiments</summary>
 
 [Full report and evidence](RUNNER_SPECIALIZATION_RESULTS.md)
 
@@ -6078,9 +6097,9 @@ All seven frontend smoke checks pass too.
 
 </details>
 
-<a id="report-217"></a>
+<a id="report-218"></a>
 <details>
-<summary>217. Runtime state traffic after state-transfer pruning</summary>
+<summary>218. Runtime state traffic after state-transfer pruning</summary>
 
 [Full report and evidence](RUNTIME_STATE_RESULTS.md)
 
@@ -6148,9 +6167,9 @@ throughput evidence. Actual game counters remain the decision check.
 
 </details>
 
-<a id="report-218"></a>
+<a id="report-219"></a>
 <details>
-<summary>218. CPU time varies along with elapsed time</summary>
+<summary>219. CPU time varies along with elapsed time</summary>
 
 [Full report and evidence](SCHEDULER_DIAGNOSTIC_RESULTS.md)
 
@@ -6188,9 +6207,9 @@ samples.
 
 </details>
 
-<a id="report-219"></a>
+<a id="report-220"></a>
 <details>
-<summary>219. Shared ARM exit writeback</summary>
+<summary>220. Shared ARM exit writeback</summary>
 
 [Full report and evidence](SHARED_EXIT_RESULTS.md)
 
@@ -6234,9 +6253,9 @@ before the measured window. Cold-start audio is not claimed fixed.
 
 </details>
 
-<a id="report-220"></a>
+<a id="report-221"></a>
 <details>
-<summary>220. Cheaper lowering of existing memory proofs</summary>
+<summary>221. Cheaper lowering of existing memory proofs</summary>
 
 [Full report and evidence](SHARED_SPAN_LOWERING_RESULTS.md)
 
@@ -6286,9 +6305,9 @@ CPU and wall time are retained too. All completed observations are kept.
 
 </details>
 
-<a id="report-221"></a>
+<a id="report-222"></a>
 <details>
-<summary>221. Fixed-size short code comparison experiment</summary>
+<summary>222. Fixed-size short code comparison experiment</summary>
 
 [Full report and evidence](SHORT_SIZES_RESULTS.md)
 
@@ -6310,9 +6329,9 @@ The experiment remains opt-in and unserved.
 
 </details>
 
-<a id="report-222"></a>
+<a id="report-223"></a>
 <details>
-<summary>222. Fresh V8 dispatch census</summary>
+<summary>223. Fresh V8 dispatch census</summary>
 
 [Full report and evidence](SKY_CURRENT_DISPATCH_RESULTS.md)
 
@@ -6330,9 +6349,9 @@ supported as the next bottleneck-directed experiment by these counts.
 
 </details>
 
-<a id="report-223"></a>
+<a id="report-224"></a>
 <details>
-<summary>223. Sky Force on the WASM launcher</summary>
+<summary>224. Sky Force on the WASM launcher</summary>
 
 [Full report and evidence](SKY_FORCE_RESULTS.md)
 
@@ -6358,9 +6377,9 @@ Asset-cache, compiler-policy and audio-worklet regression checks pass.
 
 </details>
 
-<a id="report-224"></a>
+<a id="report-225"></a>
 <details>
-<summary>224. Shared V8 interpreter fallback comparison</summary>
+<summary>225. Shared V8 interpreter fallback comparison</summary>
 
 [Full report and evidence](SKY_INTERPRETER_FALLBACK_RESULTS.md)
 
@@ -6370,9 +6389,9 @@ All four routes use frozen V8 WASM `b463ca09030f7532f40f095783ae7eba427dd4c58050
 
 </details>
 
-<a id="report-225"></a>
+<a id="report-226"></a>
 <details>
-<summary>225. Shared ROM-region policy screen</summary>
+<summary>226. Shared ROM-region policy screen</summary>
 
 [Full report and evidence](SKY_ROM_POLICY_RESULTS.md)
 
@@ -6392,9 +6411,9 @@ ROM improvement did not reproduce here. The realtime target remains unmet.
 
 </details>
 
-<a id="report-226"></a>
+<a id="report-227"></a>
 <details>
-<summary>226. Total shared improvement versus untouched live</summary>
+<summary>227. Total shared improvement versus untouched live</summary>
 
 [Full report and evidence](SKY_TOTAL_CHANGE_RESULTS.md)
 
@@ -6415,9 +6434,9 @@ goal remains unmet; no deployment or push. The served WASM remains unchanged.
 
 </details>
 
-<a id="report-227"></a>
+<a id="report-228"></a>
 <details>
-<summary>227. Slow32 frequency in Snakes and Sky Force</summary>
+<summary>228. Slow32 frequency in Snakes and Sky Force</summary>
 
 [Full report and evidence](SLOW32_CENSUS.md)
 
@@ -6432,9 +6451,9 @@ performance comparisons.
 
 </details>
 
-<a id="report-229"></a>
+<a id="report-230"></a>
 <details>
-<summary>229. Snake growth: coverage gap remains open</summary>
+<summary>230. Snake growth: coverage gap remains open</summary>
 
 [Full report and evidence](SNAKE_GROWTH_STATUS.md)
 
@@ -6463,9 +6482,9 @@ not an unpaced throughput result or proof against the reported slowdown.
 
 </details>
 
-<a id="report-232"></a>
+<a id="report-233"></a>
 <details>
-<summary>232. Generic ARM span page reuse</summary>
+<summary>233. Generic ARM span page reuse</summary>
 
 [Full report and evidence](SPAN_PAGE_REUSE_RESULTS.md)
 
@@ -6536,9 +6555,9 @@ regression or translate directly into cycle savings.
 
 </details>
 
-<a id="report-234"></a>
+<a id="report-235"></a>
 <details>
-<summary>234. Sparse ROM lookup: rejected speed screen</summary>
+<summary>235. Sparse ROM lookup: rejected speed screen</summary>
 
 [Full report and evidence](SPARSE_ROM_LOOKUP_TIMING_RESULTS.md)
 
@@ -6565,9 +6584,9 @@ production setting changes as part of this reassessment.
 
 </details>
 
-<a id="report-235"></a>
+<a id="report-236"></a>
 <details>
-<summary>235. State transfer pruning and V8 cost validation</summary>
+<summary>236. State transfer pruning and V8 cost validation</summary>
 
 [Full report and evidence](STATE_LIVENESS_RESULTS.md)
 
@@ -6623,9 +6642,9 @@ and whole-worker checks; they do not support a guaranteed-speedup claim.
 
 </details>
 
-<a id="report-237"></a>
+<a id="report-238"></a>
 <details>
-<summary>237. Selecting exact comparators at snapshot construction</summary>
+<summary>238. Selecting exact comparators at snapshot construction</summary>
 
 [Full report and evidence](STORED_COMPARATOR_RESULTS.md)
 
@@ -6656,9 +6675,9 @@ the live archive is unchanged. All six observations remain in the evidence.
 
 </details>
 
-<a id="report-238"></a>
+<a id="report-239"></a>
 <details>
-<summary>238. Completed sweep and combined graduation measurement</summary>
+<summary>239. Completed sweep and combined graduation measurement</summary>
 
 [Full report and evidence](SWEEP_COMBINED_RESULTS.md)
 
@@ -6705,9 +6724,9 @@ wait; a detected build requires only one second clear before timing resumes.
 
 </details>
 
-<a id="report-239"></a>
+<a id="report-240"></a>
 <details>
-<summary>239. Tail prefixes on the graduated branch-veneer runtime</summary>
+<summary>240. Tail prefixes on the graduated branch-veneer runtime</summary>
 
 [Full report and evidence](TAIL_CURRENT_RESULTS.md)
 
@@ -6733,9 +6752,9 @@ native instructions. Its positive average does not establish a reliable gain.
 
 </details>
 
-<a id="report-240"></a>
+<a id="report-241"></a>
 <details>
-<summary>240. Register-only tail-prefix experiment</summary>
+<summary>241. Register-only tail-prefix experiment</summary>
 
 [Full report and evidence](TAIL_PREFIX_RESULTS.md)
 
@@ -6764,9 +6783,9 @@ The feature remains opt-in after the inconsistent serial timings. The checked ce
 
 </details>
 
-<a id="report-241"></a>
+<a id="report-242"></a>
 <details>
-<summary>241. Thumb arithmetic budget groups</summary>
+<summary>242. Thumb arithmetic budget groups</summary>
 
 [Full report and evidence](THUMB_BUDGET_GROUP_RESULTS.md)
 
@@ -6788,9 +6807,9 @@ history. Live is unchanged and the realtime goal remains open.
 
 </details>
 
-<a id="report-242"></a>
+<a id="report-243"></a>
 <details>
-<summary>242. Bounded Thumb long-call fusion</summary>
+<summary>243. Bounded Thumb long-call fusion</summary>
 
 [Full report and evidence](THUMB_CALL_RESULTS.md)
 
@@ -6806,9 +6825,9 @@ or zero Snakes loss; the candidate remains unpromoted. Static WASM grows by
 
 </details>
 
-<a id="report-243"></a>
+<a id="report-244"></a>
 <details>
-<summary>243. Compact connected Thumb regions</summary>
+<summary>244. Compact connected Thumb regions</summary>
 
 [Full report and evidence](THUMB_CONNECTED_REGION_RESULTS.md)
 
@@ -6826,9 +6845,9 @@ baseline order. All observations are retained. Positive changes mean slower.
 
 </details>
 
-<a id="report-244"></a>
+<a id="report-245"></a>
 <details>
-<summary>244. Adopt guarded Thumb memory after profiling normal play</summary>
+<summary>245. Adopt guarded Thumb memory after profiling normal play</summary>
 
 [Full report and evidence](THUMB_MEMORY_DEFAULT_RESULTS.md)
 
@@ -6863,9 +6882,9 @@ this throughput comparison. The older v2 timing panel is not pooled with it.
 
 </details>
 
-<a id="report-245"></a>
+<a id="report-246"></a>
 <details>
-<summary>245. Direct memory accesses in compiled Thumb code</summary>
+<summary>246. Direct memory accesses in compiled Thumb code</summary>
 
 [Full report and evidence](THUMB_MEMORY_DESIGN.md)
 
@@ -6892,9 +6911,9 @@ untouched. The current adoption is recorded separately in the linked report.
 
 </details>
 
-<a id="report-246"></a>
+<a id="report-247"></a>
 <details>
-<summary>246. Thumb memory timing: first verified stage</summary>
+<summary>247. Thumb memory timing: first verified stage</summary>
 
 [Full report and evidence](THUMB_MEMORY_TIMING.md)
 
@@ -6911,9 +6930,9 @@ untouched. The current adoption is recorded separately in the linked report.
 
 </details>
 
-<a id="report-247"></a>
+<a id="report-248"></a>
 <details>
-<summary>247. Thumb cache writeback at earlier exits</summary>
+<summary>248. Thumb cache writeback at earlier exits</summary>
 
 [Full report and evidence](THUMB_PREFIX_RESULTS.md)
 
@@ -6935,9 +6954,9 @@ A fresh V6 CPU profile follows the screen as diagnosis, not a speed result.
 
 </details>
 
-<a id="report-248"></a>
+<a id="report-249"></a>
 <details>
-<summary>248. One-page Thumb register-transfer proofs</summary>
+<summary>249. One-page Thumb register-transfer proofs</summary>
 
 [Full report and evidence](THUMB_SPAN_RESULTS.md)
 
@@ -6956,9 +6975,9 @@ acceptance, with its measurements kept distinct from the stationary baseline.
 
 </details>
 
-<a id="report-249"></a>
+<a id="report-250"></a>
 <details>
-<summary>249. Thumb runtime state cache</summary>
+<summary>250. Thumb runtime state cache</summary>
 
 [Full report and evidence](THUMB_STATE_RESULTS.md)
 
@@ -6972,9 +6991,9 @@ versus 12.6529s v3 for six guest seconds). Standard Snakes is slightly slower
 
 </details>
 
-<a id="report-250"></a>
+<a id="report-251"></a>
 <details>
-<summary>250. Thumb continuations with static instruction counts</summary>
+<summary>251. Thumb continuations with static instruction counts</summary>
 
 [Full report and evidence](THUMB_STATIC_REGION_RESULTS.md)
 
@@ -7018,9 +7037,9 @@ allocation and code layout. Those are possible explanations, not measured causes
 
 </details>
 
-<a id="report-251"></a>
+<a id="report-252"></a>
 <details>
-<summary>251. Direct RAM Thumb store continuation</summary>
+<summary>252. Direct RAM Thumb store continuation</summary>
 
 [Full report and evidence](THUMB_STORE_RESULTS.md)
 
@@ -7041,9 +7060,9 @@ compiler source, keeping all V6/V7 correctness and timing evidence for review.
 
 </details>
 
-<a id="report-252"></a>
+<a id="report-253"></a>
 <details>
-<summary>252. Select Thumb continuations by state transfers</summary>
+<summary>253. Select Thumb continuations by state transfers</summary>
 
 [Full report and evidence](THUMB_TRANSFER_GATE_RESULTS.md)
 
@@ -7103,9 +7122,9 @@ are not a proof of fewer native spills, better code layout or less CPU time.
 
 </details>
 
-<a id="report-254"></a>
+<a id="report-255"></a>
 <details>
-<summary>254. Folded data-TLB indexing: historical results</summary>
+<summary>255. Folded data-TLB indexing: historical results</summary>
 
 [Full report and evidence](TLB_HASH_RESULTS.md)
 
@@ -7156,9 +7175,9 @@ Raw reports, provenance and every timing sample are in TLB_HASH_EVIDENCE.json.
 
 </details>
 
-<a id="report-255"></a>
+<a id="report-256"></a>
 <details>
-<summary>255. Scalar alignment guard experiment</summary>
+<summary>256. Scalar alignment guard experiment</summary>
 
 [Full report and evidence](UNALIGNED_SCALAR_RESULTS.md)
 
@@ -7175,9 +7194,9 @@ Direct shows a small repeatable gain: 1.3% less worker CPU in Snakes and 0.8% le
 
 </details>
 
-<a id="report-256"></a>
+<a id="report-257"></a>
 <details>
-<summary>256. Ungated counters capture a slower execution rate</summary>
+<summary>257. Ungated counters capture a slower execution rate</summary>
 
 [Full report and evidence](UNGATED_COUNTER_RESULTS.md)
 
@@ -7202,9 +7221,9 @@ other causes elsewhere in the process.
 
 </details>
 
-<a id="report-257"></a>
+<a id="report-258"></a>
 <details>
-<summary>257. Unsafe code-mutation cost attribution</summary>
+<summary>258. Unsafe code-mutation cost attribution</summary>
 
 [Full report and evidence](UNSAFE_CODE_ATTRIBUTION_RESULTS.md)
 
@@ -7228,9 +7247,9 @@ Incremental guard removal on the scan-free path (throughput change, both versus 
 
 </details>
 
-<a id="report-258"></a>
+<a id="report-259"></a>
 <details>
-<summary>258. Unsafe executable-byte assumption experiment</summary>
+<summary>259. Unsafe executable-byte assumption experiment</summary>
 
 [Full report and evidence](UNSAFE_CODE_RESULTS.md)
 
@@ -7263,9 +7282,9 @@ All four matching-control batch means favor full unsafe mode; seven of eight cor
 
 </details>
 
-<a id="report-260"></a>
+<a id="report-261"></a>
 <details>
-<summary>260. Upstream master integration, 2026-09-30</summary>
+<summary>261. Upstream master integration, 2026-09-30</summary>
 
 [Full report and evidence](UPSTREAM_20260930_RESULTS.md)
 
@@ -7279,9 +7298,9 @@ measurements. The live launcher still serves its separately verified old archive
 
 </details>
 
-<a id="report-261"></a>
+<a id="report-262"></a>
 <details>
-<summary>261. Upstream merge and new deterministic baseline</summary>
+<summary>262. Upstream merge and new deterministic baseline</summary>
 
 [Full report and evidence](UPSTREAM_MERGE_RESULTS.md)
 
@@ -7304,9 +7323,9 @@ AOT is about 1.58x the merged interpreter in this window. Another 21.4% throughp
 
 </details>
 
-<a id="report-262"></a>
+<a id="report-263"></a>
 <details>
-<summary>262. Direct-call switches with production code validation</summary>
+<summary>263. Direct-call switches with production code validation</summary>
 
 [Full report and evidence](VALIDATED_LAYOUT_RESULTS.md)
 
@@ -7329,9 +7348,9 @@ coverage warrants it; it does not support blindly clustering many functions.
 
 </details>
 
-<a id="report-263"></a>
+<a id="report-264"></a>
 <details>
-<summary>263. Safe validity generations and native/browser cost comparison</summary>
+<summary>264. Safe validity generations and native/browser cost comparison</summary>
 
 [Full report and evidence](VALIDITY_AND_COST_RESULTS.md)
 
@@ -7388,9 +7407,9 @@ noisy diagnostic runs, not evidence of a causal speedup.**
 
 </details>
 
-<a id="report-264"></a>
+<a id="report-265"></a>
 <details>
-<summary>264. Shared WASM cost accounting and Snakes diagnosis</summary>
+<summary>265. Shared WASM cost accounting and Snakes diagnosis</summary>
 
 [Full report and evidence](WASM_COST_ACCOUNTING_RESULTS.md)
 
@@ -7435,9 +7454,9 @@ remain follow-ups, not completed optimizations.
 
 </details>
 
-<a id="report-265"></a>
+<a id="report-266"></a>
 <details>
-<summary>265. Adjacent long multiply result reuse: rejected</summary>
+<summary>266. Adjacent long multiply result reuse: rejected</summary>
 
 [Full report and evidence](WIDE_REUSE_RESULTS.md)
 
@@ -7472,9 +7491,9 @@ The rejected runtime source and binary are preserved under
 
 </details>
 
-<a id="report-269"></a>
+<a id="report-270"></a>
 <details>
-<summary>269. Runtime service overlap census</summary>
+<summary>270. Runtime service overlap census</summary>
 
 [Full report and evidence](service_overlap/README.md)
 
@@ -7499,9 +7518,9 @@ The rejected runtime source and binary are preserved under
 
 </details>
 
-<a id="report-270"></a>
+<a id="report-271"></a>
 <details>
-<summary>270. Snakes service overlap, 2026-10-01</summary>
+<summary>271. Snakes service overlap, 2026-10-01</summary>
 
 [Full report and evidence](service_overlap/RESULTS.md)
 

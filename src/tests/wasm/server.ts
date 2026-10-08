@@ -60,9 +60,9 @@ autoStart();
 </script>`;
 }
 
-export const compilerDefaults = {divisionDigits: 0, entryBudget: 2, entryOnlyPruning: 0, sparseRom: 1, compiledSvc: 1, thumbMemory: 1, irMode: 17, hotpath: 2, predicatedLeaves: 1, leafFeatures: 224, executionLimits: '512,32,8,512'} as const;
+export const compilerDefaults = {entryBudget: 2, sparseRom: 1, compiledSvc: 1, thumbMemory: 1, irMode: 17, hotpath: 2, predicatedLeaves: 1, leafFeatures: 224, executionLimits: '512,32,8,512'} as const;
 
-export type CompilerPolicy = { divisionDigits?: number; entryBudget?: number; entryOnlyPruning?: number; sparseRom?: number; compiledSvc?: number; hotpath?: number; thumbMemory?: number; irMode?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; memoryImpl?: number; executionLimits?: [number,number,number,number] };
+export type CompilerPolicy = { entryBudget?: number; sparseRom?: number; compiledSvc?: number; hotpath?: number; thumbMemory?: number; irMode?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; memoryImpl?: number; executionLimits?: [number,number,number,number] };
 
 export type LauncherGame = { id: string; title: string; uid: string; sis: string };
 
@@ -72,23 +72,19 @@ function makeGameLauncherScript(games: LauncherGame[], defaultGame?: string): st
 }
 
 function validExecutionLimits(limits: unknown): limits is [number,number,number,number] {
-  return Array.isArray(limits) && limits.length === 4 && limits.every(Number.isInteger)
-    && limits[0] >= 128 && limits[0] <= 2048 && limits[0] % 4 === 0
-    && limits[1] >= 1 && limits[1] <= 64 && limits[2] >= 0 && limits[2] <= 16
-    && limits[3] >= 0 && limits[3] <= 4096;
+  return Array.isArray(limits) && limits.length === 4
+    && limits.every((value, index) => value === [512,32,8,512][index]);
 }
 
 export function rejectRetiredCompilerOptions(): void {
-  for (const name of ['EKA2L1_TLB_HASH', 'EKA2L1_MEMORY_CACHE', 'EKA2L1_SYNCHRONOUS_COMPILATION', 'EKA2L1_ROM_DISPATCH', 'EKA2L1_CODE_WRITE_PROTECT', 'EKA2L1_CODE_LOOKUP', 'EKA2L1_OMIT_GUARD_PUBLICATION', 'EKA2L1_COMPILED_MEMORY_MISSES', 'EKA2L1_ROM_CALLS', 'EKA2L1_ROM_LEAVES', 'EKA2L1_AOT_EAGER_REGIONS', 'EKA2L1_SNAKES_N80_NATIVE_RESOLUTION', 'EKA2L1_ARM_MEMORY']) {
+  for (const name of ['EKA2L1_DIVISION_DIGITS', 'EKA2L1_ENTRY_ONLY_PRUNING', 'EKA2L1_EXECUTION_LIMITS', 'EKA2L1_TLB_HASH', 'EKA2L1_MEMORY_CACHE', 'EKA2L1_SYNCHRONOUS_COMPILATION', 'EKA2L1_ROM_DISPATCH', 'EKA2L1_CODE_WRITE_PROTECT', 'EKA2L1_CODE_LOOKUP', 'EKA2L1_OMIT_GUARD_PUBLICATION', 'EKA2L1_COMPILED_MEMORY_MISSES', 'EKA2L1_ROM_CALLS', 'EKA2L1_ROM_LEAVES', 'EKA2L1_AOT_EAGER_REGIONS', 'EKA2L1_SNAKES_N80_NATIVE_RESOLUTION', 'EKA2L1_ARM_MEMORY']) {
     if (process.env[name] !== undefined) throw Error('Retired compiler option: ' + name);
   }
 }
 
 export function compilerPolicyFromEnv(): CompilerPolicy {
   rejectRetiredCompilerOptions();
-  const divisionDigits = process.env.EKA2L1_DIVISION_DIGITS ?? String(compilerDefaults.divisionDigits);
   const sparseRom = process.env.EKA2L1_SPARSE_ROM_LOOKUP ?? String(compilerDefaults.sparseRom);
-  const entryOnlyPruning = process.env.EKA2L1_ENTRY_ONLY_PRUNING ?? String(compilerDefaults.entryOnlyPruning);
   const entryBudget = process.env.EKA2L1_ENTRY_BUDGET ?? String(compilerDefaults.entryBudget);
   const svc = process.env.EKA2L1_COMPILED_SVC ?? String(compilerDefaults.compiledSvc);
   const hotpath = process.env.EKA2L1_HOTPATH ?? String(compilerDefaults.hotpath);
@@ -97,16 +93,14 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
   const compare = process.env.EKA2L1_CODE_COMPARE;
   const predicates = process.env.EKA2L1_PREDICATED_LEAVES ?? String(compilerDefaults.predicatedLeaves);
   const features = process.env.EKA2L1_LEAF_FEATURES ?? String(compilerDefaults.leafFeatures);
-  const limits = process.env.EKA2L1_EXECUTION_LIMITS ?? String(compilerDefaults.executionLimits);
+  const limits = compilerDefaults.executionLimits;
   const unsafe = process.env.EKA2L1_UNSAFE_CODE ?? '3';
   const memory = process.env.EKA2L1_MEMORY_IMPL ?? (unsafe === '0' ? '0' : undefined);
   if (!/^[03]$/.test(unsafe)) throw new Error("Invalid executable-byte policy");
-  if (!/^[01]$/.test(divisionDigits)) throw Error('Invalid division digits policy');
   if (!/^[01]$/.test(svc)) throw Error('Invalid compiled syscall policy');
   if (!/^[01]$/.test(sparseRom)) throw Error('Invalid sparseRom policy');
-  if (!/^[01]$/.test(entryOnlyPruning)) throw Error('Invalid entryOnlyPruning policy');
-  if (!/^[012]$/.test(entryBudget)) throw Error('Invalid entry budget policy');
-  const policy: CompilerPolicy = {divisionDigits: Number(divisionDigits), entryBudget: Number(entryBudget), compiledSvc: Number(svc), sparseRom: Number(sparseRom), entryOnlyPruning: Number(entryOnlyPruning)};
+  if (!/^[02]$/.test(entryBudget)) throw Error('Invalid entry budget policy');
+  const policy: CompilerPolicy = {entryBudget: Number(entryBudget), compiledSvc: Number(svc), sparseRom: Number(sparseRom)};
   if (!/^[02]$/.test(hotpath)) throw Error('Invalid hotpath policy');
   policy.hotpath = Number(hotpath);
   if (thumb !== undefined) {
@@ -114,7 +108,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
     policy.thumbMemory = Number(thumb);
   }
   if (ir !== undefined) {
-    if (!/^(?:-1|0|[4-7]|1[78])$/.test(ir)) throw new Error("Invalid compiler policy");
+    if (!/^(?:-1|0|[4-7]|17)$/.test(ir)) throw new Error("Invalid compiler policy");
     policy.irMode = Number(ir);
   }
 
@@ -146,16 +140,14 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
 
 function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   if (!policy) return "";
-  const allowed = ['divisionDigits','entryBudget','entryOnlyPruning','sparseRom','compiledSvc','hotpath','thumbMemory','irMode','codeCompare','predicatedLeaves','leafFeatures','unsafeCode','memoryImpl','executionLimits'];
+  const allowed = ['entryBudget','sparseRom','compiledSvc','hotpath','thumbMemory','irMode','codeCompare','predicatedLeaves','leafFeatures','unsafeCode','memoryImpl','executionLimits'];
   if (Object.keys(policy).some(key => !allowed.includes(key))) throw Error('Invalid compiler policy');
-  if ((policy.divisionDigits !== undefined && ![0,1].includes(policy.divisionDigits))
-    || (policy.entryBudget !== undefined && ![0,1,2].includes(policy.entryBudget))
-      || (policy.entryOnlyPruning !== undefined && ![0,1].includes(policy.entryOnlyPruning))
+  if ((policy.entryBudget !== undefined && ![0,2].includes(policy.entryBudget))
       || (policy.sparseRom !== undefined && ![0,1].includes(policy.sparseRom))
       || (policy.compiledSvc !== undefined && ![0,1].includes(policy.compiledSvc))
       || (policy.hotpath !== undefined && ![0,2].includes(policy.hotpath))
       || (policy.thumbMemory !== undefined && ![0,1].includes(policy.thumbMemory))
-      || (policy.irMode !== undefined && ![-1,0,4,5,6,7,17,18].includes(policy.irMode))
+      || (policy.irMode !== undefined && ![-1,0,4,5,6,7,17].includes(policy.irMode))
       || (policy.codeCompare !== undefined && ![0,2].includes(policy.codeCompare))
       || (policy.memoryImpl !== undefined && ![0,2].includes(policy.memoryImpl))
       || (policy.unsafeCode !== undefined && ![0,3].includes(policy.unsafeCode))
@@ -170,14 +162,14 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
   startEmulator = async function() {
     const state = window.ekaCompilerPolicy;
     if (!state.applied) {
-      for (const [key, entry] of [['divisionDigits','eka2l1_division_digits_configure'], ['entryBudget','eka2l1_entry_budget_configure'], ['entryOnlyPruning','eka2l1_entry_only_pruning_configure'], ['sparseRom','eka2l1_sparse_rom_lookup_configure'], ['compiledSvc','eka2l1_compiled_svc_configure'], ['hotpath','eka2l1_hotpath_configure'], ['thumbMemory','eka2l1_thumb_memory_configure'], ['irMode','eka2l1_ir_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure'], ['unsafeCode','eka2l1_unsafe_code_configure'], ['memoryImpl','eka2l1_memory_impl_configure']]) {
+      for (const [key, entry] of [['entryBudget','eka2l1_entry_budget_configure'], ['sparseRom','eka2l1_sparse_rom_lookup_configure'], ['compiledSvc','eka2l1_compiled_svc_configure'], ['hotpath','eka2l1_hotpath_configure'], ['thumbMemory','eka2l1_thumb_memory_configure'], ['irMode','eka2l1_ir_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure'], ['unsafeCode','eka2l1_unsafe_code_configure'], ['memoryImpl','eka2l1_memory_impl_configure']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function'
             || Module.ccall(entry, 'number', ['number'], [state.requested[key]]) !== 0)
           throw new Error('Emulator compiler configuration failed: ' + key);
       }
       state.observed = {};
-      for (const [key, entry] of [['divisionDigits','eka2l1_division_digits_report'], ['entryBudget','eka2l1_entry_budget_report'], ['entryOnlyPruning','eka2l1_entry_only_pruning_report'], ['sparseRom','eka2l1_sparse_rom_lookup_report'], ['compiledSvc','eka2l1_compiled_svc_report'], ['hotpath','eka2l1_hotpath_report'], ['thumbMemory','eka2l1_thumb_memory_report'], ['predicatedLeaves','eka2l1_leaf_predication_report'], ['leafFeatures','eka2l1_leaf_features_report'], ['unsafeCode','eka2l1_unsafe_code_report'], ['memoryImpl','eka2l1_memory_impl_report']]) {
+      for (const [key, entry] of [['entryBudget','eka2l1_entry_budget_report'], ['sparseRom','eka2l1_sparse_rom_lookup_report'], ['compiledSvc','eka2l1_compiled_svc_report'], ['hotpath','eka2l1_hotpath_report'], ['thumbMemory','eka2l1_thumb_memory_report'], ['predicatedLeaves','eka2l1_leaf_predication_report'], ['leafFeatures','eka2l1_leaf_features_report'], ['unsafeCode','eka2l1_unsafe_code_report'], ['memoryImpl','eka2l1_memory_impl_report']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function') throw new Error('Emulator compiler readback unavailable: ' + key);
         state.observed[key] = Module.ccall(entry, 'number', [], []);
@@ -185,9 +177,6 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
       }
       if (state.requested.executionLimits !== undefined) {
         const limits = state.requested.executionLimits;
-        if (typeof Module._eka2l1_execution_limits_configure !== 'function'
-            || Module.ccall('eka2l1_execution_limits_configure', 'number', ['number','number','number','number'], limits) !== 0)
-          throw new Error('Emulator compiler configuration failed: executionLimits');
         if (typeof Module._eka2l1_execution_limits_report !== 'function') throw new Error('Emulator compiler readback unavailable: executionLimits');
         const observed = Module.ccall('eka2l1_execution_limits_report', 'string', [], []);
         if (observed !== limits.join(',')) throw new Error('Emulator compiler readback mismatch: executionLimits');

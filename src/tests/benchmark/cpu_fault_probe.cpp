@@ -404,7 +404,7 @@ static int compiled_svc_probe(aot::arm_ir_policy compiler_policy) {
 int main(int argc, char **argv){
     if(argc>1 && std::strncmp(argv[argc-1],"--entry-budget-mode=",20)==0) {
         const std::string value(argv[argc-1]+20);
-        if(value!="0" && value!="1" && value!="2")return 1;
+        if(value!="0" && value!="2")return 1;
         aot::entry_budget_mode=static_cast<unsigned>(value[0]-'0');--argc;
     }
     std::cout<<"PROBE_ENTRY_BUDGET "<<aot::entry_budget_mode<<"\n";
@@ -443,8 +443,7 @@ int main(int argc, char **argv){
     }
     std::cout<<"PROBE_PREDICATED_LEAVES "<<aot::predicated_leaves<<"\n";
     if(argc>1 && std::strncmp(argv[argc-1],"--execution-limits=",19)==0) {
-        if(!aot::parse_execution_limits(argv[argc-1]+19)){std::cerr<<"Invalid execution limits\n";return 1;}
-        --argc;
+        std::cerr<<"Execution-limit experiments were retired; fixed limits are "<<aot::execution_limits_text()<<"\n";return 1;
     }
     std::cout<<"PROBE_LIMITS "<<aot::execution_limits_text()<<"\n";
     if (argc > 1 && std::strncmp(argv[argc-1],"--code-compare=",15) == 0) {
@@ -669,7 +668,7 @@ int main(int argc, char **argv){
                 std::cerr<<"Predicated call fusion selection mismatch\n";return 4;
             }
 
-            const auto checked_policy = (ir_policy == aot::arm_ir_policy::loop_budget_chunks || ir_policy == aot::arm_ir_policy::batched_instruction_counts)
+            const auto checked_policy = (ir_policy == aot::arm_ir_policy::loop_budget_chunks)
                 ? aot::arm_ir_policy::write_budget_chunks : ir_policy;
             const bool writes = checked_policy == aot::arm_ir_policy::invariant_writes
                 || checked_policy == aot::arm_ir_policy::write_budget_chunks;

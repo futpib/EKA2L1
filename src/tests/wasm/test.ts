@@ -119,17 +119,15 @@ async function runTests(): Promise<void> {
     await page.evaluate(() => {
       const m = (window as any).Module;
       const configure = (n: number) => m.ccall('eka2l1_ir_configure', 'number', ['number'], [n]);
-      for (const mode of [-2,1,2,3,8,9,10,11,12,13,14,15,16,19]) if (configure(mode) !== -1)
+      for (const mode of [-2,1,2,3,8,9,10,11,12,13,14,15,16,18,19]) if (configure(mode) !== -1)
         throw new Error('Retired or invalid compiler policy accepted');
-      for (const mode of [0,4,5,6,7,17,18]) if (configure(mode) !== 0)
+      for (const mode of [0,4,5,6,7,17]) if (configure(mode) !== 0)
         throw new Error('Compiler policy rejected');
       if (configure(-1) !== 0) throw new Error('IR default restoration failed');
       for (const [name, expected, valid, invalid] of [
         ['compiled_svc', 1, [0,1], [-1,2]],
         ['sparse_rom_lookup', 1, [0,1], [-1,2]],
-        ['entry_only_pruning', 0, [0,1], [-1,2]],
-        ['division_digits', 0, [0,1], [-1,2]],
-        ['entry_budget', 2, [0,1,2], [-1,3]],
+        ['entry_budget', 2, [0,2], [-1,1,3]],
       ] as const) {
         const report = () => m['_eka2l1_' + name + '_report']();
         const configure = (value: number) => m['_eka2l1_' + name + '_configure'](value);
@@ -141,7 +139,7 @@ async function runTests(): Promise<void> {
         if (configure(expected) !== 0 || report() !== expected)
           throw Error('Policy default restoration failed: ' + name);
       }
-      for (const name of ['tlb_hash','memory_cache','rom_dispatch','synchronous_compilation','code_write_protect','code_lookup','omit_guard_publication','compiled_memory_misses','rom_calls','rom_leaves','eager_regions','snakes_n80_native_resolution']) {
+      for (const name of ['division_digits','entry_only_pruning','tlb_hash','memory_cache','rom_dispatch','synchronous_compilation','code_write_protect','code_lookup','omit_guard_publication','compiled_memory_misses','rom_calls','rom_leaves','eager_regions','snakes_n80_native_resolution']) {
         for (const suffix of ['configure','report']) if (typeof m['_eka2l1_' + name + '_' + suffix] !== 'undefined')
           throw Error('Retired configuration API is still exported: ' + name);
       }
@@ -169,18 +167,13 @@ async function runTests(): Promise<void> {
     });
     console.log("  PASS");
 
-    console.log("TEST execution limits: pre-init bounds and readback...");
+    console.log("TEST fixed execution limits: readback and retired setter...");
     await page.evaluate(() => {
       const m=(window as any).Module;
-      const set=(v:number[])=>m.ccall('eka2l1_execution_limits_configure','number',['number','number','number','number'],v);
-      const get=()=>m.ccall('eka2l1_execution_limits_report','string',[],[]);
-      for(const v of [[128,1,0,0],[2048,64,16,4096],[512,16,8,512]]) {
-        if(set(v)!==0 || get()!==v.join(','))throw Error('Limits configuration/readback failed');
-      }
-      for(const v of [[-1,16,8,512],[127,16,8,512],[513,16,8,512],[2052,16,8,512],
-        [512,0,8,512],[512,65,8,512],[512,16,17,512],[512,16,8,-1],[512,16,8,4097]]) {
-        if(set(v)!==-1 || get()!=='512,16,8,512')throw Error('Invalid limits accepted or changed state');
-      }
+      if (typeof m._eka2l1_execution_limits_configure !== 'undefined')
+        throw Error('Retired execution limits setter remains exported');
+      if (m.ccall('eka2l1_execution_limits_report','string',[],[]) !== '512,32,8,512')
+        throw Error('Unexpected fixed execution limits');
     });
     console.log("  PASS");
 
@@ -233,7 +226,7 @@ async function runTests(): Promise<void> {
     if (initResult !== 0) throw new Error(`eka2l1_init returned ${initResult}`);
     await page.evaluate(() => {
       const m = (window as any).Module;
-      for (const name of ['compiled_svc','sparse_rom_lookup','entry_only_pruning','division_digits','entry_budget']) {
+      for (const name of ['compiled_svc','sparse_rom_lookup','entry_budget']) {
         const before = m['_eka2l1_' + name + '_report']();
         if (m['_eka2l1_' + name + '_configure'](before === 0 ? 1 : 0) !== -1
             || m['_eka2l1_' + name + '_report']() !== before)
@@ -243,8 +236,8 @@ async function runTests(): Promise<void> {
         throw Error('Thumb memory policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_leaf_predication_configure','number',['number'],[1]) !== -1)
         throw Error('Leaf predication changed after initialization');
-      if ((window as any).Module.ccall('eka2l1_execution_limits_configure','number',['number','number','number','number'],[1024,32,16,0]) !== -1)
-        throw Error('Execution limits changed after initialization');
+      if ((window as any).Module.ccall('eka2l1_execution_limits_report','string',[],[]) !== '512,32,8,512')
+        throw Error('Fixed execution limits changed after initialization');
       if ((window as any).Module.ccall('eka2l1_ir_configure', 'number', ['number'], [0]) !== -1)
         throw new Error('IR policy changed after initialization');
       if ((window as any).Module.ccall('eka2l1_code_compare_configure','number',['number'],[2]) !== -1)

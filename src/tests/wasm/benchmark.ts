@@ -9,14 +9,10 @@ import {startServer, buildDir, compilerDefaults, rejectRetiredCompilerOptions} f
 
 const [assetArg, outputArg, frameArg = '1000', inputArg = '../benchmark/snakes.input', startArg = '21000000'] = process.argv.slice(2);
 if (!assetArg || !outputArg) throw new Error('Usage: node benchmark.ts ASSETS NEW_OUTPUT [FRAMES] [INPUT] [START_US]');
-const divisionDigits = Number(process.env.EKA2L1_DIVISION_DIGITS ?? compilerDefaults.divisionDigits);
-if (![0,1].includes(divisionDigits)) throw Error('Division digits must be 0 or 1');
 const sparseRom = Number(process.env.EKA2L1_SPARSE_ROM_LOOKUP ?? compilerDefaults.sparseRom);
 if (![0,1].includes(sparseRom)) throw Error('sparseRom must be 0 or 1');
-const entryOnlyPruning = Number(process.env.EKA2L1_ENTRY_ONLY_PRUNING ?? compilerDefaults.entryOnlyPruning);
-if (![0,1].includes(entryOnlyPruning)) throw Error('entryOnlyPruning must be 0 or 1');
 const entryBudget = Number(process.env.EKA2L1_ENTRY_BUDGET ?? compilerDefaults.entryBudget);
-if (![0,1,2].includes(entryBudget)) throw Error('Entry budget must be 0, 1 or 2');
+if (![0,2].includes(entryBudget)) throw Error('Entry budget must be 0 or 2');
 const compiledSvc = Number(process.env.EKA2L1_COMPILED_SVC ?? compilerDefaults.compiledSvc);
 if (![0,1].includes(compiledSvc)) throw Error('Compiled syscall policy must be 0 or 1');
 const thumbMemory = Number(process.env.EKA2L1_THUMB_MEMORY ?? compilerDefaults.thumbMemory);
@@ -42,13 +38,9 @@ const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES ?? compilerDefaults.l
 if(![0,32,64,96,128,160,192,224].includes(leafFeatures))throw Error('Invalid leaf feature mask');
 const predicatedLeaves = Number(process.env.EKA2L1_PREDICATED_LEAVES ?? compilerDefaults.predicatedLeaves);
 if(![0,1].includes(predicatedLeaves))throw Error('Invalid leaf predication setting');
-const limitsText = process.env.EKA2L1_EXECUTION_LIMITS ?? compilerDefaults.executionLimits;
-const executionLimits = limitsText.split(',').map(Number);
-if (!/^\d+,\d+,\d+,\d+$/.test(limitsText) || executionLimits.length!==4 || executionLimits.some(n=>!Number.isSafeInteger(n))
-    || executionLimits[0]<128 || executionLimits[0]>2048 || executionLimits[0]%4 || executionLimits[1]<1 || executionLimits[1]>64
-    || executionLimits[2]<0 || executionLimits[2]>16 || executionLimits[3]<0 || executionLimits[3]>4096) throw new Error('Invalid execution limits');
+const executionLimits = compilerDefaults.executionLimits.split(',').map(Number);
 const irMode = Number(process.env.EKA2L1_AOT_IR_MODE ?? compilerDefaults.irMode);
-if (![-1,0,4,5,6,7,17,18].includes(irMode)) throw Error('Invalid compiler policy');
+if (![-1,0,4,5,6,7,17].includes(irMode)) throw Error('Invalid compiler policy');
 const hotpathPolicy = Number(process.env.EKA2L1_HOTPATH ?? compilerDefaults.hotpath);
 if (![-1,0,2].includes(hotpathPolicy)) throw Error('Hotpath policy must be 0 or 2');
 const verifyAot = Number(process.env.EKA2L1_AOT_VERIFY || "0");
@@ -109,7 +101,7 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
-  await page.evaluate(async ({divisionDigits, entryBudget, entryOnlyPruning, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
+  await page.evaluate(async ({entryBudget, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
     const g = window as any;
     const call = (name: string, types: string[], args: unknown[]) => {
       const code = g.Module.ccall(name, 'number', types, args);
@@ -153,11 +145,9 @@ try {
       call('eka2l1_leaf_features_configure',['number'],[leafFeatures]);
       if(g.Module.ccall('eka2l1_leaf_features_report','number',[],[])!==leafFeatures)throw Error('Leaf features were not applied');
     } else if(leafFeatures)throw Error('Leaf features API unavailable');
-    if (typeof g.Module._eka2l1_execution_limits_configure === 'function') {
-      call('eka2l1_execution_limits_configure', ['number','number','number','number'], executionLimits);
-      const observed=g.Module.ccall('eka2l1_execution_limits_report','string',[],[]);
-      if(observed!==executionLimits.join(','))throw new Error('Execution limits were not applied');
-    } else if(executionLimits.join(',')!=='512,16,8,512')throw new Error('Execution limits API unavailable');
+    if (typeof g.Module._eka2l1_execution_limits_report !== 'function'
+        || g.Module.ccall('eka2l1_execution_limits_report','string',[],[]) !== executionLimits.join(','))
+      throw Error('Fixed execution limits readback mismatch');
     if (typeof g.Module._eka2l1_graphics_diagnostics_configure === 'function')
       call('eka2l1_graphics_diagnostics_configure', ['number'], [glDiagnostics ? 1 : 0]);
     else if (glDiagnostics) throw new Error('Build does not support graphics diagnostic configuration');
@@ -167,15 +157,9 @@ try {
       if (g.Module.ccall('eka2l1_thumb_memory_report', 'number', [], []) !== thumbMemory)
         throw Error('Thumb memory policy readback mismatch');
     }
-    call('eka2l1_division_digits_configure', ['number'], [divisionDigits]);
-    g.divisionDigitsActual = g.Module._eka2l1_division_digits_report();
-    if (g.divisionDigitsActual !== divisionDigits) throw Error('Division digits readback mismatch');
     call('eka2l1_sparse_rom_lookup_configure', ['number'], [sparseRom]);
     g.sparseRomActual = g.Module._eka2l1_sparse_rom_lookup_report();
     if (g.sparseRomActual !== sparseRom) throw Error('sparseRom readback mismatch');
-    call('eka2l1_entry_only_pruning_configure', ['number'], [entryOnlyPruning]);
-    g.entryOnlyPruningActual = g.Module._eka2l1_entry_only_pruning_report();
-    if (g.entryOnlyPruningActual !== entryOnlyPruning) throw Error('entryOnlyPruning readback mismatch');
     call('eka2l1_entry_budget_configure', ['number'], [entryBudget]);
     g.entryBudgetActual = g.Module._eka2l1_entry_budget_report();
     if (g.entryBudgetActual !== entryBudget) throw Error('Entry budget readback mismatch');
@@ -203,10 +187,8 @@ try {
         || g.Module._eka2l1_hotpath_report() !== hotpathPolicy)) throw Error('Hotpath policy changed after initialization');
     if (thumbMemory !== -1 && g.Module._eka2l1_thumb_memory_configure(1 - thumbMemory) !== -1)
       throw Error('Thumb memory policy changed after initialization');
-    if (g.Module._eka2l1_division_digits_configure(1-divisionDigits) !== -1) throw Error('Division digits changed after initialization');
     if (g.Module._eka2l1_sparse_rom_lookup_configure(1-sparseRom) !== -1) throw Error('sparseRom changed after initialization');
-    if (g.Module._eka2l1_entry_only_pruning_configure(1-entryOnlyPruning) !== -1) throw Error('entryOnlyPruning changed after initialization');
-    if (g.Module._eka2l1_entry_budget_configure((entryBudget+1)%3) !== -1) throw Error('Entry budget changed after initialization');
+    if (g.Module._eka2l1_entry_budget_configure(2-entryBudget) !== -1) throw Error('Entry budget changed after initialization');
     if (g.Module._eka2l1_compiled_svc_configure(1-compiledSvc) !== -1) throw Error('Compiled syscall policy changed after initialization');
     if (armExclusive !== -1 && g.Module._eka2l1_arm_exclusive_configure(1-armExclusive) !== -1) throw Error('ARM exclusive changed after initialization');
     if(typeof g.Module._eka2l1_unsafe_code_report==='function') {
@@ -234,7 +216,7 @@ try {
     }
     // N80 also registers a different ROM-bundled game with the caption Snakes.
     call('eka2l1_run', ['string'], [appUid]);
-  }, {divisionDigits, entryBudget, entryOnlyPruning, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
+  }, {entryBudget, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count: frames, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio});
   const start = performance.now();
   let lastCount = -1;
   let firstCanvas: Buffer | undefined;
@@ -284,7 +266,7 @@ try {
 
   await page.evaluate(() => (window as any).Module._eka2l1_shutdown());
   if (failures.length) throw new Error(failures.join('\n'));
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({division_digits: await page.evaluate(() => (globalThis as any).divisionDigitsActual), entry_budget: await page.evaluate(() => (globalThis as any).entryBudgetActual), entry_only_pruning: await page.evaluate(() => (globalThis as any).entryOnlyPruningActual), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({entry_budget: await page.evaluate(() => (globalThis as any).entryBudgetActual), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');

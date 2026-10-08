@@ -79,8 +79,7 @@ namespace eka2l1::arm::aot {
         wasm_func_def func;
         bool entry_supported = true;
         // Research coverage metadata; never used to select guest addresses.
-        unsigned proved_reads = 0, proved_writes = 0, budget_chunks = 0, loop_budget_chunks = 0, deferred_count_updates = 0, entry_budget_instructions = 0;
-        unsigned division_groups = 0;
+        unsigned proved_reads = 0, proved_writes = 0, budget_chunks = 0, loop_budget_chunks = 0, entry_budget_instructions = 0;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call
         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling
