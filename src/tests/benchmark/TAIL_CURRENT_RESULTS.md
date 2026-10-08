@@ -73,3 +73,7 @@ Full browser E2E remains false solely because the same pre-existing host audio
 failure persists in both games. Exact PCM replays pass; this is not reported as
 a full E2E pass. Evidence is in `eka-tail-current/deployment-check.json`,
 `full-compiler-check.json`, `browser-api.log` and `game-picker/report.json`.
+
+Graduated runtime commit: `7f5f85273`. The original frozen historical
+plans resume from 76/109 comparisons and 608/872 valid observations; all 20
+earlier invalid attempts remain retained.

@@ -21,105 +21,105 @@
     "inlining-plan.json": "3202c9715c9ca75f7a6e54ff986c670fcb34f56562c913968a7e8f7c4ad43f9d"
   },
   "graduation": {
-    "time_utc": "2026-10-08T02:43:35.815041+00:00",
-    "runtime_commit": "0b890a26a7726aeaa8348541b8e755e60d38e606",
-    "wasm_sha256": "21396e0334589c338fa2336a148de1316ab3d9673a2d911b27df01bb9c57e91c",
-    "artifact": "/home/claude/.scratch/eka-branch-current/candidate-build",
-    "control_artifact": "/home/claude/.scratch/eka-expanded-current/candidate-build",
-    "control_runtime_commit": "21c322713",
+    "time_utc": "2026-10-08T03:33:39.118994+00:00",
+    "runtime_commit": "7f5f85273958cb4a963fca543f840b2c2d2ebac2",
+    "wasm_sha256": "4bdb01dab90af78db286ff529d5a25a5160cf51700550b3d3899c4193fb2a86a",
+    "artifact": "/home/claude/.scratch/eka-tail-current/candidate-build",
+    "control_artifact": "/home/claude/.scratch/eka-branch-current/candidate-build",
+    "control_runtime_commit": "0b890a26a7726aeaa8348541b8e755e60d38e606",
     "comparisons_complete": 2,
     "valid_observations": 16,
     "invalid_observations": 0,
     "combined_results": [
       {
         "phase": "current",
-        "experiment": "branch-veneer-current",
+        "experiment": "tail-prefix-current",
         "game": "standard",
-        "original_report": "BRANCH_CURRENT_RESULTS.md",
+        "original_report": "TAIL_CURRENT_RESULTS.md",
         "valid": 8,
         "invalid": 0,
         "expected": 8,
         "complete": true,
         "control": {
-          "worker_cpu_seconds": 7.6431944065,
-          "cycles": 27388280572,
-          "instructions": 62068904424.75,
-          "wall_seconds": 9.1713225,
+          "worker_cpu_seconds": 7.69224949625,
+          "cycles": 27562471499.5,
+          "instructions": 61948430345.75,
+          "wall_seconds": 9.230879999999999,
           "cpu_seconds_range": [
-            7.569340152,
-            7.706758563
+            7.592706897,
+            7.927883542
           ]
         },
         "candidate": {
-          "worker_cpu_seconds": 7.576938895750001,
-          "cycles": 27148692981.75,
-          "instructions": 61948303647.5,
-          "wall_seconds": 9.127195,
+          "worker_cpu_seconds": 7.51763654425,
+          "cycles": 26935764344.75,
+          "instructions": 61311826111.5,
+          "wall_seconds": 9.044740000000001,
           "cpu_seconds_range": [
-            7.53739907,
-            7.611656186
+            7.493855829,
+            7.538378753
           ]
         },
-        "cpu_throughput_change_percent": 0.8744363873273819,
-        "wall_throughput_change_percent": 0.48347274272106944,
-        "native_instruction_change_percent": -0.19430144348079326,
+        "cpu_throughput_change_percent": 2.3227107478819953,
+        "wall_throughput_change_percent": 2.0579917167325767,
+        "native_instruction_change_percent": -1.0276357781737966,
         "paired_cpu_throughput_changes_percent": [
-          1.4310354210267606,
-          1.743932647439972,
-          0.885063924312024,
-          -0.5559372752257485
-        ],
-        "favorable_pairs": 3,
-        "frequency_mhz_range": [
-          3591.570738552665,
-          3591.5796597816347
-        ],
-        "direction": "mixed pairs"
-      },
-      {
-        "phase": "current",
-        "experiment": "branch-veneer-current",
-        "game": "combat",
-        "original_report": "BRANCH_CURRENT_RESULTS.md",
-        "valid": 8,
-        "invalid": 0,
-        "expected": 8,
-        "complete": true,
-        "control": {
-          "worker_cpu_seconds": 24.90982456875,
-          "cycles": 89341070055.75,
-          "instructions": 221940790774.75,
-          "wall_seconds": 27.29865,
-          "cpu_seconds_range": [
-            24.405391747,
-            25.403602175
-          ]
-        },
-        "candidate": {
-          "worker_cpu_seconds": 24.42737899475,
-          "cycles": 87609742290.5,
-          "instructions": 221946948332.5,
-          "wall_seconds": 26.8181,
-          "cpu_seconds_range": [
-            24.153138403,
-            24.83242619
-          ]
-        },
-        "cpu_throughput_change_percent": 1.975019809139944,
-        "wall_throughput_change_percent": 1.7918868227055462,
-        "native_instruction_change_percent": 0.002774414621353749,
-        "paired_cpu_throughput_changes_percent": [
-          1.0443915808832083,
-          1.3366852050088252,
-          2.3001215452319146,
-          3.2190997391967846
+          0.984307586965838,
+          5.513720993220672,
+          1.8945137622022434,
+          0.9036851652214128
         ],
         "favorable_pairs": 4,
         "frequency_mhz_range": [
-          3591.601061131636,
-          3591.6087426117174
+          3591.563437687419,
+          3591.582208175166
         ],
         "direction": "all pairs faster"
+      },
+      {
+        "phase": "current",
+        "experiment": "tail-prefix-current",
+        "game": "combat",
+        "original_report": "TAIL_CURRENT_RESULTS.md",
+        "valid": 8,
+        "invalid": 0,
+        "expected": 8,
+        "complete": true,
+        "control": {
+          "worker_cpu_seconds": 24.93967206125,
+          "cycles": 89447386353,
+          "instructions": 221947857306.75,
+          "wall_seconds": 27.35285,
+          "cpu_seconds_range": [
+            24.07325123,
+            25.391411334
+          ]
+        },
+        "candidate": {
+          "worker_cpu_seconds": 24.771350836499998,
+          "cycles": 88841295664,
+          "instructions": 221959668448.75,
+          "wall_seconds": 27.152325,
+          "cpu_seconds_range": [
+            24.239743357,
+            25.782898377
+          ]
+        },
+        "cpu_throughput_change_percent": 0.6794995794173087,
+        "wall_throughput_change_percent": 0.7385187088030154,
+        "native_instruction_change_percent": 0.005321584151940506,
+        "paired_cpu_throughput_changes_percent": [
+          -6.63093466840452,
+          2.7184614244196714,
+          2.7630896578364927,
+          4.2835263587894135
+        ],
+        "favorable_pairs": 3,
+        "frequency_mhz_range": [
+          3591.600913938649,
+          3591.608990761471
+        ],
+        "direction": "mixed pairs"
       }
     ],
     "execution_limits": [
@@ -128,11 +128,11 @@
       8,
       512
     ],
-    "leaf_features": 160,
-    "deployment_status": "Exact measured artifact deployed; real gameplay, input and browser API verified; pre-existing host audio failure persists",
-    "deployment_evidence": "/home/claude/.scratch/eka-branch-current/deployment-check.json",
-    "remaining_historical_comparisons": 34,
-    "remaining_historical_valid_observations": 272,
+    "leaf_features": 224,
+    "deployment_status": "Exact measured artifact deployed; real gameplay and input verified; pre-existing host audio failure persists",
+    "deployment_evidence": "/home/claude/.scratch/eka-tail-current/deployment-check.json",
+    "remaining_historical_comparisons": 33,
+    "remaining_historical_valid_observations": 264,
     "automatic_resume": true
   },
   "pause_history": [
@@ -161,12 +161,13 @@
     "starting_valid_observations": 578,
     "starting_invalid_observations": 20,
     "next_comparison": "call-prefix-fusion/standard, first ABBA panel second candidate",
-    "graduated_runtime_unchanged": true,
+    "graduated_runtime_unchanged": false,
     "queued_current_runtime_reassessments": [],
     "completed_current_runtime_reassessments": [
       "owner-core-reuse",
       "expanded-leaf-eligibility",
-      "branch-veneer-fusion"
+      "branch-veneer-fusion",
+      "tail-prefix-fusion"
     ]
   },
   "active_phase": null,
@@ -204,7 +205,7 @@
   "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
   "graduation_cycle": {
     "candidate": "tail-prefix-fusion",
-    "stage": "graduation_validation",
+    "stage": "closed_graduated",
     "automatic_resume": true,
     "candidate_directory": "/home/claude/.scratch/eka-tail-current",
     "control_artifact": "/home/claude/.scratch/eka-branch-current/candidate-build",
@@ -217,8 +218,12 @@
     "watch_status": "/home/claude/.scratch/eka-tail-current/live-watch.json",
     "current_snakes_cpu_percent": 2.3227107478819953,
     "performance_evidence": "/home/claude/.scratch/eka-tail-current/CURRENT_RESULTS.json",
-    "decision": "graduate_pending_validation",
-    "current_sky_force_cpu_percent": 0.6794995794173087
+    "decision": "graduated",
+    "current_sky_force_cpu_percent": 0.6794995794173087,
+    "runtime_commit": "7f5f85273958cb4a963fca543f840b2c2d2ebac2",
+    "completed_utc": "2026-10-08T03:33:39.118994+00:00",
+    "final_evidence": "/home/claude/.scratch/eka-tail-current/CURRENT_RESULTS.json",
+    "deployment_evidence": "/home/claude/.scratch/eka-tail-current/deployment-check.json"
   },
   "launch_policy": {
     "temperature_gate": false,
@@ -341,6 +346,28 @@
       "deployment_evidence": "/home/claude/.scratch/eka-branch-current/deployment-check.json",
       "runtime_commit": "0b890a26a7726aeaa8348541b8e755e60d38e606",
       "completed_utc": "2026-10-08T02:43:35.815041+00:00"
+    },
+    {
+      "candidate": "tail-prefix-fusion",
+      "stage": "closed_graduated",
+      "automatic_resume": true,
+      "candidate_directory": "/home/claude/.scratch/eka-tail-current",
+      "control_artifact": "/home/claude/.scratch/eka-branch-current/candidate-build",
+      "control_runtime_commit": "0b890a26a",
+      "performance_plan": "/home/claude/.scratch/eka-tail-current/current-plan.json",
+      "completion_marker": "/home/claude/.scratch/eka-controlled/inlining-tail-prefix-fusion-graduation-complete-resume8.json",
+      "scope": "Register-only terminal tail prefix fallback; preserve full returning leaves",
+      "candidate_artifact": "/home/claude/.scratch/eka-tail-current/candidate-build",
+      "correctness_evidence": "/home/claude/.scratch/eka-tail-current/correctness.json",
+      "watch_status": "/home/claude/.scratch/eka-tail-current/live-watch.json",
+      "current_snakes_cpu_percent": 2.3227107478819953,
+      "performance_evidence": "/home/claude/.scratch/eka-tail-current/CURRENT_RESULTS.json",
+      "decision": "graduated",
+      "current_sky_force_cpu_percent": 0.6794995794173087,
+      "runtime_commit": "7f5f85273958cb4a963fca543f840b2c2d2ebac2",
+      "completed_utc": "2026-10-08T03:33:39.118994+00:00",
+      "final_evidence": "/home/claude/.scratch/eka-tail-current/CURRENT_RESULTS.json",
+      "deployment_evidence": "/home/claude/.scratch/eka-tail-current/deployment-check.json"
     }
   ],
   "active_experiment": null,
@@ -655,6 +682,121 @@
       "deployment_evidence": "/home/claude/.scratch/eka-expanded-current/deployment-check.json",
       "remaining_historical_comparisons": 35,
       "remaining_historical_valid_observations": 280,
+      "automatic_resume": true
+    },
+    {
+      "time_utc": "2026-10-08T02:43:35.815041+00:00",
+      "runtime_commit": "0b890a26a7726aeaa8348541b8e755e60d38e606",
+      "wasm_sha256": "21396e0334589c338fa2336a148de1316ab3d9673a2d911b27df01bb9c57e91c",
+      "artifact": "/home/claude/.scratch/eka-branch-current/candidate-build",
+      "control_artifact": "/home/claude/.scratch/eka-expanded-current/candidate-build",
+      "control_runtime_commit": "21c322713",
+      "comparisons_complete": 2,
+      "valid_observations": 16,
+      "invalid_observations": 0,
+      "combined_results": [
+        {
+          "phase": "current",
+          "experiment": "branch-veneer-current",
+          "game": "standard",
+          "original_report": "BRANCH_CURRENT_RESULTS.md",
+          "valid": 8,
+          "invalid": 0,
+          "expected": 8,
+          "complete": true,
+          "control": {
+            "worker_cpu_seconds": 7.6431944065,
+            "cycles": 27388280572,
+            "instructions": 62068904424.75,
+            "wall_seconds": 9.1713225,
+            "cpu_seconds_range": [
+              7.569340152,
+              7.706758563
+            ]
+          },
+          "candidate": {
+            "worker_cpu_seconds": 7.576938895750001,
+            "cycles": 27148692981.75,
+            "instructions": 61948303647.5,
+            "wall_seconds": 9.127195,
+            "cpu_seconds_range": [
+              7.53739907,
+              7.611656186
+            ]
+          },
+          "cpu_throughput_change_percent": 0.8744363873273819,
+          "wall_throughput_change_percent": 0.48347274272106944,
+          "native_instruction_change_percent": -0.19430144348079326,
+          "paired_cpu_throughput_changes_percent": [
+            1.4310354210267606,
+            1.743932647439972,
+            0.885063924312024,
+            -0.5559372752257485
+          ],
+          "favorable_pairs": 3,
+          "frequency_mhz_range": [
+            3591.570738552665,
+            3591.5796597816347
+          ],
+          "direction": "mixed pairs"
+        },
+        {
+          "phase": "current",
+          "experiment": "branch-veneer-current",
+          "game": "combat",
+          "original_report": "BRANCH_CURRENT_RESULTS.md",
+          "valid": 8,
+          "invalid": 0,
+          "expected": 8,
+          "complete": true,
+          "control": {
+            "worker_cpu_seconds": 24.90982456875,
+            "cycles": 89341070055.75,
+            "instructions": 221940790774.75,
+            "wall_seconds": 27.29865,
+            "cpu_seconds_range": [
+              24.405391747,
+              25.403602175
+            ]
+          },
+          "candidate": {
+            "worker_cpu_seconds": 24.42737899475,
+            "cycles": 87609742290.5,
+            "instructions": 221946948332.5,
+            "wall_seconds": 26.8181,
+            "cpu_seconds_range": [
+              24.153138403,
+              24.83242619
+            ]
+          },
+          "cpu_throughput_change_percent": 1.975019809139944,
+          "wall_throughput_change_percent": 1.7918868227055462,
+          "native_instruction_change_percent": 0.002774414621353749,
+          "paired_cpu_throughput_changes_percent": [
+            1.0443915808832083,
+            1.3366852050088252,
+            2.3001215452319146,
+            3.2190997391967846
+          ],
+          "favorable_pairs": 4,
+          "frequency_mhz_range": [
+            3591.601061131636,
+            3591.6087426117174
+          ],
+          "direction": "all pairs faster"
+        }
+      ],
+      "execution_limits": [
+        512,
+        32,
+        8,
+        512
+      ],
+      "leaf_features": 160,
+      "deployment_status": "Exact measured artifact deployed; real gameplay, input and browser API verified; pre-existing host audio failure persists",
+      "deployment_evidence": "/home/claude/.scratch/eka-branch-current/deployment-check.json",
+      "remaining_historical_comparisons": 34,
+      "remaining_historical_valid_observations": 272,
       "automatic_resume": true
     }
   ]
