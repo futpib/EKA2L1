@@ -188,6 +188,10 @@
     "older-page-cache-guards": {
       "status": "Rejected after controlled reassessment",
       "note": "Older versus compact page-cache guards: Snakes -6.20% CPU throughput with +5.21% native instructions (0/4 faster pairs); Sky Force -0.95% with +1.65% instructions (1/4 faster). All 16 observations and 88 restoration checks pass. Retain compact guards. At this review gate the main runtime/test outputs were rebuilt after the rejected ROM-call source was restored; all six runtime artifact hashes exactly match deployed 7f5f85273."
+    },
+    "page-cache-span-reuse": {
+      "status": "Historical Sky Force signal; inactive under direct",
+      "note": "Span reuse over retired folded-TLB plus last-page cache: Snakes -2.05% CPU throughput (0/4 faster), Sky Force +2.40% (3/4), with native instructions +1.12%/+0.87%. Sky Force pairs +5.66%, +8.52%, -4.27%, +0.08%; first-panel gains do not repeat in reverse order. All 16 observations and 88 restoration checks pass. Preserve this as a historical lead, not a current-default winner: cached_block_transfer_host depends on the removed READ_PAGE/WRITE_PAGE cache; current mode 2 routes scalar accesses through direct_access and whole spans through direct_host before TLB lowering. Restoring the old option would not optimize that active path. A direct-backend cache design would be a separate experiment; no additional current-runtime gain is established here."
     }
   }
 }
