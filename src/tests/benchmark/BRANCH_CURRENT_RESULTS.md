@@ -1,7 +1,8 @@
 # Branch veneers on the graduated forward-leaf runtime
 
-Status: controlled two-game timing at the restored 75/109 historical review boundary.
-The live default remains graduated commit `21c322713`.
+Status: selected for graduation after the current two-game comparison. Broader
+compiler and real LAN validation are pending; the live default remains
+`21c322713` until those checks pass.
 
 The frozen historical comparison completes with eight valid observations and
 no invalid attempts: Snakes CPU throughput +0.76%, native instructions -0.20%,
@@ -38,10 +39,17 @@ gate is used.
 
 Candidate WASM SHA-256: `21396e0334589c338fa2336a148de1316ab3d9673a2d911b27df01bb9c57e91c`.
 
-## Completed Snakes comparison
+## Completed current-runtime comparison
 
-Current Snakes CPU throughput changes +0.87%, wall throughput
-+0.48%, and native instructions -0.19%. Three of four pairs are faster,
-ranging from -0.56% to +1.74%. All eight observations are valid. This is
-less conclusive than the graduated expansion result; Sky Force remains pending
-before an adoption decision.
+| # | Game | CPU throughput | Wall throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | Snakes | +0.87% | +0.48% | -0.19% | 3/4 |
+| 2 | Sky Force | +1.98% | +1.79% | +0.00% | 4/4 |
+
+All 16 observations pass the frozen validity rules and all 88 live restoration
+checks pass. Both games have positive means, and all four Sky Force pairs
+improve. The measured runtime combination earns adoption. Sky Force's native
+instruction count is effectively unchanged; these counters do not establish
+that its timing gain comes from fewer executed instructions. The control and
+candidate are different binaries, so the result is not a same-binary attribution
+of feature bit 32 alone. No mechanism beyond the measured result is claimed.

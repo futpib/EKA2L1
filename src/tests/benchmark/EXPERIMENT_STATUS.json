@@ -114,8 +114,8 @@
       "note": "Historical +3.94% Snakes CPU, 4/4 faster pairs, -2.83% native instructions. Recovers the rejected call-prefix regression; current default does not enable that path."
     },
     "branch-veneer-fusion": {
-      "status": "Current Snakes mixed; Sky Force pending",
-      "note": "Current Snakes +0.87% CPU, -0.19% native instructions, 3/4 faster pairs. All eight observations valid; Sky Force pending before adoption. API/launcher checks and both exact replays pass."
+      "status": "Selected; graduation validation",
+      "note": "Current Snakes +0.87% CPU (3/4 faster), Sky Force +1.98% (4/4 faster). All observations valid. Sky Force native instructions effectively unchanged; broader compiler and real LAN checks pending before adoption."
     }
   }
 }

@@ -132,7 +132,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 72 | expanded-leaf-eligibility / Snakes | +1.96% | +1.63% | -1.54% | 4/4 | 8/8; 0 invalid | Default: Forward-only scalar/multiply/branch expansion with browser leaf bound 32. Incremental Snakes +1.10% CPU, -2.04% native instructions, 4/4 faster pairs. Sky Force effectively neutral (+0.17%, mixed pairs). Exact measured artifact deployed after compiler and real gameplay checks; known host audio limitation persists. | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
 | 73 | call-prefix-fusion / Snakes | -4.22% | -3.89% | +1.58% | 0/4 | 8/8; 0 invalid | Not selected for promotion: Controlled Snakes -4.22% CPU throughput, native instructions +1.58%, all four pairs slower. | [CALL_PREFIX_RESULTS.md](CALL_PREFIX_RESULTS.md) |
 | 74 | preserve-inner-leaves / Snakes | +3.94% | +3.46% | -2.83% | 4/4 | 8/8; 0 invalid | Fix for unselected prefix configuration: Historical +3.94% Snakes CPU, 4/4 faster pairs, -2.83% native instructions. Recovers the rejected call-prefix regression; current default does not enable that path. | [PRESERVE_INNER_RESULTS.md](PRESERVE_INNER_RESULTS.md) |
-| 75 | branch-veneer-fusion / Snakes | +0.76% | +0.75% | -0.20% | 4/4 | 8/8; 0 invalid | Current Snakes mixed; Sky Force pending: Current Snakes +0.87% CPU, -0.19% native instructions, 3/4 faster pairs. All eight observations valid; Sky Force pending before adoption. API/launcher checks and both exact replays pass. | [BRANCH_VENEER_RESULTS.md](BRANCH_VENEER_RESULTS.md) |
+| 75 | branch-veneer-fusion / Snakes | +0.76% | +0.75% | -0.20% | 4/4 | 8/8; 0 invalid | Selected; graduation validation: Current Snakes +0.87% CPU (3/4 faster), Sky Force +1.98% (4/4 faster). All observations valid. Sky Force native instructions effectively unchanged; broader compiler and real LAN checks pending before adoption. | [BRANCH_VENEER_RESULTS.md](BRANCH_VENEER_RESULTS.md) |
 | 76 | tail-prefix-fusion / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [TAIL_PREFIX_RESULTS.md](TAIL_PREFIX_RESULTS.md) |
 | 77 | expanded-leaf-bound / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
 | 78 | conditional-leaf-bound / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [REGION_LIMITS_RESULTS.md](REGION_LIMITS_RESULTS.md) |
@@ -895,13 +895,12 @@ no invalid attempts: Snakes CPU throughput +0.76%, native instructions -0.20%,
 all four pairs faster. All 88 live restoration checks pass. The original
 historical timing evidence remains in `BRANCH_VENEER_RESULTS.md`.
 
-**Completed Snakes comparison**
+**Completed current-runtime comparison**
 
-Current Snakes CPU throughput changes +0.87%, wall throughput
-+0.48%, and native instructions -0.19%. Three of four pairs are faster,
-ranging from -0.56% to +1.74%. All eight observations are valid. This is
-less conclusive than the graduated expansion result; Sky Force remains pending
-before an adoption decision.
+| # | Game | CPU throughput | Wall throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | Snakes | +0.87% | +0.48% | -0.19% | 3/4 |
+| 2 | Sky Force | +1.98% | +1.79% | +0.00% | 4/4 |
 
 </details>
 
