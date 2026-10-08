@@ -102,12 +102,16 @@
       "note": "Controlled Snakes -0.47% CPU, native instructions +3.22%, only 1/4 faster pairs. Current trusted dispatch also avoids the metadata pointer used by this older design."
     },
     "expanded-leaf-eligibility": {
-      "status": "Queued for current-runtime reassessment",
-      "note": "Historical Snakes +1.96% CPU, 4/4 faster pairs at leaf bound 32. Multiply, extra/conditional memory and forward-branch eligibility bundle; reassess remaining coverage after connected callees."
+      "status": "Current-runtime validation",
+      "note": "Historical +1.96% Snakes at matching bound 32. Reassessing original forward-only branch and scalar/multiply eligibility against current defaults; caller-loop lowering unchanged."
     },
     "call-prefix-fusion": {
       "status": "Not selected for promotion",
       "note": "Controlled Snakes -4.22% CPU throughput, native instructions +1.58%, all four pairs slower."
+    },
+    "preserve-inner-leaves": {
+      "status": "Fix for unselected prefix configuration",
+      "note": "Historical +3.94% Snakes CPU, 4/4 faster pairs, -2.83% native instructions. Recovers the rejected call-prefix regression; current default does not enable that path."
     }
   }
 }

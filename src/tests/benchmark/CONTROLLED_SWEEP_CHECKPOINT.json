@@ -1,10 +1,10 @@
 {
-  "status": "awaiting_comparison_review",
+  "status": "paused_for_graduation",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User requested pausing at each winner, graduating it on the current runtime, then automatically resuming until the historical sweep is complete.",
-  "completed_comparisons": 73,
+  "completed_comparisons": 74,
   "total_comparisons": 109,
-  "valid_observations": 584,
+  "valid_observations": 592,
   "expected_observations": 872,
   "invalid_observations": 20,
   "cancelled_waiters": {
@@ -248,7 +248,7 @@
     ]
   },
   "active_phase": null,
-  "last_progress_utc": "2026-10-08T00:55:30.592050+00:00",
+  "last_progress_utc": "2026-10-08T01:05:04.476617+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -281,22 +281,15 @@
   "continuation_error": null,
   "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
   "graduation_cycle": {
-    "candidate": "owner-core-reuse",
-    "stage": "closed_not_selected",
+    "candidate": "expanded-leaf-eligibility",
+    "stage": "current_runtime_validation",
     "automatic_resume": true,
-    "candidate_directory": "/home/claude/.scratch/eka-owner-current",
-    "candidate_artifact": "/home/claude/.scratch/eka-owner-current/candidate-build",
-    "performance_plan": "/home/claude/.scratch/eka-owner-current/current-plan.json",
-    "watch_status": "/home/claude/.scratch/eka-owner-current/live-watch.json",
-    "boundary_restoration": "/home/claude/.scratch/eka-controlled/inlining-call-prefix-fusion-live-restoration-resume8.json",
-    "pending_history_review": "/home/claude/.scratch/eka-controlled/inlining-call-prefix-fusion-review-resume8.json",
-    "history_verdict": "/home/claude/.scratch/eka-controlled/inlining-call-prefix-fusion-verdict-resume8.json",
-    "historical_snakes_cpu_percent": 0.8058150830829502,
-    "correctness_evidence": "/home/claude/.scratch/eka-owner-current/correctness.json",
-    "current_snakes_cpu_percent": 0.14622069557237438,
-    "decision": "not_selected",
-    "final_evidence": "/home/claude/.scratch/eka-owner-current/CURRENT_RESULTS.json",
-    "preserved_patch": "/home/claude/.scratch/eka-owner-current/rejected-source.patch"
+    "candidate_directory": "/home/claude/.scratch/eka-expanded-current",
+    "pending_history_review": "/home/claude/.scratch/eka-controlled/inlining-preserve-inner-leaves-review-resume8.json",
+    "history_verdict": "/home/claude/.scratch/eka-controlled/inlining-preserve-inner-leaves-verdict-resume8.json",
+    "boundary_restoration": "/home/claude/.scratch/eka-controlled/inlining-preserve-inner-leaves-live-restoration-resume8.json",
+    "historical_snakes_cpu_percent": 1.959,
+    "scope": "Forward-only branches, multiply and scalar extra/conditional memory; existing caller-loop lowering unchanged. Candidate limit 32 against current baseline limit 16."
   },
   "launch_policy": {
     "temperature_gate": false,
@@ -381,5 +374,5 @@
   "active_experiment": null,
   "active_log": null,
   "active_host": null,
-  "review_request": "/home/claude/.scratch/eka-controlled/inlining-call-prefix-fusion-review-request-resume8.json"
+  "review_request": "/home/claude/.scratch/eka-controlled/inlining-preserve-inner-leaves-review-request-resume8.json"
 }
