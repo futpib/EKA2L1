@@ -1,0 +1,449 @@
+diff --git a/src/emu/cpu/src/aot/arm_translator.cpp b/src/emu/cpu/src/aot/arm_translator.cpp
+index 8846069ac..34cd0c479 100644
+--- a/src/emu/cpu/src/aot/arm_translator.cpp
++++ b/src/emu/cpu/src/aot/arm_translator.cpp
+@@ -80,6 +80,39 @@ namespace eka2l1::arm::aot {
+         // Exits reconstruct their exact halves; control/helper boundaries end
+         // the representation. Local 1 is the reserved i64 multiply result.
+         int wide_lo = -1, wide_hi = -1;
++        unsigned pending_compare = 0, compare_lhs = 0, compare_rhs = 0;
++        static unsigned compare_flag(std::uint32_t offset) {
++            return offset == S::NFLAG ? 1 : offset == S::CFLAG ? 2 : offset == S::VFLAG ? 4 : 0;
++        }
++        // A comparison's operands survive successful restartable reads. Exit
++        // snapshots do not consume the recipe on the other path of a guard.
++        void materialize_compare(unsigned mask = 7, bool consume = true) {
++            mask &= pending_compare;
++            if (mask & 1) {
++                get_local(compare_lhs); get_local(compare_rhs); op(op_i32_sub);
++                i32_const(31); op(op_i32_shr_u); set_local(cache.local(S::NFLAG));
++            }
++            if (mask & 2) {
++                get_local(compare_lhs); get_local(compare_rhs); op(op_i32_ge_u);
++                set_local(cache.local(S::CFLAG));
++            }
++            if (mask & 4) {
++                get_local(compare_lhs); get_local(compare_rhs); op(op_i32_xor);
++                get_local(compare_lhs); get_local(compare_lhs); get_local(compare_rhs); op(op_i32_sub);
++                op(op_i32_xor); op(op_i32_and); i32_const(31); op(op_i32_shr_u);
++                set_local(cache.local(S::VFLAG));
++            }
++            if (consume) pending_compare &= ~mask;
++        }
++        void defer_compare(unsigned lhs, unsigned rhs) {
++            get_local(lhs); set_local(compare_lhs); get_local(rhs); set_local(compare_rhs);
++            pending_compare = 7;
++            for (unsigned offset : {S::NFLAG, S::CFLAG, S::VFLAG}) {
++                cache.local(offset); cache.written.insert(offset);
++            }
++            get_local(lhs); get_local(rhs); op(op_i32_eq);
++            store_i32_from_stack(S::ZFLAG, 5);
++        }
+         // Entry-proved host spans, indexed by the lexical memory instruction.
+         struct proved_access { unsigned host; std::uint32_t offset; };
+         std::map<std::uint32_t, proved_access> proved_accesses;
+@@ -116,11 +149,13 @@ namespace eka2l1::arm::aot {
+         void i32_const(std::int32_t v) { op(op_i32_const); sleb(b, v); }
+
+         void load_i32(std::uint32_t offset) {
++            materialize_compare(compare_flag(offset));
+             if (cache.accepts(offset)) { get_local(cache.local(offset)); return; }
+             state_ptr();
+             op(op_i32_load); leb(b, 2); leb(b, offset);
+         }
+         void store_i32(std::uint32_t offset, std::uint32_t local) {
++            pending_compare &= ~compare_flag(offset);
+             if (cache.accepts(offset)) {
+                 get_local(local); set_local(cache.local(offset)); cache.written.insert(offset); return;
+             }
+@@ -129,6 +164,7 @@ namespace eka2l1::arm::aot {
+             op(op_i32_store); leb(b, 2); leb(b, offset);
+         }
+         void store_i32_from_stack(std::uint32_t offset, std::uint32_t scratch) {
++            pending_compare &= ~compare_flag(offset);
+             if (cache.accepts(offset)) {
+                 set_local(cache.local(offset)); cache.written.insert(offset); return;
+             }
+@@ -137,6 +173,7 @@ namespace eka2l1::arm::aot {
+             op(op_i32_store); leb(b, 2); leb(b, offset);
+         }
+         void store_i32_const(std::uint32_t offset, std::int32_t val) {
++            pending_compare &= ~compare_flag(offset);
+             if (cache.accepts(offset)) {
+                 i32_const(val); set_local(cache.local(offset)); cache.written.insert(offset); return;
+             }
+@@ -161,6 +198,7 @@ namespace eka2l1::arm::aot {
+         void slow_call(std::uint32_t func_idx) {
+             instruction_may_exit = true;
+             if (region && !pc_written) store_i32_const(S::PC,current_pc);
++            materialize_compare(7, false);
+             cache.barrier_at(b.size());
+             op(op_call); leb(b, func_idx);
+             cache.barrier_at(b.size(), true);
+@@ -343,6 +381,7 @@ namespace eka2l1::arm::aot {
+             // Emitting an exit snapshot must not forget the representation on
+             // the other path of the guard being emitted.
+             materialize_wide();
++            materialize_compare(7, false);
+             // The return count is already on the stack. Branching carries it
+             // to the shared exit and discards any enclosing temporary stack.
+             if (cache.shared_return) { op(op_br); leb(b, scope_depth); }
+@@ -915,6 +954,56 @@ namespace eka2l1::arm::aot {
+             }
+         }
+
++        auto plain_data = [](std::uint32_t op) {
++            const unsigned alu = (op >> 21) & 15;
++            return (op & 0x0c000000u) == 0 && ((op & (1u << 25)) || (op & 0x90) != 0x90)
++                && (alu < 8 || alu > 11 || (op & (1u << 20)))
++                && ((op >> 12) & 15) != 15;
++        };
++        auto restartable_read = [](std::uint32_t op) {
++            if ((op & 0x0f700000u) == 0x05100000u)
++                return ((op >> 16) & 15) != 15 && ((op >> 12) & 15) != 15;
++            const unsigned regs = op & 0xffff;
++            return (op & 0x0e700000u) == 0x08100000u && ((op >> 16) & 15) != 15
++                && !(regs & 0x8000) && (regs & (regs - 1));
++        };
++        std::set<std::uint32_t> deferred_compares;
++        if (allow_memory_proof && w.region && w.defer_memory && cache_registers && memory_experiment::enabled()) {
++            for (std::size_t n = 0; n < instructions.size(); ++n) {
++                const auto &producer = instructions[n];
++                if (producer.leaf || (producer.opcode >> 28) != 14 || !plain_data(producer.opcode)
++                    || ((producer.opcode >> 21) & 15) != 10) continue;
++                bool crossed_read = false;
++                for (std::size_t next = n + 1; next < instructions.size(); ++next) {
++                    const auto &use = instructions[next];
++                    if (use.leaf || use.address != instructions[next - 1].address + 4) break;
++                    const auto op = use.opcode;
++                    const unsigned cond = op >> 28, alu = (op >> 21) & 15;
++                    // EQ/NE only need the concrete zero predicate. Keep the
++                    // remaining recipe only when the successful fallthrough
++                    // overwrites it; ordinary returns would merely defer work.
++                    if (cond != 14 && cond > 1) break;
++                    if (restartable_read(op)) { crossed_read = true; continue; }
++                    if (((op >> 25) & 7) == 5 && !(op & (1u << 24)) && cond < 2) {
++                        const auto target = use.address + 8 + static_cast<std::uint32_t>(static_cast<std::int32_t>(op << 8) >> 6);
++                        if (target >= start_address && target < start_address + code_size) break;
++                        continue;
++                    }
++                    const bool rrx = !(op & (1u << 25)) && !(op & 16)
++                        && ((op >> 5) & 3) == 3 && !((op >> 7) & 31);
++                    if (cond != 14 || !plain_data(op) || rrx || (alu >= 5 && alu <= 7)) break;
++                    if (op & (1u << 20)) {
++                        if (crossed_read && (alu == 10 || alu == 11)) deferred_compares.insert(producer.address);
++                        break;
++                    }
++                }
++            }
++        }
++        if (!deferred_compares.empty()) {
++            w.compare_lhs = w.cache.first_local++; w.compare_rhs = w.cache.first_local++;
++            result.num_locals += 2;
++        }
++
+         // Entry-relative memory proofs retain ordinary instruction lowering.
+         // Failed proofs call the original function before any guest effect;
+         // writeback and fault ordering remain exact.
+@@ -1318,6 +1407,16 @@ namespace eka2l1::arm::aot {
+                 w.end_wide();
+             const auto budget_chunk = budget_chunks.find(instruction_index);
+             if (budget_chunk != budget_chunks.end()) w.end_wide();
++            // Conditional definitions, helper-capable instructions and joins
++            // need concrete flags on both paths. Restartable reads either use
++            // their inline path or return before any callback or guest effect.
++            const bool compare_passthrough = (inst >> 28) == 14 && plain_data(inst);
++            const bool compare_branch = ((inst >> 25) & 7) == 5;
++            if (instruction.leaf || inlined.count(i) || leaf_join
++                || (!instruction.leaf && forward_targets_set.count(insn_addr))
++                || budget_chunk != budget_chunks.end()
++                || (!compare_passthrough && !compare_branch && !restartable_read(inst)))
++                w.materialize_compare();
+
+             // Only memory/helper paths can raise AOT_EXIT. Straight-line ALU
+             // successors need just their budget guard; join/loop entries retain
+@@ -1549,6 +1648,10 @@ namespace eka2l1::arm::aot {
+                     continue;
+                 }
+
++                // Internal successors enter with concrete architectural flags.
++                // This snapshot belongs only to the taken branch.
++                if (target >= start_address && target < start_address + code_size)
++                    w.materialize_compare(7, false);
+                 // B (not link)
+                 // Check if target is a forward branch within the block
+                 auto fit = fwd_idx.find(target);
+@@ -2100,7 +2203,12 @@ namespace eka2l1::arm::aot {
+                 }
+
+                 // Get shifter operand
+-                w.load_i32(S::CFLAG); w.set_local(TMP_CARRY);
++                const bool logical_flags = set_flags && (opcode == 0 || opcode == 1 || opcode == 8 || opcode == 9 || opcode >= 12);
++                // Arithmetic shifter carry is unused; RRX and ADC/SBC request
++                // architectural carry explicitly at their actual consumers.
++                if (w.pending_compare && !logical_flags) w.i32_const(0);
++                else w.load_i32(S::CFLAG);
++                w.set_local(TMP_CARRY);
+                 emit_shifter_operand(w, inst, TMP2, TMP3, TMP_CARRY, insn_addr);
+                 w.set_local(TMP2); // operand 2
+
+@@ -2242,6 +2350,10 @@ namespace eka2l1::arm::aot {
+                     emit_nz_flags(w, TMP3, TMP4);
+                     break;
+                 case 0xA: // CMP (SUB without write)
++                    if (deferred_compares.count(insn_addr)) {
++                        w.defer_compare(TMP1, TMP2);
++                        break;
++                    }
+                     w.get_local(TMP1); w.get_local(TMP2);
+                     w.op(op_i32_sub);
+                     w.set_local(TMP3);
+diff --git a/src/tests/aot/test_aot_wasm.cpp b/src/tests/aot/test_aot_wasm.cpp
+index b0cf4a737..2e5526ae6 100644
+--- a/src/tests/aot/test_aot_wasm.cpp
++++ b/src/tests/aot/test_aot_wasm.cpp
+@@ -4503,6 +4503,114 @@ static void emit_memory_probes() {
+         }
+     }
+ }
++static std::vector<std::pair<std::string,std::vector<unsigned>>> flag_memory_fixtures() {
++    std::vector<std::pair<std::string,std::vector<unsigned>>> fixtures={
++        {"scheduler",{0xe594e000,0xe15e0004,0xe24e000c,0x181e5004,0x0a000d92,0xe3520106,0x121c3001,0x0afffff8,0xe5903000,0xe3ccc003,0xe24fe048,0xe5933010,0xe580c008,0xe5870000,0xe12fff13}},
++        {"overwrite",{0xe1500001,0xe5923000,0xe1530004,0xe12fff1e}},
++        {"overwritten-operand",{0xe1500001,0x15920000,0xe12fff1e}},
++        {"ldm",{0xe1500001,0x18925008,0xe1530004,0xe12fff1e}},
++        {"carry",{0xe1500001,0xe5920000,0xe0a55006,0xe12fff1e}},
++        {"rrx",{0xe1500001,0xe5920000,0xe1a05066,0xe12fff1e}},
++        {"conditional-flags",{0xe1500001,0xe5920000,0x02955001,0xe10f6000,0xe12fff1e}},
++        {"helper",{0xe1500001,0xe5923000,0xe4974004,0xe12fff1e}},
++        {"join",{0xe1500001,0xe5923000,0x1a000000,0xe2944001,0xe10f6000,0xe12fff1e}},
++        {"shifter",{0xe1500061,0xe5920000,0xe12fff1e}},
++        {"no-memory",{0xe1500001,0xe1a03000,0xe12fff1e}},
++    };
++    for(unsigned cond=0;cond<14;++cond)
++        fixtures.push_back({"condition-"+std::to_string(cond),{0xe1500001,0xe5920000,(cond<<28)|0x03a05055,0xe12fff1e}});
++    return fixtures;
++}
++
++static bool test_flag_memory() {
++#ifdef __EMSCRIPTEN__
++    using namespace memory_experiment;
++    struct restore {
++        unsigned memory=mode,entry=entry_budget_mode,unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
++        ~restore(){mode=memory;entry_budget_mode=entry;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;g_test_mem=nullptr;}
++    } saved;
++    mode=2;entry_budget_mode=2;unsigned checks=0;
++    const unsigned operands[][2]={{0,0},{0,1},{1,0},{0xffffffff,1},{0x80000000,1},
++        {0x7fffffff,0xffffffff},{0x80000000,0x80000000},{0xffffffff,0x7fffffff}};
++    for(const auto &fixture:flag_memory_fixtures()) {
++        if(fixture.first!="scheduler"&&fixture.first!="overwrite"&&fixture.first!="ldm")continue;
++        const auto &code=fixture.second;
++        for(unsigned unsafe:{0u,3u}) {
++            eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
++            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,0x1000,
++                nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
++            auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++                {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++            for(unsigned scenario=0;scenario<5;++scenario)for(const auto &pair:operands)for(unsigned flags:{0u,5u,10u,15u})
++            for(unsigned budget:{0u,1u,2u,3u,4u,6u,7u,8u,15u,32u}) {
++                test_mem actual;
++                actual.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(code.data()),reinterpret_cast<const std::uint8_t*>(code.data())+code.size()*4});
++                const unsigned address=scenario==2?0x9041:scenario==3?0x9fff:0x9040;
++                alignas(8) unsigned state[256]{};for(unsigned reg=0;reg<16;++reg)state[reg]=0x12340+reg;
++                state[0]=pair[0];state[1]=pair[1];state[2]=address;state[4]=0x80000001;state[6]=0x80000003;
++                state[7]=0xa040;state[14]=0x2000;state[15]=0x1000;
++                actual.write32(address,pair[0]^0x5a5a5a5a);actual.write32(address+4,0x100);actual.write32(address+8,0x2000);
++                if(fixture.first=="scheduler") {
++                    const unsigned first=scenario==2?0x9089:scenario==3?0xa004:0x9088;
++                    state[4]=0x8040;state[7]=0xb040;actual.write32(0x8040,first);
++                    for(unsigned node=0;node<3;++node) {
++                        const auto end=first+node*64;
++                        actual.write32(end-12,0xa040);actual.write32(end-8,node?123:0x80000001);
++                        actual.write32(end-4,node==1?0x100:0x101);actual.write32(end,node==2?0x8040:end+64);
++                    }
++                    actual.write32(0xa050,0x2000);
++                }
++                test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
++                view mapping;auto pointer=mapping.enter(1,1,[&]{
++                    std::vector<binding> result;
++                    for(unsigned page=0x8000;page<0xc000;page+=4096)result.push_back({page,
++                        static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(actual.data.data()+page)),scenario==1&&page==0x9000?0u:3u});
++                    return result;
++                });
++                for(unsigned reg=0;reg<16;++reg)reference->set_reg(reg,state[reg]);
++                const auto cpsr=(flags<<28)|16|(scenario==4?512:0);reference->set_cpsr(cpsr);
++                state[state_offsets::CPSR/4]=cpsr;state[state_offsets::MODE/4]=16;
++                for(unsigned f=0;f<4;++f)state[test_flag_offsets[f]/4]=(flags>>(3-f))&1;
++                state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
++                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=budget;state[state_offsets::AOT_TLB/4]=pointer;
++                state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
++                state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+code.size()*4;
++                g_test_mem=&actual;
++                const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
++                if(count<0||count>int(budget))return false;
++                if(count)reference->run(count);
++                for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
++                    printf(" FAIL deferred comparison %s scenario=%u budget=%u count=%d R%u got=%x expected=%x\n",fixture.first.c_str(),scenario,budget,count,reg,state[reg],reference->get_reg(reg));return false;
++                }
++                for(unsigned f=0;f<5;++f)if(state[test_flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1)) {
++                    printf(" FAIL deferred comparison flags %s scenario=%u budget=%u count=%d flag=%u\n",fixture.first.c_str(),scenario,budget,count,f);return false;
++                }
++                if(actual.data!=expected.data){printf(" FAIL deferred comparison memory\n");return false;}
++                ++checks;
++            }
++        }
++    }
++    printf(" PASS deferred comparison memory (%u independent ARM state/flags/memory/count comparisons)\n",checks);
++#endif
++    return true;
++}
++
++static void emit_flag_memory_probes() {
++#ifdef __EMSCRIPTEN__
++    emit_memory_layout();
++    memory_experiment::mode=2;entry_budget_mode=2;
++    eka2l1::common::code_tracking::unsafe_code_mode=3;
++    for(const auto &fixture:flag_memory_fixtures()) {
++        const auto &code=fixture.second;
++        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,0x8019d818,
++            nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
++        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
++            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
++        EM_ASM({console.log('FLAG_MEMORY_PROBE '+JSON.stringify({name:UTF8ToString($0),wasm:btoa(String.fromCharCode(...HEAPU8.subarray($1,$1+$2)))}));},fixture.first.c_str(),module.data(),module.size());
++    }
++#endif
++}
++
+ static std::vector<unsigned> lifetime_reads(unsigned count, unsigned base=1) {
+     std::vector<unsigned> words;
+     for(unsigned n=0;n<count;++n)words.push_back(0xe5900000u|(base<<16)|((n+1==count?base:6u)<<12)|(n*4));
+@@ -6013,6 +6121,7 @@ int main(int argc, char **argv) {
+     // budget matrix separately compares each whole-entry implementation.
+     entry_budget_mode = 0;
+ #ifdef __EMSCRIPTEN__
++    if(argc==2 && std::string(argv[1])=="--emit-flag-memory-probes") {emit_flag_memory_probes();return 0;}
+     if(argc==2 && std::string(argv[1])=="--emit-lifetime-probes") {emit_lifetime_probes();return 0;}
+     if(argc==2 && std::string(argv[1])=="--emit-memory-probes") {emit_memory_probes();return 0;}
+ #endif
+@@ -6057,6 +6166,7 @@ int main(int argc, char **argv) {
+     }
+     if(argc==2 && std::string(argv[1])=="--lookup-only") return test_code_cache_lifecycle()?0:1;
+     if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
++    if(argc==2 && std::string(argv[1])=="--flag-memory-only")return test_flag_memory()?0:1;
+     if(argc==2 && std::string(argv[1])=="--pointer-lifetimes-only")return test_pointer_lifetimes()?0:1;
+     if(argc==2 && std::string(argv[1])=="--tlb-only") return test_tlb_guards()?0:1;
+ #ifdef __EMSCRIPTEN__
+@@ -6729,6 +6839,7 @@ int main(int argc, char **argv) {
+     if (test_precise_instruction_counts()) passed++; else failed++;
+     if (test_compiled_svc_boundary()) passed++; else failed++;
+     if (test_arm_clz()) passed++; else failed++;
++    if (test_flag_memory()) passed++; else failed++;
+     if (test_pointer_lifetimes()) passed++; else failed++;
+
+     printf("\n%d passed, %d failed\n", passed, failed);
+diff --git a/src/tests/wasm/flag-memory-counts.mjs b/src/tests/wasm/flag-memory-counts.mjs
+new file mode 100644
+index 000000000..a4fb2932e
+--- /dev/null
++++ b/src/tests/wasm/flag-memory-counts.mjs
+@@ -0,0 +1,100 @@
++// Offline differential execution and operation counts. Never used for timing.
++import fs from 'node:fs';
++import assert from 'node:assert/strict';
++import crypto from 'node:crypto';
++import {counted,resetCost,readCost} from './wasm-step-counter.mjs';
++import {CostComparisons} from './wasm-cost-model.mjs';
++const [beforeFile,afterFile,output]=process.argv.slice(2);
++if(!output)throw Error('flag-memory-counts.mjs BASELINE_PROBES CANDIDATE_PROBES OUTPUT.json');
++const parse=file=>{const lines=fs.readFileSync(file,'utf8').split('\n');return {
++    layout:JSON.parse(lines.find(x=>x.startsWith('MEMORY_LAYOUT ')).slice(14)),
++    probes:lines.filter(x=>x.startsWith('FLAG_MEMORY_PROBE ')).map(x=>JSON.parse(x.slice(18)))};};
++const before=parse(beforeFile),after=parse(afterFile);assert.deepEqual(before.layout,after.layout);
++const S=before.layout,state=0x1000,view=0x6000,pages=0x100000;
++const memory=new WebAssembly.Memory({initial:2304,maximum:65536,shared:true});
++const bytes=new Uint8Array(memory.buffer),words=new Uint32Array(memory.buffer),data=new DataView(memory.buffer);
++const physical=a=>a>=0x400000&&a<0x4400000?a+0x3c00000:a>=0x7000&&a<0xc000?a+0x1000000:0;
++const mapped=[0x8000,0x9000,0xa000,0xb000,0x408000,0x409000,0x40a000,0x40b000];
++const field=(name,value)=>words[(state+S[name])/4]=value;
++const write=(address,value)=>{const host=physical(address);if(host)data.setUint32(host,value>>>0,true);};
++let helpers=[],scenario;
++function helper(writeAccess,width,p,address,value) {
++    address>>>=0;
++    helpers.push([writeAccess,width,p,address,value,...['n','z','c','v'].map(k=>words[(state+S[k])/4]),words[state/4+15]]);
++    if(scenario.callback) {field('n',1);field('z',1);field('c',0);field('v',1);field('tlb',0);}
++    const host=physical(address);if(!host)return 0;
++    if(writeAccess){if(width===4)data.setUint32(host,value,true);else if(width===2)data.setUint16(host,value,true);else data.setUint8(host,value);return;}
++    return width===4?data.getUint32(host,true):width===2?data.getUint16(host,true):data.getUint8(host);
++}
++const env={memory,tlb_read32:(p,a)=>helper(false,4,p,a),tlb_write32:(p,a,v)=>helper(true,4,p,a,v),
++    tlb_read16:(p,a)=>helper(false,2,p,a),tlb_write16:(p,a,v)=>helper(true,2,p,a,v),
++    tlb_read8:(p,a)=>helper(false,1,p,a),tlb_write8:(p,a,v)=>helper(true,1,p,a,v)};
++function init(name,test,budget,flags,operands) {
++    scenario=test;helpers=[];bytes.fill(0,state,state+1024);
++    const arena=test.arena?0x400000:0;
++    for(const page of mapped) {
++        bytes.fill(0,physical(page),physical(page)+4096);
++        const permission=test.missingNode&&(page&0xfffff)===0x9000?0:3;
++        words[(pages+(page>>>12)*8)/4]=permission?physical(page):0;
++        words[(pages+(page>>>12)*8)/4+1]=permission?physical(page):0;
++    }
++    words[view/4]=0x400000;words[view/4+1]=0x4000000;words[view/4+2]=0x4000000;
++    words[view/4+3]=pages;words[view/4+4]=0x3c00000;words[view/4+5]=test.arena?0xffffffff:0;
++    const address=arena+(test.crossPage?0x9fff:test.unaligned?0x9041:0x9040);
++    for(let reg=0;reg<16;++reg)words[state/4+reg]=0x12340+reg;
++    words[state/4]=operands[0];words[state/4+1]=operands[1];words[state/4+2]=address;
++    words[state/4+4]=0x80000001;words[state/4+6]=0x80000003;words[state/4+7]=arena+0xa040;
++    words[state/4+14]=0x2000;words[state/4+15]=0x8019d818;
++    write(address,(operands[0]^0x5a5a5a5a)>>>0);write(address+4,0x100);write(address+8,0x2000);write(arena+0xa040,77);
++    if(name==='scheduler') {
++        const head=arena+0x8040,first=arena+(test.crossPage?0xa004:test.unaligned?0x9089:0x9088);
++        words[state/4+4]=head;words[state/4+7]=arena+0xb040;
++        write(head,test.empty?head:first);
++        for(let node=0;node<3;++node) {
++            const end=first+node*64;
++            write(end-12,arena+0xa040);write(end-8,node===0&&!test.found?0x80000001:123);
++            write(end-4,node===1?0x100:0x101);write(end,node===2?head:end+64);
++        }
++        write(arena+0xa050,0x2000);
++    }
++    field('mode',16);field('cpsr',((flags<<28)>>>0)|16|(test.endian?512:0));field('thumb',0);
++    for(const [i,key]of ['n','z','c','v'].entries())field(key,(flags>>(3-i))&1);
++    field('budget',budget);field('remaining',budget);field('irq',test.irq?0:1);field('exit',test.exit?1:0);
++    field('tlb',test.nullView?0:view);field('code_begin',0x70000000);field('code_end',0x70001000);
++    // Force the second, writeback load to use a helper; its callback must see
++    // the first comparison's flags and may replace them and the memory view.
++    if(test.callback)words[(pages+((arena+0xa000)>>>12)*8)/4]=0;
++}
++const scenarios=[{name:'page'},{name:'arena',arena:true},{name:'empty',empty:true},{name:'found',found:true},
++    {name:'missing-node',missingNode:true},{name:'null-view',nullView:true},{name:'unaligned',unaligned:true},
++    {name:'cross-page',crossPage:true},{name:'endian',endian:true},{name:'irq',irq:true},{name:'exit',exit:true},{name:'callback',callback:true}];
++const operands=[[0,0],[0,1],[1,0],[0xffffffff,1],[0x80000000,1],[0x7fffffff,0xffffffff],[0x80000000,0x80000000],[0xffffffff,0x7fffffff]];
++const budgets=[0,1,2,3,4,6,7,8,14,15,22,32],rows=[],costs=new CostComparisons();
++let checks=0,reduced=0,grown=0,unchanged=0;
++assert.equal(before.probes.length,after.probes.length);
++for(let i=0;i<before.probes.length;++i) {
++    const a=before.probes[i],b=after.probes[i];assert.equal(a.name,b.name);
++    const raw=[a,b].map(x=>Buffer.from(x.wasm,'base64'));
++    if(!['scheduler','overwrite','ldm'].includes(a.name))assert(raw[0].equals(raw[1]),'Unselected code changed: '+a.name);
++    const instances=raw.map(bytes=>new WebAssembly.Instance(counted(bytes,{breakdown:true}),{env}));
++    for(const test of scenarios)for(const pair of operands)for(const flags of [0,5,10,15])for(const budget of budgets) {
++        const results=instances.map(instance=>{
++            init(a.name,test,budget,flags,pair);resetCost(instance);
++            const count=instance.exports.f_2149177368(state),hash=crypto.createHash('sha256');
++            const cpu=Array.from(words.subarray(state/4,state/4+256));hash.update(bytes.subarray(state,state+1024));
++            for(const guest of mapped)hash.update(bytes.subarray(physical(guest),physical(guest)+4096));
++            return {count,cpu,hash:hash.digest('hex'),helpers,cost:readCost(instance)};
++        });
++        const [old,next]=results,label=JSON.stringify({name:a.name,scenario:test.name,pair,flags,budget});
++        assert.equal(next.count,old.count,label+' count');assert.deepEqual(next.cpu,old.cpu,label+' state');
++        assert.equal(next.hash,old.hash,label+' memory');assert.deepEqual(next.helpers,old.helpers,label+' callbacks');
++        checks++;if(next.cost.operations<old.cost.operations)reduced++;else if(next.cost.operations>old.cost.operations)grown++;else unchanged++;
++        if(pair===operands[0]&&flags===0) {
++            rows.push({name:a.name,scenario:test.name,budget,count:next.count,before:old.cost.operations,after:next.cost.operations});
++            costs.add(a.name,old.cost,next.cost,{scenario:test.name,budget});
++        }
++    }
++    console.log('PASS',a.name);
++}
++fs.writeFileSync(output,JSON.stringify({checks,reduced,grown,unchanged,rows,cost_classes:costs.fixtures},null,2)+'\n');
++console.log('PASS',checks,'state/memory/count/callback comparisons;',reduced,'reduced,',grown,'grown,',unchanged,'unchanged');
