@@ -37,3 +37,11 @@ variants use the same new reporting-harness copy. No temperature or cooldown
 gate is used.
 
 Candidate WASM SHA-256: `21396e0334589c338fa2336a148de1316ab3d9673a2d911b27df01bb9c57e91c`.
+
+## Completed Snakes comparison
+
+Current Snakes CPU throughput changes +0.87%, wall throughput
++0.48%, and native instructions -0.19%. Three of four pairs are faster,
+ranging from -0.56% to +1.74%. All eight observations are valid. This is
+less conclusive than the graduated expansion result; Sky Force remains pending
+before an adoption decision.
