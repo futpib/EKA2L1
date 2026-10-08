@@ -75,3 +75,7 @@ failure persists in both games: AudioContext time stays at zero despite received
 samples. Exact PCM replays pass. This is not reported as a full E2E pass.
 Evidence is in `eka-branch-current/deployment-check.json`, `browser-api.log`,
 `full-compiler-check.json` and `game-picker/report.json`.
+
+Graduated runtime commit: `0b890a26a`. The original frozen historical
+plans resume from 75/109 completed comparisons and 600/872 valid observations;
+all 20 earlier invalid attempts remain retained.
