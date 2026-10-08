@@ -1,6 +1,6 @@
 # Owning-core reuse on the graduated runtime
 
-Status: current-runtime validation, with the historical sweep paused at its
+Status: controlled two-game timing, with the historical sweep paused at its
 73/109 review boundary. No runtime default has changed.
 
 The historical owning-core experiment improves Snakes CPU throughput 0.81%,
@@ -16,3 +16,9 @@ The control is the graduated `eka-promote-recovered/final-build`; evidence is in
 Registry/syscall checks and exact two-game replays precede the frozen ABBA/BAAB
 comparison. Measured clock, throttling and isolation rules are retained; there
 is no temperature or post-build cooldown.
+
+The sparse ROM and registry lifecycle checks pass, as do the syscall-boundary
+checks. Both 60-frame game replays match images, frame records and PCM exactly.
+This change touches the C++ compiled runner; guest translation is unchanged.
+Its candidate WASM hash is `cf7f22347780f35280d248ef1314eadc534185f77ace275194f40b3744e0392f`.
+Full evidence is in `eka-owner-current/correctness.json`.

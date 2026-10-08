@@ -82,7 +82,7 @@
       "note": "Controlled Snakes +0.46% CPU, 2/4 faster pairs; no current-runtime promotion proposed"
     },
     "owner-core-reuse": {
-      "status": "Current-runtime validation",
+      "status": "Current-runtime two-game timing",
       "note": "Historical Snakes +0.81%, native instructions -0.24%, all four pairs faster. Reassessing stable core identity reuse with both games over the graduated runtime."
     },
     "aligned-cache-hash": {
