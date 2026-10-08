@@ -28,3 +28,11 @@ comparisons. Both 60-frame replays match images, frame records and PCM exactly.
 The candidate WASM SHA-256 is `08b363be84ddeb9fb86f5be92c7cc81c175773ab83e58d49a57637b198ff325b`.
 Initial pre-build anchor and obsolete test-constructor errors are retained in
 the scratch evidence; neither reached timing.
+
+## Completed Snakes comparison
+
+Expanded eligibility with bound 32 improves current-runtime Snakes CPU throughput
+1.10%, wall throughput 1.08%, and reduces native instructions
+2.04%. All four pairs are faster, ranging from +0.79% to +1.79%. All eight
+observations pass the frozen validity rules. Sky Force is still running, so no
+default or LAN artifact changes yet.
