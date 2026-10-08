@@ -1,10 +1,10 @@
 {
-  "status": "running",
+  "status": "paused_for_graduation",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User requested pausing at each winner, graduating it on the current runtime, then automatically resuming until the historical sweep is complete.",
-  "completed_comparisons": 72,
+  "completed_comparisons": 73,
   "total_comparisons": 109,
-  "valid_observations": 578,
+  "valid_observations": 584,
   "expected_observations": 872,
   "invalid_observations": 20,
   "cancelled_waiters": {
@@ -247,8 +247,8 @@
       "expanded-leaf-eligibility"
     ]
   },
-  "active_phase": "inlining",
-  "last_progress_utc": "2026-10-08T00:23:17.388590+00:00",
+  "active_phase": null,
+  "last_progress_utc": "2026-10-08T00:31:34.425372+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -281,31 +281,17 @@
   "continuation_error": null,
   "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
   "graduation_cycle": {
-    "candidate": "connected-callee-loops",
-    "stage": "closed_not_selected",
+    "candidate": "owner-core-reuse",
+    "stage": "current_runtime_validation",
     "automatic_resume": true,
-    "pause_evidence": "/home/claude/.scratch/eka-controlled/graduation-cycle-boundary-stop.json",
-    "restoration_checks": 88,
-    "candidate_artifact": "/home/claude/.scratch/eka-connected-proofs16/candidate-build",
-    "correctness_evidence": "/home/claude/.scratch/eka-connected-proofs16/correctness.json",
-    "performance_plan": "/home/claude/.scratch/eka-connected-proofs16/current-plan.json",
-    "watch_status": "/home/claude/.scratch/eka-connected-proofs16/resume1-live-watch.json",
-    "narrow_decision": "rejected",
-    "narrow_evidence": "/home/claude/.scratch/eka-connected-current/CURRENT_RESULTS.json",
-    "candidate_directory": "/home/claude/.scratch/eka-connected-proofs16",
-    "full_snakes_cpu_percent": -0.43687123534724703,
-    "full_decision": "not_selected",
-    "full_evidence": "/home/claude/.scratch/eka-connected-full/CURRENT_RESULTS.json",
-    "proofs_snakes_cpu_percent": 2.2509059004694576,
-    "proofs64_decision": "not_selected",
-    "proofs64_evidence": "/home/claude/.scratch/eka-connected-proofs/CURRENT_RESULTS.json",
-    "proofs16_snakes_cpu_percent": 2.048416995491875,
-    "active_performance_log": "/home/claude/.scratch/eka-connected-proofs16/current-resume1-performance.log",
-    "active_host": "/home/claude/.scratch/eka-connected-proofs16/current-resume1-host.json",
-    "cooldown_removal_boundary": "/home/claude/.scratch/eka-connected-proofs16/remove-build-cooldown-stop.json",
-    "decision": "not_selected",
-    "final_evidence": "/home/claude/.scratch/eka-connected-proofs16/CURRENT_RESULTS.json",
-    "preserved_patch": "/home/claude/.scratch/eka-connected-proofs16/rejected-source.patch"
+    "candidate_directory": "/home/claude/.scratch/eka-owner-current",
+    "candidate_artifact": "/home/claude/.scratch/eka-owner-current/candidate-build",
+    "performance_plan": "/home/claude/.scratch/eka-owner-current/current-plan.json",
+    "watch_status": "/home/claude/.scratch/eka-owner-current/live-watch.json",
+    "boundary_restoration": "/home/claude/.scratch/eka-controlled/inlining-call-prefix-fusion-live-restoration-resume8.json",
+    "pending_history_review": "/home/claude/.scratch/eka-controlled/inlining-call-prefix-fusion-review-resume8.json",
+    "history_verdict": "/home/claude/.scratch/eka-controlled/inlining-call-prefix-fusion-verdict-resume8.json",
+    "historical_snakes_cpu_percent": 0.8058150830829502
   },
   "launch_policy": {
     "temperature_gate": false,
@@ -369,8 +355,8 @@
       "preserved_patch": "/home/claude/.scratch/eka-connected-proofs16/rejected-source.patch"
     }
   ],
-  "active_experiment": "call-prefix-fusion",
-  "active_log": "/home/claude/.scratch/eka-controlled/inlining-call-prefix-fusion-performance-resume8.log",
-  "active_host": "/home/claude/.scratch/eka-controlled/inlining-host-call-prefix-fusion-resume8.json",
-  "review_request": null
+  "active_experiment": null,
+  "active_log": null,
+  "active_host": null,
+  "review_request": "/home/claude/.scratch/eka-controlled/inlining-call-prefix-fusion-review-request-resume8.json"
 }

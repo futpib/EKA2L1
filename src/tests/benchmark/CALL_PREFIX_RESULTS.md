@@ -194,3 +194,10 @@ The paired census shows a small increase in total compiled invocations on both r
 Dependency-byte requests rise about 42–43%, while proof attempts and checked spans decline. No entry-overlap or post-store code-guard exit appears in either mode. Thus lower private-fallback counts do not establish less memory-check work: fewer entry proofs are attempted. The current written-register analysis can also disqualify caller accesses when an added callee later writes their base, but these aggregate counters do not quantify that mechanism separately.
 
 A next separately selectable experiment can decline prefix fusion when it would displace an already eligible returning nested leaf, preserving the existing inner fusion. It must retain precise exits and normal correctness/performance gates; this census is not a speed claim for that unimplemented selection rule.
+
+## Controlled reassessment
+
+The completed frozen comparison has eight valid observations and no invalid
+attempts: Snakes CPU throughput is 4.22% lower, native instructions increase
+1.58%, and all four adjacent pairs are slower. All 88 live host-restoration
+checks pass. The candidate remains rejected.

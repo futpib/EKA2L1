@@ -82,8 +82,8 @@
       "note": "Controlled Snakes +0.46% CPU, 2/4 faster pairs; no current-runtime promotion proposed"
     },
     "owner-core-reuse": {
-      "status": "Current-runtime reassessment candidate",
-      "note": "Historical Snakes +0.81% CPU, 4/4 faster pairs including one near tie; current lookup still reads parent per lookup, but compiler and dispatch have changed"
+      "status": "Current-runtime validation",
+      "note": "Historical Snakes +0.81%, native instructions -0.24%, all four pairs faster. Reassessing stable core identity reuse with both games over the graduated runtime."
     },
     "aligned-cache-hash": {
       "status": "Historical result mixed",
@@ -104,6 +104,10 @@
     "expanded-leaf-eligibility": {
       "status": "Queued for current-runtime reassessment",
       "note": "Historical Snakes +1.96% CPU, 4/4 faster pairs at leaf bound 32. Multiply, extra/conditional memory and forward-branch eligibility bundle; reassess remaining coverage after connected callees."
+    },
+    "call-prefix-fusion": {
+      "status": "Not selected for promotion",
+      "note": "Controlled Snakes -4.22% CPU throughput, native instructions +1.58%, all four pairs slower."
     }
   }
 }
