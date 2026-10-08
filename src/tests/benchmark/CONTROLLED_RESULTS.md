@@ -1,6 +1,6 @@
 # Controlled optimization comparisons
 
-Status: in progress. 107/109 game comparisons complete; 856/872 valid observations and 20 retained invalid observations.
+Status: complete. 109/109 game comparisons complete; 872/872 valid observations and 20 retained invalid observations.
 
 [Earlier partial-isolation measurements](CONTROLLED_PRELIMINARY_RESULTS.md)
 remain separate: their measurement process could use the reserved core.
@@ -128,6 +128,8 @@ and do not establish the same effect on the current production branch.
 | 105 | page-cache-span-reuse | Sky Force | +2.40% | +2.36% | +0.87% | -4.27% to +8.52% | 3/4 | 0 |
 | 106 | current-tlb-vs-direct | Snakes | +29.35% | +24.42% | -26.80% | +28.48% to +29.80% | 4/4 | 0 |
 | 107 | current-tlb-vs-direct | Sky Force | +14.96% | +13.83% | -14.19% | +12.27% to +17.48% | 4/4 | 0 |
+| 108 | tlb-unaligned-scalar | Snakes | -1.13% | -1.35% | +0.10% | -1.56% to -0.82% | 0/4 | 0 |
+| 109 | tlb-unaligned-scalar | Sky Force | -0.41% | -0.50% | +0.68% | -2.32% to +1.25% | 2/4 | 0 |
 
 All observations, clock checks, errors, exact plans, settings, hashes and
 absolute evidence paths are retained in the companion JSON. Raw scheduler
@@ -145,4 +147,4 @@ observations, including the slow candidate, remain included. See the
 
 ## Remaining comparisons
 
-- memory: tlb-unaligned-scalar/standard (0/8), tlb-unaligned-scalar/combat (0/8).
+None. Host restoration records are complete.
