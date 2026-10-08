@@ -211,7 +211,10 @@
     "control_runtime_commit": "0b890a26a",
     "performance_plan": "/home/claude/.scratch/eka-tail-current/current-plan.json",
     "completion_marker": "/home/claude/.scratch/eka-controlled/inlining-tail-prefix-fusion-graduation-complete-resume8.json",
-    "scope": "Register-only terminal tail prefix fallback; preserve full returning leaves"
+    "scope": "Register-only terminal tail prefix fallback; preserve full returning leaves",
+    "candidate_artifact": "/home/claude/.scratch/eka-tail-current/candidate-build",
+    "correctness_evidence": "/home/claude/.scratch/eka-tail-current/correctness.json",
+    "watch_status": "/home/claude/.scratch/eka-tail-current/live-watch.json"
   },
   "launch_policy": {
     "temperature_gate": false,
