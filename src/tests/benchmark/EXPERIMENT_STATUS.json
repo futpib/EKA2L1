@@ -58,8 +58,8 @@
       "note": "Current Snakes -0.34% and Sky Force +0.50% with mixed pairs and slightly more native instructions; keep policy 17"
     },
     "current-tlb-vs-direct": {
-      "status": "Direct is default",
-      "note": "Mode 2; TLB mode 0 remains available"
+      "status": "Default confirmed by controlled reassessment",
+      "note": "The retained direct backend versus retained TLB on the frozen comparison build improves Snakes CPU throughput 29.35% and Sky Force 14.96%; all four pairs improve in each game. Native instructions fall 26.80% and 14.19%, respectively. All 16 observations and 88 restoration checks pass, with no invalid attempts. Direct is already the current default; retain it without claiming these historical percentages as additional current-runtime gains."
     },
     "division-digits": {
       "status": "Not selected for promotion",
