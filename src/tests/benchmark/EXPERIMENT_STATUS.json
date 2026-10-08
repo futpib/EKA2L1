@@ -158,8 +158,8 @@
       "note": "Historical ROM leaf fusion over eager regions: Snakes -0.52% CPU (2/4 faster pairs), Sky Force -1.71% (1/4 faster). Native instruction reductions are only about 0.03% in each game. Both means regress; no current-runtime promotion of the combined ROM strategy is warranted."
     },
     "bounded-rom-calls": {
-      "status": "Current-runtime reassessment",
-      "note": "Historical Snakes +0.17% CPU with mixed pairs; Sky Force +0.61% CPU, -0.32% native instructions, 3/4 faster pairs. The small Sky Force signal and positive means warrant checking bounded Thumb ROM calls on the latest graduated runtime, given the user's Sky Force preference. This is not adoption from the historical result alone."
+      "status": "Not selected on current runtime",
+      "note": "Current-runtime reassessment over 7f5f85273: Snakes -1.45% CPU throughput, Sky Force +0.26%; only 1/4 pairs faster in each game. Sky Force native instructions fall 0.38%, but three of four timing pairs lose and the small positive mean comes from one pair. This does not establish a repeatable Sky Force gain worth the measured Snakes loss. All 16 observations and 88 restoration checks pass. Retain the current deployed runtime; preserve the candidate patch and artifacts."
     }
   }
 }

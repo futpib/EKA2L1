@@ -1,5 +1,5 @@
 {
-  "status": "awaiting_comparison_review",
+  "status": "paused_for_graduation",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User requested pausing at each winner, graduating it on the current runtime, then automatically resuming until the historical sweep is complete.",
   "completed_comparisons": 89,
@@ -167,11 +167,12 @@
       "owner-core-reuse",
       "expanded-leaf-eligibility",
       "branch-veneer-fusion",
-      "tail-prefix-fusion"
+      "tail-prefix-fusion",
+      "bounded-rom-calls"
     ]
   },
   "active_phase": null,
-  "last_progress_utc": "2026-10-08T05:36:52.587543+00:00",
+  "last_progress_utc": "2026-10-08T06:09:53.244379+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -217,26 +218,19 @@
   "continuation_error": null,
   "last_review_utc": "2026-10-08T05:38:16.679077+00:00",
   "graduation_cycle": {
-    "candidate": "tail-prefix-fusion",
-    "stage": "closed_graduated",
+    "candidate": "bounded-rom-calls",
+    "stage": "closed_not_selected",
     "automatic_resume": true,
-    "candidate_directory": "/home/claude/.scratch/eka-tail-current",
-    "control_artifact": "/home/claude/.scratch/eka-branch-current/candidate-build",
-    "control_runtime_commit": "0b890a26a",
-    "performance_plan": "/home/claude/.scratch/eka-tail-current/current-plan.json",
-    "completion_marker": "/home/claude/.scratch/eka-controlled/inlining-tail-prefix-fusion-graduation-complete-resume8.json",
-    "scope": "Register-only terminal tail prefix fallback; preserve full returning leaves",
-    "candidate_artifact": "/home/claude/.scratch/eka-tail-current/candidate-build",
-    "correctness_evidence": "/home/claude/.scratch/eka-tail-current/correctness.json",
-    "watch_status": "/home/claude/.scratch/eka-tail-current/live-watch.json",
-    "current_snakes_cpu_percent": 2.3227107478819953,
-    "performance_evidence": "/home/claude/.scratch/eka-tail-current/CURRENT_RESULTS.json",
-    "decision": "graduated",
-    "current_sky_force_cpu_percent": 0.6794995794173087,
-    "runtime_commit": "7f5f85273958cb4a963fca543f840b2c2d2ebac2",
-    "completed_utc": "2026-10-08T03:33:39.118994+00:00",
-    "final_evidence": "/home/claude/.scratch/eka-tail-current/CURRENT_RESULTS.json",
-    "deployment_evidence": "/home/claude/.scratch/eka-tail-current/deployment-check.json"
+    "candidate_directory": "/home/claude/.scratch/eka-rom-calls-current",
+    "control_artifact": "/home/claude/.scratch/eka-tail-current/candidate-build",
+    "control_runtime_commit": "7f5f85273",
+    "performance_plan": "/home/claude/.scratch/eka-rom-calls-current/current-plan.json",
+    "completion_marker": "/home/claude/.scratch/eka-controlled/inlining-bounded-rom-calls-graduation-complete-resume8.json",
+    "scope": "One bounded call from callback-free Thumb ROM prefix to an unlinked immutable-ROM base; preserve compiled SVC protocol",
+    "decision": "not_selected",
+    "completed_utc": "2026-10-08T06:09:53.244379+00:00",
+    "final_evidence": "/home/claude/.scratch/eka-rom-calls-current/CURRENT_RESULTS.json",
+    "preserved_patch": "/home/claude/.scratch/eka-rom-calls-current/rejected-source.patch"
   },
   "launch_policy": {
     "temperature_gate": false,
@@ -381,6 +375,21 @@
       "completed_utc": "2026-10-08T03:33:39.118994+00:00",
       "final_evidence": "/home/claude/.scratch/eka-tail-current/CURRENT_RESULTS.json",
       "deployment_evidence": "/home/claude/.scratch/eka-tail-current/deployment-check.json"
+    },
+    {
+      "candidate": "bounded-rom-calls",
+      "stage": "closed_not_selected",
+      "automatic_resume": true,
+      "candidate_directory": "/home/claude/.scratch/eka-rom-calls-current",
+      "control_artifact": "/home/claude/.scratch/eka-tail-current/candidate-build",
+      "control_runtime_commit": "7f5f85273",
+      "performance_plan": "/home/claude/.scratch/eka-rom-calls-current/current-plan.json",
+      "completion_marker": "/home/claude/.scratch/eka-controlled/inlining-bounded-rom-calls-graduation-complete-resume8.json",
+      "scope": "One bounded call from callback-free Thumb ROM prefix to an unlinked immutable-ROM base; preserve compiled SVC protocol",
+      "decision": "not_selected",
+      "completed_utc": "2026-10-08T06:09:53.244379+00:00",
+      "final_evidence": "/home/claude/.scratch/eka-rom-calls-current/CURRENT_RESULTS.json",
+      "preserved_patch": "/home/claude/.scratch/eka-rom-calls-current/rejected-source.patch"
     }
   ],
   "active_experiment": null,
