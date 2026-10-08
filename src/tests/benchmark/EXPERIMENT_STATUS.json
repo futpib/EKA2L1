@@ -168,6 +168,10 @@
     "full-page-table": {
       "status": "Historical tradeoff; table retained within direct",
       "note": "Full page table versus historical TLB: Snakes +16.00% CPU throughput, -17.29% native instructions, 4/4 faster; Sky Force -5.01%, -2.57% native instructions, 0/4 faster. Sixteen valid observations and 88 restoration checks pass. Do not restore the standalone mode 3: its consistent Sky Force loss runs against the stated preference, and current mode 2 already retains the 1<<20 separate-read/write page table outside its faster arena (memory_experiment.cpp and memory_emission.h). This is a historical Snakes win, not a measured additional gain over current direct memory."
+    },
+    "last-page-only": {
+      "status": "Rejected after controlled reassessment",
+      "note": "Last-page-only cache versus original 512-entry TLB: Snakes -5.67% CPU throughput despite -2.10% native instructions; Sky Force -19.00% with +10.37% native instructions. All four pairs lose in both games. Sixteen valid observations, no invalid attempts, and all 88 restoration checks pass. Retain the original TLB; do not restore the retired cache selector."
     }
   }
 }
