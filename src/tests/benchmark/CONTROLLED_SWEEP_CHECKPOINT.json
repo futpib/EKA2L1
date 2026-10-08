@@ -2,9 +2,9 @@
   "status": "paused_for_graduation",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User requested pausing at each winner, graduating it on the current runtime, then automatically resuming until the historical sweep is complete.",
-  "completed_comparisons": 75,
+  "completed_comparisons": 76,
   "total_comparisons": 109,
-  "valid_observations": 600,
+  "valid_observations": 608,
   "expected_observations": 872,
   "invalid_observations": 20,
   "cancelled_waiters": {
@@ -170,7 +170,7 @@
     ]
   },
   "active_phase": null,
-  "last_progress_utc": "2026-10-08T02:43:35.815041+00:00",
+  "last_progress_utc": "2026-10-08T02:52:11.737839+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -203,24 +203,15 @@
   "continuation_error": null,
   "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
   "graduation_cycle": {
-    "candidate": "branch-veneer-fusion",
-    "stage": "closed_graduated",
+    "candidate": "tail-prefix-fusion",
+    "stage": "current_runtime_reassessment",
     "automatic_resume": true,
-    "candidate_directory": "/home/claude/.scratch/eka-branch-current",
-    "control_artifact": "/home/claude/.scratch/eka-expanded-current/candidate-build",
-    "control_runtime_commit": "21c322713",
-    "performance_plan": "/home/claude/.scratch/eka-branch-current/current-plan.json",
-    "completion_marker": "/home/claude/.scratch/eka-controlled/inlining-branch-veneer-fusion-graduation-complete-resume8.json",
-    "candidate_artifact": "/home/claude/.scratch/eka-branch-current/candidate-build",
-    "correctness_evidence": "/home/claude/.scratch/eka-branch-current/correctness.json",
-    "watch_status": "/home/claude/.scratch/eka-branch-current/live-watch.json",
-    "current_snakes_cpu_percent": 0.8744363873273819,
-    "performance_evidence": "/home/claude/.scratch/eka-branch-current/CURRENT_RESULTS.json",
-    "decision": "graduated",
-    "final_evidence": "/home/claude/.scratch/eka-branch-current/CURRENT_RESULTS.json",
-    "deployment_evidence": "/home/claude/.scratch/eka-branch-current/deployment-check.json",
-    "runtime_commit": "0b890a26a7726aeaa8348541b8e755e60d38e606",
-    "completed_utc": "2026-10-08T02:43:35.815041+00:00"
+    "candidate_directory": "/home/claude/.scratch/eka-tail-current",
+    "control_artifact": "/home/claude/.scratch/eka-branch-current/candidate-build",
+    "control_runtime_commit": "0b890a26a",
+    "performance_plan": "/home/claude/.scratch/eka-tail-current/current-plan.json",
+    "completion_marker": "/home/claude/.scratch/eka-controlled/inlining-tail-prefix-fusion-graduation-complete-resume8.json",
+    "scope": "Register-only terminal tail prefix fallback; preserve full returning leaves"
   },
   "launch_policy": {
     "temperature_gate": false,
@@ -348,7 +339,7 @@
   "active_experiment": null,
   "active_log": null,
   "active_host": null,
-  "review_request": "/home/claude/.scratch/eka-controlled/inlining-branch-veneer-fusion-review-request-resume8.json",
+  "review_request": "/home/claude/.scratch/eka-controlled/inlining-tail-prefix-fusion-review-request-resume8.json",
   "graduation_history": [
     {
       "time_utc": "2026-10-07T18:25:10.826175+00:00",

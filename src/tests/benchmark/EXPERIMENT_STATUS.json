@@ -116,6 +116,10 @@
     "branch-veneer-fusion": {
       "status": "Default",
       "note": "Feature mask 160 retains literal-PC veneers and adds single-branch veneers at bound 32. Incremental current Snakes +0.87% CPU (3/4 faster), Sky Force +1.98% (4/4 faster). Exact measured artifact passes compiler, browser API and real LAN gameplay checks; known host audio limitation persists."
+    },
+    "tail-prefix-fusion": {
+      "status": "Current-runtime reassessment",
+      "note": "Historical Snakes +0.99% CPU throughput, -1.18% native instructions, 3/4 faster pairs. Current candidate adds register-only tail prefixes over mask 160 at bound 32, preserving full returning leaves. No adoption from historical result alone."
     }
   }
 }
