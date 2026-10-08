@@ -1,6 +1,6 @@
 # Tail prefixes on the graduated branch-veneer runtime
 
-Status: focused correctness passes; current-runtime timing is running. The historical sweep is paused.
+Status: selected for graduation; final compiler and deployment checks pending. The historical sweep is paused.
 The deployed default remains branch-veneer commit `0b890a26a`.
 
 The historical comparison completes with eight valid observations and no invalid
@@ -32,12 +32,22 @@ match images, frame records and PCM, with explicit selector and artifact checks.
 
 Candidate WASM SHA-256: `4bdb01dab90af78db286ff529d5a25a5160cf51700550b3d3899c4193fb2a86a`.
 
-Both-game runtime timing is now running; no current-runtime gain is claimed yet.
+Both-game runtime timing is complete; the results below determine adoption.
 
-## Intermediate current-runtime result
+## Completed current-runtime comparison
 
-Snakes completes with eight valid observations and no invalid attempts: CPU
-throughput +2.32%, wall throughput +2.06%, native instructions -1.03%, all four
-pairs faster. Pair gains range from +0.90% to +5.51%; the slower closing control
-in the first panel is retained and contributes to the mean. Sky Force remains
-pending, so this is not yet an adoption verdict.
+| # | Game | CPU throughput | Wall throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | Snakes | +2.32% | +2.06% | -1.03% | 4/4 |
+| 2 | Sky Force | +0.68% | +0.74% | +0.01% | 3/4 |
+
+All 16 observations pass the frozen validity rules, with no invalid attempts.
+All 88 live restoration checks pass. Snakes gains range from +0.90% to +5.51%;
+the slower closing control in the first panel is retained and contributes to
+the mean. Sky Force pairs range from -6.63% to +4.28%, with essentially unchanged
+native instructions. Its positive average does not establish a reliable gain.
+
+Select the candidate for the consistent Snakes improvement and positive two-game
+means. This is an end-to-end comparison of different runtime binaries, not a
+same-binary attribution of feature bit 64 alone. Final compiler, default-launcher
+and real LAN gameplay checks precede graduation and deployment.

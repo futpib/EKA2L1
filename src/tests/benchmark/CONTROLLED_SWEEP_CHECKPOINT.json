@@ -204,7 +204,7 @@
   "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
   "graduation_cycle": {
     "candidate": "tail-prefix-fusion",
-    "stage": "current_runtime_reassessment",
+    "stage": "graduation_validation",
     "automatic_resume": true,
     "candidate_directory": "/home/claude/.scratch/eka-tail-current",
     "control_artifact": "/home/claude/.scratch/eka-branch-current/candidate-build",
@@ -216,7 +216,9 @@
     "correctness_evidence": "/home/claude/.scratch/eka-tail-current/correctness.json",
     "watch_status": "/home/claude/.scratch/eka-tail-current/live-watch.json",
     "current_snakes_cpu_percent": 2.3227107478819953,
-    "performance_evidence": "/home/claude/.scratch/eka-tail-current/CURRENT_SNAPSHOT.json"
+    "performance_evidence": "/home/claude/.scratch/eka-tail-current/CURRENT_RESULTS.json",
+    "decision": "graduate_pending_validation",
+    "current_sky_force_cpu_percent": 0.6794995794173087
   },
   "launch_policy": {
     "temperature_gate": false,
