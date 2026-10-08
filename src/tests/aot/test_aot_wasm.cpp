@@ -40,6 +40,7 @@
 #include <utility>
 #include <vector>
 #include <array>
+#include "pointer_lifetime_fixture.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -4445,7 +4446,7 @@ EM_JS(void, js_export_memory_probe, (const char *name, const std::uint8_t *bytes
     console.log('MEMORY_PROBE ' + JSON.stringify({name:UTF8ToString(name),mode,thumb,opcode,
         wasm:Buffer.from(HEAPU8.subarray(bytes,bytes+size)).toString('base64')}));
 });
-static void emit_memory_probes() {
+static void emit_memory_layout() {
     using S=state_offsets;
     printf("MEMORY_LAYOUT {");
     bool first=true;
@@ -4456,6 +4457,9 @@ static void emit_memory_probes() {
         printf("%s\"%s\":%u",first?"":",",field.first,field.second);first=false;
     }
     printf("}\n");
+}
+static void emit_memory_probes() {
+    emit_memory_layout();
     eka2l1::common::code_tracking::unsafe_code_mode=3;thumb_direct_memory=true;
     const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
         {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
@@ -4499,7 +4503,130 @@ static void emit_memory_probes() {
         }
     }
 }
+static std::vector<unsigned> lifetime_reads(unsigned count, unsigned base=1) {
+    std::vector<unsigned> words;
+    for(unsigned n=0;n<count;++n)words.push_back(0xe5900000u|(base<<16)|((n+1==count?base:6u)<<12)|(n*4));
+    return words;
+}
+static void emit_lifetime_probes() {
+    emit_memory_layout();
+    const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+    std::vector<std::pair<std::string,std::vector<unsigned>>> fixtures={{"lifetime-math",lifetime_math_words}};
+    for(unsigned n:{2u,3u,4u,8u,16u})fixtures.push_back({"lifetime-read-"+std::to_string(n),lifetime_reads(n)});
+    auto alias=lifetime_reads(16);alias.insert(alias.begin()+8,0xe5806000u);fixtures.push_back({"lifetime-alias",alias});
+    auto killed=lifetime_reads(16);killed.insert(killed.begin()+8,0xe1a01002u);fixtures.push_back({"lifetime-killed",killed});
+    auto conditional=lifetime_reads(16);conditional.insert(conditional.begin()+8,0x01a01002u);fixtures.push_back({"lifetime-conditional-kill",conditional});
+    auto loop=lifetime_reads(16);loop.push_back(0x1affffeeu);fixtures.push_back({"lifetime-backedge",loop});
+    for(unsigned mode:{0u,2u})for(unsigned entry:{0u,2u})for(unsigned unsafe:{0u,3u}) {
+        memory_experiment::mode=mode;entry_budget_mode=entry;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
+        for(const auto &item:fixtures) {
+            const auto &code=item.second;
+            auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,0x1000,
+                nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
+            auto module=build_wasm_module({tr.func},imports);
+            const auto name=item.first+"-entry"+std::to_string(entry)+"-unsafe"+std::to_string(unsafe);
+            printf("LIFETIME_SELECTION %s reads=%u writes=%u\n",name.c_str(),tr.proved_reads,tr.proved_writes);
+            js_export_memory_probe(name.c_str(),module.data(),module.size(),mode,0,code.size());
+        }
+    }
+}
+
 #endif
+
+static bool test_pointer_lifetimes() {
+#ifdef __EMSCRIPTEN__
+    using namespace memory_experiment;
+    struct restore {
+        unsigned memory=mode, entry=entry_budget_mode, unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
+        ~restore(){mode=memory;entry_budget_mode=entry;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;g_test_mem=nullptr;}
+    } saved;
+    mode=2;entry_budget_mode=2;
+    std::vector<std::pair<std::vector<unsigned>,unsigned>> programs={{lifetime_math_words,16},{lifetime_reads(16),16},{lifetime_reads(16,8),16}};
+    auto alias=lifetime_reads(16);alias.insert(alias.begin()+8,0xe5806000u);programs.push_back({alias,16});
+    for(unsigned opcode:{0xe1a01002u,0x01a01002u}) {
+        auto killed=lifetime_reads(16);killed.insert(killed.begin()+8,opcode);programs.push_back({killed,8});
+    }
+    auto short_life=lifetime_reads(16);short_life.insert(short_life.begin()+2,0xe1a01002u);programs.push_back({short_life,0});
+    auto loop=lifetime_reads(16);loop.push_back(0x1affffeeu);programs.push_back({loop,0});
+    auto joined=lifetime_reads(16);joined.insert(joined.begin(),0x0a000000u);programs.push_back({joined,0});
+    unsigned checks=0;
+    for(unsigned unsafe:{0u,3u}) for(const auto &fixture:programs) {
+        eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
+        const auto &code=fixture.first;
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,0x1000,
+            nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
+        if(tr.proved_reads!=fixture.second) {printf(" FAIL lifetime proof selection got=%u expected=%u\n",tr.proved_reads,fixture.second);return false;}
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        for(unsigned address:{0x8040u,0x8001u,0x8fc0u,0x8ffcu})for(unsigned alias:{0u,1u,2u})
+        for(unsigned permission:{0u,1u,3u})for(unsigned budget:{0u,1u,3u,8u,16u,32u,56u,57u,64u}) {
+            test_mem actual;
+            for(unsigned pos=0x8000;pos<0xc000;pos+=4)actual.write32(pos,0x8120+(pos&0xfc));
+            actual.write_code(0x1000,{reinterpret_cast<const std::uint8_t*>(code.data()),reinterpret_cast<const std::uint8_t*>(code.data())+code.size()*4});
+            test_mem expected=actual;r12l1::exclusive_monitor monitor(1);auto reference=make_cpu(expected,monitor);
+            view mapping;
+            const auto pointer=mapping.enter(1,1,[&]{
+                std::vector<binding> result;
+                for(unsigned page=0x8000;page<0xc000;page+=4096)
+                    result.push_back({page,static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(actual.data.data()+(page==0xa000&&alias==2?0x8000:page))),permission});
+                return result;
+            });
+            if(alias==2)reference->set_tlb_page(0xa000,expected.data.data()+0x8000,prot_read_write);
+            alignas(8) unsigned state[256]{};
+            for(unsigned reg=0;reg<16;++reg)state[reg]=0x120+reg;
+            state[0]=alias==1?address+32:alias==2?0xa000+(address&4095)+32:0xa040;
+            state[1]=state[8]=address;state[2]=address+128;state[13]=0xb800;state[14]=0x2000;state[15]=0x1000;
+            for(unsigned reg=0;reg<16;++reg)reference->set_reg(reg,state[reg]);
+            reference->set_cpsr(16);state[state_offsets::CPSR/4]=16;state[state_offsets::MODE/4]=16;
+            state[state_offsets::NIRQ/4]=1;state[state_offsets::AOT_BUDGET/4]=budget;
+            state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=budget;state[state_offsets::AOT_TLB/4]=pointer;
+            state[state_offsets::AOT_CODE_BEGIN/4]=reinterpret_cast<std::uintptr_t>(actual.data.data()+0x1000);
+            state[state_offsets::AOT_CODE_END/4]=state[state_offsets::AOT_CODE_BEGIN/4]+code.size()*4;
+            g_test_mem=&actual;
+            const auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));g_test_mem=nullptr;
+            if(count<0||count>int(budget)){printf(" FAIL lifetime count\n");return false;}
+            if(count)reference->run(count);
+            for(unsigned reg=0;reg<16;++reg)if(state[reg]!=reference->get_reg(reg)) {
+                printf(" FAIL lifetime R%u fixture=%u unsafe=%u address=%x alias=%u permission=%u budget=%u count=%d got=%x expected=%x\n",reg,unsigned(&fixture-programs.data()),unsafe,address,alias,permission,budget,count,state[reg],reference->get_reg(reg));return false;
+            }
+            for(unsigned f=0;f<5;++f)if(state[test_flag_offsets[f]/4]!=((reference->get_cpsr()>>(f==4?5:31-f))&1))return false;
+            if(actual.data!=expected.data){printf(" FAIL lifetime memory\n");return false;}
+            ++checks;
+        }
+    }
+    // A helper between proved reads can remap their backing and change the
+    // base register. The region must return before reusing its cached host.
+    for(unsigned unsafe:{0u,3u}) {
+        eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
+        auto code=lifetime_reads(16);code.insert(code.begin()+8,0xe4923004u);
+        auto tr=translate_arm_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*4,0x1000,
+            nullptr,nullptr,true,false,true,true,nullptr,true,arm_ir_policy::loop_budget_chunks);
+        if(tr.proved_reads!=16){printf(" FAIL lifetime callback selection reads=%u\n",tr.proved_reads);return false;}
+        auto module=build_wasm_module({tr.func},{{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+            {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}});
+        test_mem memory;for(unsigned i=0;i<16;++i)memory.write32(0x8040+i*4,100+i);
+        memory.write32(0xa000,333);
+        view mapping;auto pointer=mapping.enter(1,1,[&]{return std::vector<binding>{{0x8000,
+            static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(memory.data.data()+0x8000)),1}};});
+        alignas(8) unsigned state[256]{};state[1]=0x8040;state[2]=0xa000;state[15]=0x1000;
+        state[state_offsets::CPSR/4]=state[state_offsets::MODE/4]=16;state[state_offsets::NIRQ/4]=1;
+        state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=state[state_offsets::AOT_BUDGET/4]=64;
+        state[state_offsets::AOT_TLB/4]=pointer;
+        bool observed=false;g_test_mem=&memory;
+        g_read32_observer=[&](unsigned p,unsigned address){auto *v=reinterpret_cast<unsigned*>(p);
+            observed=address==0xa000&&v[6]==107&&v[15]==0x1020;
+            v[1]=0xb000;v[state_offsets::AOT_TLB/4]=0;};
+        auto count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+        g_test_mem=nullptr;g_read32_observer={};
+        if(!observed||count!=9||state[1]!=0xb000||state[3]!=333||state[6]!=107||state[15]!=0x1024) {
+            printf(" FAIL lifetime callback boundary unsafe=%u observed=%d count=%d pc=%x\n",unsafe,observed,count,state[15]);return false;
+        }
+    }
+    printf(" PASS pointer lifetimes (%u independent interpreter state/flags/memory/count comparisons)\n",checks);
+#endif
+    return true;
+}
 
 static bool test_tlb_guards() {
 #ifdef __EMSCRIPTEN__
@@ -5886,6 +6013,7 @@ int main(int argc, char **argv) {
     // budget matrix separately compares each whole-entry implementation.
     entry_budget_mode = 0;
 #ifdef __EMSCRIPTEN__
+    if(argc==2 && std::string(argv[1])=="--emit-lifetime-probes") {emit_lifetime_probes();return 0;}
     if(argc==2 && std::string(argv[1])=="--emit-memory-probes") {emit_memory_probes();return 0;}
 #endif
     if(argc==2 && std::string(argv[1])=="--shared-spans-only")return test_thumb_transfer_spans()
@@ -5929,6 +6057,7 @@ int main(int argc, char **argv) {
     }
     if(argc==2 && std::string(argv[1])=="--lookup-only") return test_code_cache_lifecycle()?0:1;
     if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
+    if(argc==2 && std::string(argv[1])=="--pointer-lifetimes-only")return test_pointer_lifetimes()?0:1;
     if(argc==2 && std::string(argv[1])=="--tlb-only") return test_tlb_guards()?0:1;
 #ifdef __EMSCRIPTEN__
     if (argc == 2 && std::string(argv[1]) == "--emit-flags") {
@@ -6600,6 +6729,7 @@ int main(int argc, char **argv) {
     if (test_precise_instruction_counts()) passed++; else failed++;
     if (test_compiled_svc_boundary()) passed++; else failed++;
     if (test_arm_clz()) passed++; else failed++;
+    if (test_pointer_lifetimes()) passed++; else failed++;
 
     printf("\n%d passed, %d failed\n", passed, failed);
     return failed > 0 ? 1 : 0;

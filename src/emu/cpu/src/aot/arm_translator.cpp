@@ -952,12 +952,22 @@ namespace eka2l1::arm::aot {
         if (invariant_reads) {
             unsigned written = 0;
             bool known = true;
+            bool linear = entry_budget_covers_region && memory_experiment::enabled();
+            std::vector<unsigned> written_before;
+
             for (const auto &ins : instructions) {
+                const auto index = static_cast<std::size_t>(&ins - instructions.data());
+                written_before.push_back(written);
+                linear &= !ins.leaf && (!index || ins.address == instructions[index - 1].address + 4);
                 const auto op = ins.opcode;
                 const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
                 if ((op >> 28) == 15) { known = false; break; }
-                if ((op & 0x0ffffff0u) == 0x012fff10u) continue;
+                if ((op & 0x0ffffff0u) == 0x012fff10u) {
+                    linear &= index + 1 == instructions.size();
+                    continue;
+                }
                 if (((op >> 25) & 7) == 5) {
+                    linear = false;
                     if (op & (1u << 24)) written |= 1u << 14;
                 } else if (((op >> 26) & 3) == 1) {
                     if ((!(op & (1u << 24)) && (op & (1u << 21)))
@@ -986,17 +996,32 @@ namespace eka2l1::arm::aot {
                         written |= 1u << rd;
                     }
                 } else known = false;
+                if (index + 1 < instructions.size() && (written & (1u << 15))) linear = false;
                 if (!known) break;
+            }
+            // The full-entry budget covers this straight-line path. An incoming
+            // base remains usable through its last address evaluation, including
+            // LDR Rn,[Rn,#imm]. Conditional definitions conservatively end it.
+            // New spans need four unconditional uses; helpers still exit before
+            // any later instruction can consume an invalidated host pointer.
+            std::array<unsigned,16> lifetime_uses{};
+            if (known && linear) for (std::size_t index=0;index<instructions.size();++index) {
+                const auto op=instructions[index].opcode;
+                const unsigned rn=(op>>16)&15, rd=(op>>12)&15;
+                if ((op&0xff700000u)==0xe5100000u && rn!=15 && rd!=15
+                    && !(written_before[index]&(1u<<rn))) ++lifetime_uses[rn];
             }
             proof_groups.clear(); proof_accesses.clear();
             for (const auto &ins : instructions) {
                 if (!known) break;
+                const auto index=static_cast<std::size_t>(&ins-instructions.data());
                 const auto op = ins.opcode;
                 const unsigned rn = (op >> 16) & 15, rd = (op >> 12) & 15;
                 // Immediate pre-indexed word accesses, no writeback or PC operand.
                 const bool load = op & (1u << 20);
                 if ((op & 0x0f600000u) != 0x05000000u || (!load && !include_writes) || rn == 15 || rd == 15
-                    || (written & (1u << rn))) continue;
+                    || ((written & (1u << rn)) && !(linear && load && (op>>28)==14
+                        && lifetime_uses[rn]>=4 && !(written_before[index]&(1u<<rn))))) continue;
                 known = add_access(ins.address, {int(rn), (op & (1u << 23) ? 1 : -1) * std::int64_t(op & 4095)}, 4, !load);
             }
             prove_memory = known;
@@ -2595,6 +2620,8 @@ namespace eka2l1::arm::aot {
         }
         full.func.body = std::move(body);
         precise.func = std::move(full.func);
+        precise.proved_reads = full.proved_reads;
+        precise.proved_writes = full.proved_writes;
         precise.bail_count += full.bail_count;
         precise.entry_budget_instructions = extent / 4;
         return precise;
