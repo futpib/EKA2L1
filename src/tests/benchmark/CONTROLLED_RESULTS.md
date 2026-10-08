@@ -1,6 +1,6 @@
 # Controlled optimization comparisons
 
-Status: in progress. 95/109 game comparisons complete; 760/872 valid observations and 20 retained invalid observations.
+Status: in progress. 97/109 game comparisons complete; 776/872 valid observations and 20 retained invalid observations.
 
 [Earlier partial-isolation measurements](CONTROLLED_PRELIMINARY_RESULTS.md)
 remain separate: their measurement process could use the reserved core.
@@ -116,6 +116,8 @@ and do not establish the same effect on the current production branch.
 | 93 | full-page-table | Sky Force | -5.01% | -4.69% | -2.57% | -7.19% to -3.53% | 0/4 | 0 |
 | 94 | last-page-only | Snakes | -5.67% | -5.44% | -2.10% | -7.90% to -3.27% | 0/4 | 0 |
 | 95 | last-page-only | Sky Force | -19.00% | -18.11% | +10.37% | -24.62% to -15.85% | 0/4 | 0 |
+| 96 | folded-tlb | Snakes | +6.51% | +5.68% | -6.92% | +5.10% to +7.96% | 4/4 | 0 |
+| 97 | folded-tlb | Sky Force | -2.79% | -2.60% | +0.73% | -5.78% to -0.30% | 0/4 | 0 |
 
 All observations, clock checks, errors, exact plans, settings, hashes and
 absolute evidence paths are retained in the companion JSON. Raw scheduler
@@ -133,4 +135,4 @@ observations, including the slow candidate, remain included. See the
 
 ## Remaining comparisons
 
-- memory: folded-tlb/standard (0/8), folded-tlb/combat (0/8), tlb-plus-last-page/standard (0/8), tlb-plus-last-page/combat (0/8), folded-tlb-plus-last-page/standard (0/8), folded-tlb-plus-last-page/combat (0/8), older-page-cache-guards/standard (0/8), older-page-cache-guards/combat (0/8), page-cache-span-reuse/standard (0/8), page-cache-span-reuse/combat (0/8), current-tlb-vs-direct/standard (0/8), current-tlb-vs-direct/combat (0/8), tlb-unaligned-scalar/standard (0/8), tlb-unaligned-scalar/combat (0/8).
+- memory: tlb-plus-last-page/standard (0/8), tlb-plus-last-page/combat (0/8), folded-tlb-plus-last-page/standard (0/8), folded-tlb-plus-last-page/combat (0/8), older-page-cache-guards/standard (0/8), older-page-cache-guards/combat (0/8), page-cache-span-reuse/standard (0/8), page-cache-span-reuse/combat (0/8), current-tlb-vs-direct/standard (0/8), current-tlb-vs-direct/combat (0/8), tlb-unaligned-scalar/standard (0/8), tlb-unaligned-scalar/combat (0/8).
