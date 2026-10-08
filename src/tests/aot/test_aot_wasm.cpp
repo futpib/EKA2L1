@@ -4265,6 +4265,79 @@ static bool test_thumb_call_boundaries() {
     return true;
 }
 
+static bool test_thumb_rom_veneers() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        unsigned mode=memory_experiment::mode, budget_mode=entry_budget_mode;
+        bool direct=thumb_direct_memory;
+        ~restore(){memory_experiment::mode=mode;entry_budget_mode=budget_mode;thumb_direct_memory=direct;g_test_mem=nullptr;}
+    } saved;
+    thumb_direct_memory=true;
+    unsigned checks=0;
+    test_mem memory;
+    const std::vector<wasm_import_func> imports={{"env","tlb_read32",2,true},{"env","tlb_write32",3,false},
+        {"env","tlb_read8",2,true},{"env","tlb_write8",3,false},{"env","tlb_read16",2,true},{"env","tlb_write16",3,false}};
+    for(unsigned layout:{0u,2u})for(unsigned mode:{0u,2u})for(unsigned base:{0x1000u,0x1002u})
+    for(unsigned op:{0xe51ff004u,0xe59ff004u,0x151ff004u,0xe5dff004u,0xe5bff004u,0xe79ff004u}) {
+        memory_experiment::mode=mode;entry_budget_mode=layout;
+        const unsigned delta=0x2000-((base+4)&~3u);
+        const std::uint16_t code[]={static_cast<std::uint16_t>(0xf000u|((delta>>12)&0x7ff)),
+            static_cast<std::uint16_t>(0xe800u|((delta>>1)&0x7ff))};
+        const code_window rom{reinterpret_cast<const std::uint8_t*>(&op),0x2000,4};
+        const bool eligible=mode==2 && (op==0xe51ff004u || op==0xe59ff004u);
+        auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),base,
+            nullptr,nullptr,true,false,true,&rom);
+        auto module=build_wasm_module({tr.func},imports);
+        if(tr.resume_points!=std::vector<std::uint32_t>{base+2,base+4})return false;
+        for(unsigned target:{0x4000u,0x4001u,0x5002u})for(unsigned mapping=0;mapping<4;++mapping) {
+            // The same compiled bytes see changed literals, host aliases, denied
+            // reads and endian state. No helper may run on a failed proof.
+            const unsigned literal=op==0xe59ff004u?0x200cu:0x2004u;
+            memory.write32(literal,target);memory.write32(literal+0x1000,target^0x1000u);
+            memory_experiment::view view;
+            std::vector<memory_experiment::binding> bindings={{0x2000,
+                static_cast<unsigned>(reinterpret_cast<std::uintptr_t>(memory.data.data()+0x2000+(mapping==1?0x1000:0))),mapping==2?2u:1u}};
+            auto pointer=view.enter(1,1,[&]{return bindings;});
+            for(unsigned budget=0;budget<5;++budget)for(unsigned irq:{0u,1u})for(unsigned mask:{0u,0x80u})
+            for(std::uint64_t remaining:{std::uint64_t(0),std::uint64_t(1),std::uint64_t(1)<<32}) {
+                alignas(8) unsigned state[256]{};
+                for(unsigned reg=0;reg<16;++reg)state[reg]=0xabc00000u+reg;
+                state[15]=base;state[state_offsets::CPSR/4]=0xa0000030u|mask|(mapping==3?0x200:0);
+                state[state_offsets::NFLAG/4]=state[state_offsets::CFLAG/4]=state[state_offsets::TFLAG/4]=1;
+                state[state_offsets::NIRQ/4]=irq;state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::AOT_TLB/4]=static_cast<unsigned>(pointer);
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=static_cast<unsigned>(remaining);
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=static_cast<unsigned>(remaining>>32);
+                unsigned expected[256];std::memcpy(expected,state,sizeof(state));
+                const unsigned wanted=!budget?0:budget<2||!remaining||(!irq&&!mask)?1:
+                    eligible&&budget>=3&&mapping<2?3:2;
+                if(wanted==1){expected[14]=base+4;expected[15]=base+2;}
+                if(wanted>=2){expected[14]=(base+4)|1;expected[15]=0x2000;expected[state_offsets::TFLAG/4]=0;}
+                if(wanted==3){expected[15]=target^(mapping==1?0x1000u:0u);expected[state_offsets::TFLAG/4]=target&1;}
+                g_all_memory_helper_calls=0;
+                const int count=js_run_aot_wasm(module.data(),module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(state));
+                if(count!=wanted||g_all_memory_helper_calls||std::memcmp(state,expected,sizeof(state))) {
+                    printf(" FAIL Thumb ROM veneer mode=%u base=%x op=%x map=%u budget=%u irq=%u mask=%u remaining=%llu count=%d expected=%u\n",
+                        mode,base,op,mapping,budget,irq,mask,static_cast<unsigned long long>(remaining),count,wanted);return false;
+                }
+                ++checks;
+            }
+        }
+        // A partial or absent immutable instruction must keep the original call.
+        for(unsigned length:{0u,1u,3u}) {
+            const code_window partial{rom.host,rom.base,length};
+            auto rejected=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),base,
+                nullptr,nullptr,true,false,true,&partial);
+            auto original=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code),sizeof(code),base,
+                nullptr,nullptr,true,false,true);
+            if(rejected.func.body!=original.func.body)return false;
+        }
+    }
+    printf(" PASS Thumb ROM veneers (%u full-state budget/mode/runtime-literal/mapping/stop/IRQ checks)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_thumb_transfer_spans() {
 #ifdef __EMSCRIPTEN__
     namespace tracking = eka2l1::common::code_tracking;
@@ -6135,6 +6208,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
     if(argc==2 && std::string(argv[1])=="--branch-veneers-only")return test_branch_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--tail-prefixes-only")return test_tail_prefixes()?0:1;
+    if(argc==2 && std::string(argv[1])=="--thumb-rom-veneers-only")return test_thumb_rom_veneers() && test_thumb_call_boundaries()?0:1;
     if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;
     if(argc==2 && std::string(argv[1])=="--expanded-leaves-only")return
@@ -6823,6 +6897,7 @@ int main(int argc, char **argv) {
     if (test_arm_exclusive_decode()) passed++; else failed++;
     if (test_thumb_direct_memory()) passed++; else failed++;
     if (test_thumb_call_boundaries()) passed++; else failed++;
+    if (test_thumb_rom_veneers()) passed++; else failed++;
     if (test_thumb_transfer_spans()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;

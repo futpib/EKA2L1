@@ -130,6 +130,7 @@ namespace eka2l1::arm::aot {
 
         const char *hot_env = std::getenv("EKA2L1_AOT_HOT");
         configure_hot_rom(rom_host, rom_base, rom_size, hot_env && hot_env[0] == '1');
+        const code_window immutable_code{rom_host, rom_base, rom_size};
         const auto eager_start = std::chrono::steady_clock::now();
         std::vector<wasm_func_def> all_funcs;
         for (std::uint32_t offset = 0; offset + sizeof(rom_image_header_raw) < rom_size; offset += 4) {
@@ -257,7 +258,7 @@ namespace eka2l1::arm::aot {
                 const auto size = std::min(c.func_size, chaining_enabled ? 512u : 128u);
                 auto translate=[&]{return c.is_arm
                     ? translate_arm_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled)
-                    : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled);};
+                    : translate_thumb_block(c.func_host, size, c.func_addr, nullptr, nullptr, true, false, chaining_enabled, &immutable_code);};
                 auto tr=translate();
                 if (tr.func.body.empty() || !tr.entry_supported) continue;
                 tr.func.export_name = "f_" + std::to_string(key);

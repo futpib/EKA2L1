@@ -695,7 +695,8 @@ namespace eka2l1::arm::aot {
         std::size_t code_size,
         std::uint32_t start_address,
         const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers)
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers,
+        const code_window *immutable_code)
     {
         // Bounded blocks exit on branches instead of recursively calling siblings.
         // Keep guest-visible instructions (including veneers) in the execution stream.
@@ -928,7 +929,33 @@ namespace eka2l1::arm::aot {
                             auto target = insn_addr + 4 + displacement + ((suffix & 0x7FF) << 1);
                             if (kind == 0xE800) { target &= ~3u; w.store_i32_const(S::TFLAG, 0); }
                             w.store_i32_const(S::LR, (insn_addr + 4) | 1);
-                            w.bail(target, insn_idx + 2);
+                            std::uint32_t veneer = 0;
+                            if (kind == 0xE800 && memory_experiment::enabled() && immutable_code
+                                    && immutable_code->read(target, &veneer, sizeof(veneer))
+                                    && (veneer & 0xff7ff000u) == 0xe51ff000u) {
+                                // Fold only the immutable instruction. Its literal remains
+                                // a checked runtime read, so changed pointers and mappings
+                                // retain their original behavior. A miss exits before LDR.
+                                w.source.pc = target; w.source.kind = source_kind::guest;
+                                w.census_pc = target; w.census_opcode = veneer;
+                                w.store_i32_const(S::PC, target);
+                                w.load_i32(S::AOT_BUDGET); w.i32_const(insn_idx + 2);
+                                w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
+                                w.bail(target, insn_idx + 2, exit_census::guard);
+                                w.op(op_end);
+                                // The call-half boundary above already checked stop/IRQ;
+                                // no callback or guest memory access intervenes.
+                                const auto literal = (veneer & (1u << 23))
+                                    ? target + 8 + (veneer & 4095) : target + 8 - (veneer & 4095);
+                                w.i32_const(literal); w.set_local(emit::ADDRESS);
+                                direct_access(w, 4, false, [&] { w.bail(target, insn_idx + 2, exit_census::guard); });
+                                w.set_local(TMP1); w.store_reg(15, TMP1);
+                                w.get_local(TMP1); w.i32_const(1); w.op(op_i32_and);
+                                w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
+                                w.bail_preserve_pc(insn_idx + 3);
+                            } else {
+                                w.bail(target, insn_idx + 2);
+                            }
                             tr.resume_points.push_back(insn_addr + 2);
                             tr.resume_points.push_back(insn_addr + 4);
                             decoded_end_offset = static_cast<std::uint32_t>(i) + 4;

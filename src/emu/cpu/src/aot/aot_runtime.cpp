@@ -479,7 +479,8 @@ void observe_hot_pc(ARMul_State *cpu) {
             const auto bytes = std::min(std::size_t(leaf_instruction_limit*4), leaf.size);
             return std::vector<std::uint8_t>(leaf.bytes, leaf.bytes + bytes);
         };
-        auto translate = [&] {return cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled)
+        const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
+        auto translate = [&] {return cpu->TFlag ? translate_thumb_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, &immutable_code)
                             : translate_arm_block(view.bytes, size, pc, nullptr, nullptr, true, true, chaining_enabled, region_enabled, &leaves, defer_memory_enabled, ir_policy);};
         auto tr = translate();
         if (tr.func.body.empty() || !tr.entry_supported) {
@@ -523,7 +524,8 @@ void observe_hot_pc(ARMul_State *cpu) {
     if (++count != 8) return;
     const auto offset = pc - hot_rom_base;
     const auto size = std::min(chaining_enabled ? primary_window_bytes : 128u, hot_rom_size - offset);
-    auto translate = [&] {return cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled)
+    const code_window immutable_code{hot_rom, hot_rom_base, hot_rom_size};
+    auto translate = [&] {return cpu->TFlag ? translate_thumb_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, &immutable_code)
                         : translate_arm_block(hot_rom + offset, size, pc, nullptr, nullptr, true, false, chaining_enabled, region_enabled, nullptr, defer_memory_enabled, ir_policy);};
     auto tr = translate();
     if (tr.func.body.empty() || !tr.entry_supported) return;
