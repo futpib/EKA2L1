@@ -144,6 +144,10 @@
     "shorter-region-chain": {
       "status": "Not selected for promotion",
       "note": "Historical chain cap 512-to-64 regions: Snakes -1.26% CPU throughput, +0.68% native instructions, only one of four pairs faster. Retain the current 512-region cap; shorter chains do not earn current-runtime promotion."
+    },
+    "uncapped-region-chain": {
+      "status": "Historical result mixed",
+      "note": "Historical removal of the 512-region chain cap: Snakes +0.51% CPU throughput, two faster and two slower pairs (-0.40% to +1.50%), essentially identical native instructions (-0.00055%). No clear runtime win; retain 512. Guest budgets, IRQ/stop checks and successor validation remained enabled in the experiment."
     }
   }
 }
