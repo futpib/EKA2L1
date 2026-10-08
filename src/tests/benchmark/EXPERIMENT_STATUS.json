@@ -83,7 +83,7 @@
     },
     "owner-core-reuse": {
       "status": "Current-runtime two-game timing",
-      "note": "Historical Snakes +0.81%, native instructions -0.24%, all four pairs faster. Reassessing stable core identity reuse with both games over the graduated runtime."
+      "note": "Current Snakes +0.15% CPU, native instructions +0.46%, mixed pairs: not a convincing gain. Sky Force pending. Registry/syscall checks and both exact replays pass."
     },
     "aligned-cache-hash": {
       "status": "Historical result mixed",
