@@ -493,3 +493,16 @@ boundary after nine valid observations, with no active trial. All 88 live host
 restoration checks pass. Those nine observations are retained for the resume;
 `eka-connected-proofs16/remove-build-cooldown-stop.json` and the archived
 controller preserve the exact transition. No measured validity threshold changed.
+
+## Interleaved historical sweep resumed
+
+After rejecting the current connected-callee recovery, resume 8 continues the
+frozen inlining and memory plans from 72/109 completed comparisons and 578/872
+valid observations. The 20 previous invalid attempts remain recorded. The next
+trial is the saved second candidate in the call-prefix ABBA panel. Each experiment
+now restores the host, updates the results, and waits for an explicit recorded
+review before continuing. Recovered current-runtime winners are graduated at
+that boundary; already-covered or losing changes are recorded without changing
+defaults. The 30-second observer and assistant log reviews continue throughout.
+Temperature and post-build cooldowns are removed; active builds and a one-second
+clear check still gate launch, with unchanged measured validity rules.

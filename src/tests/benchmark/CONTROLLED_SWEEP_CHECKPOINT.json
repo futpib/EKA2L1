@@ -1,5 +1,5 @@
 {
-  "status": "paused_for_graduation",
+  "status": "running",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User requested pausing at each winner, graduating it on the current runtime, then automatically resuming until the historical sweep is complete.",
   "completed_comparisons": 72,
@@ -230,39 +230,36 @@
     }
   ],
   "resumption": {
-    "time_utc": "2026-10-07T20:08:30.892915+00:00",
-    "authorization": "nice, resume the sweep",
+    "time_utc": "2026-10-08T00:23:17.335936+00:00",
+    "authorization": "as soon as a winner appears pause the sweep and graduate the winner then continue the sweep. loop this until the sweep is complete",
+    "resume_id": 8,
     "phases": [
-      "extended",
       "inlining",
       "memory"
     ],
-    "resume_id": 7,
-    "starting_completed_comparisons": 64,
-    "starting_valid_observations": 515,
+    "starting_completed_comparisons": 72,
+    "starting_valid_observations": 578,
     "starting_invalid_observations": 20,
-    "next_comparison": "cached-address-displacement/standard",
+    "next_comparison": "call-prefix-fusion/standard, first ABBA panel second candidate",
     "graduated_runtime_unchanged": true,
-    "completed_phases": [
-      "extended"
-    ],
-    "extended_valid_added": 53,
-    "extended_invalid_added": 0,
-    "extended_restoration_checks": 88
+    "queued_current_runtime_reassessments": [
+      "owner-core-reuse",
+      "expanded-leaf-eligibility"
+    ]
   },
-  "active_phase": null,
-  "last_progress_utc": "2026-10-08T00:22:23.872563+00:00",
+  "active_phase": "inlining",
+  "last_progress_utc": "2026-10-08T00:23:17.388590+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
-    "script": "/home/claude/.scratch/eka-controlled/watch-resumed-sweep.py",
-    "script_sha256": "ec7f0cdf84f9483c896f65fb4fb80bca4801f2381a8c067b3489241d18cd7710",
-    "latest_status": "/home/claude/.scratch/eka-controlled/resume7-live-watch.json",
-    "history": "/home/claude/.scratch/eka-controlled/resume7-watch-history.jsonl",
-    "alert": "/home/claude/.scratch/eka-controlled/resume7-watch-alert.json",
-    "stop_path_tests": "Passed isolated fixture tests; no signal sent to real benchmark",
-    "assistant_review": "Review live logs and completed comparisons during the sweep",
-    "status": "stopped for intentional graduation pause"
+    "script": "/home/claude/.scratch/eka-controlled/watch-graduation-cycles.py",
+    "script_sha256": "021ecea5a4272ad8df7e22844cafdd8b98769800087e501c3bd417f2ad6d10e1",
+    "latest_status": "/home/claude/.scratch/eka-controlled/resume8-live-watch.json",
+    "history": "/home/claude/.scratch/eka-controlled/resume8-watch-history.jsonl",
+    "alert": "/home/claude/.scratch/eka-controlled/resume8-watch-alert.json",
+    "assistant_review": "Inspect live logs and every completed experiment; review gate prevents the next experiment until a decision is recorded.",
+    "status": "running",
+    "processes": "/home/claude/.scratch/eka-controlled/resume8-processes.json"
   },
   "reviewed_after_resumption": [
     "cached-address-displacement/standard",
@@ -319,5 +316,61 @@
     "post_build_cooldown_seconds": 0,
     "build_clear_check_seconds": 1,
     "controller_sha256": "319cc61be39a18a231c261adc069b5424b8484df714e328db734e612058023af"
-  }
+  },
+  "resumption_history": [
+    {
+      "time_utc": "2026-10-07T20:08:30.892915+00:00",
+      "authorization": "nice, resume the sweep",
+      "phases": [
+        "extended",
+        "inlining",
+        "memory"
+      ],
+      "resume_id": 7,
+      "starting_completed_comparisons": 64,
+      "starting_valid_observations": 515,
+      "starting_invalid_observations": 20,
+      "next_comparison": "cached-address-displacement/standard",
+      "graduated_runtime_unchanged": true,
+      "completed_phases": [
+        "extended"
+      ],
+      "extended_valid_added": 53,
+      "extended_invalid_added": 0,
+      "extended_restoration_checks": 88
+    }
+  ],
+  "graduation_cycle_history": [
+    {
+      "candidate": "connected-callee-loops",
+      "stage": "closed_not_selected",
+      "automatic_resume": true,
+      "pause_evidence": "/home/claude/.scratch/eka-controlled/graduation-cycle-boundary-stop.json",
+      "restoration_checks": 88,
+      "candidate_artifact": "/home/claude/.scratch/eka-connected-proofs16/candidate-build",
+      "correctness_evidence": "/home/claude/.scratch/eka-connected-proofs16/correctness.json",
+      "performance_plan": "/home/claude/.scratch/eka-connected-proofs16/current-plan.json",
+      "watch_status": "/home/claude/.scratch/eka-connected-proofs16/resume1-live-watch.json",
+      "narrow_decision": "rejected",
+      "narrow_evidence": "/home/claude/.scratch/eka-connected-current/CURRENT_RESULTS.json",
+      "candidate_directory": "/home/claude/.scratch/eka-connected-proofs16",
+      "full_snakes_cpu_percent": -0.43687123534724703,
+      "full_decision": "not_selected",
+      "full_evidence": "/home/claude/.scratch/eka-connected-full/CURRENT_RESULTS.json",
+      "proofs_snakes_cpu_percent": 2.2509059004694576,
+      "proofs64_decision": "not_selected",
+      "proofs64_evidence": "/home/claude/.scratch/eka-connected-proofs/CURRENT_RESULTS.json",
+      "proofs16_snakes_cpu_percent": 2.048416995491875,
+      "active_performance_log": "/home/claude/.scratch/eka-connected-proofs16/current-resume1-performance.log",
+      "active_host": "/home/claude/.scratch/eka-connected-proofs16/current-resume1-host.json",
+      "cooldown_removal_boundary": "/home/claude/.scratch/eka-connected-proofs16/remove-build-cooldown-stop.json",
+      "decision": "not_selected",
+      "final_evidence": "/home/claude/.scratch/eka-connected-proofs16/CURRENT_RESULTS.json",
+      "preserved_patch": "/home/claude/.scratch/eka-connected-proofs16/rejected-source.patch"
+    }
+  ],
+  "active_experiment": "call-prefix-fusion",
+  "active_log": "/home/claude/.scratch/eka-controlled/inlining-call-prefix-fusion-performance-resume8.log",
+  "active_host": "/home/claude/.scratch/eka-controlled/inlining-host-call-prefix-fusion-resume8.json",
+  "review_request": null
 }
