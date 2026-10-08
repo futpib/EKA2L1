@@ -4338,6 +4338,81 @@ static bool test_thumb_rom_veneers() {
     return true;
 }
 
+static bool test_thumb_rom_syscalls() {
+#ifdef __EMSCRIPTEN__
+    struct restore {
+        unsigned mode=memory_experiment::mode, budget_mode=entry_budget_mode;
+        bool direct=thumb_direct_memory, svc=compiled_svc_enabled;
+        ~restore(){memory_experiment::mode=mode;entry_budget_mode=budget_mode;
+            thumb_direct_memory=direct;compiled_svc_enabled=svc;}
+    } saved;
+    thumb_direct_memory=true;
+    unsigned checks=0;
+    for(unsigned mode:{0u,2u})for(unsigned layout:{0u,2u})for(bool enabled:{false,true})
+    for(unsigned base:{0x1000u,0x1002u})for(unsigned target:{0x2000u,0x2ffcu})
+    for(unsigned prefix:{0u,1u,3u})for(unsigned opcode:{0xef000005u,0xef800000u,0xef800005u,0xef0000ffu,0x1f000005u}) {
+        memory_experiment::mode=mode;entry_budget_mode=layout;compiled_svc_enabled=enabled;
+        std::vector<std::uint16_t> code(prefix,0x3001); // ADDS R0, #1
+        const unsigned call=base+prefix*2,delta=target-((call+4)&~3u);
+        code.push_back(static_cast<std::uint16_t>(0xf000u|((delta>>12)&0x7ff)));
+        code.push_back(static_cast<std::uint16_t>(0xe800u|((delta>>1)&0x7ff)));
+        const code_window rom{reinterpret_cast<const std::uint8_t*>(&opcode),target,4};
+        std::vector<std::uint8_t> modules[2];
+        for(unsigned variant=0;variant<2;++variant) {
+            auto tr=translate_thumb_block(reinterpret_cast<const std::uint8_t*>(code.data()),code.size()*2,base,
+                nullptr,nullptr,true,false,true,variant?&rom:nullptr);
+            modules[variant]=build_wasm_module({tr.func},{});
+            if(tr.resume_points!=std::vector<std::uint32_t>{call+2,call+4})return false;
+        }
+        auto stub=translate_arm_block(reinterpret_cast<const std::uint8_t*>(&opcode),4,target,nullptr,nullptr,true,false,true);
+        auto arm_module=build_wasm_module({stub.func},{});
+        const bool selected=enabled && (opcode>>24)==0xef;
+        for(unsigned budget=0;budget<=prefix+4;++budget)for(unsigned flags:{0u,5u,10u,15u})
+        for(unsigned irq:{0u,1u})for(unsigned mask:{0u,0x80u})
+        for(std::uint64_t remaining:{std::uint64_t(0),std::uint64_t(1),std::uint64_t(8),std::uint64_t(1)<<32}) {
+            alignas(8) unsigned states[2][256]{};unsigned logical[2]{};
+            for(unsigned variant=0;variant<2;++variant) {
+                auto *state=states[variant];
+                for(unsigned reg=0;reg<16;++reg)state[reg]=0xfffffffdu+reg;
+                state[15]=base;state[state_offsets::CPSR/4]=0x30|mask|(flags<<28);
+                state[state_offsets::NFLAG/4]=(flags>>3)&1;state[state_offsets::ZFLAG/4]=(flags>>2)&1;
+                state[state_offsets::CFLAG/4]=(flags>>1)&1;state[state_offsets::VFLAG/4]=flags&1;
+                state[state_offsets::TFLAG/4]=1;state[state_offsets::NIRQ/4]=irq;
+                state[state_offsets::AOT_BUDGET/4]=budget;
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4]=static_cast<unsigned>(remaining);
+                state[state_offsets::NUM_INSTRS_TO_EXECUTE/4+1]=static_cast<unsigned>(remaining>>32);
+                const int count=js_run_aot_wasm(modules[variant].data(),modules[variant].size(),reinterpret_cast<std::uint8_t*>(state),sizeof(states[variant]));
+                if(count<0)return false;
+                logical[variant]=count;
+                if(!variant && selected && state[15]==target && !state[state_offsets::TFLAG/4]
+                        && unsigned(count)<budget && remaining && (irq||mask)) {
+                    state[state_offsets::AOT_BUDGET/4]=budget-count;
+                    const int n=js_run_aot_wasm(arm_module.data(),arm_module.size(),reinterpret_cast<std::uint8_t*>(state),sizeof(states[variant]));
+                    if(n<0)return false;
+                    logical[variant]+=n;
+                    if(state[state_offsets::AOT_EXIT/4]&svc_pending)state[state_offsets::AOT_SVC_INSTRUCTIONS/4]+=count;
+                    state[state_offsets::AOT_BUDGET/4]=budget;
+                }
+                if(state[state_offsets::AOT_EXIT/4]&svc_pending) {
+                    if(variant && count!=0)return false;
+                    logical[variant]=state[state_offsets::AOT_SVC_INSTRUCTIONS/4];
+                }
+            }
+            if(logical[0]!=logical[1] || std::memcmp(states[0],states[1],sizeof(states[0]))) {
+                printf(" FAIL Thumb ROM syscall mode=%u layout=%u enabled=%u base=%x target=%x prefix=%u op=%x budget=%u flags=%u irq=%u mask=%u remaining=%llu counts=%u/%u\n",
+                    mode,layout,enabled,base,target,prefix,opcode,budget,flags,irq,mask,
+                    static_cast<unsigned long long>(remaining),logical[0],logical[1]);
+                for(unsigned i=0;i<256;++i)if(states[0][i]!=states[1][i])printf(" state[%u]=%x/%x\n",i,states[0][i],states[1][i]);
+                return false;
+            }
+            ++checks;
+        }
+    }
+    printf(" PASS Thumb ROM syscalls (%u full-state two-region oracle comparisons)\n",checks);
+#endif
+    return true;
+}
+
 static bool test_thumb_transfer_spans() {
 #ifdef __EMSCRIPTEN__
     namespace tracking = eka2l1::common::code_tracking;
@@ -6208,6 +6283,7 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--unsafe-code-only")return test_unsafe_code_diagnostic()?0:1;
     if(argc==2 && std::string(argv[1])=="--branch-veneers-only")return test_branch_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--tail-prefixes-only")return test_tail_prefixes()?0:1;
+    if(argc==2 && std::string(argv[1])=="--thumb-rom-syscalls-only")return test_thumb_rom_syscalls() && test_compiled_svc_boundary() && test_thumb_call_boundaries()?0:1;
     if(argc==2 && std::string(argv[1])=="--thumb-rom-veneers-only")return test_thumb_rom_veneers() && test_thumb_call_boundaries()?0:1;
     if(argc==2 && std::string(argv[1])=="--literal-pc-veneers-only")return test_literal_pc_veneers()?0:1;
     if(argc==2 && std::string(argv[1])=="--boundary-details-only")return test_boundary_details()?0:1;
@@ -6898,6 +6974,7 @@ int main(int argc, char **argv) {
     if (test_thumb_direct_memory()) passed++; else failed++;
     if (test_thumb_call_boundaries()) passed++; else failed++;
     if (test_thumb_rom_veneers()) passed++; else failed++;
+    if (test_thumb_rom_syscalls()) passed++; else failed++;
     if (test_thumb_transfer_spans()) passed++; else failed++;
     if (test_cached_callback_state()) passed++; else failed++;
     if (test_msr_privilege_guard()) passed++; else failed++;

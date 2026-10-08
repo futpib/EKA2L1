@@ -930,7 +930,31 @@ namespace eka2l1::arm::aot {
                             if (kind == 0xE800) { target &= ~3u; w.store_i32_const(S::TFLAG, 0); }
                             w.store_i32_const(S::LR, (insn_addr + 4) | 1);
                             std::uint32_t veneer = 0;
-                            if (kind == 0xE800 && memory_experiment::enabled() && immutable_code
+                            if (kind == 0xE800 && compiled_svc_enabled && immutable_code
+                                    && immutable_code->read(target, &veneer, sizeof(veneer))
+                                    && (veneer & 0xff000000u) == 0xef000000u) {
+                                // The immutable ARM veneer can publish the same pending trap
+                                // here. The outer loop still handles the syscall at its
+                                // exact guest count, including both Thumb call halfwords.
+                                w.source.pc = target; w.source.kind = source_kind::guest;
+                                w.census_pc = target; w.census_opcode = veneer;
+                                w.store_i32_const(S::PC, target);
+                                w.load_i32(S::AOT_BUDGET); w.i32_const(insn_idx + 2);
+                                w.op(op_i32_le_u); w.op(op_if); w.op(type_void);
+                                w.bail(target, insn_idx + 2, exit_census::guard);
+                                w.op(op_end);
+                                // Retain the ordinary SVC's single-step fallback. Stop/IRQ
+                                // was checked at the preceding call-half boundary, with no
+                                // intervening callback or memory access.
+                                w.load_i32(S::NUM_INSTRS_TO_EXECUTE); w.i32_const(1); w.op(op_i32_eq);
+                                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4); w.op(op_i32_eqz); w.op(op_i32_and);
+                                w.op(op_if); w.op(type_void);
+                                w.bail(target, insn_idx + 2); w.op(op_end);
+                                w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken
+                                    | (((target + 4) & 4095) ? 0 : svc_page_end) | (veneer & 0x00ffffffu));
+                                w.store_i32_const(S::AOT_SVC_INSTRUCTIONS, insn_idx + 3);
+                                w.bail(target + 4, 0);
+                            } else if (kind == 0xE800 && memory_experiment::enabled() && immutable_code
                                     && immutable_code->read(target, &veneer, sizeof(veneer))
                                     && (veneer & 0xff7ff000u) == 0xe51ff000u) {
                                 // Fold only the immutable instruction. Its literal remains

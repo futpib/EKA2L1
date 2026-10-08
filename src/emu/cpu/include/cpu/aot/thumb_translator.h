@@ -143,7 +143,7 @@ namespace eka2l1::arm::aot {
     // code_size: size in bytes
     // siblings: optional map of address → WASM func index for BL target inlining
     // dll_code: optional full-DLL code window for resolving BLX imm veneers
-    // immutable_code: optional ROM window for precisely folding bounded BLX veneers
+    // immutable_code: optional ROM window for precisely folding bounded BLX veneers and SVC stubs
     //
     // Returns a wasm_func_def ready to be included in a WASM module.
     // Returns empty body on failure.
