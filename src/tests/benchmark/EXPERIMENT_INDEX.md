@@ -129,7 +129,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 69 | compact-generated-memory / Snakes | +8.05% | +7.45% | -6.81% | 4/4 | 8/8; 0 invalid | Superseded by current lowering: Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 70 | connected-callee-loops / Snakes | +6.87% | +6.52% | -7.07% | 4/4 | 8/8; 0 invalid | Not selected on current two-game runtime: Historical Snakes +6.87% does not carry over. Budget-preserving bound 64: +2.25% Snakes / -1.87% Sky Force. Bound 16: +2.05% / -1.79%. Neither tradeoff adopted; patches and exact correctness/timing evidence retained. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 71 | guarded-successor-lookup / Snakes | -0.47% | -0.51% | +3.22% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Controlled Snakes -0.47% CPU, native instructions +3.22%, only 1/4 faster pairs. Current trusted dispatch also avoids the metadata pointer used by this older design. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
-| 72 | expanded-leaf-eligibility / Snakes | +1.96% | +1.63% | -1.54% | 4/4 | 8/8; 0 invalid | Current Snakes gain; Sky Force pending: Forward-only expansion at bound 32 versus current default bound 16: Snakes +1.10% CPU, -2.04% native instructions, 4/4 faster pairs. Correctness checks pass; Sky Force pending before adoption. | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
+| 72 | expanded-leaf-eligibility / Snakes | +1.96% | +1.63% | -1.54% | 4/4 | 8/8; 0 invalid | Selected; graduation validation: Current Snakes +1.10% CPU and -2.04% native instructions, 4/4 faster pairs. Sky Force effectively neutral: +0.17%, -0.01% native instructions, mixed pairs. Broader compiler/LAN checks pending. | [EXPANDED_LEAVES_RESULTS.md](EXPANDED_LEAVES_RESULTS.md) |
 | 73 | call-prefix-fusion / Snakes | -4.22% | -3.89% | +1.58% | 0/4 | 8/8; 0 invalid | Not selected for promotion: Controlled Snakes -4.22% CPU throughput, native instructions +1.58%, all four pairs slower. | [CALL_PREFIX_RESULTS.md](CALL_PREFIX_RESULTS.md) |
 | 74 | preserve-inner-leaves / Snakes | +3.94% | +3.46% | -2.83% | 4/4 | 8/8; 0 invalid | Fix for unselected prefix configuration: Historical +3.94% Snakes CPU, 4/4 faster pairs, -2.83% native instructions. Recovers the rejected call-prefix regression; current default does not enable that path. | [PRESERVE_INNER_RESULTS.md](PRESERVE_INNER_RESULTS.md) |
 | 75 | branch-veneer-fusion / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [BRANCH_VENEER_RESULTS.md](BRANCH_VENEER_RESULTS.md) |
@@ -2867,13 +2867,20 @@ memory eligibility. Backward branches and nested calls remain rejected. It
 uses per-call forward labels and leaves existing caller-loop lowering unchanged.
 This differs from the rejected connected-callee implementation.
 
-**Completed Snakes comparison**
+**Completed current-runtime comparison**
 
-Expanded eligibility with bound 32 improves current-runtime Snakes CPU throughput
-1.10%, wall throughput 1.08%, and reduces native instructions
-2.04%. All four pairs are faster, ranging from +0.79% to +1.79%. All eight
-observations pass the frozen validity rules. Sky Force is still running, so no
-default or LAN artifact changes yet.
+| # | Game | CPU throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | Snakes | +1.10% | -2.04% | 4/4 |
+| 2 | Sky Force | +0.17% | -0.01% | 3/4 |
+
+All 16 observations pass the frozen validity rules. All 88 live host-restoration
+checks pass. The Snakes gain is repeatable across both orders and accompanies a
+native instruction reduction. Sky Force is effectively neutral: its small mean
+gain has mixed pairs and nearly unchanged instructions; no Sky Force speedup is
+claimed. This earns adoption for the Snakes improvement, subject to the broader
+compiler suite and the real LAN gameplay checks. The exact measured runtime
+artifact will be served with the measured configuration.
 
 </details>
 

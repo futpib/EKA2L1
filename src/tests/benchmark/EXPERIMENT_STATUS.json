@@ -102,8 +102,8 @@
       "note": "Controlled Snakes -0.47% CPU, native instructions +3.22%, only 1/4 faster pairs. Current trusted dispatch also avoids the metadata pointer used by this older design."
     },
     "expanded-leaf-eligibility": {
-      "status": "Current Snakes gain; Sky Force pending",
-      "note": "Forward-only expansion at bound 32 versus current default bound 16: Snakes +1.10% CPU, -2.04% native instructions, 4/4 faster pairs. Correctness checks pass; Sky Force pending before adoption."
+      "status": "Selected; graduation validation",
+      "note": "Current Snakes +1.10% CPU and -2.04% native instructions, 4/4 faster pairs. Sky Force effectively neutral: +0.17%, -0.01% native instructions, mixed pairs. Broader compiler/LAN checks pending."
     },
     "call-prefix-fusion": {
       "status": "Not selected for promotion",

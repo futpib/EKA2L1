@@ -1,7 +1,7 @@
 # Forward-only leaf expansion on the current runtime
 
-Status: controlled two-game timing at the restored 74/109 historical review boundary.
-No runtime default has changed.
+Status: selected for graduation after a repeatable Snakes gain and effectively
+neutral Sky Force result. Broader compiler and real LAN checks are in progress.
 
 The frozen historical matching-bound comparison gains 1.96% Snakes CPU
 throughput, with all four pairs faster. The current-runtime candidate restores
@@ -29,10 +29,17 @@ The candidate WASM SHA-256 is `08b363be84ddeb9fb86f5be92c7cc81c175773ab83e58d49a
 Initial pre-build anchor and obsolete test-constructor errors are retained in
 the scratch evidence; neither reached timing.
 
-## Completed Snakes comparison
+## Completed current-runtime comparison
 
-Expanded eligibility with bound 32 improves current-runtime Snakes CPU throughput
-1.10%, wall throughput 1.08%, and reduces native instructions
-2.04%. All four pairs are faster, ranging from +0.79% to +1.79%. All eight
-observations pass the frozen validity rules. Sky Force is still running, so no
-default or LAN artifact changes yet.
+| # | Game | CPU throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | Snakes | +1.10% | -2.04% | 4/4 |
+| 2 | Sky Force | +0.17% | -0.01% | 3/4 |
+
+All 16 observations pass the frozen validity rules. All 88 live host-restoration
+checks pass. The Snakes gain is repeatable across both orders and accompanies a
+native instruction reduction. Sky Force is effectively neutral: its small mean
+gain has mixed pairs and nearly unchanged instructions; no Sky Force speedup is
+claimed. This earns adoption for the Snakes improvement, subject to the broader
+compiler suite and the real LAN gameplay checks. The exact measured runtime
+artifact will be served with the measured configuration.
