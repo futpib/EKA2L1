@@ -152,6 +152,10 @@
     "eager-rom-regions": {
       "status": "Not selected alone for promotion",
       "note": "Historical eager ROM regions: Snakes +0.04% CPU (-0.65% native instructions, 1/4 faster pairs); Sky Force -0.73% CPU (-0.04% native instructions, 2/4 faster pairs). No current-runtime promotion warranted. Current startup ROM still uses bounded blocks; the related ROM-leaf combination is assessed separately."
+    },
+    "rom-leaf-fusion": {
+      "status": "Not selected for promotion",
+      "note": "Historical ROM leaf fusion over eager regions: Snakes -0.52% CPU (2/4 faster pairs), Sky Force -1.71% (1/4 faster). Native instruction reductions are only about 0.03% in each game. Both means regress; no current-runtime promotion of the combined ROM strategy is warranted."
     }
   }
 }

@@ -48,7 +48,7 @@ and the [measurement snapshot](RECOVERED_DEFAULTS_RESULTS.json).
 
 ## Controlled comparisons
 
-85/109 game comparisons complete; 680/872 valid observations; 20 retained host-invalid observations.
+87/109 game comparisons complete; 696/872 valid observations; 20 retained host-invalid observations.
 
 CPU and wall columns are throughput changes: positive is faster. Native
 instructions are candidate/control changes: negative is less work. Pairs
@@ -143,8 +143,8 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 83 | uncapped-region-chain / Snakes | +0.51% | +0.48% | -0.00% | 2/4 | 8/8; 0 invalid | Historical result mixed: Historical removal of the 512-region chain cap: Snakes +0.51% CPU throughput, two faster and two slower pairs (-0.40% to +1.50%), essentially identical native instructions (-0.00055%). No clear runtime win; retain 512. Guest budgets, IRQ/stop checks and successor validation remained enabled in the experiment. | [CONDITIONAL_RUNNER_LIMITS_RESULTS.md](CONDITIONAL_RUNNER_LIMITS_RESULTS.md) |
 | 84 | eager-rom-regions / Snakes | +0.04% | +0.06% | -0.65% | 1/4 | 8/8; 0 invalid | Not selected alone for promotion: Historical eager ROM regions: Snakes +0.04% CPU (-0.65% native instructions, 1/4 faster pairs); Sky Force -0.73% CPU (-0.04% native instructions, 2/4 faster pairs). No current-runtime promotion warranted. Current startup ROM still uses bounded blocks; the related ROM-leaf combination is assessed separately. | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
 | 85 | eager-rom-regions / Sky Force | -0.73% | -0.81% | -0.04% | 2/4 | 8/8; 0 invalid | Not selected alone for promotion: Historical eager ROM regions: Snakes +0.04% CPU (-0.65% native instructions, 1/4 faster pairs); Sky Force -0.73% CPU (-0.04% native instructions, 2/4 faster pairs). No current-runtime promotion warranted. Current startup ROM still uses bounded blocks; the related ROM-leaf combination is assessed separately. | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
-| 86 | rom-leaf-fusion / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
-| 87 | rom-leaf-fusion / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
+| 86 | rom-leaf-fusion / Snakes | -0.52% | -0.47% | -0.03% | 2/4 | 8/8; 0 invalid | Not selected for promotion: Historical ROM leaf fusion over eager regions: Snakes -0.52% CPU (2/4 faster pairs), Sky Force -1.71% (1/4 faster). Native instruction reductions are only about 0.03% in each game. Both means regress; no current-runtime promotion of the combined ROM strategy is warranted. | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
+| 87 | rom-leaf-fusion / Sky Force | -1.71% | -1.60% | -0.03% | 1/4 | 8/8; 0 invalid | Not selected for promotion: Historical ROM leaf fusion over eager regions: Snakes -0.52% CPU (2/4 faster pairs), Sky Force -1.71% (1/4 faster). Native instruction reductions are only about 0.03% in each game. Both means regress; no current-runtime promotion of the combined ROM strategy is warranted. | [ROM_LEAF_FUSION_SCREEN_RESULTS.md](ROM_LEAF_FUSION_SCREEN_RESULTS.md) |
 | 88 | bounded-rom-calls / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [ROM_BOUNDED_CALL_SCREEN_RESULTS.md](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) |
 | 89 | bounded-rom-calls / Sky Force | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [ROM_BOUNDED_CALL_SCREEN_RESULTS.md](ROM_BOUNDED_CALL_SCREEN_RESULTS.md) |
 | 90 | allocation-ranges / Snakes | Pending | Pending | Pending | — | 0/8; 0 invalid | Reassessment pending | [MEMORY_IMPLEMENTATIONS_RESULTS.md](MEMORY_IMPLEMENTATIONS_RESULTS.md) |
