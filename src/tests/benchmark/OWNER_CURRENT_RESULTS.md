@@ -1,7 +1,6 @@
 # Owning-core reuse on the graduated runtime
 
-Status: controlled two-game timing, with the historical sweep paused at its
-73/109 review boundary. No runtime default has changed.
+Status: not selected on the current runtime. The measured change does not establish a repeatable two-game gain. Source is restored; patch and artifacts remain preserved.
 
 The historical owning-core experiment improves Snakes CPU throughput 0.81%,
 reduces native instructions 0.24%, and has four faster adjacent pairs, including
@@ -23,7 +22,13 @@ This change touches the C++ compiled runner; guest translation is unchanged.
 Its candidate WASM hash is `cf7f22347780f35280d248ef1314eadc534185f77ace275194f40b3744e0392f`.
 Full evidence is in `eka-owner-current/correctness.json`.
 
-The completed Snakes comparison is +0.15% CPU throughput, +0.39% wall throughput,
-and +0.46% native instructions. Three of four pairs are faster, ranging from
--0.34% to +0.49%; this does not establish a useful Snakes gain. All eight
-observations are valid. Sky Force remains in progress.
+## Completed current-runtime comparison
+
+| # | Game | CPU throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | Snakes | +0.15% | +0.46% | 3/4 |
+| 2 | Sky Force | -0.82% | +0.53% | 2/4 |
+
+Current Snakes +0.15% CPU throughput with mixed pairs and +0.46% native instructions; Sky Force -0.82% with 2/4 faster pairs and +0.53% native instructions. No repeatable two-game gain; retain the graduated baseline.
+
+All 16 observations pass the frozen validity rules. All 88 host restoration checks pass. Exact replay, registry lifecycle and syscall evidence remains in `eka-owner-current/correctness.json`. No runtime default or LAN artifact changes. The rejected patch is preserved in `eka-owner-current/rejected-source.patch`.

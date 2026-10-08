@@ -82,8 +82,8 @@
       "note": "Controlled Snakes +0.46% CPU, 2/4 faster pairs; no current-runtime promotion proposed"
     },
     "owner-core-reuse": {
-      "status": "Current-runtime two-game timing",
-      "note": "Current Snakes +0.15% CPU, native instructions +0.46%, mixed pairs: not a convincing gain. Sky Force pending. Registry/syscall checks and both exact replays pass."
+      "status": "Not selected on current runtime",
+      "note": "Current Snakes +0.15% CPU throughput with mixed pairs and +0.46% native instructions; Sky Force -0.82% with 2/4 faster pairs and +0.53% native instructions. No repeatable two-game gain; retain the graduated baseline."
     },
     "aligned-cache-hash": {
       "status": "Historical result mixed",

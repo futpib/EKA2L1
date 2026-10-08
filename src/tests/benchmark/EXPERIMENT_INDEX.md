@@ -124,7 +124,7 @@ and [all raw measurements](CONTROLLED_RESULTS.json).
 | 64 | outlined-entry-budget / Snakes | +1.91% | +1.75% | -3.04% | 4/4 | 8/8; 0 invalid | Default: Mode 2 enabled in the measured winning combination; full bounded entry with private precise recovery | [OUTLINED_BUDGET_RESULTS.md](OUTLINED_BUDGET_RESULTS.md) |
 | 65 | cached-address-displacement / Snakes | -0.27% | -0.36% | -0.41% | 2/4 | 8/8; 2 invalid | Historical result mixed: Controlled Snakes -0.27% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
 | 66 | deferred-read-exit / Snakes | +0.46% | +0.43% | -1.52% | 2/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.46% CPU, 2/4 faster pairs; no current-runtime promotion proposed | [RUNNER_SPECIALIZATION_RESULTS.md](RUNNER_SPECIALIZATION_RESULTS.md) |
-| 67 | owner-core-reuse / Snakes | +0.81% | +0.75% | -0.24% | 4/4 | 8/8; 0 invalid | Current-runtime two-game timing: Current Snakes +0.15% CPU, native instructions +0.46%, mixed pairs: not a convincing gain. Sky Force pending. Registry/syscall checks and both exact replays pass. | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
+| 67 | owner-core-reuse / Snakes | +0.81% | +0.75% | -0.24% | 4/4 | 8/8; 0 invalid | Not selected on current runtime: Current Snakes +0.15% CPU throughput with mixed pairs and +0.46% native instructions; Sky Force -0.82% with 2/4 faster pairs and +0.53% native instructions. No repeatable two-game gain; retain the graduated baseline. | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 68 | aligned-cache-hash / Snakes | +0.65% | +0.47% | +0.20% | 3/4 | 8/8; 0 invalid | Historical result mixed: Controlled Snakes +0.65% CPU, 3/4 faster pairs, native instructions +0.20%; current source retains the older hash; no default change | [LOOKUP_FOLLOWUP_RESULTS.md](LOOKUP_FOLLOWUP_RESULTS.md) |
 | 69 | compact-generated-memory / Snakes | +8.05% | +7.45% | -6.81% | 4/4 | 8/8; 0 invalid | Superseded by current lowering: Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
 | 70 | connected-callee-loops / Snakes | +6.87% | +6.52% | -7.07% | 4/4 | 8/8; 0 invalid | Not selected on current two-game runtime: Historical Snakes +6.87% does not carry over. Budget-preserving bound 64: +2.25% Snakes / -1.87% Sky Force. Bound 16: +2.05% / -1.79%. Neither tradeoff adopted; patches and exact correctness/timing evidence retained. | [MEMORY_AND_CONNECTED_RESULTS.md](MEMORY_AND_CONNECTED_RESULTS.md) |
@@ -4893,10 +4893,14 @@ The historical owning-core experiment improves Snakes CPU throughput 0.81%,
 reduces native instructions 0.24%, and has four faster adjacent pairs, including
 one near tie. This small result needs reassessment on the current runtime.
 
-The completed Snakes comparison is +0.15% CPU throughput, +0.39% wall throughput,
-and +0.46% native instructions. Three of four pairs are faster, ranging from
--0.34% to +0.49%; this does not establish a useful Snakes gain. All eight
-observations are valid. Sky Force remains in progress.
+**Completed current-runtime comparison**
+
+| # | Game | CPU throughput | Native instructions | Faster pairs |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | Snakes | +0.15% | +0.46% | 3/4 |
+| 2 | Sky Force | -0.82% | +0.53% | 2/4 |
+
+Current Snakes +0.15% CPU throughput with mixed pairs and +0.46% native instructions; Sky Force -0.82% with 2/4 faster pairs and +0.53% native instructions. No repeatable two-game gain; retain the graduated baseline.
 
 </details>
 
