@@ -69,3 +69,7 @@ The first deployment verification encountered a transient permission race while
 reading the newly started process environment. A read-only retry confirmed the
 selected artifact and configuration; verification continued without restarting
 the service again. The initial evidence and previous service drop-in are kept.
+
+Graduated runtime commit: `21c322713`. The original frozen historical
+plans resume from 74/109 completed comparisons and 592/872 valid observations,
+with all 20 earlier invalid attempts retained.
