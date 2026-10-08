@@ -176,3 +176,8 @@ endif()
 if(EKA2L1_WASM_DEFER_MEMORY)
     target_compile_definitions(cpu PUBLIC EKA2L1_WASM_DEFER_MEMORY=1)
 endif()
+
+option(EKA2L1_AOT_SOURCE_MAPS "Emit guest provenance metadata for native profiling" OFF)
+if(EKA2L1_AOT_SOURCE_MAPS)
+    target_compile_definitions(cpu PUBLIC EKA2L1_AOT_SOURCE_MAPS=1)
+endif()

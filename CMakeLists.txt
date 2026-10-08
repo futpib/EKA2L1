@@ -18,6 +18,10 @@ set(EKA2L1_IOS_DEPLOYMENT_TARGET "16.0" CACHE STRING "Minimum iOS version to tar
 
 option(EKA2L1_WASM_DEFER_MEMORY "Restart eligible AOT memory misses in DynCom with precise state" ON)
 option(EKA2L1_WASM_DIAGNOSTICS "Compile guest census, crash history and detailed timers into WASM" OFF)
+option(EKA2L1_WASM_CPP_SOURCE_MAPS "Keep optimized C/C++ line tables for native WASM attribution" OFF)
+if(EMSCRIPTEN AND EKA2L1_WASM_CPP_SOURCE_MAPS)
+    add_compile_options(-gline-tables-only)
+endif()
 option(EKA2L1_BUILD_TOOLS "Build EKA2L1's tool" ON)
 option(EKA2L1_BUILD_TESTS "Build EKA2L1's tests" ON)
 option(EKA2L1_ENABLE_SCRIPTING_ABILITY "Enable to script with Python or Lua" ON)

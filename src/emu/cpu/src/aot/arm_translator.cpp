@@ -60,6 +60,7 @@ namespace eka2l1::arm::aot {
     struct arm_emit {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
+        source_emission source;
         bool region = false;
         bool direct_block_memory = false;
         bool defer_memory = false, restartable_access = false;
@@ -105,6 +106,7 @@ namespace eka2l1::arm::aot {
         // Depth inside the result block added by state_local_cache::finish.
         unsigned scope_depth = 0;
         void op(std::uint8_t o) {
+            source.mark(b.size());
             if (o == op_block || o == op_loop || o == op_if) ++scope_depth;
             else if (o == op_end) --scope_depth;
             b.push_back(o);
@@ -116,11 +118,13 @@ namespace eka2l1::arm::aot {
         void i32_const(std::int32_t v) { op(op_i32_const); sleb(b, v); }
 
         void load_i32(std::uint32_t offset) {
+            source_scope provenance(source, source_kind::state);
             if (cache.accepts(offset)) { get_local(cache.local(offset)); return; }
             state_ptr();
             op(op_i32_load); leb(b, 2); leb(b, offset);
         }
         void store_i32(std::uint32_t offset, std::uint32_t local) {
+            source_scope provenance(source, source_kind::state);
             if (cache.accepts(offset)) {
                 get_local(local); set_local(cache.local(offset)); cache.written.insert(offset); return;
             }
@@ -129,6 +133,7 @@ namespace eka2l1::arm::aot {
             op(op_i32_store); leb(b, 2); leb(b, offset);
         }
         void store_i32_from_stack(std::uint32_t offset, std::uint32_t scratch) {
+            source_scope provenance(source, source_kind::state);
             if (cache.accepts(offset)) {
                 set_local(cache.local(offset)); cache.written.insert(offset); return;
             }
@@ -137,6 +142,7 @@ namespace eka2l1::arm::aot {
             op(op_i32_store); leb(b, 2); leb(b, offset);
         }
         void store_i32_const(std::uint32_t offset, std::int32_t val) {
+            source_scope provenance(source, source_kind::state);
             if (cache.accepts(offset)) {
                 i32_const(val); set_local(cache.local(offset)); cache.written.insert(offset); return;
             }
@@ -159,6 +165,7 @@ namespace eka2l1::arm::aot {
         }
 
         void slow_call(std::uint32_t func_idx) {
+            source_scope provenance(source, source_kind::helper);
             instruction_may_exit = true;
             if (region && !pc_written) store_i32_const(S::PC,current_pc);
             cache.barrier_at(b.size());
@@ -339,6 +346,7 @@ namespace eka2l1::arm::aot {
             census_store(&exit_census::last_rejected_opcode,census_rejected_opcode);
         }
         void ret(unsigned why=exit_census::control) {
+            source_scope provenance(source, source_kind::dispatch);
             census_exit(why);
             // Emitting an exit snapshot must not forget the representation on
             // the other path of the guard being emitted.
@@ -877,6 +885,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t TMP_CARRY = 8;
 
         arm_emit w{result.body};
+        w.source.marks = &result.sources;
         w.region = region && bounded;
         w.direct_block_memory = direct_blocks;
         w.defer_memory = w.region && defer_memory;
@@ -1266,6 +1275,7 @@ namespace eka2l1::arm::aot {
             if (bounded && !region && stop_after_store && w.memory_write) break;
             const auto inst = instruction.opcode;
             const auto insn_addr = instruction.address;
+            w.source.pc = insn_addr; w.source.kind = source_kind::guest;
             if(instruction.leaf && !instructions[instruction_index-1].leaf) {
                 leaf_forward_targets.clear(); leaf_closed=0;
                 const auto &callee=inlined.at(i);
@@ -2656,6 +2666,8 @@ namespace eka2l1::arm::aot {
         const auto offset = static_cast<std::uint32_t>(prefix.size());
         if (tr.func.outlined_callee) tr.func.outlined_call_offset += offset;
         for (auto &call : tr.func.outlined_calls) call.call_offset += offset;
+        for (auto &mark : tr.func.sources) mark.offset += offset;
+        if (!tr.func.sources.empty()) tr.func.sources.insert(tr.func.sources.begin(), {0, 0, source_kind::helper});
         prefix.insert(prefix.end(), tr.func.body.begin(), tr.func.body.end());
         tr.func.body = std::move(prefix);
         tr.summarized_helpers = 1;
@@ -2707,6 +2719,8 @@ namespace eka2l1::arm::aot {
         body.insert(body.end(), {0x80, 0x80, 0x80, 0x80, 0});
         w.op(op_return); w.op(op_end);
         full_offset = static_cast<std::uint32_t>(body.size());
+        for (auto &mark : full.func.sources) mark.offset += full_offset;
+        if (!full.func.sources.empty()) full.func.sources.insert(full.func.sources.begin(), {0, start_address, source_kind::accounting});
         body.insert(body.end(), full.func.body.begin(), full.func.body.end());
         if (full.func.outlined_callee) full.func.outlined_call_offset += full_offset;
         for (auto &call : full.func.outlined_calls) call.call_offset += full_offset;

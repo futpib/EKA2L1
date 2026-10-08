@@ -119,6 +119,126 @@ precise attribution would require native instruction samples with V8 JIT
 metadata, plus a generated WASM-offset-to-guest-PC map that records inlining.
 Adding guest source labels alone cannot recover missing instruction positions.
 
+## Native samples with ARM and C++ source attribution
+
+The [Sky Force investigation](NATIVE_ATTRIBUTION_RESULTS.md) uses actual warmed
+browser code, including its natural Liftoff/TurboFan tiers and call feedback.
+It does not force TurboFan or compile an unexecuted module for attribution.
+
+Configure an existing Release WASM build with both metadata options, retaining
+its normal optimization settings:
+
+```sh
+cmake -S . -B build-wasm -DEKA2L1_AOT_SOURCE_MAPS=ON -DEKA2L1_WASM_CPP_SOURCE_MAPS=ON
+cmake --build build-wasm --target eka2l1_wasm -j4
+```
+
+Both options default to OFF. The first records non-executable guest provenance
+in each generated module's `eka2l1.sources` custom section. It follows byte
+insertions, state-transfer pruning, inlined ARM callees and outlined functions.
+Offsets include the function's local declarations. Thumb PCs retain bit zero.
+PC zero denotes shared compiler-generated setup or state transfers, without a
+unique originating guest instruction. `guest` is a broad lowering category,
+not a claim that all its instructions would exist on a physical ARM CPU.
+
+The second retains C/C++ line tables and links `eka2l1.wasm.map`, including
+optimized emulator code, templates and linked libraries. It does not lower
+optimization. The capture records matching WASM/map hashes and the map's source
+base directory. Build this separately from artifacts used for throughput tests.
+
+For Sky Force combat, from the repository root:
+
+```sh
+EKA2L1_WASM_BUILD_DIR="$PWD/build-wasm/src/emu/wasm" \
+EKA2L1_APP_UID=0xa020d913 \
+EKA2L1_ASSET_MANIFEST="$PWD/src/tests/benchmark/sky-force-assets.json" \
+EKA2L1_PROFILE_INPUT="$PWD/src/tests/benchmark/sky-force-combat.input" \
+EKA2L1_PROFILE_START_US=42000000 \
+EKA2L1_BENCHMARK_AOT=5 EKA2L1_SHARED_AUDIO=1 EKA2L1_GPU=hardware \
+EKA2L1_NATIVE_PROFILE=1 EKA2L1_CHROME_TRACE=off \
+node src/tests/wasm/profile.ts /absolute/sky-assets /absolute/new-capture 1 0 60000000
+
+python3 src/tests/benchmark/native_attribution.py /absolute/new-capture
+```
+
+Match any additional game/compiler overrides to the execution being investigated.
+Native mode requires CDP sampling and long monitoring off, and captures modules
+from all isolates after measurement automatically. Allow roughly 1 GB for a
+capture. Output paths must not contain whitespace.
+
+This currently supports Linux x86-64 and **V8 15.3.76.13**. The sampler uses
+`perf_event_open` directly for userspace task-clock samples, with a 1 ms CPU
+period. It does not require the `perf` executable or per-instruction guest
+counters. It samples renderer threads present at the start and records new or
+missing threads at completion. Lost records, kernel sampling throttling, or
+partial setup fail the capture. The guest worker is identified by samples in
+generated guest functions, not by a thread name or the busiest thread alone.
+
+V8's `--perf-prof` supplies timestamped native code loads and bytes. After
+sampling stops, the browser's parent reads live `WasmCode` metadata through
+`/proc/PID/mem`, before any Debugger attachment. The version-specific adapter
+checks function index, tier, object layout, native bytes/hash and a second read.
+It preserves raw source tables and V8 inline-function metadata. Unsupported V8
+versions fail before guest startup; updating the version string alone is not a
+validated port. Host ptrace/perf policy must permit these reads/events.
+
+The installed Chrome does not export WASM line tables through
+`--perf-prof-annotate-wasm`; supplying a source map alone did not make it do so.
+The offline join therefore uses V8's live tables directly:
+
+```text
+userspace CPU sample + timestamp
+  → V8 code load/version + native offset + matching bytes
+  → V8 source position + inlined function ID
+  → WASM function/body offset
+      → generated ARM/Thumb PC and lowering category
+      → C/C++ file, line and column
+```
+
+Outputs include:
+
+- `native-samples.json`: CPU samples, event configuration and loss/coverage audit.
+- `jit-*.dump`, `native-metadata.json`, `native-*.bin`: actual code versions,
+  hashes, source positions, inlinees and registered trapping offsets.
+- `runtime.wasm.map`, `runtime-source-map.json`, captured `*-module-*.wasm`:
+  matching source inputs. The analyzer checks the runtime's capture hash.
+- `native-attribution.json`: selected-worker totals, native functions and hot
+  instruction offsets, with exact ARM/C++ locations when available.
+- `native-*.annotated.asm`: native disassembly with sample counts and source
+  anchors. Empty source fields remain empty.
+- `source-maps/*.wasm.map` and `*.arm.txt`: standard version-3 source maps and
+  guest-PC pseudo-sources exported from the embedded provenance. They are
+  offline artifacts, not automatically installed DevTools breakpoints.
+
+**Coverage is sparse.** Optimized V8 retains selected call/trap source anchors;
+ordinary arithmetic often has no source position. Registered trapping operations
+can inherit their source anchor; the analyzer never extends a line label across
+arbitrary native instructions. Missing positions, uncaptured code versions and
+samples outside JIT code remain explicit. The snapshot selects the 160 hottest
+WASM versions; a retired version may no longer have live metadata. Address reuse
+is matched against sample timestamps, and unsupported JIT movement is rejected.
+C++ self samples can include inlined C++ callees. There are no inclusive stacks
+or instruction-latency estimates in this native report. CPU timer samples may
+land after the operation responsible for a stall; a hot branch is not proof of
+branch misprediction. Report these diagnostics separately from throughput.
+
+Validation commands:
+
+```sh
+node --test src/tests/wasm/native-profile.test.mjs
+python3 -m unittest discover -s src/tests/benchmark -p test_native_attribution.py
+node src/tests/wasm/native-profile-browser-check.mjs /absolute/new-probe-output
+```
+
+The browser check executes a loop through natural tiering and verifies that
+native trapping loads resolve to the exact WASM load opcode. `test_source_maps`
+checks metadata relocation through state caching/pruning. The investigation also
+includes the full AOT suite and an exact gameplay image/audio/progress replay.
+
+The adapter follows V8's [position table encoding](https://chromium.googlesource.com/v8/v8/+/15.3.76.13/src/codegen/source-position-table.h),
+[WasmCode metadata](https://chromium.googlesource.com/v8/v8/+/15.3.76.13/src/wasm/wasm-code-manager.h)
+and [Linux profiling support](https://v8.dev/docs/linux-perf).
+
 ## Timing and experiment decisions
 
 For throughput, repeat the same command with sampling **0** and

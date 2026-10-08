@@ -77,5 +77,9 @@ set_target_properties(eka2l1_wasm PROPERTIES
     OUTPUT_NAME "eka2l1"
     SUFFIX ".html")
 
+if(EKA2L1_WASM_CPP_SOURCE_MAPS)
+    target_link_options(eka2l1_wasm PRIVATE "SHELL:-gsource-map")
+endif()
+
 configure_file(audio.js audio.js COPYONLY)
 configure_file(audio-worklet.js audio-worklet.js COPYONLY)

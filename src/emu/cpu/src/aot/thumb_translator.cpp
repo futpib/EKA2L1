@@ -88,6 +88,7 @@ namespace eka2l1::arm::aot {
     struct emit {
         std::vector<std::uint8_t> &b;
         state_local_cache cache;
+        source_emission source;
         bool direct_memory = false;
         static constexpr unsigned ADDRESS = 7, VALUE = 8, HOST = 9, ENTRY = 10, SPAN_HOST = 11;
         static constexpr unsigned M=12;
@@ -105,7 +106,7 @@ namespace eka2l1::arm::aot {
         // as instructions.
         std::uint32_t bail_count = 0;
 
-        void op(std::uint8_t o) { b.push_back(o); }
+        void op(std::uint8_t o) { source.mark(b.size()); b.push_back(o); }
         void state_ptr() { op(op_local_get); leb(b, 0); }
         void get_local(std::uint32_t i) { op(op_local_get); leb(b, i); }
         void set_local(std::uint32_t i) { op(op_local_set); leb(b, i); }
@@ -113,11 +114,13 @@ namespace eka2l1::arm::aot {
         void i32_const(std::int32_t v) { op(op_i32_const); sleb(b, v); }
 
         void load_i32(std::uint32_t offset) {
+            source_scope provenance(source, source_kind::state);
             if (cache.accepts(offset)) { get_local(cache.local(offset)); return; }
             state_ptr();
             op(op_i32_load); leb(b, 2); leb(b, offset);
         }
         void store_i32(std::uint32_t offset, std::uint32_t local) {
+            source_scope provenance(source, source_kind::state);
             if (cache.accepts(offset)) {
                 get_local(local); set_local(cache.local(offset)); cache.written.insert(offset); return;
             }
@@ -126,6 +129,7 @@ namespace eka2l1::arm::aot {
             op(op_i32_store); leb(b, 2); leb(b, offset);
         }
         void store_i32_const(std::uint32_t offset, std::int32_t val) {
+            source_scope provenance(source, source_kind::state);
             if (cache.accepts(offset)) {
                 i32_const(val); set_local(cache.local(offset)); cache.written.insert(offset); return;
             }
@@ -168,6 +172,7 @@ namespace eka2l1::arm::aot {
 
         // Call imported function (index relative to imports)
         void slow_call(std::uint32_t func_idx) {
+            source_scope provenance(source, source_kind::helper);
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
             cache.barrier_at(b.size(), true);
@@ -307,6 +312,7 @@ namespace eka2l1::arm::aot {
             census_store(&exit_census::last_opcode,census_opcode);
         }
         void ret(unsigned why=exit_census::control) {
+            source_scope provenance(source, source_kind::dispatch);
             census_exit(why); cache.barrier_at(b.size()); op(op_return); }
 
         // Bail: set PC, return instruction count (normal control flow exit)
@@ -711,6 +717,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t DTMP1 = 9;
 
         emit w{result.body};
+        w.source.marks = &result.sources;
         w.direct_memory = direct_memory;
         w.cache.enabled = bounded && cache_registers;
         // Keep repeated PC, budget, endian and TLB accesses in locals. Slow
@@ -859,6 +866,7 @@ namespace eka2l1::arm::aot {
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
             w.census_pc=insn_addr|1;w.census_opcode=insn;
+            w.source.pc = insn_addr | 1; w.source.kind = source_kind::guest;
 
             // Close any forward-target blocks whose end is at this address.
             // Emitting `end` here means: the instruction we're about to emit

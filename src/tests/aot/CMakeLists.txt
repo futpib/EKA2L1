@@ -4,6 +4,11 @@ target_include_directories(test_wasm_cost PRIVATE ../../emu/cpu/include)
 add_executable(test_state_liveness test_state_liveness.cpp ../../emu/cpu/src/aot/state_liveness.cpp)
 target_include_directories(test_state_liveness PRIVATE ../../emu/cpu/include)
 
+add_executable(test_source_maps test_source_maps.cpp
+    ../../emu/cpu/src/aot/wasm_emitter.cpp ../../emu/cpu/src/aot/state_liveness.cpp)
+target_include_directories(test_source_maps PRIVATE ../../emu/cpu/include ../../emu/common/include)
+target_compile_definitions(test_source_maps PRIVATE EKA2L1_AOT_SOURCE_MAPS=1)
+
 if(EMSCRIPTEN)
     add_executable(test_aot_wasm test_aot_wasm.cpp)
     target_link_libraries(test_aot_wasm PRIVATE cpu epocmem config)

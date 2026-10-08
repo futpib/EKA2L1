@@ -7,6 +7,7 @@ import puppeteer from 'puppeteer';
 import {startServer, buildDir, compilerDefaults, rejectRetiredCompilerOptions} from './server.ts';
 import {ChromeTrace, summarizeProfile, labelGuestProfile} from './chrome-profiler.ts';
 import {sampleCpuTime, cpuTimeDelta} from './cpu-time.ts';
+import {startNativeProfile, snapshotNativeMetadata, supportedV8} from './native-profile.mjs';
 
 const [assetArg, outputArg, modeArg = '0', samplingArg = '1', endArg = '25000000'] = process.argv.slice(2);
 const frameArg = '100000', inputArg = process.env.EKA2L1_PROFILE_INPUT || fileURLToPath(new URL('../benchmark/snakes.input', import.meta.url)), startArg = process.env.EKA2L1_PROFILE_START_US || '21000000';
@@ -100,18 +101,31 @@ const loaderHash = hash(fs.readFileSync(path.join(buildDir, 'eka2l1.js')));
 const inputHash = hash(fs.readFileSync(input));
 const gitHead = execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
 const dirtyWorktree = !!execFileSync('git', ['status', '--porcelain'], {encoding: 'utf8'}).trim();
+const nativeSampling = process.env.EKA2L1_NATIVE_PROFILE === '1';
+if (nativeSampling && (sampling || monitor)) throw Error('Native profiling requires CDP sampling and monitoring off');
+if (nativeSampling && /\s/.test(output)) throw Error('Native profile output path must not contain whitespace');
+const v8Flags = [process.env.EKA2L1_V8_FLAGS || '', ...(nativeSampling ? ['--perf-prof', `--perf-prof-path=${output}`, `--logfile=${output}/v8.log`] : [])].join(' ').trim();
 fs.mkdirSync(output); // Refuse to mix captures from different runs.
-fs.writeFileSync(path.join(output, 'v8-flags.json'), JSON.stringify({flags: process.env.EKA2L1_V8_FLAGS || ''}));
+fs.writeFileSync(path.join(output, 'v8-flags.json'), JSON.stringify({flags: v8Flags}));
+if (nativeSampling) {
+  const mapFile = path.join(buildDir, 'eka2l1.wasm.map');
+  if (!fs.existsSync(mapFile)) throw Error('Native attribution requires EKA2L1_WASM_CPP_SOURCE_MAPS=ON');
+  const sourceMap = fs.readFileSync(mapFile);
+  fs.writeFileSync(path.join(output, 'runtime.wasm.map'), sourceMap);
+  fs.writeFileSync(path.join(output, 'runtime-source-map.json'), JSON.stringify({wasm_sha256: wasmHash, map_sha256: hash(sourceMap), map_directory: buildDir}));
+}
 const files: Record<string,string> = {'/preload/input': input};
 for (const name of Object.keys(expected)) files[`/preload/${name}`] = path.join(assets, name);
 const {server, port} = await startServer(0, files);
 const log = fs.createWriteStream(path.join(output, 'browser.log'));
+let nativeSampler;
 let browser;
 let trace: ChromeTrace | undefined;
 let traceReport: Awaited<ReturnType<ChromeTrace['stop']>> = null;
 const terminate = async () => {
   fs.writeFileSync(path.join(output, 'incomplete.json'), JSON.stringify({reason: 'interrupted'}));
   await trace?.stop().catch(error => log.write(`Trace cleanup: ${error}\n`));
+  await nativeSampler?.abort();
   await browser?.close();
   server.close();
   log.end();
@@ -125,9 +139,12 @@ try {
     headless: true,
     protocolTimeout: 1800000,
     dumpio: process.env.EKA2L1_V8_DUMP === '1',
-    args: [...(process.env.EKA2L1_V8_FLAGS ? [`--js-flags=${process.env.EKA2L1_V8_FLAGS}`] : []), '--no-sandbox', '--disable-dev-shm-usage', '--use-gl=angle', ...(hardwareGpu ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']), '--disable-background-timer-throttling'],
+    args: [...(v8Flags ? [`--js-flags=${v8Flags}`] : []), '--no-sandbox', '--disable-dev-shm-usage', '--use-gl=angle', ...(hardwareGpu ? ['--use-angle=vulkan', '--enable-features=Vulkan', '--enable-gpu', '--ignore-gpu-blocklist'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']), '--disable-background-timer-throttling'],
   });
   const system = await browser.target().createCDPSession();
+  const nativeVersion = nativeSampling ? await system.send('Browser.getVersion') : null;
+  if (nativeSampling && nativeVersion.jsVersion !== supportedV8)
+    throw Error(`Native profiling supports V8 ${supportedV8}; validate the adapter for ${nativeVersion.jsVersion} first`);
   if (traceScope !== 'off') trace = new ChromeTrace(system, path.join(output, 'trace.json'));
   if (traceScope === 'run') await trace!.start(false);
   const gpuInfo = await system.send('SystemInfo.getInfo');
@@ -294,6 +311,9 @@ try {
   }));
   const memoryBefore = await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;});
   const cpuBefore = await sampleCpuTime(system);
+  if (nativeSampling) {
+    nativeSampler = await startNativeProfile(output, cpuBefore.processes.filter(p => p.type === 'renderer').map(p => p.id), nativeVersion);
+  }
   await page.evaluate(() => {
     performance.mark('eka2l1:measurement-start');
     (window as any).Module._eka2l1_profile_resume();
@@ -340,7 +360,9 @@ try {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   } else await waitPhase(3);
+  if (nativeSampler) await nativeSampler.stop();
   const cpuAfter = await sampleCpuTime(system);
+  if (nativeSampling) console.log('Native metadata', snapshotNativeMetadata(output, nativeVersion));
   const memoryAfter = await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;});
   const memoryWork = memoryBefore && memoryAfter ? Object.fromEntries(['rebuilds','direct_rebuilds'].map(key=>[key,memoryAfter[key]-memoryBefore[key]])) : null;
   const cpuTime = cpuTimeDelta(cpuBefore, cpuAfter);
@@ -384,7 +406,7 @@ try {
     captureWorker = ranked[0].name;
     fs.writeFileSync(path.join(output, 'capture-worker.json'), JSON.stringify({selected: captureWorker, ranked}));
   }
-  for (const {client,name} of clients.filter(c => c.name === captureWorker)) {
+  for (const {client,name} of clients.filter(c => nativeSampling || captureWorker === 'all' || c.name === captureWorker)) {
     // Attach only after CPU sampling/timing have stopped: debugger attachment
     // can change WASM tiering. Capture actual compiled modules through CDP,
     // without wrapping WebAssembly.Module or adding execution instrumentation.
@@ -433,7 +455,7 @@ try {
   if (failures.length) throw new Error(failures.join('\n'));
 
   fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({entry_budget: await page.evaluate(() => (globalThis as any).entryBudgetActual), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
-    purpose: sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
+    purpose: nativeSampling || sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
     cpu_time: cpuTime,
     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,
     shared_audio: sharedAudio, guest_profile_stride: guestProfile, exit_census:exitCensus, monitor, monitor_cpu_start_us: monitorCpuStart, sampling, sample_interval_us: sampleInterval, isolates: clients.length, assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash,
@@ -457,6 +479,7 @@ try {
   process.removeListener('SIGTERM', terminate);
   process.removeListener('SIGINT', terminate);
   await trace?.stop().catch(error => log.write(`Trace cleanup: ${error}\n`));
+  await nativeSampler?.abort();
   await browser?.close();
   server.close();
   log.end();

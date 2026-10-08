@@ -169,6 +169,7 @@ namespace eka2l1::arm::aot {
             emit_section(module, 7, sec);
         }
 
+        std::vector<std::uint32_t> local_prefixes;
         // === Section 10: Code ===
         {
             std::vector<std::uint8_t> sec;
@@ -206,6 +207,7 @@ namespace eka2l1::arm::aot {
 
                 // Body bytecode
                 const auto bytecode_start = body.size();
+                local_prefixes.push_back(static_cast<std::uint32_t>(bytecode_start));
                 body.insert(body.end(), func.body.begin(), func.body.end());
                 if (index < num_funcs) for (auto [offset, target] : outlined_indices[index]) {
                     for (unsigned n = 0; n < 5; ++n) {
@@ -238,6 +240,28 @@ namespace eka2l1::arm::aot {
             emit_section(custom, 1, names); // function-name subsection
             emit_section(module, 0, custom);
         }
+#ifdef EKA2L1_AOT_SOURCE_MAPS
+        // Non-executable provenance. Offsets are relative to each function's
+        // body, including local declarations, as in V8 Wasm source positions.
+        {
+            std::vector<std::uint8_t> custom;
+            emit_str(custom, "eka2l1.sources");
+            leb128(custom, 1);
+            leb128(custom, num_definitions);
+            for (std::uint32_t i = 0; i < num_definitions; ++i) {
+                const auto &func = *definitions[i];
+                leb128(custom, num_imports + i);
+                leb128(custom, static_cast<std::uint32_t>(func.sources.size()));
+                for (const auto &mark : func.sources) {
+                    if (mark.offset > func.body.size()) return {};
+                    leb128(custom, mark.offset + local_prefixes[i]);
+                    leb128(custom, mark.pc);
+                    leb128(custom, static_cast<std::uint32_t>(mark.kind));
+                }
+            }
+            emit_section(module, 0, custom);
+        }
+#endif
         return module;
     }
 }

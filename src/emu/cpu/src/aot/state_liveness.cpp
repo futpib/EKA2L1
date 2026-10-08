@@ -296,8 +296,10 @@ namespace eka2l1::arm::aot {
         for (auto &call : function.outlined_calls) call.call_offset = relocate(call.call_offset);
         // All decisions and call relocations are complete. Compact the original
         // buffer in place instead of allocating and copying a second body.
+        source_marks sources;
         std::size_t previous = 0, written = 0;
         const auto append = [&](std::size_t end) {
+            copy_source_marks(function.sources, previous, end, written, sources);
             const auto size = end - previous;
             if (size) std::memmove(function.body.data() + written, function.body.data() + previous, size);
             written += size;
@@ -308,6 +310,7 @@ namespace eka2l1::arm::aot {
         }
         append(function.body.size());
         function.body.resize(written);
+        function.sources = std::move(sources);
         return true;
     }
 

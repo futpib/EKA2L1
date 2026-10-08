@@ -24,13 +24,21 @@ namespace eka2l1::arm::aot {
     template<class W> void finish_memory_locals(W &w) {
         if (!w.direct_memory_used) return;
         auto body=std::move(w.b);w.b.clear();
+        auto *marks = w.source.marks; w.source.marks = nullptr;
         direct_memory_setup(w);
         w.cache.reload_suffix=std::move(w.b);w.b=std::move(body);
-        if (!w.cache.enabled)
+        w.source.marks = marks;
+        if (!w.cache.enabled) {
+            if (marks && !marks->empty()) {
+                for (auto &mark : *marks) mark.offset += w.cache.reload_suffix.size();
+                marks->insert(marks->begin(), {0, 0, source_kind::memory_check});
+            }
             w.b.insert(w.b.begin(),w.cache.reload_suffix.begin(),w.cache.reload_suffix.end());
+        }
     }
 
     template<class W> void direct_host(W &w,unsigned address,unsigned bytes,bool write,unsigned alignment) {
+        source_scope provenance(w.source, source_kind::memory_check);
         w.direct_memory_used=true;
         auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
         auto load=[&](unsigned off){w.op(op_i32_load);imm(2);imm(off);};
@@ -77,9 +85,11 @@ namespace eka2l1::arm::aot {
     // HOST and testing it again. Failed lookups converge on one unchanged slow
     // path. Both success and failure remove executed operations in ARM/Thumb.
     template<class W, class Slow> void direct_access(W &w, unsigned bytes, bool write, Slow slow) {
+        source_scope provenance(w.source, source_kind::memory_check);
         w.direct_memory_used=true;
         auto imm=[&](unsigned v){state_local_cache::leb(w.b,v);};
         auto access=[&] {
+            source_scope access_provenance(w.source, source_kind::guest_memory);
             if(write) w.get_local(W::VALUE);
             guest_memory_op(w,write ? (bytes==4?op_i32_store:bytes==2?op_i32_store16:op_i32_store8)
                 : (bytes==4?op_i32_load:bytes==2?op_i32_load16_u:op_i32_load8_u),bytes==4?2:bytes==2?1:0);

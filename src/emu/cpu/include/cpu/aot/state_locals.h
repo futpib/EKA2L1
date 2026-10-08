@@ -70,6 +70,7 @@ namespace eka2l1::arm::aot {
             if (!enabled) return;
 
             std::vector<std::uint8_t> body;
+            source_marks sources;
             std::vector<state_transfer> transfers;
             std::vector<std::uint8_t> reload, flush;
             std::vector<state_transfer> reload_transfers, flush_transfers;
@@ -88,6 +89,11 @@ namespace eka2l1::arm::aot {
                 const auto &code = load ? reload : flush;
                 const auto &tags = load ? reload_transfers : flush_transfers;
                 const auto start = body.size();
+                if (!function.sources.empty()) {
+                    sources.push_back({static_cast<std::uint32_t>(start), 0, source_kind::state});
+                    if (load && !reload_suffix.empty())
+                        sources.push_back({static_cast<std::uint32_t>(start + code.size() - reload_suffix.size()), 0, source_kind::memory_check});
+                }
                 body.insert(body.end(), code.begin(), code.end());
                 for (auto tag : tags) {
                     tag.begin += start; tag.end += start;
@@ -107,11 +113,13 @@ namespace eka2l1::arm::aot {
             }
             std::size_t previous = 0;
             for (const auto &point : barriers) {
+                copy_source_marks(function.sources, previous, point.position, body.size(), sources);
                 body.insert(body.end(), function.body.begin() + previous,
                     function.body.begin() + point.position);
                 append_transfer(point.reload);
                 previous = point.position;
             }
+            copy_source_marks(function.sources, previous, function.body.size(), body.size(), sources);
             body.insert(body.end(), function.body.begin() + previous, function.body.end());
             if (shared_return) {
                 body.push_back(op_end);
@@ -119,6 +127,7 @@ namespace eka2l1::arm::aot {
                 body.push_back(op_return);
             }
             function.body = std::move(body);
+            function.sources = std::move(sources);
             function.num_locals += static_cast<std::uint32_t>(locals.size());
             if (prune) prune_state_transfers(function, transfers, first_local,
                 static_cast<std::uint32_t>(locals.size()));

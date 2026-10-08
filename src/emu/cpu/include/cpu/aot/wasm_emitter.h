@@ -143,6 +143,50 @@ namespace eka2l1::arm::aot {
         type_void = 0x40,
     };
 
+    enum class source_kind : std::uint32_t {
+        unknown, guest, state, memory_check, guest_memory, accounting, dispatch, helper
+    };
+    struct source_mark {
+        std::uint32_t offset, pc;
+        source_kind kind;
+    };
+    using source_marks = std::vector<source_mark>;
+
+    // Copy byte-range provenance through insertion, outlining and deletion.
+    inline void copy_source_marks(const source_marks &from, std::size_t begin,
+        std::size_t end, std::size_t destination, source_marks &to) {
+        if (begin == end || from.empty()) return;
+        source_mark active{0, 0, source_kind::unknown};
+        for (const auto &mark : from) {
+            if (mark.offset <= begin) active = mark;
+            else break;
+        }
+        active.offset = static_cast<std::uint32_t>(destination);
+        to.push_back(active);
+        for (auto mark : from) if (mark.offset > begin && mark.offset < end) {
+            mark.offset = static_cast<std::uint32_t>(destination + mark.offset - begin);
+            to.push_back(mark);
+        }
+    }
+    struct source_emission {
+        source_marks *marks = nullptr;
+        std::uint32_t pc = 0;
+        source_kind kind = source_kind::unknown;
+        void mark(std::size_t offset) const {
+#ifdef EKA2L1_AOT_SOURCE_MAPS
+            if (marks && (marks->empty() || marks->back().pc != pc || marks->back().kind != kind))
+                marks->push_back({static_cast<std::uint32_t>(offset), pc, kind});
+#endif
+        }
+    };
+    struct source_scope {
+        source_emission &emission;
+        source_kind previous;
+        source_scope(source_emission &value, source_kind kind)
+            : emission(value), previous(value.kind) { emission.kind = kind; }
+        ~source_scope() { emission.kind = previous; }
+    };
+
     // Describes one function to include in the WASM module.
     struct wasm_func_def {
         std::string export_name;              // e.g. "f_80464C14"
@@ -161,6 +205,7 @@ namespace eka2l1::arm::aot {
             std::uint32_t call_offset;
         };
         std::vector<private_call> outlined_calls;
+        source_marks sources;
     };
 
     // Describes an imported function.
