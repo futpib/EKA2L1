@@ -54,7 +54,7 @@ def find_build_processes():
     return busy
 
 
-def wait_for_builds(quiet_after_build=300):
+def wait_for_builds():
     started = time.monotonic()
     observed = {}
     quiet_since = None
@@ -67,7 +67,7 @@ def wait_for_builds(quiet_after_build=300):
             observed.update(busy)
             quiet_since = None
         else:
-            required = quiet_after_build if observed else 1
+            required = 1
             if quiet_since is None:
                 quiet_since = now
                 if observed:
@@ -75,7 +75,7 @@ def wait_for_builds(quiet_after_build=300):
             if now - quiet_since >= required:
                 return dict(waited_seconds=now - started, observed_builds=observed,
                     required_quiet_seconds=required, quiet_seconds=now - quiet_since)
-        time.sleep(5 if observed else 1)
+        time.sleep(1)
 
 
 def validate_clock(report, plan):

@@ -251,7 +251,7 @@
     "extended_restoration_checks": 88
   },
   "active_phase": null,
-  "last_progress_utc": "2026-10-08T00:05:30.281945+00:00",
+  "last_progress_utc": "2026-10-08T00:08:31.120794+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -285,7 +285,7 @@
   "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
   "graduation_cycle": {
     "candidate": "connected-callee-loops",
-    "stage": "original_bound_sky_force_timing",
+    "stage": "original_bound_resuming_after_cooldown_removal",
     "automatic_resume": true,
     "pause_evidence": "/home/claude/.scratch/eka-controlled/graduation-cycle-boundary-stop.json",
     "restoration_checks": 88,
@@ -309,6 +309,9 @@
     "temperature_cooldown_seconds": 0,
     "evidence": "/home/claude/.scratch/eka-controlled/temperature-gate-removal.json",
     "measured_clock_and_throttling_checks": true,
-    "build_contention_checks": true
+    "build_contention_checks": true,
+    "post_build_cooldown_seconds": 0,
+    "build_clear_check_seconds": 1,
+    "controller_sha256": "319cc61be39a18a231c261adc069b5424b8484df714e328db734e612058023af"
   }
 }

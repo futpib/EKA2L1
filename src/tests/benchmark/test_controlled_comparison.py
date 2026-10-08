@@ -10,8 +10,8 @@ from unittest.mock import patch
 from controlled_comparison import replay_input, replay_work, validate_clock, wait_for_builds
 
 
-class BuildSettling(unittest.TestCase):
-    def run_wait(self, activity, **kwargs):
+class BuildReadiness(unittest.TestCase):
+    def run_wait(self, activity):
         clock = [0.0]
         def sleep(seconds):
             clock[0] += seconds
@@ -19,7 +19,7 @@ class BuildSettling(unittest.TestCase):
                 patch('controlled_comparison.time.sleep', side_effect=sleep), \
                 patch('controlled_comparison.find_build_processes', side_effect=lambda: activity(clock[0])), \
                 patch('builtins.print'):
-            return wait_for_builds(**kwargs)
+            return wait_for_builds()
 
     def test_quiet_host_keeps_short_start_check(self):
         result = self.run_wait(lambda now: {})
@@ -27,22 +27,22 @@ class BuildSettling(unittest.TestCase):
         self.assertEqual(result['required_quiet_seconds'], 1)
         self.assertEqual(result['observed_builds'], {})
 
-    def test_observed_build_requires_five_quiet_minutes(self):
+    def test_finished_build_has_no_cooldown(self):
         result = self.run_wait(lambda now: {'100': 'cargo'} if now < 5 else {})
-        self.assertEqual(result['waited_seconds'], 305)
-        self.assertEqual(result['quiet_seconds'], 300)
-        self.assertEqual(result['required_quiet_seconds'], 300)
+        self.assertEqual(result['waited_seconds'], 6)
+        self.assertEqual(result['quiet_seconds'], 1)
+        self.assertEqual(result['required_quiet_seconds'], 1)
 
     def test_new_build_resets_quiet_interval(self):
         def activity(now):
             if now < 5:
                 return {'100': 'cargo'}
-            if 10 <= now < 15:
+            if 6 <= now < 7:
                 return {'200': 'rustc'}
             return {}
-        result = self.run_wait(activity, quiet_after_build=10)
-        self.assertEqual(result['waited_seconds'], 25)
-        self.assertEqual(result['quiet_seconds'], 10)
+        result = self.run_wait(activity)
+        self.assertEqual(result['waited_seconds'], 8)
+        self.assertEqual(result['quiet_seconds'], 1)
         self.assertEqual(result['observed_builds'], {'100': 'cargo', '200': 'rustc'})
 
 

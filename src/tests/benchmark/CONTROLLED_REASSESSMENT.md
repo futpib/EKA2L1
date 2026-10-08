@@ -482,3 +482,14 @@ instruction arrived; it continues without interruption. The current and queued
 launch scripts and the interleaved sweep coordinator have had the temperature
 preflight removed. `temperature-gate-removal.json` records the script backups
 and before/after hashes. No game runtime code changed for this adjustment.
+
+A separate post-build guard then caught a short unrelated `cc1` process and
+started its old 300-second quiet wait. That cooldown is removed too. The
+controller now waits only while a build is active plus a one-second clear
+check. Its 11 focused tests pass, including active-build waiting, immediate
+post-build continuation, a new build interrupting the clear check, and unchanged
+clock/throttling rejection. The running comparison was stopped at this idle
+boundary after nine valid observations, with no active trial. All 88 live host
+restoration checks pass. Those nine observations are retained for the resume;
+`eka-connected-proofs16/remove-build-cooldown-stop.json` and the archived
+controller preserve the exact transition. No measured validity threshold changed.
