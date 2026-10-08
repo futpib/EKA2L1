@@ -180,6 +180,10 @@
     "tlb-plus-last-page": {
       "status": "Not selected; small mixed results",
       "note": "Original TLB plus scalar last-page cache versus TLB alone: Snakes +0.51% CPU throughput, -2.17% native instructions; Sky Force -0.22%, +0.39% native instructions. Each game has 3/4 faster pairs, but Sky Force final pair loses 2.68%; all valid observations are retained. No repeatable material two-game gain is established. Sixteen valid observations and 88 restoration checks pass. Current direct mode bypasses the historical ARM TLB cache path, so this is not an additional measured gain over default mode 2."
+    },
+    "folded-tlb-plus-last-page": {
+      "status": "Historical tradeoff; retain original TLB",
+      "note": "Folded TLB plus scalar last-page cache versus original TLB: Snakes +6.76% CPU throughput and -9.80% native instructions, 4/4 faster; Sky Force -2.17% and +0.88% native instructions, 0/4 faster. All 16 observations and 88 restoration checks pass. The combined caches retain the consistent Sky Force loss and do not justify replacing the current design. Preserve the historical Snakes result; no current-runtime graduation or retired selector restoration."
     }
   }
 }
