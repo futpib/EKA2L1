@@ -17,7 +17,7 @@ Four fresh launches per build per game use ABBA then BAAB order. Snakes covers
 counts and presentation journals match. All valid results, including slower
 pairs, are retained. Percentages are throughput changes, not time reductions.
 
-There are 16 valid observations and 1 retained invalid attempts.
+There are 16 valid observations and 1 retained invalid attempt.
 CPU 7 hosts the guest worker; sibling 15 is reserved. The requested clock is
 3.6 GHz, with measured clock/isolation/throttling/counter checks and no temperature
 gates or cooldowns. The host, placement, platform profile and charging settings
@@ -72,6 +72,16 @@ Another 288 existing call-half boundary cases pass. Partial ROM instruction
 windows and unsupported veneer encodings retain the original emitted body/path.
 Both real 60-frame game replays match reference images, guest progress, audio
 PCM and audio events exactly.
+
+At the conclusion of this stage, the measured literal-veneer build was served
+on LAN. Its served WASM hash matched the timed artifact. Both real game-picker
+paths passed gameplay, input and default-policy checks with NVIDIA rendering;
+their gameplay screenshots were inspected. The existing browser audio failure
+remains, so full live-audio E2E is not claimed.
+
+The subsequent [syscall-stub experiment](ROM_SYSCALL_HANDOFF_RESULTS.md) measures
+both handoff changes together directly against the same original baseline.
+Its percentages must not be added to this stage's results.
 
 Raw builds, plans, commands, observations, profiles and the reproducible candidate
 patch are in `/home/claude/.scratch/eka-rom-leaf-handoffs`. Timing source and build

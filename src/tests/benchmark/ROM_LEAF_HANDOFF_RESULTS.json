@@ -12861,5 +12861,363 @@
       "path": "/home/claude/.scratch/eka-rom-leaf-handoffs/native-shape-harness.patch",
       "sha256": "2b98e6a19b2945bc0183dee3223b57178c6084450b351856a4a1d79e58d4052a"
     }
+  },
+  "deployment": {
+    "checks": {
+      "artifact_passed": true,
+      "gameplay_passed": true,
+      "policy_passed": true,
+      "full_e2e_passed": false,
+      "remaining_failures": [
+        {
+          "game": "sky-force",
+          "check": "non-silent browser audio",
+          "passed": false
+        },
+        {
+          "game": "snakes",
+          "check": "non-silent browser audio",
+          "passed": false
+        }
+      ],
+      "returncode": 1
+    },
+    "service": {
+      "time_utc": "2026-10-08T22:22:25.336467+00:00",
+      "pid": 1494182,
+      "environment": {
+        "EKA2L1_WASM_BUILD_DIR": "/home/claude/.scratch/eka-rom-leaf-handoffs/candidate-build",
+        "EKA2L1_EXECUTION_LIMITS": null,
+        "EKA2L1_PREDICATED_LEAVES": "1",
+        "EKA2L1_LEAF_FEATURES": "224"
+      },
+      "url": "https://claude-laptop.lan:8188/",
+      "wasm_sha256": "285aac3c127d04b1365724452e4ec5abf4f977724e0b29470cb45db6aac696af",
+      "passed": true
+    },
+    "game_picker": {
+      "url": "https://claude-laptop.lan:8188/",
+      "started": "2026-10-08T22:22:25.562Z",
+      "games": [
+        {
+          "id": "sky-force",
+          "launch": {
+            "app": "0xa020d913",
+            "memory": {
+              "mode": 2,
+              "rebuilds": 1,
+              "mapped_pages": 17397,
+              "arena_bytes": 67108864,
+              "direct_pages": 19,
+              "direct_rebuilds": 1
+            },
+            "secure": true,
+            "isolated": true,
+            "policy": {
+              "requested": {
+                "entryBudget": 2,
+                "compiledSvc": 1,
+                "sparseRom": 1,
+                "hotpath": 2,
+                "thumbMemory": 1,
+                "irMode": 17,
+                "codeCompare": 2,
+                "predicatedLeaves": 1,
+                "leafFeatures": 224,
+                "executionLimits": [
+                  512,
+                  32,
+                  8,
+                  512
+                ],
+                "unsafeCode": 3
+              },
+              "applied": true,
+              "observed": {
+                "entryBudget": 2,
+                "sparseRom": 1,
+                "compiledSvc": 1,
+                "hotpath": 2,
+                "thumbMemory": 1,
+                "predicatedLeaves": 1,
+                "leafFeatures": 224,
+                "unsafeCode": 3,
+                "executionLimits": [
+                  512,
+                  32,
+                  8,
+                  512
+                ]
+              }
+            },
+            "assets": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+              "/eka2l1.js": "/eka2l1.js?v=a98b03ef7aba9a41dbef1f0f84fdc20f5814b954bf8d441c841b1e2761a80fc0",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=285aac3c127d04b1365724452e4ec5abf4f977724e0b29470cb45db6aac696af"
+            },
+            "sound": null,
+            "sources": 0,
+            "selectedFiles": [
+              0,
+              0,
+              0
+            ]
+          },
+          "start": {
+            "guestUs": 28069613,
+            "frames": 856,
+            "inputs": 10,
+            "audio": {},
+            "audioDevice": {
+              "state": "running",
+              "time": 0,
+              "received": 1345920,
+              "sink": {
+                "queued": 960,
+                "dropped": 0,
+                "read": 1345920
+              }
+            }
+          },
+          "end": {
+            "guestUs": 52171875,
+            "frames": 1627,
+            "inputs": 16,
+            "audio": {},
+            "audioDevice": {
+              "state": "suspended",
+              "time": 0,
+              "received": 2503680,
+              "sink": {
+                "queued": 480,
+                "dropped": 0,
+                "read": 2503680
+              }
+            }
+          },
+          "hostSeconds": 31.588121432,
+          "realtimeRatio": 0.7630166311689389,
+          "presentationsPerSecond": 24.40790920915439
+        },
+        {
+          "id": "snakes",
+          "launch": {
+            "app": "0x2000730f",
+            "memory": {
+              "mode": 2,
+              "rebuilds": 1,
+              "mapped_pages": 17404,
+              "arena_bytes": 67108864,
+              "direct_pages": 19,
+              "direct_rebuilds": 1
+            },
+            "secure": true,
+            "isolated": true,
+            "policy": {
+              "requested": {
+                "entryBudget": 2,
+                "compiledSvc": 1,
+                "sparseRom": 1,
+                "hotpath": 2,
+                "thumbMemory": 1,
+                "irMode": 17,
+                "codeCompare": 2,
+                "predicatedLeaves": 1,
+                "leafFeatures": 224,
+                "executionLimits": [
+                  512,
+                  32,
+                  8,
+                  512
+                ],
+                "unsafeCode": 3
+              },
+              "applied": true,
+              "observed": {
+                "entryBudget": 2,
+                "sparseRom": 1,
+                "compiledSvc": 1,
+                "hotpath": 2,
+                "thumbMemory": 1,
+                "predicatedLeaves": 1,
+                "leafFeatures": 224,
+                "unsafeCode": 3,
+                "executionLimits": [
+                  512,
+                  32,
+                  8,
+                  512
+                ]
+              }
+            },
+            "assets": {
+              "/preload/rom": "/preload/rom?v=89c2d9fbbdaa94fca5d8bf49eb512cc82abdc17c97372bca77d700f02bb0d490",
+              "/preload/rpkg": "/preload/rpkg?v=58964f3d08a542f01118a7dfb78a34d2e029962b8edb9988381a37994c1c1531",
+              "/preload/sis": "/preload/sis?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/preload/games/snakes": "/preload/games/snakes?v=14d9a40768ae2231ad1905e96bcedefe7ce97b7fc4e610bb924ff8037a6cf82a",
+              "/preload/games/sky-force": "/preload/games/sky-force?v=c3db14b9e3960b8041995a4bb8212bb54f7d18ac94d1c895dc6d9c79d3b25766",
+              "/audio-worklet.js": "/audio-worklet.js?v=411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c",
+              "/audio.js": "/audio.js?v=1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+              "/eka2l1.data": "/eka2l1.data?v=7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+              "/eka2l1.js": "/eka2l1.js?v=a98b03ef7aba9a41dbef1f0f84fdc20f5814b954bf8d441c841b1e2761a80fc0",
+              "/eka2l1.wasm": "/eka2l1.wasm?v=285aac3c127d04b1365724452e4ec5abf4f977724e0b29470cb45db6aac696af"
+            },
+            "sound": null,
+            "sources": 0,
+            "selectedFiles": [
+              0,
+              0,
+              0
+            ]
+          },
+          "start": {
+            "guestUs": 23058190,
+            "frames": 476,
+            "inputs": 20,
+            "audio": {},
+            "audioDevice": {
+              "state": "running",
+              "time": 0,
+              "received": 1106400,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 1106400
+              }
+            }
+          },
+          "end": {
+            "guestUs": 54599103,
+            "frames": 1144,
+            "inputs": 26,
+            "audio": {},
+            "audioDevice": {
+              "state": "suspended",
+              "time": 0,
+              "received": 2620320,
+              "sink": {
+                "queued": 0,
+                "dropped": 0,
+                "read": 2620320
+              }
+            }
+          },
+          "hostSeconds": 31.540084205000007,
+          "realtimeRatio": 1.0000262775138649,
+          "presentationsPerSecond": 21.179398116321543
+        }
+      ],
+      "checks": [
+        {
+          "game": "sky-force",
+          "check": "non-silent browser audio",
+          "passed": false
+        },
+        {
+          "game": "sky-force",
+          "check": "sound toggle returns to muted",
+          "passed": true
+        },
+        {
+          "game": "snakes",
+          "check": "non-silent browser audio",
+          "passed": false
+        },
+        {
+          "game": "snakes",
+          "check": "sound toggle returns to muted",
+          "passed": true
+        }
+      ],
+      "errors": [],
+      "browser": "Chrome/153.0.8010.52",
+      "gpu": {
+        "devices": [
+          {
+            "vendorId": 4318,
+            "deviceId": 8121,
+            "vendorString": "",
+            "deviceString": "",
+            "driverVendor": "NVIDIA",
+            "driverVersion": "610.57.4.0"
+          },
+          {
+            "vendorId": 32902,
+            "deviceId": 39876,
+            "vendorString": "",
+            "deviceString": "",
+            "driverVendor": "",
+            "driverVersion": ""
+          }
+        ],
+        "auxAttributes": {
+          "amdSwitchable": false,
+          "canSupportThreadedTextureMailbox": false,
+          "directRenderingVersion": "",
+          "displayType": "ANGLE_VULKAN",
+          "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_image GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_logic_op GL_ANGLE_memory_object_flags GL_ANGLE_memory_size GL_ANGLE_multi_draw GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_read_only_depth_stencil_feedback_loops GL_ANGLE_relaxed_vertex_attribute_type GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_robust_fragment_shader_output GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_ANGLE_vulkan_image GL_ANGLE_yuv_internal_format GL_ARM_rgba8 GL_ARM_shader_framebuffer_fetch GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_array GL_EXT_EGL_image_external_wrap_modes GL_EXT_EGL_image_storage GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_fragment_shading_rate GL_EXT_fragment_shading_rate_primitive GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_multisample_compatibility GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_semaphore GL_EXT_semaphore_fd GL_EXT_separate_shader_objects GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shadow_samplers GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_lod_bias GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_KHR_debug GL_KHR_robustness GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_paletted_texture GL_OES_copy_image GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_border_clamp GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_vertex_type_10_10_10_2 GL_OVR_multiview GL_OVR_multiview2 GL_QCOM_shading_rate GL_QCOM_texture_lod_bias ",
+          "glImplementationParts": "(gl=egl-angle,angle=vulkan)",
+          "glRenderer": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA Quadro T1000 with Max-Q Design (0x00001FB9)), NVIDIA-610.57.4.0)",
+          "glResetNotificationStrategy": 33362,
+          "glVendor": "Google Inc. (NVIDIA)",
+          "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.1 git hash: ed04c8113c65)",
+          "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_surface_orientation EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_EXT_image_gl_colorspace EGL_KHR_gl_colorspace EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_texture_3D_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_fence_sync EGL_KHR_wait_sync EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_KHR_swap_buffers_with_damage EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANDROID_native_fence_sync EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_IMG_context_priority EGL_KHR_create_context_no_error EGL_EXT_image_dma_buf_import EGL_EXT_image_dma_buf_import_modifiers EGL_KHR_reusable_sync EGL_EXT_buffer_age EGL_KHR_mutable_render_buffer EGL_ANGLE_create_surface_swap_interval EGL_ANGLE_vulkan_image EGL_KHR_partial_update EGL_ANGLE_global_fence_sync EGL_ANGLE_memory_usage_report ",
+          "glWsVendor": "Google Inc. (NVIDIA)",
+          "glWsVersion": "1.5 (ANGLE 2.1.1 git hash: ed04c8113c65)",
+          "hardwareSupportsVulkan": false,
+          "inProcessGpu": false,
+          "initializationTime": 0.553621,
+          "isAsan": false,
+          "isClangCoverage": false,
+          "jpegDecodeAcceleratorSupported": false,
+          "maxMsaaSamples": "8",
+          "optimus": true,
+          "passthroughCmdDecoder": true,
+          "pixelShaderVersion": "3.00",
+          "processCrashCount": 0,
+          "sandboxed": false,
+          "skiaBackendType": "GaneshGL",
+          "subpixelFontRendering": true,
+          "targetCpuBits": 64,
+          "vertexShaderVersion": "3.00",
+          "visibilityCallbackCallCount": 0
+        },
+        "featureStatus": {
+          "2d_canvas": "enabled",
+          "direct_rendering_display_compositor": "disabled_off_ok",
+          "gpu_compositing": "enabled",
+          "multiple_raster_threads": "enabled_on",
+          "opengl": "enabled_on",
+          "rasterization": "enabled",
+          "raw_draw": "disabled_off_ok",
+          "skia_graphite": "disabled_off",
+          "trees_in_viz": "disabled_off",
+          "video_decode": "enabled",
+          "video_encode": "disabled_software",
+          "vulkan": "disabled_off",
+          "webgl": "enabled",
+          "webgpu": "enabled",
+          "webgpu_on_vk_via_gl_interop": "enabled",
+          "webnn": "disabled_off"
+        },
+        "driverBugWorkarounds": [
+          "enable_webgl_timer_query_extensions",
+          "exit_on_context_lost",
+          "disabled_extension_GL_KHR_blend_equation_advanced",
+          "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+        ],
+        "videoDecoding": [],
+        "videoEncoding": []
+      },
+      "passed": false
+    },
+    "scope": "Historical literal-veneer-only stage; subsequent combined syscall results are recorded separately."
   }
 }
