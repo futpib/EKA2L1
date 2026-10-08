@@ -168,7 +168,7 @@
     ]
   },
   "active_phase": null,
-  "last_progress_utc": "2026-10-08T01:59:58.988562+00:00",
+  "last_progress_utc": "2026-10-08T02:07:28.297027+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -202,13 +202,16 @@
   "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
   "graduation_cycle": {
     "candidate": "branch-veneer-fusion",
-    "stage": "current_runtime_validation",
+    "stage": "current_runtime_timing",
     "automatic_resume": true,
     "candidate_directory": "/home/claude/.scratch/eka-branch-current",
     "control_artifact": "/home/claude/.scratch/eka-expanded-current/candidate-build",
     "control_runtime_commit": "21c322713",
     "performance_plan": "/home/claude/.scratch/eka-branch-current/current-plan.json",
-    "completion_marker": "/home/claude/.scratch/eka-controlled/inlining-branch-veneer-fusion-graduation-complete-resume8.json"
+    "completion_marker": "/home/claude/.scratch/eka-controlled/inlining-branch-veneer-fusion-graduation-complete-resume8.json",
+    "candidate_artifact": "/home/claude/.scratch/eka-branch-current/candidate-build",
+    "correctness_evidence": "/home/claude/.scratch/eka-branch-current/correctness.json",
+    "watch_status": "/home/claude/.scratch/eka-branch-current/live-watch.json"
   },
   "launch_policy": {
     "temperature_gate": false,

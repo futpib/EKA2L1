@@ -1,6 +1,6 @@
 # Branch veneers on the graduated forward-leaf runtime
 
-Status: correctness validation at the restored 75/109 historical review boundary.
+Status: controlled two-game timing at the restored 75/109 historical review boundary.
 The live default remains graduated commit `21c322713`.
 
 The frozen historical comparison completes with eight valid observations and
@@ -22,3 +22,18 @@ cover both disabled and enabled feature modes, ordinary and outlined budgets,
 positive/negative/self/in-window targets, flags, caller paths and code aliases.
 Exact replays of both games precede frozen ABBA/BAAB runtime timing. No gain is
 claimed on the current build from the historical percentage alone.
+
+The build and focused suites pass: 12,800 branch-veneer comparisons, 7,680
+literal-veneer comparisons and 17,280 entry-budget comparisons. The current
+configuration API and strict launcher validation now admit only masks 0, 32,
+128 and 160. Launcher-policy tests pass, and both 60-frame replays exactly match
+images, frame records and PCM with explicit feature/predication readback.
+
+The first replay stopped before browser launch because the retired option was
+still rejected by its harness. That failure and pre-API artifact are preserved.
+Fresh correctness and performance harness copies add only mask admission;
+existing archived harnesses and historical plans are unchanged. Both timing
+variants use the same new reporting-harness copy. No temperature or cooldown
+gate is used.
+
+Candidate WASM SHA-256: `21396e0334589c338fa2336a148de1316ab3d9673a2d911b27df01bb9c57e91c`.

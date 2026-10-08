@@ -114,8 +114,8 @@
       "note": "Historical +3.94% Snakes CPU, 4/4 faster pairs, -2.83% native instructions. Recovers the rejected call-prefix regression; current default does not enable that path."
     },
     "branch-veneer-fusion": {
-      "status": "Current-runtime validation",
-      "note": "Historical Snakes +0.76% CPU, -0.20% native instructions, 4/4 faster pairs. Reassessing bit 32 on top of graduated 21c322713 with bound 32 and both games before adoption."
+      "status": "Current-runtime two-game timing",
+      "note": "Current control 21c322713, both at bound 32; candidate adds bit 32 (mask 160). Configuration API/launcher tests, focused interpreter tests and both exact replays pass. Historical +0.76% alone is not a current gain."
     }
   }
 }
