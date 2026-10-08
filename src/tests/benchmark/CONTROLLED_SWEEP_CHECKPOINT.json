@@ -1,10 +1,10 @@
 {
-  "status": "paused_for_graduation",
+  "status": "awaiting_comparison_review",
   "time_utc": "2026-10-07T20:08:30.892915+00:00",
   "reason": "User requested pausing at each winner, graduating it on the current runtime, then automatically resuming until the historical sweep is complete.",
-  "completed_comparisons": 76,
+  "completed_comparisons": 77,
   "total_comparisons": 109,
-  "valid_observations": 608,
+  "valid_observations": 616,
   "expected_observations": 872,
   "invalid_observations": 20,
   "cancelled_waiters": {
@@ -171,7 +171,7 @@
     ]
   },
   "active_phase": null,
-  "last_progress_utc": "2026-10-08T02:52:11.737839+00:00",
+  "last_progress_utc": "2026-10-08T03:42:12.368104+00:00",
   "monitoring": {
     "requested_by_user": true,
     "interval_seconds": 30,
@@ -191,7 +191,8 @@
     "aligned-cache-hash/standard",
     "compact-generated-memory/standard",
     "connected-callee-loops/standard",
-    "guarded-successor-lookup/standard"
+    "guarded-successor-lookup/standard",
+    "expanded-leaf-bound/standard"
   ],
   "configuration_audit": {
     "observations": 558,
@@ -202,7 +203,7 @@
     "limits": "Some legacy fields record a checked setter request rather than a getter; explicit getter assertions were inspected for leaf features, execution limits and memory implementations/cache modes."
   },
   "continuation_error": null,
-  "last_review_utc": "2026-10-07T21:53:48.364461+00:00",
+  "last_review_utc": "2026-10-08T03:42:49.644330+00:00",
   "graduation_cycle": {
     "candidate": "tail-prefix-fusion",
     "stage": "closed_graduated",
@@ -373,7 +374,7 @@
   "active_experiment": null,
   "active_log": null,
   "active_host": null,
-  "review_request": "/home/claude/.scratch/eka-controlled/inlining-tail-prefix-fusion-review-request-resume8.json",
+  "review_request": "/home/claude/.scratch/eka-controlled/inlining-expanded-leaf-bound-review-request-resume8.json",
   "graduation_history": [
     {
       "time_utc": "2026-10-07T18:25:10.826175+00:00",

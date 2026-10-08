@@ -120,6 +120,10 @@
     "tail-prefix-fusion": {
       "status": "Default",
       "note": "Register-only terminal tails as mask 224 at bound 32, preserving full returning leaves. Current Snakes +2.32% CPU, -1.03% native instructions, all pairs faster. Sky Force +0.68% with mixed pairs; no reliable Sky Force gain claimed. Exact measured artifact passes 175 compiler tests and real LAN gameplay; existing host audio failure persists."
+    },
+    "expanded-leaf-bound": {
+      "status": "Current bound already 32",
+      "note": "Historical 16-to-32 expanded-leaf bound: Snakes +1.00% CPU, -0.85% native instructions, all four pairs faster. Browser defaults already select 32 in the separately validated current runtime. This completes historical evidence, not an additional incremental speedup or proof that 32 is optimal."
     }
   }
 }
