@@ -39,7 +39,7 @@ if (process.env.EKA2L1_DIRECT_POLICY !== undefined || process.env.EKA2L1_MEMORY_
 const unsafeCode=Number(unsafeText);
 if(![0,3].includes(unsafeCode))throw Error('Invalid unsafe code mode');
 const leafFeatures=Number(process.env.EKA2L1_LEAF_FEATURES ?? compilerDefaults.leafFeatures);
-if(![0,128].includes(leafFeatures))throw Error('Invalid leaf feature mask');
+if(![0,32,128,160].includes(leafFeatures))throw Error('Invalid leaf feature mask');
 const predicatedLeaves = Number(process.env.EKA2L1_PREDICATED_LEAVES ?? compilerDefaults.predicatedLeaves);
 if(![0,1].includes(predicatedLeaves))throw Error('Invalid leaf predication setting');
 const limitsText = process.env.EKA2L1_EXECUTION_LIMITS ?? compilerDefaults.executionLimits;

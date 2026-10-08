@@ -1,8 +1,8 @@
 # Branch veneers on the graduated forward-leaf runtime
 
-Status: selected for graduation after the current two-game comparison. Broader
-compiler and real LAN validation are pending; the live default remains
-`21c322713` until those checks pass.
+Status: graduated as the browser default and deployed to the LAN UI. The exact
+measured artifact passes real two-game gameplay and policy checks; the existing
+host audio limitation remains documented below.
 
 The frozen historical comparison completes with eight valid observations and
 no invalid attempts: Snakes CPU throughput +0.76%, native instructions -0.20%,
@@ -53,3 +53,25 @@ instruction count is effectively unchanged; these counters do not establish
 that its timing gain comes from fewer executed instructions. The control and
 candidate are different binaries, so the result is not a same-binary attribution
 of feature bit 32 alone. No mechanism beyond the measured result is claimed.
+
+## Graduation and deployment
+
+The broader compiler suite passes 174 tests with zero failures; two existing
+diagnostic-build skips and one known expected failure are unchanged. Both
+launcher-policy tests and the real browser configuration-API smoke test pass.
+The browser, benchmark and profiler now select feature mask 160, combining
+single-branch and literal-PC veneers. The graduated forward-only leaf expansion
+and execution limits `512,32,8,512` remain enabled.
+
+The LAN service serves the exact measured artifact with observed mask 160 and
+limit 32 in both games. Downloaded WASM SHA-256:
+`21396e0334589c338fa2336a148de1316ab3d9673a2d911b27df01bb9c57e91c`.
+Both games advance frames and consume input. Keyboard/touch, launcher, layout
+and visual checks pass on NVIDIA Vulkan; gameplay and mobile screenshots were
+inspected. No browser errors or failed checks outside live audio occur.
+
+Full browser E2E remains false solely because the same pre-existing host audio
+failure persists in both games: AudioContext time stays at zero despite received
+samples. Exact PCM replays pass. This is not reported as a full E2E pass.
+Evidence is in `eka-branch-current/deployment-check.json`, `browser-api.log`,
+`full-compiler-check.json` and `game-picker/report.json`.
