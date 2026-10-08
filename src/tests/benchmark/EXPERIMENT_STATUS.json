@@ -140,6 +140,10 @@
     "sixteen-inline-sites": {
       "status": "Historical result mixed",
       "note": "Historical eight-to-sixteen inline-site cap: Snakes +0.26% CPU throughput, -0.04% native instructions, two faster and two slower pairs (-0.66% to +1.56%). No clear runtime gain; retain the current eight-site cap and do not claim it is globally optimal."
+    },
+    "shorter-region-chain": {
+      "status": "Not selected for promotion",
+      "note": "Historical chain cap 512-to-64 regions: Snakes -1.26% CPU throughput, +0.68% native instructions, only one of four pairs faster. Retain the current 512-region cap; shorter chains do not earn current-runtime promotion."
     }
   }
 }
