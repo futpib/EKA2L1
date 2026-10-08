@@ -72,6 +72,7 @@ namespace eka2l1::arm {
 
         void save_context(thread_context &ctx) override;
         void load_context(const thread_context &ctx) override;
+        void reuse_context(const thread_context &saved) override;
 
         bool is_thumb_mode() override;
 

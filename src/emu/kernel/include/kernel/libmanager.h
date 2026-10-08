@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <kernel/svc_registry.h>
 #include <common/container.h>
 #include <common/types.h>
 
@@ -161,7 +162,7 @@ namespace eka2l1 {
             std::optional<loader::e32img> load_replacement_image(const std::u16string &path, file *original);
 
         public:
-            std::unordered_map<sid, epoc_import_func> svc_funcs_;
+            svc_registry svc_funcs_;
             std::vector<std::u16string> search_paths;
 
             explicit lib_manager(kernel_system *kern, io_system *ios, memory_system *mems);

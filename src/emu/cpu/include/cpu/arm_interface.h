@@ -238,5 +238,12 @@ namespace eka2l1::arm {
         }
 
         virtual std::uint32_t get_num_instruction_executed() = 0;
+
+        // Reuse a snapshot just saved from this core, with no intervening CPU
+        // or snapshot changes. Backends retain their load side effects by default.
+        virtual void reuse_context(const thread_context &saved) {
+            load_context(saved);
+        }
+
     };
 }

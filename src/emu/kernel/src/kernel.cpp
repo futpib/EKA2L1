@@ -45,6 +45,7 @@
 #include <kernel/libmanager.h>
 #include <kernel/guomen_process.h>
 #include <kernel/scheduler.h>
+#include <kernel/svc_handler.h>
 #include <kernel/thread.h>
 #include <loader/romimage.h>
 #include <mem/control.h>
@@ -509,39 +510,22 @@ namespace eka2l1 {
         kern_ver_ = ver;
         lib_mngr_ = std::make_unique<hle::lib_manager>(this, io_, mem_);
 
-        // Set CPU SVC handler
-        cpu_->system_call_handler = [this](const std::uint32_t ordinal) {
-            // crr_thread()->add_last_syscall(ordinal);
-            // 9.1 ROM stubs leave their return address in r12.
-            if ((kern_ver_ == epocver::epoc91) && (ordinal != 0xFF)
-                && is_address_in_rom(cpu_->get_pc())) {
-                const std::uint32_t jump_back = cpu_->get_reg(12);
-                std::uint32_t cpsr = cpu_->get_cpsr() & ~0x20;
-
-                if (jump_back & 0b1) {
-                    cpsr |= 0x20;
-                }
-
-                cpu_->set_pc(jump_back & ~0b1);
-                cpu_->set_cpsr(cpsr);
-            }
-
-            get_lib_manager()->call_svc(ordinal);
-
-            // EKA1 does not use BX LR to jump back, they let kernel do it
-            if (is_eka1()) {
-                const std::uint32_t jump_back = cpu_->get_lr();
-                std::uint32_t cpsr = cpu_->get_cpsr() & ~0x20;
-
-                if (jump_back & 0b1) {
-                    cpsr |= 0x20;
-                }
-
-                // Set pc and ARM/thumb flag
-                cpu_->set_pc(jump_back & ~0b1);
-                cpu_->set_cpsr(cpsr);
-            }
+        // Select the fixed OS return convention when installing the handler.
+        using convention = hle::svc_return_convention;
+        auto install = [this](auto selected) {
+            cpu_->system_call_handler = [this](const std::uint32_t ordinal) {
+                hle::invoke_svc<decltype(selected)::value>(*cpu_, ordinal,
+                    [this](std::uint32_t svc) { get_lib_manager()->call_svc(svc); },
+                    [this](address pc) { return is_address_in_rom(pc); });
+            };
         };
+        if (kern_ver_ == epocver::epoc91) {
+            install(std::integral_constant<convention, convention::epoc91>{});
+        } else if (is_eka1()) {
+            install(std::integral_constant<convention, convention::eka1>{});
+        } else {
+            install(std::integral_constant<convention, convention::direct>{});
+        }
 
         cpu_->exception_handler = [this](arm::exception_type exception_type, const std::uint32_t data) -> bool {
             return cpu_exception_handler(cpu_, exception_type, data);

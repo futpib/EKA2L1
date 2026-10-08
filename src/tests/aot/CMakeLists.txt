@@ -37,3 +37,12 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../benchmark/matched_kernel.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/../benchmark/audio_probe.cmake)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../benchmark/browser_cores/eka_full.cmake)
+
+add_executable(test_svc_dispatch test_svc_dispatch.cpp)
+target_include_directories(test_svc_dispatch PRIVATE
+    ../../emu/kernel/include ../../emu/mem/include
+    ../../emu/common/include ../../emu/utils/include)
+if(EMSCRIPTEN)
+    target_link_options(test_svc_dispatch PRIVATE "SHELL:-s EXIT_RUNTIME=1")
+    set_target_properties(test_svc_dispatch PROPERTIES SUFFIX ".js")
+endif()

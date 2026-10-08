@@ -1358,9 +1358,9 @@ namespace eka2l1::hle {
             return true;
         }
 
-        auto res = svc_funcs_.find(svcnum);
+        const auto *res = svc_funcs_.find(svcnum);
 
-        if (res == svc_funcs_.end()) {
+        if (!res) {
             LOG_ERROR(KERNEL, "Unimplement system call: 0x{:X}!", svcnum);
 
             kern_->unlock();
@@ -1369,10 +1369,10 @@ namespace eka2l1::hle {
 
         // Retain a callable snapshot during invocation, including callbacks
         // that alter registration. The name is needed only before that call.
-        auto func = res->second.func;
+        auto func = res->func;
 
         if (kern_->get_config()->log_svc) {
-            LOG_TRACE(KERNEL, "Calling SVC 0x{:x} {}", svcnum, res->second.name);
+            LOG_TRACE(KERNEL, "Calling SVC 0x{:x} {}", svcnum, res->name);
         }
 
         func(kern_, kern_->crr_process(), kern_->get_cpu());

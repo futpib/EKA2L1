@@ -123,13 +123,8 @@ namespace eka2l1::arm {
     void dyncom_core::save_context(thread_context &ctx) {
         ctx.cpsr = state_->Cpsr;
 
-        for (uint8_t i = 0; i < 16; i++) {
-            ctx.cpu_registers[i] = get_reg(i);
-        }
-
-        for (std::uint8_t i = 0; i < 64; i++) {
-            ctx.fpu_registers[i] = state_->ExtReg[i];
-        }
+        ctx.cpu_registers = state_->Reg;
+        ctx.fpu_registers = state_->ExtReg;
 
         ctx.fpscr = state_->VFP[1];
         ctx.uprw = state_->CP15[CP15_THREAD_UPRW];
@@ -145,18 +140,18 @@ namespace eka2l1::arm {
             clear_instruction_cache();
         }
 
-        for (uint8_t i = 0; i < 16; i++) {
-            state_->Reg[i] = ctx.cpu_registers[i];
-        }
-
-        for (std::uint8_t i = 0; i < 64; i++) {
-            state_->ExtReg[i] = ctx.fpu_registers[i];
-        }
+        state_->Reg = ctx.cpu_registers;
+        state_->ExtReg = ctx.fpu_registers;
 
         set_cpsr(ctx.cpsr);
         state_->CP15[CP15_THREAD_UPRW] = ctx.uprw;
 
         state_->VFP[1] = ctx.fpscr;
+    }
+
+    void dyncom_core::reuse_context(const thread_context &saved) {
+        // Embedded interpreters still require load_context's cache invalidation.
+        if (!asid_instruction_cache_) load_context(saved);
     }
 
     void dyncom_core::set_tlb_page(address vaddr, std::uint8_t *ptr, prot protection) {

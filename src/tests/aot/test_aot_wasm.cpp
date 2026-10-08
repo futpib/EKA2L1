@@ -118,6 +118,44 @@ static std::unique_ptr<dyncom_core> make_cpu(test_mem &mem, r12l1::exclusive_mon
     return core;
 }
 
+static bool test_context_reuse() {
+    unsigned random=0x412aa514,checks=0;
+    auto next=[&](){random^=random<<13;random^=random>>17;random^=random<<5;return random;};
+    for(bool asid:{false,true}) {
+        test_mem mem; r12l1::exclusive_monitor monitor(1);auto cpu=make_cpu(mem,monitor);
+        if(asid)cpu->set_asid(7);
+        for(unsigned sample=0;sample<1024;++sample) {
+            core::thread_context initial{},saved{},after{};
+            for(auto &reg:initial.cpu_registers)reg=next();
+            for(auto &reg:initial.fpu_registers)reg=next();
+            initial.cpsr=next();initial.fpscr=next();initial.uprw=next();
+            cpu->load_context(initial);
+            for(unsigned i=0;i<16;++i)if(cpu->get_reg(i)!=initial.cpu_registers[i])return false;
+            for(unsigned i=0;i<64;++i)if(cpu->get_vfp(i)!=initial.fpu_registers[i])return false;
+            cpu->save_context(saved);
+            if(std::memcmp(&initial,&saved,sizeof(initial)))return false;
+            cpu->reuse_context(saved);cpu->save_context(after);
+            if(std::memcmp(&saved,&after,sizeof(saved)))return false;
+            // Save a changed live core as the scheduler does, including high VFP registers.
+            cpu->set_reg(sample%16,next());cpu->set_vfp(sample%64,next());
+            cpu->set_cpsr(next());cpu->set_fpscr(next());
+            cpu->save_context(saved);cpu->reuse_context(saved);cpu->save_context(after);
+            if(std::memcmp(&saved,&after,sizeof(saved)))return false;
+            ++checks;
+        }
+    }
+    // Without scheduler ASIDs, reuse must still invalidate decoded instructions.
+    test_mem mem;r12l1::exclusive_monitor monitor(1);auto cpu=make_cpu(mem,monitor);
+    core::thread_context ctx{};ctx.cpsr=16;ctx.cpu_registers[15]=0x1000;
+    mem.write32(0x1000,0xe3a00001);cpu->load_context(ctx);cpu->run(1);
+    if(cpu->get_reg(0)!=1)return false;
+    mem.write32(0x1000,0xe3a00002);cpu->set_pc(0x1000);cpu->save_context(ctx);
+    cpu->reuse_context(ctx);cpu->run(1);
+    if(cpu->get_reg(0)!=2){printf(" FAIL embedded context cache invalidation\n");return false;}
+    printf(" PASS context reuse (%u full integer/VFP/status/TLS round trips and embedded cache invalidation)\n",checks);
+    return true;
+}
+
 struct cpu_state {
     std::array<std::uint32_t, 16> regs;
     std::uint32_t nflag, zflag, cflag, vflag;
@@ -6128,6 +6166,7 @@ int main(int argc, char **argv) {
         }
         exit_census::enabled=true;argc=1;
     }
+    if(argc==2 && std::string(argv[1])=="--context-reuse-only")return test_context_reuse()?0:1;
     if(argc==2 && std::string(argv[1])=="--lookup-only") return test_code_cache_lifecycle()?0:1;
     if(argc==2 && std::string(argv[1])=="--exact-code-only") return test_exact_code_compare()?0:1;
     if(argc==2 && std::string(argv[1])=="--division-helper-only")return test_division_helper()?0:1;
@@ -6804,6 +6843,7 @@ int main(int argc, char **argv) {
     if (test_precise_instruction_counts()) passed++; else failed++;
     if (test_compiled_svc_boundary()) passed++; else failed++;
     if (test_arm_clz()) passed++; else failed++;
+    if (test_context_reuse()) passed++; else failed++;
     if (test_division_helper()) passed++; else failed++;
     if (test_pointer_lifetimes()) passed++; else failed++;
 

@@ -71,6 +71,12 @@ namespace eka2l1::kernel {
     }
 
     void thread_scheduler::switch_context(kernel::thread *oldt, kernel::thread *newt) {
+        // Keep the saved snapshot and all scheduling/accounting effects. Only
+        // reuse live CPU state when this path cannot destroy the thread or run
+        // process-switch callbacks between saving and restoring it.
+        const bool reuse = oldt && oldt == newt && core_mmu
+            && crr_process == newt->owning_process() && oldt->get_access_count() > 1;
+
         if (oldt) {
             oldt->real_time_active_end();
             run_core->save_context(oldt->ctx);
@@ -121,7 +127,8 @@ namespace eka2l1::kernel {
                 run_core->set_asid(mm_process->address_space_id());
             }
 
-            run_core->load_context(crr_thread->ctx);
+            if (reuse) run_core->reuse_context(crr_thread->ctx);
+            else run_core->load_context(crr_thread->ctx);
             //LOG_TRACE(KERNEL, "Switched to {}", crr_thread->name());
         } else {
             // No current thread is eligible to run. Let the core that this scheduler currently handle sleeps.
