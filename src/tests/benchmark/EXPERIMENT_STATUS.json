@@ -160,6 +160,10 @@
     "bounded-rom-calls": {
       "status": "Not selected on current runtime",
       "note": "Current-runtime reassessment over 7f5f85273: Snakes -1.45% CPU throughput, Sky Force +0.26%; only 1/4 pairs faster in each game. Sky Force native instructions fall 0.38%, but three of four timing pairs lose and the small positive mean comes from one pair. This does not establish a repeatable Sky Force gain worth the measured Snakes loss. All 16 observations and 88 restoration checks pass. Retain the current deployed runtime; preserve the candidate patch and artifacts."
+    },
+    "allocation-ranges": {
+      "status": "Rejected after controlled reassessment",
+      "note": "Allocation ranges versus historical TLB: Snakes -7.85% CPU throughput and +5.31% native instructions; Sky Force -18.78% and +17.11%. All four pairs lose in each game. Sixteen valid observations, zero invalid attempts, and all 88 restoration checks pass. No current-runtime port or default change is warranted."
     }
   }
 }
