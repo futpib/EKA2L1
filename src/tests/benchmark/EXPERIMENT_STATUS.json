@@ -94,8 +94,8 @@
       "note": "Historical Snakes +8.05% CPU, native instructions -6.81%, 4/4 faster pairs. Current translator already uses the result-block/helper-exit structure; the historical page cache is gone and direct access is the default."
     },
     "connected-callee-loops": {
-      "status": "Budget-preserving adaptation at original bound under validation",
-      "note": "Narrow and full historical adaptations fail current timing. Preserved budget proofs at bound 64: Snakes +2.25% but Sky Force -1.87%, not adopted. Same artifact at existing bound 16 is the remaining comparison; production defaults unchanged."
+      "status": "Original-bound two-game timing in progress",
+      "note": "At bound 64, preserved budgets give Snakes +2.25% / Sky Force -1.87%, not adopted. Same artifact at bound 16: Snakes +2.05%, native instructions -3.31%, 4/4 faster pairs; Sky Force pending. Full WASM suite and both exact replays pass."
     },
     "guarded-successor-lookup": {
       "status": "Not selected for promotion",

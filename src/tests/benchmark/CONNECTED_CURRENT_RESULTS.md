@@ -1,7 +1,7 @@
 # Connected callees on the graduated runtime
 
 Status: the bound-64 budget-preserving candidate improves Snakes but regresses
-Sky Force and is not adopted. The same artifact is being checked at bound 16. The historical sweep is
+Sky Force and is not adopted. The same artifact passes correctness at bound 16 and is undergoing timing. The historical sweep is
 paused at 72/109 comparisons for this graduation cycle. No new default has been
 committed or deployed yet.
 
@@ -140,3 +140,7 @@ XFAIL. At bound 16, both games match their 60-frame images, frame records and PC
 references exactly. Evidence is `eka-connected-proofs16/correctness.json`. The
 controlled comparison uses bound 16 for both control and candidate, retaining all
 previous defaults and validity rules; no rebuild was needed.
+
+The original-bound Snakes comparison completes at +2.05% CPU throughput,
++1.63% wall throughput and -3.31% native instructions, with all four pairs
+faster (1.62% to 2.44%). All eight observations are valid. Sky Force is pending.
