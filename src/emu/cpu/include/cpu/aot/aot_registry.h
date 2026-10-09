@@ -83,7 +83,9 @@ namespace eka2l1::arm::aot {
         __attribute__((always_inline))
 #endif
         aot_func lookup(std::uint32_t arm_address) const {
-            if (arm_address >= rom_base_ && std::uint64_t(arm_address) - rom_base_ < rom_size_) {
+            // Configuration rejects wrapped extents, so one unsigned range
+            // check also excludes addresses below the ROM base.
+            if (arm_address - rom_base_ < rom_size_) {
                 const auto offset = arm_address - rom_base_;
                 const auto &page = rom_pages_[offset >> 12];
                 return page ? (*page)[offset & 4095] : nullptr;

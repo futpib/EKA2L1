@@ -25,7 +25,7 @@ namespace eka2l1::arm::aot {
     // --- registry ---
 
     void registry::index_rom(std::uint32_t address, aot_func function) {
-        if (address < rom_base_ || std::uint64_t(address) - rom_base_ >= rom_size_) return;
+        if (address - rom_base_ >= rom_size_) return;
         const auto offset = address - rom_base_;
         auto &page = rom_pages_[offset >> 12];
         if (!page && function) page = std::make_unique<rom_page>();
