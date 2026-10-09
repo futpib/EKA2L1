@@ -1,3 +1,4 @@
+import {configureWatchdog, watchdogInterval} from './watchdog.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -49,6 +50,9 @@ if (!detailedProfile && guestProfile) throw new Error('Guest profiling requires 
 const hardwareGpu = process.env.EKA2L1_GPU === 'hardware';
 const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
+if (watchdogInterval() && (Number(process.env.EKA2L1_AOT_VERIFY || '0') > 0
+    || aotDiagnostics || detailedProfile || guestProfile || exitCensus))
+  throw Error('Watchdog requires verification and instruction diagnostics off');
 const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
 if (![-1,0,2].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
 const unsafeText=process.env.EKA2L1_UNSAFE_CODE ?? '3';
@@ -157,6 +161,7 @@ try {
   page.on('response', response => {if (response.status() >= 400) failures.push(`HTTP ${response.status()} ${response.url()}`);});
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
+  await page.evaluate(configureWatchdog, watchdogInterval());
   const diagnosticsAvailable = await page.evaluate(() => {
     const m = (window as any).Module;
     return typeof m._eka2l1_diagnostics_available === 'function' ? !!m._eka2l1_diagnostics_available() : null;
@@ -454,7 +459,7 @@ try {
   await page.screenshot({path: path.join(output, 'browser.png')});
   if (failures.length) throw new Error(failures.join('\n'));
 
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({entry_budget: await page.evaluate(() => (globalThis as any).entryBudgetActual), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), entry_budget: await page.evaluate(() => (globalThis as any).entryBudgetActual), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, measurement: measured, warmup_seconds: warmupSeconds,
     purpose: nativeSampling || sampling || monitorCpuStart || traceScope !== 'off' || detailedProfile || guestProfile || aotDiagnostics || monitor || glDiagnostics || !glDiagnosticsSupported || verifyAot || process.env.EKA2L1_COMPILE_CENSUS === '1' ? 'diagnostic' : 'throughput',
     cpu_time: cpuTime,
     chrome_trace: {scope: traceScope, ...traceReport}, diagnostics_available: diagnosticsAvailable,

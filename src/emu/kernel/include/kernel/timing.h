@@ -159,7 +159,7 @@ namespace eka2l1 {
 
         bool deterministic() const { return deterministic_; }
         void advance_instructions(std::uint64_t instructions);
-        bool advance_to_next_event();
+        bool advance_to_next_event(std::uint64_t maximum_delta = UINT64_MAX);
 
         int register_event(const std::string &name, timed_callback callback);
         int get_register_event(const std::string &name);

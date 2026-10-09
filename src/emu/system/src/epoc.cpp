@@ -35,6 +35,7 @@
 
 #include <system/consts.h>
 #include <system/epoc.h>
+#include <cpu/aot/watchdog.h>
 #include <system/hal.h>
 
 #include <utils/panic.h>
@@ -838,12 +839,26 @@ namespace eka2l1 {
 #endif
             }
 
-            to_run->add_ticks(cpu->get_num_instruction_executed());
+            if (!common::benchmark::event_clock) to_run->add_ticks(cpu->get_num_instruction_executed());
         }
 
         if (timing_->deterministic()) {
             common::performance::scope timer_scope(common::performance::timers);
-            if (to_run) timing_->advance_instructions(cpu->get_num_instruction_executed());
+            if (common::benchmark::event_clock) {
+                // Experimental virtual CPU slices: idle jumps to an event;
+                // host preemption charges at most the remaining guest slice.
+                // No elapsed host time is copied into the guest clock.
+                const bool preempted = arm::aot::watchdog::request.exchange(0, std::memory_order_relaxed);
+                if (!to_run || preempted) {
+                    const auto now = timing_->microseconds();
+                    const auto hz = kern_->capped_cpu_hz();
+                    const auto quantum = to_run ? std::max<std::uint64_t>(1,
+                        (std::uint64_t(to_run->get_remaining_screenticks()) * 1000000 + hz - 1) / hz) : UINT64_MAX;
+                    timing_->advance_to_next_event(quantum);
+                    if (to_run) to_run->add_ticks(static_cast<int>(std::min<std::uint64_t>(
+                        to_run->get_remaining_screenticks(), (timing_->microseconds() - now) * hz / 1000000)));
+                }
+            } else if (to_run) timing_->advance_instructions(cpu->get_num_instruction_executed());
             else timing_->advance_to_next_event();
         }
 

@@ -1,3 +1,4 @@
+import {configureWatchdog, watchdogInterval} from './watchdog.ts';
 import http from "node:http";
 import crypto from "node:crypto";
 import { refreshAsset, notModified, assetCacheScript, type Asset } from "./asset-cache.ts";
@@ -62,7 +63,7 @@ autoStart();
 
 export const compilerDefaults = {entryBudget: 2, sparseRom: 1, compiledSvc: 1, thumbMemory: 1, irMode: 17, hotpath: 2, predicatedLeaves: 1, leafFeatures: 224, executionLimits: '512,32,8,512'} as const;
 
-export type CompilerPolicy = { entryBudget?: number; sparseRom?: number; compiledSvc?: number; hotpath?: number; thumbMemory?: number; irMode?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; memoryImpl?: number; executionLimits?: [number,number,number,number] };
+export type CompilerPolicy = { watchdogUs?: number; entryBudget?: number; sparseRom?: number; compiledSvc?: number; hotpath?: number; thumbMemory?: number; irMode?: number; codeCompare?: number; predicatedLeaves?: number; leafFeatures?: number; unsafeCode?: number; memoryImpl?: number; executionLimits?: [number,number,number,number] };
 
 export type LauncherGame = { id: string; title: string; uid: string; sis: string };
 
@@ -101,6 +102,7 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
   if (!/^[01]$/.test(sparseRom)) throw Error('Invalid sparseRom policy');
   if (!/^[02]$/.test(entryBudget)) throw Error('Invalid entry budget policy');
   const policy: CompilerPolicy = {entryBudget: Number(entryBudget), compiledSvc: Number(svc), sparseRom: Number(sparseRom)};
+  if (watchdogInterval()) policy.watchdogUs = watchdogInterval();
   if (!/^[02]$/.test(hotpath)) throw Error('Invalid hotpath policy');
   policy.hotpath = Number(hotpath);
   if (thumb !== undefined) {
@@ -140,9 +142,10 @@ export function compilerPolicyFromEnv(): CompilerPolicy {
 
 function makeCompilerPolicyScript(policy?: CompilerPolicy): string {
   if (!policy) return "";
-  const allowed = ['entryBudget','sparseRom','compiledSvc','hotpath','thumbMemory','irMode','codeCompare','predicatedLeaves','leafFeatures','unsafeCode','memoryImpl','executionLimits'];
+  const allowed = ['watchdogUs','entryBudget','sparseRom','compiledSvc','hotpath','thumbMemory','irMode','codeCompare','predicatedLeaves','leafFeatures','unsafeCode','memoryImpl','executionLimits'];
   if (Object.keys(policy).some(key => !allowed.includes(key))) throw Error('Invalid compiler policy');
-  if ((policy.entryBudget !== undefined && ![0,2].includes(policy.entryBudget))
+  if ((policy.watchdogUs !== undefined && (!Number.isSafeInteger(policy.watchdogUs) || policy.watchdogUs < 1 || policy.watchdogUs > 1000000))
+      || (policy.entryBudget !== undefined && ![0,2].includes(policy.entryBudget))
       || (policy.sparseRom !== undefined && ![0,1].includes(policy.sparseRom))
       || (policy.compiledSvc !== undefined && ![0,1].includes(policy.compiledSvc))
       || (policy.hotpath !== undefined && ![0,2].includes(policy.hotpath))
@@ -162,6 +165,7 @@ window.ekaCompilerPolicy = {requested:${JSON.stringify(policy)}, applied:false};
   startEmulator = async function() {
     const state = window.ekaCompilerPolicy;
     if (!state.applied) {
+      if (state.requested.watchdogUs) await (${configureWatchdog.toString()})(state.requested.watchdogUs);
       for (const [key, entry] of [['entryBudget','eka2l1_entry_budget_configure'], ['sparseRom','eka2l1_sparse_rom_lookup_configure'], ['compiledSvc','eka2l1_compiled_svc_configure'], ['hotpath','eka2l1_hotpath_configure'], ['thumbMemory','eka2l1_thumb_memory_configure'], ['irMode','eka2l1_ir_configure'], ['codeCompare','eka2l1_code_compare_configure'], ['predicatedLeaves','eka2l1_leaf_predication_configure'], ['leafFeatures','eka2l1_leaf_features_configure'], ['unsafeCode','eka2l1_unsafe_code_configure'], ['memoryImpl','eka2l1_memory_impl_configure']]) {
         if (state.requested[key] === undefined) continue;
         if (typeof Module['_' + entry] !== 'function'
@@ -224,6 +228,9 @@ export async function startServer(
       const requestUrl = new URL(req.url || '/', 'http://localhost');
       let urlPath = requestUrl.pathname;
       if (urlPath === '/') urlPath = '/eka2l1.html';
+      if (urlPath === '/watchdog.js') {
+        await sendFile(path.join(__dirname, 'watchdog.js')); return;
+      }
       if (urlPath === '/favicon.ico') {
         const icon = path.resolve(__dirname, '../../emu/qt/duck_tank.ico');
         if (!fs.existsSync(icon)) { res.writeHead(204).end(); return; }

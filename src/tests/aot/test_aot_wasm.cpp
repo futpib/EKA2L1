@@ -6377,6 +6377,8 @@ static bool test_memory_implementations() {
 
 #include "test_region_fusion.inc"
 
+#include "test_watchdog.inc"
+
 int main(int argc, char **argv) {
     // Production module staging logs its result; standalone tests have no sink.
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
@@ -6408,6 +6410,8 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--emit-lifetime-probes") {emit_lifetime_probes();return 0;}
     if(argc==2 && std::string(argv[1])=="--emit-memory-probes") {emit_memory_probes();return 0;}
 #endif
+    if(argc==2 && std::string(argv[1])=="--watchdog-kernels") return benchmark_watchdog_kernels()?0:1;
+    if(argc==2 && std::string(argv[1])=="--watchdog-only") return test_watchdog()?0:1;
     if(argc==2 && std::string(argv[1])=="--shared-spans-only")return test_thumb_transfer_spans()
         && test_thumb_direct_memory() && test_invariant_reads(arm_ir_policy::write_budget_chunks)
         && test_invariant_writes(arm_ir_policy::write_budget_chunks) && test_block_transfer_callback_pc()?0:1;

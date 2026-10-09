@@ -22,6 +22,12 @@ namespace eka2l1::common {
                 start_us_ = std::strtoull(start, nullptr, 10);
             if (const char *unique = std::getenv("EKA2L1_BENCHMARK_UNIQUE"))
                 unique_ = std::strcmp(unique, "1") == 0;
+            if (const char *path = std::getenv("EKA2L1_BENCHMARK_START_FRAME")) {
+                std::ifstream input(path, std::ios::binary);
+                if (!input) throw std::runtime_error("Cannot read benchmark start frame");
+                start_pixels_.assign(std::istreambuf_iterator<char>(input), {});
+                if (start_pixels_.empty()) throw std::runtime_error("Empty benchmark start frame");
+            }
             if (total_frames_ <= 0 || total_frames_ > 100000)
                 throw std::runtime_error("Benchmark frame count must be 1..100000");
             for (int i = 0; i < total_frames_; ++i) fib_indices_.push_back(i);
@@ -76,6 +82,16 @@ namespace eka2l1::common {
 
         // Don't start counting until we see a contentful frame
         if (!started_) {
+            if (!start_pixels_.empty()) {
+                if (start_pixels_.size() != static_cast<std::size_t>(width) * height * 4)
+                    throw std::runtime_error("Benchmark start-frame dimensions differ");
+                // Reference pixels are top-down RGBA; compare RGB because FBO
+                // alpha is normalized to 255 in exported captures below.
+                for (int y = 0; y < height; ++y) for (int x = 0; x < width; ++x)
+                    if (std::memcmp(rgba_data + ((height - 1 - y) * width + x) * 4,
+                            start_pixels_.data() + (y * width + x) * 4, 3)) return false;
+                start_pixels_.clear();
+            }
             if (!is_contentful(rgba_data, width, height)) {
                 return false;
             }

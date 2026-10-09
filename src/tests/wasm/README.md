@@ -39,6 +39,14 @@ The existing HTTPS host/certificate and compiler-policy environment variables
 still apply; see [LAN setup](../benchmark/REALTIME_PLAYABILITY.md#lan-https-launcher).
 The local launcher is at <https://claude-laptop.lan:8188/>.
 
+`EKA2L1_WATCHDOG_US=2000` enables the experimental count-free CPU runner and
+virtual event clock. A separate worker requests yields every 2 ms of host time;
+statically proved finite regions finish without polling. This preserves unpaced
+execution but changes guest timing. It is disabled by default and incompatible
+with instruction verification/diagnostics. See [watchdog results and limitations](../benchmark/WATCHDOG_RESULTS.md).
+For output-based benchmark comparisons, `EKA2L1_BENCHMARK_START_FRAME=/path/to/frame.png`
+makes `benchmark.ts` wait for that exact image before capturing its frame sequence.
+
 Memory translation defaults to direct memory (mode 2) in WASM play. Set
 `EKA2L1_MEMORY_IMPL=0` before starting the launcher to use the original-index
 512-entry TLB. `EKA2L1_TLB_HASH` and `EKA2L1_MEMORY_CACHE` are retired

@@ -31,6 +31,7 @@
 #include <drivers/audio/clocked.h>
 #include <common/deterministic.h>
 #include <system/deterministic.h>
+#include <cpu/aot/watchdog.h>
 #include <cpu/dyncom/arm_dyncom_interpreter.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/memory_experiment.h>
@@ -185,6 +186,7 @@ int eka2l1_graphics_diagnostics_configure(int enabled) {
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_aot_configure(int enabled, int verify, int diagnostics) {
     if (g_state || (enabled < 0 || enabled > 5) || verify < 0) return -1;
+    if ((verify || diagnostics) && eka2l1::arm::aot::watchdog::enabled) return -2;
     if (diagnostics && !common::diagnostics::available) return -2;
     eka2l1::arm::aot::diagnostics_enabled = diagnostics != 0;
     if (verify) setenv("EKA2L1_AOT_VERIFY", std::to_string(verify).c_str(), 1);
@@ -230,6 +232,21 @@ int eka2l1_entry_budget_configure(int mode) {
 }
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_entry_budget_report() { return eka2l1::arm::aot::entry_budget_mode; }
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_watchdog_configure(int enabled) {
+    if (g_state || (enabled != 0 && enabled != 1)) return -1;
+    if (enabled && (std::getenv("EKA2L1_AOT_VERIFY") || eka2l1::arm::aot::diagnostics_enabled)) return -2;
+    eka2l1::arm::aot::watchdog::enabled = enabled != 0;
+    common::benchmark::event_clock = enabled != 0;
+    return 0;
+}
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_watchdog_report() { return eka2l1::arm::aot::watchdog::enabled; }
+EMSCRIPTEN_KEEPALIVE
+std::uint32_t *eka2l1_watchdog_address() {
+    return reinterpret_cast<std::uint32_t *>(&eka2l1::arm::aot::watchdog::request);
+}
 
 EMSCRIPTEN_KEEPALIVE
 int eka2l1_compiled_svc_configure(int mode) {
@@ -481,6 +498,12 @@ const char *eka2l1_profile_report() {
     if (common::performance::phase.load() != 3) return "{}";
     result = common::performance::report();
     return result.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
+int eka2l1_benchmark_start_frame(const char *path) {
+    if (g_state || !path || !*path) return -1;
+    return setenv("EKA2L1_BENCHMARK_START_FRAME", path, 1);
 }
 
 EMSCRIPTEN_KEEPALIVE

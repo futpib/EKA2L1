@@ -171,11 +171,14 @@ namespace eka2l1 {
         advance();
     }
 
-    bool ntimer::advance_to_next_event() {
+    bool ntimer::advance_to_next_event(std::uint64_t maximum_delta) {
         {
             const std::lock_guard<std::mutex> guard(lock_);
-            if (events_.empty()) return false;
-            common::benchmark::virtual_us = std::max(microseconds(), events_.back().event_time);
+            if (events_.empty() && maximum_delta == UINT64_MAX) return false;
+            const auto now = microseconds();
+            const auto deadline = events_.empty() ? now + maximum_delta
+                : std::max(now, events_.back().event_time);
+            common::benchmark::virtual_us = now + std::min(deadline - now, maximum_delta);
             cycle_remainder_ = 0;
         }
         advance();

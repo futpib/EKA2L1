@@ -24,6 +24,7 @@
 #include <common/log.h>
 #include <common/performance.h>
 #include <cpu/aot/aot_runtime.h>
+#include <cpu/aot/watchdog.h>
 
 namespace eka2l1::arm {
     dyncom_core::dyncom_core(arm::exclusive_monitor *monitor, const std::size_t page_bits)
@@ -43,7 +44,9 @@ namespace eka2l1::arm {
     void dyncom_core::run(const std::uint32_t instruction_count) {
         publish_memory_view();
         ticks_executed_ = 0;
-        state_->NumInstrsToExecute = instruction_count;
+        if (aot::watchdog::enabled) {
+            state_->NumInstrsToExecute = UINT32_MAX;
+        } else state_->NumInstrsToExecute = instruction_count;
 
         InterpreterMainLoop(state_.get(), ticks_executed_);
     }

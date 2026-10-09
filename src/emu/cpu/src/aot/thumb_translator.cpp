@@ -18,6 +18,7 @@
  */
 
 #include <cpu/aot/thumb_translator.h>
+#include <cpu/aot/watchdog.h>
 #include <cpu/aot/aot_runtime.h>
 #include <cpu/aot/state_locals.h>
 #include <cpu/aot/wasm_cost.h>
@@ -323,7 +324,8 @@ namespace eka2l1::arm::aot {
         // Bail: set PC, return instruction count (normal control flow exit)
         void bail(std::uint32_t pc, std::uint32_t instr_count, unsigned why=exit_census::control) {
             store_i32_const(S::PC, static_cast<std::int32_t>(pc));
-            i32_const(static_cast<std::int32_t>(instr_count));
+            i32_const(watchdog::enabled ? (!instr_count || why == exit_census::unsupported ? 0 : 1)
+                : static_cast<std::int32_t>(instr_count));
             ret(why);
             bail_count++;
         }
@@ -333,7 +335,7 @@ namespace eka2l1::arm::aot {
         // Leaves the state's PC alone so the interpreter dispatches at the
         // computed target instead of re-running the current instruction.
         void bail_preserve_pc(std::uint32_t instr_count) {
-            i32_const(static_cast<std::int32_t>(instr_count));
+            i32_const(watchdog::enabled ? 1 : static_cast<std::int32_t>(instr_count));
             ret();
             bail_count++;
         }
@@ -989,7 +991,7 @@ namespace eka2l1::arm::aot {
                                 }
                                 w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken | return_hint
                                     | (((target + 4) & 4095) ? 0 : svc_page_end) | (veneer & 0x00ffffffu));
-                                w.store_i32_const(S::AOT_SVC_INSTRUCTIONS, insn_idx + 3);
+                                if (!watchdog::enabled) w.store_i32_const(S::AOT_SVC_INSTRUCTIONS, insn_idx + 3);
                                 w.bail(target + 4, 0);
                             } else if (kind == 0xE800 && memory_experiment::enabled() && immutable_code
                                     && immutable_code->read(target, &veneer, sizeof(veneer))
@@ -3668,7 +3670,7 @@ namespace eka2l1::arm::aot {
                     w.bail(insn_addr, insn_idx); w.op(op_end);
                     w.store_i32_const(S::AOT_EXIT, svc_pending | svc_taken
                         | (((insn_addr + 2) & 4095) ? 0 : svc_page_end) | (insn & 255));
-                    w.store_i32_const(S::AOT_SVC_INSTRUCTIONS, insn_idx + 1);
+                    if (!watchdog::enabled) w.store_i32_const(S::AOT_SVC_INSTRUCTIONS, insn_idx + 1);
                     w.bail(insn_addr + 2, 0);
                     decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
                     ++insn_idx; break;
@@ -4531,6 +4533,13 @@ namespace eka2l1::arm::aot {
         const sibling_map *siblings, const code_window *dll_code, bool bounded,
         bool stop_after_store, bool cache_registers, const code_window *immutable_code)
     {
+        if (watchdog::enabled && bounded) {
+            // Bounded Thumb bodies and fused successors contain no cycles.
+            // The unproved successor dispatch polls outside the entire body.
+            return translate_thumb_block_impl(code, code_size, start_address,
+                siblings, dll_code, bounded, stop_after_store, cache_registers,
+                immutable_code, false);
+        }
         auto precise = translate_thumb_block_impl(code, code_size, start_address,
             siblings, dll_code, bounded, stop_after_store, cache_registers,
             immutable_code, true);

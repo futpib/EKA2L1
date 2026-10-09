@@ -236,7 +236,7 @@ boundary. All valid samples remain included; see the [host limitations](CONTROLL
 
 ## Complete report catalogue
 
-296 reports and supporting notes are discovered below, including
+297 reports and supporting notes are discovered below, including
 timing, adoption and design documents with nonstandard filenames. Design plans
 and profiling shares do not establish measured speed gains. Each document
 retains its exact variants, workloads, controls and
@@ -538,12 +538,13 @@ is retained separately from the later controlled comparisons.
 | 288 | Results/notes | [Direct-call switches with production code validation](VALIDATED_LAYOUT_RESULTS.md) | [Findings below](#report-288) |
 | 289 | Results/notes | [Safe validity generations and native/browser cost comparison](VALIDITY_AND_COST_RESULTS.md) | [Findings below](#report-289) |
 | 290 | Results/notes | [Shared WASM cost accounting and Snakes diagnosis](WASM_COST_ACCOUNTING_RESULTS.md) | [Findings below](#report-290) |
-| 291 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-291) |
-| 292 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
-| 293 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
-| 294 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
-| 295 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-295) |
-| 296 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-296) |
+| 291 | Results/notes | [Count-free watchdog execution](WATCHDOG_RESULTS.md) | [Findings below](#report-291) |
+| 292 | Results/notes | [Adjacent long multiply result reuse: rejected](WIDE_REUSE_RESULTS.md) | [Findings below](#report-292) |
+| 293 | Profiling/analysis | [CPU sampling after eliminating measured interpreter fallback](ZERO_FALLBACK_CPU_PROFILE_RESULTS.md) | No performance excerpt; see source report |
+| 294 | Results/notes | [Recurrent literal-load fallback: data-TLB collision observed](ZERO_LITERAL_RESULTS.md) | No performance excerpt; see source report |
+| 295 | Results/notes | [Browser CPU comparison (in progress)](browser_cores/README.md) | No performance excerpt; see source report |
+| 296 | Results/notes | [Runtime service overlap census](service_overlap/README.md) | [Findings below](#report-296) |
+| 297 | Results/notes | [Snakes service overlap, 2026-10-01](service_overlap/RESULTS.md) | [Findings below](#report-297) |
 
 ## Historical findings and gain/loss tables
 
@@ -8191,7 +8192,67 @@ remain follow-ups, not completed optimizations.
 
 <a id="report-291"></a>
 <details>
-<summary>291. Adjacent long multiply result reuse: rejected</summary>
+<summary>291. Count-free watchdog execution</summary>
+
+[Full report and evidence](WATCHDOG_RESULTS.md)
+
+**Game output comparison**
+
+Four fresh Chromium runs used normal V8 tiering, direct memory, hardware GPU,
+shared audio and serial ABBA order. These are exploratory elapsed measurements,
+without frequency isolation or worker CPU counters. Pixel readback and PNG
+encoding are included equally; they are not measurements of live-play FPS.
+
+| # | Order | Mode | 120-frame capture seconds | Frames identical to counted reference | Maximum pixels differing by more than 8/channel |
+| ---: | --- | --- | ---: | ---: | ---: |
+| 1 | A | Counted | 3.19849 | 120 | 0% |
+| 2 | B | Count-free, 2 ms watchdog | 2.61164 | 18 | 1.405% |
+| 3 | B | Count-free, 2 ms watchdog | 2.57705 | 17 | 1.164% |
+| 4 | A | Counted | 3.20390 | 120 | 0% |
+
+Mean captured-frame throughput improves **23.4%** (3.20120 s to 2.59435 s).
+Every frame passes the repository's pre-existing comparator: at most 2% of
+pixels may differ by more than 8 in a color channel. That is visual equivalence
+under this tolerance, not identical output or a full game-state comparison.
+Both counted runs are pixel-identical throughout. The count-free runs have small
+differences in HUD/object animation that grow through the window.
+
+The counted sequence spans 5.59535 guest seconds; the count-free sequences span
+7.05 and 7.004375. All count-free instruction totals remain zero. Thus the result
+credits faster production of visually comparable gameplay frames, while also
+exposing a timing-fidelity tradeoff. It cannot isolate compiler gains from the
+changed scheduling policy or establish equivalent timer-sensitive behavior.
+No full-state checkpoint/restore comparison is claimed. Longer gameplay and
+timer-sensitive interactions remain unverified.
+
+**Equal-work mechanism check**
+
+| # | Loop | Counted mean ms | Count-free mean ms | Throughput ratio | Native instruction change |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | Proved finite ALU loop | 200.075 | 114.983 | 1.740x | -42.04% |
+| 2 | Unproved memory loop, polling | 451.247 | 428.621 | 1.053x | -4.55% |
+
+These establish a benefit for the tested execution shapes. They do not predict
+a 74% game speedup or measure periodic preemption overhead.
+
+**Validation and reproduction**
+
+For game comparison, obtain the marker by capturing 500 counted frames from
+guest time zero using `snakes.input`; frame 260 is the marker in this recorded
+route. Its SHA-256 is retained in the evidence. Then run `benchmark.ts` with 120
+frames, start time zero, and `EKA2L1_BENCHMARK_START_FRAME=/absolute/marker.png`.
+Use `watchdog-snakes-counted.input` for the counted run and
+`watchdog-snakes-countfree.input` with `EKA2L1_WATCHDOG_US=2000` for the experiment.
+Compare the resulting PNGs with `compare-frames.ts`. Use `capture_wall_seconds`
+from `metrics.json`; the harness's overall elapsed field also includes startup
+and artifact extraction. If the marker or output sequence does not match, the
+run is not comparable and must not silently become a throughput result.
+
+</details>
+
+<a id="report-292"></a>
+<details>
+<summary>292. Adjacent long multiply result reuse: rejected</summary>
 
 [Full report and evidence](WIDE_REUSE_RESULTS.md)
 
@@ -8226,9 +8287,9 @@ The rejected runtime source and binary are preserved under
 
 </details>
 
-<a id="report-295"></a>
+<a id="report-296"></a>
 <details>
-<summary>295. Runtime service overlap census</summary>
+<summary>296. Runtime service overlap census</summary>
 
 [Full report and evidence](service_overlap/README.md)
 
@@ -8253,9 +8314,9 @@ The rejected runtime source and binary are preserved under
 
 </details>
 
-<a id="report-296"></a>
+<a id="report-297"></a>
 <details>
-<summary>296. Snakes service overlap, 2026-10-01</summary>
+<summary>297. Snakes service overlap, 2026-10-01</summary>
 
 [Full report and evidence](service_overlap/RESULTS.md)
 

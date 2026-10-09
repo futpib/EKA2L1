@@ -1,3 +1,4 @@
+import {configureWatchdog, watchdogInterval} from './watchdog.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -25,6 +26,9 @@ if (!/^0x[0-9a-fA-F]{1,8}$/.test(appUid) || Number(appUid) === 0) throw Error('I
 const sharedAudio = process.env.EKA2L1_SHARED_AUDIO === "1";
 const glDiagnostics = process.env.EKA2L1_GL_DIAGNOSTICS === "1";
 const aotDiagnostics = process.env.EKA2L1_AOT_DIAGNOSTICS === "1";
+if (watchdogInterval() && (Number(process.env.EKA2L1_AOT_VERIFY || '0') > 0
+    || aotDiagnostics || process.env.EKA2L1_EXIT_CENSUS === '1'))
+  throw Error('Watchdog requires verification and instruction diagnostics off');
 const codeCompare = process.env.EKA2L1_CODE_COMPARE === undefined ? -1 : Number(process.env.EKA2L1_CODE_COMPARE);
 if (![-1,0,2].includes(codeCompare)) throw new Error('Invalid exact comparison policy');
 const exitCensus = process.env.EKA2L1_EXIT_CENSUS === '1';
@@ -76,6 +80,8 @@ for (const [name, digest] of Object.entries(expected))
 const wasmHash = hash(fs.readFileSync(path.join(buildDir, 'eka2l1.wasm')));
 const loaderHash = hash(fs.readFileSync(path.join(buildDir, 'eka2l1.js')));
 const inputHash = hash(fs.readFileSync(input));
+const startFrame = process.env.EKA2L1_BENCHMARK_START_FRAME
+  ? PNG.sync.read(fs.readFileSync(process.env.EKA2L1_BENCHMARK_START_FRAME)) : null;
 const gitHead = execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
 const dirtyWorktree = !!execFileSync('git', ['status', '--porcelain'], {encoding: 'utf8'}).trim();
 fs.mkdirSync(output); // Refuse to mix captures from different runs.
@@ -100,6 +106,13 @@ try {
   page.on('response', response => {if (response.status() >= 400) failures.push(`HTTP ${response.status()} ${response.url()}`);});
   await page.goto(`http://127.0.0.1:${port}/`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => (window as any).Module?.calledRun, {timeout: 120000});
+  await page.evaluate(configureWatchdog, watchdogInterval());
+  if (startFrame) await page.evaluate((pixels) => {
+    const g = globalThis as any;
+    g.FS.writeFile('/benchmark-start.rgba', new Uint8Array(pixels));
+    if (g.Module.ccall('eka2l1_benchmark_start_frame', 'number', ['string'], ['/benchmark-start.rgba']) !== 0)
+      throw Error('Start-frame configuration failed');
+  }, Array.from(startFrame.data));
   const glDiagnosticsSupported = await page.evaluate(() => typeof (window as any).Module._eka2l1_graphics_diagnostics_configure === 'function');
   await page.evaluate(async ({entryBudget, sparseRom, compiledSvc, hotpathPolicy, armExclusive, thumbMemory, appUid, codeCompare, irMode, exitCensus, predicatedLeaves, leafFeatures, unsafeCode, memoryImpl, executionLimits, count, startUs, aot, verifyAot, aotDiagnostics, glDiagnostics, sharedAudio}) => {
     const g = window as any;
@@ -254,6 +267,8 @@ try {
   const audio = JSON.parse(execFileSync('python3', [fileURLToPath(new URL('../benchmark/validate_audio.py', import.meta.url)), output],
     {encoding: 'utf8', env: {...process.env, PYTHONDONTWRITEBYTECODE: '1'}}));
   fs.writeFileSync(path.join(output, 'audio.json'), JSON.stringify(audio, null, 2));
+  if (startFrame && !PNG.sync.read(fs.readFileSync(path.join(output, 'frame-0000.png'))).data.equals(startFrame.data))
+    throw Error('First captured frame does not match the requested start frame');
   await page.screenshot({path: path.join(output, 'browser.png')});
   const canvasBytes = Buffer.from(await (await page.$('#canvas'))!.screenshot());
   fs.writeFileSync(path.join(output, 'visible-last.png'), canvasBytes);
@@ -266,7 +281,7 @@ try {
 
   await page.evaluate(() => (window as any).Module._eka2l1_shutdown());
   if (failures.length) throw new Error(failures.join('\n'));
-  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({entry_budget: await page.evaluate(() => (globalThis as any).entryBudgetActual), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
+  fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({start_frame_sha256: startFrame ? hash(startFrame.data) : null, watchdog_us: watchdogInterval(), watchdog_requests: await page.evaluate(() => (globalThis as any).ekaWatchdog ? Atomics.load((globalThis as any).ekaWatchdog.control, 1) : 0), entry_budget: await page.evaluate(() => (globalThis as any).entryBudgetActual), sparse_rom_lookup: await page.evaluate(() => (globalThis as any).sparseRomActual), compiled_svc: await page.evaluate(() => (globalThis as any).compiledSvcActual), hotpath_policy: await page.evaluate(() => (globalThis as any).hotpathActual), arm_exclusive: await page.evaluate(() => (globalThis as any).armExclusiveActual), thumb_memory: thumbMemory, app_uid: appUid, frames, start_us: startUs, unique: true, wall_seconds: (performance.now()-start)/1000,
     assets: expected, input_sha256: inputHash, wasm_sha256: wasmHash, loader_sha256: loaderHash, gl_diagnostics: glDiagnostics || !glDiagnosticsSupported, gl_diagnostics_configurable: glDiagnosticsSupported,
     shared_audio: sharedAudio, aot, aot_diagnostics: aotDiagnostics, memory_impl:memoryImpl, memory_impl_stats:await page.evaluate(() => {const m=(globalThis as any).Module;return m._eka2l1_memory_impl_stats?JSON.parse(m.ccall('eka2l1_memory_impl_stats','string',[],[])):null;}), ir_mode: irMode, execution_limits:executionLimits, predicated_leaves:predicatedLeaves, leaf_features:leafFeatures, unsafe_code_initial:await page.evaluate(() => (globalThis as any).unsafeCodeInitial ?? null), unsafe_code:await page.evaluate(() => (globalThis as any).unsafeCodeActual), exit_census:exitCensus, code_compare: codeCompare, verify_aot: verifyAot, git_head: gitHead, dirty_worktree: dirtyWorktree}, null, 2));
   console.log('PASS: captured benchmark');

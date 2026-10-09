@@ -40,6 +40,7 @@ namespace eka2l1::common {
         std::uint64_t duplicates_ = 0;
         bool unique_ = false;
         std::vector<std::uint8_t> previous_pixels_;
+        std::vector<std::uint8_t> start_pixels_;
         bool started_ = false;
         std::chrono::steady_clock::time_point capture_start_;
     };

@@ -19,6 +19,8 @@ namespace eka2l1::common::benchmark {
     inline bool retain_audio = true;
     inline std::atomic<std::uint64_t> virtual_us{0};
     inline std::atomic<std::uint64_t> instructions{0};
+    // Watchdog execution advances virtual time at scheduler/event boundaries.
+    inline bool event_clock = false;
     inline constexpr std::uint64_t epoch_us = 1704067200000000ULL; // 2024-01-01 UTC
 
     inline int frame_count() {

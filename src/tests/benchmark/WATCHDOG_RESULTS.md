@@ -1,0 +1,149 @@
+# Count-free watchdog execution
+
+This opt-in experiment removes guest instruction accounting from normal DynCom
+execution and generated ARM/Thumb code. It is disabled by default. Set
+`EKA2L1_WATCHDOG_US=2000` in the browser launcher or benchmark environment.
+The value is the external worker's host-time request period, not a guaranteed
+maximum execution duration. Verification and instruction diagnostics must be off.
+
+## Execution and clocks
+
+A dedicated JavaScript worker periodically stores an atomic flag in the shared
+WASM memory. Generated code reads it directly; polling does not call JavaScript.
+The compiled runner polls between indirect successor dispatches. ARM regions
+poll at internal backward-branch targets unless static analysis proves the loop
+terminates. The initial proof recognizes a pure unconditional ALU body followed
+by `SUBS counter,counter,#1; BNE`, with no other counter or flag writes, helpers,
+memory operations or alternate branches. Modular decrement terminates for every
+32-bit input. A zero input can therefore run for billions of iterations without
+polling: this is the requested finite-region policy, not a responsiveness bound.
+Bounded Thumb bodies are acyclic; their successor dispatch supplies the poll.
+
+The interpreter likewise polls at dispatch boundaries. Compiled exits return
+progress status, preserving the zero sentinel for pending syscalls and deferred
+instructions. Single stepping still uses the counted interpreter. The ordinary
+counted mode remains the regression reference.
+
+The host watchdog and guest timers have different jobs. The watchdog regains
+control from unproved execution. Guest deadlines determine which emulated event
+is due. Guest time does not copy elapsed host time, and explicit pauses do not
+accumulate a time debt. Idle execution jumps to the next guest event.
+
+Busy execution needs a timing policy too. This prototype consumes an external
+request at the scheduler, then advances to the next event, capped by the running
+thread's remaining virtual CPU slice. It charges that elapsed virtual time to
+the scheduler's existing tick field, without counting executed instructions.
+How much computation fits into a slice depends on host execution and compilation.
+This is an approximate, nondeterministic timing model. The 2 ms period was not
+optimized, and the clock policy has not been adopted.
+
+A guest-time-only watchdog cannot solve the busy-loop case if that loop prevents
+guest time from advancing. Other choices are coarse work/time charges at selected
+guest boundaries, or externally specified/replayed event delivery. Both require
+an explicit model; removing instruction accounting does not itself define how
+much virtual time arbitrary computation consumes.
+
+## Game output comparison
+
+Fixed guest-time windows were inappropriate for comparing these clocks. The
+original startup replays reached different menus/game phases. Shortened startup
+inputs now end before the measured sequence, and an exact rendered gameplay
+frame starts the capture. Both variants then produce 120 unique Snakes frames
+with no further input. `EKA2L1_BENCHMARK_START_FRAME` supplies a reference PNG to
+the harness; the dumper waits for its RGB pixels before starting its existing
+capture timer. This does not count guest instructions or change guest time.
+
+Four fresh Chromium runs used normal V8 tiering, direct memory, hardware GPU,
+shared audio and serial ABBA order. These are exploratory elapsed measurements,
+without frequency isolation or worker CPU counters. Pixel readback and PNG
+encoding are included equally; they are not measurements of live-play FPS.
+
+| # | Order | Mode | 120-frame capture seconds | Frames identical to counted reference | Maximum pixels differing by more than 8/channel |
+| ---: | --- | --- | ---: | ---: | ---: |
+| 1 | A | Counted | 3.19849 | 120 | 0% |
+| 2 | B | Count-free, 2 ms watchdog | 2.61164 | 18 | 1.405% |
+| 3 | B | Count-free, 2 ms watchdog | 2.57705 | 17 | 1.164% |
+| 4 | A | Counted | 3.20390 | 120 | 0% |
+
+Mean captured-frame throughput improves **23.4%** (3.20120 s to 2.59435 s).
+Every frame passes the repository's pre-existing comparator: at most 2% of
+pixels may differ by more than 8 in a color channel. That is visual equivalence
+under this tolerance, not identical output or a full game-state comparison.
+Both counted runs are pixel-identical throughout. The count-free runs have small
+differences in HUD/object animation that grow through the window.
+
+The counted sequence spans 5.59535 guest seconds; the count-free sequences span
+7.05 and 7.004375. All count-free instruction totals remain zero. Thus the result
+credits faster production of visually comparable gameplay frames, while also
+exposing a timing-fidelity tradeoff. It cannot isolate compiler gains from the
+changed scheduling policy or establish equivalent timer-sensitive behavior.
+No full-state checkpoint/restore comparison is claimed. Longer gameplay and
+timer-sensitive interactions remain unverified.
+
+Sky Force also reaches gameplay with the extended startup route and zero
+instruction totals. Its timing was not compared on equivalent game output.
+
+## Equal-work mechanism check
+
+Two synthetic loops each perform 50 million iterations. The counted and
+count-free variants produce identical integer register outputs. Dispatch stays
+inside WASM, with ordinary indirect WASM calls, rather than crossing JavaScript
+per region. The memory fixture uses TLB access; neither fixture represents the
+whole game's region distribution. The asynchronous watchdog is not running in
+these timings: the unproved loop polls a clear atomic flag. Actual asynchronous
+interruption is tested separately.
+
+Final ABBA/BAAB measurements requested 2.4 GHz, reserved CPU 7 and sibling 15,
+and measured user cycles/reference cycles and native instructions. All 16 final
+observations met the predeclared 0.5% mean-frequency tolerance with unmultiplexed
+counters. Policies and CPU placement were restored. Earlier attempts at 3.6 GHz
+and 2.4 GHz had invalid clock observations; every observation is retained in
+`WATCHDOG_EVIDENCE.json`. The controller supports up to three retries of the same
+variant after a failed clock observation and does not reject valid slow results.
+
+| # | Loop | Counted mean ms | Count-free mean ms | Throughput ratio | Native instruction change |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | Proved finite ALU loop | 200.075 | 114.983 | 1.740x | -42.04% |
+| 2 | Unproved memory loop, polling | 451.247 | 428.621 | 1.053x | -4.55% |
+
+These establish a benefit for the tested execution shapes. They do not predict
+a 74% game speedup or measure periodic preemption overhead.
+
+## Validation and reproduction
+
+The ordinary WASM suite reports **186 passed, 0 failed**; existing diagnostics-only
+skips remain. Focused watchdog tests cover expired flags in finite ARM/Thumb
+bodies, the static termination proof and its rejection, pending Thumb SVC's zero
+return, and interruption of an infinite loop by a separate JavaScript worker.
+The actual browser launcher starts its worker, freezes configuration and advances
+guest time. Both games were inspected in gameplay.
+
+With the experiment disabled, the frozen pre-change browser build and the new
+build match all 60 Snakes capture PNGs, guest-time/instruction journals, PCM and
+audio events exactly. The asynchronous `visible-first.png` screenshots differed;
+those are not the synchronized game-frame oracle.
+
+```sh
+cmake --build build-wasm --target eka2l1_wasm test_aot_wasm -j4
+node build-wasm/src/tests/aot/test_aot_wasm.js --watchdog-only
+node build-wasm/src/tests/aot/test_aot_wasm.js --watchdog-kernels
+```
+
+For game comparison, obtain the marker by capturing 500 counted frames from
+guest time zero using `snakes.input`; frame 260 is the marker in this recorded
+route. Its SHA-256 is retained in the evidence. Then run `benchmark.ts` with 120
+frames, start time zero, and `EKA2L1_BENCHMARK_START_FRAME=/absolute/marker.png`.
+Use `watchdog-snakes-counted.input` for the counted run and
+`watchdog-snakes-countfree.input` with `EKA2L1_WATCHDOG_US=2000` for the experiment.
+Compare the resulting PNGs with `compare-frames.ts`. Use `capture_wall_seconds`
+from `metrics.json`; the harness's overall elapsed field also includes startup
+and artifact extraction. If the marker or output sequence does not match, the
+run is not comparable and must not silently become a throughput result.
+
+For kernel counters, run `watchdog_kernels.py TEST_JS NEW_OUTPUT --mhz 2400`
+inside `fixed_frequency.py --khz 2400000 --isolate-cpus 7,15`, following
+`CONTROLLED_BENCHMARKS.md`. The reference counter frequency, CPU selection and
+platform profile in this evidence belong to this host.
+
+Raw local artifacts are under `/home/claude/.scratch/eka-watchdog`. ROM, game
+bytes and screenshots remain outside Git. Nothing was deployed to the LAN site.
