@@ -1,59 +1,66 @@
 # Profile-driven hotspot round
 
-The round is active. The baseline is the adopted runtime in `536ea5af3`
-(documentation-only HEAD at the start was `c69ef4533`). The preceding two
-Thumb helper experiments established a stopping point for that small helper,
-not for the remaining ten hotspots.
+Completed with **seven runtime optimizations enabled by default** on `wasm-port`, through `5a30297fb`. The measured build is served at `https://claude-laptop.lan:8188/`. Three additional candidates did not earn adoption and were removed from active source; their patches and full observations remain archived.
 
-## Progress
+## Direct combined result
 
-| # | Target | Status | Runtime evidence |
+This is a fresh comparison of the original runtime `536ea5af3` against all seven accepted changes together. It does not add or multiply the incremental campaign percentages. Each game executes the same fixed 18-guest-second replay window on both builds. Snakes uses guest seconds 78–96; Sky Force combat uses 42–60.
+
+| # | Game | Worker CPU seconds, before → after | CPU throughput gain | Wall throughput gain | Retired native instructions | Unpaced wall speed, before → after | Faster pairs |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| 1 | Snakes | 7.1368 → 6.8226 | +4.60% | +3.64% | -2.63% | 2.09× → 2.16× | 4/4 |
+| 2 | Sky Force | 22.1715 → 19.4096 | +14.23% | +12.81% | -13.80% | 0.73× → 0.83× | 4/4 |
+
+All 16 valid observations are included, with 0 invalid attempts. ABBA and BAAB give four launches per build per game. Worker CPU 7 and its reserved sibling 15, measured 3.6 GHz clock, counter and affinity checks remain unchanged. No temperature gates or cooldowns apply. No owned build, profile or correctness job overlapped controlled timing. All 88 final live host-restoration checks pass.
+
+Snakes CPU pairs: +4.05%, +4.09%, +6.08%, +4.21%. These are individual comparisons, not confidence bounds.
+Sky Force CPU pairs: +17.06%, +10.02%, +13.87%, +16.19%. These are individual comparisons, not confidence bounds.
+
+See [all combined observations and provenance](HOTSPOT_ROUND_RESULTS.json), [controls](CONTROLLED_BENCHMARKS.md), and [scope](CONTROLLED_REASSESSMENT.md). The fixed-clock, unpaced replay ratios are workload measurements, not a promise of that speed throughout every level.
+
+## Accepted changes
+
+| # | Change | Why it helps | Incremental evidence |
 |---:|---|---|---|
-| 1 | Static built-in syscall bindings | Adopted and served on LAN; [full result](STATIC_SVC_BINDINGS_RESULTS.md) | Snakes +0.19% (flat), Sky Force +2.53% CPU throughput over both batches, 7/8 faster pairs |
-| 2 | Redundant exclusive-monitor clearing | Adopted and served on LAN; [full result](EMPTY_MONITOR_CLEAR_RESULTS.md) | Sky Force +3.38% CPU throughput, 3/4 faster pairs; Snakes flat (-0.09%) |
-| 3 | EUser list scanning | Adopted and served on LAN; [full result](LIST_SCAN_RESULTS.md) | Sky Force +5.61% CPU throughput, 4/4 faster pairs; Snakes -0.16% (flat) |
-| 4 | Audio interpolation SIMD | Adopted and served on LAN; [full result](AUDIO_SIMD_RESULTS.md) | Sky Force +3.03% retained mean, 4/4 faster pairs (three +0.80% to +1.33%); Snakes -0.47% |
-| 5 | ROM lookup, RAM code, Cone/Ws32 and remaining runner work | Native code inspected; independent candidates remain under investigation | No speed claim |
-| 6 | Private runner counters and registry acquisition | Adopted and served on LAN; [full result](RUNNER_LOCALS_RESULTS.md) | Snakes +3.01%, Sky Force +5.84% CPU throughput; 4/4 faster pairs in each |
-| 7 | Combined ROM range checks | Not adopted; [full result](ROM_RANGE_RESULTS.md) and [patch](ROM_RANGE_EXPERIMENT.patch) | Snakes +0.02%, Sky Force +0.26%; 2/4 faster pairs in each |
-| 8 | Registry-only ROM range check | Adopted and served on LAN; [full result](ROM_REGISTRY_RANGE_RESULTS.md) | Sky Force +1.47%, 3/4 faster pairs; Snakes +0.01% (flat) |
-| 9 | Packed exclusive-monitor summary | Adopted and served on LAN; [full result](PACKED_MONITOR_RESULTS.md) | Sky Force +3.83%, 4/4 faster pairs; Snakes -0.10% (flat) |
-| 10 | Published-view exclusive reads | Not adopted; [full result](PUBLISHED_EXCLUSIVE_READ_RESULTS.md) and [patch](PUBLISHED_EXCLUSIVE_READ_EXPERIMENT.patch) | Sky Force +0.14%, 2/4 faster pairs despite -0.97% native instructions; Snakes +0.39% |
-| 11 | CPU-owned reservation monitor | Not adopted; [full result](CONFINED_MONITOR_RESULTS.md) and [patch](CONFINED_MONITOR_EXPERIMENT.patch) | Sky Force +0.93%, 2/4 faster pairs; Snakes -0.09% (flat) |
+| 1 | Static built-in syscall bindings | Avoids owning callable copy/invoke/destruction; mutable callbacks retain snapshots | [Results](STATIC_SVC_BINDINGS_RESULTS.md), `554a92f1e` |
+| 2 | Empty exclusive-monitor clearing | Avoids synchronization when there is no reservation to clear | [Results](EMPTY_MONITOR_CLEAR_RESULTS.md), `7a5ec3472` |
+| 3 | Generic EUser-pattern list scanning | Keeps scan values and flags local, retaining ordered accesses and exact exits/counts | [Results](LIST_SCAN_RESULTS.md), `b8f65984e` |
+| 4 | Private compiled-runner counters | Avoids repeated result-field traffic and repeated registry acquisition | [Results](RUNNER_LOCALS_RESULTS.md), `50c70b115` |
+| 5 | Registry-only ROM bounds check | Removes a redundant comparison without lengthening the outer RAM path | [Results](ROM_REGISTRY_RANGE_RESULTS.md), `ec32cd81d` |
+| 6 | Packed monitor summary | Publishes reservation state using the existing atomic lock; preserves shared synchronization | [Results](PACKED_MONITOR_RESULTS.md), `17e19c3d5` |
+| 7 | Exact-order audio SIMD | Computes four interpolation accumulators together while preserving PCM | [Results](AUDIO_SIMD_RESULTS.md), `5a30297fb` |
 
-The syscall candidate keeps owning snapshots for stateful callbacks that can
-change their own registration. Built-in bindings use a static bridge with a
-compile-time handler target. Actual warmed V8 code bypasses the owning callable
-copy/invoke/destruction sequence. That proves removal of work; the controlled
-runtime comparison decides adoption.
+Audio SIMD has a +3.03% retained incremental Sky Force mean, but one +8.86% pair inflates it. Its other three pairs are +0.80% to +1.33%; Snakes loses 0.47%. It is retained as a consistent small Sky Force win under the accepted tradeoff, not as proof of a reliable 3% isolated audio saving.
 
-The first comparison retains all 16 valid observations, including the slow
-Sky Force candidate. It passes all 88 host-restoration checks. Confirmation
-adds eight new Sky Force observations without replacing any earlier result.
-It measures +2.82% with all four pairs faster; the combined +2.53% earns adoption.
-There are no temperature gates or cooldowns. The worker is pinned to CPU 7,
-sibling 15 is reserved, and measured frequency, affinity and counter rules
-validate the fixed 3.6 GHz request.
+## Rejected follow-ups and stopping point
 
-Each clear winner will be committed and enabled before the next timing
-experiment. Runtime-negative or unresolved prototypes will be archived and
-removed from active source. Exact image, guest-progress and PCM replays are
-required for both games. LAN remains available on the frozen adopted artifact
-while source and isolated benchmark builds change.
+| # | Candidate | Incremental Sky Force CPU result | Disposition |
+|---:|---|---:|---|
+| 1 | Combined ROM range rewrite | +0.26%, 2/4 favorable | [Full result](ROM_RANGE_RESULTS.md); [archived patch](ROM_RANGE_EXPERIMENT.patch). Its separate registry-only part subsequently won. |
+| 2 | Published-view exclusive reads | +0.14%, 2/4 favorable | [Full result](PUBLISHED_EXCLUSIVE_READ_RESULTS.md); [archived patch](PUBLISHED_EXCLUSIVE_READ_EXPERIMENT.patch). 0.97% fewer native instructions did not buy useful runtime. |
+| 3 | CPU-owned monitor locking bypass | +0.93%, 2/4 favorable | [Full result](CONFINED_MONITOR_RESULTS.md); [archived patch](CONFINED_MONITOR_EXPERIMENT.patch). Native lock bypass worked, but timing did not establish a useful gain. |
 
-Raw plans, hashes, patches, observations, native captures, tests and progress:
-`/home/claude/.scratch/eka-hotspot-round`. This report will be updated with
-final dispositions and a direct combined comparison; gains are not additive.
+This reaches diminishing returns for the investigated local changes: several further reductions produce mixed subpercent results, and the final accepted audio change has mostly roughly 1% paired gains. It does not establish a global performance ceiling. Region handoffs, lookup and CPU-state transfer remain the larger architectural opportunity; another small branch deletion is not automatically a win.
 
-## Hot RAM attribution
+## Final profile
 
-The live loader places `skyforce.exe` (UID `0xa020d913`) at `0x70000000`
-in a `0x70000` code allocation. The hot `0x70008184–0x700082ff` cluster is
-therefore game code. Its import table points the call at `0x70008194` to EUser
-ordinal 674, ROM wrapper `0x801a6603`, ARM stub `0x8019dc50`, and SVC 5,
-`tick_count`. The caller subtracts a saved tick, counts small/large differences,
-and often returns before further update work. This is evidence of polling and
-frame-control work, not a recovered source-level function name. Existing
-compiler defaults already fold its simple ARM import veneer. Loader lines,
-image hashes, import and ROM checks are retained in `ram-ownership.json` and
-`skyforce-hot-ram.asm` under the campaign root.
+Actual gameplay samples are matched to timestamped V8 code versions, covering both C++ runtime functions and generated guest code. The following shares come from separate warmed 42–60-second Sky Force profiles. They describe where remaining time goes, not absolute timing gains; percentages can rise when other code gets faster.
+
+| # | Sampled function | Before | After |
+|---:|---|---:|---:|
+| 1 | Compiled-region runner (calls, inlined lookup and return work) | 26.16% | 28.46% |
+| 2 | Outer interpreter/CPU loop | 11.80% | 11.86% |
+| 3 | EUser list scan at 0x8019d818 | 11.56% | 6.36% |
+| 4 | C++ syscall dispatch | 4.73% | 3.99% |
+| 5 | Standalone compiled lookup | 1.49% | 2.70% |
+| 6 | C++ single-precision audio resampler | 1.18% | 0.75% |
+
+The hot game RAM cluster at `0x70008184–0x700082ff` belongs to `skyforce.exe` (UID `0xa020d913`). Its imported call resolves through EUser ordinal 674 to SVC 5, `tick_count`; the caller computes elapsed ticks and often returns early. This is polling/frame-control work. Skipping it would alter guest timing and scheduling. Simple import veneers were already inlined. Cone/Ws32 samples are spread across state transfers, flag work and calls; no separate guest-library rewrite was adopted. The shared runner and syscall improvements apply across callers.
+
+## Correctness and served artifact
+
+Every accepted addition passed both 60-frame exact image, guest-progress, PCM and audio-event replays. Focused independent model and differential tests cover syscall callback mutation, monitor concurrency, full CPU state, short budgets, faults, mapping changes and runner exits. The full WASM suite passed 185 tests with zero failures during the final monitor/read investigation; the subsequent audio-only change additionally passed 7,680 bit-exact arithmetic cases and all 20 real shared-audio-driver fixtures against the scalar build. Per-change reports retain the exact tests rather than claiming that every full suite was repeated after every edit.
+
+The final combined comparison reuses replay evidence only after verifying all six frozen artifact hashes match the already-tested adopted build. The active workspace build matches those hashes too. Both real HTTPS game-picker paths pass gameplay, input and default-policy checks using NVIDIA hardware; both gameplay screenshots were inspected. The existing non-silent browser-audio check still fails for both games, so full live-audio E2E is not claimed. Exact PCM and audio events pass.
+
+Plans, source patches, hashes, all observations, native captures, tests and the completed progress journal remain under `/home/claude/.scratch/eka-hotspot-round`. The [central experiment index](EXPERIMENT_INDEX.md) includes every disposition.
