@@ -67,3 +67,55 @@ TEST_CASE("Virtual timer supports cancellation and callbacks scheduling callback
     REQUIRE(timer.microseconds() == 0);
     REQUIRE_FALSE(timer.advance_to_next_event());
 }
+
+TEST_CASE("Paced timer delivers events without counting instructions", "timing") {
+    benchmark_environment environment;
+    eka2l1::ntimer timer(2000000);
+    timer.reset();
+    std::vector<std::uint64_t> fired;
+    int evt = timer.register_event("paced", [&](std::uint64_t data, int late) {
+        fired.push_back(data);
+        if (data == 1) {
+            REQUIRE(late == 5);
+            timer.schedule_event(10, timer.get_register_event("paced"), 2);
+        }
+    });
+    timer.schedule_event(10, evt, 1);
+    timer.schedule_event(20, evt, 99);
+    REQUIRE(timer.unschedule_event(evt, 99));
+    timer.advance_host_clock(1000000);
+    timer.advance_host_clock(1000009);
+    REQUIRE(fired.empty());
+    timer.advance_host_clock(1000015);
+    REQUIRE(fired == std::vector<std::uint64_t>{1});
+    timer.advance_host_clock(1000025);
+    REQUIRE(fired == std::vector<std::uint64_t>{1, 2});
+    REQUIRE(timer.microseconds() == 25);
+    REQUIRE(eka2l1::common::benchmark::instructions.load() == 0);
+}
+
+TEST_CASE("Paced timer excludes pauses and drops long host stalls", "timing") {
+    benchmark_environment environment;
+    eka2l1::ntimer timer(2000000);
+    timer.reset();
+    timer.advance_host_clock(1000000);
+    timer.advance_host_clock(1010000);
+    REQUIRE(timer.microseconds() == 10000);
+    timer.set_paused(true);
+    timer.advance_host_clock(1020000);
+    REQUIRE(timer.microseconds() == 10000);
+    timer.set_paused(false);
+    timer.advance_host_clock(1030000);
+    timer.advance_host_clock(1040000);
+    REQUIRE(timer.microseconds() == 20000);
+    timer.advance_host_clock(7040000);
+    REQUIRE(timer.microseconds() == 20000);
+    timer.advance_host_clock(7050000);
+    REQUIRE(timer.microseconds() == 30000);
+    timer.reset();
+    timer.advance_host_clock(7060000);
+    REQUIRE(timer.microseconds() == 0);
+    timer.advance_host_clock(7070000);
+    REQUIRE(timer.microseconds() == 10000);
+    REQUIRE(eka2l1::common::benchmark::instructions.load() == 0);
+}

@@ -340,6 +340,7 @@ EMSCRIPTEN_KEEPALIVE
 int eka2l1_live_configure() {
     if (g_state) return -1;
     common::benchmark::interactive = true;
+    common::benchmark::paced = !g_route.enabled;
     setenv("EKA2L1_BENCHMARK", "1", 1);
     return eka2l1_aot_configure(5, 0, 0);
 }
@@ -368,6 +369,7 @@ EMSCRIPTEN_KEEPALIVE
 int eka2l1_route_configure(int stop_us) {
     if (g_state || stop_us < -1 || stop_us > 1800000000) return -1;
     g_route.enabled = stop_us >= 0;
+    common::benchmark::paced = common::benchmark::interactive && !g_route.enabled;
     g_route.target_us = stop_us >= 0 ? stop_us : 0;
     g_route.paused = false;
     return 0;
@@ -511,6 +513,7 @@ int eka2l1_benchmark_configure(int frames, int start_us, int unique) {
     if (g_state || frames < 1 || frames > 100000 || start_us < 0 || start_us > 1800000000) return -1;
     setenv("EKA2L1_BENCHMARK", "1", 1);
     common::benchmark::interactive = false;
+    common::benchmark::paced = false;
     setenv("EKA2L1_BENCHMARK_FRAMES", std::to_string(frames).c_str(), 1);
     setenv("EKA2L1_BENCHMARK_INPUT", "/benchmark.input", 1);
     setenv("EKA2L1_BENCHMARK_START_US", std::to_string(start_us).c_str(), 1);
@@ -957,7 +960,7 @@ int eka2l1_run(const char *app_name) {
                     g_state->input_consumed = key.serial;
                 }
                 const auto guest_now = common::benchmark::virtual_us.load();
-                if (!g_route.enabled && guest_now >= pacing_check) {
+                if (!g_route.enabled && !common::benchmark::event_clock && guest_now >= pacing_check) {
                     const auto host_now = std::chrono::steady_clock::now();
                     const auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
                         host_now - host_origin).count();

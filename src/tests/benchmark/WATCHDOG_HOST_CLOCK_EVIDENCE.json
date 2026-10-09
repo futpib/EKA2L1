@@ -1,0 +1,223 @@
+{
+  "watchdog_us": 2000,
+  "clock_policy": "Host elapsed time for paced play; event/virtual slices for unpaced execution",
+  "local_artifacts": "/home/claude/.scratch/eka-watchdog/host-clock",
+  "frozen_lan_build": "/home/claude/.scratch/eka-watchdog/lan-host-clock/build",
+  "files": {
+    "eka2l1.js": "4fb49e99e953c54dc1424f1849bc959f4b74c85c8de60ebb8b8eaa32cf9608c3",
+    "eka2l1.wasm": "8ba81e0cbac677d49eaef4f651fa4e208bc4759821e8653703726facb595efbe",
+    "eka2l1.html": "a67c903a90347ea8605947019e2ba274e79c9181a288162c90949e41d5fe9fd6",
+    "eka2l1.data": "7551e5c351d92e4d725fa48bfff4998dac25d0a2b68ca1d261cb795967c599d1",
+    "audio.js": "1754480c3f316ba00992713cd328cc7d19ff78dd92518270a86e51ca9214d4d8",
+    "audio-worklet.js": "411499cff0bc869665055356c1bfbe2c3e56901abd37d40d545d3623faeedf4c"
+  },
+  "gameplay": {
+    "snakes": {
+      "measurements": [
+        {
+          "name": "fresh-play",
+          "hostSeconds": 8.199427967000002,
+          "guestSeconds": 8.1994,
+          "ratio": 0.9999965891523026,
+          "fps": 16.098684021770364,
+          "instructions_zero": true,
+          "watchdog_active": true,
+          "presentations": 132,
+          "input_events_consumed": 2
+        },
+        {
+          "name": "recovery-250",
+          "hostSeconds": 8.160986408000001,
+          "guestSeconds": 8.160381,
+          "ratio": 0.9999258168106482,
+          "fps": 16.051981151639236,
+          "instructions_zero": true,
+          "watchdog_active": true,
+          "presentations": 131,
+          "input_events_consumed": 2
+        },
+        {
+          "name": "recovery-6000",
+          "hostSeconds": 8.185920557000001,
+          "guestSeconds": 8.186055,
+          "ratio": 1.000016423687362,
+          "fps": 16.00308714063666,
+          "instructions_zero": true,
+          "watchdog_active": true,
+          "presentations": 131,
+          "input_events_consumed": 2
+        },
+        {
+          "name": "settled-play",
+          "hostSeconds": 8.176176724000005,
+          "guestSeconds": 8.176285,
+          "ratio": 1.0000132428644402,
+          "fps": 16.022158573880642,
+          "instructions_zero": true,
+          "watchdog_active": true,
+          "presentations": 131,
+          "input_events_consumed": 2
+        }
+      ],
+      "audio_delta": {
+        "played": 393216,
+        "nonzero": 257564,
+        "dropped": 0,
+        "underruns": 0,
+        "resyncs": 0
+      },
+      "passed": true
+    },
+    "sky-force": {
+      "measurements": [
+        {
+          "name": "fresh-play",
+          "hostSeconds": 8.2736917745,
+          "guestSeconds": 8.275326,
+          "ratio": 1.0001975207131883,
+          "fps": 31.908367775273355,
+          "instructions_zero": true,
+          "watchdog_active": true,
+          "presentations": 264,
+          "input_events_consumed": 2
+        },
+        {
+          "name": "settled-play",
+          "hostSeconds": 8.1729396255,
+          "guestSeconds": 8.173544,
+          "ratio": 1.000073948239886,
+          "fps": 32.05700910631302,
+          "instructions_zero": true,
+          "watchdog_active": true,
+          "presentations": 262,
+          "input_events_consumed": 2
+        }
+      ],
+      "audio_delta": {
+        "played": 393216,
+        "nonzero": 393073,
+        "dropped": 0,
+        "underruns": 0,
+        "resyncs": 0
+      },
+      "passed": true
+    }
+  },
+  "native_timer_tests": {
+    "tests": 4,
+    "assertions": 32,
+    "passed": true
+  },
+  "focused_wasm_watchdog_tests": "passed",
+  "unpaced_smoke": {
+    "frames": 30,
+    "capture_wall_seconds": 0.65277,
+    "first_virtual_us": 32000000,
+    "duplicate_presentations": 0,
+    "last_virtual_us": 33490000,
+    "instructions": 0
+  },
+  "limitations": [
+    "Presentation counts are not unique-frame counts or a stock-device gameplay oracle.",
+    "Audio checks use a silent clocked Web Audio sink, not physical speaker playback.",
+    "Snakes stall measurements preceded the final separation of diagnostic-route pacing; the final build is checked separately through the LAN game picker."
+  ],
+  "lan": {
+    "url": "https://claude-laptop.lan:8188/",
+    "passed": true,
+    "errors": [],
+    "games": [
+      {
+        "game": "snakes",
+        "first_visible": {
+          "hostMs": 10001.84500002861,
+          "guestUs": 5016974,
+          "frames": 46,
+          "inputs": 4,
+          "watchdog": 1,
+          "instructions": 0
+        },
+        "end": {
+          "hostMs": 35427.10500001907,
+          "guestUs": 30442238,
+          "frames": 430,
+          "inputs": 24,
+          "watchdog": 1,
+          "instructions": 0
+        },
+        "all_samples_instructions_zero": true,
+        "all_samples_watchdog_active": true,
+        "app": "0x2000730f",
+        "secure": true,
+        "isolated": true,
+        "watchdog_us": 2000,
+        "visual_phase": "Gameplay"
+      },
+      {
+        "game": "sky-force",
+        "first_visible": {
+          "hostMs": 11523.060000061989,
+          "guestUs": 6715120,
+          "frames": 119,
+          "inputs": 2,
+          "watchdog": 1,
+          "instructions": 0
+        },
+        "end": {
+          "hostMs": 35724.91500008106,
+          "guestUs": 30917515,
+          "frames": 876,
+          "inputs": 14,
+          "watchdog": 1,
+          "instructions": 0
+        },
+        "all_samples_instructions_zero": true,
+        "all_samples_watchdog_active": true,
+        "app": "0xa020d913",
+        "secure": true,
+        "isolated": true,
+        "watchdog_us": 2000,
+        "visual_phase": "Ship-selection menu; see separate combat replay"
+      }
+    ]
+  },
+  "firefox_startup": {
+    "result": {
+      "visible": true,
+      "browser": "firefox/156.0"
+    },
+    "note": "Headless Firefox with WebGL on existing DISPLAY=:1. Screenshot calls take about ten seconds and alter the observation cadence. Startup check only.",
+    "first_visible": {
+      "hostMs": 35930.68,
+      "guestUs": 9145039,
+      "frames": 58,
+      "watchdog": {
+        "us": 2000,
+        "requests": 15846
+      },
+      "colors": 134
+    },
+    "all_samples_instructions_zero": true
+  },
+  "lan_sky_force_combat": {
+    "passed": true,
+    "visual_phase": "Stage 1 combat, scrolling scenery, enemies and score increasing from 0 to 25 after directional input",
+    "artifacts": "/home/claude/.scratch/eka-watchdog/host-clock/lan-sky-combat",
+    "all_samples_instructions_zero": true,
+    "all_samples_watchdog_active": true,
+    "end": {
+      "hostMs": 46291.22500002384,
+      "guestUs": 40960435,
+      "frames": 1207,
+      "inputs": 18,
+      "watchdog": 1,
+      "monitor": {
+        "guest_us": 40960435,
+        "instructions": 0,
+        "compiled_functions": 8422,
+        "allocated_bytes": 868904480,
+        "free_bytes": 57836128
+      }
+    }
+  }
+}

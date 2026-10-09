@@ -85,6 +85,7 @@ namespace eka2l1 {
         realtime_level acc_level_;
         bool deterministic_ = false;
         std::uint64_t cycle_remainder_ = 0;
+        std::uint64_t host_clock_us_ = 0;
 
     protected:
         void loop();
@@ -160,6 +161,10 @@ namespace eka2l1 {
         bool deterministic() const { return deterministic_; }
         void advance_instructions(std::uint64_t instructions);
         bool advance_to_next_event(std::uint64_t maximum_delta = UINT64_MAX);
+        // Paced count-free execution samples host time at scheduler boundaries.
+        void start_host_clock();
+        void advance_host_clock();
+        void advance_host_clock(std::uint64_t host_us);
 
         int register_event(const std::string &name, timed_callback callback);
         int get_register_event(const std::string &name);

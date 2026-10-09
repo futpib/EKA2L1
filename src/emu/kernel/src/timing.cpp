@@ -28,6 +28,7 @@
 #include <kernel/timing.h>
 
 #include <algorithm>
+#include <chrono>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -83,6 +84,7 @@ namespace eka2l1 {
             common::benchmark::virtual_us = 0;
             common::benchmark::instructions = 0;
             cycle_remainder_ = 0;
+            host_clock_us_ = 0;
             timer_thread_.reset();
             return;
         }
@@ -183,6 +185,34 @@ namespace eka2l1 {
         }
         advance();
         return true;
+    }
+
+    static std::uint64_t host_microseconds() {
+        return std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+    }
+
+    void ntimer::start_host_clock() {
+        if (!host_clock_us_) host_clock_us_ = host_microseconds();
+    }
+
+    void ntimer::advance_host_clock() {
+        advance_host_clock(host_microseconds());
+    }
+
+    void ntimer::advance_host_clock(std::uint64_t host_us) {
+        if (should_paused_) {
+            host_clock_us_ = 0;
+            return;
+        }
+        const auto elapsed = host_clock_us_ && host_us >= host_clock_us_
+            ? host_us - host_clock_us_ : 0;
+        host_clock_us_ = host_us;
+        // Live play drops long host stalls instead of replaying a backlog of
+        // game timers. Explicit pauses reset the origin even for short gaps.
+        if (elapsed <= 100000) common::benchmark::virtual_us += elapsed;
+        cycle_remainder_ = 0;
+        advance();
     }
 
     std::optional<std::uint64_t> ntimer::advance() {
@@ -324,6 +354,7 @@ namespace eka2l1 {
         should_paused_ = should_pause;
 
         if (last_state != should_pause) {
+            host_clock_us_ = 0;
             if (should_pause == false) {
                 pause_evt_.set();
             }

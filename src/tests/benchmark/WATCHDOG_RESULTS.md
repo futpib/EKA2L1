@@ -26,16 +26,22 @@ counted mode remains the regression reference.
 
 The host watchdog and guest timers have different jobs. The watchdog regains
 control from unproved execution. Guest deadlines determine which emulated event
-is due. Guest time does not copy elapsed host time, and explicit pauses do not
-accumulate a time debt. Idle execution jumps to the next guest event.
+is due. There are now two clock policies, both without instruction accounting:
 
-Busy execution needs a timing policy too. This prototype consumes an external
-request at the scheduler, then advances to the next event, capped by the running
-thread's remaining virtual CPU slice. It charges that elapsed virtual time to
-the scheduler's existing tick field, without counting executed instructions.
-How much computation fits into a slice depends on host execution and compilation.
-This is an approximate, nondeterministic timing model. The 2 ms period was not
-optimized, and the clock policy has not been adopted.
+- Paced browser play samples elapsed monotonic host time at watchdog/scheduler
+  boundaries and while idle. The request flag does not assign a fixed amount of
+  guest time. Explicit emulator pauses reset the host origin; gaps over 100 ms
+  are discarded to avoid replaying timers after a browser stall. Idle execution
+  sleeps for 1 ms between checks. The legacy instruction-clock pacing sleep is
+  disabled for this mode.
+- Unpaced benchmarks and diagnostic route exploration keep virtual CPU slices.
+  A request advances to the next event, capped by the running thread's remaining
+  virtual slice; idle execution jumps to the next event. This clock does not copy
+  elapsed host time. How much computation fits into a slice depends on host
+  execution and compilation, so it is approximate and nondeterministic.
+
+Both policies charge elapsed guest time to the scheduler's existing tick field,
+without counting executed instructions. The 2 ms request period was not optimized.
 
 A guest-time-only watchdog cannot solve the busy-loop case if that loop prevents
 guest time from advancing. Other choices are coarse work/time charges at selected
@@ -148,9 +154,62 @@ launch, with no browser-side policy override, showed the Snakes splash by the
 frozen before initialization. Raw logs, screenshots and the saved service
 configuration are under `/home/claude/.scratch/eka-watchdog/blank-lan`.
 
-The watchdog/virtual-slice mode remains an opt-in experiment with a known paced
-startup regression. The earlier Sky Force-only deployment check was insufficient
-coverage for enabling it across the game picker.
+At this recovery point the watchdog/virtual-slice mode remained an opt-in
+experiment with a known paced startup regression. The earlier Sky Force-only
+deployment check was insufficient coverage for enabling it across the game picker.
+
+### Browser count-free clock repair
+
+Clearing old requests fixed zero-work preemption but left the clock policy wrong
+for live play. A roughly 2 ms host interval could consume a whole virtual CPU
+slice; the frontend then slept to repay that artificial time advance. Startup
+performed too little guest computation between sleeps. Paced count-free play now
+uses the host-clock policy described above. Requests arriving in runtime work
+still trigger a clock sample, while requests predating CPU entry cannot prevent
+that entry from making progress. The unpaced virtual-slice policy remains intact.
+
+Hardware Chromium checks exercised actual Snakes gameplay and Sky Force Stage 1
+combat, keyboard input and the production audio worklet with a silent clocked
+sink. Every sampled instruction total remained zero and the 2 ms watchdog stayed
+enabled. The ordinary frontend was used, with no benchmark configuration.
+
+| # | Gameplay window | Host seconds | Guest/host time | Presentations/s |
+| ---: | --- | ---: | ---: | ---: |
+| 1 | Snakes, fresh | 8.199 | 1.00000 | 16.10 |
+| 2 | Snakes, after 250 ms renderer suspension | 8.161 | 0.99993 | 16.05 |
+| 3 | Snakes, after 6 s renderer suspension | 8.186 | 1.00002 | 16.00 |
+| 4 | Snakes, settled | 8.176 | 1.00001 | 16.02 |
+| 5 | Sky Force, combat | 8.274 | 1.00020 | 31.91 |
+| 6 | Sky Force, settled combat | 8.173 | 1.00007 | 32.06 |
+
+Recovery checks also bound one-second windows against fast-forwarding and verify
+input still works. Both settled audio windows had nonzero samples and no new
+underruns, drops or resyncs. Physical speaker playback was not tested. Frame rates
+above count presentations, not unique frames or equivalence with a stock phone.
+These are functionality/pacing checks, not an isolated compiler speedup result.
+
+An unpaced smoke replay captured 30 unique Snakes frames in 0.653 host seconds
+while guest time advanced 1.490 seconds, with zero instructions. This verifies
+that count-free execution still runs unpaced; it is not an A/B speed measurement.
+Four focused native timer cases passed 32 assertions, including event delivery,
+cancellation, callback rescheduling, pauses, stall recovery and reset. The rebuilt
+WASM watchdog tests also passed finite-region/proof rejection and external
+atomic interruption checks.
+
+The frozen build and active watchdog configuration were restored on the LAN
+service. Fresh Chromium checks through the actual game picker showed Snakes by
+10.00 seconds and Sky Force by 11.52 seconds, with working input and zero
+instruction totals. The first picker replay reached Snakes gameplay but stopped
+at Sky Force's ship-selection menu; a separate longer Sky Force replay verified
+Stage 1 combat, directional input, scrolling scenery and increasing score.
+A fresh Firefox startup check
+also displayed Snakes, by its 35.93-second sample; its screenshot calls add about
+ten seconds between observations, so this is not a precise startup comparison.
+The served WASM SHA-256 matches the frozen build. These checks use versioned
+assets and no browser-side compiler policy override.
+See `WATCHDOG_HOST_CLOCK_EVIDENCE.json` and local artifacts under
+`/home/claude/.scratch/eka-watchdog/host-clock`. Reload existing tabs to load the
+new build and initialization policy.
 
 ## Equal-work mechanism check
 

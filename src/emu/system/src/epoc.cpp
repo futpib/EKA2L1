@@ -48,8 +48,10 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <fstream>
 #include <string>
+#include <thread>
 
 #include <disasm/disasm.h>
 #include <drivers/itc.h>
@@ -824,6 +826,9 @@ namespace eka2l1 {
             }
         }
 
+        const bool paced_clock = common::benchmark::event_clock && common::benchmark::paced;
+        if (paced_clock) timing_->start_host_clock();
+        bool pending_watchdog = false;
         if (to_run != nullptr) {
             common::performance::scope run_scope(common::performance::cpu_run);
             if (!should_step) {
@@ -831,7 +836,7 @@ namespace eka2l1 {
                 // slice that has not started. Otherwise pacing can repeatedly
                 // advance guest time without executing any guest code.
                 if (common::benchmark::event_clock)
-                    arm::aot::watchdog::request.store(0, std::memory_order_relaxed);
+                    pending_watchdog = arm::aot::watchdog::request.exchange(0, std::memory_order_relaxed);
                 cpu->run(timing_->deterministic()
                     ? std::min<std::uint32_t>(to_run->get_remaining_screenticks(), 4840)
                     : to_run->get_remaining_screenticks());
@@ -850,11 +855,21 @@ namespace eka2l1 {
         if (timing_->deterministic()) {
             common::performance::scope timer_scope(common::performance::timers);
             if (common::benchmark::event_clock) {
-                // Experimental virtual CPU slices: idle jumps to an event;
-                // host preemption charges at most the remaining guest slice.
-                // No elapsed host time is copied into the guest clock.
                 const bool preempted = arm::aot::watchdog::request.exchange(0, std::memory_order_relaxed);
-                if (!to_run || preempted) {
+                if (paced_clock) {
+                    // A yield request controls execution, not the amount of
+                    // guest time consumed. Sample host time only at watchdog
+                    // boundaries or while idle, never per guest instruction.
+                    if (!to_run || pending_watchdog || preempted) {
+                        const auto now = timing_->microseconds();
+                        timing_->advance_host_clock();
+                        if (to_run) to_run->add_ticks(static_cast<int>(std::min<std::uint64_t>(
+                            to_run->get_remaining_screenticks(),
+                            (timing_->microseconds() - now) * kern_->capped_cpu_hz() / 1000000)));
+                    }
+                } else if (!to_run || preempted) {
+                    // Unpaced execution retains virtual CPU slices and skips
+                    // idle waits without tying guest time to the host clock.
                     const auto now = timing_->microseconds();
                     const auto hz = kern_->capped_cpu_hz();
                     const auto quantum = to_run ? std::max<std::uint64_t>(1,
@@ -870,6 +885,8 @@ namespace eka2l1 {
         if (!kern_->should_terminate()) {
             common::performance::scope scheduler_scope(common::performance::scheduler);
             kern_->reschedule();
+            if (paced_clock && !kern_->crr_thread())
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
         } else {
             exit = true;
             return 0;
