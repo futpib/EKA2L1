@@ -12,7 +12,7 @@ not for the remaining ten hotspots.
 | 1 | Static built-in syscall bindings | Adopted and served on LAN; [full result](STATIC_SVC_BINDINGS_RESULTS.md) | Snakes +0.19% (flat), Sky Force +2.53% CPU throughput over both batches, 7/8 faster pairs |
 | 2 | Redundant exclusive-monitor clearing | Adopted and served on LAN; [full result](EMPTY_MONITOR_CLEAR_RESULTS.md) | Sky Force +3.38% CPU throughput, 3/4 faster pairs; Snakes flat (-0.09%) |
 | 3 | EUser list scanning | Adopted and served on LAN; [full result](LIST_SCAN_RESULTS.md) | Sky Force +5.61% CPU throughput, 4/4 faster pairs; Snakes -0.16% (flat) |
-| 4 | Audio interpolation SIMD | Prototype passes 7,680 exact scalar/SIMD comparisons; game replays and timing pending | No speed claim |
+| 4 | Audio interpolation SIMD | Adopted and served on LAN; [full result](AUDIO_SIMD_RESULTS.md) | Sky Force +3.03% retained mean, 4/4 faster pairs (three +0.80% to +1.33%); Snakes -0.47% |
 | 5 | ROM lookup, RAM code, Cone/Ws32 and remaining runner work | Native code inspected; independent candidates remain under investigation | No speed claim |
 | 6 | Private runner counters and registry acquisition | Adopted and served on LAN; [full result](RUNNER_LOCALS_RESULTS.md) | Snakes +3.01%, Sky Force +5.84% CPU throughput; 4/4 faster pairs in each |
 | 7 | Combined ROM range checks | Not adopted; [full result](ROM_RANGE_RESULTS.md) and [patch](ROM_RANGE_EXPERIMENT.patch) | Snakes +0.02%, Sky Force +0.26%; 2/4 faster pairs in each |
