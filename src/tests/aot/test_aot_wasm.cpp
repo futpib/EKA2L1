@@ -5576,31 +5576,35 @@ static std::uint32_t runner_test_function(ARMul_State *cpu) {
     if(runner_test_action==2)cpu->NumInstrsToExecute=0;
     if(runner_test_action==3 || runner_test_action==4)cpu->NirqSig=0;
     if(runner_test_action==5)cpu->Reg[15]=0x54320;
+    if(runner_test_action==6)global_registry().unregister_function(0x54300);
     return 1;
 }
 static bool test_execution_limits() {
-    struct restore {bool ram=ram_compilation_enabled;
-        ~restore(){ram_compilation_enabled=ram;global_registry().unregister_function(0x54300);}} saved;
+    struct restore {bool ram=ram_compilation_enabled;unsigned path=hotpath_policy, memory=memory_experiment::mode, unsafe=eka2l1::common::code_tracking::unsafe_code_mode;
+        ~restore(){hotpath_policy=path;memory_experiment::mode=memory;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;ram_compilation_enabled=ram;global_registry().unregister_function(0x54300);}} saved;
     if(execution_limits_text()!="512,32,8,512")return false;
     test_mem memory;r12l1::exclusive_monitor monitor(1);auto core=make_cpu(memory,monitor);
     ram_compilation_enabled=false;global_registry().register_function(0x54300,runner_test_function);
     auto state=std::make_unique<ARMul_State>(core.get(),USER32MODE);
     unsigned checks=0;
     constexpr unsigned cap=runner_region_limit;
+    for(unsigned path:{0u,2u})for(unsigned memory:{0u,2u})for(unsigned unsafe:{0u,3u})
     for(unsigned budget:{0u,1u,63u,64u,65u,511u,512u,513u,4840u})
-    for(unsigned action=0;action<6;++action) {
+    for(unsigned action=0;action<7;++action) {
+        hotpath_policy=path;memory_experiment::mode=memory;eka2l1::common::code_tracking::unsafe_code_mode=unsafe;
+        global_registry().register_function(0x54300,runner_test_function);
         runner_test_action=action;runner_test_calls=0;
         auto &cpu=*state;cpu.Reset();cpu.mem_cache_=core->mem_cache();cpu.Reg[0]=0;cpu.Reg[15]=0x54300;cpu.TFlag=0;
         cpu.NumInstrsToExecute=budget;cpu.aot_budget=budget;cpu.NirqSig=1;cpu.Cpsr=16|(action==4?0x80:0);
         const auto result=execute_chain(&cpu,runner_test_function);
-        const auto want=!budget?0u:action==1?0u:(action==2||action==3||action==5)?1u:std::min(cap,budget);
+        const auto want=!budget?0u:action==1?0u:(action==2||action==3||action==5||action==6)?1u:std::min(cap,budget);
         const auto calls=(!budget)?0u:action==1?1u:want;
         if(result.instructions!=want || result.blocks!=calls || runner_test_calls!=calls || cpu.Reg[0]!=want) {
             printf(" FAIL real runner cap=%u budget=%u action=%u instructions=%u/%u blocks=%u/%u\n",cap,budget,action,result.instructions,want,result.blocks,calls);return false;
         }
         ++checks;
     }
-    printf(" PASS execution limits validation and %u real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor checks\n",checks);
+    printf(" PASS execution limits validation and %u real runner budget/zero/stop/IRQ/masked-IRQ/missing-successor/registry-mutation checks across eight policy combinations\n",checks);
     return true;
 }
 

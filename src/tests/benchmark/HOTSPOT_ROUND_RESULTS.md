@@ -14,6 +14,7 @@ not for the remaining ten hotspots.
 | 3 | EUser list scanning | Adopted and served on LAN; [full result](LIST_SCAN_RESULTS.md) | Sky Force +5.61% CPU throughput, 4/4 faster pairs; Snakes -0.16% (flat) |
 | 4 | Audio interpolation SIMD | Prototype passes 7,680 exact scalar/SIMD comparisons; game replays and timing pending | No speed claim |
 | 5 | ROM lookup, RAM code, Cone/Ws32 and remaining runner work | Native code inspected; independent candidates remain under investigation | No speed claim |
+| 6 | Private runner counters and registry acquisition | Adopted and served on LAN; [full result](RUNNER_LOCALS_RESULTS.md) | Snakes +3.01%, Sky Force +5.84% CPU throughput; 4/4 faster pairs in each |
 
 The syscall candidate keeps owning snapshots for stateful callbacks that can
 change their own registration. Built-in bindings use a static bridge with a

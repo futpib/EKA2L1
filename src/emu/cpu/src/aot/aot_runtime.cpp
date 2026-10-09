@@ -247,7 +247,7 @@ __forceinline
 #else
 __attribute__((always_inline))
 #endif
-static aot_func lookup_compiled_impl(ARMul_State *cpu) {
+static aot_func lookup_compiled_impl(ARMul_State *cpu, const registry &functions) {
     if constexpr(Profile) if(exit_census::enabled)census_entry=nullptr;
     // TrustBytes is selected only after the frozen verifier stride is zero.
     if constexpr(!TrustBytes) if (validation_running) return nullptr;
@@ -257,7 +257,7 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
         // Trusted-byte chains emit no interval readers. Keep publication for
         // mutation-compatible execution and diagnostic/reference paths.
         if constexpr(!TrustBytes) cpu->aot_code_begin = cpu->aot_code_end = 0;
-        auto function = global_registry().lookup(pc_mode);
+        auto function = functions.lookup(pc_mode);
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !function) common::guest_profile::state.event("rom_missing",pc_mode);
         return function;
     }
@@ -297,10 +297,10 @@ static aot_func lookup_compiled_impl(ARMul_State *cpu) {
 
 aot_func lookup_compiled(ARMul_State *cpu) {
     if (common::guest_profile::enabled && common::performance::enabled && common::performance::detailed)
-        return lookup_compiled_impl<true>(cpu);
+        return lookup_compiled_impl<true>(cpu, global_registry());
     if (!verification_stride() && hotpath_policy == 2 && common::code_tracking::skip_code_scans())
-        return lookup_compiled_impl<false, true>(cpu);
-    return lookup_compiled_impl<false>(cpu);
+        return lookup_compiled_impl<false, true>(cpu, global_registry());
+    return lookup_compiled_impl<false>(cpu, global_registry());
 }
 
 template<bool Verify, bool Profile, bool TrustBytes = false, bool Direct = false>
@@ -309,15 +309,17 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         if(cpu->parent()->experimental_memory) cpu->aot_tlb=cpu->parent()->experimental_pointer;
     }
     const auto budget = cpu->aot_budget;
-    compiled_run result;
+    const auto &functions = global_registry();
+    // Keep counters private to this invocation until returning the result.
+    std::uint32_t instructions = 0, blocks = 0;
     // The owning core and its embedded TLB storage outlive this chain. Entries
     // still change on remaps; only the address of their fixed array is reused.
     auto *tlb = static_cast<dyncom_core *>(cpu->parent())->mem_cache();
     const auto tlb_address = tlb->page_bits == 12
         ? static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(tlb->entries)) : 0;
 
-    while (function && result.instructions < budget && result.blocks < runner_region_limit) {
-        cpu->aot_budget = budget - result.instructions;
+    while (function && instructions < budget && blocks < runner_region_limit) {
+        cpu->aot_budget = budget - instructions;
         if constexpr (Profile) count_ram_dispatch(cpu);
         if constexpr (Verify) validation_begin(cpu);
         if constexpr(!Direct) cpu->aot_tlb = Verify && validating ? 0 : tlb_address;
@@ -393,33 +395,33 @@ static compiled_run execute_chain_impl(ARMul_State *cpu, aot_func function) {
         if constexpr (Verify) validation_end(cpu, count);
         if (count > cpu->aot_budget) std::abort(); // generated-code contract
         if (Profile && (common::guest_profile::enabled && common::performance::counting()) && !count) common::guest_profile::state.event("compiled_zero",cpu->Reg[15] | cpu->TFlag);
-        ++result.blocks;
-        result.instructions += count;
+        ++blocks;
+        instructions += count;
         // Zero already stops an ordinary unsuccessful dispatch. Decode traps
         // only on that exit, keeping pending-trap loads out of successful regions.
         if (!returned_count) {
             if constexpr (!Verify && !Profile) {
                 if (cpu->aot_exit & svc_pending) {
                     if (cpu->aot_svc_instructions > cpu->aot_budget) std::abort();
-                    result.instructions += cpu->aot_svc_instructions;
+                    instructions += cpu->aot_svc_instructions;
                 }
             }
             break;
         }
-        if (!cpu->NumInstrsToExecute || result.instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
+        if (!cpu->NumInstrsToExecute || instructions == budget || (!cpu->NirqSig && !(cpu->Cpsr & 0x80))) break;
         cpu->Reg[15] &= cpu->TFlag ? ~1u : ~3u;
         // This stays inside the compiled runner. Every RAM successor retains
         // mapping/lifetime validation. Byte-mutation detection is policy-dependent;
         // trusted-byte modes intentionally permit stale code after guest writes.
-        function = lookup_compiled_impl<Profile, TrustBytes>(cpu);
+        function = lookup_compiled_impl<Profile, TrustBytes>(cpu, functions);
     }
     if constexpr(Profile) if(exit_census::counting()) {
-        const char *why = !cpu->NumInstrsToExecute ? "stop" : result.instructions==budget ? "budget"
+        const char *why = !cpu->NumInstrsToExecute ? "stop" : instructions==budget ? "budget"
             : (!cpu->NirqSig && !(cpu->Cpsr&0x80)) ? "interrupt"
-            : !function ? "successor_unavailable" : (result.blocks==runner_region_limit) ? "region_cap" : "zero_progress";
+            : !function ? "successor_unavailable" : (blocks==runner_region_limit) ? "region_cap" : "zero_progress";
         ++exit_census::runners[why];
     }
-    return result;
+    return {instructions, blocks};
 }
 
 template<bool Direct> static compiled_run execute_chain_selected(ARMul_State *cpu, aot_func function) {
