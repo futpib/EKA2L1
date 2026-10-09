@@ -27,6 +27,7 @@
 #include <common/code_tracking.h>
 
 #include <cstring>
+#include <algorithm>
 #include <map>
 #include <set>
 
@@ -97,6 +98,7 @@ namespace eka2l1::arm::aot {
         bool direct_memory_used = false;
         bool entry_supported = true;
         bool unsupported = false; // set by bail_unsupported()
+        unsigned helper_calls = 0;
         // Number of early-exit bails emitted into the function body.
         // Incremented every time the decoder gives up mid-function and
         // hands control back to the interpreter. Lower is better — high
@@ -172,6 +174,7 @@ namespace eka2l1::arm::aot {
 
         // Call imported function (index relative to imports)
         void slow_call(std::uint32_t func_idx) {
+            ++helper_calls;
             source_scope provenance(source, source_kind::helper);
             cache.barrier_at(b.size());
             op(op_call); leb(b, func_idx);
@@ -690,42 +693,59 @@ namespace eka2l1::arm::aot {
         return targets;
     }
 
-    translate_result translate_thumb_block(
-        const std::uint8_t *code,
-        std::size_t code_size,
-        std::uint32_t start_address,
-        const sibling_map *siblings,
-        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers,
-        const code_window *immutable_code)
-    {
-        // Bounded blocks exit on branches instead of recursively calling siblings.
-        // Keep guest-visible instructions (including veneers) in the execution stream.
-        if (bounded) { siblings = nullptr; dll_code = nullptr; }
-        translate_result tr;
-        tr.complete = false;
-        wasm_func_def &result = tr.func;
-        result.export_name = "f_" + std::to_string(start_address);
+    struct thumb_fusion_context {
+        const code_window *code = nullptr;
+        std::set<std::uint32_t> path;
+        unsigned emitted = 0;
+    };
 
-        // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
-        //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
-        const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
-        result.num_locals = memory_experiment::enabled() ? 14 : direct_memory ? 11 : 6;
-        result.num_f32_locals = 2;
-        result.num_f64_locals = 1;
+    static void emit_thumb_block(translate_result &tr, emit &w,
+        const std::uint8_t *code, std::size_t code_size, std::uint32_t start_address,
+        const sibling_map *siblings, const code_window *dll_code, bool bounded,
+        bool stop_after_store, const code_window *immutable_code,
+        unsigned count_base, thumb_fusion_context *fusion)
+    {
+        auto &result = tr.func;
+        const bool direct_memory = w.direct_memory;
         const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
         const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
-        const std::uint32_t FTMP1 = 7, FTMP2 = 8;
-        const std::uint32_t DTMP1 = 9;
-
-        emit w{result.body};
-        w.source.marks = &result.sources;
-        w.direct_memory = direct_memory;
-        w.cache.enabled = bounded && cache_registers;
-        // Keep repeated PC, budget, endian and TLB accesses in locals. Slow
-        // callbacks still publish/reload the complete cached state.
-        w.cache.runtime_fields = direct_memory;
-        w.cache.program_counter = direct_memory;
-        w.cache.first_local = result.num_locals + 1;
+        const std::uint32_t FTMP1 = 7, FTMP2 = 8, DTMP1 = 9;
+        const auto branch = [&](std::uint32_t target, unsigned count, bool checked = false) {
+            std::uint16_t first = 0;
+            const bool candidate = fusion && count < 128 && fusion->emitted < 512
+                && tr.fused_edges < 8 && !fusion->path.count(target) && !(target & 1)
+                && fusion->code->read(target, &first, sizeof(first))
+                && first < 0xe800 && (first & 0xff00) != 0xdf00;
+            if (!candidate) { w.bail(target, count); return; }
+            // A memory callback can request a stop or interrupt. Pure prefixes
+            // reuse the runner's entry checks; callbacks retain its edge check.
+            if (!checked && w.helper_calls) {
+                source_scope provenance(w.source, source_kind::dispatch);
+                w.load_i32(S::NUM_INSTRS_TO_EXECUTE);
+                w.load_i32(S::NUM_INSTRS_TO_EXECUTE + 4);
+                w.op(op_i32_or); w.op(op_i32_eqz);
+                w.load_i32(S::NIRQ); w.op(op_i32_eqz);
+                w.load_i32(S::CPSR); w.i32_const(0x80); w.op(op_i32_and);
+                w.op(op_i32_eqz); w.op(op_i32_and); w.op(op_i32_or);
+                w.op(op_if); w.op(type_void); w.bail(target, count, exit_census::guard); w.op(op_end);
+            }
+            const auto path = fusion->path;
+            const auto helpers = w.helper_calls;
+            const auto source = w.source;
+            const auto scope = w.cache.active_scope;
+            w.cache.active_scope = std::make_shared<state_local_cache::entry_fields>();
+            w.cache.active_scope->parent = scope;
+            w.cache.barriers.push_back({w.b.size(), true, w.cache.active_scope});
+            const auto offset = target - fusion->code->base;
+            const auto size = std::min<std::size_t>(256, fusion->code->size - offset);
+            ++tr.fused_edges;
+            emit_thumb_block(tr, w, fusion->code->host + offset, size, target,
+                nullptr, nullptr, true, false, immutable_code, count, fusion);
+            fusion->path = path;
+            w.helper_calls = helpers;
+            w.source = source;
+            w.cache.active_scope = scope;
+        };
 
         // Build instruction address → index map
         std::map<std::uint32_t, std::uint32_t> addr_to_idx;
@@ -755,7 +775,7 @@ namespace eka2l1::arm::aot {
         // cheap: try_translate_at rejects invalid addresses.
         {
             auto broad = find_branch_targets_broad(code, code_size, start_address);
-            tr.branch_targets.assign(broad.begin(), broad.end());
+            tr.branch_targets.insert(tr.branch_targets.end(), broad.begin(), broad.end());
         }
 
         // Second pre-scan: collect forward branch targets. Forward means the
@@ -843,7 +863,7 @@ namespace eka2l1::arm::aot {
         const std::uint32_t N_fwd = static_cast<std::uint32_t>(fwd_sorted.size());
 
         // Emit each instruction with branch target checks
-        std::uint32_t insn_idx = 0;
+        std::uint32_t insn_idx = count_base;
         // One past the last byte consumed by a successfully-decoded insn.
         // Tracks how far the decoder walked before breaking out of the
         // loop (typically at a terminator like POP {PC}).
@@ -866,6 +886,10 @@ namespace eka2l1::arm::aot {
             }
             std::uint16_t insn = code[i] | (code[i+1] << 8);
             std::uint32_t insn_addr = start_address + static_cast<std::uint32_t>(i);
+            if (fusion) {
+                fusion->path.insert(insn_addr);
+                ++fusion->emitted;
+            }
             w.census_pc=insn_addr|1;w.census_opcode=insn;
             w.source.pc = insn_addr | 1; w.source.kind = source_kind::guest;
 
@@ -991,6 +1015,8 @@ namespace eka2l1::arm::aot {
                                 w.get_local(TMP1); w.i32_const(1); w.op(op_i32_and);
                                 w.set_local(TMP2); w.store_i32(S::TFLAG, TMP2);
                                 w.bail_preserve_pc(insn_idx + 3);
+                            } else if (kind == 0xF800) {
+                                branch(target, insn_idx + 2, true);
                             } else {
                                 w.bail(target, insn_idx + 2);
                             }
@@ -1122,7 +1148,7 @@ namespace eka2l1::arm::aot {
                         }
                         // Set PC to target and bail — interpreter re-dispatches.
                         // Use w.bail() so bail_count is tracked correctly.
-                        w.bail(target, insn_idx + 1);
+                        branch(target, insn_idx + 1);
                         // Resume point at next_pc: when control returns from
                         // the external callee via BX LR, we want to dispatch
                         // back into AOT instead of the interpreter. Only
@@ -2025,10 +2051,10 @@ namespace eka2l1::arm::aot {
                             // Branch to loop top (depth depends on nesting)
                             // For now, bail — proper in-block branch would
                             // need br_table integration.
-                            w.bail(target, insn_idx + 1);
+                            branch(target, insn_idx + 1);
                         } else {
                             // Out-of-block: bail to interpreter
-                            w.bail(target, insn_idx + 1);
+                            branch(target, insn_idx + 1);
                         }
                         i += 2;
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
@@ -2068,7 +2094,7 @@ namespace eka2l1::arm::aot {
                         //
                         // For now: bail with target if taken, fall through if not.
                         // This is conservative but correct.
-                        w.bail(target, insn_idx + 1);
+                        branch(target, insn_idx + 1);
                         // TODO: mirror narrow B<cond> inline handling
                         i += 2;
                         decoded_end_offset = static_cast<std::uint32_t>(i) + 2;
@@ -3746,7 +3772,7 @@ namespace eka2l1::arm::aot {
                         w.op(op_i32_add);
                         w.ret();
                     } else {
-                        w.bail(target, insn_idx + 1);
+                        branch(target, insn_idx + 1);
                     }
                     w.op(op_end);
                 }
@@ -3785,7 +3811,7 @@ namespace eka2l1::arm::aot {
                         w.op(op_i32_add);
                         w.ret();
                     } else {
-                        w.bail(target, insn_idx + 1);
+                        branch(target, insn_idx + 1);
                     }
                 }
                 // Unconditional B terminates linear control flow. If
@@ -4448,11 +4474,56 @@ namespace eka2l1::arm::aot {
         if (bounded) w.bail(start_address + decoded_end_offset, insn_idx, decoded_end_offset>=code_size?exit_census::source_end:exit_census::emission_end);
         else { w.i32_const(num_insns); w.ret(); }
 
+        if (!count_base) tr.end_address = start_address + decoded_end_offset;
+    }
+
+    translate_result translate_thumb_block(
+        const std::uint8_t *code,
+        std::size_t code_size,
+        std::uint32_t start_address,
+        const sibling_map *siblings,
+        const code_window *dll_code, bool bounded, bool stop_after_store, bool cache_registers,
+        const code_window *immutable_code)
+    {
+        // Bounded blocks exit on branches instead of recursively calling siblings.
+        // Keep guest-visible instructions (including veneers) in the execution stream.
+        if (bounded) { siblings = nullptr; dll_code = nullptr; }
+        translate_result tr;
+        tr.complete = false;
+        wasm_func_def &result = tr.func;
+        result.export_name = "f_" + std::to_string(start_address);
+
+        // Locals: 0=state_ptr(param), 1=tmp1, 2=tmp2, 3=tmp3, 4=tmp4, 5=pc_idx, 6=addr_tmp
+        //         7=ftmp1(f32), 8=ftmp2(f32), 9=dtmp1(f64)
+        const bool direct_memory = bounded && cache_registers && thumb_direct_memory;
+        result.num_locals = memory_experiment::enabled() ? 14 : direct_memory ? 11 : 6;
+        result.num_f32_locals = 2;
+        result.num_f64_locals = 1;
+        const std::uint32_t TMP1 = 1, TMP2 = 2, TMP3 = 3, TMP4 = 4;
+        const std::uint32_t PC_IDX = 5, ADDR_TMP = 6;
+        const std::uint32_t FTMP1 = 7, FTMP2 = 8;
+        const std::uint32_t DTMP1 = 9;
+
+        emit w{result.body};
+        w.source.marks = &result.sources;
+        w.direct_memory = direct_memory;
+        w.cache.enabled = bounded && cache_registers;
+        // Keep repeated PC, budget, endian and TLB accesses in locals. Slow
+        // callbacks still publish/reload the complete cached state.
+        w.cache.runtime_fields = direct_memory;
+        w.cache.program_counter = direct_memory;
+        w.cache.first_local = result.num_locals + 1;
+
+        thumb_fusion_context fusion{immutable_code};
+        const bool fuse = thumb_region_fusion && bounded && direct_memory
+            && immutable_code && !stop_after_store && !exit_census::enabled;
+        if (fuse) w.cache.entry_scope = w.cache.active_scope = std::make_shared<state_local_cache::entry_fields>();
+        emit_thumb_block(tr, w, code, code_size, start_address, siblings, dll_code,
+            bounded, stop_after_store, immutable_code, 0, fuse ? &fusion : nullptr);
         finish_memory_locals(w);
         w.cache.finish(result);
         tr.entry_supported = w.entry_supported;
         tr.complete = !w.unsupported;
-        tr.end_address = start_address + decoded_end_offset;
         tr.bail_count = w.bail_count;
         return tr;
     }

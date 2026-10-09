@@ -276,6 +276,7 @@ EM_JS(int, js_run_aot_wasm, (const uint8_t* wasm_bytes, int wasm_len, uint8_t* s
         var instance = new WebAssembly.Instance(mod, {
             env: {
                 memory: wasmMemory,
+                eka_test_count: kind => { (globalThis.ekaTestCounts ||= new Float64Array(12))[kind]++; },
                 tlb_read32: Module._test_tlb_read32,
                 tlb_write32: Module._test_tlb_write32,
                 tlb_read8: Module._test_tlb_read8,
@@ -6350,6 +6351,8 @@ static bool test_memory_implementations() {
 
 #include "svc_return_fixture.h"
 
+#include "test_region_fusion.inc"
+
 int main(int argc, char **argv) {
     // Production module staging logs its result; standalone tests have no sink.
     eka2l1::log::filterings=std::make_unique<eka2l1::log_filterings>();
@@ -6410,6 +6413,8 @@ int main(int argc, char **argv) {
     if(argc==2 && std::string(argv[1])=="--precise-counts-only")return test_precise_instruction_counts()?0:1;
     if(argc==2 && std::string(argv[1])=="--compiled-svc-only")return test_compiled_svc_boundary()?0:1;
     if(argc==2 && std::string(argv[1])=="--division-sequences-only")return test_division_sequences()?0:1;
+    if(argc==2 && std::string(argv[1])=="--region-fusion-counts")return test_region_fusion(true)?0:1;
+    if(argc==2 && std::string(argv[1])=="--region-fusion-only")return test_region_fusion()?0:1;
     if(argc==2 && std::string(argv[1])=="--list-scan-only")return test_list_scan_summary()?0:1;
     if(argc==2 && std::string(argv[1])=="--loop-budget-only")return test_loop_budget_chunks()?0:1;
     if(argc==2 && std::string(argv[1])=="--sparse-rom-only")return test_sparse_rom_registry() && test_registry_lookup_lifecycle()?0:1;
@@ -7062,6 +7067,7 @@ int main(int argc, char **argv) {
     if (test_literal_pc_veneers()) passed++; else failed++;
     if (test_boundary_details()) passed++; else failed++;
     if (test_list_scan_summary()) passed++; else failed++;
+    if (test_region_fusion()) passed++; else failed++;
     if (test_loop_budget_chunks()) passed++; else failed++;
     if (test_division_sequences()) passed++; else failed++;
     if (test_inlined_leaves(arm_ir_policy::loop_budget_chunks)) passed++; else failed++;

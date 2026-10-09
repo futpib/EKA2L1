@@ -30,6 +30,7 @@
 namespace eka2l1::arm::aot {
     // Pre-initialization experiment, shared by eager ROM and hot translations.
     inline bool thumb_direct_memory = false;
+    inline bool thumb_region_fusion = true;
     // ARMul_State field offsets (must match the actual struct layout)
     struct state_offsets {
         static constexpr std::uint32_t REG = 0;          // Reg[0]
@@ -81,6 +82,7 @@ namespace eka2l1::arm::aot {
         // Research coverage metadata; never used to select guest addresses.
         unsigned proved_reads = 0, proved_writes = 0, budget_chunks = 0, loop_budget_chunks = 0, entry_budget_instructions = 0;
         unsigned summarized_helpers = 0;
+        unsigned fused_edges = 0;
         bool complete;  // true if entire block was translated without bailing
         // Addresses where execution may resume after a bail-out call
         // (the instruction immediately after a BLX Rm, BL Rm, or non-sibling
